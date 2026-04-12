@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"C:\\\\Users\\\\baner\\\\CopyFolder\\\\IoT_thoughts\\\\python-projects\\\\kaggle_experiments\\\\claude_projects\\\\copilot-sdk\\\\copilot_sdk\\\\protocols\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\baner\\\\CopyFolder\\\\IoT_thoughts\\\\python-projects\\\\kaggle_experiments\\\\claude_projects\\\\copilot-sdk\\\\copilot_sdk\\\\framework\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\baner\\\\CopyFolder\\\\IoT_thoughts\\\\python-projects\\\\kaggle_experiments\\\\claude_projects\\\\copilot-sdk\\\\examples\\\\hello_world\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\baner\\\\CopyFolder\\\\IoT_thoughts\\\\python-projects\\\\kaggle_experiments\\\\claude_projects\\\\copilot-sdk\\\\tests\")",
+      "Bash(python -c \"import gae; print\\(dir\\(gae\\)\\)\")",
+      "Bash(python -c \"from gae import build_profile_scorer, KernelType; import numpy as np; scorer = build_profile_scorer\\(categories=[''low_risk'',''high_risk''], actions=[''approve'',''review'',''reject''], centroids={''low_risk'':{''approve'':[0.5,0.5],''review'':[0.5,0.5],''reject'':[0.5,0.5]},''high_risk'':{''approve'':[0.5,0.5],''review'':[0.5,0.5],''reject'':[0.5,0.5]}}, n_factors=2, kernel=KernelType.L2\\); print\\(type\\(scorer\\)\\); print\\(dir\\(scorer\\)\\)\")",
+      "Bash(python -c \":*)",
+      "Bash(pip install:*)",
+      "Bash(pip show:*)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python examples/hello_world/demo.py)",
+      "Bash(python:*)"
+    ]
+  }
+}
