@@ -24,8 +24,8 @@ def test_hello_world_iks_cold_start():
         categories=cfg.categories, actions=cfg.actions,
         centroids=cfg.get_initial_centroids(),
         n_factors=cfg.n_factors, kernel=KernelType.L2)
-    mu_zero = np.full_like(scorer.mu, 0.5)
-    iks = compute_iks(scorer.mu, mu_zero, cfg.d_max)
+    mu_zero = np.full_like(scorer.centroids, 0.5)
+    iks = compute_iks(scorer.centroids, mu_zero, cfg.d_max)
     assert iks["current"] == 0.0, f"Expected 0.0 cold start IKS, got {iks['current']}"
 
 
@@ -41,7 +41,7 @@ def test_hello_world_demo_runs():
         categories=cfg.categories, actions=cfg.actions,
         centroids=cfg.get_initial_centroids(),
         n_factors=cfg.n_factors, kernel=KernelType.L2)
-    mu_zero = np.full_like(scorer.mu, 0.5)
+    mu_zero = np.full_like(scorer.centroids, 0.5)
 
     events = [
         {"id": "E1", "category": "low_risk",  "score_a": 0.9, "score_b": 0.8},
@@ -55,5 +55,5 @@ def test_hello_world_demo_runs():
         result = scorer.score(np.array(fv), cat_i)
         results.append(result)
     assert len(results) == 3
-    iks = compute_iks(scorer.mu, mu_zero, cfg.d_max)
+    iks = compute_iks(scorer.centroids, mu_zero, cfg.d_max)
     assert "current" in iks

@@ -17,7 +17,7 @@ scorer  = build_profile_scorer(
     categories=cfg.categories, actions=cfg.actions,
     centroids=cfg.get_initial_centroids(),
     n_factors=cfg.n_factors, kernel=KernelType.L2)
-mu_zero = np.full_like(scorer.mu, 0.5)
+mu_zero = np.full_like(scorer.centroids, 0.5)
 
 events = [
     {"id": "E1", "category": "low_risk",  "score_a": 0.9, "score_b": 0.8},
@@ -38,7 +38,7 @@ for event in events:
           f"factors={fv} -> {action} "
           f"(conf={result.confidence:.2f})")
 
-iks = compute_iks(scorer.mu, mu_zero, cfg.d_max)
+iks = compute_iks(scorer.centroids, mu_zero, cfg.d_max)
 print()
 print(f"IKS: {iks['current']:.1f} (cold start - no decisions yet)")
 print("copilot-sdk: same engine, any domain.")
