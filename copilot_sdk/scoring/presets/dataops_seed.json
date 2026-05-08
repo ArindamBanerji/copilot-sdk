@@ -1,0 +1,302 @@
+[
+  {
+    "event_id": "DOP-001",
+    "dataset": "orders_daily",
+    "category": "pipeline_failure",
+    "action_taken": "auto_approve",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.28,
+      "source_reliability": 0.42,
+      "recurrence_frequency": 0.82,
+      "downstream_urgency": 0.22,
+      "data_freshness": 0.88,
+      "business_criticality": 0.30
+    }
+  },
+  {
+    "event_id": "DOP-002",
+    "dataset": "payments_hourly",
+    "category": "pipeline_failure",
+    "action_taken": "auto_approve",
+    "is_correct": false,
+    "factors": {
+      "impact_scope": 0.74,
+      "source_reliability": 0.86,
+      "recurrence_frequency": 0.10,
+      "downstream_urgency": 0.82,
+      "data_freshness": 0.31,
+      "business_criticality": 0.88
+    }
+  },
+  {
+    "event_id": "DOP-003",
+    "dataset": "customer_events",
+    "category": "pipeline_failure",
+    "action_taken": "investigate",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.66,
+      "source_reliability": 0.54,
+      "recurrence_frequency": 0.34,
+      "downstream_urgency": 0.68,
+      "data_freshness": 0.44,
+      "business_criticality": 0.78
+    }
+  },
+  {
+    "event_id": "DOP-004",
+    "dataset": "risk_features",
+    "category": "pipeline_failure",
+    "action_taken": "pause_downstream",
+    "is_correct": false,
+    "factors": {
+      "impact_scope": 0.38,
+      "source_reliability": 0.72,
+      "recurrence_frequency": 0.28,
+      "downstream_urgency": 0.48,
+      "data_freshness": 0.58,
+      "business_criticality": 0.45
+    }
+  },
+  {
+    "event_id": "DOP-005",
+    "dataset": "product_catalog",
+    "category": "schema_change",
+    "action_taken": "auto_approve",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.18,
+      "source_reliability": 0.91,
+      "recurrence_frequency": 0.76,
+      "downstream_urgency": 0.16,
+      "data_freshness": 0.82,
+      "business_criticality": 0.22
+    }
+  },
+  {
+    "event_id": "DOP-006",
+    "dataset": "revenue_mart",
+    "category": "schema_change",
+    "action_taken": "auto_approve",
+    "is_correct": false,
+    "factors": {
+      "impact_scope": 0.81,
+      "source_reliability": 0.33,
+      "recurrence_frequency": 0.08,
+      "downstream_urgency": 0.73,
+      "data_freshness": 0.37,
+      "business_criticality": 0.92
+    }
+  },
+  {
+    "event_id": "DOP-007",
+    "dataset": "identity_dim",
+    "category": "schema_change",
+    "action_taken": "escalate_to_owner",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.69,
+      "source_reliability": 0.47,
+      "recurrence_frequency": 0.22,
+      "downstream_urgency": 0.75,
+      "data_freshness": 0.52,
+      "business_criticality": 0.84
+    }
+  },
+  {
+    "event_id": "DOP-008",
+    "dataset": "traffic_counts",
+    "category": "volume_anomaly",
+    "action_taken": "auto_approve",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.24,
+      "source_reliability": 0.61,
+      "recurrence_frequency": 0.70,
+      "downstream_urgency": 0.21,
+      "data_freshness": 0.79,
+      "business_criticality": 0.26
+    }
+  },
+  {
+    "event_id": "DOP-009",
+    "dataset": "partner_uploads",
+    "category": "volume_anomaly",
+    "action_taken": "auto_approve",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.35,
+      "source_reliability": 0.28,
+      "recurrence_frequency": 0.58,
+      "downstream_urgency": 0.33,
+      "data_freshness": 0.71,
+      "business_criticality": 0.36
+    }
+  },
+  {
+    "event_id": "DOP-010",
+    "dataset": "settlement_batches",
+    "category": "volume_anomaly",
+    "action_taken": "investigate",
+    "is_correct": false,
+    "factors": {
+      "impact_scope": 0.57,
+      "source_reliability": 0.76,
+      "recurrence_frequency": 0.18,
+      "downstream_urgency": 0.61,
+      "data_freshness": 0.42,
+      "business_criticality": 0.63
+    }
+  },
+  {
+    "event_id": "DOP-011",
+    "dataset": "inventory_snapshots",
+    "category": "quality_anomaly",
+    "action_taken": "auto_approve",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.27,
+      "source_reliability": 0.84,
+      "recurrence_frequency": 0.88,
+      "downstream_urgency": 0.24,
+      "data_freshness": 0.86,
+      "business_criticality": 0.29
+    }
+  },
+  {
+    "event_id": "DOP-012",
+    "dataset": "lead_scoring",
+    "category": "quality_anomaly",
+    "action_taken": "auto_approve",
+    "is_correct": false,
+    "factors": {
+      "impact_scope": 0.72,
+      "source_reliability": 0.66,
+      "recurrence_frequency": 0.12,
+      "downstream_urgency": 0.67,
+      "data_freshness": 0.39,
+      "business_criticality": 0.74
+    }
+  },
+  {
+    "event_id": "DOP-013",
+    "dataset": "policy_scores",
+    "category": "quality_anomaly",
+    "action_taken": "pause_downstream",
+    "is_correct": false,
+    "factors": {
+      "impact_scope": 0.62,
+      "source_reliability": 0.40,
+      "recurrence_frequency": 0.31,
+      "downstream_urgency": 0.76,
+      "data_freshness": 0.46,
+      "business_criticality": 0.81
+    }
+  },
+  {
+    "event_id": "DOP-014",
+    "dataset": "supplier_risk",
+    "category": "quality_anomaly",
+    "action_taken": "refer_to_specialist",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.64,
+      "source_reliability": 0.36,
+      "recurrence_frequency": 0.24,
+      "downstream_urgency": 0.69,
+      "data_freshness": 0.57,
+      "business_criticality": 0.72
+    }
+  },
+  {
+    "event_id": "DOP-015",
+    "dataset": "user_activity",
+    "category": "freshness_violation",
+    "action_taken": "auto_approve",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.20,
+      "source_reliability": 0.78,
+      "recurrence_frequency": 0.74,
+      "downstream_urgency": 0.19,
+      "data_freshness": 0.68,
+      "business_criticality": 0.27
+    }
+  },
+  {
+    "event_id": "DOP-016",
+    "dataset": "search_index",
+    "category": "freshness_violation",
+    "action_taken": "auto_approve",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.31,
+      "source_reliability": 0.30,
+      "recurrence_frequency": 0.55,
+      "downstream_urgency": 0.34,
+      "data_freshness": 0.63,
+      "business_criticality": 0.35
+    }
+  },
+  {
+    "event_id": "DOP-017",
+    "dataset": "billing_exports",
+    "category": "freshness_violation",
+    "action_taken": "escalate_to_owner",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.76,
+      "source_reliability": 0.58,
+      "recurrence_frequency": 0.27,
+      "downstream_urgency": 0.84,
+      "data_freshness": 0.21,
+      "business_criticality": 0.90
+    }
+  },
+  {
+    "event_id": "DOP-018",
+    "dataset": "feature_store",
+    "category": "transform_drift",
+    "action_taken": "auto_approve",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.29,
+      "source_reliability": 0.88,
+      "recurrence_frequency": 0.79,
+      "downstream_urgency": 0.25,
+      "data_freshness": 0.80,
+      "business_criticality": 0.33
+    }
+  },
+  {
+    "event_id": "DOP-019",
+    "dataset": "campaign_attribution",
+    "category": "transform_drift",
+    "action_taken": "auto_approve",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.34,
+      "source_reliability": 0.25,
+      "recurrence_frequency": 0.52,
+      "downstream_urgency": 0.37,
+      "data_freshness": 0.73,
+      "business_criticality": 0.39
+    }
+  },
+  {
+    "event_id": "DOP-020",
+    "dataset": "customer_360",
+    "category": "transform_drift",
+    "action_taken": "investigate",
+    "is_correct": true,
+    "factors": {
+      "impact_scope": 0.59,
+      "source_reliability": 0.69,
+      "recurrence_frequency": 0.36,
+      "downstream_urgency": 0.57,
+      "data_freshness": 0.49,
+      "business_criticality": 0.62
+    }
+  }
+]

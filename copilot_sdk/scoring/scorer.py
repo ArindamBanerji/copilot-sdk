@@ -1,0 +1,258 @@
+"""GAE-backed CompoundingScorer facade."""
+
+from __future__ import annotations
+
+import json
+import sys
+import time
+import uuid
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Optional
+
+import numpy as np
+
+from copilot_sdk.scoring.config import DomainPreset
+from copilot_sdk.scoring.fingerprint import FingerprintResult, compute_fingerprint
+from copilot_sdk.scoring.presets import PRESET_REGISTRY
+from copilot_sdk.scoring.storage import DecisionStore
+from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
+
+
+def _ensure_gae_path() -> None:
+    workspace = Path(__file__).resolve().parents[3]
+    gae_path = workspace / "graph-attention-engine-v50"
+    if gae_path.exists() and str(gae_path) not in sys.path:
+        sys.path.insert(0, str(gae_path))
+
+
+_ensure_gae_path()
+
+from gae.profile_scorer import ProfileScorer  # noqa: E402
+
+
+@dataclass(frozen=True)
+class ScoreResult:
+    decision_id: str
+    action: str
+    action_index: int
+    confidence: float
+    probabilities: list[float]
+    category: str
+    factors: dict[str, float]
+
+
+@dataclass(frozen=True)
+class LearnResult:
+    decision_id: str
+    iks_before: float
+    iks_after: float
+    centroid_delta: float
+    decisions_total: int
+    outcome: str
+
+
+class CompoundingScorer:
+    """User-facing wrapper around GAE ProfileScorer."""
+
+    def __init__(self, preset: DomainPreset, store: DecisionStore, scorer: ProfileScorer):
+        self._preset = preset
+        self._store = store
+        self._scorer = scorer
+
+    @classmethod
+    def from_preset(cls, domain: str, db_path: Optional[str] = None) -> "CompoundingScorer":
+        if domain not in PRESET_REGISTRY:
+            available = ", ".join(sorted(PRESET_REGISTRY)) or "(none)"
+            raise ValueError(f"Unknown preset {domain!r}. Available presets: {available}")
+
+        preset_cls = PRESET_REGISTRY[domain]
+        preset = preset_cls()
+        if db_path is None:
+            data_dir = Path(__file__).resolve().parents[1] / "data"
+            data_dir.mkdir(parents=True, exist_ok=True)
+            db_path = str(data_dir / f"{domain}.db")
+
+        store = DecisionStore(db_path)
+        centroids = store.load_latest_centroids()
+        if centroids is None:
+            centroids = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
+
+        scorer = ProfileScorer(
+            mu=centroids,
+            actions=list(preset.shape.action_names),
+            categories=list(preset.shape.category_names),
+        )
+        return cls(preset=preset, store=store, scorer=scorer)
+
+    def score(self, factors: dict[str, float], category: str) -> ScoreResult:
+        assert category in self._preset.shape.category_names, f"unknown category: {category}"
+        unknown = set(factors) - set(self._preset.shape.factor_names)
+        assert not unknown, f"unknown factors: {sorted(unknown)}"
+
+        category_index = self._preset.shape.category_names.index(category)
+        factor_values = {
+            name: float(factors.get(name, 0.5))
+            for name in self._preset.shape.factor_names
+        }
+        factor_vector = np.asarray(
+            [factor_values[name] for name in self._preset.shape.factor_names],
+            dtype=np.float64,
+        )
+
+        gae_result = self._scorer.score(factor_vector, category_index)
+        action_index = int(gae_result.action_index)
+        action = str(gae_result.action_name)
+        if action != self._preset.shape.action_names[action_index]:
+            action = self._preset.shape.action_names[action_index]
+
+        probabilities = [float(value) for value in gae_result.probabilities]
+        decision_id = uuid.uuid4().hex[:12]
+
+        self._store.save_decision(
+            decision_id=decision_id,
+            domain=self._preset.name,
+            category=category,
+            category_index=category_index,
+            factors=factor_values,
+            factor_vector=factor_vector,
+            recommended_action=action,
+            recommended_index=action_index,
+            confidence=float(gae_result.confidence),
+            probabilities=probabilities,
+            created_at=time.time(),
+        )
+
+        return ScoreResult(
+            decision_id=decision_id,
+            action=action,
+            action_index=action_index,
+            confidence=float(gae_result.confidence),
+            probabilities=probabilities,
+            category=category,
+            factors=factor_values,
+        )
+
+    def learn(self, decision_id: str, actual_action: str, outcome: str = "confirmed") -> LearnResult:
+        del outcome
+        decision = self._store.get_decision(decision_id)
+        assert actual_action in self._preset.shape.action_names, f"unknown action: {actual_action}"
+
+        actual_index = self._preset.shape.action_names.index(actual_action)
+        predicted_index = int(decision["recommended_index"])
+        is_correct = actual_action == decision["recommended_action"]
+        factor_vector = np.asarray(decision["factor_vector"], dtype=np.float64)
+
+        iks_before = self._compute_iks()
+        before_centroids = self._scorer.centroids.copy()
+
+        old_eta = self._scorer.eta
+        old_eta_override = self._scorer.eta_override
+        try:
+            self._scorer.eta = float(self._preset.eta_confirm)
+            self._scorer.eta_override = (
+                None
+                if is_correct
+                else float(self._preset.eta_override) * float(self._preset.penalty_ratio)
+            )
+            update_result = self._scorer.update(
+                f=factor_vector,
+                category_index=int(decision["category_index"]),
+                action_index=predicted_index,
+                correct=is_correct,
+                gt_action_index=None if is_correct else actual_index,
+                confidence=float(decision["confidence"]),
+            )
+        finally:
+            self._scorer.eta = old_eta
+            self._scorer.eta_override = old_eta_override
+
+        centroid_delta = float(np.linalg.norm(self._scorer.centroids - before_centroids))
+        self._store.save_outcome(
+            decision_id=decision_id,
+            actual_action=actual_action,
+            actual_index=actual_index,
+            is_correct=is_correct,
+            verified_at=time.time(),
+        )
+        iks_after = self._compute_iks()
+        self._store.save_centroids(self._scorer.centroids, iks=iks_after)
+
+        return LearnResult(
+            decision_id=decision_id,
+            iks_before=iks_before,
+            iks_after=iks_after,
+            centroid_delta=centroid_delta,
+            decisions_total=int(update_result.decision_count),
+            outcome=str(update_result.outcome),
+        )
+
+    def fingerprint(self) -> FingerprintResult:
+        return compute_fingerprint(
+            self._store.get_verified_decisions(),
+            list(self._preset.shape.factor_names),
+        )
+
+    def trajectory(self) -> TrajectoryResult:
+        return compute_trajectory(
+            self._store.get_centroid_checkpoints(),
+            self._store.get_verified_decisions(),
+            self._preset.shape,
+        )
+
+    def export(self, path: str | Path) -> None:
+        destination = Path(path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "domain": self._preset.name,
+            "centroids": self._scorer.centroids.tolist(),
+            "decisions": self._store.get_all_decisions(),
+            "shape": {
+                "n_categories": self._preset.shape.n_categories,
+                "n_actions": self._preset.shape.n_actions,
+                "n_factors": self._preset.shape.n_factors,
+                "categories": list(self._preset.shape.category_names),
+                "actions": list(self._preset.shape.action_names),
+                "factors": list(self._preset.shape.factor_names),
+            },
+        }
+        destination.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+    @classmethod
+    def load(cls, path: str | Path, db_path: Optional[str] = None) -> "CompoundingScorer":
+        state = json.loads(Path(path).read_text(encoding="utf-8"))
+        scorer = cls.from_preset(state["domain"], db_path=db_path)
+        scorer._scorer.centroids = np.asarray(state["centroids"], dtype=np.float64)
+        return scorer
+
+    def _compute_iks(self) -> float:
+        verified = self._store.count_verified()
+        if verified == 0:
+            return 0.0
+
+        correct = self._store.count_correct()
+        accuracy = correct / verified
+        fingerprint = self.fingerprint()
+        mean_sigma = (
+            sum(factor.sigma for factor in fingerprint.factors) / len(fingerprint.factors)
+            if fingerprint.factors
+            else 0.5
+        )
+        fingerprint_component = max(0.0, min((1.0 - mean_sigma / 0.5) * 25.0, 25.0))
+        coverage = self._store.count_categories_with_n(10) / self._preset.shape.n_categories
+
+        iks = (
+            min(verified / 500.0, 1.0) * 25.0
+            + accuracy * 25.0
+            + fingerprint_component
+            + coverage * 25.0
+        )
+        return round(iks, 1)
+
+    @property
+    def store(self) -> DecisionStore:
+        return self._store
+
+    @property
+    def gae_scorer(self) -> ProfileScorer:
+        return self._scorer

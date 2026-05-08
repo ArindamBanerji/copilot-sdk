@@ -1,0 +1,272 @@
+"""SQLite persistence for CompoundingScorer decisions and checkpoints."""
+
+from __future__ import annotations
+
+import json
+import sqlite3
+import time
+from pathlib import Path
+from typing import Any, Optional
+
+import numpy as np
+
+
+def _json_default(value: Any) -> Any:
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.floating):
+        return float(value)
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
+def _to_json(value: Any) -> str:
+    return json.dumps(value, default=_json_default, sort_keys=True)
+
+
+def _from_json(value: str) -> Any:
+    return json.loads(value)
+
+
+class DecisionStore:
+    """SQLite store for decisions, outcomes, and centroid checkpoints."""
+
+    def __init__(self, db_path: str | Path):
+        self.db_path = str(db_path)
+        self.connection = sqlite3.connect(self.db_path)
+        self.connection.row_factory = sqlite3.Row
+        self._create_tables()
+
+    def _create_tables(self) -> None:
+        self.connection.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS decisions (
+                decision_id TEXT PRIMARY KEY,
+                domain TEXT NOT NULL,
+                category TEXT NOT NULL,
+                category_index INTEGER NOT NULL,
+                factors_json TEXT NOT NULL,
+                factor_vector_json TEXT NOT NULL,
+                recommended_action TEXT NOT NULL,
+                recommended_index INTEGER NOT NULL,
+                confidence REAL NOT NULL,
+                probabilities_json TEXT NOT NULL,
+                created_at REAL NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS outcomes (
+                decision_id TEXT PRIMARY KEY REFERENCES decisions(decision_id),
+                actual_action TEXT NOT NULL,
+                actual_index INTEGER NOT NULL,
+                is_correct INTEGER NOT NULL,
+                verified_at REAL NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS centroid_checkpoints (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                centroids_json TEXT NOT NULL,
+                decisions_count INTEGER NOT NULL,
+                iks REAL NOT NULL,
+                created_at REAL NOT NULL
+            );
+            """
+        )
+        self.connection.commit()
+
+    def save_decision(
+        self,
+        *,
+        decision_id: str,
+        domain: str,
+        category: str,
+        category_index: int,
+        factors: dict[str, Any],
+        factor_vector: list[float] | np.ndarray,
+        recommended_action: str,
+        recommended_index: int,
+        confidence: float,
+        probabilities: list[float] | np.ndarray,
+        created_at: float | None = None,
+    ) -> None:
+        self.connection.execute(
+            """
+            INSERT OR REPLACE INTO decisions (
+                decision_id, domain, category, category_index, factors_json,
+                factor_vector_json, recommended_action, recommended_index,
+                confidence, probabilities_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                decision_id,
+                domain,
+                category,
+                int(category_index),
+                _to_json(factors),
+                _to_json(factor_vector),
+                recommended_action,
+                int(recommended_index),
+                float(confidence),
+                _to_json(probabilities),
+                float(created_at if created_at is not None else time.time()),
+            ),
+        )
+        self.connection.commit()
+
+    def save_outcome(
+        self,
+        *,
+        decision_id: str,
+        actual_action: str,
+        actual_index: int,
+        is_correct: bool,
+        verified_at: float | None = None,
+    ) -> None:
+        self.connection.execute(
+            """
+            INSERT OR REPLACE INTO outcomes (
+                decision_id, actual_action, actual_index, is_correct, verified_at
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                decision_id,
+                actual_action,
+                int(actual_index),
+                1 if is_correct else 0,
+                float(verified_at if verified_at is not None else time.time()),
+            ),
+        )
+        self.connection.commit()
+
+    def save_centroids(self, centroids: np.ndarray, iks: float = 0.0) -> None:
+        self.connection.execute(
+            """
+            INSERT INTO centroid_checkpoints (
+                centroids_json, decisions_count, iks, created_at
+            ) VALUES (?, ?, ?, ?)
+            """,
+            (
+                _to_json(np.asarray(centroids, dtype=float)),
+                self._count_decisions(),
+                float(iks),
+                time.time(),
+            ),
+        )
+        self.connection.commit()
+
+    def load_latest_centroids(self) -> Optional[np.ndarray]:
+        row = self.connection.execute(
+            """
+            SELECT centroids_json FROM centroid_checkpoints
+            ORDER BY id DESC LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            return None
+        return np.asarray(_from_json(row["centroids_json"]), dtype=np.float64)
+
+    def get_decision(self, decision_id: str) -> dict[str, Any]:
+        row = self.connection.execute(
+            "SELECT * FROM decisions WHERE decision_id = ?",
+            (decision_id,),
+        ).fetchone()
+        if row is None:
+            raise KeyError(decision_id)
+        return self._decision_from_row(row)
+
+    def get_verified_decisions(self) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT
+                d.*,
+                o.actual_action,
+                o.actual_index,
+                o.is_correct,
+                o.verified_at
+            FROM decisions d
+            INNER JOIN outcomes o ON d.decision_id = o.decision_id
+            ORDER BY d.created_at ASC, d.decision_id ASC
+            """
+        ).fetchall()
+        return [self._verified_from_row(row) for row in rows]
+
+    def get_centroid_checkpoints(self) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT * FROM centroid_checkpoints
+            ORDER BY id ASC
+            """
+        ).fetchall()
+        return [
+            {
+                "id": int(row["id"]),
+                "centroids": np.asarray(_from_json(row["centroids_json"]), dtype=np.float64),
+                "decisions_count": int(row["decisions_count"]),
+                "iks": float(row["iks"]),
+                "created_at": float(row["created_at"]),
+            }
+            for row in rows
+        ]
+
+    def get_all_decisions(self) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            "SELECT * FROM decisions ORDER BY created_at ASC, decision_id ASC"
+        ).fetchall()
+        return [self._decision_from_row(row) for row in rows]
+
+    def count_verified(self) -> int:
+        row = self.connection.execute("SELECT COUNT(*) AS n FROM outcomes").fetchone()
+        return int(row["n"])
+
+    def count_correct(self) -> int:
+        row = self.connection.execute(
+            "SELECT COUNT(*) AS n FROM outcomes WHERE is_correct = 1"
+        ).fetchone()
+        return int(row["n"])
+
+    def count_categories_with_n(self, n: int) -> int:
+        rows = self.connection.execute(
+            """
+            SELECT d.category, COUNT(*) AS count
+            FROM decisions d
+            INNER JOIN outcomes o ON d.decision_id = o.decision_id
+            GROUP BY d.category
+            HAVING count >= ?
+            """,
+            (int(n),),
+        ).fetchall()
+        return len(rows)
+
+    def close(self) -> None:
+        self.connection.close()
+
+    def _count_decisions(self) -> int:
+        row = self.connection.execute("SELECT COUNT(*) AS n FROM decisions").fetchone()
+        return int(row["n"])
+
+    def _decision_from_row(self, row: sqlite3.Row) -> dict[str, Any]:
+        return {
+            "decision_id": row["decision_id"],
+            "domain": row["domain"],
+            "category": row["category"],
+            "category_index": int(row["category_index"]),
+            "factors": _from_json(row["factors_json"]),
+            "factor_vector": _from_json(row["factor_vector_json"]),
+            "recommended_action": row["recommended_action"],
+            "recommended_index": int(row["recommended_index"]),
+            "confidence": float(row["confidence"]),
+            "probabilities": _from_json(row["probabilities_json"]),
+            "created_at": float(row["created_at"]),
+        }
+
+    def _verified_from_row(self, row: sqlite3.Row) -> dict[str, Any]:
+        data = self._decision_from_row(row)
+        data.update(
+            {
+                "actual_action": row["actual_action"],
+                "actual_index": int(row["actual_index"]),
+                "is_correct": bool(row["is_correct"]),
+                "verified_at": float(row["verified_at"]),
+            }
+        )
+        return data
