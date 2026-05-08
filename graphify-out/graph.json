@@ -1,0 +1,5258 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\__init__.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_init_py",
+      "community": 19,
+      "norm_label": "__init__.py"
+    },
+    {
+      "label": "copilot-sdk \u2014 Build compounding intelligence copilots.  The engine is open. The",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\__init__.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_init_rationale_1",
+      "community": 19,
+      "norm_label": "copilot-sdk \u2014 build compounding intelligence copilots.  the engine is open. the"
+    },
+    {
+      "label": "agent.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_agent_py",
+      "community": 6,
+      "norm_label": "agent.py"
+    },
+    {
+      "label": "DecisionResult",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L16",
+      "id": "framework_agent_decisionresult",
+      "community": 6,
+      "norm_label": "decisionresult"
+    },
+    {
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L19",
+      "id": "framework_agent_decisionresult_init",
+      "community": 6,
+      "norm_label": ".__init__()"
+    },
+    {
+      "label": "SOCAgent",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L32",
+      "id": "framework_agent_socagent",
+      "community": 6,
+      "norm_label": "socagent"
+    },
+    {
+      "label": ".decide()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L45",
+      "id": "framework_agent_socagent_decide",
+      "community": 6,
+      "norm_label": ".decide()"
+    },
+    {
+      "label": "._calculate_faithfulness()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L180",
+      "id": "framework_agent_socagent_calculate_faithfulness",
+      "community": 6,
+      "norm_label": "._calculate_faithfulness()"
+    },
+    {
+      "label": ".evaluate_gates()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L252",
+      "id": "framework_agent_socagent_evaluate_gates",
+      "community": 6,
+      "norm_label": ".evaluate_gates()"
+    },
+    {
+      "label": ".maybe_trigger_evolution()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L339",
+      "id": "framework_agent_socagent_maybe_trigger_evolution",
+      "community": 6,
+      "norm_label": ".maybe_trigger_evolution()"
+    },
+    {
+      "label": "SOC Copilot Agent - Simple Rule-Based Decision Engine ~150 lines total. The demo",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L1",
+      "id": "framework_agent_rationale_1",
+      "community": 6,
+      "norm_label": "soc copilot agent - simple rule-based decision engine ~150 lines total. the demo"
+    },
+    {
+      "label": "Agent decision output",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L17",
+      "id": "framework_agent_rationale_17",
+      "community": 6,
+      "norm_label": "agent decision output"
+    },
+    {
+      "label": "Simple rule-based SOC decision engine.     No LLM orchestration - just determini",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L33",
+      "id": "framework_agent_rationale_33",
+      "community": 6,
+      "norm_label": "simple rule-based soc decision engine.     no llm orchestration - just determini"
+    },
+    {
+      "label": "Main decision function. Rule-based logic.          Args:             alert_type:",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L46",
+      "id": "framework_agent_rationale_46",
+      "community": 6,
+      "norm_label": "main decision function. rule-based logic.          args:             alert_type:"
+    },
+    {
+      "label": "Calculate faithfulness score: Does reasoning match decision and context?",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L186",
+      "id": "framework_agent_rationale_186",
+      "community": 6,
+      "norm_label": "calculate faithfulness score: does reasoning match decision and context?"
+    },
+    {
+      "label": "Evaluate 4 deterministic eval gates.         All are deterministic checks - no L",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L258",
+      "id": "framework_agent_rationale_258",
+      "community": 6,
+      "norm_label": "evaluate 4 deterministic eval gates.         all are deterministic checks - no l"
+    },
+    {
+      "label": "Determine if this decision should trigger an evolution event.          Returns:",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L344",
+      "id": "framework_agent_rationale_344",
+      "community": 6,
+      "norm_label": "determine if this decision should trigger an evolution event.          returns:"
+    },
+    {
+      "label": "audit.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_audit_py",
+      "community": 4,
+      "norm_label": "audit.py"
+    },
+    {
+      "label": "_entry_to_dict()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L67",
+      "id": "framework_audit_entry_to_dict",
+      "community": 4,
+      "norm_label": "_entry_to_dict()"
+    },
+    {
+      "label": "record_decision()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L90",
+      "id": "framework_audit_record_decision",
+      "community": 4,
+      "norm_label": "record_decision()"
+    },
+    {
+      "label": "record_outcome()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L124",
+      "id": "framework_audit_record_outcome",
+      "community": 4,
+      "norm_label": "record_outcome()"
+    },
+    {
+      "label": "get_decisions()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L148",
+      "id": "framework_audit_get_decisions",
+      "community": 4,
+      "norm_label": "get_decisions()"
+    },
+    {
+      "label": "reconstruct_from_memory()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L157",
+      "id": "framework_audit_reconstruct_from_memory",
+      "community": 4,
+      "norm_label": "reconstruct_from_memory()"
+    },
+    {
+      "label": "reset_audit_state()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L209",
+      "id": "framework_audit_reset_audit_state",
+      "community": 4,
+      "norm_label": "reset_audit_state()"
+    },
+    {
+      "label": "record_reset_marker()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L216",
+      "id": "framework_audit_record_reset_marker",
+      "community": 4,
+      "norm_label": "record_reset_marker()"
+    },
+    {
+      "label": "verify_chain()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L237",
+      "id": "framework_audit_verify_chain",
+      "community": 4,
+      "norm_label": "verify_chain()"
+    },
+    {
+      "label": "SOC Audit Service \u2014 thin adapter over ci_platform Evidence Ledger.  Hash-chain i",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L1",
+      "id": "framework_audit_rationale_1",
+      "community": 4,
+      "norm_label": "soc audit service \u2014 thin adapter over ci_platform evidence ledger.  hash-chain i"
+    },
+    {
+      "label": "Map a LedgerEntry to the SOC DecisionRecord dict expected by callers.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L68",
+      "id": "framework_audit_rationale_68",
+      "community": 4,
+      "norm_label": "map a ledgerentry to the soc decisionrecord dict expected by callers."
+    },
+    {
+      "label": "Append a sealed LedgerEntry to the ci_platform ledger and return it as a SOC dic",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L100",
+      "id": "framework_audit_rationale_100",
+      "community": 4,
+      "norm_label": "append a sealed ledgerentry to the ci_platform ledger and return it as a soc dic"
+    },
+    {
+      "label": "Find the most-recent LedgerEntry for alert_id and update its outcome.      Mutat",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L129",
+      "id": "framework_audit_rationale_129",
+      "community": 4,
+      "norm_label": "find the most-recent ledgerentry for alert_id and update its outcome.      mutat"
+    },
+    {
+      "label": "Return all decision records, most recent first, excluding RESET sentinels.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L149",
+      "id": "framework_audit_rationale_149",
+      "community": 4,
+      "norm_label": "return all decision records, most recent first, excluding reset sentinels."
+    },
+    {
+      "label": "Back-fill the ledger from existing session state \u2014 specifically     FEEDBACK_GIV",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L158",
+      "id": "framework_audit_rationale_158",
+      "community": 4,
+      "norm_label": "back-fill the ledger from existing session state \u2014 specifically     feedback_giv"
+    },
+    {
+      "label": "Clear all decision records (demo reset).",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L210",
+      "id": "framework_audit_rationale_210",
+      "community": 4,
+      "norm_label": "clear all decision records (demo reset)."
+    },
+    {
+      "label": "Write a RESET sentinel after reset_audit_state() so the next real     decision c",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L217",
+      "id": "framework_audit_rationale_217",
+      "community": 4,
+      "norm_label": "write a reset sentinel after reset_audit_state() so the next real     decision c"
+    },
+    {
+      "label": "Verify the SHA-256 hash chain via ci_platform EvidenceLedger.      Wraps the ci_",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L238",
+      "id": "framework_audit_rationale_238",
+      "community": 4,
+      "norm_label": "verify the sha-256 hash chain via ci_platform evidenceledger.      wraps the ci_"
+    },
+    {
+      "label": "checkpoint.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_checkpoint_py",
+      "community": 14,
+      "norm_label": "checkpoint.py"
+    },
+    {
+      "label": "CheckpointService",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L23",
+      "id": "framework_checkpoint_checkpointservice",
+      "community": 14,
+      "norm_label": "checkpointservice"
+    },
+    {
+      "label": "create_checkpoint()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L27",
+      "id": "framework_checkpoint_create_checkpoint",
+      "community": 14,
+      "norm_label": "create_checkpoint()"
+    },
+    {
+      "label": "list_checkpoints()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L73",
+      "id": "framework_checkpoint_list_checkpoints",
+      "community": 14,
+      "norm_label": "list_checkpoints()"
+    },
+    {
+      "label": "rollback()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L99",
+      "id": "framework_checkpoint_rollback",
+      "community": 14,
+      "norm_label": "rollback()"
+    },
+    {
+      "label": "CheckpointService \u2014 centroid checkpoint and rollback (TD-033, Phase 4 \u00a717.5).  C",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L1",
+      "id": "framework_checkpoint_rationale_1",
+      "community": 14,
+      "norm_label": "checkpointservice \u2014 centroid checkpoint and rollback (td-033, phase 4 \u00a717.5).  c"
+    },
+    {
+      "label": "Centroid checkpoint and rollback (TD-033).",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L24",
+      "id": "framework_checkpoint_rationale_24",
+      "community": 14,
+      "norm_label": "centroid checkpoint and rollback (td-033)."
+    },
+    {
+      "label": "Snapshot current centroids to a Checkpoint node in Neo4j.          Parameters",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L32",
+      "id": "framework_checkpoint_rationale_32",
+      "community": 23,
+      "norm_label": "snapshot current centroids to a checkpoint node in neo4j.          parameters"
+    },
+    {
+      "label": "Return all Checkpoint nodes ordered by timestamp DESC.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L74",
+      "id": "framework_checkpoint_rationale_74",
+      "community": 24,
+      "norm_label": "return all checkpoint nodes ordered by timestamp desc."
+    },
+    {
+      "label": "Restore centroids from a Checkpoint node and freeze the scorer.          Paramet",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L104",
+      "id": "framework_checkpoint_rationale_104",
+      "community": 25,
+      "norm_label": "restore centroids from a checkpoint node and freeze the scorer.          paramet"
+    },
+    {
+      "label": "composite_gate.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_composite_gate_py",
+      "community": 10,
+      "norm_label": "composite_gate.py"
+    },
+    {
+      "label": "CompositeDiscriminant",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L30",
+      "id": "framework_composite_gate_compositediscriminant",
+      "community": 10,
+      "norm_label": "compositediscriminant"
+    },
+    {
+      "label": "evaluate()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L62",
+      "id": "framework_composite_gate_evaluate",
+      "community": 10,
+      "norm_label": "evaluate()"
+    },
+    {
+      "label": "CompositeDiscriminant \u2014 multi-signal auto-approve gate (Phase 5).  Uses 13 featu",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L1",
+      "id": "framework_composite_gate_rationale_1",
+      "community": 10,
+      "norm_label": "compositediscriminant \u2014 multi-signal auto-approve gate (phase 5).  uses 13 featu"
+    },
+    {
+      "label": "Multi-signal auto-approve gate.      Uses scorer output features + graph context",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L31",
+      "id": "framework_composite_gate_rationale_31",
+      "community": 10,
+      "norm_label": "multi-signal auto-approve gate.      uses scorer output features + graph context"
+    },
+    {
+      "label": "Evaluate whether a decision should be auto-approved.          Parameters",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L71",
+      "id": "framework_composite_gate_rationale_71",
+      "community": 26,
+      "norm_label": "evaluate whether a decision should be auto-approved.          parameters"
+    },
+    {
+      "label": "convergence_math.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_convergence_math_py",
+      "community": 16,
+      "norm_label": "convergence_math.py"
+    },
+    {
+      "label": "predict_n_half()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L20",
+      "id": "framework_convergence_math_predict_n_half",
+      "community": 16,
+      "norm_label": "predict_n_half()"
+    },
+    {
+      "label": "decisions_to_days()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L39",
+      "id": "framework_convergence_math_decisions_to_days",
+      "community": 16,
+      "norm_label": "decisions_to_days()"
+    },
+    {
+      "label": "Domain-agnostic convergence math for CopilotFramework.  CLAIM-CONV-01 (V-MV-CONV",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L1",
+      "id": "framework_convergence_math_rationale_1",
+      "community": 16,
+      "norm_label": "domain-agnostic convergence math for copilotframework.  claim-conv-01 (v-mv-conv"
+    },
+    {
+      "label": "Predict N_half (decisions to 50% convergence) from deployment params.     CLAIM-",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L25",
+      "id": "framework_convergence_math_rationale_25",
+      "community": 16,
+      "norm_label": "predict n_half (decisions to 50% convergence) from deployment params.     claim-"
+    },
+    {
+      "label": "Convert decision count to calendar days.     V IS used here \u2014 volume determines",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L40",
+      "id": "framework_convergence_math_rationale_40",
+      "community": 16,
+      "norm_label": "convert decision count to calendar days.     v is used here \u2014 volume determines"
+    },
+    {
+      "label": "decision_history.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_decision_history_py",
+      "community": 10,
+      "norm_label": "decision_history.py"
+    },
+    {
+      "label": "DecisionHistoryService",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L18",
+      "id": "framework_decision_history_decisionhistoryservice",
+      "community": 10,
+      "norm_label": "decisionhistoryservice"
+    },
+    {
+      "label": "get_category_stats()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L22",
+      "id": "framework_decision_history_get_category_stats",
+      "community": 10,
+      "norm_label": "get_category_stats()"
+    },
+    {
+      "label": "DecisionHistoryService \u2014 per-category decision counts and rolling accuracy.  Pro",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L1",
+      "id": "framework_decision_history_rationale_1",
+      "community": 10,
+      "norm_label": "decisionhistoryservice \u2014 per-category decision counts and rolling accuracy.  pro"
+    },
+    {
+      "label": "Tracks per-category decision counts and rolling accuracy.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L19",
+      "id": "framework_decision_history_rationale_19",
+      "community": 10,
+      "norm_label": "tracks per-category decision counts and rolling accuracy."
+    },
+    {
+      "label": "Get decision count and rolling accuracy for a category.          Uses the last 1",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L23",
+      "id": "framework_decision_history_rationale_23",
+      "community": 27,
+      "norm_label": "get decision count and rolling accuracy for a category.          uses the last 1"
+    },
+    {
+      "label": "economics.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_economics_py",
+      "community": 17,
+      "norm_label": "economics.py"
+    },
+    {
+      "label": "FrozenROICalculator",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L4",
+      "id": "framework_economics_frozenroicalculator",
+      "community": 17,
+      "norm_label": "frozenroicalculator"
+    },
+    {
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L19",
+      "id": "framework_economics_frozenroicalculator_init",
+      "community": 17,
+      "norm_label": ".__init__()"
+    },
+    {
+      "label": ".compute()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L31",
+      "id": "framework_economics_frozenroicalculator_compute",
+      "community": 17,
+      "norm_label": ".compute()"
+    },
+    {
+      "label": "ROI for frozen scorer mode (LEARNING_ENABLED=False).      Three value drivers, a",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L5",
+      "id": "framework_economics_rationale_5",
+      "community": 17,
+      "norm_label": "roi for frozen scorer mode (learning_enabled=false).      three value drivers, a"
+    },
+    {
+      "label": "Compute frozen-mode annual ROI.          Returns dict with:           time_saved",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L32",
+      "id": "framework_economics_rationale_32",
+      "community": 17,
+      "norm_label": "compute frozen-mode annual roi.          returns dict with:           time_saved"
+    },
+    {
+      "label": "event_bus.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_event_bus_py",
+      "community": 7,
+      "norm_label": "event_bus.py"
+    },
+    {
+      "label": "DecisionMade",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L24",
+      "id": "framework_event_bus_decisionmade",
+      "community": 7,
+      "norm_label": "decisionmade"
+    },
+    {
+      "label": "OutcomeVerified",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L38",
+      "id": "framework_event_bus_outcomeverified",
+      "community": 7,
+      "norm_label": "outcomeverified"
+    },
+    {
+      "label": "GraphMutated",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L52",
+      "id": "framework_event_bus_graphmutated",
+      "community": 7,
+      "norm_label": "graphmutated"
+    },
+    {
+      "label": "EventBus",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L70",
+      "id": "framework_event_bus_eventbus",
+      "community": 7,
+      "norm_label": "eventbus"
+    },
+    {
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L77",
+      "id": "framework_event_bus_eventbus_init",
+      "community": 7,
+      "norm_label": ".__init__()"
+    },
+    {
+      "label": ".subscribe()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L80",
+      "id": "framework_event_bus_eventbus_subscribe",
+      "community": 7,
+      "norm_label": ".subscribe()"
+    },
+    {
+      "label": ".emit()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L96",
+      "id": "framework_event_bus_eventbus_emit",
+      "community": 7,
+      "norm_label": ".emit()"
+    },
+    {
+      "label": "Lightweight event bus for SOC Copilot (v4.1 \u2014 replaced by ci-platform at v4.5).",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L1",
+      "id": "framework_event_bus_rationale_1",
+      "community": 7,
+      "norm_label": "lightweight event bus for soc copilot (v4.1 \u2014 replaced by ci-platform at v4.5)."
+    },
+    {
+      "label": "Emitted after a Decision node is written to the graph.     Channel A: Decision n",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L25",
+      "id": "framework_event_bus_rationale_25",
+      "community": 7,
+      "norm_label": "emitted after a decision node is written to the graph.     channel a: decision n"
+    },
+    {
+      "label": "Emitted after a Decision node is marked correct/incorrect.     Channel B: Outcom",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L39",
+      "id": "framework_event_bus_rationale_39",
+      "community": 7,
+      "norm_label": "emitted after a decision node is marked correct/incorrect.     channel b: outcom"
+    },
+    {
+      "label": "Emitted for every graph write (decision or outcome).     Provides a single audit",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L53",
+      "id": "framework_event_bus_rationale_53",
+      "community": 7,
+      "norm_label": "emitted for every graph write (decision or outcome).     provides a single audit"
+    },
+    {
+      "label": "Lightweight in-process async event bus.      Replaced by ci-platform production",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L71",
+      "id": "framework_event_bus_rationale_71",
+      "community": 7,
+      "norm_label": "lightweight in-process async event bus.      replaced by ci-platform production"
+    },
+    {
+      "label": "Register *handler* to be called whenever an event of *event_type* is emitted.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L81",
+      "id": "framework_event_bus_rationale_81",
+      "community": 7,
+      "norm_label": "register *handler* to be called whenever an event of *event_type* is emitted."
+    },
+    {
+      "label": "Call all handlers registered for type(event), in registration order.          Pa",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L97",
+      "id": "framework_event_bus_rationale_97",
+      "community": 7,
+      "norm_label": "call all handlers registered for type(event), in registration order.          pa"
+    },
+    {
+      "label": "feedback_base.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_feedback_base_py",
+      "community": 11,
+      "norm_label": "feedback_base.py"
+    },
+    {
+      "label": "update_trust()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L41",
+      "id": "framework_feedback_base_update_trust",
+      "community": 11,
+      "norm_label": "update_trust()"
+    },
+    {
+      "label": "get_trust_status()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L95",
+      "id": "framework_feedback_base_get_trust_status",
+      "community": 11,
+      "norm_label": "get_trust_status()"
+    },
+    {
+      "label": "get_all_trust_scores()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L115",
+      "id": "framework_feedback_base_get_all_trust_scores",
+      "community": 11,
+      "norm_label": "get_all_trust_scores()"
+    },
+    {
+      "label": "get_reward_summary()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L147",
+      "id": "framework_feedback_base_get_reward_summary",
+      "community": 11,
+      "norm_label": "get_reward_summary()"
+    },
+    {
+      "label": "Feedback trust/reward mechanics for CopilotFramework. Domain-agnostic \u2014 no SOC r",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L1",
+      "id": "framework_feedback_base_rationale_1",
+      "community": 11,
+      "norm_label": "feedback trust/reward mechanics for copilotframework. domain-agnostic \u2014 no soc r"
+    },
+    {
+      "label": "Update trust score for a situation type after a decision outcome.      Asymmetri",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L45",
+      "id": "framework_feedback_base_rationale_45",
+      "community": 11,
+      "norm_label": "update trust score for a situation type after a decision outcome.      asymmetri"
+    },
+    {
+      "label": "Get trust status for a single situation type.      Returns     -------     {",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L96",
+      "id": "framework_feedback_base_rationale_96",
+      "community": 11,
+      "norm_label": "get trust status for a single situation type.      returns     -------     {"
+    },
+    {
+      "label": "Return all current trust scores and the full update history.      Returns     --",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L116",
+      "id": "framework_feedback_base_rationale_116",
+      "community": 11,
+      "norm_label": "return all current trust scores and the full update history.      returns     --"
+    },
+    {
+      "label": "Aggregate current in-memory feedback state into an RL reward summary.      Rewar",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L148",
+      "id": "framework_feedback_base_rationale_148",
+      "community": 11,
+      "norm_label": "aggregate current in-memory feedback state into an rl reward summary.      rewar"
+    },
+    {
+      "label": "feedback_store.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\feedback_store.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_feedback_store_py",
+      "community": 20,
+      "norm_label": "feedback_store.py"
+    },
+    {
+      "label": "Domain-agnostic feedback state store for CopilotFramework.  FEEDBACK_GIVEN is ex",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\feedback_store.py",
+      "source_location": "L1",
+      "id": "framework_feedback_store_rationale_1",
+      "community": 20,
+      "norm_label": "domain-agnostic feedback state store for copilotframework.  feedback_given is ex"
+    },
+    {
+      "label": "iks_base.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_iks_base_py",
+      "community": 5,
+      "norm_label": "iks_base.py"
+    },
+    {
+      "label": "_mean_centroid_drift()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L34",
+      "id": "framework_iks_base_mean_centroid_drift",
+      "community": 5,
+      "norm_label": "_mean_centroid_drift()"
+    },
+    {
+      "label": "compute_iks()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L57",
+      "id": "framework_iks_base_compute_iks",
+      "community": 5,
+      "norm_label": "compute_iks()"
+    },
+    {
+      "label": "interpret()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L99",
+      "id": "framework_iks_base_interpret",
+      "community": 5,
+      "norm_label": "interpret()"
+    },
+    {
+      "label": "interpret_iks_v2()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L110",
+      "id": "framework_iks_base_interpret_iks_v2",
+      "community": 5,
+      "norm_label": "interpret_iks_v2()"
+    },
+    {
+      "label": "IKS (Institutional Knowledge Score) algorithm for CopilotFramework. compute_iks(",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L1",
+      "id": "framework_iks_base_rationale_1",
+      "community": 5,
+      "norm_label": "iks (institutional knowledge score) algorithm for copilotframework. compute_iks("
+    },
+    {
+      "label": "Compute mean \u2016\u03bc(t)[c,a,:] \u2212 \u03bc\u2080[c,a,:]\u2016\u2082 over all (c, a) pairs.      Parameters",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L35",
+      "id": "framework_iks_base_rationale_35",
+      "community": 5,
+      "norm_label": "compute mean \u2016\u03bc(t)[c,a,:] \u2212 \u03bc0[c,a,:]\u20162 over all (c, a) pairs.      parameters"
+    },
+    {
+      "label": "Compute the IKS score from centroid tensors.      Parameters     ----------",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L62",
+      "id": "framework_iks_base_rationale_62",
+      "community": 5,
+      "norm_label": "compute the iks score from centroid tensors.      parameters     ----------"
+    },
+    {
+      "label": "Return a human-readable interpretation of the IKS (v1) score.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L100",
+      "id": "framework_iks_base_rationale_100",
+      "community": 5,
+      "norm_label": "return a human-readable interpretation of the iks (v1) score."
+    },
+    {
+      "label": "Return a human-readable interpretation of the IKS v2 composite score.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L111",
+      "id": "framework_iks_base_rationale_111",
+      "community": 5,
+      "norm_label": "return a human-readable interpretation of the iks v2 composite score."
+    },
+    {
+      "label": "intervention_controls.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_intervention_controls_py",
+      "community": 0,
+      "norm_label": "intervention_controls.py"
+    },
+    {
+      "label": "InterventionControls",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L31",
+      "id": "framework_intervention_controls_interventioncontrols",
+      "community": 0,
+      "norm_label": "interventioncontrols"
+    },
+    {
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L34",
+      "id": "framework_intervention_controls_interventioncontrols_init",
+      "community": 0,
+      "norm_label": ".__init__()"
+    },
+    {
+      "label": ".freeze_all_learning()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L50",
+      "id": "framework_intervention_controls_interventioncontrols_freeze_all_learning",
+      "community": 0,
+      "norm_label": ".freeze_all_learning()"
+    },
+    {
+      "label": ".unfreeze_all_learning()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L67",
+      "id": "framework_intervention_controls_interventioncontrols_unfreeze_all_learning",
+      "community": 0,
+      "norm_label": ".unfreeze_all_learning()"
+    },
+    {
+      "label": ".freeze_category()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L84",
+      "id": "framework_intervention_controls_interventioncontrols_freeze_category",
+      "community": 0,
+      "norm_label": ".freeze_category()"
+    },
+    {
+      "label": ".rollback()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L107",
+      "id": "framework_intervention_controls_interventioncontrols_rollback",
+      "community": 0,
+      "norm_label": ".rollback()"
+    },
+    {
+      "label": ".disable_auto_approve()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L168",
+      "id": "framework_intervention_controls_interventioncontrols_disable_auto_approve",
+      "community": 0,
+      "norm_label": ".disable_auto_approve()"
+    },
+    {
+      "label": ".category_force_review()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L187",
+      "id": "framework_intervention_controls_interventioncontrols_category_force_review",
+      "community": 0,
+      "norm_label": ".category_force_review()"
+    },
+    {
+      "label": ".adjust_threshold()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L210",
+      "id": "framework_intervention_controls_interventioncontrols_adjust_threshold",
+      "community": 0,
+      "norm_label": ".adjust_threshold()"
+    },
+    {
+      "label": ".get_current_state()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L248",
+      "id": "framework_intervention_controls_interventioncontrols_get_current_state",
+      "community": 0,
+      "norm_label": ".get_current_state()"
+    },
+    {
+      "label": ".get_intervention_history()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L282",
+      "id": "framework_intervention_controls_interventioncontrols_get_intervention_history",
+      "community": 0,
+      "norm_label": ".get_intervention_history()"
+    },
+    {
+      "label": "._log_intervention()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L324",
+      "id": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "community": 0,
+      "norm_label": "._log_intervention()"
+    },
+    {
+      "label": "InterventionControls \u2014 P22 Consolidated Oversight Panel (L-12).  EU AI Act Artic",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L1",
+      "id": "framework_intervention_controls_rationale_1",
+      "community": 0,
+      "norm_label": "interventioncontrols \u2014 p22 consolidated oversight panel (l-12).  eu ai act artic"
+    },
+    {
+      "label": "Six-control human oversight panel with Neo4j audit trail.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L32",
+      "id": "framework_intervention_controls_rationale_32",
+      "community": 0,
+      "norm_label": "six-control human oversight panel with neo4j audit trail."
+    },
+    {
+      "label": "Freeze all centroid updates globally.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L51",
+      "id": "framework_intervention_controls_rationale_51",
+      "community": 0,
+      "norm_label": "freeze all centroid updates globally."
+    },
+    {
+      "label": "Resume centroid updates.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L68",
+      "id": "framework_intervention_controls_rationale_68",
+      "community": 0,
+      "norm_label": "resume centroid updates."
+    },
+    {
+      "label": "Freeze or unfreeze a specific alert category.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L87",
+      "id": "framework_intervention_controls_rationale_87",
+      "community": 0,
+      "norm_label": "freeze or unfreeze a specific alert category."
+    },
+    {
+      "label": "Restore centroid snapshot.          Parameters         ----------         previe",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L114",
+      "id": "framework_intervention_controls_rationale_114",
+      "community": 0,
+      "norm_label": "restore centroid snapshot.          parameters         ----------         previe"
+    },
+    {
+      "label": "Force all decisions to human review (disabled=True) or restore.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L171",
+      "id": "framework_intervention_controls_rationale_171",
+      "community": 0,
+      "norm_label": "force all decisions to human review (disabled=true) or restore."
+    },
+    {
+      "label": "Force specific category to human review.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L190",
+      "id": "framework_intervention_controls_rationale_190",
+      "community": 0,
+      "norm_label": "force specific category to human review."
+    },
+    {
+      "label": "Change auto-approve confidence threshold per category.          Rejects threshol",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L213",
+      "id": "framework_intervention_controls_rationale_213",
+      "community": 0,
+      "norm_label": "change auto-approve confidence threshold per category.          rejects threshol"
+    },
+    {
+      "label": "Return current state of all controls.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L249",
+      "id": "framework_intervention_controls_rationale_249",
+      "community": 0,
+      "norm_label": "return current state of all controls."
+    },
+    {
+      "label": "Return intervention audit log from Neo4j.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L283",
+      "id": "framework_intervention_controls_rationale_283",
+      "community": 0,
+      "norm_label": "return intervention audit log from neo4j."
+    },
+    {
+      "label": "Write an Intervention node to Neo4j and return the record dict.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L331",
+      "id": "framework_intervention_controls_rationale_331",
+      "community": 0,
+      "norm_label": "write an intervention node to neo4j and return the record dict."
+    },
+    {
+      "label": "learning_state.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_learning_state_py",
+      "community": 12,
+      "norm_label": "learning_state.py"
+    },
+    {
+      "label": "make_state()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L41",
+      "id": "framework_learning_state_make_state",
+      "community": 12,
+      "norm_label": "make_state()"
+    },
+    {
+      "label": "load_from_file()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L59",
+      "id": "framework_learning_state_load_from_file",
+      "community": 12,
+      "norm_label": "load_from_file()"
+    },
+    {
+      "label": "read_checkpoint_metadata()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L105",
+      "id": "framework_learning_state_read_checkpoint_metadata",
+      "community": 12,
+      "norm_label": "read_checkpoint_metadata()"
+    },
+    {
+      "label": "save_state()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L112",
+      "id": "framework_learning_state_save_state",
+      "community": 12,
+      "norm_label": "save_state()"
+    },
+    {
+      "label": "LearningState singleton for CopilotFramework. Domain layer (SOC/S2P) builds the",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L1",
+      "id": "framework_learning_state_rationale_1",
+      "community": 12,
+      "norm_label": "learningstate singleton for copilotframework. domain layer (soc/s2p) builds the"
+    },
+    {
+      "label": "Create a fresh LearningState from raw parameters.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L47",
+      "id": "framework_learning_state_rationale_47",
+      "community": 12,
+      "norm_label": "create a fresh learningstate from raw parameters."
+    },
+    {
+      "label": "Deserialize W matrix and WeightUpdate history from a JSON checkpoint.      Param",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L60",
+      "id": "framework_learning_state_rationale_60",
+      "community": 12,
+      "norm_label": "deserialize w matrix and weightupdate history from a json checkpoint.      param"
+    },
+    {
+      "label": "Read the metadata field from the checkpoint. Returns {} if absent.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L106",
+      "id": "framework_learning_state_rationale_106",
+      "community": 12,
+      "norm_label": "read the metadata field from the checkpoint. returns {} if absent."
+    },
+    {
+      "label": "Atomically persist W matrix + WeightUpdate history to a JSON checkpoint.      Us",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L117",
+      "id": "framework_learning_state_rationale_117",
+      "community": 12,
+      "norm_label": "atomically persist w matrix + weightupdate history to a json checkpoint.      us"
+    },
+    {
+      "label": "narrative_base.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_narrative_base_py",
+      "community": 13,
+      "norm_label": "narrative_base.py"
+    },
+    {
+      "label": "NarrativeProvider",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L34",
+      "id": "framework_narrative_base_narrativeprovider",
+      "community": 1,
+      "norm_label": "narrativeprovider"
+    },
+    {
+      "label": "Protocol",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "id": "protocol",
+      "community": 1,
+      "norm_label": "protocol"
+    },
+    {
+      "label": ".generate()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L35",
+      "id": "framework_narrative_base_narrativeprovider_generate",
+      "community": 1,
+      "norm_label": ".generate()"
+    },
+    {
+      "label": "register_narrative_provider()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L51",
+      "id": "framework_narrative_base_register_narrative_provider",
+      "community": 13,
+      "norm_label": "register_narrative_provider()"
+    },
+    {
+      "label": "create_narrative_provider()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L67",
+      "id": "framework_narrative_base_create_narrative_provider",
+      "community": 13,
+      "norm_label": "create_narrative_provider()"
+    },
+    {
+      "label": "get_narrative_provider()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L108",
+      "id": "framework_narrative_base_get_narrative_provider",
+      "community": 13,
+      "norm_label": "get_narrative_provider()"
+    },
+    {
+      "label": "set_narrative_provider()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L123",
+      "id": "framework_narrative_base_set_narrative_provider",
+      "community": 13,
+      "norm_label": "set_narrative_provider()"
+    },
+    {
+      "label": "NarrativeProvider ABC for CopilotFramework. Domain implementations (e.g. Templat",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L1",
+      "id": "framework_narrative_base_rationale_1",
+      "community": 13,
+      "norm_label": "narrativeprovider abc for copilotframework. domain implementations (e.g. templat"
+    },
+    {
+      "label": "Register a NarrativeProvider class under a name.      Called by the domain servi",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L52",
+      "id": "framework_narrative_base_rationale_52",
+      "community": 13,
+      "norm_label": "register a narrativeprovider class under a name.      called by the domain servi"
+    },
+    {
+      "label": "Create a NarrativeProvider instance by name.      Args:         provider_type: n",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L68",
+      "id": "framework_narrative_base_rationale_68",
+      "community": 13,
+      "norm_label": "create a narrativeprovider instance by name.      args:         provider_type: n"
+    },
+    {
+      "label": "Return the active NarrativeProvider singleton.      If set_narrative_provider()",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L109",
+      "id": "framework_narrative_base_rationale_109",
+      "community": 13,
+      "norm_label": "return the active narrativeprovider singleton.      if set_narrative_provider()"
+    },
+    {
+      "label": "Set the module-level singleton. Called once at app startup.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L124",
+      "id": "framework_narrative_base_rationale_124",
+      "community": 13,
+      "norm_label": "set the module-level singleton. called once at app startup."
+    },
+    {
+      "label": "ols_status.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\ols_status.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_ols_status_py",
+      "community": 18,
+      "norm_label": "ols_status.py"
+    },
+    {
+      "label": "get_ols_status()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\ols_status.py",
+      "source_location": "L16",
+      "id": "framework_ols_status_get_ols_status",
+      "community": 18,
+      "norm_label": "get_ols_status()"
+    },
+    {
+      "label": "ols_status.py \u2014 OLS (Override Lift Score) Dashboard service (L-09).  Uses GAE 0.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\ols_status.py",
+      "source_location": "L1",
+      "id": "framework_ols_status_rationale_1",
+      "community": 18,
+      "norm_label": "ols_status.py \u2014 ols (override lift score) dashboard service (l-09).  uses gae 0."
+    },
+    {
+      "label": "Compute OLS dashboard status for the frontend.      Parameters     ----------",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\ols_status.py",
+      "source_location": "L22",
+      "id": "framework_ols_status_rationale_22",
+      "community": 18,
+      "norm_label": "compute ols dashboard status for the frontend.      parameters     ----------"
+    },
+    {
+      "label": "provenance.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_provenance_py",
+      "community": 8,
+      "norm_label": "provenance.py"
+    },
+    {
+      "label": "FactorProvenance",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L27",
+      "id": "framework_provenance_factorprovenance",
+      "community": 8,
+      "norm_label": "factorprovenance"
+    },
+    {
+      "label": "DecisionProvenance",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L37",
+      "id": "framework_provenance_decisionprovenance",
+      "community": 8,
+      "norm_label": "decisionprovenance"
+    },
+    {
+      "label": "_explain_travel_match()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L49",
+      "id": "framework_provenance_explain_travel_match",
+      "community": 8,
+      "norm_label": "_explain_travel_match()"
+    },
+    {
+      "label": "_explain_asset_criticality()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L73",
+      "id": "framework_provenance_explain_asset_criticality",
+      "community": 8,
+      "norm_label": "_explain_asset_criticality()"
+    },
+    {
+      "label": "_explain_threat_intel_enrichment()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L101",
+      "id": "framework_provenance_explain_threat_intel_enrichment",
+      "community": 8,
+      "norm_label": "_explain_threat_intel_enrichment()"
+    },
+    {
+      "label": "_explain_pattern_history()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L129",
+      "id": "framework_provenance_explain_pattern_history",
+      "community": 8,
+      "norm_label": "_explain_pattern_history()"
+    },
+    {
+      "label": "_explain_time_anomaly()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L158",
+      "id": "framework_provenance_explain_time_anomaly",
+      "community": 8,
+      "norm_label": "_explain_time_anomaly()"
+    },
+    {
+      "label": "_explain_device_trust()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L187",
+      "id": "framework_provenance_explain_device_trust",
+      "community": 8,
+      "norm_label": "_explain_device_trust()"
+    },
+    {
+      "label": "ProvenanceService",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L230",
+      "id": "framework_provenance_provenanceservice",
+      "community": 8,
+      "norm_label": "provenanceservice"
+    },
+    {
+      "label": "build_provenance()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L234",
+      "id": "framework_provenance_build_provenance",
+      "community": 8,
+      "norm_label": "build_provenance()"
+    },
+    {
+      "label": "get_provenance_from_graph()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L286",
+      "id": "framework_provenance_get_provenance_from_graph",
+      "community": 8,
+      "norm_label": "get_provenance_from_graph()"
+    },
+    {
+      "label": "ProvenanceService \u2014 factor provenance and decision audit trail (Phase 6).  Provi",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L1",
+      "id": "framework_provenance_rationale_1",
+      "community": 8,
+      "norm_label": "provenanceservice \u2014 factor provenance and decision audit trail (phase 6).  provi"
+    },
+    {
+      "label": "Builds factor provenance records for a decision.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L231",
+      "id": "framework_provenance_rationale_231",
+      "community": 8,
+      "norm_label": "builds factor provenance records for a decision."
+    },
+    {
+      "label": "Build provenance for a decision.          Parameters         ----------",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L241",
+      "id": "framework_provenance_rationale_241",
+      "community": 28,
+      "norm_label": "build provenance for a decision.          parameters         ----------"
+    },
+    {
+      "label": "Retrieve a stored decision's factor vector from Neo4j and rebuild provenance.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L292",
+      "id": "framework_provenance_rationale_292",
+      "community": 29,
+      "norm_label": "retrieve a stored decision's factor vector from neo4j and rebuild provenance."
+    },
+    {
+      "label": "shadow_mode.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_shadow_mode_py",
+      "community": 15,
+      "norm_label": "shadow_mode.py"
+    },
+    {
+      "label": "ShadowModeService",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L19",
+      "id": "framework_shadow_mode_shadowmodeservice",
+      "community": 15,
+      "norm_label": "shadowmodeservice"
+    },
+    {
+      "label": "record_shadow_decision()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L27",
+      "id": "framework_shadow_mode_record_shadow_decision",
+      "community": 15,
+      "norm_label": "record_shadow_decision()"
+    },
+    {
+      "label": "record_analyst_action()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L45",
+      "id": "framework_shadow_mode_record_analyst_action",
+      "community": 15,
+      "norm_label": "record_analyst_action()"
+    },
+    {
+      "label": "get_shadow_report()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L61",
+      "id": "framework_shadow_mode_get_shadow_report",
+      "community": 15,
+      "norm_label": "get_shadow_report()"
+    },
+    {
+      "label": "ShadowModeService \u2014 Phase 4 shadow mode (\u00a721).  Shadow mode: system makes decisi",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L1",
+      "id": "framework_shadow_mode_rationale_1",
+      "community": 15,
+      "norm_label": "shadowmodeservice \u2014 phase 4 shadow mode (\u00a721).  shadow mode: system makes decisi"
+    },
+    {
+      "label": "Shadow mode: system makes decisions but does not act on them.     Analyst action",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L20",
+      "id": "framework_shadow_mode_rationale_20",
+      "community": 15,
+      "norm_label": "shadow mode: system makes decisions but does not act on them.     analyst action"
+    },
+    {
+      "label": "Mark a Decision node as shadow_mode=True.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L34",
+      "id": "framework_shadow_mode_rationale_34",
+      "community": 30,
+      "norm_label": "mark a decision node as shadow_mode=true."
+    },
+    {
+      "label": "Record what the analyst actually did (the ground truth).         Also sets d.agr",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L50",
+      "id": "framework_shadow_mode_rationale_50",
+      "community": 31,
+      "norm_label": "record what the analyst actually did (the ground truth).         also sets d.agr"
+    },
+    {
+      "label": "Generate shadow mode report: agreement rates by category.          Returns",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L62",
+      "id": "framework_shadow_mode_rationale_62",
+      "community": 32,
+      "norm_label": "generate shadow mode report: agreement rates by category.          returns"
+    },
+    {
+      "label": "similar_cases_base.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_similar_cases_base_py",
+      "community": 9,
+      "norm_label": "similar_cases_base.py"
+    },
+    {
+      "label": "SimilarCasesBase",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L40",
+      "id": "framework_similar_cases_base_similarcasesbase",
+      "community": 9,
+      "norm_label": "similarcasesbase"
+    },
+    {
+      "label": "cosine_similarity()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L46",
+      "id": "framework_similar_cases_base_cosine_similarity",
+      "community": 9,
+      "norm_label": "cosine_similarity()"
+    },
+    {
+      "label": "get_theta()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L56",
+      "id": "framework_similar_cases_base_get_theta",
+      "community": 9,
+      "norm_label": "get_theta()"
+    },
+    {
+      "label": "._fetch_verified_decisions()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L61",
+      "id": "framework_similar_cases_base_similarcasesbase_fetch_verified_decisions",
+      "community": 9,
+      "norm_label": "._fetch_verified_decisions()"
+    },
+    {
+      "label": ".get_similar_cases()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L119",
+      "id": "framework_similar_cases_base_similarcasesbase_get_similar_cases",
+      "community": 9,
+      "norm_label": ".get_similar_cases()"
+    },
+    {
+      "label": ".get_agreement_pct()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L162",
+      "id": "framework_similar_cases_base_similarcasesbase_get_agreement_pct",
+      "community": 9,
+      "norm_label": ".get_agreement_pct()"
+    },
+    {
+      "label": "SimilarCaseFinder ABC for CopilotFramework. Domain implementations supply SOC/S2",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L1",
+      "id": "framework_similar_cases_base_rationale_1",
+      "community": 9,
+      "norm_label": "similarcasefinder abc for copilotframework. domain implementations supply soc/s2"
+    },
+    {
+      "label": "Case-based reasoning retrieval \u2014 domain subclass supplies get_theta().",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L41",
+      "id": "framework_similar_cases_base_rationale_41",
+      "community": 9,
+      "norm_label": "case-based reasoning retrieval \u2014 domain subclass supplies get_theta()."
+    },
+    {
+      "label": "Return cosine similarity in [0, 1].  Returns 0.0 for zero vectors.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L47",
+      "id": "framework_similar_cases_base_rationale_47",
+      "community": 33,
+      "norm_label": "return cosine similarity in [0, 1].  returns 0.0 for zero vectors."
+    },
+    {
+      "label": "Return per-category cosine similarity threshold for retrieval.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L57",
+      "id": "framework_similar_cases_base_rationale_57",
+      "community": 34,
+      "norm_label": "return per-category cosine similarity threshold for retrieval."
+    },
+    {
+      "label": "Fetch up to *limit* verified Decision nodes for *category* from Neo4j,         m",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L67",
+      "id": "framework_similar_cases_base_rationale_67",
+      "community": 9,
+      "norm_label": "fetch up to *limit* verified decision nodes for *category* from neo4j,         m"
+    },
+    {
+      "label": "Return up to k similar past Decision nodes for *category*.          Category fil",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L126",
+      "id": "framework_similar_cases_base_rationale_126",
+      "community": 9,
+      "norm_label": "return up to k similar past decision nodes for *category*.          category fil"
+    },
+    {
+      "label": "Return fraction of *similar_cases* whose action matches *current_action*.",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L167",
+      "id": "framework_similar_cases_base_rationale_167",
+      "community": 9,
+      "norm_label": "return fraction of *similar_cases* whose action matches *current_action*."
+    },
+    {
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\framework\\__init__.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_framework_init_py",
+      "community": 21,
+      "norm_label": "__init__.py"
+    },
+    {
+      "label": "CopilotFramework \u2014 domain-agnostic copilot infrastructure.  This package is desi",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\framework\\__init__.py",
+      "source_location": "L1",
+      "id": "framework_init_rationale_1",
+      "community": 21,
+      "norm_label": "copilotframework \u2014 domain-agnostic copilot infrastructure.  this package is desi"
+    },
+    {
+      "label": "domain_config.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_protocols_domain_config_py",
+      "community": 1,
+      "norm_label": "domain_config.py"
+    },
+    {
+      "label": "DomainConfig",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L10",
+      "id": "protocols_domain_config_domainconfig",
+      "community": 1,
+      "norm_label": "domainconfig"
+    },
+    {
+      "label": ".get_initial_centroids()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L20",
+      "id": "protocols_domain_config_domainconfig_get_initial_centroids",
+      "community": 1,
+      "norm_label": ".get_initial_centroids()"
+    },
+    {
+      "label": ".get_sigma_profile()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L21",
+      "id": "protocols_domain_config_domainconfig_get_sigma_profile",
+      "community": 1,
+      "norm_label": ".get_sigma_profile()"
+    },
+    {
+      "label": ".get_category_index()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L22",
+      "id": "protocols_domain_config_domainconfig_get_category_index",
+      "community": 1,
+      "norm_label": ".get_category_index()"
+    },
+    {
+      "label": ".get_action_index()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L23",
+      "id": "protocols_domain_config_domainconfig_get_action_index",
+      "community": 1,
+      "norm_label": ".get_action_index()"
+    },
+    {
+      "label": "DomainConfig Protocol \u2014 register a new copilot domain. Implement this protocol t",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L1",
+      "id": "protocols_domain_config_rationale_1",
+      "community": 1,
+      "norm_label": "domainconfig protocol \u2014 register a new copilot domain. implement this protocol t"
+    },
+    {
+      "label": "factor_computer.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_protocols_factor_computer_py",
+      "community": 1,
+      "norm_label": "factor_computer.py"
+    },
+    {
+      "label": "FactorComputer",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L10",
+      "id": "protocols_factor_computer_factorcomputer",
+      "community": 1,
+      "norm_label": "factorcomputer"
+    },
+    {
+      "label": ".compute()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L14",
+      "id": "protocols_factor_computer_factorcomputer_compute",
+      "community": 1,
+      "norm_label": ".compute()"
+    },
+    {
+      "label": "FactorComputer Protocol \u2014 compute one factor value from event context. Returns f",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L1",
+      "id": "protocols_factor_computer_rationale_1",
+      "community": 1,
+      "norm_label": "factorcomputer protocol \u2014 compute one factor value from event context. returns f"
+    },
+    {
+      "label": "Returns factor value in [0.0, 1.0].",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L15",
+      "id": "protocols_factor_computer_rationale_15",
+      "community": 1,
+      "norm_label": "returns factor value in [0.0, 1.0]."
+    },
+    {
+      "label": "referral_rule.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_protocols_referral_rule_py",
+      "community": 1,
+      "norm_label": "referral_rule.py"
+    },
+    {
+      "label": "ReferralRule",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L9",
+      "id": "protocols_referral_rule_referralrule",
+      "community": 1,
+      "norm_label": "referralrule"
+    },
+    {
+      "label": ".evaluate()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L13",
+      "id": "protocols_referral_rule_referralrule_evaluate",
+      "community": 1,
+      "norm_label": ".evaluate()"
+    },
+    {
+      "label": "ReferralRule Protocol \u2014 domain-specific VETO rules. REFER is a hard VETO \u2014 canno",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L1",
+      "id": "protocols_referral_rule_rationale_1",
+      "community": 1,
+      "norm_label": "referralrule protocol \u2014 domain-specific veto rules. refer is a hard veto \u2014 canno"
+    },
+    {
+      "label": "Returns {\"decision\": \"REFER\" | \"PASS\", \"reason\": str}.         REFER is a hard V",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L14",
+      "id": "protocols_referral_rule_rationale_14",
+      "community": 1,
+      "norm_label": "returns {\"decision\": \"refer\" | \"pass\", \"reason\": str}.         refer is a hard v"
+    },
+    {
+      "label": "source_connector.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_protocols_source_connector_py",
+      "community": 1,
+      "norm_label": "source_connector.py"
+    },
+    {
+      "label": "SourceConnector",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L9",
+      "id": "protocols_source_connector_sourceconnector",
+      "community": 1,
+      "norm_label": "sourceconnector"
+    },
+    {
+      "label": ".fetch()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L14",
+      "id": "protocols_source_connector_sourceconnector_fetch",
+      "community": 1,
+      "norm_label": ".fetch()"
+    },
+    {
+      "label": ".validate()",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L15",
+      "id": "protocols_source_connector_sourceconnector_validate",
+      "community": 1,
+      "norm_label": ".validate()"
+    },
+    {
+      "label": "SourceConnector Protocol \u2014 connect external data to graph enrichment. Implementa",
+      "file_type": "rationale",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L1",
+      "id": "protocols_source_connector_rationale_1",
+      "community": 1,
+      "norm_label": "sourceconnector protocol \u2014 connect external data to graph enrichment. implementa"
+    },
+    {
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "copilot_sdk\\protocols\\__init__.py",
+      "source_location": "L1",
+      "id": "copilot_sdk_protocols_init_py",
+      "community": 35,
+      "norm_label": "__init__.py"
+    },
+    {
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "examples\\__init__.py",
+      "source_location": "L1",
+      "id": "examples_init_py",
+      "community": 36,
+      "norm_label": "__init__.py"
+    },
+    {
+      "label": "config.py",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L1",
+      "id": "examples_hello_world_config_py",
+      "community": 2,
+      "norm_label": "config.py"
+    },
+    {
+      "label": "HelloWorldConfig",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L10",
+      "id": "hello_world_config_helloworldconfig",
+      "community": 2,
+      "norm_label": "helloworldconfig"
+    },
+    {
+      "label": "get_initial_centroids()",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L21",
+      "id": "hello_world_config_get_initial_centroids",
+      "community": 2,
+      "norm_label": "get_initial_centroids()"
+    },
+    {
+      "label": "get_sigma_profile()",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L26",
+      "id": "hello_world_config_get_sigma_profile",
+      "community": 2,
+      "norm_label": "get_sigma_profile()"
+    },
+    {
+      "label": "get_category_index()",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L30",
+      "id": "hello_world_config_get_category_index",
+      "community": 2,
+      "norm_label": "get_category_index()"
+    },
+    {
+      "label": "get_action_index()",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L34",
+      "id": "hello_world_config_get_action_index",
+      "community": 2,
+      "norm_label": "get_action_index()"
+    },
+    {
+      "label": "Hello World domain \u2014 minimal 2-category, 3-action, 2-factor copilot. The simples",
+      "file_type": "rationale",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L1",
+      "id": "hello_world_config_rationale_1",
+      "community": 2,
+      "norm_label": "hello world domain \u2014 minimal 2-category, 3-action, 2-factor copilot. the simples"
+    },
+    {
+      "label": "demo.py",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\demo.py",
+      "source_location": "L1",
+      "id": "examples_hello_world_demo_py",
+      "community": 22,
+      "norm_label": "demo.py"
+    },
+    {
+      "label": "Hello World demo \u2014 score + IKS in 30 lines. Run: python examples/hello_world/dem",
+      "file_type": "rationale",
+      "source_file": "examples\\hello_world\\demo.py",
+      "source_location": "L1",
+      "id": "hello_world_demo_rationale_1",
+      "community": 22,
+      "norm_label": "hello world demo \u2014 score + iks in 30 lines. run: python examples/hello_world/dem"
+    },
+    {
+      "label": "factors.py",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L1",
+      "id": "examples_hello_world_factors_py",
+      "community": 2,
+      "norm_label": "factors.py"
+    },
+    {
+      "label": "ScoreAFactor",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L5",
+      "id": "hello_world_factors_scoreafactor",
+      "community": 2,
+      "norm_label": "scoreafactor"
+    },
+    {
+      "label": ".compute()",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L8",
+      "id": "hello_world_factors_scoreafactor_compute",
+      "community": 2,
+      "norm_label": ".compute()"
+    },
+    {
+      "label": "ScoreBFactor",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L12",
+      "id": "hello_world_factors_scorebfactor",
+      "community": 2,
+      "norm_label": "scorebfactor"
+    },
+    {
+      "label": ".compute()",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L15",
+      "id": "hello_world_factors_scorebfactor_compute",
+      "community": 2,
+      "norm_label": ".compute()"
+    },
+    {
+      "label": "compute_factor_vector()",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L22",
+      "id": "hello_world_factors_compute_factor_vector",
+      "community": 2,
+      "norm_label": "compute_factor_vector()"
+    },
+    {
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "examples\\hello_world\\__init__.py",
+      "source_location": "L1",
+      "id": "examples_hello_world_init_py",
+      "community": 37,
+      "norm_label": "__init__.py"
+    },
+    {
+      "label": "test_discipline.py",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L1",
+      "id": "tests_test_discipline_py",
+      "community": 3,
+      "norm_label": "test_discipline.py"
+    },
+    {
+      "label": "TestNoDomainImports",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L37",
+      "id": "tests_test_discipline_testnodomainimports",
+      "community": 3,
+      "norm_label": "testnodomainimports"
+    },
+    {
+      "label": ".test_no_soc_modules_in_sys_modules()",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L39",
+      "id": "tests_test_discipline_testnodomainimports_test_no_soc_modules_in_sys_modules",
+      "community": 3,
+      "norm_label": ".test_no_soc_modules_in_sys_modules()"
+    },
+    {
+      "label": ".test_no_s2p_modules_in_sys_modules()",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L45",
+      "id": "tests_test_discipline_testnodomainimports_test_no_s2p_modules_in_sys_modules",
+      "community": 3,
+      "norm_label": ".test_no_s2p_modules_in_sys_modules()"
+    },
+    {
+      "label": ".test_sdk_source_has_no_forbidden_imports()",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L51",
+      "id": "tests_test_discipline_testnodomainimports_test_sdk_source_has_no_forbidden_imports",
+      "community": 3,
+      "norm_label": ".test_sdk_source_has_no_forbidden_imports()"
+    },
+    {
+      "label": "TestProtocolsMatchGAE",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L96",
+      "id": "tests_test_discipline_testprotocolsmatchgae",
+      "community": 3,
+      "norm_label": "testprotocolsmatchgae"
+    },
+    {
+      "label": ".test_domain_config_has_required_methods()",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L98",
+      "id": "tests_test_discipline_testprotocolsmatchgae_test_domain_config_has_required_methods",
+      "community": 3,
+      "norm_label": ".test_domain_config_has_required_methods()"
+    },
+    {
+      "label": ".test_factor_computer_has_compute_method()",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L110",
+      "id": "tests_test_discipline_testprotocolsmatchgae_test_factor_computer_has_compute_method",
+      "community": 3,
+      "norm_label": ".test_factor_computer_has_compute_method()"
+    },
+    {
+      "label": ".test_source_connector_and_referral_rule_api()",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L117",
+      "id": "tests_test_discipline_testprotocolsmatchgae_test_source_connector_and_referral_rule_api",
+      "community": 3,
+      "norm_label": ".test_source_connector_and_referral_rule_api()"
+    },
+    {
+      "label": "TestSDKImportClean",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L135",
+      "id": "tests_test_discipline_testsdkimportclean",
+      "community": 3,
+      "norm_label": "testsdkimportclean"
+    },
+    {
+      "label": ".test_copilot_sdk_import_succeeds()",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L137",
+      "id": "tests_test_discipline_testsdkimportclean_test_copilot_sdk_import_succeeds",
+      "community": 3,
+      "norm_label": ".test_copilot_sdk_import_succeeds()"
+    },
+    {
+      "label": ".test_no_heavy_ml_deps_on_import()",
+      "file_type": "code",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L145",
+      "id": "tests_test_discipline_testsdkimportclean_test_no_heavy_ml_deps_on_import",
+      "community": 3,
+      "norm_label": ".test_no_heavy_ml_deps_on_import()"
+    },
+    {
+      "label": "tests/test_discipline.py \u2014 SDK boundary discipline tests.  Enforces:  - No domai",
+      "file_type": "rationale",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L1",
+      "id": "tests_test_discipline_rationale_1",
+      "community": 3,
+      "norm_label": "tests/test_discipline.py \u2014 sdk boundary discipline tests.  enforces:  - no domai"
+    },
+    {
+      "label": "No domains.soc module appears in sys.modules after importing copilot_sdk.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L40",
+      "id": "tests_test_discipline_rationale_40",
+      "community": 3,
+      "norm_label": "no domains.soc module appears in sys.modules after importing copilot_sdk."
+    },
+    {
+      "label": "No domains.s2p module appears in sys.modules after importing copilot_sdk.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L46",
+      "id": "tests_test_discipline_rationale_46",
+      "community": 3,
+      "norm_label": "no domains.s2p module appears in sys.modules after importing copilot_sdk."
+    },
+    {
+      "label": "AST scan of all .py files under copilot_sdk/ for forbidden import patterns.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L52",
+      "id": "tests_test_discipline_rationale_52",
+      "community": 3,
+      "norm_label": "ast scan of all .py files under copilot_sdk/ for forbidden import patterns."
+    },
+    {
+      "label": "DomainConfig defines all four lifecycle methods required by GAE Tier 1.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L99",
+      "id": "tests_test_discipline_rationale_99",
+      "community": 3,
+      "norm_label": "domainconfig defines all four lifecycle methods required by gae tier 1."
+    },
+    {
+      "label": "FactorComputer defines compute(event) -> float as required by GAE.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L111",
+      "id": "tests_test_discipline_rationale_111",
+      "community": 3,
+      "norm_label": "factorcomputer defines compute(event) -> float as required by gae."
+    },
+    {
+      "label": "SourceConnector has fetch/validate; ReferralRule has evaluate.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L118",
+      "id": "tests_test_discipline_rationale_118",
+      "community": 3,
+      "norm_label": "sourceconnector has fetch/validate; referralrule has evaluate."
+    },
+    {
+      "label": "Top-level `import copilot_sdk` completes without error and is versioned.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L138",
+      "id": "tests_test_discipline_rationale_138",
+      "community": 3,
+      "norm_label": "top-level `import copilot_sdk` completes without error and is versioned."
+    },
+    {
+      "label": "Importing copilot_sdk must not trigger torch, tensorflow,         transformers,",
+      "file_type": "rationale",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L146",
+      "id": "tests_test_discipline_rationale_146",
+      "community": 3,
+      "norm_label": "importing copilot_sdk must not trigger torch, tensorflow,         transformers,"
+    },
+    {
+      "label": "test_framework_discipline.py",
+      "file_type": "code",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L1",
+      "id": "tests_test_framework_discipline_py",
+      "community": 5,
+      "norm_label": "test_framework_discipline.py"
+    },
+    {
+      "label": "test_framework_has_no_domain_imports()",
+      "file_type": "code",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L24",
+      "id": "tests_test_framework_discipline_test_framework_has_no_domain_imports",
+      "community": 5,
+      "norm_label": "test_framework_has_no_domain_imports()"
+    },
+    {
+      "label": "test_framework_modules_importable()",
+      "file_type": "code",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L52",
+      "id": "tests_test_framework_discipline_test_framework_modules_importable",
+      "community": 5,
+      "norm_label": "test_framework_modules_importable()"
+    },
+    {
+      "label": "test_iks_cold_start_returns_zero()",
+      "file_type": "code",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L83",
+      "id": "tests_test_framework_discipline_test_iks_cold_start_returns_zero",
+      "community": 5,
+      "norm_label": "test_iks_cold_start_returns_zero()"
+    },
+    {
+      "label": "tests/test_framework_discipline.py \u2014 CopilotFramework extraction discipline.  En",
+      "file_type": "rationale",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L1",
+      "id": "tests_test_framework_discipline_rationale_1",
+      "community": 5,
+      "norm_label": "tests/test_framework_discipline.py \u2014 copilotframework extraction discipline.  en"
+    },
+    {
+      "label": "Framework files must never import from app.domains or app.routers.     This test",
+      "file_type": "rationale",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L25",
+      "id": "tests_test_framework_discipline_rationale_25",
+      "community": 5,
+      "norm_label": "framework files must never import from app.domains or app.routers.     this test"
+    },
+    {
+      "label": "All framework modules import without error.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L53",
+      "id": "tests_test_framework_discipline_rationale_53",
+      "community": 5,
+      "norm_label": "all framework modules import without error."
+    },
+    {
+      "label": "compute_iks with mu == mu_zero should return IKS current = 0.0.     No drift fro",
+      "file_type": "rationale",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L84",
+      "id": "tests_test_framework_discipline_rationale_84",
+      "community": 5,
+      "norm_label": "compute_iks with mu == mu_zero should return iks current = 0.0.     no drift fro"
+    },
+    {
+      "label": "test_hello_world.py",
+      "file_type": "code",
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L1",
+      "id": "tests_test_hello_world_py",
+      "community": 2,
+      "norm_label": "test_hello_world.py"
+    },
+    {
+      "label": "test_hello_world_factor_vector_length()",
+      "file_type": "code",
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L9",
+      "id": "tests_test_hello_world_test_hello_world_factor_vector_length",
+      "community": 2,
+      "norm_label": "test_hello_world_factor_vector_length()"
+    },
+    {
+      "label": "test_hello_world_iks_cold_start()",
+      "file_type": "code",
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L16",
+      "id": "tests_test_hello_world_test_hello_world_iks_cold_start",
+      "community": 2,
+      "norm_label": "test_hello_world_iks_cold_start()"
+    },
+    {
+      "label": "test_hello_world_demo_runs()",
+      "file_type": "code",
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L32",
+      "id": "tests_test_hello_world_test_hello_world_demo_runs",
+      "community": 2,
+      "norm_label": "test_hello_world_demo_runs()"
+    },
+    {
+      "label": "tests/test_hello_world.py \u2014 Hello World smoke tests.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L1",
+      "id": "tests_test_hello_world_rationale_1",
+      "community": 2,
+      "norm_label": "tests/test_hello_world.py \u2014 hello world smoke tests."
+    },
+    {
+      "label": "test_protocols.py",
+      "file_type": "code",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L1",
+      "id": "tests_test_protocols_py",
+      "community": 2,
+      "norm_label": "test_protocols.py"
+    },
+    {
+      "label": "test_domain_config_protocol_importable()",
+      "file_type": "code",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L9",
+      "id": "tests_test_protocols_test_domain_config_protocol_importable",
+      "community": 2,
+      "norm_label": "test_domain_config_protocol_importable()"
+    },
+    {
+      "label": "test_factor_computer_protocol_importable()",
+      "file_type": "code",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L14",
+      "id": "tests_test_protocols_test_factor_computer_protocol_importable",
+      "community": 2,
+      "norm_label": "test_factor_computer_protocol_importable()"
+    },
+    {
+      "label": "test_hello_world_implements_domain_config()",
+      "file_type": "code",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L19",
+      "id": "tests_test_protocols_test_hello_world_implements_domain_config",
+      "community": 2,
+      "norm_label": "test_hello_world_implements_domain_config()"
+    },
+    {
+      "label": "test_all_four_protocols_exported()",
+      "file_type": "code",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L26",
+      "id": "tests_test_protocols_test_all_four_protocols_exported",
+      "community": 2,
+      "norm_label": "test_all_four_protocols_exported()"
+    },
+    {
+      "label": "tests/test_protocols.py \u2014 Protocol smoke tests for copilot-sdk.",
+      "file_type": "rationale",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L1",
+      "id": "tests_test_protocols_rationale_1",
+      "community": 2,
+      "norm_label": "tests/test_protocols.py \u2014 protocol smoke tests for copilot-sdk."
+    },
+    {
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "tests\\__init__.py",
+      "source_location": "L1",
+      "id": "tests_init_py",
+      "community": 38,
+      "norm_label": "__init__.py"
+    }
+  ],
+  "links": [
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\__init__.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "copilot_sdk_init_rationale_1",
+      "target": "copilot_sdk_init_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_agent_py",
+      "target": "framework_agent_decisionresult",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_agent_py",
+      "target": "framework_agent_socagent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_agent_rationale_1",
+      "target": "copilot_sdk_framework_agent_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "framework_agent_decisionresult",
+      "target": "framework_agent_decisionresult_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "framework_agent_socagent_decide",
+      "target": "framework_agent_decisionresult",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "framework_agent_rationale_17",
+      "target": "framework_agent_decisionresult",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "framework_agent_socagent",
+      "target": "framework_agent_socagent_decide",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L180",
+      "weight": 1.0,
+      "source": "framework_agent_socagent",
+      "target": "framework_agent_socagent_calculate_faithfulness",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L252",
+      "weight": 1.0,
+      "source": "framework_agent_socagent",
+      "target": "framework_agent_socagent_evaluate_gates",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L339",
+      "weight": 1.0,
+      "source": "framework_agent_socagent",
+      "target": "framework_agent_socagent_maybe_trigger_evolution",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "framework_agent_rationale_33",
+      "target": "framework_agent_socagent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "framework_agent_rationale_46",
+      "target": "framework_agent_socagent_decide",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L271",
+      "weight": 1.0,
+      "source": "framework_agent_socagent_evaluate_gates",
+      "target": "framework_agent_socagent_calculate_faithfulness",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L186",
+      "weight": 1.0,
+      "source": "framework_agent_rationale_186",
+      "target": "framework_agent_socagent_calculate_faithfulness",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L258",
+      "weight": 1.0,
+      "source": "framework_agent_rationale_258",
+      "target": "framework_agent_socagent_evaluate_gates",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\agent.py",
+      "source_location": "L344",
+      "weight": 1.0,
+      "source": "framework_agent_rationale_344",
+      "target": "framework_agent_socagent_maybe_trigger_evolution",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_audit_py",
+      "target": "framework_audit_entry_to_dict",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L90",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_audit_py",
+      "target": "framework_audit_record_decision",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L124",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_audit_py",
+      "target": "framework_audit_record_outcome",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L148",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_audit_py",
+      "target": "framework_audit_get_decisions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L157",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_audit_py",
+      "target": "framework_audit_reconstruct_from_memory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L209",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_audit_py",
+      "target": "framework_audit_reset_audit_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L216",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_audit_py",
+      "target": "framework_audit_record_reset_marker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L237",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_audit_py",
+      "target": "framework_audit_verify_chain",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_audit_rationale_1",
+      "target": "copilot_sdk_framework_audit_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L121",
+      "weight": 1.0,
+      "source": "framework_audit_record_decision",
+      "target": "framework_audit_entry_to_dict",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L143",
+      "weight": 1.0,
+      "source": "framework_audit_record_outcome",
+      "target": "framework_audit_entry_to_dict",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L151",
+      "weight": 1.0,
+      "source": "framework_audit_get_decisions",
+      "target": "framework_audit_entry_to_dict",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L68",
+      "weight": 1.0,
+      "source": "framework_audit_rationale_68",
+      "target": "framework_audit_entry_to_dict",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L100",
+      "weight": 1.0,
+      "source": "framework_audit_rationale_100",
+      "target": "framework_audit_record_decision",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L129",
+      "weight": 1.0,
+      "source": "framework_audit_rationale_129",
+      "target": "framework_audit_record_outcome",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L149",
+      "weight": 1.0,
+      "source": "framework_audit_rationale_149",
+      "target": "framework_audit_get_decisions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L158",
+      "weight": 1.0,
+      "source": "framework_audit_rationale_158",
+      "target": "framework_audit_reconstruct_from_memory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L210",
+      "weight": 1.0,
+      "source": "framework_audit_rationale_210",
+      "target": "framework_audit_reset_audit_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L217",
+      "weight": 1.0,
+      "source": "framework_audit_rationale_217",
+      "target": "framework_audit_record_reset_marker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\audit.py",
+      "source_location": "L238",
+      "weight": 1.0,
+      "source": "framework_audit_rationale_238",
+      "target": "framework_audit_verify_chain",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_checkpoint_py",
+      "target": "framework_checkpoint_checkpointservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_checkpoint_py",
+      "target": "framework_checkpoint_create_checkpoint",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_checkpoint_py",
+      "target": "framework_checkpoint_list_checkpoints",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L99",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_checkpoint_py",
+      "target": "framework_checkpoint_rollback",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_checkpoint_rationale_1",
+      "target": "copilot_sdk_framework_checkpoint_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\checkpoint.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "framework_checkpoint_rationale_24",
+      "target": "framework_checkpoint_checkpointservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L142",
+      "weight": 0.8,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_checkpoint_checkpointservice",
+      "confidence_score": 0.5
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_composite_gate_py",
+      "target": "framework_composite_gate_compositediscriminant",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L62",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_composite_gate_py",
+      "target": "framework_composite_gate_evaluate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_composite_gate_rationale_1",
+      "target": "copilot_sdk_framework_composite_gate_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "framework_composite_gate_rationale_31",
+      "target": "framework_composite_gate_compositediscriminant",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "copilot_sdk\\framework\\composite_gate.py",
+      "source_location": "L25",
+      "weight": 0.8,
+      "source": "framework_composite_gate_compositediscriminant",
+      "target": "framework_decision_history_decisionhistoryservice",
+      "confidence_score": 0.5
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_convergence_math_py",
+      "target": "framework_convergence_math_predict_n_half",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_convergence_math_py",
+      "target": "framework_convergence_math_decisions_to_days",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_convergence_math_rationale_1",
+      "target": "copilot_sdk_framework_convergence_math_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "framework_convergence_math_rationale_25",
+      "target": "framework_convergence_math_predict_n_half",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\convergence_math.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "framework_convergence_math_rationale_40",
+      "target": "framework_convergence_math_decisions_to_days",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_decision_history_py",
+      "target": "framework_decision_history_decisionhistoryservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_decision_history_py",
+      "target": "framework_decision_history_get_category_stats",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_decision_history_rationale_1",
+      "target": "copilot_sdk_framework_decision_history_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\decision_history.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "framework_decision_history_rationale_19",
+      "target": "framework_decision_history_decisionhistoryservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_economics_py",
+      "target": "framework_economics_frozenroicalculator",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "framework_economics_frozenroicalculator",
+      "target": "framework_economics_frozenroicalculator_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "framework_economics_frozenroicalculator",
+      "target": "framework_economics_frozenroicalculator_compute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "framework_economics_rationale_5",
+      "target": "framework_economics_frozenroicalculator",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\economics.py",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "framework_economics_rationale_32",
+      "target": "framework_economics_frozenroicalculator_compute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_event_bus_py",
+      "target": "framework_event_bus_decisionmade",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_event_bus_py",
+      "target": "framework_event_bus_outcomeverified",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_event_bus_py",
+      "target": "framework_event_bus_graphmutated",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L70",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_event_bus_py",
+      "target": "framework_event_bus_eventbus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_event_bus_rationale_1",
+      "target": "copilot_sdk_framework_event_bus_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "framework_event_bus_rationale_25",
+      "target": "framework_event_bus_decisionmade",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "framework_event_bus_rationale_39",
+      "target": "framework_event_bus_outcomeverified",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "framework_event_bus_rationale_53",
+      "target": "framework_event_bus_graphmutated",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "framework_event_bus_eventbus",
+      "target": "framework_event_bus_eventbus_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "framework_event_bus_eventbus",
+      "target": "framework_event_bus_eventbus_subscribe",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "framework_event_bus_eventbus",
+      "target": "framework_event_bus_eventbus_emit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "framework_event_bus_rationale_71",
+      "target": "framework_event_bus_eventbus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "framework_event_bus_rationale_81",
+      "target": "framework_event_bus_eventbus_subscribe",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\event_bus.py",
+      "source_location": "L97",
+      "weight": 1.0,
+      "source": "framework_event_bus_rationale_97",
+      "target": "framework_event_bus_eventbus_emit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_feedback_base_py",
+      "target": "framework_feedback_base_update_trust",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_feedback_base_py",
+      "target": "framework_feedback_base_get_trust_status",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L115",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_feedback_base_py",
+      "target": "framework_feedback_base_get_all_trust_scores",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L147",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_feedback_base_py",
+      "target": "framework_feedback_base_get_reward_summary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_feedback_base_rationale_1",
+      "target": "copilot_sdk_framework_feedback_base_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "framework_feedback_base_rationale_45",
+      "target": "framework_feedback_base_update_trust",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "framework_feedback_base_rationale_96",
+      "target": "framework_feedback_base_get_trust_status",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L116",
+      "weight": 1.0,
+      "source": "framework_feedback_base_rationale_116",
+      "target": "framework_feedback_base_get_all_trust_scores",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_base.py",
+      "source_location": "L148",
+      "weight": 1.0,
+      "source": "framework_feedback_base_rationale_148",
+      "target": "framework_feedback_base_get_reward_summary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\feedback_store.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_feedback_store_rationale_1",
+      "target": "copilot_sdk_framework_feedback_store_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_iks_base_py",
+      "target": "framework_iks_base_mean_centroid_drift",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_iks_base_py",
+      "target": "framework_iks_base_compute_iks",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L99",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_iks_base_py",
+      "target": "framework_iks_base_interpret",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L110",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_iks_base_py",
+      "target": "framework_iks_base_interpret_iks_v2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_iks_base_rationale_1",
+      "target": "copilot_sdk_framework_iks_base_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L94",
+      "weight": 1.0,
+      "source": "framework_iks_base_compute_iks",
+      "target": "framework_iks_base_mean_centroid_drift",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "framework_iks_base_rationale_35",
+      "target": "framework_iks_base_mean_centroid_drift",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L62",
+      "weight": 1.0,
+      "source": "framework_iks_base_rationale_62",
+      "target": "framework_iks_base_compute_iks",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L93",
+      "weight": 1.0,
+      "source": "tests_test_framework_discipline_test_iks_cold_start_returns_zero",
+      "target": "framework_iks_base_compute_iks"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_test_hello_world_iks_cold_start",
+      "target": "framework_iks_base_compute_iks"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_test_hello_world_demo_runs",
+      "target": "framework_iks_base_compute_iks"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L100",
+      "weight": 1.0,
+      "source": "framework_iks_base_rationale_100",
+      "target": "framework_iks_base_interpret",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\iks_base.py",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "framework_iks_base_rationale_111",
+      "target": "framework_iks_base_interpret_iks_v2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_intervention_controls_py",
+      "target": "framework_intervention_controls_interventioncontrols",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_1",
+      "target": "copilot_sdk_framework_intervention_controls_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L50",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_freeze_all_learning",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_unfreeze_all_learning",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_freeze_category",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L107",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_rollback",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L168",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_disable_auto_approve",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L187",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_category_force_review",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L210",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_adjust_threshold",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L248",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_get_current_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L282",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_get_intervention_history",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L324",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols",
+      "target": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_32",
+      "target": "framework_intervention_controls_interventioncontrols",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L56",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols_freeze_all_learning",
+      "target": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_51",
+      "target": "framework_intervention_controls_interventioncontrols_freeze_all_learning",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols_unfreeze_all_learning",
+      "target": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L68",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_68",
+      "target": "framework_intervention_controls_interventioncontrols_unfreeze_all_learning",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols_freeze_category",
+      "target": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L87",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_87",
+      "target": "framework_intervention_controls_interventioncontrols_freeze_category",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L155",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols_rollback",
+      "target": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L114",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_114",
+      "target": "framework_intervention_controls_interventioncontrols_rollback",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L176",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols_disable_auto_approve",
+      "target": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_171",
+      "target": "framework_intervention_controls_interventioncontrols_disable_auto_approve",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L199",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols_category_force_review",
+      "target": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L190",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_190",
+      "target": "framework_intervention_controls_interventioncontrols_category_force_review",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L233",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_interventioncontrols_adjust_threshold",
+      "target": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L213",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_213",
+      "target": "framework_intervention_controls_interventioncontrols_adjust_threshold",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L249",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_249",
+      "target": "framework_intervention_controls_interventioncontrols_get_current_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L283",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_283",
+      "target": "framework_intervention_controls_interventioncontrols_get_intervention_history",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\intervention_controls.py",
+      "source_location": "L331",
+      "weight": 1.0,
+      "source": "framework_intervention_controls_rationale_331",
+      "target": "framework_intervention_controls_interventioncontrols_log_intervention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_learning_state_py",
+      "target": "framework_learning_state_make_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_learning_state_py",
+      "target": "framework_learning_state_load_from_file",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L105",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_learning_state_py",
+      "target": "framework_learning_state_read_checkpoint_metadata",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_learning_state_py",
+      "target": "framework_learning_state_save_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_learning_state_rationale_1",
+      "target": "copilot_sdk_framework_learning_state_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "framework_learning_state_rationale_47",
+      "target": "framework_learning_state_make_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L60",
+      "weight": 1.0,
+      "source": "framework_learning_state_rationale_60",
+      "target": "framework_learning_state_load_from_file",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L106",
+      "weight": 1.0,
+      "source": "framework_learning_state_rationale_106",
+      "target": "framework_learning_state_read_checkpoint_metadata",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\learning_state.py",
+      "source_location": "L117",
+      "weight": 1.0,
+      "source": "framework_learning_state_rationale_117",
+      "target": "framework_learning_state_save_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_narrative_base_py",
+      "target": "framework_narrative_base_narrativeprovider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_narrative_base_py",
+      "target": "framework_narrative_base_register_narrative_provider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_narrative_base_py",
+      "target": "framework_narrative_base_create_narrative_provider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L108",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_narrative_base_py",
+      "target": "framework_narrative_base_get_narrative_provider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L123",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_narrative_base_py",
+      "target": "framework_narrative_base_set_narrative_provider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_narrative_base_rationale_1",
+      "target": "copilot_sdk_framework_narrative_base_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "framework_narrative_base_narrativeprovider",
+      "target": "protocol",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "framework_narrative_base_narrativeprovider",
+      "target": "framework_narrative_base_narrativeprovider_generate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "protocols_domain_config_domainconfig",
+      "target": "protocol",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "protocols_factor_computer_factorcomputer",
+      "target": "protocol",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "protocols_referral_rule_referralrule",
+      "target": "protocol",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "protocols_source_connector_sourceconnector",
+      "target": "protocol",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "framework_narrative_base_rationale_52",
+      "target": "framework_narrative_base_register_narrative_provider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L117",
+      "weight": 1.0,
+      "source": "framework_narrative_base_get_narrative_provider",
+      "target": "framework_narrative_base_create_narrative_provider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L68",
+      "weight": 1.0,
+      "source": "framework_narrative_base_rationale_68",
+      "target": "framework_narrative_base_create_narrative_provider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L109",
+      "weight": 1.0,
+      "source": "framework_narrative_base_rationale_109",
+      "target": "framework_narrative_base_get_narrative_provider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\narrative_base.py",
+      "source_location": "L124",
+      "weight": 1.0,
+      "source": "framework_narrative_base_rationale_124",
+      "target": "framework_narrative_base_set_narrative_provider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\ols_status.py",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_ols_status_py",
+      "target": "framework_ols_status_get_ols_status",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\ols_status.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_ols_status_rationale_1",
+      "target": "copilot_sdk_framework_ols_status_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\ols_status.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "framework_ols_status_rationale_22",
+      "target": "framework_ols_status_get_ols_status",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_factorprovenance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_decisionprovenance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_explain_travel_match",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_explain_asset_criticality",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L101",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_explain_threat_intel_enrichment",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L129",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_explain_pattern_history",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L158",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_explain_time_anomaly",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L187",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_explain_device_trust",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L230",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_provenanceservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L234",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_build_provenance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L286",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_provenance_py",
+      "target": "framework_provenance_get_provenance_from_graph",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_provenance_rationale_1",
+      "target": "copilot_sdk_framework_provenance_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L269",
+      "weight": 1.0,
+      "source": "framework_provenance_build_provenance",
+      "target": "framework_provenance_factorprovenance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L277",
+      "weight": 1.0,
+      "source": "framework_provenance_build_provenance",
+      "target": "framework_provenance_decisionprovenance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L231",
+      "weight": 1.0,
+      "source": "framework_provenance_rationale_231",
+      "target": "framework_provenance_provenanceservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\provenance.py",
+      "source_location": "L331",
+      "weight": 1.0,
+      "source": "framework_provenance_get_provenance_from_graph",
+      "target": "framework_provenance_build_provenance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_shadow_mode_py",
+      "target": "framework_shadow_mode_shadowmodeservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_shadow_mode_py",
+      "target": "framework_shadow_mode_record_shadow_decision",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_shadow_mode_py",
+      "target": "framework_shadow_mode_record_analyst_action",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_shadow_mode_py",
+      "target": "framework_shadow_mode_get_shadow_report",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_shadow_mode_rationale_1",
+      "target": "copilot_sdk_framework_shadow_mode_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\shadow_mode.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "framework_shadow_mode_rationale_20",
+      "target": "framework_shadow_mode_shadowmodeservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_similar_cases_base_py",
+      "target": "framework_similar_cases_base_similarcasesbase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_similar_cases_base_py",
+      "target": "framework_similar_cases_base_cosine_similarity",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L56",
+      "weight": 1.0,
+      "source": "copilot_sdk_framework_similar_cases_base_py",
+      "target": "framework_similar_cases_base_get_theta",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_rationale_1",
+      "target": "copilot_sdk_framework_similar_cases_base_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_similarcasesbase",
+      "target": "framework_similar_cases_base_similarcasesbase_fetch_verified_decisions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L119",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_similarcasesbase",
+      "target": "framework_similar_cases_base_similarcasesbase_get_similar_cases",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L162",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_similarcasesbase",
+      "target": "framework_similar_cases_base_similarcasesbase_get_agreement_pct",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_rationale_41",
+      "target": "framework_similar_cases_base_similarcasesbase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L148",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_similarcasesbase_get_similar_cases",
+      "target": "framework_similar_cases_base_cosine_similarity",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L144",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_similarcasesbase_get_similar_cases",
+      "target": "framework_similar_cases_base_get_theta",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L134",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_similarcasesbase_get_similar_cases",
+      "target": "framework_similar_cases_base_similarcasesbase_fetch_verified_decisions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_rationale_67",
+      "target": "framework_similar_cases_base_similarcasesbase_fetch_verified_decisions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L126",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_rationale_126",
+      "target": "framework_similar_cases_base_similarcasesbase_get_similar_cases",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\similar_cases_base.py",
+      "source_location": "L167",
+      "weight": 1.0,
+      "source": "framework_similar_cases_base_rationale_167",
+      "target": "framework_similar_cases_base_similarcasesbase_get_agreement_pct",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\framework\\__init__.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "framework_init_rationale_1",
+      "target": "copilot_sdk_framework_init_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "copilot_sdk_protocols_domain_config_py",
+      "target": "protocols_domain_config_domainconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "protocols_domain_config_rationale_1",
+      "target": "copilot_sdk_protocols_domain_config_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "protocols_domain_config_domainconfig",
+      "target": "protocols_domain_config_domainconfig_get_initial_centroids",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "protocols_domain_config_domainconfig",
+      "target": "protocols_domain_config_domainconfig_get_sigma_profile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "protocols_domain_config_domainconfig",
+      "target": "protocols_domain_config_domainconfig_get_category_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\domain_config.py",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "protocols_domain_config_domainconfig",
+      "target": "protocols_domain_config_domainconfig_get_action_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "copilot_sdk_protocols_factor_computer_py",
+      "target": "protocols_factor_computer_factorcomputer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "protocols_factor_computer_rationale_1",
+      "target": "copilot_sdk_protocols_factor_computer_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "protocols_factor_computer_factorcomputer",
+      "target": "protocols_factor_computer_factorcomputer_compute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\factor_computer.py",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "protocols_factor_computer_rationale_15",
+      "target": "protocols_factor_computer_factorcomputer_compute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "copilot_sdk_protocols_referral_rule_py",
+      "target": "protocols_referral_rule_referralrule",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "protocols_referral_rule_rationale_1",
+      "target": "copilot_sdk_protocols_referral_rule_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "protocols_referral_rule_referralrule",
+      "target": "protocols_referral_rule_referralrule_evaluate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\referral_rule.py",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "protocols_referral_rule_rationale_14",
+      "target": "protocols_referral_rule_referralrule_evaluate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "copilot_sdk_protocols_source_connector_py",
+      "target": "protocols_source_connector_sourceconnector",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "protocols_source_connector_rationale_1",
+      "target": "copilot_sdk_protocols_source_connector_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "protocols_source_connector_sourceconnector",
+      "target": "protocols_source_connector_sourceconnector_fetch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "copilot_sdk\\protocols\\source_connector.py",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "protocols_source_connector_sourceconnector",
+      "target": "protocols_source_connector_sourceconnector_validate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "examples_hello_world_config_py",
+      "target": "hello_world_config_helloworldconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "examples_hello_world_config_py",
+      "target": "hello_world_config_get_initial_centroids",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "examples_hello_world_config_py",
+      "target": "hello_world_config_get_sigma_profile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "examples_hello_world_config_py",
+      "target": "hello_world_config_get_category_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "examples_hello_world_config_py",
+      "target": "hello_world_config_get_action_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\config.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "hello_world_config_rationale_1",
+      "target": "examples_hello_world_config_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_test_hello_world_iks_cold_start",
+      "target": "hello_world_config_helloworldconfig"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_test_hello_world_demo_runs",
+      "target": "hello_world_config_helloworldconfig"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "tests_test_protocols_test_hello_world_implements_domain_config",
+      "target": "hello_world_config_helloworldconfig"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\demo.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "hello_world_demo_rationale_1",
+      "target": "examples_hello_world_demo_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "examples_hello_world_factors_py",
+      "target": "hello_world_factors_scoreafactor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "examples_hello_world_factors_py",
+      "target": "hello_world_factors_scorebfactor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "examples_hello_world_factors_py",
+      "target": "hello_world_factors_compute_factor_vector",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "hello_world_factors_scoreafactor",
+      "target": "hello_world_factors_scoreafactor_compute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "hello_world_factors_scorebfactor",
+      "target": "hello_world_factors_scorebfactor_compute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "examples\\hello_world\\factors.py",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "hello_world_factors_compute_factor_vector",
+      "target": "hello_world_factors_scorebfactor_compute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_test_hello_world_factor_vector_length",
+      "target": "hello_world_factors_compute_factor_vector"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_test_hello_world_demo_runs",
+      "target": "hello_world_factors_compute_factor_vector"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "tests_test_discipline_py",
+      "target": "tests_test_discipline_testnodomainimports",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "tests_test_discipline_py",
+      "target": "tests_test_discipline_testprotocolsmatchgae",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L135",
+      "weight": 1.0,
+      "source": "tests_test_discipline_py",
+      "target": "tests_test_discipline_testsdkimportclean",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "tests_test_discipline_rationale_1",
+      "target": "tests_test_discipline_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "tests_test_discipline_testnodomainimports",
+      "target": "tests_test_discipline_testnodomainimports_test_no_soc_modules_in_sys_modules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "tests_test_discipline_testnodomainimports",
+      "target": "tests_test_discipline_testnodomainimports_test_no_s2p_modules_in_sys_modules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "tests_test_discipline_testnodomainimports",
+      "target": "tests_test_discipline_testnodomainimports_test_sdk_source_has_no_forbidden_imports",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "tests_test_discipline_rationale_40",
+      "target": "tests_test_discipline_testnodomainimports_test_no_soc_modules_in_sys_modules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "tests_test_discipline_rationale_46",
+      "target": "tests_test_discipline_testnodomainimports_test_no_s2p_modules_in_sys_modules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "tests_test_discipline_rationale_52",
+      "target": "tests_test_discipline_testnodomainimports_test_sdk_source_has_no_forbidden_imports",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L98",
+      "weight": 1.0,
+      "source": "tests_test_discipline_testprotocolsmatchgae",
+      "target": "tests_test_discipline_testprotocolsmatchgae_test_domain_config_has_required_methods",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L110",
+      "weight": 1.0,
+      "source": "tests_test_discipline_testprotocolsmatchgae",
+      "target": "tests_test_discipline_testprotocolsmatchgae_test_factor_computer_has_compute_method",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L117",
+      "weight": 1.0,
+      "source": "tests_test_discipline_testprotocolsmatchgae",
+      "target": "tests_test_discipline_testprotocolsmatchgae_test_source_connector_and_referral_rule_api",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L99",
+      "weight": 1.0,
+      "source": "tests_test_discipline_rationale_99",
+      "target": "tests_test_discipline_testprotocolsmatchgae_test_domain_config_has_required_methods",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "tests_test_discipline_rationale_111",
+      "target": "tests_test_discipline_testprotocolsmatchgae_test_factor_computer_has_compute_method",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L118",
+      "weight": 1.0,
+      "source": "tests_test_discipline_rationale_118",
+      "target": "tests_test_discipline_testprotocolsmatchgae_test_source_connector_and_referral_rule_api",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L137",
+      "weight": 1.0,
+      "source": "tests_test_discipline_testsdkimportclean",
+      "target": "tests_test_discipline_testsdkimportclean_test_copilot_sdk_import_succeeds",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L145",
+      "weight": 1.0,
+      "source": "tests_test_discipline_testsdkimportclean",
+      "target": "tests_test_discipline_testsdkimportclean_test_no_heavy_ml_deps_on_import",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L138",
+      "weight": 1.0,
+      "source": "tests_test_discipline_rationale_138",
+      "target": "tests_test_discipline_testsdkimportclean_test_copilot_sdk_import_succeeds",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_discipline.py",
+      "source_location": "L146",
+      "weight": 1.0,
+      "source": "tests_test_discipline_rationale_146",
+      "target": "tests_test_discipline_testsdkimportclean_test_no_heavy_ml_deps_on_import",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "tests_test_framework_discipline_py",
+      "target": "tests_test_framework_discipline_test_framework_has_no_domain_imports",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "tests_test_framework_discipline_py",
+      "target": "tests_test_framework_discipline_test_framework_modules_importable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "tests_test_framework_discipline_py",
+      "target": "tests_test_framework_discipline_test_iks_cold_start_returns_zero",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "tests_test_framework_discipline_rationale_1",
+      "target": "tests_test_framework_discipline_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "tests_test_framework_discipline_rationale_25",
+      "target": "tests_test_framework_discipline_test_framework_has_no_domain_imports",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "tests_test_framework_discipline_rationale_53",
+      "target": "tests_test_framework_discipline_test_framework_modules_importable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_framework_discipline.py",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "tests_test_framework_discipline_rationale_84",
+      "target": "tests_test_framework_discipline_test_iks_cold_start_returns_zero",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_py",
+      "target": "tests_test_hello_world_test_hello_world_factor_vector_length",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_py",
+      "target": "tests_test_hello_world_test_hello_world_iks_cold_start",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_py",
+      "target": "tests_test_hello_world_test_hello_world_demo_runs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_hello_world.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "tests_test_hello_world_rationale_1",
+      "target": "tests_test_hello_world_py",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "tests_test_protocols_py",
+      "target": "tests_test_protocols_test_domain_config_protocol_importable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "tests_test_protocols_py",
+      "target": "tests_test_protocols_test_factor_computer_protocol_importable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "tests_test_protocols_py",
+      "target": "tests_test_protocols_test_hello_world_implements_domain_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "tests_test_protocols_py",
+      "target": "tests_test_protocols_test_all_four_protocols_exported",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests\\test_protocols.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "tests_test_protocols_rationale_1",
+      "target": "tests_test_protocols_py",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": []
+}

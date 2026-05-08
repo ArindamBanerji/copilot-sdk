@@ -58,3 +58,13 @@ The SDK is the public interface. It must never leak domain internals.
 1. `python -m pytest tests/ -v` (18 tests must pass)
 2. Verify: `pip install . && python -c "from copilot_sdk import CopilotFramework; print('OK')"`
 3. If you changed a protocol: grep for it in gen-ai-roi-demo-v4-v50 and s2p-copilot.
+
+## graphify
+
+This project has a graphify knowledge graph at graphify-out/.
+
+Rules:
+- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
+- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
+- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
+- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)

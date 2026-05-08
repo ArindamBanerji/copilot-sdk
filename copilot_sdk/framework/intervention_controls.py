@@ -139,7 +139,7 @@ class InterventionControls:
             }
 
         # Apply rollback
-        from copilot_sdk.framework.checkpoint import CheckpointService
+        from app.framework.checkpoint import CheckpointService
 
         rollback_result = await CheckpointService.rollback(
             checkpoint_id=snapshot_id,
@@ -288,7 +288,7 @@ class InterventionControls:
                           i.type         AS type,
                           i.initiated_by AS initiated_by,
                           i.reason       AS reason,
-                          toString(i.timestamp) AS timestamp,
+                          i.timestamp    AS timestamp,
                           i.details      AS details
                    ORDER BY i.timestamp DESC
                    LIMIT $limit""",
@@ -334,19 +334,20 @@ class InterventionControls:
         try:
             await self.db.run_query(
                 """CREATE (i:Intervention {
-                    id:           $id,
-                    type:         $type,
-                    initiated_by: $initiated_by,
-                    reason:       $reason,
-                    timestamp:    datetime(),
-                    details:      $details
+                    id:              $id,
+                    type:            $type,
+                    initiated_by:    $initiated_by,
+                    reason:          $reason,
+                    timestamp_epoch: $timestamp_epoch,
+                    details:         $details
                 })""",
                 {
-                    "id":           intervention_id,
-                    "type":         intervention_type,
-                    "initiated_by": initiated_by,
-                    "reason":       reason,
-                    "details":      json.dumps(details),
+                    "id":              intervention_id,
+                    "type":            intervention_type,
+                    "initiated_by":    initiated_by,
+                    "reason":          reason,
+                    "timestamp_epoch": int(datetime.utcnow().timestamp() * 1000),
+                    "details":         json.dumps(details),
                 },
             )
         except Exception as exc:

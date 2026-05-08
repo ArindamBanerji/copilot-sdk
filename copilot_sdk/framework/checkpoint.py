@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
+from datetime import datetime
 from typing import Any
 
 import numpy as np
@@ -49,18 +50,19 @@ class CheckpointService:
         await neo4j_service.run_query(
             """CREATE (cp:Checkpoint {
                 id:               $id,
-                timestamp:        datetime(),
+                timestamp_epoch:  $timestamp_epoch,
                 reason:           $reason,
                 mu_snapshot:      $mu,
                 counts_snapshot:  $counts,
                 decision_count:   $dc
             })""",
             {
-                "id":     checkpoint_id,
-                "reason": reason,
-                "mu":     json.dumps(mu_snapshot),
-                "counts": json.dumps(counts_snapshot),
-                "dc":     decision_count,
+                "id":              checkpoint_id,
+                "timestamp_epoch": int(datetime.utcnow().timestamp() * 1000),
+                "reason":          reason,
+                "mu":              json.dumps(mu_snapshot),
+                "counts":          json.dumps(counts_snapshot),
+                "dc":              decision_count,
             },
         )
         log.info(
@@ -75,11 +77,11 @@ class CheckpointService:
         try:
             result = await neo4j_service.run_query(
                 """MATCH (cp:Checkpoint)
-                   RETURN cp.id             AS id,
-                          toString(cp.timestamp) AS timestamp,
-                          cp.reason         AS reason,
-                          cp.decision_count AS decision_count
-                   ORDER BY cp.timestamp DESC""",
+                   RETURN cp.id              AS id,
+                          cp.timestamp_epoch AS timestamp,
+                          cp.reason          AS reason,
+                          cp.decision_count  AS decision_count
+                   ORDER BY cp.timestamp_epoch DESC""",
             )
         except Exception as exc:
             log.warning("[CHECKPOINT] list_checkpoints query failed: %s", exc)
@@ -130,7 +132,16 @@ class CheckpointService:
         # Restore mu
         mu_str = cp.get("mu_snapshot") or "[]"
         try:
-            mu_restored       = np.array(json.loads(mu_str), dtype=np.float64)
+            mu_restored = np.array(json.loads(mu_str), dtype=np.float64)
+            if not np.isfinite(mu_restored).all():
+                log.error(
+                    "[CHECKPOINT] mu_snapshot contains NaN or Inf — rollback aborted: id=%s",
+                    checkpoint_id,
+                )
+                return {
+                    "error": "Checkpoint contains NaN or Inf values — rollback aborted",
+                    "checkpoint_id": checkpoint_id,
+                }
             scorer.centroids = mu_restored
         except Exception as exc:
             log.error("[CHECKPOINT] mu restore failed: %s", exc)
@@ -140,8 +151,11 @@ class CheckpointService:
         counts_str = cp.get("counts_snapshot") or ""
         if counts_str and hasattr(scorer, "counts"):
             try:
-                counts_restored  = np.array(json.loads(counts_str), dtype=np.float64)
-                scorer.counts[:] = counts_restored
+                counts_restored = np.array(json.loads(counts_str), dtype=np.float64)
+                if np.isfinite(counts_restored).all():
+                    scorer.counts[:] = counts_restored
+                else:
+                    log.warning("[CHECKPOINT] counts_snapshot contains NaN or Inf — skipped")
             except Exception as exc:
                 log.debug("[CHECKPOINT] counts restore skipped: %s", exc)
 
