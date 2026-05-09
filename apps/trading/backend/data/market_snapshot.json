@@ -1,0 +1,18 @@
+{
+  "source": "cached",
+  "spy": {
+    "price": 515.0,
+    "change_30d_pct": 3.0,
+    "trend": "up"
+  },
+  "vix": {
+    "value": 14.8,
+    "change_30d_pct": -6.3,
+    "regime": "calm"
+  },
+  "sector": {
+    "leader": "technology",
+    "laggard": "utilities",
+    "breadth": 0.62
+  }
+}

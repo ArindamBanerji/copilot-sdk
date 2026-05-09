@@ -1,0 +1,137 @@
+import type {
+  Analytics,
+  FingerprintResponse,
+  LearnResponse,
+  MarketSnapshot,
+  ScoreResponse,
+  SimilarTrade,
+  TickerData,
+  TradeHistoryDecision,
+  TradeMetadata,
+  TrajectoryResponse,
+} from "./types";
+
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8010";
+
+type JsonObject = Record<string, unknown>;
+
+function toCamelKey(key: string): string {
+  return key.replace(/_([a-z])/g, (_match, letter: string) => letter.toUpperCase());
+}
+
+export function normalizeKeys<T = unknown>(value: unknown): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeKeys(item)) as T;
+  }
+  if (value && typeof value === "object") {
+    const output: JsonObject = {};
+    for (const [key, nested] of Object.entries(value as JsonObject)) {
+      output[toCamelKey(key)] = normalizeKeys(nested);
+    }
+    return output as T;
+  }
+  return value as T;
+}
+
+async function apiGet<T>(path: string): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`);
+  if (!response.ok) {
+    throw new Error(`GET ${path} failed with ${response.status}`);
+  }
+  return normalizeKeys<T>(await response.json());
+}
+
+async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(`POST ${path} failed with ${response.status}`);
+  }
+  return normalizeKeys<T>(await response.json());
+}
+
+export function getAnalytics(): Promise<Analytics> {
+  return apiGet<Analytics>("/api/context/analytics");
+}
+
+export function getHistory(): Promise<TradeHistoryDecision[]> {
+  return apiGet<{ decisions?: TradeHistoryDecision[] } | TradeHistoryDecision[]>("/api/history").then((payload) =>
+    Array.isArray(payload) ? payload : payload.decisions || [],
+  );
+}
+
+export function getTradeMetadata(): Promise<Record<string, TradeMetadata>> {
+  return apiGet<Record<string, TradeMetadata>>("/api/context/trade-metadata");
+}
+
+export function getMarketSnapshot(): Promise<MarketSnapshot> {
+  return apiGet<MarketSnapshot>("/api/context/market-snapshot");
+}
+
+export function getTicker(ticker: string): Promise<TickerData> {
+  return apiGet<TickerData>(`/api/context/ticker/${encodeURIComponent(ticker.toUpperCase())}`);
+}
+
+export function getTrajectory(): Promise<TrajectoryResponse> {
+  return apiGet<TrajectoryResponse>("/api/trajectory");
+}
+
+export function getFingerprint(): Promise<FingerprintResponse> {
+  return apiGet<FingerprintResponse>("/api/fingerprint");
+}
+
+export function scoreTrade(payload: unknown): Promise<ScoreResponse> {
+  return apiPost<ScoreResponse>("/api/score", payload).then((result) => ({
+    ...result,
+    actionNames: result.actionNames || ["buy", "hold", "sell"],
+  }));
+}
+
+export function learnTrade(
+  decisionId: string,
+  action: string,
+  outcome = "confirmed",
+): Promise<LearnResponse> {
+  return apiPost<LearnResponse>("/api/learn", {
+    decision_id: decisionId,
+    actual_action: action,
+    outcome,
+  });
+}
+
+export function saveTradeMetadata(
+  payload: TradeMetadata & Record<string, unknown>,
+): Promise<{ decisionId: string; metadata: TradeMetadata }> {
+  return apiPost<{ decisionId: string; metadata: TradeMetadata }>("/api/context/trade-metadata", {
+    ...payload,
+    decision_id: payload.decisionId,
+  });
+}
+
+export function getSimilarTrades(
+  input: {
+    category: string;
+    conviction: number;
+    researchDepth: number;
+    technicalSignal: number;
+    positionSize: number;
+    timeHorizon: number;
+    marketRegime: number;
+  },
+  n = 5,
+): Promise<{ similar: SimilarTrade[]; count: number }> {
+  const params = new URLSearchParams({
+    category: input.category,
+    conviction: String(input.conviction),
+    research_depth: String(input.researchDepth),
+    technical_signal: String(input.technicalSignal),
+    position_size: String(input.positionSize),
+    time_horizon: String(input.timeHorizon),
+    market_regime: String(input.marketRegime),
+    n: String(n),
+  });
+  return apiGet<{ similar: SimilarTrade[]; count: number }>(`/api/context/similar?${params.toString()}`);
+}

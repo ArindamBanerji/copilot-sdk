@@ -1,0 +1,196 @@
+{
+  "source": "purchasing_seed_v2.json",
+  "generated_from_seed": true,
+  "contrast_card": {
+    "basis": "aligned orders are correct decisions with demand, event, waste, and lead-time factors in expected ranges; misaligned orders are incorrect high-risk orders",
+    "aligned": {
+      "count": 14,
+      "correct": 14,
+      "accuracy": 1.0,
+      "total_cost_dollars": 652.71
+    },
+    "misaligned": {
+      "count": 6,
+      "correct": 0,
+      "accuracy": 0.0,
+      "total_cost_dollars": 2171.13
+    },
+    "neutral": {
+      "count": 0,
+      "correct": 0,
+      "accuracy": null,
+      "total_cost_dollars": 0.0
+    }
+  },
+  "counterfactual": {
+    "scenario": "Apply AE Friday produce rule",
+    "orders_adjusted": 3,
+    "affected_order_ids": [
+      "PV2-007",
+      "PV2-008",
+      "PV2-009"
+    ],
+    "dollars_saved": 364.89,
+    "waste_reduction_pct": 35.0
+  },
+  "category_accuracy": {
+    "protein": {
+      "count": 6,
+      "correct": 4,
+      "accuracy": 0.6667,
+      "waste_cost_dollars": 120.72,
+      "stockout_cost_dollars": 920.0,
+      "total_cost_dollars": 1040.72
+    },
+    "produce": {
+      "count": 6,
+      "correct": 3,
+      "accuracy": 0.5,
+      "waste_cost_dollars": 1317.1,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 1317.1
+    },
+    "dairy": {
+      "count": 4,
+      "correct": 3,
+      "accuracy": 0.75,
+      "waste_cost_dollars": 333.08,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 333.08
+    },
+    "dry_goods": {
+      "count": 2,
+      "correct": 2,
+      "accuracy": 1.0,
+      "waste_cost_dollars": 9.46,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 9.46
+    },
+    "beverages": {
+      "count": 2,
+      "correct": 2,
+      "accuracy": 1.0,
+      "waste_cost_dollars": 123.48,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 123.48
+    }
+  },
+  "day_of_week": {
+    "monday": {
+      "count": 3,
+      "correct": 3,
+      "accuracy": 1.0,
+      "waste_cost_dollars": 60.06,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 60.06
+    },
+    "tuesday": {
+      "count": 3,
+      "correct": 2,
+      "accuracy": 0.6667,
+      "waste_cost_dollars": 67.51,
+      "stockout_cost_dollars": 400.0,
+      "total_cost_dollars": 467.51
+    },
+    "wednesday": {
+      "count": 3,
+      "correct": 2,
+      "accuracy": 0.6667,
+      "waste_cost_dollars": 80.05,
+      "stockout_cost_dollars": 520.0,
+      "total_cost_dollars": 600.05
+    },
+    "thursday": {
+      "count": 3,
+      "correct": 3,
+      "accuracy": 1.0,
+      "waste_cost_dollars": 139.6,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 139.6
+    },
+    "friday": {
+      "count": 5,
+      "correct": 1,
+      "accuracy": 0.2,
+      "waste_cost_dollars": 1373.86,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 1373.86
+    },
+    "saturday": {
+      "count": 2,
+      "correct": 2,
+      "accuracy": 1.0,
+      "waste_cost_dollars": 132.36,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 132.36
+    },
+    "sunday": {
+      "count": 1,
+      "correct": 1,
+      "accuracy": 1.0,
+      "waste_cost_dollars": 50.4,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 50.4
+    }
+  },
+  "event_impact": {
+    "event": {
+      "count": 9,
+      "correct": 4,
+      "accuracy": 0.4444,
+      "waste_cost_dollars": 1308.98,
+      "stockout_cost_dollars": 920.0,
+      "total_cost_dollars": 2228.98
+    },
+    "non_event": {
+      "count": 11,
+      "correct": 10,
+      "accuracy": 0.9091,
+      "waste_cost_dollars": 594.86,
+      "stockout_cost_dollars": 0.0,
+      "total_cost_dollars": 594.86
+    }
+  },
+  "waste_cost_analysis": {
+    "total_waste_cost_dollars": 1903.84,
+    "total_stockout_cost_dollars": 920.0,
+    "total_cost_dollars": 2823.84,
+    "average_waste_pct": 0.0745,
+    "stockout_orders": 2,
+    "stockout_rate": 0.1,
+    "highest_waste_order": {
+      "order_id": "PV2-007",
+      "item": "mixed_greens",
+      "waste_pct": 0.31,
+      "waste_cost_dollars": 408.85
+    }
+  },
+  "ae_impact": {
+    "managed_by_rules": {
+      "count": 12,
+      "correct": 6,
+      "accuracy": 0.5,
+      "total_cost_dollars": 2502.78,
+      "matched_rules": [
+        "V-PUR-FRIDAY-001",
+        "V-PUR-EVENT-001",
+        "V-PUR-DAIRY-001"
+      ]
+    },
+    "unmanaged": {
+      "count": 8,
+      "correct": 8,
+      "accuracy": 1.0,
+      "total_cost_dollars": 321.06
+    },
+    "estimated_savings_from_promoted_rules": 364.89
+  },
+  "portfolio_summary": {
+    "total_orders": 20,
+    "accuracy": 0.7,
+    "total_cost": 2823.84,
+    "total_waste_cost": 1903.84,
+    "total_stockout_cost": 920.0,
+    "waste_reduction_since_start_pct": 19.17
+  }
+}

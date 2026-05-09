@@ -1,0 +1,25 @@
+{
+  "incident_id": "INC-DO-2026-05-08",
+  "title": "Revenue mart freshness breach cascaded into executive dashboards",
+  "estimated_cost": 50000,
+  "primary_alert_id": "DQ-017",
+  "affected_systems": [
+    "billing_api",
+    "warehouse_etl",
+    "marketing_db"
+  ],
+  "affected_datasets": [
+    "billing_exports",
+    "revenue_mart",
+    "campaign_attribution"
+  ],
+  "fingerprint_insight": {
+    "source_reliability": 0.58,
+    "recurrence_frequency": 0.27,
+    "business_criticality": 0.9,
+    "summary": "Moderate source reliability and repeated freshness pressure made the billing export alert expensive despite a narrow initial dataset scope."
+  },
+  "engine": {
+    "gae": "gae.evolution"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "auto_resolved_count": 47,
+  "accuracy": 0.82,
+  "active_rules": [
+    "V-DO-RECUR-001",
+    "V-DO-FRESH-001"
+  ],
+  "rejected_rules": [
+    "V-DO-AUTO-001"
+  ],
+  "breakdown": {
+    "recurrence_reduction": {
+      "alerts_prevented": 18,
+      "estimated_hours_saved": 42.5
+    },
+    "sla_protection": {
+      "alerts_prevented": 11,
+      "estimated_hours_saved": 27.0
+    }
+  },
+  "rejected_example": {
+    "variant_id": "V-DO-AUTO-001",
+    "reason": "Auto-approving high-impact alerts created unacceptable downstream risk."
+  },
+  "engine": {
+    "gae": "gae.evolution"
+  }
+}

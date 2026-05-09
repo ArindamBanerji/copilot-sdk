@@ -1,0 +1,77 @@
+{
+  "variants": [
+    {
+      "id": "V-DO-RECUR-001",
+      "event_type": "promotion_approved",
+      "variant_id": "dataops-recurring-impact-v1",
+      "artifact_type": "routing_rule",
+      "description": "Escalate recurring DataOps alerts with downstream impact.",
+      "impact": "recurrence_reduction",
+      "magnitude": 0.24,
+      "timestamp": "2026-05-08T10:30:00Z",
+      "timestamp_epoch": 1778251800,
+      "metadata": {
+        "wins": 18,
+        "total": 24
+      },
+      "source_copilot": "dataops",
+      "source_rule": "recurrence_frequency_signal",
+      "match": {
+        "min_recurrence_count": 7,
+        "min_impact_scope": 0.25,
+        "categories": [
+          "pipeline_failure",
+          "quality_anomaly",
+          "transform_drift"
+        ]
+      }
+    },
+    {
+      "id": "V-DO-FRESH-001",
+      "event_type": "promotion_approved",
+      "variant_id": "dataops-freshness-sla-v1",
+      "artifact_type": "context_policy",
+      "description": "Pause downstream consumers when freshness breaches affect urgent systems.",
+      "impact": "sla_protection",
+      "magnitude": 0.19,
+      "timestamp": "2026-05-08T10:45:00Z",
+      "timestamp_epoch": 1778252700,
+      "metadata": {
+        "wins": 14,
+        "total": 19
+      },
+      "source_copilot": "dataops",
+      "source_rule": "freshness_violation_signal",
+      "match": {
+        "categories": [
+          "freshness_violation"
+        ],
+        "max_data_freshness": 0.35,
+        "min_downstream_urgency": 0.7
+      }
+    },
+    {
+      "id": "V-DO-AUTO-001",
+      "event_type": "promotion_rejected",
+      "variant_id": "dataops-high-impact-auto-v1",
+      "artifact_type": "scoring_threshold",
+      "description": "Reject auto-approval for high-impact, low-reliability alerts.",
+      "impact": "risk_control",
+      "magnitude": 0.11,
+      "timestamp": "2026-05-08T11:00:00Z",
+      "timestamp_epoch": 1778253600,
+      "metadata": {
+        "wins": 6,
+        "total": 18,
+        "reject_reason": "High-impact auto-approvals increased downstream incidents"
+      },
+      "source_copilot": null,
+      "source_rule": null,
+      "match": {
+        "action": "auto_approve",
+        "min_impact_scope": 0.7,
+        "max_source_reliability": 0.5
+      }
+    }
+  ]
+}

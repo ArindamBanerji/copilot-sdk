@@ -1,0 +1,31 @@
+@import "../../../../copilot_sdk/frontend/copilot-theme.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --copilot-primary: #7c3aed;
+  --copilot-primary-light: #ede9fe;
+  --copilot-chart-fill: rgba(124, 58, 237, 0.15);
+  --copilot-chart-stroke: #7c3aed;
+}
+
+body {
+  margin: 0;
+}
+
+.dataops-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.dataops-section-title {
+  color: var(--copilot-text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.dataops-muted {
+  color: var(--copilot-text-muted);
+}

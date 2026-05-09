@@ -1,0 +1,43 @@
+{
+  "events": [
+    {
+      "event_id": "CONS-DO-001",
+      "timestamp": "2026-05-08T09:10:00Z",
+      "requested_action": "auto_approve",
+      "status": "denied",
+      "reason": "Impact scope exceeded conservation headroom.",
+      "metrics": {
+        "signal": 0.42,
+        "theta_min": 0.61,
+        "headroom": -0.19
+      }
+    },
+    {
+      "event_id": "CONS-DO-002",
+      "timestamp": "2026-05-08T09:45:00Z",
+      "requested_action": "pause_downstream",
+      "status": "denied",
+      "reason": "Verified count was too low for irreversible downstream pause.",
+      "metrics": {
+        "signal": 0.55,
+        "theta_min": 0.63,
+        "headroom": -0.08
+      }
+    },
+    {
+      "event_id": "CONS-DO-003",
+      "timestamp": "2026-05-08T10:20:00Z",
+      "requested_action": "escalate_to_owner",
+      "status": "approved",
+      "reason": "Escalation preserved reversibility and satisfied conservation headroom.",
+      "metrics": {
+        "signal": 0.72,
+        "theta_min": 0.64,
+        "headroom": 0.08
+      }
+    }
+  ],
+  "engine": {
+    "gae": "gae.calibration"
+  }
+}

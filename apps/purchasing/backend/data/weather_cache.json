@@ -1,0 +1,7 @@
+{
+  "temperature_f": 61.0,
+  "precipitation_prob": 0.25,
+  "wind_mph": 8.0,
+  "weather_factor": 0.35,
+  "source": "cached"
+}

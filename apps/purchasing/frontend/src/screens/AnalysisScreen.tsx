@@ -1,0 +1,120 @@
+import { useEffect, useMemo, useState } from "react";
+import FingerprintPanel, { type FactorItem, type FingerprintCategory } from "../../../../../copilot_sdk/frontend/FingerprintPanel";
+import { getAnalytics, getFingerprint } from "../api";
+import CategoryAccuracyChart from "../components/CategoryAccuracyChart";
+import ContrastCard from "../components/ContrastCard";
+import CounterfactualCard from "../components/CounterfactualCard";
+import DayOfWeekChart from "../components/DayOfWeekChart";
+import EventImpactCard from "../components/EventImpactCard";
+import ProfileArchetype from "../components/ProfileArchetype";
+import WasteCostCard from "../components/WasteCostCard";
+import type { Analytics, FingerprintFactor, FingerprintResponse } from "../types";
+
+const displayNames: Record<string, string> = {
+  expected_demand: "Expected demand",
+  day_of_week: "Day of week",
+  weather_forecast: "Weather",
+  event_flag: "Events",
+  historical_waste: "Historical waste",
+  supplier_lead_time: "Supplier lead time",
+};
+
+const interpretations: Record<string, string> = {
+  historical_waste: "Items with low waste are your edge; high-waste items need guardrails.",
+  day_of_week: "Friday is your blind spot.",
+  weather_forecast: "Weather is noisy for your ordering decisions.",
+  event_flag: "Events create under-ordering risk.",
+  expected_demand: "Your demand estimate is reasonably calibrated.",
+  supplier_lead_time: "Lead time matters mostly when stockouts are expensive.",
+};
+
+function toFactorItems(fingerprint?: FingerprintResponse): FactorItem[] {
+  const factors = fingerprint?.factors;
+  if (!factors) {
+    return [];
+  }
+  if (Array.isArray(factors)) {
+    return factors.map((factor: FingerprintFactor) => ({
+      name: factor.name,
+      displayName: displayNames[factor.name] ?? factor.displayName ?? factor.name,
+      weight: Number(factor.weight ?? 0),
+      sigma: Number(factor.sigma ?? 0),
+      interpretation: interpretations[factor.name] ?? factor.interpretation ?? "Factor precision is still forming.",
+      category: factor.category as FingerprintCategory | undefined,
+    }));
+  }
+  return Object.entries(factors).map(([name, weight]) => ({
+    name,
+    displayName: displayNames[name] ?? name,
+    weight: Number(weight ?? 0),
+    sigma: 0,
+    interpretation: interpretations[name] ?? "Factor precision is still forming.",
+  }));
+}
+
+export default function AnalysisScreen() {
+  const [analytics, setAnalytics] = useState<Analytics | undefined>();
+  const [fingerprint, setFingerprint] = useState<FingerprintResponse | undefined>();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | undefined>();
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(undefined);
+      try {
+        const [nextAnalytics, nextFingerprint] = await Promise.all([getAnalytics(), getFingerprint()]);
+        if (mounted) {
+          setAnalytics(nextAnalytics);
+          setFingerprint(nextFingerprint);
+        }
+      } catch (caught) {
+        if (mounted) {
+          setError(caught instanceof Error ? caught.message : "Unable to load analysis");
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const factors = useMemo(() => toFactorItems(fingerprint), [fingerprint]);
+
+  if (loading) {
+    return <section className="purchase-card">Loading analysis...</section>;
+  }
+
+  if (error) {
+    return (
+      <section className="purchase-card error-card">
+        <p className="purchase-kicker">Analysis unavailable</p>
+        <p>{error}</p>
+      </section>
+    );
+  }
+
+  return (
+    <div className="purchase-stack analysis-screen">
+      <ContrastCard analytics={analytics} />
+      <ProfileArchetype fingerprint={fingerprint} />
+      <FingerprintPanel
+        factors={factors}
+        signalLabel="YOUR SIGNAL"
+        noiseLabel="YOUR BLIND SPOTS"
+        decisionsAnalyzed={fingerprint?.decisionsAnalyzed}
+      />
+      <CounterfactualCard analytics={analytics} />
+      <CategoryAccuracyChart analytics={analytics} />
+      <DayOfWeekChart analytics={analytics} />
+      <EventImpactCard analytics={analytics} />
+      <WasteCostCard analytics={analytics} />
+    </div>
+  );
+}

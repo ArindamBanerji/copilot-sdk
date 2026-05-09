@@ -1,0 +1,455 @@
+{
+  "source": "computed_from_trading_seed_v2",
+  "seed_file": "trading_seed_v2.json",
+  "total_trades": 40,
+  "closed_trades": 37,
+  "open_positions": 3,
+  "category_counts": {
+    "equity_long": 24,
+    "etf": 6,
+    "crypto_spot": 6,
+    "options": 4
+  },
+  "thesis_counts": {
+    "momentum": 20,
+    "event": 8,
+    "technical": 3,
+    "mean_reversion": 6,
+    "fundamental": 3
+  },
+  "contrast_card": {
+    "aligned": {
+      "count": 24,
+      "trade_ids": [
+        "V2-001",
+        "V2-002",
+        "V2-003",
+        "V2-004",
+        "V2-006",
+        "V2-007",
+        "V2-008",
+        "V2-009",
+        "V2-012",
+        "V2-016",
+        "V2-017",
+        "V2-018",
+        "V2-019",
+        "V2-021",
+        "V2-022",
+        "V2-024",
+        "V2-028",
+        "V2-031",
+        "V2-034",
+        "V2-035",
+        "V2-036",
+        "V2-038",
+        "V2-039",
+        "V2-040"
+      ]
+    },
+    "misaligned": {
+      "count": 11,
+      "trade_ids": [
+        "V2-005",
+        "V2-010",
+        "V2-013",
+        "V2-014",
+        "V2-015",
+        "V2-020",
+        "V2-023",
+        "V2-027",
+        "V2-029",
+        "V2-030",
+        "V2-033"
+      ]
+    },
+    "neutral": {
+      "count": 5,
+      "trade_ids": [
+        "V2-011",
+        "V2-025",
+        "V2-026",
+        "V2-032",
+        "V2-037"
+      ]
+    },
+    "basis": "all_trades"
+  },
+  "counterfactual": {
+    "scenario": "skip trades with checklist_count <= 1 or research_depth <= 0.2",
+    "skipped_trade_count": 4,
+    "skipped_trade_ids": [
+      "V2-014",
+      "V2-020",
+      "V2-030",
+      "V2-033"
+    ],
+    "dollars_saved": 3835
+  },
+  "calendar_heatmap": {
+    "Monday": {
+      "count": 13,
+      "closed": 13,
+      "wins": 3,
+      "losses": 10,
+      "win_rate": 0.2308,
+      "pnl_dollars": -10525.0,
+      "avg_pnl_pct": -3.3
+    },
+    "Tuesday": {
+      "count": 3,
+      "closed": 3,
+      "wins": 3,
+      "losses": 0,
+      "win_rate": 1.0,
+      "pnl_dollars": 3005,
+      "avg_pnl_pct": 3.55
+    },
+    "Wednesday": {
+      "count": 4,
+      "closed": 4,
+      "wins": 2,
+      "losses": 2,
+      "win_rate": 0.5,
+      "pnl_dollars": -1290,
+      "avg_pnl_pct": -1.92
+    },
+    "Thursday": {
+      "count": 15,
+      "closed": 15,
+      "wins": 15,
+      "losses": 0,
+      "win_rate": 1.0,
+      "pnl_dollars": 20696.0,
+      "avg_pnl_pct": 6.04
+    },
+    "Friday": {
+      "count": 2,
+      "closed": 2,
+      "wins": 2,
+      "losses": 0,
+      "win_rate": 1.0,
+      "pnl_dollars": 1680,
+      "avg_pnl_pct": 3.38
+    }
+  },
+  "thesis_breakdown": {
+    "momentum": {
+      "count": 20,
+      "closed": 17,
+      "wins": 13,
+      "losses": 4,
+      "win_rate": 0.7647,
+      "pnl_dollars": 10246.0,
+      "avg_pnl_pct": 2.56
+    },
+    "event": {
+      "count": 8,
+      "closed": 8,
+      "wins": 6,
+      "losses": 2,
+      "win_rate": 0.75,
+      "pnl_dollars": 1680,
+      "avg_pnl_pct": 1.1
+    },
+    "mean_reversion": {
+      "count": 6,
+      "closed": 6,
+      "wins": 0,
+      "losses": 6,
+      "win_rate": 0.0,
+      "pnl_dollars": -5425,
+      "avg_pnl_pct": -4.61
+    },
+    "technical": {
+      "count": 3,
+      "closed": 3,
+      "wins": 3,
+      "losses": 0,
+      "win_rate": 1.0,
+      "pnl_dollars": 2425.0,
+      "avg_pnl_pct": 3.0
+    },
+    "fundamental": {
+      "count": 3,
+      "closed": 3,
+      "wins": 3,
+      "losses": 0,
+      "win_rate": 1.0,
+      "pnl_dollars": 4640,
+      "avg_pnl_pct": 7.94
+    }
+  },
+  "regime_analysis": {
+    "low_vix": {
+      "count": 11,
+      "closed": 11,
+      "wins": 11,
+      "losses": 0,
+      "win_rate": 1.0,
+      "pnl_dollars": 16071,
+      "avg_pnl_pct": 6.36
+    },
+    "mid_vix": {
+      "count": 18,
+      "closed": 15,
+      "wins": 13,
+      "losses": 2,
+      "win_rate": 0.8667,
+      "pnl_dollars": 9440.0,
+      "avg_pnl_pct": 2.47
+    },
+    "high_vix": {
+      "count": 11,
+      "closed": 11,
+      "wins": 1,
+      "losses": 10,
+      "win_rate": 0.0909,
+      "pnl_dollars": -11945,
+      "avg_pnl_pct": -4.51
+    }
+  },
+  "research_impact": {
+    "bucket_basis": "research_checklist_true_count",
+    "buckets": {
+      "checklist_0": {
+        "count": 0,
+        "closed": 0,
+        "wins": 0,
+        "losses": 0,
+        "win_rate": null,
+        "pnl_dollars": 0.0,
+        "avg_pnl_pct": null
+      },
+      "checklist_1": {
+        "count": 4,
+        "closed": 4,
+        "wins": 0,
+        "losses": 4,
+        "win_rate": 0.0,
+        "pnl_dollars": -3835,
+        "avg_pnl_pct": -5.46
+      },
+      "checklist_2": {
+        "count": 6,
+        "closed": 6,
+        "wins": 0,
+        "losses": 6,
+        "win_rate": 0.0,
+        "pnl_dollars": -9210,
+        "avg_pnl_pct": -5.66
+      },
+      "checklist_3": {
+        "count": 5,
+        "closed": 5,
+        "wins": 3,
+        "losses": 2,
+        "win_rate": 0.6,
+        "pnl_dollars": -970,
+        "avg_pnl_pct": 0.09
+      },
+      "checklist_4": {
+        "count": 13,
+        "closed": 11,
+        "wins": 11,
+        "losses": 0,
+        "win_rate": 1.0,
+        "pnl_dollars": 10801.0,
+        "avg_pnl_pct": 3.38
+      },
+      "checklist_5": {
+        "count": 12,
+        "closed": 11,
+        "wins": 11,
+        "losses": 0,
+        "win_rate": 1.0,
+        "pnl_dollars": 16780.0,
+        "avg_pnl_pct": 6.87
+      }
+    }
+  },
+  "portfolio_concentration": {
+    "equity_long": {
+      "count": 24,
+      "closed": 22,
+      "wins": 16,
+      "losses": 6,
+      "win_rate": 0.7273,
+      "pnl_dollars": 10201,
+      "avg_pnl_pct": 2.43,
+      "open_positions": 2,
+      "exposure_dollars": 625186
+    },
+    "crypto_spot": {
+      "count": 6,
+      "closed": 6,
+      "wins": 2,
+      "losses": 4,
+      "win_rate": 0.3333,
+      "pnl_dollars": -2315.0,
+      "avg_pnl_pct": -2.0,
+      "open_positions": 0,
+      "exposure_dollars": 151670.0
+    },
+    "options": {
+      "count": 4,
+      "closed": 3,
+      "wins": 2,
+      "losses": 1,
+      "win_rate": 0.6667,
+      "pnl_dollars": 820,
+      "avg_pnl_pct": -0.41,
+      "open_positions": 1,
+      "exposure_dollars": 56614
+    },
+    "etf": {
+      "count": 6,
+      "closed": 6,
+      "wins": 5,
+      "losses": 1,
+      "win_rate": 0.8333,
+      "pnl_dollars": 4860,
+      "avg_pnl_pct": 2.85,
+      "open_positions": 0,
+      "exposure_dollars": 186090
+    }
+  },
+  "rolling_10": [
+    {
+      "trade_id": "V2-029",
+      "date": "2026-03-09",
+      "outcome": "loss",
+      "pnl_dollars": -1120,
+      "rolling_wins": 0,
+      "rolling_count": 1,
+      "rolling_win_rate": 0.0,
+      "rolling_pnl_dollars": -1120
+    },
+    {
+      "trade_id": "V2-030",
+      "date": "2026-03-18",
+      "outcome": "loss",
+      "pnl_dollars": -1200,
+      "rolling_wins": 0,
+      "rolling_count": 2,
+      "rolling_win_rate": 0.0,
+      "rolling_pnl_dollars": -2320
+    },
+    {
+      "trade_id": "V2-031",
+      "date": "2026-01-09",
+      "outcome": "win",
+      "pnl_dollars": 680,
+      "rolling_wins": 1,
+      "rolling_count": 3,
+      "rolling_win_rate": 0.3333,
+      "rolling_pnl_dollars": -1640
+    },
+    {
+      "trade_id": "V2-032",
+      "date": "2026-01-26",
+      "outcome": "win",
+      "pnl_dollars": 420,
+      "rolling_wins": 2,
+      "rolling_count": 4,
+      "rolling_win_rate": 0.5,
+      "rolling_pnl_dollars": -1220
+    },
+    {
+      "trade_id": "V2-033",
+      "date": "2026-02-23",
+      "outcome": "loss",
+      "pnl_dollars": -280,
+      "rolling_wins": 2,
+      "rolling_count": 5,
+      "rolling_win_rate": 0.4,
+      "rolling_pnl_dollars": -1500
+    },
+    {
+      "trade_id": "V2-035",
+      "date": "2026-01-16",
+      "outcome": "win",
+      "pnl_dollars": 1280,
+      "rolling_wins": 3,
+      "rolling_count": 6,
+      "rolling_win_rate": 0.5,
+      "rolling_pnl_dollars": -220
+    },
+    {
+      "trade_id": "V2-036",
+      "date": "2026-02-06",
+      "outcome": "win",
+      "pnl_dollars": 1200,
+      "rolling_wins": 4,
+      "rolling_count": 7,
+      "rolling_win_rate": 0.5714,
+      "rolling_pnl_dollars": 980
+    },
+    {
+      "trade_id": "V2-037",
+      "date": "2026-03-16",
+      "outcome": "win",
+      "pnl_dollars": 1100,
+      "rolling_wins": 5,
+      "rolling_count": 8,
+      "rolling_win_rate": 0.625,
+      "rolling_pnl_dollars": 2080
+    },
+    {
+      "trade_id": "V2-038",
+      "date": "2026-03-25",
+      "outcome": "win",
+      "pnl_dollars": 420,
+      "rolling_wins": 6,
+      "rolling_count": 9,
+      "rolling_win_rate": 0.6667,
+      "rolling_pnl_dollars": 2500
+    },
+    {
+      "trade_id": "V2-039",
+      "date": "2026-04-02",
+      "outcome": "win",
+      "pnl_dollars": 1820,
+      "rolling_wins": 7,
+      "rolling_count": 10,
+      "rolling_win_rate": 0.7,
+      "rolling_pnl_dollars": 4320
+    }
+  ],
+  "risk_management": {
+    "with_stops": {
+      "count": 28,
+      "closed": 28,
+      "wins": 25,
+      "losses": 3,
+      "win_rate": 0.8929,
+      "pnl_dollars": 26791.0,
+      "avg_pnl_pct": 4.04
+    },
+    "without_stops": {
+      "count": 9,
+      "closed": 9,
+      "wins": 0,
+      "losses": 9,
+      "win_rate": 0.0,
+      "pnl_dollars": -13225,
+      "avg_pnl_pct": -6.17
+    },
+    "basis": "closed_trades"
+  },
+  "portfolio_summary": {
+    "total_trades": 40,
+    "closed_trades": 37,
+    "open_positions": 3,
+    "win_rate": 0.6757,
+    "best_category": "etf",
+    "worst_category": "crypto_spot",
+    "gross_exposure": 0.17,
+    "cash_buffer": 0.82,
+    "open_exposure_dollars": 75840,
+    "open_exposure_pct": 0.3034,
+    "total_pnl_dollars": 13566.0,
+    "ytd_return_pct": 5.43,
+    "source": "analytics_cache"
+  }
+}

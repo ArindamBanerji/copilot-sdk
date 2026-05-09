@@ -1,0 +1,15 @@
+{
+  "total_trades": 40,
+  "closed_trades": 37,
+  "open_positions": 3,
+  "win_rate": 0.6757,
+  "best_category": "etf",
+  "worst_category": "crypto_spot",
+  "gross_exposure": 0.17,
+  "cash_buffer": 0.82,
+  "open_exposure_dollars": 75840,
+  "open_exposure_pct": 0.3034,
+  "total_pnl_dollars": 13566.0,
+  "ytd_return_pct": 5.43,
+  "source": "analytics_cache"
+}

@@ -1,0 +1,74 @@
+@import "../../../../copilot_sdk/frontend/copilot-theme.css";
+
+:root {
+  --copilot-primary: #dc2626;
+  --copilot-primary-light: #fee2e2;
+  --copilot-primary-contrast: #ffffff;
+  --copilot-chart-fill: rgba(220, 38, 38, 0.15);
+  --copilot-chart-stroke: #dc2626;
+  --trading-positive: #15803d;
+  --trading-negative: #b91c1c;
+  --trading-neutral: #64748b;
+}
+
+body {
+  margin: 0;
+}
+
+.trading-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.trading-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.trading-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.trading-panel {
+  border: 1px solid var(--copilot-border);
+  border-radius: 8px;
+  background: var(--copilot-surface);
+}
+
+.trading-muted {
+  color: var(--copilot-text-muted);
+}
+
+.trading-stat-value {
+  color: var(--copilot-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.trading-bar-track {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--copilot-surface-muted);
+}
+
+.trading-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--copilot-primary);
+}
+
+.trading-positive {
+  color: var(--trading-positive);
+}
+
+.trading-negative {
+  color: var(--trading-negative);
+}
+
+@media (max-width: 900px) {
+  .trading-grid-3,
+  .trading-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
