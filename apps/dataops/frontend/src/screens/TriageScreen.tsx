@@ -6,6 +6,7 @@ import {
   getAlertDeps,
   getAlertFactors,
   getAlertRecurrence,
+  getFingerprint,
   getProcessSignals,
   getSimilar,
   getSystemHistory,
@@ -19,6 +20,7 @@ import FactorAutoFill, { buildScoreFactors } from "../components/FactorAutoFill"
 import ProcessSignalsPanel from "../components/ProcessSignalsPanel";
 import RecurrenceBadge from "../components/RecurrenceBadge";
 import ResolutionTimeline from "../components/ResolutionTimeline";
+import ReasoningPanel from "../components/ReasoningPanel";
 import SimilarAlertsPanel from "../components/SimilarAlertsPanel";
 import SLACountdown from "../components/SLACountdown";
 import type {
@@ -28,6 +30,7 @@ import type {
   BlastRadius,
   DataOpsAlert,
   FactorAutoFillResponse,
+  FingerprintResponse,
   LearnResponse,
   ProcessSignalsResponse,
   RecurrenceResponse,
@@ -74,6 +77,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
   const [processSignalsLoading, setProcessSignalsLoading] = useState(false);
   const [systemHistory, setSystemHistory] = useState<SystemHistoryResponse | null>(null);
   const [systemHistoryLoading, setSystemHistoryLoading] = useState(false);
+  const [fingerprint, setFingerprint] = useState<FingerprintResponse | null>(null);
 
   useEffect(() => {
     if (!selectedAlertId) {
@@ -90,6 +94,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     setSimilarAlerts([]);
     setProcessSignals(null);
     setSystemHistory(null);
+    setFingerprint(null);
     setSimilarLoading(false);
     setProcessSignalsLoading(false);
     setSystemHistoryLoading(false);
@@ -174,6 +179,18 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       .finally(() => {
         if (!cancelled) {
           setLoading(false);
+        }
+      });
+
+    getFingerprint()
+      .then((payload) => {
+        if (!cancelled) {
+          setFingerprint(payload);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFingerprint(null);
         }
       });
 
@@ -340,13 +357,22 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
             onAction={handleAction}
           />
           {score ? (
-            <ScoreResultCard
-              result={score}
-              onConfirm={(decisionId) => void handleConfirm(decisionId)}
-              onOverride={(decisionId, action) => void handleConfirm(decisionId, actionFromScoreLabel(action))}
-              iksDelta={iksDelta}
-              rewardLine={rewardLine || undefined}
-            />
+            <>
+              <ScoreResultCard
+                result={score}
+                onConfirm={(decisionId) => void handleConfirm(decisionId)}
+                onOverride={(decisionId, action) => void handleConfirm(decisionId, actionFromScoreLabel(action))}
+                iksDelta={iksDelta}
+                rewardLine={rewardLine || undefined}
+              />
+              <ReasoningPanel
+                scoreResult={score}
+                similarAlerts={similarAlerts}
+                fingerprint={fingerprint}
+                factorValues={data.factors}
+                actionNames={score.actionNames}
+              />
+            </>
           ) : (
             <section className="copilot-card p-4 text-sm dataops-muted">
               {scoring ? "Scoring selected action..." : "Choose an action to score this alert."}

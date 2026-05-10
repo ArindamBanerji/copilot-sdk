@@ -7,6 +7,7 @@ import {
   getConservationHistory,
   getConservationStatus,
   getPipelines,
+  getTrajectory,
   numberOr,
   postConservationWhatIf,
 } from "../api";
@@ -18,10 +19,12 @@ import type {
   ConservationState,
   DataOpsAlert,
   PipelineSystem,
+  TrajectoryResponse,
 } from "../types";
 import AEImpactPanel from "../components/AEImpactPanel";
 import AlertGroupCard from "../components/AlertGroupCard";
 import AlertQueue from "../components/AlertQueue";
+import ConservationProjection from "../components/ConservationProjection";
 import ConservationTimeline from "../components/ConservationTimeline";
 import PipelineGrid from "../components/PipelineGrid";
 
@@ -36,6 +39,7 @@ interface DashboardState {
   aeImpact: AEImpact | null;
   conservation: ConservationState | null;
   history: ConservationHistory | null;
+  trajectory: TrajectoryResponse | null;
 }
 
 export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps) {
@@ -46,6 +50,7 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
     aeImpact: null,
     conservation: null,
     history: null,
+    trajectory: null,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,12 +68,13 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
       getConservationStatus(),
       getAeImpact(),
       getConservationHistory(),
+      getTrajectory().catch(() => null),
     ])
-      .then(([pipelines, alerts, alertGroups, conservation, aeImpact, history]) => {
+      .then(([pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory]) => {
         if (cancelled) {
           return;
         }
-        setState({ pipelines, alerts, alertGroups, conservation, aeImpact, history });
+        setState({ pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory });
       })
       .catch((caught: unknown) => {
         if (!cancelled) {
@@ -190,6 +196,7 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
           ) : (
             <DashboardFrame message="No conservation status available." />
           )}
+          <ConservationProjection conservation={conservation} trajectory={state.trajectory} />
           <ConservationTimeline history={state.history} />
         </div>
       </section>

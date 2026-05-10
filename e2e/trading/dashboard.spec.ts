@@ -18,6 +18,13 @@ test("shows portfolio summary", async ({ page }) => {
   await expectAnyText(page, [/\$\d[\d,]*/, /\d+(\.\d+)?%/, /-/]);
 });
 
+test("IKS is visible with numeric value", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByText("IKS").first()).toBeVisible();
+  await expect(page.getByLabel(/^IKS \d+$/).first()).toBeVisible();
+});
+
 test("shows thesis breakdown", async ({ page }) => {
   await page.goto("/");
 

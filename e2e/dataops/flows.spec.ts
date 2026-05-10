@@ -40,6 +40,7 @@ test("full triage lifecycle: dashboard, alert, score, confirm, back", async ({ p
   const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Investigate" }).click();
   await scoreResponse;
+  await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /Confidence Breakdown/i]);
   const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
   await page.getByRole("button", { name: "Confirm" }).click();
   await learnResponse;
@@ -48,12 +49,40 @@ test("full triage lifecycle: dashboard, alert, score, confirm, back", async ({ p
   await expect(page.getByText("Alert Root Causes")).toBeVisible();
 });
 
+test("score learn cycle preserves visible IKS and reward state", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await expect(page.getByText("IKS").first()).toBeVisible();
+  await expect(page.getByLabel(/^IKS \d+$/).first()).toBeVisible();
+
+  const opened = await openFirstAlert(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Investigate" }).click();
+  await scoreResponse;
+  await expectAnyText(page, [/Why This Recommendation/i, /Confidence Breakdown/i]);
+
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/system learned/i, /Reward/i, /IKS delta/i, /reward signal/i]);
+
+  await clickTab(page, "Dashboard");
+  await expect(page.getByText("IKS").first()).toBeVisible();
+  await expect(page.getByLabel(/^IKS \d+$/).first()).toBeVisible();
+});
+
 test("triage with Celonis context for billing, SAP, or warehouse", async ({ page }) => {
   const opened = await openKnownSystemAlert(page);
   test.skip(!opened, "No SAP, billing, or warehouse alert available through grouped UI.");
 
-  await expectAnyText(page, [/Process Signals/i, /Celonis EMS/i, /Loading process context/i]);
-  await expectAnyText(page, [/SAP/i, /billing/i, /warehouse/i, /Process metric/i, /variant/i]);
+  const loading = page.getByText(/Loading process context/i);
+  if (await loading.isVisible().catch(() => false)) {
+    await expect(loading).toBeHidden({ timeout: 10_000 });
+  }
+  await expectAnyText(page, [/Process Signals/i, /Celonis EMS/i, /process context/i]);
+  await expectAnyText(page, [/variant/i, /confidence/i, /O2C/i, /invoice/i, /ETL/i, /rework/i, /V-\d+/i]);
 });
 
 test("insight exploration: fingerprint, incident, evidence, curve", async ({ page }) => {
@@ -90,6 +119,8 @@ test("conservation track record visible and interactive", async ({ page }) => {
 
   // Conservation section exists on dashboard
   await expect(page.getByText(/conservation|auto.resolve/i).first()).toBeVisible({ timeout: 5000 });
+  await expectAnyText(page, [/Automation Projection/i, /55%/, /75%/, /90%/]);
+  await expectAnyText(page, [/week/i, /accuracy/i, /when/i, /verified decisions/i]);
 
   // Track record events visible (denied/approved from pre-seeded data)
   await expectAnyText(page, [

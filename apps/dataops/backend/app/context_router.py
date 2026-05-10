@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,22 @@ FACTOR_NAMES = (
     "data_freshness",
     "business_criticality",
 )
+CATEGORY_SLA_MINUTES = {
+    "pipeline_failure": 30,
+    "schema_change": 60,
+    "volume_anomaly": 45,
+    "quality_anomaly": 30,
+    "freshness_violation": 15,
+    "transform_drift": 60,
+}
+DEFAULT_SLA_MINUTES = 30
+SEVERITY_AGE_MINUTES = {
+    "critical": 5,
+    "high": 15,
+    "medium": 25,
+    "low": 40,
+}
+AGE_JITTER_MINUTES = (-2, -1, 0, 1, 2)
 
 router = APIRouter()
 
@@ -155,6 +172,35 @@ def _iter_metadata_decisions() -> list[dict[str, Any]]:
     return []
 
 
+def _inject_alert_runtime_fields(alerts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [_with_alert_runtime_fields(alert, index) for index, alert in enumerate(alerts)]
+
+
+def _with_alert_runtime_fields(alert: dict[str, Any], index: int = 0) -> dict[str, Any]:
+    enriched = dict(alert)
+    enriched.setdefault("created_at", _created_at_for_alert(enriched, index))
+    enriched["sla_minutes"] = _sla_minutes_for_alert(enriched)
+    return enriched
+
+
+def _created_at_for_alert(alert: dict[str, Any], index: int) -> str:
+    age_minutes = SEVERITY_AGE_MINUTES.get(str(alert.get("severity") or "").lower(), 25)
+    jitter = AGE_JITTER_MINUTES[_stable_alert_index(alert, index) % len(AGE_JITTER_MINUTES)]
+    timestamp = datetime.now(timezone.utc) - timedelta(minutes=max(age_minutes + jitter, 1))
+    return timestamp.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _stable_alert_index(alert: dict[str, Any], fallback: int) -> int:
+    raw_id = str(alert.get("alert_id") or alert.get("event_id") or "")
+    digits = "".join(character for character in raw_id if character.isdigit())
+    return int(digits) if digits else fallback
+
+
+def _sla_minutes_for_alert(alert: dict[str, Any]) -> int:
+    category = str(alert.get("category") or "")
+    return CATEGORY_SLA_MINUTES.get(category, DEFAULT_SLA_MINUTES)
+
+
 @router.get("/pipelines")
 async def pipelines() -> dict[str, Any]:
     return await _graph_client().get_pipelines()
@@ -162,7 +208,11 @@ async def pipelines() -> dict[str, Any]:
 
 @router.get("/alerts")
 async def alerts() -> dict[str, Any]:
-    return await _graph_client().get_alerts()
+    payload = await _graph_client().get_alerts()
+    raw_alerts = payload.get("alerts")
+    if payload.get("source") == "fixture" and isinstance(raw_alerts, list):
+        return {**payload, "alerts": _inject_alert_runtime_fields([alert for alert in raw_alerts if isinstance(alert, dict)])}
+    return payload
 
 
 @router.get("/alert-groups")
@@ -171,6 +221,7 @@ def alert_groups() -> dict[str, Any]:
     alerts_payload = _load_json(DATA_DIR / "fallback" / "alerts.json", {})
     raw_pipelines = pipelines_payload.get("pipelines", []) if isinstance(pipelines_payload, dict) else []
     raw_alerts = alerts_payload.get("alerts", []) if isinstance(alerts_payload, dict) else []
+    raw_alerts = _inject_alert_runtime_fields([alert for alert in raw_alerts if isinstance(alert, dict)])
 
     pipelines = {
         str(pipeline.get("name")): pipeline
@@ -191,8 +242,6 @@ def alert_groups() -> dict[str, Any]:
     # Fixture-mode correlation uses fallback upstream topology. Graph-mode FEEDS
     # traversal is deferred because it belongs in graph_queries.py.
     for alert in raw_alerts:
-        if not isinstance(alert, dict):
-            continue
         system_name = alert.get("system_name") or alert.get("system")
         system_key = _normalize_system_key(str(system_name or ""))
         alert_summary = {
@@ -200,6 +249,8 @@ def alert_groups() -> dict[str, Any]:
             "system_name": system_key or None,
             "category": alert.get("category"),
             "severity": alert.get("severity"),
+            "created_at": alert.get("created_at"),
+            "sla_minutes": alert.get("sla_minutes"),
         }
         if not system_key or system_key not in pipelines:
             ungrouped.append(alert_summary)
@@ -340,7 +391,11 @@ async def system_detail(name: str) -> dict[str, Any]:
 
 @router.get("/alert/{id}")
 async def alert_detail(id: str) -> dict[str, Any]:
-    return await _graph_client().get_alert(id)
+    payload = await _graph_client().get_alert(id)
+    alert = payload.get("alert")
+    if payload.get("source") == "fixture" and isinstance(alert, dict):
+        return {**payload, "alert": _with_alert_runtime_fields(alert)}
+    return payload
 
 
 @router.get("/alert/{id}/deps")

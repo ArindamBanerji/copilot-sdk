@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -50,6 +51,36 @@ def test_alert_detail(client: TestClient) -> None:
     assert payload["source"] == "fixture"
     assert payload["alert"]["alert_id"] == "DQ-001"
     assert payload["alert"]["system"] == "warehouse_etl"
+
+
+def test_alerts_have_timestamps(client: TestClient) -> None:
+    response = client.get("/api/context/alerts")
+
+    assert response.status_code == 200
+    payload = response.json()
+    for alert in payload["alerts"]:
+        assert alert["created_at"]
+        assert _parse_utc(alert["created_at"])
+        assert isinstance(alert["sla_minutes"], int)
+        assert alert["sla_minutes"] > 0
+
+
+def test_alert_detail_has_runtime_sla_fields(client: TestClient) -> None:
+    response = client.get("/api/context/alert/DQ-001")
+
+    assert response.status_code == 200
+    alert = response.json()["alert"]
+    assert _parse_utc(alert["created_at"])
+    assert alert["sla_minutes"] == 30
+
+
+def test_alert_sla_by_severity(client: TestClient) -> None:
+    payload = client.get("/api/context/alerts").json()
+    critical = next((alert for alert in payload["alerts"] if alert.get("severity") == "critical"), None)
+    low = next((alert for alert in payload["alerts"] if alert.get("severity") == "low"), None)
+
+    if critical and low:
+        assert critical["sla_minutes"] <= low["sla_minutes"]
 
 
 def test_blast_radius(client: TestClient) -> None:
@@ -241,6 +272,19 @@ def test_alert_groups_returns_groups(client: TestClient) -> None:
         assert {"root_system", "root_display", "alerts", "cascading_systems", "alert_count"} <= set(group)
 
 
+def test_alert_groups_include_runtime_sla_fields(client: TestClient) -> None:
+    response = client.get("/api/context/alert-groups")
+
+    assert response.status_code == 200
+    payload = response.json()
+    nested_alerts = [alert for group in payload["groups"] for alert in group["alerts"]]
+    assert nested_alerts
+    assert any("created_at" in alert and "sla_minutes" in alert for alert in nested_alerts)
+    for alert in nested_alerts:
+        assert _parse_utc(alert["created_at"])
+        assert alert["sla_minutes"] > 0
+
+
 def test_alert_groups_sap_cluster(client: TestClient) -> None:
     payload = client.get("/api/context/alert-groups").json()
     sap_group = next(
@@ -413,3 +457,7 @@ def test_fingerprint(client: TestClient) -> None:
     payload = response.json()
     assert payload["engine"]["gae"] == "gae.profile_scorer.ProfileScorer"
     assert payload
+
+
+def _parse_utc(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))

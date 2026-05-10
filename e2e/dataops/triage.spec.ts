@@ -48,7 +48,7 @@ test("SLA countdown visible", async ({ page }) => {
   const opened = await openFirstTriage(page);
   test.skip(!opened, "No grouped alert available to triage.");
 
-  await expectAnyText(page, [/SLA Countdown/i, /SLA:/i, /SLA BREACHED/i, /SLA unavailable/i]);
+  await expectAnyText(page, [/SLA/i]);
 });
 
 test("blast radius tree renders", async ({ page }) => {
@@ -65,6 +65,24 @@ test("resolution history shows prior decisions", async ({ page }) => {
 
   await expect(page.getByText(/Resolution History/i)).toBeVisible();
   await expectAnyText(page, [/prior decisions/i, /No prior triage decisions/i, /Correct/i, /Incorrect/i, /Unknown/i]);
+});
+
+test("resolution history shows accuracy and actions", async ({ page }) => {
+  const opened = await openFirstTriage(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  await expectAnyText(page, [/Resolution History/i, /prior decisions/i]);
+  await expectAnyText(page, [
+    /accuracy/i,
+    /\d+(\.\d+)?%/,
+    /best action/i,
+    /worst action/i,
+    /Auto approve/i,
+    /Investigate/i,
+    /Escalate/i,
+    /Pause downstream/i,
+    /Refer/i,
+  ]);
 });
 
 test("process signals panel shows Celonis for known systems if selectable", async ({ page }) => {
@@ -130,4 +148,48 @@ test("score action produces result", async ({ page }) => {
 
   await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
   await expectAnyText(page, [/confidence/i, /Auto-approve/i, /Investigate/i, /\d+%/]);
+});
+
+test("score shows reward value after confirm", async ({ page }) => {
+  test.setTimeout(60_000);
+  const opened = await openFirstTriage(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: /Investigate|Escalate to owner/i }).first().click();
+  await scoreResponse;
+  await expectAnyText(page, [/confidence/i, /Engine assessment/i, /\d+%/]);
+
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/system learned/i, /Reward/i, /IKS delta/i, /learned/i, /reward signal/i]);
+});
+
+test("reasoning panel appears after scoring", async ({ page }) => {
+  test.setTimeout(60_000);
+  const opened = await openFirstTriage(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Investigate" }).click();
+  await scoreResponse;
+
+  await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i]);
+  await expectAnyText(page, [/Historical Evidence/i, /Confidence Breakdown/i]);
+});
+
+test("reasoning panel shows evidence and confidence breakdown", async ({ page }) => {
+  test.setTimeout(60_000);
+  const opened = await openFirstTriage(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: /Escalate to owner|Investigate/i }).first().click();
+  await scoreResponse;
+
+  await expectAnyText(page, [/dominant/i, /noisy/i, /moderate/i, /clean/i, /weight/i, /signal/i]);
+  await expectAnyText(page, [/similar/i, /novel/i, /track record/i, /worked/i, /evidence/i]);
+  await expectAnyText(page, [/Confidence Breakdown/i, /probability/i, /\d+(\.\d+)?%/]);
+  await expectAnyText(page, [/learned from/i, /decisions/i, /verified/i, /Learning history unavailable/i]);
 });

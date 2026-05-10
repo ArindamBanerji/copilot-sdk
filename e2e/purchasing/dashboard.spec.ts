@@ -25,6 +25,16 @@ test("AE status bar visible", async ({ page }) => {
   await expectAnyText(page, [/AE rules/i, /Managed accuracy/i, /Promoted savings/i]);
 });
 
+test("AE shows promoted and rejected variant counts", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByText("Autonomous execution")).toBeVisible();
+  await expectAnyText(page, [/promoted/i, /active/i, /managed/i, /AE rules/i]);
+  await expectAnyText(page, [/rejected/i, /excluded/i]);
+  await expectAnyText(page, [/\d+\s+(active|promoted|managed|AE rules|rule|rules)/i, /(active|promoted|managed|AE rules|rule|rules)\s*[:\-]?\s*\d+/i]);
+  await expectAnyText(page, [/\d+\s+(rejected|excluded|blocked)/i, /(rejected|excluded|blocked)\s*[:\-]?\s*\d+/i]);
+});
+
 test("rejected dairy rule is not shown as AE-managed", async ({ page }) => {
   await page.goto("/");
 

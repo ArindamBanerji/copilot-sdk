@@ -54,6 +54,19 @@ test("score produces result", async ({ page }) => {
   await expectAnyText(page, [/Order as planned/i, /Order more/i, /Order less/i, /Skip/i, /\d+%/]);
 });
 
+test("confirm shows reward after scoring", async ({ page }) => {
+  test.setTimeout(60_000);
+  await gotoOrder(page);
+
+  await scoreOrder(page);
+  await expectAnyText(page, [/confidence/i, /Engine assessment/i, /\d+%/]);
+
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/Learned/i, /system learned/i, /ordering decision/i, /Reward/i, /IKS/i]);
+});
+
 test("similar orders panel shows matches after score if available", async ({ page }) => {
   test.setTimeout(60_000);
   await gotoOrder(page);
