@@ -1,0 +1,46 @@
+import { test as base, expect } from "@playwright/test";
+
+const BACKEND_PORTS = {
+  trading: 8010,
+  purchasing: 8020,
+  dataops: 8030,
+} as const;
+
+type CopilotProject = keyof typeof BACKEND_PORTS;
+
+function isCopilotProject(name: string): name is CopilotProject {
+  return name in BACKEND_PORTS;
+}
+
+export const test = base.extend<{ backendHealth: void }>({
+  backendHealth: [
+    async ({ request }, use, testInfo) => {
+      const projectName = testInfo.project.name;
+      if (!isCopilotProject(projectName)) {
+        throw new Error(`Unknown copilot Playwright project "${projectName}". Expected trading, purchasing, or dataops.`);
+      }
+
+      const port = BACKEND_PORTS[projectName];
+      const healthUrl = `http://localhost:${port}/health`;
+      let responseText = "";
+
+      try {
+        const response = await request.get(healthUrl, { timeout: 5_000 });
+        responseText = await response.text().catch(() => "");
+        if (!response.ok()) {
+          throw new Error(`HTTP ${response.status()} ${response.statusText()} ${responseText}`.trim());
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `${projectName} backend is not healthy at ${healthUrl}. Start the live stack before running E2E tests. ${message}`,
+        );
+      }
+
+      await use();
+    },
+    { auto: true },
+  ],
+});
+
+export { expect };
