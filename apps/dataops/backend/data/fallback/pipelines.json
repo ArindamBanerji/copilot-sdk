@@ -15,7 +15,7 @@
       "active_alert_count": 1,
       "upstream_count": 4,
       "downstream_count": 1,
-      "upstream": ["billing_api", "crm_sync", "erp_export", "inventory_feed"],
+      "upstream": ["billing_api", "crm_sync", "sap_s4hana_extract", "inventory_feed"],
       "downstream": ["marketing_db"]
     },
     {
@@ -83,7 +83,7 @@
       "active_alert_count": 2,
       "upstream_count": 1,
       "downstream_count": 2,
-      "upstream": ["erp_export"],
+      "upstream": ["sap_s4hana_extract"],
       "downstream": ["payment_gateway", "warehouse_etl"]
     },
     {
@@ -121,15 +121,15 @@
       "downstream": []
     },
     {
-      "name": "erp_export",
-      "display_name": "ERP Export",
+      "name": "sap_s4hana_extract",
+      "display_name": "SAP S/4HANA Extract",
       "sla_minutes": 90,
       "business_criticality": 0.8,
       "source_reliability": 0.81,
       "owner": "enterprise-systems",
       "status": "warning",
       "last_run": "2026-05-08T00:35:00Z",
-      "description": "ERP product, supplier, and operational reference exports.",
+      "description": "SAP ERP master data, transaction tables VBAK/EKKO/BSEG, and operational reference exports.",
       "alert_count": 2,
       "active_alert_count": 1,
       "upstream_count": 0,

@@ -1,6 +1,7 @@
 import type {
   AEImpact,
   AERecommendationResponse,
+  AlertGroupsResponse,
   AlertDetail,
   BlastRadius,
   ConservationHistory,
@@ -14,8 +15,11 @@ import type {
   LearnResponse,
   PatternOrigin,
   PipelineSystem,
+  ProcessSignalsResponse,
   RecurrenceResponse,
   ScoreResponse,
+  SimilarAlertsResponse,
+  SystemHistoryResponse,
   TrajectoryResponse,
   EvolutionVariant,
 } from "./types";
@@ -116,6 +120,10 @@ export async function getAlerts(): Promise<DataOpsAlert[]> {
   return payload.alerts || [];
 }
 
+export async function getAlertGroups(): Promise<AlertGroupsResponse> {
+  return apiGet<AlertGroupsResponse>("/api/context/alert-groups");
+}
+
 export async function getAeImpact(): Promise<AEImpact> {
   return apiGet<AEImpact>("/api/ae/impact");
 }
@@ -162,6 +170,27 @@ export async function getAlertRecurrence(id: string): Promise<RecurrenceResponse
 
 export async function getAlertFactors(id: string): Promise<FactorAutoFillResponse> {
   return apiGet<FactorAutoFillResponse>(`/api/context/alert/${encodeURIComponent(id)}/factors`);
+}
+
+export async function getSimilar(factors: Record<string, number>, category: string): Promise<SimilarAlertsResponse> {
+  const params = new URLSearchParams();
+  params.set("category", category);
+  for (const [key, value] of Object.entries(factors)) {
+    params.set(key, String(value));
+  }
+  return apiGet<SimilarAlertsResponse>(`/api/context/similar?${params.toString()}`);
+}
+
+export async function getProcessSignals(system: string): Promise<ProcessSignalsResponse> {
+  return apiGet<ProcessSignalsResponse>(`/api/context/process-signals/${encodeURIComponent(system)}`);
+}
+
+export async function getSystemHistory(systemName: string, limit = 5): Promise<SystemHistoryResponse> {
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  return apiGet<SystemHistoryResponse>(
+    `/api/context/system/${encodeURIComponent(systemName)}/history?${params.toString()}`,
+  );
 }
 
 export async function getAeRecommendation(alertId: string): Promise<AERecommendationResponse> {

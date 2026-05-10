@@ -6,6 +6,9 @@ import {
   getAlertDeps,
   getAlertFactors,
   getAlertRecurrence,
+  getProcessSignals,
+  getSimilar,
+  getSystemHistory,
   learnAlert,
   saveAlertMetadata,
   scoreAlert,
@@ -13,16 +16,24 @@ import {
 import ActionPicker, { actionFromScoreLabel, labelForAction } from "../components/ActionPicker";
 import DependencyTree from "../components/DependencyTree";
 import FactorAutoFill, { buildScoreFactors } from "../components/FactorAutoFill";
+import ProcessSignalsPanel from "../components/ProcessSignalsPanel";
 import RecurrenceBadge from "../components/RecurrenceBadge";
+import ResolutionTimeline from "../components/ResolutionTimeline";
+import SimilarAlertsPanel from "../components/SimilarAlertsPanel";
+import SLACountdown from "../components/SLACountdown";
 import type {
   AERecommendation,
   AERecommendationResponse,
   AlertDetail,
   BlastRadius,
+  DataOpsAlert,
   FactorAutoFillResponse,
   LearnResponse,
+  ProcessSignalsResponse,
   RecurrenceResponse,
   ScoreResponse,
+  SimilarAlert,
+  SystemHistoryResponse,
 } from "../types";
 
 interface TriageScreenProps {
@@ -57,6 +68,12 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
   } | null>(null);
   const [iksDelta, setIksDelta] = useState<number | undefined>();
   const [scoring, setScoring] = useState(false);
+  const [similarAlerts, setSimilarAlerts] = useState<SimilarAlert[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const [processSignals, setProcessSignals] = useState<ProcessSignalsResponse | null>(null);
+  const [processSignalsLoading, setProcessSignalsLoading] = useState(false);
+  const [systemHistory, setSystemHistory] = useState<SystemHistoryResponse | null>(null);
+  const [systemHistoryLoading, setSystemHistoryLoading] = useState(false);
 
   useEffect(() => {
     if (!selectedAlertId) {
@@ -70,6 +87,12 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     setScore(null);
     setRewardLine(null);
     setIksDelta(undefined);
+    setSimilarAlerts([]);
+    setProcessSignals(null);
+    setSystemHistory(null);
+    setSimilarLoading(false);
+    setProcessSignalsLoading(false);
+    setSystemHistoryLoading(false);
 
     Promise.all([
       getAlert(selectedAlertId),
@@ -81,6 +104,66 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       .then(([detail, deps, factors, recurrence, recommendation]) => {
         if (!cancelled) {
           setData({ detail, deps, factors, recurrence, recommendation });
+        }
+
+        const loadedAlert = detail.alert || null;
+        const systemName = getAlertSystemName(loadedAlert);
+        if (systemName) {
+          setProcessSignalsLoading(true);
+          getProcessSignals(systemName)
+            .then((payload) => {
+              if (!cancelled) {
+                setProcessSignals(payload);
+              }
+            })
+            .catch(() => {
+              if (!cancelled) {
+                setProcessSignals(null);
+              }
+            })
+            .finally(() => {
+              if (!cancelled) {
+                setProcessSignalsLoading(false);
+              }
+            });
+
+          setSystemHistoryLoading(true);
+          getSystemHistory(systemName, 5)
+            .then((payload) => {
+              if (!cancelled) {
+                setSystemHistory(payload);
+              }
+            })
+            .catch(() => {
+              if (!cancelled) {
+                setSystemHistory(null);
+              }
+            })
+            .finally(() => {
+              if (!cancelled) {
+                setSystemHistoryLoading(false);
+              }
+            });
+        }
+
+        if (loadedAlert?.category && factors?.factors) {
+          setSimilarLoading(true);
+          getSimilar(buildScoreFactors(factors), loadedAlert.category)
+            .then((payload) => {
+              if (!cancelled) {
+                setSimilarAlerts(payload.similar || []);
+              }
+            })
+            .catch(() => {
+              if (!cancelled) {
+                setSimilarAlerts([]);
+              }
+            })
+            .finally(() => {
+              if (!cancelled) {
+                setSimilarLoading(false);
+              }
+            });
         }
       })
       .catch((caught: unknown) => {
@@ -100,6 +183,8 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
   }, [selectedAlertId]);
 
   const alert = data.detail?.alert || null;
+  const alertSystemName = getAlertSystemName(alert);
+  const alertTimestamp = getAlertTimestamp(alert);
   const primaryRecommendation = useMemo(
     () => data.recommendation?.recommendations?.[0] || null,
     [data.recommendation],
@@ -215,7 +300,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
               {alert?.dataset || "Unknown dataset"}
             </h2>
             <p className="mt-2 text-sm dataops-muted">
-              {alert?.system || "unknown system"} · {formatCategory(alert?.category)} · {alert?.severity || "unknown"} severity
+              {alertSystemName || "unknown system"} · {formatCategory(alert?.category)} · {alert?.severity || "unknown"} severity
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -229,6 +314,12 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
         </div>
       </section>
 
+      <SLACountdown
+        slaMinutes={data.deps?.minSla}
+        alertTimestamp={alertTimestamp}
+        systemName={alertSystemName || "unknown system"}
+      />
+
       {error ? (
         <div className="copilot-card p-4 text-sm" style={{ color: "var(--copilot-danger)" }}>{error}</div>
       ) : null}
@@ -236,7 +327,10 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_28rem]">
         <div className="grid gap-4">
           <DependencyTree deps={data.deps} />
+          <ResolutionTimeline history={systemHistory} loading={systemHistoryLoading} />
+          <ProcessSignalsPanel signals={processSignals} loading={processSignalsLoading} />
           <FactorAutoFill response={data.factors} />
+          <SimilarAlertsPanel alerts={similarAlerts} loading={similarLoading} />
         </div>
         <div className="grid content-start gap-4">
           <ActionPicker
@@ -297,4 +391,49 @@ function actionMatchesRecommendation(action: string, recommendation: AERecommend
 
 function formatCategory(value?: string): string {
   return value ? value.replace(/_/g, " ") : "uncategorized";
+}
+
+function getAlertSystemName(alert: DataOpsAlert | null): string {
+  if (!alert) {
+    return "";
+  }
+  const raw = alert as unknown as Record<string, unknown>;
+  if (raw.systemName || raw.system_name) {
+    return String(raw.systemName || raw.system_name);
+  }
+  if (typeof raw.system === "string") {
+    return raw.system;
+  }
+  if (isRecord(raw.system)) {
+    return stringOr(raw.system.name) || stringOr(raw.system.displayName) || stringOr(raw.system.display_name);
+  }
+  return "";
+}
+
+function getAlertTimestamp(alert: DataOpsAlert | null): string | null {
+  if (!alert) {
+    return null;
+  }
+  const raw = alert as unknown as Record<string, unknown>;
+  const system = isRecord(raw.system) ? raw.system : {};
+  return (
+    stringOr(raw.timestamp) ||
+    stringOr(raw.createdAt) ||
+    stringOr(raw.created_at) ||
+    stringOr(raw.detectedAt) ||
+    stringOr(raw.detected_at) ||
+    stringOr(system.lastRun) ||
+    stringOr(system.last_run) ||
+    stringOr(raw.lastRun) ||
+    stringOr(raw.last_run) ||
+    null
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stringOr(value: unknown): string {
+  return typeof value === "string" ? value : "";
 }

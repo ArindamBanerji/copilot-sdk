@@ -8,7 +8,7 @@
     "billing_api": {"system": "billing_api", "children": [{"system": "payment_gateway", "depth": 1, "children": []}, {"system": "warehouse_etl", "depth": 1, "children": [{"system": "marketing_db", "depth": 2, "children": []}]}]},
     "iot_sensors": {"system": "iot_sensors", "children": [{"system": "inventory_feed", "depth": 1, "children": [{"system": "warehouse_etl", "depth": 2, "children": [{"system": "marketing_db", "depth": 3, "children": []}]}]}]},
     "marketing_db": {"system": "marketing_db", "children": []},
-    "erp_export": {"system": "erp_export", "children": [{"system": "billing_api", "depth": 1, "children": [{"system": "payment_gateway", "depth": 2, "children": []}, {"system": "warehouse_etl", "depth": 2, "children": [{"system": "marketing_db", "depth": 3, "children": []}]}]}, {"system": "warehouse_etl", "depth": 1, "children": []}]},
+    "sap_s4hana_extract": {"system": "sap_s4hana_extract", "children": [{"system": "billing_api", "depth": 1, "children": [{"system": "payment_gateway", "depth": 2, "children": []}, {"system": "warehouse_etl", "depth": 2, "children": [{"system": "marketing_db", "depth": 3, "children": []}]}]}, {"system": "warehouse_etl", "depth": 1, "children": []}]},
     "inventory_feed": {"system": "inventory_feed", "children": [{"system": "warehouse_etl", "depth": 1, "children": [{"system": "marketing_db", "depth": 2, "children": []}]}]}
   },
   "alerts": {
@@ -16,7 +16,7 @@
     "DQ-002": {"alert_id": "DQ-002", "system": "payment_gateway", "tree_ref": "payment_gateway"},
     "DQ-003": {"alert_id": "DQ-003", "system": "crm_sync", "tree_ref": "crm_sync"},
     "DQ-004": {"alert_id": "DQ-004", "system": "warehouse_etl", "tree_ref": "warehouse_etl"},
-    "DQ-005": {"alert_id": "DQ-005", "system": "erp_export", "tree_ref": "erp_export"},
+    "DQ-005": {"alert_id": "DQ-005", "system": "sap_s4hana_extract", "tree_ref": "sap_s4hana_extract"},
     "DQ-006": {"alert_id": "DQ-006", "system": "billing_api", "tree_ref": "billing_api"},
     "DQ-007": {"alert_id": "DQ-007", "system": "hr_feed", "tree_ref": "hr_feed"},
     "DQ-008": {"alert_id": "DQ-008", "system": "iot_sensors", "tree_ref": "iot_sensors"},
@@ -25,7 +25,7 @@
     "DQ-011": {"alert_id": "DQ-011", "system": "inventory_feed", "tree_ref": "inventory_feed"},
     "DQ-012": {"alert_id": "DQ-012", "system": "marketing_db", "tree_ref": "marketing_db"},
     "DQ-013": {"alert_id": "DQ-013", "system": "hr_feed", "tree_ref": "hr_feed"},
-    "DQ-014": {"alert_id": "DQ-014", "system": "erp_export", "tree_ref": "erp_export"},
+    "DQ-014": {"alert_id": "DQ-014", "system": "sap_s4hana_extract", "tree_ref": "sap_s4hana_extract"},
     "DQ-015": {"alert_id": "DQ-015", "system": "crm_sync", "tree_ref": "crm_sync"},
     "DQ-016": {"alert_id": "DQ-016", "system": "marketing_db", "tree_ref": "marketing_db"},
     "DQ-017": {"alert_id": "DQ-017", "system": "billing_api", "tree_ref": "billing_api"},

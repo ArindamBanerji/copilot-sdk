@@ -42,18 +42,65 @@ export interface FactorMap {
 
 export interface DataOpsAlert {
   alertId: string;
+  alert_id?: string;
   eventId?: string;
+  event_id?: string;
   dataset?: string;
   system?: string;
+  systemName?: string;
+  system_name?: string;
+  systemDisplay?: string;
+  system_display?: string;
   category?: string;
   actionTaken?: string;
+  action_taken?: string;
   isCorrect?: boolean;
+  is_correct?: boolean;
   severity?: AlertSeverity;
   recurrenceCount?: number;
+  recurrence_count?: number;
   status?: AlertStatus;
   factors?: FactorMap;
   autoResolved?: boolean;
+  auto_resolved?: boolean;
   aeRecommendation?: unknown;
+  timestamp?: string;
+  createdAt?: string;
+  created_at?: string;
+  detectedAt?: string;
+  detected_at?: string;
+  lastRun?: string;
+  last_run?: string;
+}
+
+export interface AlertGroupAlert {
+  alertId?: string;
+  alert_id?: string;
+  systemName?: string;
+  system_name?: string;
+  category?: string;
+  severity?: AlertSeverity;
+}
+
+export interface AlertGroup {
+  rootSystem?: string;
+  root_system?: string;
+  rootDisplay?: string;
+  root_display?: string;
+  alerts?: AlertGroupAlert[];
+  cascadingSystems?: string[];
+  cascading_systems?: string[];
+  alertCount?: number;
+  alert_count?: number;
+}
+
+export interface AlertGroupsResponse {
+  groups?: AlertGroup[];
+  ungrouped?: AlertGroupAlert[];
+  totalAlerts?: number;
+  total_alerts?: number;
+  totalGroups?: number;
+  total_groups?: number;
 }
 
 export interface AlertDetail {
@@ -257,6 +304,94 @@ export interface AERecommendationResponse {
   recommendations?: AERecommendation[];
   count?: number;
   source?: string;
+}
+
+export interface SimilarAlert {
+  eventId?: string;
+  dataset?: string;
+  category?: string;
+  actionTaken?: string;
+  isCorrect?: boolean;
+  similarity?: number;
+}
+
+export interface SimilarAlertsResponse {
+  similar?: SimilarAlert[];
+  count?: number;
+}
+
+export interface ProcessSignalMetric {
+  name?: string;
+  label?: string;
+  value?: number | string;
+  baseline?: number | string;
+  unit?: string;
+  deltaPct?: number;
+}
+
+export interface ProcessSignalVariant {
+  id?: string;
+  description?: string;
+  reworkRatePct?: number;
+  baselinePct?: number;
+  [key: string]: string | number | boolean | undefined;
+}
+
+export interface ProcessSignalCorrelation {
+  alertSystem?: string;
+  processSignal?: string;
+  confidence?: number;
+  narrative?: string;
+  signal?: string;
+  factor?: string;
+}
+
+export interface ProcessSignalsResponse {
+  system?: string;
+  source?: string;
+  signals?: Record<string, number | string>;
+  metrics?: ProcessSignalMetric[];
+  variant?: ProcessSignalVariant;
+  correlation?: ProcessSignalCorrelation;
+  engine?: string;
+  narrative?: string;
+}
+
+export interface Resolution {
+  decisionId?: string | null;
+  decision_id?: string | null;
+  alertId?: string;
+  alert_id?: string;
+  date?: string;
+  actionTaken?: string;
+  action_taken?: string;
+  outcome?: string;
+  isCorrect?: boolean;
+  is_correct?: boolean;
+  category?: string;
+  resolutionTimeMinutes?: number | null;
+  resolution_time_minutes?: number | null;
+  source?: string;
+}
+
+export interface ActionBreakdown {
+  count?: number;
+  correct?: number;
+  winRate?: number | null;
+  win_rate?: number | null;
+}
+
+export interface SystemHistoryResponse {
+  system?: string;
+  resolutions?: Resolution[];
+  total?: number;
+  accuracy?: number | null;
+  actionBreakdown?: Record<string, ActionBreakdown>;
+  action_breakdown?: Record<string, ActionBreakdown>;
+  bestAction?: string | null;
+  best_action?: string | null;
+  worstAction?: string | null;
+  worst_action?: string | null;
 }
 
 export interface ScoreResponse {

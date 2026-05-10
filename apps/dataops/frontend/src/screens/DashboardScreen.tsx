@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ConservationSlider } from "../../../../../copilot_sdk/frontend";
 import {
   getAeImpact,
+  getAlertGroups,
   getAlerts,
   getConservationHistory,
   getConservationStatus,
@@ -11,12 +12,15 @@ import {
 } from "../api";
 import type {
   AEImpact,
+  AlertGroupAlert,
+  AlertGroupsResponse,
   ConservationHistory,
   ConservationState,
   DataOpsAlert,
   PipelineSystem,
 } from "../types";
 import AEImpactPanel from "../components/AEImpactPanel";
+import AlertGroupCard from "../components/AlertGroupCard";
 import AlertQueue from "../components/AlertQueue";
 import ConservationTimeline from "../components/ConservationTimeline";
 import PipelineGrid from "../components/PipelineGrid";
@@ -28,6 +32,7 @@ interface DashboardScreenProps {
 interface DashboardState {
   pipelines: PipelineSystem[];
   alerts: DataOpsAlert[];
+  alertGroups: AlertGroupsResponse | null;
   aeImpact: AEImpact | null;
   conservation: ConservationState | null;
   history: ConservationHistory | null;
@@ -37,6 +42,7 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
   const [state, setState] = useState<DashboardState>({
     pipelines: [],
     alerts: [],
+    alertGroups: null,
     aeImpact: null,
     conservation: null,
     history: null,
@@ -53,15 +59,16 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
     Promise.all([
       getPipelines(),
       getAlerts(),
+      getAlertGroups().catch(() => null),
       getConservationStatus(),
       getAeImpact(),
       getConservationHistory(),
     ])
-      .then(([pipelines, alerts, conservation, aeImpact, history]) => {
+      .then(([pipelines, alerts, alertGroups, conservation, aeImpact, history]) => {
         if (cancelled) {
           return;
         }
-        setState({ pipelines, alerts, conservation, aeImpact, history });
+        setState({ pipelines, alerts, alertGroups, conservation, aeImpact, history });
       })
       .catch((caught: unknown) => {
         if (!cancelled) {
@@ -120,6 +127,9 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
   }
 
   const conservation = state.conservation;
+  const groups = state.alertGroups?.groups || [];
+  const ungrouped = state.alertGroups?.ungrouped || [];
+  const hasGroups = groups.length > 0;
 
   return (
     <div className="grid gap-5">
@@ -135,7 +145,32 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,26rem)_1fr]">
-        <AlertQueue alerts={state.alerts} onAlertClick={onSelectAlert} />
+        {hasGroups ? (
+          <section className="grid gap-3">
+            <div className="copilot-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="dataops-section-title">Alert Root Causes</h2>
+                <span className="text-sm dataops-muted">
+                  {numberOr(state.alertGroups?.totalGroups ?? state.alertGroups?.total_groups, groups.length)} root causes ·{" "}
+                  {numberOr(state.alertGroups?.totalAlerts ?? state.alertGroups?.total_alerts, state.alerts.length)} total alerts
+                </span>
+              </div>
+            </div>
+            {groups.map((group, index) => (
+              <AlertGroupCard
+                key={group.rootSystem || group.root_system || `group-${index}`}
+                group={group}
+                defaultExpanded={index === 0}
+                onSelectAlert={onSelectAlert}
+              />
+            ))}
+            {ungrouped.length > 0 ? (
+              <UngroupedAlerts alerts={ungrouped} onSelectAlert={onSelectAlert} />
+            ) : null}
+          </section>
+        ) : (
+          <AlertQueue alerts={state.alerts} onAlertClick={onSelectAlert} />
+        )}
         <div className="grid gap-4">
           {conservation ? (
             <div className="relative">
@@ -162,6 +197,51 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
   );
 }
 
+function UngroupedAlerts({
+  alerts,
+  onSelectAlert,
+}: {
+  alerts: AlertGroupAlert[];
+  onSelectAlert: (alertId: string) => void;
+}) {
+  return (
+    <section className="copilot-card p-4">
+      <h2 className="dataops-section-title">Ungrouped ({alerts.length})</h2>
+      <div className="mt-3 grid gap-2">
+        {alerts.map((alert, index) => {
+          const id = alert.alertId || alert.alert_id || "";
+          return (
+            <div
+              key={`${id || "ungrouped"}-${index}`}
+              className="flex items-center justify-between gap-3 rounded-md border p-3 text-sm"
+              style={{ borderColor: "var(--copilot-border)" }}
+            >
+              <div>
+                <div className="font-semibold" style={{ color: "var(--copilot-text)" }}>{id || "unknown alert"}</div>
+                <div className="mt-1 text-xs dataops-muted">
+                  {alert.systemName || alert.system_name || "unknown system"} · {formatCategory(alert.category)} · {alert.severity || "unknown"}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="copilot-button-secondary px-3 py-2 text-xs"
+                disabled={!id}
+                onClick={() => {
+                  if (id) {
+                    onSelectAlert(id);
+                  }
+                }}
+              >
+                Triage
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function DashboardFrame({ message, tone = "muted" }: { message: string; tone?: "muted" | "error" }) {
   return (
     <div
@@ -171,4 +251,8 @@ function DashboardFrame({ message, tone = "muted" }: { message: string; tone?: "
       {message}
     </div>
   );
+}
+
+function formatCategory(value?: string): string {
+  return value ? value.replace(/_/g, " ") : "uncategorized";
 }

@@ -311,6 +311,22 @@
       "source_reliability": 0.28
     }
   },
+  "89870d8cc792": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-002",
+    "decision_id": "89870d8cc792",
+    "factors": {
+      "business_criticality": 0.95,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.875,
+      "impact_scope": 0,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.88
+    },
+    "followed_ae": false,
+    "system_name": "payment_gateway"
+  },
   "9b2d423b62b9": {
     "action_taken": "investigate",
     "category": "pipeline_failure",

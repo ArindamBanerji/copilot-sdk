@@ -1,0 +1,150 @@
+{
+  "sap_s4hana_extract": {
+    "source": "celonis_ems",
+    "signals": {
+      "o2c_cycle_time_days": 7.4,
+      "o2c_baseline_days": 5.8,
+      "o2c_delta_pct": 27.6,
+      "three_way_match_failures": 184,
+      "three_way_match_baseline": 121,
+      "three_way_match_delta_pct": 52.1,
+      "active_variant": "V-12",
+      "variant_description": "Manual rework loop via VBAK \u2192 BSEG posting",
+      "rework_rate_pct": 18.5,
+      "rework_baseline_pct": 11.2
+    },
+    "metrics": [
+      {
+        "name": "O2C cycle time",
+        "value": 7.4,
+        "baseline": 5.8,
+        "unit": "days",
+        "delta_pct": 27.6
+      },
+      {
+        "name": "3-way match failures",
+        "value": 184,
+        "baseline": 121,
+        "unit": "failures",
+        "delta_pct": 52.1
+      },
+      {
+        "name": "Rework rate",
+        "value": 18.5,
+        "baseline": 11.2,
+        "unit": "pct",
+        "delta_pct": 65.2
+      }
+    ],
+    "variant": {
+      "id": "V-12",
+      "description": "Manual rework loop via VBAK \u2192 BSEG posting",
+      "rework_rate_pct": 18.5,
+      "baseline_pct": 11.2
+    },
+    "correlation": {
+      "confidence": 0.78,
+      "signal": "three_way_match_failures",
+      "factor": "source_reliability",
+      "narrative": "Manual SAP posting rework correlates with lower source reliability on downstream extracts."
+    }
+  },
+  "billing_api": {
+    "source": "celonis_ems",
+    "signals": {
+      "invoice_processing_time_hours": 31.6,
+      "invoice_baseline_hours": 18.2,
+      "invoice_delta_pct": 73.6,
+      "rejection_rate_pct": 9.8,
+      "rejection_baseline_pct": 4.1,
+      "active_variant": "V-07",
+      "variant_description": "Manual approval loop for flagged invoices",
+      "rework_rate_pct": 22.1,
+      "rework_baseline_pct": 8.4
+    },
+    "metrics": [
+      {
+        "name": "Invoice processing time",
+        "value": 31.6,
+        "baseline": 18.2,
+        "unit": "hours",
+        "delta_pct": 73.6
+      },
+      {
+        "name": "Rejection rate",
+        "value": 9.8,
+        "baseline": 4.1,
+        "unit": "pct",
+        "delta_pct": 139.0
+      },
+      {
+        "name": "Rework rate",
+        "value": 22.1,
+        "baseline": 8.4,
+        "unit": "pct",
+        "delta_pct": 163.1
+      }
+    ],
+    "variant": {
+      "id": "V-07",
+      "description": "Manual approval loop for flagged invoices",
+      "rework_rate_pct": 22.1,
+      "baseline_pct": 8.4
+    },
+    "correlation": {
+      "confidence": 0.84,
+      "signal": "invoice_processing_time_hours",
+      "factor": "downstream_urgency",
+      "narrative": "Invoice approval loops increase downstream urgency for billing freshness alerts."
+    }
+  },
+  "warehouse_etl": {
+    "source": "celonis_ems",
+    "signals": {
+      "etl_batch_duration_minutes": 74,
+      "etl_baseline_minutes": 46,
+      "etl_delta_pct": 60.9,
+      "transform_failures": 17,
+      "transform_baseline": 6,
+      "active_variant": "V-03",
+      "variant_description": "Schema migration retry loop",
+      "rework_rate_pct": 14.2,
+      "rework_baseline_pct": 3.1
+    },
+    "metrics": [
+      {
+        "name": "ETL duration",
+        "value": 74,
+        "baseline": 46,
+        "unit": "minutes",
+        "delta_pct": 60.9
+      },
+      {
+        "name": "Transform failures",
+        "value": 17,
+        "baseline": 6,
+        "unit": "failures",
+        "delta_pct": 183.3
+      },
+      {
+        "name": "Rework rate",
+        "value": 14.2,
+        "baseline": 3.1,
+        "unit": "pct",
+        "delta_pct": 358.1
+      }
+    ],
+    "variant": {
+      "id": "V-03",
+      "description": "Schema migration retry loop",
+      "rework_rate_pct": 14.2,
+      "baseline_pct": 3.1
+    },
+    "correlation": {
+      "confidence": 0.71,
+      "signal": "transform_failures",
+      "factor": "data_freshness",
+      "narrative": "Retry-heavy schema migration variants explain freshness risk in warehouse batches."
+    }
+  }
+}
