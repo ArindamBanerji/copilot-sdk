@@ -60,9 +60,9 @@ COPILOTS = [
     {
         "name": "S2P",
         "be_port": 8002,
-        "fe_port": None,
+        "fe_port": 5177,
         "be_path": Path(os.environ.get("CLAUDE_S2P", str(SCRIPT_DIR.parent / "s2p-copilot"))) / "backend",
-        "fe_path": None,
+        "fe_path": SCRIPT_DIR / "apps" / "s2p" / "frontend",
         "health_path": "/health",
     },
 ]
@@ -440,7 +440,7 @@ def main():
     parser.add_argument("--trading", action="store_true", help="Trading only")
     parser.add_argument("--purchasing", action="store_true", help="Purchasing only")
     parser.add_argument("--dataops", action="store_true", help="DataOps only")
-    parser.add_argument("--s2p", action="store_true", help="S2P backend only")
+    parser.add_argument("--s2p", action="store_true", help="S2P only")
     parser.add_argument("--graph", action="store_true", help="AGE graph mode")
     parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")

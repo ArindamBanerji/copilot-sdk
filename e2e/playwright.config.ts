@@ -35,5 +35,12 @@ export default defineConfig({
         baseURL: "http://localhost:5176",
       },
     },
+    {
+      name: "s2p",
+      testDir: "./s2p",
+      use: {
+        baseURL: "http://localhost:5177",
+      },
+    },
   ],
 });
