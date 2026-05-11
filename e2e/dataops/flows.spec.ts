@@ -90,15 +90,42 @@ test("insight exploration: fingerprint, incident, evidence, curve", async ({ pag
 
   await clickTab(page, "Insight");
   await expect(page.getByText("Fingerprint")).toBeVisible();
+  await expectAnyText(page, [/Decision Explorer/i, /\d+\s+decisions?/i]);
   await expect(page.getByText("Incident Replay")).toBeVisible();
 
   await clickTab(page, "Evidence");
   await expect(page.getByText("AgentEvolver Audit Trail")).toBeVisible();
+  await expectAnyText(page, [/Rule Lifecycle/i, /promoted/i, /rejected/i]);
+  const auditTrail = page.locator("section", { hasText: /Alert Detected|Context Gathered/i }).first();
+  await expect(auditTrail).toBeVisible();
+  await expectAnyText(page, [/Alert Detected/i, /Context Gathered/i]);
+  await expectAnyText(page, [/Complete chain/i, /Incomplete chain/i]);
+  const genealogy = page.locator("section", { hasText: "Rule Genealogy" }).first();
+  await expect(genealogy).toBeVisible();
+  await expect(genealogy.getByText(/68%|69%|75%|83%|improvement/i).first()).toBeVisible();
   await expect(page.getByText("Pattern Origin")).toBeVisible();
 
   await clickTab(page, "Curve");
   await expect(page.getByText("Trajectory")).toBeVisible();
   await expectAnyText(page, [/SAP restructure/i, /Current IKS/i]);
+});
+
+test("evidence deep exploration shows impact lifecycle audit trail and genealogy", async ({ page }) => {
+  await page.goto("/");
+
+  await clickTab(page, "Evidence");
+  await expectAnyText(page, [/AgentEvolver Impact/i, /Auto-resolved/i, /Accuracy/i]);
+  await expectAnyText(page, [/Rule Lifecycle/i, /promoted/i, /rejected/i]);
+  const auditTrail = page.locator("section", { hasText: /Alert Detected|Context Gathered/i }).first();
+  await expect(auditTrail).toBeVisible();
+  await expect(auditTrail.getByText(/Alert Detected/i).first()).toBeVisible();
+  await expect(auditTrail.getByText(/Context Gathered/i).first()).toBeVisible();
+  await expect(auditTrail.getByText(/Complete chain|Incomplete chain/i).first()).toBeVisible();
+  const genealogy = page.locator("section", { hasText: "Rule Genealogy" }).first();
+  await expect(genealogy).toBeVisible();
+  await expect(genealogy.getByText(/68%|69%|75%|83%/i).first()).toBeVisible();
+  await expect(genealogy.getByText(/improvement|win-rate progression|decisions/i).first()).toBeVisible();
+  await expect(page.getByText("Pattern Origin")).toBeVisible();
 });
 
 test("tab navigation all 5 tabs and no blank screens", async ({ page }) => {
@@ -144,4 +171,90 @@ test("dashboard alert groups expand and collapse", async ({ page }) => {
   await expectAnyText(page, [/Triage/i, /No alerts in this root-cause group/i, /Root-system alerts only/i]);
   await groupButtons.first().click();
   await expect(page.getByText("Alert Root Causes")).toBeVisible();
+});
+
+test("decision explorer shows real category breakdown after a scored decision", async ({ page }) => {
+  test.setTimeout(60_000);
+  const opened = await openFirstAlert(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Investigate" }).click();
+  await scoreResponse;
+
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+
+  await clickTab(page, "Insight");
+  const explorer = page.locator("section", { hasText: "Decision Explorer" });
+  await expect(explorer).toBeVisible();
+  await expect(explorer.getByText("By Category")).toBeVisible();
+  // Backend unit tests verify live metadata category enrichment. This E2E keeps the UI claim narrower:
+  // after a score/learn cycle, the Decision Explorer still exposes real DataOps category breakdowns.
+  await expectAnyText(page, [/by category/i, /category/i, /\d+\s+decisions?/i]);
+});
+
+test("triage score then insight shows decision explorer count", async ({ page }) => {
+  test.setTimeout(60_000);
+  const opened = await openFirstAlert(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Investigate" }).click();
+  await scoreResponse;
+  await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /Confidence Breakdown/i]);
+
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/system learned/i, /Reward/i, /IKS delta/i, /reward signal/i]);
+
+  await clickTab(page, "Insight");
+  const explorer = page.locator("section", { hasText: "Decision Explorer" });
+  await expect(explorer).toBeVisible();
+  await expectAnyText(page, [/Decision Explorer/i, /\d+\s+decisions?/i]);
+});
+
+test("score alert then Curve shows IKS and centroid evolution", async ({ page }) => {
+  test.setTimeout(60_000);
+  const opened = await openFirstAlert(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Investigate" }).click();
+  await scoreResponse;
+  await expectAnyText(page, [/Why This Recommendation/i, /Confidence Breakdown/i]);
+
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/system learned/i, /Reward/i, /IKS delta/i, /reward signal/i]);
+
+  await clickTab(page, "Curve");
+  await expectAnyText(page, [/Current IKS/i, /\bIKS\b/i]);
+  await expectAnyText(page, [/Centroid Evolution/i, /centroid/i, /top shifts/i, /verified decisions/i]);
+});
+
+test("full round trip visits Dashboard, Triage, Insight, Evidence, and Curve", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await expectAnyText(page, [/Pipeline Status/i, /Alert Root Causes/i]);
+
+  const opened = await openFirstAlert(page);
+  if (opened) {
+    await expectAnyText(page, [/All factors auto-computed/i, /Similar Alerts/i, /Action/i]);
+    await page.getByRole("button", { name: "Back to Dashboard" }).click();
+  }
+
+  await clickTab(page, "Insight");
+  await expectAnyText(page, [/Fingerprint/i, /Decision Explorer/i]);
+
+  await clickTab(page, "Evidence");
+  await expectAnyText(page, [/AgentEvolver Impact/i, /Rule Lifecycle/i]);
+  await expectAnyText(page, [/Alert Detected/i, /Context Gathered/i]);
+  await expectAnyText(page, [/Rule Genealogy/i, /win-rate progression/i, /improvement/i]);
+
+  await clickTab(page, "Curve");
+  await expectAnyText(page, [/Trajectory/i, /Current IKS/i, /Centroid Evolution/i]);
 });

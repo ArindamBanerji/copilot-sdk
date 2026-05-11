@@ -180,10 +180,26 @@ export interface PatternOriginPattern {
   match?: Record<string, unknown>;
 }
 
+export interface GenealogyStage {
+  copilot?: string;
+  winRate?: number | null;
+  win_rate?: number | null;
+  decisions?: number | null;
+  warmStart?: number | null;
+  warm_start?: number | null;
+}
+
+export interface RuleGenealogyData {
+  stages?: GenealogyStage[];
+  improvement?: string;
+  narrative?: string;
+}
+
 export interface PatternOrigin {
   source?: string;
   narrative?: string;
   chain?: PatternOriginStep[];
+  genealogy?: RuleGenealogyData;
   patterns?: PatternOriginPattern[];
   rejected?: Array<{ id?: string; variantId?: string; reason?: string }>;
 }
@@ -320,6 +336,88 @@ export interface SimilarAlertsResponse {
   count?: number;
 }
 
+export interface DecisionEntry {
+  decisionId?: string | null;
+  alertId?: string | null;
+  eventId?: string | null;
+  system?: string | null;
+  dataset?: string | null;
+  category?: string | null;
+  actionTaken?: string | null;
+  scoreAction?: string | null;
+  scoreConfidence?: number | null;
+  outcome?: string | null;
+  isCorrect?: boolean | null;
+  date?: string | null;
+  source?: string;
+  factors?: Record<string, number> | null;
+}
+
+export interface ActionBreakdown {
+  count?: number;
+  correct?: number;
+  winRate?: number | null;
+  win_rate?: number | null;
+}
+
+export interface DecisionSummary {
+  totalDecisions?: number;
+  correct?: number;
+  accuracy?: number | null;
+  byAction?: Record<string, ActionBreakdown>;
+  byCategory?: Record<string, ActionBreakdown>;
+}
+
+export interface DecisionExplorerResponse {
+  decisions?: DecisionEntry[];
+  total?: number;
+  filtersApplied?: {
+    system?: string | null;
+    category?: string | null;
+    action?: string | null;
+    correct?: string | null;
+  };
+  summary?: DecisionSummary;
+}
+
+export interface CategoryAccuracy {
+  total?: number;
+  correct?: number;
+  accuracy?: number | null;
+  trend?: "declining" | "improving" | "stable" | string;
+  recentAccuracy?: number | null;
+  alertLevel?: "critical" | "warning" | "ok" | string;
+}
+
+export interface AccuracyByCategoryResponse {
+  categories?: Record<string, CategoryAccuracy>;
+  overallAccuracy?: number | null;
+  categoriesDeclining?: string[];
+  categoriesImproving?: string[];
+  totalDecisions?: number;
+}
+
+export interface CentroidShift {
+  factor?: string;
+  from?: number;
+  to?: number;
+  delta?: number;
+}
+
+export interface CentroidSnapshot {
+  decisionIndex?: number;
+  label?: string;
+  centroidsSample?: Record<string, number>;
+  topShifts?: CentroidShift[];
+  note?: string;
+}
+
+export interface CentroidHistoryResponse {
+  snapshots?: CentroidSnapshot[];
+  factorNames?: string[];
+  totalDecisions?: number;
+}
+
 export interface ProcessSignalMetric {
   name?: string;
   label?: string;
@@ -374,13 +472,6 @@ export interface Resolution {
   source?: string;
 }
 
-export interface ActionBreakdown {
-  count?: number;
-  correct?: number;
-  winRate?: number | null;
-  win_rate?: number | null;
-}
-
 export interface SystemHistoryResponse {
   system?: string;
   resolutions?: Resolution[];
@@ -392,6 +483,67 @@ export interface SystemHistoryResponse {
   best_action?: string | null;
   worstAction?: string | null;
   worst_action?: string | null;
+}
+
+export interface LifecycleEvent {
+  type?: string;
+  date?: string;
+  detail?: string;
+}
+
+export interface RuleWithLifecycle {
+  id?: string | null;
+  variantId?: string | null;
+  name?: string | null;
+  description?: string | null;
+  status?: string | null;
+  winRate?: number | null;
+  decisionsEvaluated?: number | null;
+  rejectedReason?: string | null;
+  sourceCopilot?: string | null;
+  sourceRule?: string | null;
+  warmStartPrior?: number | null;
+  lifecycleEvents?: LifecycleEvent[];
+}
+
+export interface RuleLifecycleResponse {
+  rules?: RuleWithLifecycle[];
+  total?: number;
+  summary?: {
+    promoted?: number;
+    rejected?: number;
+    shadow?: number;
+    proposed?: number;
+    [key: string]: number | undefined;
+  };
+}
+
+export interface AuditTrailStep {
+  step?: string;
+  label?: string;
+  detail?: string;
+  timestamp?: string | null;
+  source?: string;
+  data?: Record<string, unknown>;
+  variantId?: string | null;
+  variant_id?: string | null;
+  action?: string | null;
+  confidence?: number | null;
+  actionTaken?: string | null;
+  action_taken?: string | null;
+  followedAe?: boolean | null;
+  followed_ae?: boolean | null;
+  isCorrect?: boolean | null;
+  is_correct?: boolean | null;
+  reward?: number | null;
+}
+
+export interface AuditTrailResponse {
+  alertId?: string;
+  alert_id?: string;
+  system?: string | null;
+  chain?: AuditTrailStep[];
+  complete?: boolean;
 }
 
 export interface ScoreResponse {
@@ -421,6 +573,7 @@ export interface AlertMetadataPayload {
   decisionId: string;
   alertId?: string;
   systemName?: string;
+  category?: string | null;
   actionTaken?: string;
   aeSuggested?: boolean;
   followedAe?: boolean;

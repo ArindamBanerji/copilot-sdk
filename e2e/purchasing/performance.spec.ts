@@ -24,3 +24,10 @@ test("cost impact visible", async ({ page }) => {
   await expect(page.getByText("Waste and stockouts are now measurable")).toBeVisible();
   await expectAnyText(page, [/Waste reduction/i, /Stockout events/i, /Stockout cost/i, /\$\d[\d,]*/]);
 });
+
+test("trajectory shows switching cost narrative", async ({ page }) => {
+  await gotoPerformance(page);
+
+  await expect(page.getByText("Trajectory")).toBeVisible();
+  await expectAnyText(page, [/orders to learn/i, /years of gut instinct/i, /Switching cost/i]);
+});

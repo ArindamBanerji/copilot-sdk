@@ -16,6 +16,22 @@ test("pipeline grid shows systems", async ({ page }) => {
   await expectAnyText(page, [/SAP S\/4HANA/i, /billing/i, /warehouse/i, /Active alerts/i, /Business criticality/i]);
 });
 
+test("pipeline status shows system names with criticality", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByText("Pipeline Status")).toBeVisible();
+  await expectAnyText(page, [/Warehouse ETL/i, /Payment Gateway/i, /CRM Sync/i, /SAP S\/4HANA Extract/i]);
+  await expectAnyText(page, [/Business criticality/i, /\d+%/]);
+});
+
+test("AgentEvolver impact shows auto-resolved count and accuracy", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByText("AgentEvolver Impact")).toBeVisible();
+  await expectAnyText(page, [/Auto-resolved/i, /Accuracy/i, /Hours saved/i]);
+  await expectAnyText(page, [/\d+%/, /\d+(\.\d+)?/]);
+});
+
 test("alerts grouped by root cause", async ({ page }) => {
   await page.goto("/");
 
@@ -88,4 +104,12 @@ test("conservation projection shows timeline or accuracy gap", async ({ page }) 
     /Need \d+ more verified decisions/i,
     /Start making verified decisions/i,
   ]);
+});
+
+test("accuracy by category shows alert levels", async ({ page }) => {
+  await page.goto("/");
+
+  await expectAnyText(page, [/Accuracy by Category/i, /accuracy.*category/i]);
+  await expectAnyText(page, [/pipeline/i, /freshness/i, /schema/i]);
+  await expectAnyText(page, [/critical/i, /warning/i, /\bok\b/i, /declining/i]);
 });

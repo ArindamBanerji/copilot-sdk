@@ -51,6 +51,20 @@ test("SLA countdown visible", async ({ page }) => {
   await expectAnyText(page, [/SLA/i]);
 });
 
+test("recurrence indicator visible on triage", async ({ page }) => {
+  const opened = await openFirstTriage(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  await expectAnyText(page, [/Recurring \(\d+x\)/i, /Recurring/i]);
+});
+
+test("AE recommendation badge visible on triage", async ({ page }) => {
+  const opened = await openFirstTriage(page);
+  test.skip(!opened, "No grouped alert available to triage.");
+
+  await expectAnyText(page, [/AE:/i, /dataops-recurring-impact/i, /dataops-freshness-sla/i, /matched/i]);
+});
+
 test("blast radius tree renders", async ({ page }) => {
   const opened = await openFirstTriage(page);
   test.skip(!opened, "No grouped alert available to triage.");

@@ -34,3 +34,15 @@ test("counterfactual card shows dollar or saved text", async ({ page }) => {
   await expect(page.getByText("Counterfactual")).toBeVisible();
   await expectAnyText(page, [/\$\d[\d,]*/, /saved/i, /scenario/i, /No counterfactual/i]);
 });
+
+test("analysis shows edge and noise sections", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/YOUR EDGE/i, /YOUR NOISE/i, /clean/i, /noisy/i, /moderate/i]);
+});
+
+test("analysis shows behavioral subsections", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/Day of Week/i, /Research Impact/i, /Regime Analysis/i, /Risk Management/i]);
+});

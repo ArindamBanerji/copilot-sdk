@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FingerprintPanel } from "../../../../../copilot_sdk/frontend";
 import { getFingerprint, getIncident } from "../api";
+import DecisionExplorer from "../components/DecisionExplorer";
 import IncidentReplayCard from "../components/IncidentReplayCard";
 import ProfileArchetype from "../components/ProfileArchetype";
 import type { FingerprintResponse, Incident } from "../types";
@@ -89,6 +90,7 @@ export default function InsightScreen() {
         perCategoryPrecision={fingerprint?.perCategoryPrecision}
         decisionsAnalyzed={fingerprint?.decisionsAnalyzed}
       />
+      <DecisionExplorer />
       <IncidentReplayCard incident={incident} />
     </div>
   );

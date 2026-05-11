@@ -36,6 +36,49 @@ test("full trade lifecycle: log, score, confirm, dashboard", async ({ page }) =>
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 });
 
+test("score confirm then Performance shows IKS", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await clickTab(page, "Log Trade");
+  await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
+
+  await fillTrade(page);
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+  await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
+
+  const learnResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok(),
+    { timeout: 15_000 },
+  ).catch(() => null);
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/Trade confirmed/i, /system learned/i, /Reward/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/Performance Summary/i, /Current IKS/i, /IKS/i, /Trajectory/i]);
+  const mainText = await page.locator("main").innerText();
+  expect(mainText).toMatch(/IKS[\s\S]{0,80}\d+(\.\d+)?/i);
+});
+
+test("full round trip visits dashboard, log trade, analysis, performance, and dashboard", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i, /portfolio/i]);
+
+  await clickTab(page, "Log Trade");
+  await expectAnyText(page, [/Ticker/i, /Trade Thesis/i, /Score This Trade/i]);
+
+  await clickTab(page, "Analysis");
+  await expectAnyText(page, [/YOUR TWO SELVES/i, /Fingerprint/i, /edge/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/IKS/i, /Trajectory/i, /Performance Summary/i]);
+
+  await clickTab(page, "Dashboard");
+  await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i, /portfolio/i]);
+});
+
 test("tab navigation cycle all tabs accessible without console errors", async ({ page }) => {
   const errors = collectConsoleErrors(page);
   await page.goto("/");
@@ -55,4 +98,20 @@ test("analysis reflects pre-seeded data", async ({ page }) => {
   await expect(page.getByText("YOUR TWO SELVES")).toBeVisible();
   await expect(page.getByText("Counterfactual")).toBeVisible();
   await expectAnyText(page, [/Fingerprint/i, /Research Impact/i, /Risk Management/i, /\d+(\.\d+)?%/]);
+});
+
+test("dashboard shows decision history entries", async ({ page }) => {
+  await page.goto("/");
+
+  await expectAnyText(page, [/Decision History/i]);
+  await expectAnyText(page, [/buy/i, /sell/i, /hold/i, /trade/i, /open/i]);
+});
+
+test("analysis contrast card reflects pre-seeded alignment", async ({ page }) => {
+  await page.goto("/");
+  await clickTab(page, "Analysis");
+
+  await expectAnyText(page, [/YOUR TWO SELVES/i, /Aligned trades compound/i]);
+  await expectAnyText(page, [/Aligned/i, /Misaligned/i, /Neutral/i]);
+  await expectAnyText(page, [/Win rate/i, /Trades/i, /\d+/]);
 });

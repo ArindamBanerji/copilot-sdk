@@ -110,6 +110,37 @@ def test_factor_auto_fill(client: TestClient) -> None:
     assert payload["factors"]["impact_scope"]["value"] >= 0
 
 
+def test_audit_trail_for_known_alert(client: TestClient) -> None:
+    response = client.get("/api/context/audit-trail/DQ-001")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["alert_id"] == "DQ-001"
+    assert len(payload["chain"]) >= 2
+    assert payload["chain"][0]["step"] == "signal"
+    assert any(step["step"] == "context" for step in payload["chain"])
+
+
+def test_audit_trail_incomplete_for_untriaged(client: TestClient) -> None:
+    response = client.get("/api/context/audit-trail/DQ-020")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["alert_id"] == "DQ-020"
+    assert payload["complete"] is False
+    assert not any(step["step"] == "outcome" for step in payload["chain"])
+
+
+def test_audit_trail_unknown_alert_returns_empty(client: TestClient) -> None:
+    response = client.get("/api/context/audit-trail/NONEXISTENT")
+
+    assert response.status_code in {200, 404}
+    if response.status_code == 200:
+        payload = response.json()
+        assert payload["chain"] == []
+        assert payload["complete"] is False
+
+
 def test_similar_alerts(client: TestClient) -> None:
     response = client.get(
         "/api/context/similar",
@@ -213,6 +244,69 @@ def test_ae_pattern_origin(client: TestClient) -> None:
     assert len(payload["patterns"]) == 2
     assert payload["patterns"][0]["source_copilot"] == "dataops"
     assert payload["rejected"][0]["id"] == "V-DO-AUTO-001"
+
+
+def test_pattern_origin_includes_genealogy(client: TestClient) -> None:
+    payload = client.get("/api/ae/pattern-origin").json()
+
+    assert "genealogy" in payload
+    assert len(payload["genealogy"]["stages"]) >= 3
+    assert all("win_rate" in stage for stage in payload["genealogy"]["stages"])
+    assert payload["genealogy"]["stages"][0]["copilot"] == "soc"
+    assert payload["genealogy"]["stages"][-1]["copilot"] == "dataops"
+    assert payload["genealogy"]["improvement"]
+
+
+def test_rule_lifecycle_returns_all(client: TestClient) -> None:
+    response = client.get("/api/ae/rule-lifecycle")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 3
+    assert len(payload["rules"]) == 3
+    assert payload["engine"]["gae"] == "gae.evolution"
+
+
+def test_rule_lifecycle_has_events(client: TestClient) -> None:
+    payload = client.get("/api/ae/rule-lifecycle?variant_id=dataops-recurring-impact-v1").json()
+
+    assert payload["total"] == 1
+    rule = payload["rules"][0]
+    event_types = [event["type"] for event in rule["lifecycle_events"]]
+    assert event_types[0] == "proposed"
+    assert "shadow_result" in event_types
+    assert "promoted" in event_types
+    assert rule["win_rate"] == 0.75
+    assert rule["decisions_evaluated"] == 24
+
+
+def test_rule_lifecycle_rejected_has_reason(client: TestClient) -> None:
+    payload = client.get("/api/ae/rule-lifecycle?status=rejected").json()
+
+    assert payload["total"] == 1
+    rule = payload["rules"][0]
+    assert rule["status"] == "rejected"
+    assert "downstream incidents" in rule["rejected_reason"]
+    assert any(event["type"] == "rejected" and "downstream incidents" in event["detail"] for event in rule["lifecycle_events"])
+
+
+def test_rule_lifecycle_summary_counts(client: TestClient) -> None:
+    payload = client.get("/api/ae/rule-lifecycle").json()
+
+    assert payload["summary"] == {
+        "promoted": 2,
+        "rejected": 1,
+        "shadow": 0,
+        "proposed": 0,
+    }
+
+
+def test_rule_lifecycle_filter_variant_id(client: TestClient) -> None:
+    payload = client.get("/api/ae/rule-lifecycle?variant_id=dataops-freshness-sla-v1").json()
+
+    assert payload["total"] == 1
+    assert payload["rules"][0]["id"] == "V-DO-FRESH-001"
+    assert payload["summary"]["promoted"] == 1
 
 
 def test_ae_incident(client: TestClient) -> None:
@@ -339,6 +433,178 @@ def test_system_history_limit(client: TestClient) -> None:
 
     assert len(limited_payload["resolutions"]) <= 2
     assert limited_payload["total"] == full_payload["total"]
+
+
+def test_decisions_returns_all(client: TestClient) -> None:
+    response = client.get("/api/context/decisions")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] >= 20
+    assert len(payload["decisions"]) == 20
+    assert payload["summary"]["total_decisions"] == payload["total"]
+    assert all(decision["source"] in {"seed_history", "live_decision"} for decision in payload["decisions"])
+
+
+def test_decisions_include_live_metadata(client: TestClient) -> None:
+    client.post(
+        "/api/context/alert-metadata",
+        json={
+            "decision_id": "DO-LIVE-001",
+            "alert_id": "DQ-017",
+            "system_name": "billing_api",
+            "category": "freshness_violation",
+            "action_taken": "escalate_to_owner",
+            "outcome": "correct",
+            "score_confidence": 0.91,
+        },
+    )
+
+    payload = client.get("/api/context/decisions?system=billing_api&action=escalate_to_owner").json()
+
+    assert any(decision["decision_id"] == "DO-LIVE-001" for decision in payload["decisions"])
+    live = next(decision for decision in payload["decisions"] if decision["decision_id"] == "DO-LIVE-001")
+    assert live["source"] == "live_decision"
+    assert live["is_correct"] is True
+    assert live["score_confidence"] == 0.91
+
+
+def test_decisions_enrich_missing_category(client: TestClient) -> None:
+    client.post(
+        "/api/context/alert-metadata",
+        json={
+            "decision_id": "test-no-cat",
+            "alert_id": "DQ-001",
+            "system_name": "warehouse_etl",
+            "action_taken": "investigate",
+        },
+    )
+
+    payload = client.get("/api/context/decisions?system=warehouse_etl").json()
+    decision = next(item for item in payload["decisions"] if item["decision_id"] == "test-no-cat")
+
+    assert decision["category"] == "pipeline_failure"
+    assert decision["category"] is not None
+    assert decision["category"] != "unknown"
+    assert payload["summary"]["by_category"]["pipeline_failure"]["count"] >= 1
+
+
+def test_decisions_filter_by_system(client: TestClient) -> None:
+    payload = client.get("/api/context/decisions?system=billing_api").json()
+
+    assert payload["decisions"]
+    assert payload["filters_applied"]["system"] == "billing_api"
+    assert all(decision["system"] == "billing_api" for decision in payload["decisions"])
+
+
+def test_decisions_filter_by_category(client: TestClient) -> None:
+    payload = client.get("/api/context/decisions?category=pipeline_failure").json()
+
+    assert payload["decisions"]
+    assert payload["filters_applied"]["category"] == "pipeline_failure"
+    assert all(decision["category"] == "pipeline_failure" for decision in payload["decisions"])
+
+
+def test_decisions_filter_correct_only(client: TestClient) -> None:
+    payload = client.get("/api/context/decisions?correct=true").json()
+
+    assert payload["decisions"]
+    assert payload["filters_applied"]["correct"] == "true"
+    assert all(decision["is_correct"] is True for decision in payload["decisions"])
+
+
+def test_decisions_empty_for_nonexistent(client: TestClient) -> None:
+    payload = client.get("/api/context/decisions?system=nonexistent").json()
+
+    assert payload["decisions"] == []
+    assert payload["total"] == 0
+    assert payload["summary"]["accuracy"] is None
+
+
+def test_decisions_summary_has_breakdowns(client: TestClient) -> None:
+    payload = client.get("/api/context/decisions").json()
+    summary = payload["summary"]
+
+    assert summary["by_action"]
+    assert summary["by_category"]
+    assert {"count", "correct", "win_rate"} <= set(summary["by_action"]["auto_approve"])
+    assert {"count", "correct", "win_rate"} <= set(summary["by_category"]["pipeline_failure"])
+
+
+def test_decisions_limit_applies_only_to_returned_rows(client: TestClient) -> None:
+    payload = client.get("/api/context/decisions?limit=3").json()
+
+    assert len(payload["decisions"]) == 3
+    assert payload["total"] >= 20
+    assert payload["summary"]["total_decisions"] == payload["total"]
+
+
+def test_accuracy_by_category_returns_all(client: TestClient) -> None:
+    response = client.get("/api/context/accuracy-by-category")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["categories"]
+    assert payload["overall_accuracy"] is not None
+    assert payload["total_decisions"] > 0
+    assert "pipeline_failure" in payload["categories"]
+
+
+def test_accuracy_by_category_has_trend(client: TestClient) -> None:
+    payload = client.get("/api/context/accuracy-by-category").json()
+
+    for category in payload["categories"].values():
+        assert category["trend"] in {"declining", "improving", "stable"}
+        assert "recent_accuracy" in category
+
+
+def test_accuracy_by_category_alert_levels(client: TestClient) -> None:
+    payload = client.get("/api/context/accuracy-by-category").json()
+
+    for category in payload["categories"].values():
+        assert category["alert_level"] in {"critical", "warning", "ok"}
+        assert category["total"] > 0
+        assert 0 <= category["correct"] <= category["total"]
+
+
+def test_accuracy_declining_list(client: TestClient) -> None:
+    payload = client.get("/api/context/accuracy-by-category").json()
+
+    assert isinstance(payload["categories_declining"], list)
+    assert isinstance(payload["categories_improving"], list)
+
+
+def test_centroid_history_has_snapshots(client: TestClient) -> None:
+    response = client.get("/api/context/centroid-history")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload["snapshots"]) >= 2
+    assert payload["total_decisions"] > 0
+
+
+def test_centroid_history_initial_is_generic(client: TestClient) -> None:
+    payload = client.get("/api/context/centroid-history").json()
+    initial = payload["snapshots"][0]
+
+    assert initial["decision_index"] == 0
+    assert "Initial" in initial["label"]
+    assert all(value == 0.5 for value in initial["centroids_sample"].values())
+
+
+def test_centroid_history_top_shifts(client: TestClient) -> None:
+    payload = client.get("/api/context/centroid-history").json()
+    current = payload["snapshots"][-1]
+
+    assert current["top_shifts"]
+    for shift in current["top_shifts"]:
+        assert {"factor", "from", "to", "delta"} <= set(shift)
+
+
+def test_centroid_history_factor_names(client: TestClient) -> None:
+    payload = client.get("/api/context/centroid-history").json()
+
+    assert set(DATAOPS_FACTORS) <= set(payload["factor_names"])
 
 
 def test_score_via_sdk(client: TestClient) -> None:

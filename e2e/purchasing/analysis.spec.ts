@@ -35,3 +35,10 @@ test("category accuracy shows categories", async ({ page }) => {
   await expect(page.getByText("Category accuracy")).toBeVisible();
   await expectAnyText(page, [/protein/i, /produce/i, /dairy/i, /dry goods/i, /beverages/i]);
 });
+
+test("AE rule application card visible", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/Counterfactual/i, /Apply AE Friday produce rule/i, /Applying proven AE rules/i]);
+  await expectAnyText(page, [/Orders adjusted/i, /Dollars saved/i]);
+});

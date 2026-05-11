@@ -33,6 +33,13 @@ test("cost analysis shows stockout vs waste", async ({ page }) => {
   await expect(page.getByText("Waste estimate")).toBeVisible();
 });
 
+test("cost framing narrative visible", async ({ page }) => {
+  await gotoOrder(page);
+
+  await expectAnyText(page, [/Stockout costs far more than waste/i, /service-risk spread/i, /guarded against zero waste/i]);
+  await expectAnyText(page, [/Order cost/i, /Stockout estimate/i, /Waste estimate/i, /Risk ratio/i]);
+});
+
 test("six auto-computed factors visible", async ({ page }) => {
   await gotoOrder(page);
 

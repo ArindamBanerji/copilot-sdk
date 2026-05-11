@@ -234,6 +234,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
         decisionId: scored.decisionId,
         alertId: selectedAlertId,
         systemName: alert.system,
+        category: alert.category,
         actionTaken: action,
         aeSuggested: Boolean(primaryRecommendation),
         followedAe: actionMatchesRecommendation(action, primaryRecommendation),

@@ -20,3 +20,11 @@ test("disruption annotation visible", async ({ page }) => {
 
   await expectAnyText(page, [/SAP restructure/i, /6 pipeline configurations changed simultaneously/i, /recovery/i]);
 });
+
+test("centroid evolution shows top shifts", async ({ page }) => {
+  await gotoCurve(page);
+
+  await expectAnyText(page, [/Centroid Evolution/i, /centroid/i, /evolution/i, /shift/i]);
+  await expectAnyText(page, [/data freshness/i, /recurrence/i, /impact/i]);
+  await expectAnyText(page, [/0\.\d+/, /verified decisions/i, /Current \(\d+ decisions\)/i]);
+});

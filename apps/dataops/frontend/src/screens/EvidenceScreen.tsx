@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { EvolutionPanel } from "../../../../../copilot_sdk/frontend";
 import { getAeImpact, getEvolutionVariants, getPatternOrigin } from "../api";
 import AEImpactPanel from "../components/AEImpactPanel";
+import AuditTrailViewer from "../components/AuditTrailViewer";
 import PatternOriginCard from "../components/PatternOriginCard";
+import RuleGenealogy from "../components/RuleGenealogy";
+import RuleLifecycle from "../components/RuleLifecycle";
 import type { AEImpact, EvolutionVariant, PatternOrigin } from "../types";
 
 export default function EvidenceScreen() {
@@ -48,6 +51,9 @@ export default function EvidenceScreen() {
       {error ? <Frame message={error} tone="error" /> : null}
       <AEImpactPanel impact={impact} />
       <EvolutionPanel variants={variants} title="AgentEvolver Audit Trail" />
+      <RuleLifecycle />
+      <AuditTrailViewer />
+      <RuleGenealogy genealogy={origin?.genealogy} />
       <PatternOriginCard origin={origin} />
     </div>
   );

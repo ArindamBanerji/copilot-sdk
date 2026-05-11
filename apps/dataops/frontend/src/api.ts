@@ -3,11 +3,15 @@ import type {
   AERecommendationResponse,
   AlertGroupsResponse,
   AlertDetail,
+  AuditTrailResponse,
+  AccuracyByCategoryResponse,
   BlastRadius,
+  CentroidHistoryResponse,
   ConservationHistory,
   ConservationState,
   ConservationWhatIfRequest,
   DataOpsAlert,
+  DecisionExplorerResponse,
   FactorAutoFillResponse,
   FingerprintResponse,
   Health,
@@ -22,6 +26,7 @@ import type {
   SystemHistoryResponse,
   TrajectoryResponse,
   EvolutionVariant,
+  RuleLifecycleResponse,
 } from "./types";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8030";
@@ -156,8 +161,25 @@ export async function getTrajectory(): Promise<TrajectoryResponse> {
   return apiGet<TrajectoryResponse>("/api/trajectory");
 }
 
+export async function getAccuracyByCategory(): Promise<AccuracyByCategoryResponse> {
+  return apiGet<AccuracyByCategoryResponse>("/api/context/accuracy-by-category");
+}
+
+export async function getCentroidHistory(category?: string): Promise<CentroidHistoryResponse> {
+  const params = new URLSearchParams();
+  if (category) {
+    params.set("category", category);
+  }
+  const query = params.toString();
+  return apiGet<CentroidHistoryResponse>(`/api/context/centroid-history${query ? `?${query}` : ""}`);
+}
+
 export async function getAlert(id: string): Promise<AlertDetail> {
   return apiGet<AlertDetail>(`/api/context/alert/${encodeURIComponent(id)}`);
+}
+
+export async function getAuditTrail(alertId: string): Promise<AuditTrailResponse> {
+  return apiGet<AuditTrailResponse>(`/api/context/audit-trail/${encodeURIComponent(alertId)}`);
 }
 
 export async function getAlertDeps(id: string): Promise<BlastRadius> {
@@ -193,6 +215,33 @@ export async function getSystemHistory(systemName: string, limit = 5): Promise<S
   );
 }
 
+export async function getDecisions(filters: {
+  system?: string;
+  category?: string;
+  action?: string;
+  correct?: boolean;
+  limit?: number;
+} = {}): Promise<DecisionExplorerResponse> {
+  const params = new URLSearchParams();
+  if (filters.system) {
+    params.set("system", filters.system);
+  }
+  if (filters.category) {
+    params.set("category", filters.category);
+  }
+  if (filters.action) {
+    params.set("action", filters.action);
+  }
+  if (typeof filters.correct === "boolean") {
+    params.set("correct", filters.correct ? "true" : "false");
+  }
+  if (typeof filters.limit === "number") {
+    params.set("limit", String(filters.limit));
+  }
+  const query = params.toString();
+  return apiGet<DecisionExplorerResponse>(`/api/context/decisions${query ? `?${query}` : ""}`);
+}
+
 export async function getAeRecommendation(alertId: string): Promise<AERecommendationResponse> {
   return apiGet<AERecommendationResponse>(`/api/ae/recommendation/${encodeURIComponent(alertId)}`);
 }
@@ -212,6 +261,21 @@ export async function getFingerprint(): Promise<FingerprintResponse> {
 export async function getEvolutionVariants(): Promise<EvolutionVariant[]> {
   const payload = await apiGet<{ variants?: Array<Record<string, unknown>> }>("/api/evolution/variants");
   return (payload.variants || []).map(toEvolutionVariant);
+}
+
+export async function getRuleLifecycle(filters: {
+  variantId?: string;
+  status?: string;
+} = {}): Promise<RuleLifecycleResponse> {
+  const params = new URLSearchParams();
+  if (filters.variantId) {
+    params.set("variant_id", filters.variantId);
+  }
+  if (filters.status) {
+    params.set("status", filters.status);
+  }
+  const query = params.toString();
+  return apiGet<RuleLifecycleResponse>(`/api/ae/rule-lifecycle${query ? `?${query}` : ""}`);
 }
 
 export async function scoreAlert(body: unknown): Promise<ScoreResponse> {

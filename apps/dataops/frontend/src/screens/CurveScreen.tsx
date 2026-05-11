@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { TrajectoryChart } from "../../../../../copilot_sdk/frontend";
-import { getTrajectory } from "../api";
+import { getCentroidHistory, getTrajectory } from "../api";
+import CentroidTimeline from "../components/CentroidTimeline";
 import DisruptionAnnotation from "../components/DisruptionAnnotation";
-import type { TrajectoryResponse } from "../types";
+import type { CentroidHistoryResponse, TrajectoryResponse } from "../types";
 
 export default function CurveScreen() {
   const [trajectory, setTrajectory] = useState<TrajectoryResponse | null>(null);
+  const [centroidHistory, setCentroidHistory] = useState<CentroidHistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,10 +15,14 @@ export default function CurveScreen() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    getTrajectory()
-      .then((result) => {
+    Promise.all([
+      getTrajectory(),
+      getCentroidHistory().catch(() => null),
+    ])
+      .then(([result, centroidResult]) => {
         if (!cancelled) {
           setTrajectory(result);
+          setCentroidHistory(centroidResult);
         }
       })
       .catch((caught) => {
@@ -61,6 +67,7 @@ export default function CurveScreen() {
         daysActive={trajectory?.daysActive ?? 0}
       />
       <DisruptionAnnotation />
+      <CentroidTimeline data={centroidHistory} />
     </div>
   );
 }
