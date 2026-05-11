@@ -23,6 +23,10 @@ from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 # --- Configuration ---
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -98,24 +102,39 @@ def wait_for_health(name: str, port: int, timeout: int = 30) -> bool:
 
 
 def find_pids_on_port(port: int) -> list[int]:
-    """Find process IDs listening on a port (Windows)."""
-    pids = []
+    """Find process IDs listening on a port."""
+    pids: set[int] = set()
+    target_port = str(port)
     try:
         result = subprocess.run(
-            ["netstat", "-ano", "-p", "TCP"],
+            ["netstat", "-ano"],
             capture_output=True, text=True, timeout=5
         )
         for line in result.stdout.splitlines():
-            if f":{port}" in line and "LISTENING" in line:
-                parts = line.split()
-                if parts:
-                    try:
-                        pids.append(int(parts[-1]))
-                    except ValueError:
-                        pass
-    except Exception:
-        pass
-    return list(set(pids))
+            parts = line.split()
+            if len(parts) < 5 or parts[0].upper() != "TCP":
+                continue
+            if parts[-2].upper() != "LISTENING":
+                continue
+            local_address = parts[1]
+            if _port_from_local_address(local_address) != target_port:
+                continue
+            try:
+                pids.add(int(parts[-1]))
+            except ValueError:
+                pass
+    except Exception as e:
+        print(f"  WARN: Could not inspect port :{port}: {e}")
+    return sorted(pids)
+
+
+def _port_from_local_address(local_address: str) -> str | None:
+    """Extract the port from netstat's local address column."""
+    if local_address.startswith("[") and "]:" in local_address:
+        return local_address.rsplit("]:", 1)[-1]
+    if ":" not in local_address:
+        return None
+    return local_address.rsplit(":", 1)[-1]
 
 
 def kill_port(port: int, name: str = "") -> bool:
@@ -123,17 +142,35 @@ def kill_port(port: int, name: str = "") -> bool:
     pids = find_pids_on_port(port)
     if not pids:
         return False
+    attempted = False
     for pid in pids:
         try:
+            attempted = True
             if IS_WINDOWS:
-                subprocess.run(["taskkill", "/F", "/PID", str(pid)],
-                               capture_output=True, timeout=5)
+                result = subprocess.run(
+                    ["taskkill", "/F", "/PID", str(pid)],
+                    capture_output=True, text=True, timeout=5
+                )
+                if result.returncode != 0:
+                    message = (result.stderr or result.stdout or "").strip()
+                    print(f"  WARN: Could not stop PID {pid} on :{port}: {message}")
+                    continue
             else:
                 os.kill(pid, 9)
-            print(f"  Stopped {name} PID {pid} on :{port}")
+            label = f" ({name})" if name else ""
+            print(f"  Killed stale PID {pid} on :{port}{label}")
         except Exception as e:
-            print(f"  WARN: Could not stop PID {pid}: {e}")
-    return True
+            print(f"  WARN: Could not stop PID {pid} on :{port}: {e}")
+    return attempted
+
+
+def known_ports(selected: list[dict] | None = None) -> list[int]:
+    """Return configured backend and frontend ports without duplicating constants."""
+    copilots = selected or COPILOTS
+    ports: list[int] = []
+    for c in copilots:
+        ports.extend([c["be_port"], c["fe_port"]])
+    return ports
 
 
 # --- Commands ---
@@ -145,6 +182,17 @@ def cmd_stop(selected: list[dict]):
         kill_port(c["be_port"], f"{c['name']} backend")
         kill_port(c["fe_port"], f"{c['name']} frontend")
     time.sleep(2)
+    print("Done.")
+
+
+def cmd_kill_all():
+    """Kill listeners on all configured copilot ports."""
+    print("Killing all copilot port listeners...")
+    killed_any = False
+    for port in known_ports():
+        killed_any = kill_port(port) or killed_any
+    if not killed_any:
+        print("  No copilot port listeners found.")
     print("Done.")
 
 
@@ -186,6 +234,7 @@ def cmd_start(selected: list[dict], args):
     procs = {}
     for c in selected:
         port = c["be_port"]
+        kill_port(port, f"{c['name']} backend")
         if check_port(port):
             print(f"  {c['name']} backend already on :{port}")
             continue
@@ -226,6 +275,7 @@ def cmd_start(selected: list[dict], args):
     print("Starting frontends...")
     for c in selected:
         port = c["fe_port"]
+        kill_port(port, f"{c['name']} frontend")
         if check_port(port):
             print(f"  {c['name']} frontend already on :{port}")
             continue
@@ -331,6 +381,8 @@ def main():
     parser.add_argument("--graph", action="store_true", help="AGE graph mode")
     parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")
+    parser.add_argument("--kill-all", action="store_true",
+                        help="Kill listeners on all known copilot ports")
 
     args = parser.parse_args()
 
@@ -342,7 +394,9 @@ def main():
         if do_all or getattr(args, name_lower, False):
             selected.append(c)
 
-    if args.stop:
+    if args.kill_all:
+        cmd_kill_all()
+    elif args.stop:
         cmd_stop(selected)
     elif args.status:
         cmd_status(selected)
