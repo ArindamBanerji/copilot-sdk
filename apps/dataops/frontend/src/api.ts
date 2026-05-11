@@ -27,6 +27,10 @@ import type {
   TrajectoryResponse,
   EvolutionVariant,
   RuleLifecycleResponse,
+  BottleneckResponse,
+  OperationalRulesResponse,
+  SchemaImpactResponse,
+  TransformationsResponse,
 } from "./types";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8030";
@@ -174,6 +178,23 @@ export async function getCentroidHistory(category?: string): Promise<CentroidHis
   return apiGet<CentroidHistoryResponse>(`/api/context/centroid-history${query ? `?${query}` : ""}`);
 }
 
+export async function getTransformations(system: string): Promise<TransformationsResponse> {
+  return apiGet<TransformationsResponse>(`/api/context/transformations/${encodeURIComponent(system)}`);
+}
+
+export async function getBottleneck(system: string): Promise<BottleneckResponse> {
+  return apiGet<BottleneckResponse>(`/api/context/bottleneck/${encodeURIComponent(system)}`);
+}
+
+export async function getSchemaImpact(system: string, column?: string): Promise<SchemaImpactResponse> {
+  const params = new URLSearchParams();
+  if (column) {
+    params.set("column", column);
+  }
+  const query = params.toString();
+  return apiGet<SchemaImpactResponse>(`/api/context/schema-impact/${encodeURIComponent(system)}${query ? `?${query}` : ""}`);
+}
+
 export async function getAlert(id: string): Promise<AlertDetail> {
   return apiGet<AlertDetail>(`/api/context/alert/${encodeURIComponent(id)}`);
 }
@@ -276,6 +297,10 @@ export async function getRuleLifecycle(filters: {
   }
   const query = params.toString();
   return apiGet<RuleLifecycleResponse>(`/api/ae/rule-lifecycle${query ? `?${query}` : ""}`);
+}
+
+export async function getOperationalRules(): Promise<OperationalRulesResponse> {
+  return apiGet<OperationalRulesResponse>("/api/ae/operational-rules");
 }
 
 export async function scoreAlert(body: unknown): Promise<ScoreResponse> {

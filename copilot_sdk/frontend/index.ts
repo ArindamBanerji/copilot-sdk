@@ -21,3 +21,21 @@ export type { EvolutionPanelProps, EvolutionStatus, EvolutionVariant } from "./E
 
 export { default as ConservationSlider } from "./ConservationSlider";
 export type { ConservationSliderProps, ConservationStatusLevel } from "./ConservationSlider";
+
+export { default as ReasoningPanel } from "./ReasoningPanel";
+export type {
+  GenericFactorValues,
+  GenericFingerprint,
+  GenericFingerprintFactor,
+  GenericScoreResult,
+  ReasoningPanelProps,
+  SimilarEvidenceItem,
+} from "./ReasoningPanel";
+
+export { default as ConservationProjection } from "./ConservationProjection";
+export type {
+  ConservationProjectionProps,
+  GenericConservationState,
+  GenericTrajectoryPoint,
+  GenericTrajectoryResponse,
+} from "./ConservationProjection";

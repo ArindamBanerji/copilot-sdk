@@ -62,3 +62,46 @@ test("decision explorer shows real categories not just unknown", async ({ page }
   await expectAnyText(page, [/By Category/i]);
   await expectAnyText(page, [/pipeline/i, /schema/i, /volume/i, /freshness/i, /quality/i, /transform/i]);
 });
+
+test("bottleneck panel shows pipeline duration breakdown", async ({ page }) => {
+  await gotoInsight(page);
+
+  await expectAnyText(page, [/Pipeline Bottleneck/i, /bottleneck/i, /duration/i]);
+  await expectAnyText(page, [/Join VBAK\/BSEG/i, /join/i]);
+  await expectAnyText(page, [/Extract Orders Daily/i, /extract/i]);
+  await expectAnyText(page, [/Aggregate Daily Revenue/i, /aggregate/i]);
+  await expectAnyText(page, [/Load to Warehouse/i, /load/i, /\d+% of runtime/i]);
+});
+
+test("bottleneck panel shows optimization recommendation", async ({ page }) => {
+  await gotoInsight(page);
+
+  const bottleneck = page.locator("section", { hasText: "Pipeline Bottleneck" }).first();
+  await expect(bottleneck).toBeVisible();
+  await expect(bottleneck.getByText(/Recommendation/i).first()).toBeVisible();
+  await expect(bottleneck.getByText(/reorder|optimize/i).first()).toBeVisible();
+  await expect(bottleneck.getByText(/speedup|9x/i).first()).toBeVisible();
+  await expect(bottleneck.getByText(/savings|minutes saved|min/i).first()).toBeVisible();
+});
+
+test("what-if reordering shows transformation list", async ({ page }) => {
+  await gotoInsight(page);
+
+  const whatIf = page.locator("section", { hasText: /What-if: Reorder/i }).first();
+  await expect(whatIf).toBeVisible();
+  await expect(whatIf.getByText(/Current order/i).first()).toBeVisible();
+  await expect(whatIf.getByText(/Reorder order/i).first()).toBeVisible();
+  await expectAnyText(page, [/Extract Orders Daily/i, /extract/i]);
+  await expectAnyText(page, [/Join VBAK\/BSEG/i, /join/i]);
+  await expectAnyText(page, [/Aggregate Daily Revenue/i, /aggregate/i]);
+  await expectAnyText(page, [/Load to Warehouse/i, /load/i]);
+});
+
+test("what-if reordering shows estimated impact", async ({ page }) => {
+  await gotoInsight(page);
+
+  const whatIf = page.locator("section", { hasText: /What-if: Reorder/i }).first();
+  await expect(whatIf).toBeVisible();
+  await expect(whatIf.getByText(/Estimated impact/i).first()).toBeVisible();
+  await expectAnyText(page, [/Move steps to estimate impact/i, /savings/i, /speedup/i, /min/i]);
+});

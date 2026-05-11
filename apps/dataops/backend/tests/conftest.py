@@ -34,6 +34,8 @@ def dataops_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         "incident.json",
         "conservation_history.json",
         "process_signals.json",
+        "transformations.json",
+        "schema_changes.json",
     ):
         shutil.copyfile(source / name, target / name)
 

@@ -1,5 +1,6 @@
 import type {
   Analytics,
+  ConservationState,
   FingerprintResponse,
   LearnResponse,
   MarketSnapshot,
@@ -77,6 +78,10 @@ export function getTicker(ticker: string): Promise<TickerData> {
 
 export function getTrajectory(): Promise<TrajectoryResponse> {
   return apiGet<TrajectoryResponse>("/api/trajectory");
+}
+
+export function getConservationStatus(): Promise<ConservationState> {
+  return apiGet<ConservationState>("/api/conservation/status");
 }
 
 export function getFingerprint(): Promise<FingerprintResponse> {

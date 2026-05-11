@@ -607,6 +607,105 @@ def test_centroid_history_factor_names(client: TestClient) -> None:
     assert set(DATAOPS_FACTORS) <= set(payload["factor_names"])
 
 
+def test_transformations_for_known_system(client: TestClient) -> None:
+    response = client.get("/api/context/transformations/warehouse_etl")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["system"] == "warehouse_etl"
+    assert len(payload["transformations"]) == 4
+    assert payload["summary"]["total"] == 4
+    assert payload["summary"]["bottleneck"]
+
+
+def test_transformations_unknown_system(client: TestClient) -> None:
+    response = client.get("/api/context/transformations/nonexistent_system")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["transformations"] == []
+    assert payload["summary"] == {
+        "total": 0,
+        "total_duration_minutes": 0,
+        "bottleneck": None,
+        "bottleneck_pct": 0,
+    }
+
+
+def test_transformations_summary_has_bottleneck(client: TestClient) -> None:
+    payload = client.get("/api/context/transformations/warehouse_etl").json()
+
+    assert payload["summary"]["bottleneck"] == "Join VBAK/BSEG"
+    assert payload["summary"]["bottleneck_pct"] > 0.5
+
+
+def test_bottleneck_for_known_system(client: TestClient) -> None:
+    response = client.get("/api/context/bottleneck/warehouse_etl")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["bottleneck"]["name"] == "Join VBAK/BSEG"
+    assert payload["bottleneck"]["pct_of_total"] > 0.5
+    assert payload["total_duration_minutes"] > 0
+
+
+def test_bottleneck_has_recommendation(client: TestClient) -> None:
+    payload = client.get("/api/context/bottleneck/warehouse_etl").json()
+
+    assert payload["recommendation"]["action"] == "reorder_join"
+    assert "9x" in payload["recommendation"]["detail"]
+    assert payload["recommendation"]["estimated_savings_minutes"] == 38
+
+
+def test_bottleneck_steps_ranked_by_duration(client: TestClient) -> None:
+    payload = client.get("/api/context/bottleneck/warehouse_etl").json()
+    durations = [step["duration_minutes"] for step in payload["all_steps_ranked"]]
+    pct_values = [step["pct_of_total"] for step in payload["all_steps_ranked"]]
+
+    assert durations == sorted(durations, reverse=True)
+    assert payload["all_steps_ranked"][0]["id"] == "join_vbak_bseg"
+    assert all(isinstance(value, (int, float)) for value in pct_values)
+    assert any(value > 0 for value in pct_values)
+
+
+def test_schema_impact_for_known_system(client: TestClient) -> None:
+    response = client.get("/api/context/schema-impact/warehouse_etl")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["schema_changes"]
+    assert payload["total_changes"] == 1
+    assert payload["total_impacts"] >= 1
+
+
+def test_schema_impact_has_proposed_fix(client: TestClient) -> None:
+    payload = client.get("/api/context/schema-impact/warehouse_etl").json()
+
+    assert payload["schema_changes"][0]["proposed_fix"]
+    assert payload["schema_changes"][0]["column"] == "MATKL_V2"
+    assert payload["total_alerts_preventable"] == 7
+
+
+def test_operational_rules_returns_all(client: TestClient) -> None:
+    response = client.get("/api/ae/operational-rules")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["rules"]
+    assert payload["total"] == len(payload["rules"])
+    assert payload["summary"]
+    assert payload["engine"]["gae"] == "gae.evolution"
+
+
+def test_operational_rules_summary_counts(client: TestClient) -> None:
+    payload = client.get("/api/ae/operational-rules").json()
+
+    assert sum(payload["summary"].values()) == len(payload["rules"])
+    assert payload["summary"]["proposed"] >= 1
+    assert payload["summary"]["shadow"] >= 1
+    assert payload["summary"]["promoted"] >= 1
+
+
 def test_score_via_sdk(client: TestClient) -> None:
     response = client.post(
         "/api/score",

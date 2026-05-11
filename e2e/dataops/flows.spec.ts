@@ -258,3 +258,59 @@ test("full round trip visits Dashboard, Triage, Insight, Evidence, and Curve", a
   await clickTab(page, "Curve");
   await expectAnyText(page, [/Trajectory/i, /Current IKS/i, /Centroid Evolution/i]);
 });
+
+test("Insight bottleneck then Evidence schema impact round trip", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/Pipeline Status/i, /Alert Root Causes/i]);
+
+  await clickTab(page, "Insight");
+  await expectAnyText(page, [/Pipeline Bottleneck/i, /Join VBAK\/BSEG/i, /duration/i]);
+  await expectAnyText(page, [/Recommendation/i, /speedup/i, /savings/i]);
+
+  await clickTab(page, "Evidence");
+  await expectAnyText(page, [/Schema Impact/i, /Downstream impact/i, /Proposed fix/i]);
+  await expectAnyText(page, [/Operational Rules/i, /proposed/i, /shadow/i, /promoted/i]);
+
+  await clickTab(page, "Insight");
+  await expectAnyText(page, [/Pipeline Bottleneck/i, /Decision Explorer/i, /Incident Replay/i]);
+});
+
+test("full Level 3 story shows bottleneck schema rules genealogy and curve", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/Pipeline Status/i, /AgentEvolver Impact/i, /Alert Root Causes/i]);
+
+  await clickTab(page, "Insight");
+  const bottleneck = page.locator("section", { hasText: "Pipeline Bottleneck" }).first();
+  await expect(bottleneck).toBeVisible();
+  await expect(bottleneck.getByText(/recommendation/i).first()).toBeVisible();
+  await expect(bottleneck.getByText(/reorder|speedup|savings/i).first()).toBeVisible();
+
+  await clickTab(page, "Evidence");
+  await expectAnyText(page, [/Schema Impact/i, /proposed fix/i, /downstream/i]);
+  await expectAnyText(page, [/Operational Rules/i, /scheduling/i, /quality/i]);
+  await expectAnyText(page, [/Rule Lifecycle/i, /promoted/i, /rejected/i]);
+  await expectAnyText(page, [/Rule Genealogy/i, /68%|69%|75%|83%/i, /improvement/i]);
+  await expectAnyText(page, [/Pattern Origin/i, /SOC/i, /S2P/i]);
+
+  await clickTab(page, "Curve");
+  await expectAnyText(page, [/Trajectory/i, /Current IKS/i, /Centroid Evolution/i]);
+});
+
+test("OE-5 what-if shows impact change on reorder interaction", async ({ page }) => {
+  await page.goto("/");
+  await clickTab(page, "Insight");
+
+  const whatIf = page.locator("section", { hasText: /What-if: Reorder/i }).first();
+  await expect(whatIf).toBeVisible();
+  await expect(whatIf.getByText(/Current order/i).first()).toBeVisible();
+  await expect(whatIf.getByText(/Reorder order/i).first()).toBeVisible();
+  await expectAnyText(page, [/Extract Orders Daily/i, /Join VBAK\/BSEG/i, /Aggregate Daily Revenue/i, /Load to Warehouse/i]);
+
+  const downButtons = whatIf.getByRole("button", { name: /down/i });
+  if ((await downButtons.count()) > 0) {
+    await downButtons.first().click();
+  }
+
+  await expect(whatIf.getByText(/Estimated impact/i).first()).toBeVisible();
+  await expectAnyText(page, [/impact/i, /savings/i, /min/i, /Move steps to estimate impact/i]);
+});

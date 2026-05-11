@@ -79,3 +79,27 @@ test("rule genealogy shows copilot progression with win rates", async ({ page })
   await expectAnyText(page, [/SOC/i, /S2P/i, /DataOps/i]);
   await expectAnyText(page, [/68%/i, /69%/i, /75%/i, /83%/i, /improvement/i]);
 });
+
+test("schema impact panel shows downstream trace", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const schema = page.locator("section", { hasText: "Schema Impact" }).first();
+  await expect(schema).toBeVisible();
+  await expect(schema.getByText(/SAP|MARA|BSEG/i).first()).toBeVisible();
+  await expect(schema.getByText(/Downstream impact/i).first()).toBeVisible();
+  await expect(schema.getByText(/Proposed fix/i).first()).toBeVisible();
+  await expect(schema.getByText(/alerts prevented|preventable/i).first()).toBeVisible();
+  await expect(schema.getByText(/material_group|alias|canonical|map/i).first()).toBeVisible();
+});
+
+test("operational rules panel shows governed rule statuses", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const rules = page.locator("section", { hasText: "Operational Rules" }).first();
+  await expect(rules).toBeVisible();
+  await expect(rules.getByText(/proposed/i).first()).toBeVisible();
+  await expect(rules.getByText(/shadow/i).first()).toBeVisible();
+  await expect(rules.getByText(/promoted/i).first()).toBeVisible();
+  await expect(rules.getByText(/scheduling/i).first()).toBeVisible();
+  await expect(rules.getByText(/quality|resource|memory|off-peak/i).first()).toBeVisible();
+});

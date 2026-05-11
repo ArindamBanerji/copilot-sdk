@@ -115,3 +115,70 @@ test("analysis contrast card reflects pre-seeded alignment", async ({ page }) =>
   await expectAnyText(page, [/Aligned/i, /Misaligned/i, /Neutral/i]);
   await expectAnyText(page, [/Win rate/i, /Trades/i, /\d+/]);
 });
+
+test("score then confirm then Performance and Analysis reflect it", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await clickTab(page, "Log Trade");
+  await expectAnyText(page, [/Log Trade/i, /Ticker/i, /Score This Trade/i]);
+
+  await fillTrade(page);
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+  await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
+
+  const learnResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok(),
+    { timeout: 15_000 },
+  ).catch(() => null);
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/Trade confirmed/i, /system learned/i, /Reward/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/Current IKS/i, /\bIKS\b/i, /Trajectory/i]);
+
+  await clickTab(page, "Analysis");
+  await expectAnyText(page, [/YOUR TWO SELVES/i, /Aligned/i, /Misaligned/i, /Neutral/i]);
+});
+
+test("Dashboard to Log Trade to Analysis to Performance content at each stop", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/Portfolio Summary/i, /Decision History/i, /portfolio/i]);
+
+  await clickTab(page, "Log Trade");
+  await expectAnyText(page, [/Ticker/i, /Research Checklist/i, /Score This Trade/i]);
+
+  await clickTab(page, "Analysis");
+  await expectAnyText(page, [/YOUR TWO SELVES/i, /Fingerprint/i, /Counterfactual/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/Current IKS/i, /\bIKS\b/i, /Trajectory/i, /Rolling/i]);
+});
+
+test("score to reasoning to Performance projection round trip", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await clickTab(page, "Log Trade");
+  await expectAnyText(page, [/Log Trade/i, /Score This Trade/i]);
+
+  await fillTrade(page);
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+  await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /Confidence Breakdown/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/Performance Summary/i, /Trajectory/i]);
+  await expectAnyText(page, [/Automation Projection/i, /55%/, /75%/, /90%/, /verified decisions/i]);
+});
+
+test("all main tabs load after shared reasoning and projection port", async ({ page }) => {
+  await page.goto("/");
+  for (const tab of ["Dashboard", "Log Trade", "Analysis", "Performance"]) {
+    await clickTab(page, tab);
+    await expect(page.locator("main")).not.toBeEmpty();
+    await expectAnyText(page, [new RegExp(tab, "i"), /Portfolio Summary/i, /Score This Trade/i, /YOUR TWO SELVES/i, /Performance Summary/i]);
+  }
+});

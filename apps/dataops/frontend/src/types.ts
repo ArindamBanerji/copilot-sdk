@@ -418,6 +418,108 @@ export interface CentroidHistoryResponse {
   totalDecisions?: number;
 }
 
+export interface Transformation {
+  id?: string;
+  name?: string;
+  type?: string;
+  source?: string;
+  target?: string;
+  avgDurationMinutes?: number;
+  avgRows?: number;
+  schemaColumns?: string[];
+  lastRun?: string;
+  status?: string;
+}
+
+export interface TransformationsResponse {
+  system?: string;
+  transformations?: Transformation[];
+  summary?: {
+    total?: number;
+    totalDurationMinutes?: number;
+    bottleneck?: string | null;
+    bottleneckPct?: number;
+  };
+}
+
+export interface BottleneckStep {
+  id?: string;
+  name?: string;
+  durationMinutes?: number;
+  pctOfTotal?: number;
+  rows?: number;
+  type?: string;
+  status?: string;
+}
+
+export interface BottleneckRecommendation {
+  action?: string;
+  detail?: string;
+  estimatedSpeedup?: string;
+  estimatedSavingsMinutes?: number;
+}
+
+export interface BottleneckResponse {
+  system?: string;
+  totalDurationMinutes?: number;
+  bottleneck?: BottleneckStep | null;
+  recommendation?: BottleneckRecommendation | null;
+  allStepsRanked?: BottleneckStep[];
+}
+
+export interface DownstreamImpact {
+  system?: string;
+  severity?: string;
+  detail?: string;
+}
+
+export interface SchemaChange {
+  sourceTable?: string;
+  column?: string;
+  changeType?: string;
+  detected?: string;
+  downstreamImpact?: number;
+  impactedSystems?: string[];
+  downstreamImpacts?: DownstreamImpact[];
+  proposedFix?: string;
+  alertsPrevented?: number;
+}
+
+export interface SchemaImpactResponse {
+  system?: string;
+  schemaChanges?: SchemaChange[];
+  totalChanges?: number;
+  totalImpacts?: number;
+  totalAlertsPreventable?: number;
+}
+
+export interface OperationalRule {
+  id?: string;
+  name?: string;
+  type?: string;
+  category?: string;
+  status?: string;
+  system?: string;
+  trigger?: string;
+  recommendation?: string;
+  description?: string;
+  estimatedImpact?: string;
+  expectedImpact?: string;
+}
+
+export interface OperationalRulesResponse {
+  source?: string;
+  rules?: OperationalRule[];
+  total?: number;
+  summary?: {
+    proposed?: number;
+    shadow?: number;
+    promoted?: number;
+    rejected?: number;
+    [key: string]: number | undefined;
+  };
+}
+
 export interface ProcessSignalMetric {
   name?: string;
   label?: string;

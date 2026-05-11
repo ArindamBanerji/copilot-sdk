@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { TrajectoryChart, type TrajectoryPoint } from "../../../../../copilot_sdk/frontend";
-import { getAnalytics, getTrajectory } from "../api";
+import {
+  ConservationProjection,
+  TrajectoryChart,
+  type GenericTrajectoryResponse,
+  type TrajectoryPoint,
+} from "../../../../../copilot_sdk/frontend";
+import { getAnalytics, getConservationStatus, getTrajectory } from "../api";
 import CategoryPerformance from "../components/CategoryPerformance";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
-import type { Analytics, TrajectoryResponse } from "../types";
+import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
 
 function pct(value: number | null | undefined): string {
   return typeof value === "number" ? `${Math.round(value * 100)}%` : "-";
@@ -23,6 +28,7 @@ function normalizePoints(trajectory?: TrajectoryResponse): TrajectoryPoint[] {
 export default function PerformanceScreen() {
   const [analytics, setAnalytics] = useState<Analytics | undefined>();
   const [trajectory, setTrajectory] = useState<TrajectoryResponse | undefined>();
+  const [conservation, setConservation] = useState<ConservationState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,10 +39,15 @@ export default function PerformanceScreen() {
       setLoading(true);
       setError(null);
       try {
-        const [trajectoryPayload, analyticsPayload] = await Promise.all([getTrajectory(), getAnalytics()]);
+        const [trajectoryPayload, analyticsPayload, conservationPayload] = await Promise.all([
+          getTrajectory(),
+          getAnalytics(),
+          getConservationStatus().catch(() => null),
+        ]);
         if (!cancelled) {
           setTrajectory(trajectoryPayload);
           setAnalytics(analyticsPayload);
+          setConservation(conservationPayload);
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -62,6 +73,12 @@ export default function PerformanceScreen() {
   const decisionsTotal = trajectory?.decisionsTotal ?? analytics?.totalTrades ?? lastPoint?.decisions ?? 0;
   const daysActive = trajectory?.daysActive ?? analytics?.closedTrades ?? 0;
   const narrative = `A competitor needs ${decisionsTotal} of YOUR trades - including the losses.`;
+  const projectionTrajectory: GenericTrajectoryResponse | null = trajectory
+    ? {
+        ...trajectory,
+        points: trajectory.points?.map((point) => ({ ...point, timestamp: undefined })),
+      }
+    : null;
 
   if (loading) {
     return <div className="copilot-card p-8 text-sm trading-muted">Loading performance...</div>;
@@ -96,6 +113,7 @@ export default function PerformanceScreen() {
         decisionsTotal={decisionsTotal}
         daysActive={daysActive}
       />
+      <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <RollingMetrics analytics={analytics} />
       <CategoryPerformance analytics={analytics} />
       <RiskManagementCard analytics={analytics} />

@@ -1,0 +1,52 @@
+{
+  "systems": {
+    "warehouse_etl": [
+      {
+        "source_table": "SAP_MARA",
+        "column": "MATKL_V2",
+        "change_type": "renamed_category_code",
+        "detected": "2026-05-08T00:16:00Z",
+        "downstream_impact": 4,
+        "impacted_systems": ["warehouse_etl", "marketing_db", "inventory_feed", "billing_api"],
+        "proposed_fix": "Map MATKL_V2 into material_group before Join VBAK/BSEG and refresh downstream marts.",
+        "alerts_prevented": 7
+      }
+    ],
+    "billing_api": [
+      {
+        "source_table": "SAP_BSEG",
+        "column": "DMBTR_V2",
+        "change_type": "decimal_precision_expansion",
+        "detected": "2026-05-08T00:24:00Z",
+        "downstream_impact": 3,
+        "impacted_systems": ["billing_api", "payment_gateway", "warehouse_etl"],
+        "proposed_fix": "Cast DMBTR_V2 to canonical invoice_amount_decimal and update billing validation rules.",
+        "alerts_prevented": 5
+      }
+    ],
+    "payment_gateway": [
+      {
+        "source_table": "PAYMENT_AUTH",
+        "column": "AUTH_STATUS_V2",
+        "change_type": "enum_expansion",
+        "detected": "2026-05-08T00:31:00Z",
+        "downstream_impact": 2,
+        "impacted_systems": ["payment_gateway", "billing_api"],
+        "proposed_fix": "Add pending_review and retryable decline states to settlement feed validation.",
+        "alerts_prevented": 3
+      }
+    ],
+    "crm_sync": [
+      {
+        "source_table": "CRM_ACCOUNT",
+        "column": "SEGMENT_CODE_V2",
+        "change_type": "new_segment_taxonomy",
+        "detected": "2026-05-08T00:28:00Z",
+        "downstream_impact": 2,
+        "impacted_systems": ["crm_sync", "marketing_db"],
+        "proposed_fix": "Backfill segment_code_v2 into marketing segment rules before next sync.",
+        "alerts_prevented": 4
+      }
+    ]
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "systems": {
+    "warehouse_etl": [
+      {
+        "id": "extract_orders_daily",
+        "name": "Extract Orders Daily",
+        "type": "extract",
+        "source": "SAP_VBAK",
+        "target": "stg_orders_daily",
+        "avg_duration_minutes": 6,
+        "avg_rows": 1850000,
+        "schema_columns": ["VBELN", "ERDAT", "VKORG", "NETWR", "WAERK"],
+        "last_run": "2026-05-08T00:10:00Z",
+        "status": "ok"
+      },
+      {
+        "id": "join_vbak_bseg",
+        "name": "Join VBAK/BSEG",
+        "type": "join",
+        "source": "stg_orders_daily + SAP_BSEG",
+        "target": "fact_order_revenue",
+        "avg_duration_minutes": 42,
+        "avg_rows": 9200000,
+        "schema_columns": ["VBELN", "BELNR", "DMBTR", "MATKL", "BUKRS"],
+        "last_run": "2026-05-08T00:18:00Z",
+        "status": "degraded"
+      },
+      {
+        "id": "aggregate_daily_revenue",
+        "name": "Aggregate Daily Revenue",
+        "type": "aggregate",
+        "source": "fact_order_revenue",
+        "target": "mart_daily_revenue",
+        "avg_duration_minutes": 8,
+        "avg_rows": 420000,
+        "schema_columns": ["business_date", "revenue", "currency", "material_group"],
+        "last_run": "2026-05-08T01:05:00Z",
+        "status": "ok"
+      },
+      {
+        "id": "load_to_warehouse",
+        "name": "Load to Warehouse",
+        "type": "load",
+        "source": "mart_daily_revenue",
+        "target": "warehouse.revenue_daily",
+        "avg_duration_minutes": 4,
+        "avg_rows": 420000,
+        "schema_columns": ["business_date", "revenue", "currency", "material_group"],
+        "last_run": "2026-05-08T01:14:00Z",
+        "status": "ok"
+      }
+    ],
+    "billing_api": [
+      {
+        "id": "extract_billing_exports",
+        "name": "Extract Billing Exports",
+        "type": "extract",
+        "source": "SAP_BSEG",
+        "target": "billing_export_raw",
+        "avg_duration_minutes": 12,
+        "avg_rows": 740000,
+        "schema_columns": ["BELNR", "BUKRS", "DMBTR", "WAERS", "AUGDT"],
+        "last_run": "2026-05-08T00:22:00Z",
+        "status": "warning"
+      },
+      {
+        "id": "validate_billing_schema",
+        "name": "Validate Billing Schema",
+        "type": "quality_gate",
+        "source": "billing_export_raw",
+        "target": "billing_export_validated",
+        "avg_duration_minutes": 9,
+        "avg_rows": 735000,
+        "schema_columns": ["invoice_id", "amount", "currency", "clearing_date"],
+        "last_run": "2026-05-08T00:36:00Z",
+        "status": "degraded"
+      }
+    ],
+    "payment_gateway": [
+      {
+        "id": "extract_payment_events",
+        "name": "Extract Payment Events",
+        "type": "extract",
+        "source": "payment_gateway_api",
+        "target": "payment_events_raw",
+        "avg_duration_minutes": 7,
+        "avg_rows": 510000,
+        "schema_columns": ["payment_id", "merchant_id", "auth_code", "amount", "status"],
+        "last_run": "2026-05-08T00:08:00Z",
+        "status": "ok"
+      },
+      {
+        "id": "dedupe_authorizations",
+        "name": "Dedupe Authorizations",
+        "type": "dedupe",
+        "source": "payment_events_raw",
+        "target": "payment_authorizations",
+        "avg_duration_minutes": 16,
+        "avg_rows": 498000,
+        "schema_columns": ["payment_id", "merchant_id", "auth_code", "amount", "status"],
+        "last_run": "2026-05-08T00:18:00Z",
+        "status": "warning"
+      },
+      {
+        "id": "publish_settlement_feed",
+        "name": "Publish Settlement Feed",
+        "type": "load",
+        "source": "payment_authorizations",
+        "target": "settlement_feed",
+        "avg_duration_minutes": 5,
+        "avg_rows": 498000,
+        "schema_columns": ["payment_id", "settlement_date", "amount", "currency"],
+        "last_run": "2026-05-08T00:36:00Z",
+        "status": "ok"
+      }
+    ],
+    "crm_sync": [
+      {
+        "id": "extract_account_updates",
+        "name": "Extract Account Updates",
+        "type": "extract",
+        "source": "salesforce_accounts",
+        "target": "crm_accounts_raw",
+        "avg_duration_minutes": 10,
+        "avg_rows": 165000,
+        "schema_columns": ["account_id", "segment", "owner_id", "updated_at"],
+        "last_run": "2026-05-08T00:12:00Z",
+        "status": "warning"
+      },
+      {
+        "id": "merge_customer_identity",
+        "name": "Merge Customer Identity",
+        "type": "merge",
+        "source": "crm_accounts_raw + identity_dim",
+        "target": "customer_identity",
+        "avg_duration_minutes": 14,
+        "avg_rows": 162000,
+        "schema_columns": ["customer_id", "account_id", "email_hash", "segment"],
+        "last_run": "2026-05-08T00:25:00Z",
+        "status": "degraded"
+      },
+      {
+        "id": "sync_marketing_segments",
+        "name": "Sync Marketing Segments",
+        "type": "load",
+        "source": "customer_identity",
+        "target": "marketing_segments",
+        "avg_duration_minutes": 6,
+        "avg_rows": 162000,
+        "schema_columns": ["customer_id", "segment", "score", "updated_at"],
+        "last_run": "2026-05-08T00:41:00Z",
+        "status": "ok"
+      }
+    ]
+  }
+}

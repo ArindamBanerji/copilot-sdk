@@ -31,3 +31,10 @@ test("trajectory shows switching cost narrative", async ({ page }) => {
   await expect(page.getByText("Trajectory")).toBeVisible();
   await expectAnyText(page, [/orders to learn/i, /years of gut instinct/i, /Switching cost/i]);
 });
+
+test("conservation projection shows automation targets", async ({ page }) => {
+  await gotoPerformance(page);
+
+  await expectAnyText(page, [/Automation Projection/i, /Projection unavailable/i]);
+  await expectAnyText(page, [/55%/, /75%/, /90%/, /verified decisions/i, /accuracy/i]);
+});

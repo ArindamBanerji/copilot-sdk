@@ -188,6 +188,25 @@ export interface TrajectoryResponse {
   [key: string]: unknown;
 }
 
+export interface ConservationState {
+  domain?: string;
+  verifiedCount?: number;
+  correctCount?: number;
+  totalDecisions?: number;
+  penaltyRatio?: number;
+  signal?: number | null;
+  q?: number | null;
+  accuracy?: number | null;
+  thetaMin?: number | null;
+  headroom?: number | null;
+  status?: string;
+  passed?: boolean;
+  currentThreshold?: number;
+  autoResolveRate?: number;
+  alpha?: number;
+  [key: string]: unknown;
+}
+
 export interface SimilarTrade {
   tradeId?: string;
   ticker?: string;

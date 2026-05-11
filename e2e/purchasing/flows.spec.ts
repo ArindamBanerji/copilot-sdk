@@ -140,3 +140,70 @@ test("inventory shows category groups and variant counts", async ({ page }) => {
   await clickTab(page, "Performance");
   await expectAnyText(page, [/IKS/i, /Trajectory/i]);
 });
+
+test("Dashboard to Order score to confirm to Performance IKS", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await expectAnyText(page, [/items need attention/i, /cover/i, /Par level monitor/i]);
+
+  await clickTab(page, "Order");
+  await expectAnyText(page, [/Score the next purchase/i, /stockout/i, /order/i]);
+
+  const itemSelect = page.locator(".order-form-grid select").first();
+  if (await itemSelect.isVisible().catch(() => false)) {
+    const optionCount = await itemSelect.locator("option").count();
+    if (optionCount > 1) {
+      const secondValue = await itemSelect.locator("option").nth(1).getAttribute("value");
+      if (secondValue) {
+        await itemSelect.selectOption(secondValue);
+      }
+    }
+  }
+
+  await scoreCurrentOrder(page);
+  const learnResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok(),
+    { timeout: 15_000 },
+  ).catch(() => null);
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/system learned/i, /reward/i, /ordering decision/i, /IKS/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/Current IKS/i, /\bIKS\b/i, /Trajectory/i]);
+});
+
+test("Inventory variants to Analysis contrast to Performance narrative", async ({ page }) => {
+  await page.goto("/");
+  await clickTab(page, "Inventory");
+  await expectAnyText(page, [/waste/i, /variant/i, /protein/i, /produce/i]);
+
+  await clickTab(page, "Analysis");
+  await expectAnyText(page, [/CONTRAST/i, /YOUR TWO SELVES/i, /THE HISTORIAN/i, /Fingerprint/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/orders to learn/i, /Current IKS/i, /\bIKS\b/i, /Trajectory/i]);
+});
+
+test("score to reasoning to Performance projection round trip", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await clickTab(page, "Order");
+  await expectAnyText(page, [/Score the next purchase/i, /Score This Order/i]);
+
+  await scoreCurrentOrder(page);
+  await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /Confidence Breakdown/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/Performance/i, /Trajectory/i, /orders to learn/i]);
+  await expectAnyText(page, [/Automation Projection/i, /55%/, /75%/, /90%/, /verified decisions/i]);
+});
+
+test("all main tabs load after shared reasoning and projection port", async ({ page }) => {
+  await page.goto("/");
+  for (const tab of ["Dashboard", "Order", "Analysis", "Inventory", "Performance"]) {
+    await clickTab(page, tab);
+    await expect(page.locator("main")).not.toBeEmpty();
+    await expectAnyText(page, [new RegExp(tab, "i"), /items need attention/i, /Score the next purchase/i, /YOUR TWO SELVES/i, /System Improvements/i, /Performance/i]);
+  }
+});

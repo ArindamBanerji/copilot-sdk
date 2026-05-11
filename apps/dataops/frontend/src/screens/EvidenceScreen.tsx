@@ -3,9 +3,11 @@ import { EvolutionPanel } from "../../../../../copilot_sdk/frontend";
 import { getAeImpact, getEvolutionVariants, getPatternOrigin } from "../api";
 import AEImpactPanel from "../components/AEImpactPanel";
 import AuditTrailViewer from "../components/AuditTrailViewer";
+import OperationalRulesPanel from "../components/OperationalRulesPanel";
 import PatternOriginCard from "../components/PatternOriginCard";
 import RuleGenealogy from "../components/RuleGenealogy";
 import RuleLifecycle from "../components/RuleLifecycle";
+import SchemaImpactPanel from "../components/SchemaImpactPanel";
 import type { AEImpact, EvolutionVariant, PatternOrigin } from "../types";
 
 export default function EvidenceScreen() {
@@ -53,6 +55,8 @@ export default function EvidenceScreen() {
       <EvolutionPanel variants={variants} title="AgentEvolver Audit Trail" />
       <RuleLifecycle />
       <AuditTrailViewer />
+      <SchemaImpactPanel />
+      <OperationalRulesPanel />
       <RuleGenealogy genealogy={origin?.genealogy} />
       <PatternOriginCard origin={origin} />
     </div>

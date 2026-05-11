@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { ConservationProjection } from "../../../../../copilot_sdk/frontend";
 import TrajectoryChart, { type TrajectoryPoint } from "../../../../../copilot_sdk/frontend/TrajectoryChart";
-import { getAnalytics, getTrajectory } from "../api";
+import { getAnalytics, getConservationStatus, getTrajectory } from "../api";
 import CategoryAccuracyChart from "../components/CategoryAccuracyChart";
 import WasteCostCard from "../components/WasteCostCard";
-import type { Analytics, TrajectoryResponse } from "../types";
+import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
 
 function numberOr(value: unknown, fallback: number) {
   const numeric = Number(value);
@@ -22,6 +23,7 @@ function toTrajectoryPoints(trajectory?: TrajectoryResponse): TrajectoryPoint[] 
 export default function PerformanceScreen() {
   const [trajectory, setTrajectory] = useState<TrajectoryResponse | undefined>();
   const [analytics, setAnalytics] = useState<Analytics | undefined>();
+  const [conservation, setConservation] = useState<ConservationState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
 
@@ -31,10 +33,15 @@ export default function PerformanceScreen() {
       setLoading(true);
       setError(undefined);
       try {
-        const [nextTrajectory, nextAnalytics] = await Promise.all([getTrajectory(), getAnalytics()]);
+        const [nextTrajectory, nextAnalytics, nextConservation] = await Promise.all([
+          getTrajectory(),
+          getAnalytics(),
+          getConservationStatus().catch(() => null),
+        ]);
         if (mounted) {
           setTrajectory(nextTrajectory);
           setAnalytics(nextAnalytics);
+          setConservation(nextConservation);
         }
       } catch (caught) {
         if (mounted) {
@@ -95,6 +102,7 @@ export default function PerformanceScreen() {
         decisionsTotal={orders}
         daysActive={daysActive}
       />
+      <ConservationProjection conservation={conservation} trajectory={trajectory || null} />
 
       <section className="purchase-card">
         <p className="purchase-kicker">Cost impact</p>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ScoreResultCard, type RewardLine } from "../../../../../copilot_sdk/frontend";
+import { ReasoningPanel, ScoreResultCard, type RewardLine } from "../../../../../copilot_sdk/frontend";
 import {
   getAnalytics,
   getFingerprint,
@@ -30,6 +30,28 @@ const categories: TradingCategory[] = ["equity_long", "equity_short", "crypto_sp
 const directions: TradingAction[] = ["buy", "hold", "sell"];
 const thesisTypes = ["momentum", "event", "mean_reversion", "technical", "fundamental"];
 const timeframes: TradeFormState["timeframe"][] = ["intraday", "swing", "position", "long"];
+const tradingActionNames = ["buy", "hold", "sell"];
+const tradingActionLabels: Record<string, string> = {
+  buy: "Buy",
+  hold: "Hold",
+  sell: "Sell",
+};
+const tradingFactorNames = [
+  "conviction",
+  "research_depth",
+  "technical_signal",
+  "position_size",
+  "time_horizon",
+  "market_regime",
+];
+const tradingFactorLabels: Record<string, string> = {
+  conviction: "Conviction",
+  research_depth: "Research depth",
+  technical_signal: "Technical signal",
+  position_size: "Position size",
+  time_horizon: "Time horizon",
+  market_regime: "Market regime",
+};
 
 const initialForm: TradeFormState = {
   ticker: "MSFT",
@@ -75,6 +97,17 @@ function computeMarketRegime(snapshot?: MarketSnapshot): number {
   const spyChange = typeof snapshot?.spy?.change30dPct === "number" ? snapshot.spy.change30dPct : 0;
   const vixScore = typeof vixValue !== "number" ? 0.55 : vixValue < 18 ? 0.75 : vixValue > 25 ? 0.25 : 0.55;
   return clamp(vixScore + clamp(spyChange / 20, -0.1, 0.1), 0, 1);
+}
+
+function getSimilarAction(trade: SimilarTrade): string | undefined {
+  const record = trade as SimilarTrade & Record<string, unknown>;
+  for (const key of ["actionTaken", "action_taken", "action", "actualAction", "confirmedAction", "recommendedAction", "scoreAction"]) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+  return undefined;
 }
 
 export default function LogTradeScreen() {
@@ -317,6 +350,20 @@ export default function LogTradeScreen() {
             onOverride={(decisionId, action) => void confirm(decisionId, action)}
             rewardLine={rewardLine}
             iksDelta={iksDelta}
+          />
+          <ReasoningPanel
+            scoreResult={score}
+            similarItems={similar.map((trade) => ({
+              ...trade,
+              action: getSimilarAction(trade),
+              correct: trade.isCorrect,
+            }))}
+            fingerprint={fingerprint}
+            factorValues={factors}
+            actionNames={score.actionNames?.length ? score.actionNames : tradingActionNames}
+            factorNames={tradingFactorNames}
+            actionLabels={tradingActionLabels}
+            factorLabels={tradingFactorLabels}
           />
         </>
       ) : null}

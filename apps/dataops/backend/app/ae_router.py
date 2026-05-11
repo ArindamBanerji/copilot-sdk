@@ -14,6 +14,48 @@ from .graph_queries import DataOpsGraphClient
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 ENGINE_EVOLUTION = {"gae": "gae.evolution"}
 ENGINE_CONSERVATION = {"gae": "gae.calibration"}
+OPERATIONAL_RULES = [
+    {
+        "id": "OE-SCHED-001",
+        "name": "Warehouse Join Reschedule",
+        "type": "scheduling",
+        "status": "proposed",
+        "system": "warehouse_etl",
+        "trigger": "join_vbak_bseg exceeds 60% of batch duration",
+        "recommendation": "Move high-fanout join after material-group pruning.",
+        "expected_impact": "38 minutes saved per run",
+    },
+    {
+        "id": "OE-QUAL-001",
+        "name": "Billing Decimal Quality Gate",
+        "type": "quality_gate",
+        "status": "shadow",
+        "system": "billing_api",
+        "trigger": "DMBTR_V2 schema change detected",
+        "recommendation": "Validate decimal precision before publishing billing exports.",
+        "expected_impact": "5 alerts prevented per schema rollout",
+    },
+    {
+        "id": "OE-REBAL-001",
+        "name": "Payment Dedupe Rebalance",
+        "type": "resource",
+        "status": "promoted",
+        "system": "payment_gateway",
+        "trigger": "dedupe_authorizations queue exceeds 15 minutes",
+        "recommendation": "Allocate one additional worker during settlement peak.",
+        "expected_impact": "35% lower authorization lag",
+    },
+    {
+        "id": "OE-PREV-001",
+        "name": "CRM Segment Drift Prevention",
+        "type": "prevention",
+        "status": "proposed",
+        "system": "crm_sync",
+        "trigger": "SEGMENT_CODE_V2 detected upstream",
+        "recommendation": "Backfill segment taxonomy before marketing segment sync.",
+        "expected_impact": "4 alerts prevented per release",
+    },
+]
 
 router = APIRouter()
 
@@ -379,6 +421,22 @@ def rule_lifecycle(variant_id: str | None = None, status: str | None = None) -> 
         "rules": rules,
         "total": len(rules),
         "summary": summary,
+        "engine": ENGINE_EVOLUTION,
+    }
+
+
+@router.get("/operational-rules")
+def operational_rules() -> dict[str, Any]:
+    summary = {"proposed": 0, "shadow": 0, "promoted": 0, "rejected": 0}
+    for rule in OPERATIONAL_RULES:
+        status = str(rule.get("status") or "proposed")
+        if status in summary:
+            summary[status] += 1
+    return {
+        "source": "fixture",
+        "rules": OPERATIONAL_RULES,
+        "summary": summary,
+        "total": len(OPERATIONAL_RULES),
         "engine": ENGINE_EVOLUTION,
     }
 

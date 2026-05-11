@@ -63,3 +63,17 @@ test("score produces result", async ({ page }) => {
   await expectAnyText(page, [/buy/i, /hold/i, /sell/i, /confidence/i, /\d+%/]);
   await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
 });
+
+test("reasoning panel appears after scoring", async ({ page }) => {
+  test.setTimeout(60_000);
+  await gotoLogTrade(page);
+  await fillMinimumTrade(page);
+
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+
+  await expectAnyText(page, [/confidence/i, /buy/i, /hold/i, /sell/i, /\d+%/]);
+  await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /reasoning/i]);
+  await expectAnyText(page, [/Confidence Breakdown/i, /Historical Evidence/i, /Learned from/i]);
+});

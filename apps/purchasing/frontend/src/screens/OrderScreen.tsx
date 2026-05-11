@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ReasoningPanel, type GenericFingerprint } from "../../../../../copilot_sdk/frontend";
 import ScoreResultCard, { type RewardLine, type ScoreResult } from "../../../../../copilot_sdk/frontend/ScoreResultCard";
 import {
   getAnalytics,
@@ -62,6 +63,22 @@ const actionDisplay: Record<string, string> = {
   order_more: "Order more",
   order_less: "Order less",
   skip: "Skip",
+};
+const factorNames = [
+  "expected_demand",
+  "day_of_week",
+  "weather_forecast",
+  "event_flag",
+  "historical_waste",
+  "supplier_lead_time",
+];
+const factorLabels: Record<string, string> = {
+  expected_demand: "Expected demand",
+  day_of_week: "Day of week",
+  weather_forecast: "Weather forecast",
+  event_flag: "Event flag",
+  historical_waste: "Historical waste",
+  supplier_lead_time: "Supplier lead time",
 };
 
 const dayValues: Record<string, number> = {
@@ -158,6 +175,38 @@ function toScoreResult(score: ScoreResponse): ScoreResult {
 function actionIdFromDisplay(action: string) {
   const index = actionNames.indexOf(action);
   return actionIds[index] ?? action;
+}
+
+function getSimilarAction(order: SimilarOrder): string | undefined {
+  for (const key of ["actionTaken", "action_taken", "action", "actualAction", "confirmedAction", "recommendedAction", "scoreAction"]) {
+    const value = order[key];
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+function normalizeFingerprint(fingerprint?: FingerprintResponse): GenericFingerprint | null {
+  if (!fingerprint) {
+    return null;
+  }
+  if (Array.isArray(fingerprint.factors)) {
+    return {
+      ...fingerprint,
+      factors: fingerprint.factors,
+    };
+  }
+  const signal = fingerprint.signal || {};
+  const noise = fingerprint.noise || {};
+  return {
+    ...fingerprint,
+    factors: Object.entries({ ...signal, ...noise }).map(([name, weight]) => ({
+      name,
+      weight: numberOr(weight, 0),
+      sigma: 0,
+    })),
+  };
 }
 
 export default function OrderScreen({ selectedItem }: OrderScreenProps) {
@@ -500,6 +549,27 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
             onConfirm={(decisionId) => confirm(decisionId)}
             onOverride={(decisionId, action) => confirm(decisionId, action)}
             rewardLine={rewardLine}
+          />
+          <ReasoningPanel
+            scoreResult={{
+              ...score,
+              action: String(score.action ?? actionIds[scoreResult.actionIndex] ?? "order_as_planned"),
+              actionIndex: scoreResult.actionIndex,
+              probabilities: scoreResult.probabilities,
+              category: scoreResult.category,
+              factors,
+            }}
+            similarItems={similarOrders.map((order) => ({
+              ...order,
+              action: getSimilarAction(order),
+              correct: order.isCorrect,
+            }))}
+            fingerprint={normalizeFingerprint(fingerprint)}
+            factorValues={factors}
+            actionNames={actionIds}
+            factorNames={factorNames}
+            actionLabels={actionDisplay}
+            factorLabels={factorLabels}
           />
           {confirming ? <p className="purchase-muted">Confirming and storing order metadata...</p> : null}
           {learnResult ? (

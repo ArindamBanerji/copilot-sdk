@@ -83,3 +83,14 @@ test("similar orders panel shows matches after score if available", async ({ pag
   await expect(page.getByText("Prior decisions before confirmation")).toBeVisible();
   await expectAnyText(page, [/similar orders/i, /No close historical matches/i, /Similarity/i, /Waste/i]);
 });
+
+test("reasoning panel appears after scoring", async ({ page }) => {
+  test.setTimeout(60_000);
+  await gotoOrder(page);
+
+  await scoreOrder(page);
+
+  await expectAnyText(page, [/confidence/i, /Engine assessment/i, /\d+%/]);
+  await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /reasoning/i]);
+  await expectAnyText(page, [/Confidence Breakdown/i, /Historical Evidence/i, /Learned from/i]);
+});

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { FingerprintPanel } from "../../../../../copilot_sdk/frontend";
 import { getFingerprint, getIncident } from "../api";
+import BottleneckPanel from "../components/BottleneckPanel";
 import DecisionExplorer from "../components/DecisionExplorer";
 import IncidentReplayCard from "../components/IncidentReplayCard";
 import ProfileArchetype from "../components/ProfileArchetype";
+import WhatIfReordering from "../components/WhatIfReordering";
 import type { FingerprintResponse, Incident } from "../types";
 
 const factorDisplay: Record<string, { displayName: string; interpretation: string }> = {
@@ -92,6 +94,8 @@ export default function InsightScreen() {
       />
       <DecisionExplorer />
       <IncidentReplayCard incident={incident} />
+      <BottleneckPanel />
+      <WhatIfReordering />
     </div>
   );
 }
