@@ -57,6 +57,14 @@ COPILOTS = [
         "be_path": SCRIPT_DIR / "apps" / "dataops" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "dataops" / "frontend",
     },
+    {
+        "name": "S2P",
+        "be_port": 8002,
+        "fe_port": None,
+        "be_path": Path(os.environ.get("CLAUDE_S2P", str(SCRIPT_DIR.parent / "s2p-copilot"))) / "backend",
+        "fe_path": None,
+        "health_path": "/health",
+    },
 ]
 
 
@@ -98,6 +106,17 @@ def wait_for_health(name: str, port: int, timeout: int = 30) -> bool:
             print(f"  ✓ {name}: {h['status']} ({h.get('domain', '?')})")
             return True
     print(f"  ✗ {name}: not healthy after {timeout}s on :{port}")
+    return False
+
+
+def wait_for_frontend(name: str, port: int, timeout: int = 15) -> bool:
+    """Poll frontend port until it responds or timeout."""
+    for _ in range(timeout):
+        time.sleep(1)
+        if check_port(port):
+            print(f"  ✓ {name} frontend ready on :{port}")
+            return True
+    print(f"  ✗ {name} frontend not ready on :{port} after {timeout}s")
     return False
 
 
@@ -169,7 +188,9 @@ def known_ports(selected: list[dict] | None = None) -> list[int]:
     copilots = selected or COPILOTS
     ports: list[int] = []
     for c in copilots:
-        ports.extend([c["be_port"], c["fe_port"]])
+        ports.append(c["be_port"])
+        if c["fe_port"] is not None:
+            ports.append(c["fe_port"])
     return ports
 
 
@@ -180,7 +201,8 @@ def cmd_stop(selected: list[dict]):
     print("Stopping copilots...")
     for c in selected:
         kill_port(c["be_port"], f"{c['name']} backend")
-        kill_port(c["fe_port"], f"{c['name']} frontend")
+        if c["fe_port"] is not None:
+            kill_port(c["fe_port"], f"{c['name']} frontend")
     time.sleep(2)
     print("Done.")
 
@@ -204,15 +226,17 @@ def cmd_status(selected: list[dict]):
     print("╚══════════════════════════════════════════════╝")
     for c in selected:
         be_up = check_port(c["be_port"])
-        fe_up = check_port(c["fe_port"])
+        fe_port = c["fe_port"]
+        fe_up = check_port(fe_port) if fe_port is not None else False
         h = check_health(c["be_port"]) if be_up else None
 
         be_status = "UP ✓" if h else ("UP ?" if be_up else "DOWN")
-        fe_status = "UP ✓" if fe_up else "DOWN"
+        fe_status = "UP ✓" if fe_up else ("N/A" if fe_port is None else "DOWN")
+        fe_label = f":{fe_port}" if fe_port is not None else "N/A"
         domain = h.get("domain", "") if h else ""
 
         print(f"  {c['name']:12s}  backend :{c['be_port']} {be_status:8s}"
-              f"  frontend :{c['fe_port']} {fe_status:8s}"
+              f"  frontend {fe_label:>5s} {fe_status:8s}"
               f"  {domain}")
     print()
 
@@ -274,6 +298,9 @@ def cmd_start(selected: list[dict], args):
     print()
     print("Starting frontends...")
     for c in selected:
+        if c["fe_port"] is None:
+            print(f"  {c['name']} has no frontend; skipping")
+            continue
         port = c["fe_port"]
         kill_port(port, f"{c['name']} frontend")
         if check_port(port):
@@ -293,15 +320,43 @@ def cmd_start(selected: list[dict], args):
         )
         print(f"  {c['name']} frontend starting on :{port}")
 
-    # --- Wait for frontends ---
-    time.sleep(4)
+    # --- Wait for frontends to be ready ---
+    print()
+    print("Waiting for frontends...")
+    for c in selected:
+        if c["fe_port"] is None:
+            continue
+        wait_for_frontend(c["name"], c["fe_port"], timeout=15)
 
     # --- Open browsers ---
     if not args.no_browser:
-        print()
+        urls = []
         for c in selected:
-            url = f"http://localhost:{c['fe_port']}"
-            subprocess.Popen([r"C:\Program Files\Mozilla Firefox\firefox.exe", "-private-window", url])
+            if c["fe_port"] is not None:
+                urls.append((c["name"], f"http://localhost:{c['fe_port']}"))
+        if urls:
+            print()
+            print("Opening browsers...")
+            url_list = [url for _, url in urls]
+
+            # Edge InPrivate: reliable multi-tab in one call (pre-installed on Windows)
+            edge = Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
+            chrome = Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
+
+            if edge.exists():
+                subprocess.Popen([str(edge), "--inprivate"] + url_list)
+                print("  Opened in Edge InPrivate:")
+            elif chrome.exists():
+                subprocess.Popen([str(chrome), "--incognito"] + url_list)
+                print("  Opened in Chrome Incognito:")
+            else:
+                for _, url in urls:
+                    webbrowser.open_new_tab(url)
+                    time.sleep(1)
+                print("  Opened in default browser:")
+
+            for name, url in urls:
+                print(f"    {name}: {url}")
 
     # --- Summary ---
     print()
@@ -309,8 +364,11 @@ def cmd_start(selected: list[dict], args):
     print("║  Platform Ready                              ║")
     print("╚══════════════════════════════════════════════╝")
     for c in selected:
-        print(f"  {c['name']:12s}  http://localhost:{c['fe_port']}"
-              f"  (backend :{c['be_port']})")
+        if c["fe_port"] is None:
+            print(f"  {c['name']:12s}  backend http://localhost:{c['be_port']}")
+        else:
+            print(f"  {c['name']:12s}  http://localhost:{c['fe_port']}"
+                  f"  (backend :{c['be_port']})")
     print()
     print("  Stop:   python demo.py --stop")
     print("  Status: python demo.py --status")
@@ -355,8 +413,12 @@ def run_preseed(selected: list[dict]):
     cmd = [sys.executable, str(script)]
 
     # Pass subset flags if not all copilots selected
-    names = {c["name"].lower() for c in selected}
-    if names != {"trading", "purchasing", "dataops"}:
+    preseed_names = {"trading", "purchasing", "dataops"}
+    names = {c["name"].lower() for c in selected if c["name"].lower() in preseed_names}
+    if not names:
+        print("  No selected copilots support pre-seed; skipping")
+        return
+    if names != preseed_names:
         for name in names:
             cmd.append(f"--{name}-only")
 
@@ -378,6 +440,7 @@ def main():
     parser.add_argument("--trading", action="store_true", help="Trading only")
     parser.add_argument("--purchasing", action="store_true", help="Purchasing only")
     parser.add_argument("--dataops", action="store_true", help="DataOps only")
+    parser.add_argument("--s2p", action="store_true", help="S2P backend only")
     parser.add_argument("--graph", action="store_true", help="AGE graph mode")
     parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")
@@ -387,7 +450,7 @@ def main():
     args = parser.parse_args()
 
     # Select copilots
-    do_all = not (args.trading or args.purchasing or args.dataops)
+    do_all = not (args.trading or args.purchasing or args.dataops or args.s2p)
     selected = []
     for c in COPILOTS:
         name_lower = c["name"].lower()
