@@ -74,6 +74,21 @@ test("confirm shows reward after scoring", async ({ page }) => {
   await expectAnyText(page, [/Learned/i, /system learned/i, /ordering decision/i, /Reward/i, /IKS/i]);
 });
 
+test("learn response shows reward after confirm", async ({ page }) => {
+  test.setTimeout(60_000);
+  await gotoOrder(page);
+
+  await scoreOrder(page);
+  await expect(page.getByRole("button", { name: "Confirm" }).first()).toBeVisible();
+
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await page.getByRole("button", { name: "Confirm" }).first().click();
+  await learnResponse;
+
+  await expectAnyText(page, [/Learned/i, /confirmed/i, /system learned/i, /ordering decision/i]);
+  await expectAnyText(page, [/Reward/i, /\+[0-9]+(\.[0-9]+)?/, /[0-9]+(\.[0-9]+)? reward/i]);
+});
+
 test("similar orders panel shows matches after score if available", async ({ page }) => {
   test.setTimeout(60_000);
   await gotoOrder(page);

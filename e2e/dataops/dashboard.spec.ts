@@ -68,6 +68,13 @@ test("conservation slider renders", async ({ page }) => {
   await expectAnyText(page, [/Threshold/i, /theta min/i, /Penalty ratio/i]);
 });
 
+test("conservation shows live decision count", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByRole("heading", { name: /^Conservation$/ })).toBeVisible();
+  await expectAnyText(page, [/decisions/i, /verified/i, /accuracy/i, /IKS/i]);
+});
+
 test("conservation timeline shows events", async ({ page }) => {
   await page.goto("/");
 

@@ -17,6 +17,7 @@ from copilot_sdk.scoring.fingerprint import FingerprintResult, compute_fingerpri
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.storage import DecisionStore
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
+from copilot_sdk.graph import GraphStore
 
 
 def _ensure_gae_path() -> None:
@@ -50,18 +51,42 @@ class LearnResult:
     centroid_delta: float
     decisions_total: int
     outcome: str
+    reward: float | None = None
+    reward_raw: float | None = None
+    exploration_used: bool = False
 
 
 class CompoundingScorer:
     """User-facing wrapper around GAE ProfileScorer."""
 
-    def __init__(self, preset: DomainPreset, store: DecisionStore, scorer: ProfileScorer):
+    def __init__(
+        self,
+        preset: DomainPreset,
+        store: DecisionStore,
+        scorer: ProfileScorer,
+        graph_store: GraphStore | None = None,
+        reward_function: Any | None = None,
+        credit_assigner: Any | None = None,
+        exploration_policy: Any | None = None,
+    ):
         self._preset = preset
         self._store = store
         self._scorer = scorer
+        self._graph_store = graph_store
+        self._reward_fn = reward_function
+        self._credit = credit_assigner
+        self._explorer = exploration_policy
 
     @classmethod
-    def from_preset(cls, domain: str, db_path: Optional[str] = None) -> "CompoundingScorer":
+    def from_preset(
+        cls,
+        domain: str,
+        db_path: Optional[str] = None,
+        graph_store: GraphStore | None = None,
+        reward_function: Any | None = None,
+        credit_assigner: Any | None = None,
+        exploration_policy: Any | None = None,
+    ) -> "CompoundingScorer":
         if domain not in PRESET_REGISTRY:
             available = ", ".join(sorted(PRESET_REGISTRY)) or "(none)"
             raise ValueError(f"Unknown preset {domain!r}. Available presets: {available}")
@@ -83,7 +108,15 @@ class CompoundingScorer:
             actions=list(preset.shape.action_names),
             categories=list(preset.shape.category_names),
         )
-        return cls(preset=preset, store=store, scorer=scorer)
+        return cls(
+            preset=preset,
+            store=store,
+            scorer=scorer,
+            graph_store=graph_store,
+            reward_function=reward_function,
+            credit_assigner=credit_assigner,
+            exploration_policy=exploration_policy,
+        )
 
     def score(self, factors: dict[str, float], category: str) -> ScoreResult:
         assert category in self._preset.shape.category_names, f"unknown category: {category}"
@@ -139,7 +172,6 @@ class CompoundingScorer:
         actual_action: str,
         outcome: str = "confirmed",
     ) -> LearnResult | dict[str, Any]:
-        del outcome
         decision = self._store.get_decision(decision_id)
         assert actual_action in self._preset.shape.action_names, f"unknown action: {actual_action}"
 
@@ -185,6 +217,18 @@ class CompoundingScorer:
         )
         iks_after = self._compute_iks()
         self._store.save_centroids(self._scorer.centroids, iks=iks_after)
+        reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome)
+        if reward_raw is not None:
+            if self._explorer is not None:
+                self._explorer.update(predicted_index, reward_raw)
+            if self._credit is not None:
+                # DK weight integration is future work; compute credits without mutating scorer weights.
+                factors = decision.get("factors") or {}
+                factor_names = [
+                    name for name in self._preset.shape.factor_names
+                    if name in factors
+                ]
+                self._credit.assign(reward_raw, factor_names)
 
         return LearnResult(
             decision_id=decision_id,
@@ -193,6 +237,9 @@ class CompoundingScorer:
             centroid_delta=centroid_delta,
             decisions_total=int(update_result.decision_count),
             outcome=str(update_result.outcome),
+            reward=reward,
+            reward_raw=reward_raw,
+            exploration_used=False,
         )
 
     def fingerprint(self) -> FingerprintResult:
@@ -259,7 +306,7 @@ class CompoundingScorer:
 
     def _conservation_pause(self) -> dict[str, Any] | None:
         try:
-            verified, correct = _conservation_counts(self._store)
+            verified, correct = _conservation_counts(self._graph_store or self._store)
         except Exception:
             return None
         if verified <= 0:
@@ -278,6 +325,28 @@ class CompoundingScorer:
                 "correct_count": correct,
             }
         return None
+
+    def _compute_rl_reward(
+        self,
+        decision: dict[str, Any],
+        actual_action: str,
+        outcome: str,
+    ) -> tuple[float | None, float | None]:
+        if self._reward_fn is None:
+            return None, None
+
+        outcome_dict = {"outcome": outcome}
+        recommended_action = str(decision["recommended_action"])
+        reward_raw = float(self._reward_fn.compute(
+            recommended_action,
+            actual_action,
+            outcome_dict,
+        ))
+        reward = _scale_raw_reward(
+            reward_raw,
+            _positive_penalty_ratio(getattr(self._preset, "penalty_ratio", None)),
+        )
+        return reward_raw, reward
 
     @property
     def store(self) -> DecisionStore:
@@ -323,3 +392,8 @@ def _positive_penalty_ratio(value: Any) -> float:
     if not np.isfinite(penalty_ratio) or penalty_ratio <= 0:
         return 10.0
     return penalty_ratio
+
+
+def _scale_raw_reward(raw: float, penalty_ratio: float) -> float:
+    clipped = max(-1.0, min(float(raw), 1.0))
+    return clipped * penalty_ratio if clipped < 0 else clipped

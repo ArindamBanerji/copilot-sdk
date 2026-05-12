@@ -64,6 +64,24 @@ test("score produces result", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
 });
 
+test("learn response shows reward after confirm", async ({ page }) => {
+  test.setTimeout(60_000);
+  await gotoLogTrade(page);
+  await fillMinimumTrade(page);
+
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+  await expect(page.getByRole("button", { name: "Confirm" }).first()).toBeVisible();
+
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await page.getByRole("button", { name: "Confirm" }).first().click();
+  await learnResponse;
+
+  await expectAnyText(page, [/Trade confirmed/i, /confirmed/i, /system learned/i]);
+  await expectAnyText(page, [/Reward/i, /\+[0-9]+(\.[0-9]+)?/, /[0-9]+(\.[0-9]+)? reward/i]);
+});
+
 test("reasoning panel appears after scoring", async ({ page }) => {
   test.setTimeout(60_000);
   await gotoLogTrade(page);

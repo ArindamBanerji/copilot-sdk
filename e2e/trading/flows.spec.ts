@@ -62,6 +62,31 @@ test("score confirm then Performance shows IKS", async ({ page }) => {
   expect(mainText).toMatch(/IKS[\s\S]{0,80}\d+(\.\d+)?/i);
 });
 
+test("score confirm learn cycle preserves conservation after RL", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await clickTab(page, "Log Trade");
+  await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
+
+  await fillTrade(page);
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+  await expect(page.getByRole("button", { name: "Confirm" }).first()).toBeVisible();
+
+  const learnResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok(),
+    { timeout: 15_000 },
+  );
+  await page.getByRole("button", { name: "Confirm" }).first().click();
+  await learnResponse;
+  await expectAnyText(page, [/Trade confirmed/i, /confirmed/i, /system learned/i, /Reward/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/Performance Summary/i, /Conservation/i, /Trajectory/i]);
+  await expectAnyText(page, [/55%/, /75%/, /90%/, /verified/i, /trajectory/i]);
+});
+
 test("full round trip visits dashboard, log trade, analysis, performance, and dashboard", async ({ page }) => {
   await page.goto("/");
   await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i, /portfolio/i]);

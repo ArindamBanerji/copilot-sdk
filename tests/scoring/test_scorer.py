@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+from dataclasses import asdict
 from dataclasses import replace
 from pathlib import Path
 
@@ -18,15 +19,33 @@ ProfileScorer = profile_module.ProfileScorer
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring import scorer as scorer_module
 from copilot_sdk.scoring.scorer import CompoundingScorer
+from copilot_sdk.graph import InMemoryGraphStore
+from copilot_sdk.backend.scoring_router import _json_safe
+from copilot_sdk.rl import BinaryRewardFunction
 
 
-def build_compounding_scorer(mock_preset, store):
+def build_compounding_scorer(
+    mock_preset,
+    store,
+    graph_store=None,
+    reward_function=None,
+    credit_assigner=None,
+    exploration_policy=None,
+):
     gae_scorer = ProfileScorer(
         mu=mock_preset.bootstrap_centroids.copy(),
         actions=list(mock_preset.shape.action_names),
         categories=list(mock_preset.shape.category_names),
     )
-    return CompoundingScorer(mock_preset, store, gae_scorer)
+    return CompoundingScorer(
+        mock_preset,
+        store,
+        gae_scorer,
+        graph_store=graph_store,
+        reward_function=reward_function,
+        credit_assigner=credit_assigner,
+        exploration_policy=exploration_policy,
+    )
 
 
 def sample_factors(**overrides):
@@ -40,6 +59,42 @@ def test_from_preset_unknown_raises():
 
     with pytest.raises(ValueError, match="Unknown preset"):
         CompoundingScorer.from_preset("nonexistent")
+
+
+def test_from_preset_with_graph_store(monkeypatch, mock_preset, tmp_path):
+    graph_store = InMemoryGraphStore()
+    monkeypatch.setitem(PRESET_REGISTRY, mock_preset.name, type(mock_preset))
+
+    scorer = CompoundingScorer.from_preset(
+        mock_preset.name,
+        db_path=str(tmp_path / "scorer.sqlite"),
+        graph_store=graph_store,
+    )
+    try:
+        assert scorer._graph_store is graph_store
+    finally:
+        scorer.store.close()
+
+
+def test_from_preset_with_rl_components(monkeypatch, mock_preset, tmp_path):
+    reward_function = BinaryRewardFunction()
+    explorer = RecordingExplorer()
+    credit = RecordingCreditAssigner()
+    monkeypatch.setitem(PRESET_REGISTRY, mock_preset.name, type(mock_preset))
+
+    scorer = CompoundingScorer.from_preset(
+        mock_preset.name,
+        db_path=str(tmp_path / "scorer.sqlite"),
+        reward_function=reward_function,
+        credit_assigner=credit,
+        exploration_policy=explorer,
+    )
+    try:
+        assert scorer._reward_fn is reward_function
+        assert scorer._credit is credit
+        assert scorer._explorer is explorer
+    finally:
+        scorer.store.close()
 
 
 def test_score_returns_valid_result(mock_preset, store):
@@ -146,6 +201,220 @@ def test_compounding_scorer_learn_allows_when_above_threshold(mock_preset, store
 
     assert learn.centroid_delta > 0
     assert store.count_verified() == before_verified + 1
+
+
+def test_learn_without_rl_no_reward(mock_preset, store):
+    scorer = build_compounding_scorer(mock_preset, store)
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert learn.reward is None
+    assert learn.reward_raw is None
+    assert learn.exploration_used is False
+
+
+def test_learn_with_binary_reward_confirm(mock_preset, store):
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        reward_function=BinaryRewardFunction(),
+    )
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert learn.reward_raw == 1.0
+    assert learn.reward == 1.0
+
+
+def test_learn_with_binary_reward_override(mock_preset, store):
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        reward_function=BinaryRewardFunction(),
+    )
+    result = scorer.score(sample_factors(), "alpha")
+    actual_action = _other_action(mock_preset, result.action)
+
+    learn = scorer.learn(result.decision_id, actual_action)
+
+    assert learn.reward_raw == -1.0
+    assert learn.reward == pytest.approx(-mock_preset.penalty_ratio)
+
+
+def test_learn_with_reward_updates_explorer(mock_preset, store):
+    explorer = RecordingExplorer()
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        reward_function=BinaryRewardFunction(),
+        exploration_policy=explorer,
+    )
+    result = scorer.score(sample_factors(), "alpha")
+
+    scorer.learn(result.decision_id, result.action)
+
+    assert explorer.updates == [(result.action_index, 1.0)]
+
+
+def test_learn_reward_in_result(mock_preset, store):
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        reward_function=BinaryRewardFunction(),
+    )
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert learn.reward == 1.0
+
+
+def test_learn_raw_reward_in_result(mock_preset, store):
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        reward_function=BinaryRewardFunction(),
+    )
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert learn.reward_raw == 1.0
+
+
+def test_learn_calls_reward_function_once(mock_preset, store):
+    reward = RecordingRewardFunction(value=0.75)
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        reward_function=reward,
+    )
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert len(reward.calls) == 1
+    assert learn.reward_raw == 0.75
+    assert learn.reward == 0.75
+
+
+def test_learn_stateful_reward_uses_single_raw_value(mock_preset, store):
+    reward = SequencedRewardFunction([-0.5, 1.0])
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        reward_function=reward,
+    )
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert len(reward.calls) == 1
+    assert learn.reward_raw == -0.5
+    assert learn.reward == pytest.approx(-0.5 * mock_preset.penalty_ratio)
+
+
+def test_learn_with_credit_assigner(mock_preset, store):
+    credit = RecordingCreditAssigner()
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        reward_function=BinaryRewardFunction(),
+        credit_assigner=credit,
+    )
+    result = scorer.score(sample_factors(), "alpha")
+
+    scorer.learn(result.decision_id, result.action)
+
+    assert credit.calls == [(1.0, ["amount", "risk", "history"])]
+
+
+def test_learn_conservation_pause_skips_rl(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=1, correct=0)
+    reward = RecordingRewardFunction()
+    explorer = RecordingExplorer()
+    credit = RecordingCreditAssigner()
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        graph_store=graph_store,
+        reward_function=reward,
+        exploration_policy=explorer,
+        credit_assigner=credit,
+    )
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert learn["status"] == "paused"
+    assert reward.calls == []
+    assert explorer.updates == []
+    assert credit.calls == []
+
+
+def test_learn_result_serializable(mock_preset, store):
+    scorer = build_compounding_scorer(
+        mock_preset,
+        store,
+        reward_function=BinaryRewardFunction(),
+    )
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+    payload = _json_safe(learn)
+
+    assert payload == _json_safe(asdict(learn))
+    assert payload["reward"] == 1.0
+    assert payload["reward_raw"] == 1.0
+    assert payload["exploration_used"] is False
+
+
+def test_compounding_scorer_accepts_graph_store(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    assert scorer._graph_store is graph_store
+
+
+def test_compounding_scorer_conservation_from_graph_store(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+    _seed_graph_history(graph_store, total=1, correct=0)
+    result = scorer.score(sample_factors(), "alpha")
+    before_centroids = scorer.gae_scorer.centroids.copy()
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert learn["status"] == "paused"
+    assert learn["reason"] == "conservation_red"
+    assert learn["verified_count"] == 1
+    assert learn["correct_count"] == 0
+    np.testing.assert_allclose(scorer.gae_scorer.centroids, before_centroids)
+    assert store.count_verified() == 0
+
+
+def test_compounding_scorer_no_graph_store_uses_sqlite(mock_preset, store):
+    scorer = build_compounding_scorer(mock_preset, store)
+    _seed_verified_history(store, total=1, correct=0)
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert learn["status"] == "paused"
+    assert learn["verified_count"] == 1
+    assert learn["correct_count"] == 0
+
+
+def test_compounding_scorer_graph_store_counts_match(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=25, correct=0)
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    assert scorer._conservation_pause()["verified_count"] == graph_store.count_verified()
+    assert scorer._conservation_pause()["correct_count"] == graph_store.count_correct()
 
 
 def test_compounding_scorer_learn_store_failure_allows_learning(
@@ -282,3 +551,67 @@ def _seed_verified_history(store, total: int, correct: int) -> None:
             is_correct=is_correct,
             verified_at=2000.0 + index,
         )
+
+
+def _seed_graph_history(graph_store: InMemoryGraphStore, total: int, correct: int) -> None:
+    for index in range(total):
+        decision_id = graph_store.write_decision(
+            entity_id=f"history-{index}",
+            category="alpha",
+            action="approve",
+            confidence=0.8,
+            factors=sample_factors(amount=10.0 + index),
+            metadata={"created_at": 1000.0 + index},
+        )
+        is_correct = index < correct
+        graph_store.write_outcome(
+            decision_id,
+            actual_action="approve" if is_correct else "review",
+            is_correct=is_correct,
+            metadata={"verified_at": 2000.0 + index},
+        )
+
+
+def _other_action(mock_preset, action: str) -> str:
+    for candidate in mock_preset.shape.action_names:
+        if candidate != action:
+            return candidate
+    raise AssertionError("mock preset must define at least two actions")
+
+
+class RecordingExplorer:
+    def __init__(self) -> None:
+        self.updates = []
+
+    def update(self, action: int, reward: float) -> None:
+        self.updates.append((action, reward))
+
+
+class RecordingCreditAssigner:
+    def __init__(self) -> None:
+        self.calls = []
+
+    def assign(self, reward: float, factors: list[str]) -> dict[str, float]:
+        self.calls.append((reward, factors))
+        return {factor: reward / len(factors) for factor in factors}
+
+
+class RecordingRewardFunction:
+    def __init__(self, value: float = 1.0) -> None:
+        self.value = value
+        self.calls = []
+
+    def compute(self, recommended_action: str, actual_action: str, outcome: dict) -> float:
+        self.calls.append((recommended_action, actual_action, dict(outcome)))
+        return self.value
+
+
+class SequencedRewardFunction:
+    def __init__(self, values: list[float]) -> None:
+        self.values = list(values)
+        self.calls = []
+
+    def compute(self, recommended_action: str, actual_action: str, outcome: dict) -> float:
+        self.calls.append((recommended_action, actual_action, dict(outcome)))
+        index = min(len(self.calls) - 1, len(self.values) - 1)
+        return self.values[index]
