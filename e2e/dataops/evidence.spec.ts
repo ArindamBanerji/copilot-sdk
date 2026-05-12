@@ -92,6 +92,15 @@ test("schema impact panel shows downstream trace", async ({ page }) => {
   await expect(schema.getByText(/material_group|alias|canonical|map/i).first()).toBeVisible();
 });
 
+test("schema impact shows SAP PO count", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const schema = page.locator("section", { hasText: "Schema Impact" }).first();
+  await expect(schema).toBeVisible();
+  await expect(schema.getByText(/purchase orders|POs/i).first()).toBeVisible();
+  await expectAnyText(page, [/SAP/i, /purchase order/i, /PO/i]);
+});
+
 test("operational rules panel shows governed rule statuses", async ({ page }) => {
   await gotoEvidence(page);
 

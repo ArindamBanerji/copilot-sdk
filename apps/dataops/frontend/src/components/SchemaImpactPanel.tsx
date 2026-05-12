@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSchemaImpact } from "../api";
+import { fetchSapPurchaseOrders, getSchemaImpact } from "../api";
 import type { SchemaChange, SchemaImpactResponse } from "../types";
 
 const SYSTEMS = ["warehouse_etl", "billing_api", "payment_gateway", "crm_sync"];
@@ -7,6 +7,7 @@ const SYSTEMS = ["warehouse_etl", "billing_api", "payment_gateway", "crm_sync"];
 export default function SchemaImpactPanel() {
   const [system, setSystem] = useState("warehouse_etl");
   const [data, setData] = useState<SchemaImpactResponse | null>(null);
+  const [sapPoCount, setSapPoCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,6 +37,21 @@ export default function SchemaImpactPanel() {
     };
   }, [system]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchSapPurchaseOrders().then((response) => {
+      if (!cancelled) {
+        const count = response?.total ?? response?.purchaseOrders?.length;
+        setSapPoCount(typeof count === "number" ? count : null);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const changes = data?.schemaChanges || [];
 
   return (
@@ -53,6 +69,11 @@ export default function SchemaImpactPanel() {
               ? "Tracing downstream schema impact..."
               : `${data?.totalChanges ?? 0} changes · ${data?.totalImpacts ?? 0} downstream impacts · ${data?.totalAlertsPreventable ?? 0} alerts preventable`}
           </p>
+          {typeof (data?.sapPoCount ?? sapPoCount) === "number" ? (
+            <p className="mt-1 text-sm dataops-muted">
+              Affects {data?.sapPoCount ?? sapPoCount} purchase orders on this variant.
+            </p>
+          ) : null}
         </div>
         <label className="grid gap-1 text-xs font-semibold dataops-muted">
           System

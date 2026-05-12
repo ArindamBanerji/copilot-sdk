@@ -84,6 +84,24 @@ test("bottleneck panel shows optimization recommendation", async ({ page }) => {
   await expect(bottleneck.getByText(/savings|minutes saved|min/i).first()).toBeVisible();
 });
 
+test("process timeline shows P2P activities with bottleneck", async ({ page }) => {
+  await gotoInsight(page);
+
+  const timeline = page.locator("section", { hasText: "Process Timeline" }).first();
+  await expect(timeline).toBeVisible();
+  await expectAnyText(page, [/Purchase-to-Pay/i, /Standard with Returns/i]);
+  await expectAnyText(page, [/Match Invoice to GR/i, /bottleneck/i, /42/i]);
+});
+
+test("cross-graph insight card shows supplier correlation", async ({ page }) => {
+  await gotoInsight(page);
+
+  const insight = page.locator("section", { hasText: "Cross-Graph Insight" }).first();
+  await expect(insight).toBeVisible();
+  await expectAnyText(page, [/Aster 3\.1x slower/i, /Aster/i, /supplier/i]);
+  await expectAnyText(page, [/SAP.*Celonis.*Graph/i, /cross-graph/i]);
+});
+
 test("what-if reordering shows transformation list", async ({ page }) => {
   await gotoInsight(page);
 

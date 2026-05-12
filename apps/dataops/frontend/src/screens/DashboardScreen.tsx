@@ -29,6 +29,7 @@ import AlertGroupCard from "../components/AlertGroupCard";
 import AlertQueue from "../components/AlertQueue";
 import ConservationProjection from "../components/ConservationProjection";
 import ConservationTimeline from "../components/ConservationTimeline";
+import { EnterpriseHealthBar } from "../components/EnterpriseHealthBar";
 import PipelineGrid from "../components/PipelineGrid";
 
 interface DashboardScreenProps {
@@ -145,6 +146,8 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
 
   return (
     <div className="grid gap-5">
+      <EnterpriseHealthBar />
+
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div>
           <div className="mb-3 flex items-center justify-between">

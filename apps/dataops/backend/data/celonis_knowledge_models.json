@@ -1,0 +1,18 @@
+{
+  "knowledge_models": [
+    {
+      "id": "km-p2p-dataops",
+      "name": "DataOps Purchase-to-Pay",
+      "process_model": "Purchase-to-Pay",
+      "version": "2026.05",
+      "case_count": 1247
+    },
+    {
+      "id": "km-o2c-dataops",
+      "name": "DataOps Order-to-Cash",
+      "process_model": "Order-to-Cash",
+      "version": "2026.05",
+      "case_count": 842
+    }
+  ]
+}

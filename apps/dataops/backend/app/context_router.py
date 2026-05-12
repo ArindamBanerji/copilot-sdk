@@ -10,7 +10,9 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
 
+from .celonis_connector import CelonisConnector
 from .graph_queries import DataOpsGraphClient
+from .sap_connector import SAPConnector
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -54,6 +56,14 @@ router = APIRouter()
 
 def _graph_client() -> DataOpsGraphClient:
     return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+
+
+def _sap_connector() -> SAPConnector:
+    return SAPConnector(cache_dir=DATA_DIR)
+
+
+def _celonis_connector() -> CelonisConnector:
+    return CelonisConnector(cache_dir=DATA_DIR)
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -573,6 +583,12 @@ def _load_schema_changes() -> dict[str, list[dict[str, Any]]]:
     }
 
 
+def _pipeline_count() -> int:
+    payload = _load_json(DATA_DIR / "fallback" / "pipelines.json", {})
+    pipelines = payload.get("pipelines", []) if isinstance(payload, dict) else []
+    return len([pipeline for pipeline in pipelines if isinstance(pipeline, dict)])
+
+
 def _duration_minutes(step: dict[str, Any]) -> float:
     return _numeric_or_none(step.get("avg_duration_minutes")) or 0.0
 
@@ -639,6 +655,61 @@ def _schema_impact_count(change: dict[str, Any]) -> int:
 @router.get("/pipelines")
 async def pipelines() -> dict[str, Any]:
     return await _graph_client().get_pipelines()
+
+
+@router.get("/enterprise-health")
+async def enterprise_health() -> dict[str, Any]:
+    sap = await _safe_connector_health(_sap_connector())
+    celonis = await _safe_connector_health(_celonis_connector())
+    return {
+        "sap": sap,
+        "celonis": celonis,
+        "graph": {
+            "status": "ok" if _pipeline_count() > 0 else "empty",
+            "source": "fixture",
+            "pipeline_count": _pipeline_count(),
+        },
+        "engine_version": "v0.7.23",
+    }
+
+
+@router.get("/sap/purchase-orders")
+async def sap_purchase_orders(top: int = 20) -> dict[str, Any]:
+    payload = await _sap_connector().get_purchase_orders(top=top)
+    return {
+        "source": payload.get("source") or "sap_cache",
+        "total": int(payload.get("total") or 0),
+        "purchase_orders": payload.get("purchase_orders") or [],
+    }
+
+
+@router.get("/celonis/process-data")
+async def celonis_process_data() -> dict[str, Any]:
+    connector = _celonis_connector()
+    knowledge_models = await connector.get_knowledge_models()
+    models = knowledge_models.get("knowledge_models") or []
+    km_id = str(models[0].get("id") if models and isinstance(models[0], dict) else "km-p2p-dataops")
+    kpis = await connector.get_kpis(km_id)
+    process_data = await connector.get_process_data(km_id)
+    sources = {
+        str(knowledge_models.get("source") or "celonis_cache"),
+        str(kpis.get("source") or "celonis_cache"),
+        str(process_data.get("source") or "celonis_cache"),
+    }
+    return {
+        "source": "celonis_live" if sources == {"celonis_live"} else "celonis_cache",
+        "knowledge_models": models,
+        "kpis": kpis.get("kpis") or [],
+        "process_data": process_data.get("process_data") or {},
+    }
+
+
+async def _safe_connector_health(connector: Any) -> dict[str, Any]:
+    try:
+        health = await connector.health()
+        return health if isinstance(health, dict) else {"status": "unknown", "live": False}
+    except Exception as exc:
+        return {"status": "unavailable", "live": False, "source": "cache", "error": str(exc)}
 
 
 @router.get("/alerts")
@@ -1068,10 +1139,11 @@ def similar_alerts(
 
 
 @router.get("/process-signals/{system}")
-def process_signals(system: str) -> dict[str, Any]:
+async def process_signals(system: str) -> dict[str, Any]:
     system_key = _normalize_system_key(system)
     signals = _load_json(DATA_DIR / "process_signals.json", {})
     entry = signals.get(system_key) if isinstance(signals, dict) else None
+    connector_state = await _process_connector_state()
     if not isinstance(entry, dict):
         return {
             "system": system_key,
@@ -1080,6 +1152,8 @@ def process_signals(system: str) -> dict[str, Any]:
             "metrics": [],
             "variant": {},
             "correlation": {},
+            "celonis_live": connector_state["celonis_live"],
+            "sap_po_count": connector_state["sap_po_count"],
             "narrative": f"No process mining data available for {system_key}.",
             "engine": "celonis_ems.process_mining",
         }
@@ -1090,8 +1164,26 @@ def process_signals(system: str) -> dict[str, Any]:
         "metrics": entry.get("metrics") or [],
         "variant": entry.get("variant") or {},
         "correlation": entry.get("correlation") or {},
+        "celonis_live": connector_state["celonis_live"],
+        "sap_po_count": connector_state["sap_po_count"],
         "engine": "celonis_ems.process_mining",
     }
+
+
+async def _process_connector_state() -> dict[str, Any]:
+    celonis_live = False
+    sap_po_count = 0
+    try:
+        celonis_health = await _celonis_connector().health()
+        celonis_live = bool(celonis_health.get("live"))
+    except Exception:
+        celonis_live = False
+    try:
+        orders = await _sap_connector().get_purchase_orders(top=100)
+        sap_po_count = len(orders.get("purchase_orders") or [])
+    except Exception:
+        sap_po_count = 0
+    return {"celonis_live": celonis_live, "sap_po_count": sap_po_count}
 
 
 @router.get("/audit-trail/{alert_id}")

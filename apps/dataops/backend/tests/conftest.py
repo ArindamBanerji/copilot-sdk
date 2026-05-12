@@ -36,6 +36,12 @@ def dataops_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         "process_signals.json",
         "transformations.json",
         "schema_changes.json",
+        "sap_purchase_orders.json",
+        "sap_supplier_invoices.json",
+        "sap_suppliers.json",
+        "celonis_knowledge_models.json",
+        "celonis_kpis.json",
+        "celonis_process_data.json",
     ):
         shutil.copyfile(source / name, target / name)
 

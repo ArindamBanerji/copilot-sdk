@@ -16,6 +16,14 @@ test("pipeline grid shows systems", async ({ page }) => {
   await expectAnyText(page, [/SAP S\/4HANA/i, /billing/i, /warehouse/i, /Active alerts/i, /Business criticality/i]);
 });
 
+test("enterprise health bar shows connection status", async ({ page }) => {
+  await page.goto("/");
+
+  await expectAnyText(page, [/Enterprise Health/i, /Process-Tech Fusion/i]);
+  await expectAnyText(page, [/SAP S\/4HANA/i, /Celonis/i, /Graph/i]);
+  await expectAnyText(page, [/Live/i, /cached/i, /unavailable/i, /connected/i]);
+});
+
 test("pipeline status shows system names with criticality", async ({ page }) => {
   await page.goto("/");
 

@@ -491,6 +491,7 @@ export interface SchemaImpactResponse {
   totalChanges?: number;
   totalImpacts?: number;
   totalAlertsPreventable?: number;
+  sapPoCount?: number;
 }
 
 export interface OperationalRule {
@@ -553,8 +554,121 @@ export interface ProcessSignalsResponse {
   metrics?: ProcessSignalMetric[];
   variant?: ProcessSignalVariant;
   correlation?: ProcessSignalCorrelation;
+  celonisLive?: boolean;
+  sapPoCount?: number;
   engine?: string;
   narrative?: string;
+}
+
+export interface EnterpriseSystemHealth {
+  status?: string;
+  source?: string;
+  live?: boolean;
+  cached?: boolean;
+  total?: number;
+  count?: number;
+  detail?: string;
+  error?: string;
+}
+
+export interface EnterpriseHealth {
+  sap?: EnterpriseSystemHealth;
+  celonis?: EnterpriseSystemHealth;
+  graph?: EnterpriseSystemHealth;
+  engineVersion?: string;
+}
+
+export interface SapPurchaseOrder {
+  PurchaseOrder?: string;
+  CompanyCode?: string;
+  Supplier?: string;
+  PurchaseOrderType?: string;
+  CreationDate?: string;
+  DocumentCurrency?: string;
+  PurchasingOrganization?: string;
+  PurchasingGroup?: string;
+  PurchaseOrderDate?: string;
+  [key: string]: unknown;
+}
+
+export interface SapPurchaseOrdersResponse {
+  source?: string;
+  total?: number;
+  purchaseOrders?: SapPurchaseOrder[];
+}
+
+export interface CelonisKnowledgeModel {
+  id?: string;
+  name?: string;
+  description?: string;
+  [key: string]: unknown;
+}
+
+export interface CelonisKpi {
+  id?: string;
+  name?: string;
+  value?: number | string;
+  unit?: string;
+  [key: string]: unknown;
+}
+
+export interface ProcessActivity {
+  name?: string;
+  activity?: string;
+  durationHours?: number;
+  avgDurationHours?: number;
+  caseCount?: number;
+  bottleneck?: boolean;
+  bottleneckCause?: string;
+  system?: string;
+  [key: string]: unknown;
+}
+
+export interface CrossGraphInsight {
+  finding?: string;
+  title?: string;
+  detail?: string;
+  confidence?: number;
+  monthlyImpactUsd?: number;
+  annualImpactUsd?: number;
+  annualizedSavingsUsd?: number;
+  preventableImpactUsd?: number;
+  sources?: string[];
+  [key: string]: unknown;
+}
+
+export interface ProcessRecommendation {
+  title?: string;
+  recommendation?: string;
+  annualizedSavingsUsd?: number;
+  [key: string]: unknown;
+}
+
+export interface CompoundingTrajectory {
+  annualSavingsUsd?: number;
+  [key: string]: unknown;
+}
+
+export interface ProcessData {
+  source?: string;
+  processModel?: string;
+  variant?: string;
+  variantFrequency?: number;
+  totalCases?: number;
+  activities?: ProcessActivity[];
+  crossGraphInsights?: CrossGraphInsight[];
+  recommendations?: ProcessRecommendation[];
+  compoundingTrajectory?: CompoundingTrajectory;
+  knowledgeModels?: CelonisKnowledgeModel[];
+  kpis?: CelonisKpi[];
+  [key: string]: unknown;
+}
+
+export interface CelonisProcessDataResponse {
+  source?: string;
+  knowledgeModels?: CelonisKnowledgeModel[];
+  kpis?: CelonisKpi[];
+  processData?: ProcessData;
 }
 
 export interface Resolution {

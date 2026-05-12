@@ -26,9 +26,13 @@ import type {
   SystemHistoryResponse,
   TrajectoryResponse,
   EvolutionVariant,
+  CelonisProcessDataResponse,
+  EnterpriseHealth,
   RuleLifecycleResponse,
   BottleneckResponse,
   OperationalRulesResponse,
+  ProcessData,
+  SapPurchaseOrdersResponse,
   SchemaImpactResponse,
   TransformationsResponse,
 } from "./types";
@@ -226,6 +230,38 @@ export async function getSimilar(factors: Record<string, number>, category: stri
 
 export async function getProcessSignals(system: string): Promise<ProcessSignalsResponse> {
   return apiGet<ProcessSignalsResponse>(`/api/context/process-signals/${encodeURIComponent(system)}`);
+}
+
+export async function fetchEnterpriseHealth(): Promise<EnterpriseHealth | null> {
+  try {
+    return await apiGet<EnterpriseHealth>("/api/context/enterprise-health");
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchProcessData(): Promise<ProcessData | null> {
+  try {
+    const payload = await apiGet<CelonisProcessDataResponse | ProcessData>("/api/context/celonis/process-data");
+    const response = payload as CelonisProcessDataResponse;
+    const processData = response.processData ?? (payload as ProcessData);
+    return {
+      ...processData,
+      source: processData.source ?? response.source,
+      knowledgeModels: processData.knowledgeModels ?? response.knowledgeModels,
+      kpis: processData.kpis ?? response.kpis,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchSapPurchaseOrders(top = 20): Promise<SapPurchaseOrdersResponse | null> {
+  try {
+    return await apiGet<SapPurchaseOrdersResponse>(`/api/context/sap/purchase-orders?top=${top}`);
+  } catch {
+    return null;
+  }
 }
 
 export async function getSystemHistory(systemName: string, limit = 5): Promise<SystemHistoryResponse> {

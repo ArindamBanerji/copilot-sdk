@@ -1,0 +1,88 @@
+{
+  "process_model": "Purchase-to-Pay",
+  "variant": "Standard with Returns",
+  "variant_frequency": 340,
+  "total_cases": 1247,
+  "source": "celonis_cache",
+  "activities": [
+    {
+      "id": "create_purchase_order",
+      "name": "Create Purchase Order",
+      "avg_duration_hours": 3.4,
+      "case_count": 1247,
+      "system": "sap_s4hana_extract",
+      "status": "ok"
+    },
+    {
+      "id": "goods_receipt",
+      "name": "Post Goods Receipt",
+      "avg_duration_hours": 18.2,
+      "case_count": 1136,
+      "system": "sap_s4hana_extract",
+      "status": "warning"
+    },
+    {
+      "id": "match_invoice_to_gr",
+      "name": "Match Invoice to GR",
+      "avg_duration_hours": 42.0,
+      "case_count": 798,
+      "system": "billing_api",
+      "status": "degraded",
+      "bottleneck": true,
+      "bottleneck_cause": "MATKL_V2"
+    },
+    {
+      "id": "release_payment",
+      "name": "Release Payment",
+      "avg_duration_hours": 11.6,
+      "case_count": 731,
+      "system": "payment_gateway",
+      "status": "ok"
+    }
+  ],
+  "cross_graph_insights": [
+    {
+      "id": "aster-slower",
+      "title": "Aster 3.1x slower",
+      "supplier": "Aster Industrial Chemicals",
+      "metric": "invoice_rework_rate",
+      "multiplier": 3.1,
+      "detail": "Aster purchase orders spend 3.1x longer in invoice-to-GR matching than peer suppliers."
+    },
+    {
+      "id": "matkl-v2-impact",
+      "title": "MATKL_V2 downstream impact",
+      "source_table": "SAP_MARA",
+      "column": "MATKL_V2",
+      "monthly_impact_usd": 604000,
+      "detail": "MATKL_V2 schema drift fans out into warehouse_etl, billing_api, and inventory_feed with $604K/month estimated leakage."
+    },
+    {
+      "id": "billing-api-early-signal",
+      "title": "billing_api early signal",
+      "system": "billing_api",
+      "metric": "invoice_processing_time_hours",
+      "detail": "Billing API latency rises before downstream payment_gateway settlement alerts appear."
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "rec-match-gr-cache",
+      "title": "Pre-join GR material groups before invoice match",
+      "annualized_savings_usd": 960000,
+      "target_activity": "match_invoice_to_gr"
+    },
+    {
+      "id": "rec-matkl-contract",
+      "title": "Promote MATKL_V2 contract to canonical schema",
+      "annualized_savings_usd": 660000,
+      "target_activity": "match_invoice_to_gr"
+    }
+  ],
+  "compounding_trajectory": {
+    "annual_savings_usd": 1620000,
+    "current_iks": 41.2,
+    "target_iks": 55.0,
+    "estimated_weeks_to_target": 6
+  }
+}

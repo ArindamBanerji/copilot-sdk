@@ -21,6 +21,24 @@ export default function ProcessSignalsPanel({ signals, loading }: ProcessSignals
     return null;
   }
 
+  const celonisBadge = signals.celonisLive
+    ? {
+        label: "Celonis ✓ Live",
+        style: {
+          background: "rgba(16, 185, 129, 0.14)",
+          borderColor: "rgba(16, 185, 129, 0.35)",
+          color: "#a7f3d0",
+        },
+      }
+    : {
+        label: "Celonis (cached)",
+        style: {
+          background: "rgba(245, 158, 11, 0.14)",
+          borderColor: "rgba(245, 158, 11, 0.35)",
+          color: "#fde68a",
+        },
+      };
+
   return (
     <section className="copilot-card p-4">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -29,11 +47,16 @@ export default function ProcessSignalsPanel({ signals, loading }: ProcessSignals
           <p className="text-sm dataops-muted">{signals.system || "unknown system"}</p>
         </div>
         <span
-          className="rounded-full px-2 py-1 text-xs font-semibold"
-          style={{ background: "var(--copilot-primary-light)", color: "var(--copilot-primary)" }}
+          className="rounded-full border px-2 py-1 text-xs font-semibold"
+          style={celonisBadge.style}
         >
-          ⚡ Celonis EMS
+          {celonisBadge.label}
         </span>
+        {typeof signals.sapPoCount === "number" ? (
+          <span className="rounded-full px-2 py-1 text-xs dataops-muted" style={{ background: "var(--copilot-surface-muted)" }}>
+            {signals.sapPoCount} SAP POs
+          </span>
+        ) : null}
       </div>
 
       <div className="grid gap-2">

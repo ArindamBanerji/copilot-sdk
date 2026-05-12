@@ -81,7 +81,7 @@ test("triage with Celonis context for billing, SAP, or warehouse", async ({ page
   if (await loading.isVisible().catch(() => false)) {
     await expect(loading).toBeHidden({ timeout: 10_000 });
   }
-  await expectAnyText(page, [/Process Signals/i, /Celonis EMS/i, /process context/i]);
+  await expectAnyText(page, [/Process Signals/i, /Celonis.*Live/i, /Celonis.*cached/i, /process context/i]);
   await expectAnyText(page, [/variant/i, /confidence/i, /O2C/i, /invoice/i, /ETL/i, /rework/i, /V-\d+/i]);
 });
 
@@ -273,6 +273,23 @@ test("Insight bottleneck then Evidence schema impact round trip", async ({ page 
 
   await clickTab(page, "Insight");
   await expectAnyText(page, [/Pipeline Bottleneck/i, /Decision Explorer/i, /Incident Replay/i]);
+});
+
+test("Process-Tech Fusion: enterprise health to bottleneck to cross-graph round trip", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/Enterprise Health/i, /Process-Tech Fusion/i]);
+  await expectAnyText(page, [/SAP S\/4HANA/i, /Celonis/i, /Graph/i]);
+
+  await clickTab(page, "Insight");
+  await expectAnyText(page, [/Process Timeline/i, /Purchase-to-Pay/i, /Match Invoice to GR/i, /bottleneck/i]);
+  await expectAnyText(page, [/Cross-Graph Insight/i, /Aster 3\.1x slower/i, /SAP.*Celonis.*Graph/i]);
+
+  await clickTab(page, "Evidence");
+  await expectAnyText(page, [/Schema Impact/i, /MATKL|material_group|MARA/i, /purchase orders|POs/i]);
+  await expectAnyText(page, [/Downstream impact/i, /Proposed fix/i]);
+
+  await clickTab(page, "Dashboard");
+  await expectAnyText(page, [/Conservation/i, /Automation Projection/i, /verified decisions/i]);
 });
 
 test("full Level 3 story shows bottleneck schema rules genealogy and curve", async ({ page }) => {
