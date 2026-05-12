@@ -3,7 +3,7 @@ import { FingerprintPanel } from "../../../../../copilot_sdk/frontend";
 import { getFingerprint, getIncident } from "../api";
 import BottleneckPanel from "../components/BottleneckPanel";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
-import DecisionExplorer from "../components/DecisionExplorer";
+import DecisionExplorerPanel from "../components/DecisionExplorerPanel";
 import IncidentReplayCard from "../components/IncidentReplayCard";
 import { ProcessTimelinePanel } from "../components/ProcessTimelinePanel";
 import ProfileArchetype from "../components/ProfileArchetype";
@@ -94,7 +94,7 @@ export default function InsightScreen() {
         perCategoryPrecision={fingerprint?.perCategoryPrecision}
         decisionsAnalyzed={fingerprint?.decisionsAnalyzed}
       />
-      <DecisionExplorer />
+      <DecisionExplorerPanel />
       <IncidentReplayCard incident={incident} />
       <BottleneckPanel />
       <ProcessTimelinePanel />

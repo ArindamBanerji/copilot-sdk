@@ -84,13 +84,72 @@ def test_memory_get_all_decisions():
     assert len(store.get_all_decisions()) == 1
 
 
+def test_memory_save_centroids_stores():
+    store = InMemoryGraphStore()
+
+    store.save_centroids(
+        "decision-1",
+        "alpha",
+        [[0.1, 0.2]],
+        metadata={"iks": 3.5, "source": "unit"},
+    )
+
+    checkpoints = store.get_centroid_checkpoints()
+    assert len(checkpoints) == 1
+    assert checkpoints[0]["decision_id"] == "decision-1"
+    assert checkpoints[0]["category"] == "alpha"
+    assert checkpoints[0]["centroids"] == [[0.1, 0.2]]
+    assert checkpoints[0]["metadata"] == {"iks": 3.5, "source": "unit"}
+    assert checkpoints[0]["created_at"]
+
+
+def test_memory_centroid_checkpoints_limit():
+    store = InMemoryGraphStore()
+    for index in range(4):
+        store.save_centroids(f"decision-{index}", "alpha", [[float(index)]])
+
+    checkpoints = store.get_centroid_checkpoints(limit=2)
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == [
+        "decision-2",
+        "decision-3",
+    ]
+
+
+def test_memory_centroid_checkpoints_empty():
+    assert InMemoryGraphStore().get_centroid_checkpoints() == []
+
+
+def test_memory_centroid_reset_clears():
+    store = InMemoryGraphStore()
+    store.save_centroids("decision-1", "alpha", [[1.0]])
+
+    store.reset()
+
+    assert store.get_centroid_checkpoints() == []
+
+
+def test_memory_centroid_json_roundtrip():
+    store = InMemoryGraphStore()
+    centroids = [[0.1, 0.2], [0.3, 0.4]]
+    store.save_centroids("decision-1", "alpha", centroids, metadata={"nested": {"ok": True}})
+
+    checkpoint = store.get_centroid_checkpoints()[0]
+    checkpoint["centroids"][0][0] = 99.0
+
+    assert store.get_centroid_checkpoints()[0]["centroids"] == centroids
+    assert store.get_centroid_checkpoints()[0]["metadata"]["nested"]["ok"] is True
+
+
 def test_memory_reset_clears_and_close_noop():
     store = InMemoryGraphStore()
     decision_id = store.write_decision("e-1", "alpha", "approve", 0.8, {})
     store.write_outcome(decision_id, "approve", True)
+    store.save_centroids(decision_id, "alpha", [[1.0]])
 
     store.reset()
     store.close()
 
     assert store.get_all_decisions() == []
     assert store.count_verified() == 0
+    assert store.get_centroid_checkpoints() == []

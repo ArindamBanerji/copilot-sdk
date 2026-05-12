@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { ConservationSlider } from "../../../../../copilot_sdk/frontend";
 import {
   getAeImpact,
-  getAccuracyByCategory,
   getAlertGroups,
   getAlerts,
   getConservationHistory,
@@ -14,7 +13,6 @@ import {
 } from "../api";
 import type {
   AEImpact,
-  AccuracyByCategoryResponse,
   AlertGroupAlert,
   AlertGroupsResponse,
   ConservationHistory,
@@ -24,7 +22,7 @@ import type {
   TrajectoryResponse,
 } from "../types";
 import AEImpactPanel from "../components/AEImpactPanel";
-import AccuracyAlerts from "../components/AccuracyAlerts";
+import AccuracyAlertPanel from "../components/AccuracyAlertPanel";
 import AlertGroupCard from "../components/AlertGroupCard";
 import AlertQueue from "../components/AlertQueue";
 import ConservationProjection from "../components/ConservationProjection";
@@ -44,7 +42,6 @@ interface DashboardState {
   conservation: ConservationState | null;
   history: ConservationHistory | null;
   trajectory: TrajectoryResponse | null;
-  accuracy: AccuracyByCategoryResponse | null;
 }
 
 export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps) {
@@ -56,7 +53,6 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
     conservation: null,
     history: null,
     trajectory: null,
-    accuracy: null,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,13 +71,12 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
       getAeImpact(),
       getConservationHistory(),
       getTrajectory().catch(() => null),
-      getAccuracyByCategory().catch(() => null),
     ])
-      .then(([pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory, accuracy]) => {
+      .then(([pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory]) => {
         if (cancelled) {
           return;
         }
-        setState({ pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory, accuracy });
+        setState({ pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory });
       })
       .catch((caught: unknown) => {
         if (!cancelled) {
@@ -207,7 +202,7 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
           )}
           <ConservationProjection conservation={conservation} trajectory={state.trajectory} />
           <ConservationTimeline history={state.history} />
-          <AccuracyAlerts data={state.accuracy} />
+          <AccuracyAlertPanel />
         </div>
       </section>
     </div>

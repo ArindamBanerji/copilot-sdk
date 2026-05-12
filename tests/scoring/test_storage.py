@@ -87,6 +87,41 @@ def test_save_load_latest_centroids(store):
     assert checkpoints[-1]["iks"] == 7.5
 
 
+def test_decision_store_get_centroid_checkpoints_metadata(store):
+    centroids = np.ones((2, 2), dtype=float)
+
+    store.save_centroids(
+        centroids,
+        iks=2.5,
+        decision_id="decision-1",
+        category="alpha",
+        metadata={"source": "unit"},
+    )
+
+    checkpoints = store.get_centroid_checkpoints(limit=1)
+    assert checkpoints[0]["decision_id"] == "decision-1"
+    assert checkpoints[0]["category"] == "alpha"
+    assert checkpoints[0]["iks"] == 2.5
+    assert checkpoints[0]["metadata"] == {"source": "unit"}
+    np.testing.assert_allclose(checkpoints[0]["centroids"], centroids)
+
+
+def test_decision_store_get_centroid_checkpoints_limit(store):
+    for index in range(3):
+        store.save_centroids(
+            np.full((1, 1), float(index)),
+            decision_id=f"decision-{index}",
+            category="alpha",
+        )
+
+    checkpoints = store.get_centroid_checkpoints(limit=2)
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == [
+        "decision-1",
+        "decision-2",
+    ]
+
+
 def test_empty_latest_centroids_returns_none(store):
     assert store.load_latest_centroids() is None
 

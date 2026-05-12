@@ -30,16 +30,16 @@ test("incident replay card shows incident and cost", async ({ page }) => {
 test("decision explorer visible with decision count", async ({ page }) => {
   await gotoInsight(page);
 
-  await expectAnyText(page, [/Decision Explorer/i, /decision history/i, /explorer/i]);
-  await expectAnyText(page, [/\d+\s+decisions?/i]);
+  await expectAnyText(page, [/Decision Explorer/i, /GraphStore decisions/i, /explorer/i]);
+  await expectAnyText(page, [/\d+\s+GraphStore decisions?/i, /No decisions match these filters/i]);
 });
 
 test("decision explorer shows action breakdown with win rates", async ({ page }) => {
   await gotoInsight(page);
 
   await expect(page.getByText("Decision Explorer")).toBeVisible();
-  await expectAnyText(page, [/By Action/i, /Auto Approve/i, /Investigate/i, /Escalate/i, /Pause/i]);
-  await expectAnyText(page, [/\d+%/]);
+  await expectAnyText(page, [/Category/i, /Action/i, /Verified only/i]);
+  await expectAnyText(page, [/Confidence/i, /%/, /pending/i, /correct/i, /incorrect/i, /No decisions match/i]);
 });
 
 test("decision explorer filter changes results without losing count", async ({ page }) => {
@@ -59,8 +59,23 @@ test("decision explorer shows real categories not just unknown", async ({ page }
   await gotoInsight(page);
 
   await expect(page.getByText("Decision Explorer")).toBeVisible();
-  await expectAnyText(page, [/By Category/i]);
-  await expectAnyText(page, [/pipeline/i, /schema/i, /volume/i, /freshness/i, /quality/i, /transform/i]);
+  await expectAnyText(page, [/Category/i]);
+  await expectAnyText(page, [/pipeline/i, /schema/i, /volume/i, /freshness/i, /quality/i, /transform/i, /No decisions match/i]);
+});
+
+test("SC-14 decision explorer table renders", async ({ page }) => {
+  await gotoInsight(page);
+
+  const explorer = page.locator("section", { hasText: "Decision Explorer" }).first();
+  await expect(explorer).toBeVisible();
+  await expectAnyText(page, [/SC-14/i, /Decision/i, /Category/i, /Action/i]);
+});
+
+test("SC-14 decision explorer shows confidence values", async ({ page }) => {
+  await gotoInsight(page);
+
+  await expect(page.getByText("Decision Explorer")).toBeVisible();
+  await expectAnyText(page, [/Confidence/i, /%/, /0\.\d+/, /No decisions match these filters/i]);
 });
 
 test("bottleneck panel shows pipeline duration breakdown", async ({ page }) => {

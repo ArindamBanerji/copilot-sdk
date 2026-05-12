@@ -108,7 +108,18 @@ def _state_counts(state: Any) -> dict[str, float | int]:
             "penalty_ratio": _positive_float(state.get("penalty_ratio"), default=1.0),
         }
 
-    store = getattr(state, "store", None) or getattr(state, "_store", None) or state
+    direct_count_verified = getattr(state, "count_verified", None)
+    direct_count_correct = getattr(state, "count_correct", None)
+    if callable(direct_count_verified) and callable(direct_count_correct):
+        store = state
+    else:
+        store = (
+            getattr(state, "graph_store", None)
+            or getattr(state, "_graph_store", None)
+            or getattr(state, "store", None)
+            or getattr(state, "_store", None)
+            or state
+        )
     count_verified = getattr(store, "count_verified", None)
     count_correct = getattr(store, "count_correct", None)
     get_all_decisions = getattr(store, "get_all_decisions", None)
@@ -120,7 +131,9 @@ def _state_counts(state: Any) -> dict[str, float | int]:
         len(get_all_decisions()) if callable(get_all_decisions) else verified_count
     )
     penalty_ratio = _positive_float(
-        getattr(preset, "penalty_ratio", None),
+        getattr(store, "penalty_ratio", None)
+        or getattr(state, "penalty_ratio", None)
+        or getattr(preset, "penalty_ratio", None),
         default=1.0,
     )
     return {

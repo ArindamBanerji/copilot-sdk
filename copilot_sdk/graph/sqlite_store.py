@@ -132,6 +132,33 @@ class SQLiteGraphStore:
     def get_all_decisions(self) -> list[dict[str, Any]]:
         return self.get_decisions(category=None, limit=10**12)
 
+    def save_centroids(
+        self,
+        decision_id: str,
+        category: str,
+        centroids: Any,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        meta = metadata or {}
+        store = DecisionStore(self.db_path)
+        try:
+            store.save_centroids(
+                centroids,
+                iks=float(meta.get("iks", 0.0)),
+                decision_id=decision_id,
+                category=category,
+                metadata=meta,
+            )
+        finally:
+            store.close()
+
+    def get_centroid_checkpoints(self, limit: int = 50) -> list[dict[str, Any]]:
+        store = DecisionStore(self.db_path)
+        try:
+            return store.get_centroid_checkpoints(limit=max(int(limit), 0))
+        finally:
+            store.close()
+
     def close(self) -> None:
         return None
 

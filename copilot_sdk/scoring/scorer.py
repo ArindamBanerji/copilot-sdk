@@ -17,7 +17,7 @@ from copilot_sdk.scoring.fingerprint import FingerprintResult, compute_fingerpri
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.storage import DecisionStore
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
-from copilot_sdk.graph import GraphStore
+from copilot_sdk.graph.protocol import GraphStore
 
 
 def _ensure_gae_path() -> None:
@@ -72,6 +72,10 @@ class CompoundingScorer:
         self._preset = preset
         self._store = store
         self._scorer = scorer
+        if graph_store is None:
+            from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+
+            graph_store = SQLiteGraphStore(store.db_path, domain=preset.name)
         self._graph_store = graph_store
         self._reward_fn = reward_function
         self._credit = credit_assigner
@@ -102,6 +106,10 @@ class CompoundingScorer:
         centroids = store.load_latest_centroids()
         if centroids is None:
             centroids = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
+        if graph_store is None:
+            from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+
+            graph_store = SQLiteGraphStore(db_path, domain=preset.name)
 
         scorer = ProfileScorer(
             mu=centroids,
@@ -141,20 +149,23 @@ class CompoundingScorer:
 
         probabilities = [float(value) for value in gae_result.probabilities]
         decision_id = uuid.uuid4().hex[:12]
-
-        self._store.save_decision(
-            decision_id=decision_id,
-            domain=self._preset.name,
+        stored_id = self._graph_store.write_decision(
+            entity_id=decision_id,
             category=category,
-            category_index=category_index,
-            factors=factor_values,
-            factor_vector=factor_vector,
-            recommended_action=action,
-            recommended_index=action_index,
+            action=action,
             confidence=float(gae_result.confidence),
-            probabilities=probabilities,
-            created_at=time.time(),
+            factors=factor_values,
+            metadata={
+                "decision_id": decision_id,
+                "domain": self._preset.name,
+                "category_index": category_index,
+                "factor_vector": factor_vector.tolist(),
+                "recommended_index": action_index,
+                "probabilities": probabilities,
+                "created_at": time.time(),
+            },
         )
+        decision_id = stored_id
 
         return ScoreResult(
             decision_id=decision_id,
@@ -172,13 +183,18 @@ class CompoundingScorer:
         actual_action: str,
         outcome: str = "confirmed",
     ) -> LearnResult | dict[str, Any]:
-        decision = self._store.get_decision(decision_id)
+        decision = self._graph_store.get_decision(decision_id)
+        if decision is None:
+            raise KeyError(decision_id)
         assert actual_action in self._preset.shape.action_names, f"unknown action: {actual_action}"
 
         actual_index = self._preset.shape.action_names.index(actual_action)
-        predicted_index = int(decision["recommended_index"])
-        is_correct = actual_action == decision["recommended_action"]
-        factor_vector = np.asarray(decision["factor_vector"], dtype=np.float64)
+        predicted_index = int(_decision_field(decision, "recommended_index", 0))
+        recommended_action = str(_decision_field(decision, "recommended_action", _decision_field(decision, "action", "")))
+        is_correct = actual_action == recommended_action
+        factor_vector = np.asarray(_decision_field(decision, "factor_vector", []), dtype=np.float64)
+        category_index = int(_decision_field(decision, "category_index", 0))
+        confidence = float(_decision_field(decision, "confidence", 0.0))
 
         conservation_pause = self._conservation_pause()
         if conservation_pause is not None:
@@ -197,26 +213,34 @@ class CompoundingScorer:
             )
             update_result = self._scorer.update(
                 f=factor_vector,
-                category_index=int(decision["category_index"]),
+                category_index=category_index,
                 action_index=predicted_index,
                 correct=is_correct,
                 gt_action_index=None if is_correct else actual_index,
-                confidence=float(decision["confidence"]),
+                confidence=confidence,
             )
         finally:
             self._scorer.eta = old_eta
             self._scorer.eta_override = old_eta_override
 
         centroid_delta = float(np.linalg.norm(self._scorer.centroids - before_centroids))
-        self._store.save_outcome(
+        self._graph_store.write_outcome(
             decision_id=decision_id,
             actual_action=actual_action,
-            actual_index=actual_index,
             is_correct=is_correct,
-            verified_at=time.time(),
+            metadata={
+                "actual_index": actual_index,
+                "verified_at": time.time(),
+                "outcome": outcome,
+            },
         )
         iks_after = self._compute_iks()
-        self._store.save_centroids(self._scorer.centroids, iks=iks_after)
+        self._graph_store.save_centroids(
+            decision_id,
+            str(_decision_field(decision, "category", "")),
+            self._scorer.centroids,
+            metadata={"iks": iks_after},
+        )
         reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome)
         if reward_raw is not None:
             if self._explorer is not None:
@@ -244,14 +268,14 @@ class CompoundingScorer:
 
     def fingerprint(self) -> FingerprintResult:
         return compute_fingerprint(
-            self._store.get_verified_decisions(),
+            self._graph_store.get_verified_decisions(),
             list(self._preset.shape.factor_names),
         )
 
     def trajectory(self) -> TrajectoryResult:
         return compute_trajectory(
-            self._store.get_centroid_checkpoints(),
-            self._store.get_verified_decisions(),
+            self._graph_store.get_centroid_checkpoints(),
+            self._graph_store.get_verified_decisions(),
             self._preset.shape,
         )
 
@@ -261,7 +285,7 @@ class CompoundingScorer:
         payload = {
             "domain": self._preset.name,
             "centroids": self._scorer.centroids.tolist(),
-            "decisions": self._store.get_all_decisions(),
+            "decisions": self._graph_store.get_all_decisions(),
             "shape": {
                 "n_categories": self._preset.shape.n_categories,
                 "n_actions": self._preset.shape.n_actions,
@@ -281,11 +305,11 @@ class CompoundingScorer:
         return scorer
 
     def _compute_iks(self) -> float:
-        verified = self._store.count_verified()
+        verified = self._graph_store.count_verified()
         if verified == 0:
             return 0.0
 
-        correct = self._store.count_correct()
+        correct = self._graph_store.count_correct()
         accuracy = correct / verified
         fingerprint = self.fingerprint()
         mean_sigma = (
@@ -294,7 +318,10 @@ class CompoundingScorer:
             else 0.5
         )
         fingerprint_component = max(0.0, min((1.0 - mean_sigma / 0.5) * 25.0, 25.0))
-        coverage = self._store.count_categories_with_n(10) / self._preset.shape.n_categories
+        coverage = _count_categories_with_n(
+            self._graph_store.get_verified_decisions(),
+            10,
+        ) / self._preset.shape.n_categories
 
         iks = (
             min(verified / 500.0, 1.0) * 25.0
@@ -306,7 +333,7 @@ class CompoundingScorer:
 
     def _conservation_pause(self) -> dict[str, Any] | None:
         try:
-            verified, correct = _conservation_counts(self._graph_store or self._store)
+            verified, correct = _conservation_counts(self._graph_store)
         except Exception:
             return None
         if verified <= 0:
@@ -336,7 +363,7 @@ class CompoundingScorer:
             return None, None
 
         outcome_dict = {"outcome": outcome}
-        recommended_action = str(decision["recommended_action"])
+        recommended_action = str(_decision_field(decision, "recommended_action", _decision_field(decision, "action", "")))
         reward_raw = float(self._reward_fn.compute(
             recommended_action,
             actual_action,
@@ -347,6 +374,11 @@ class CompoundingScorer:
             _positive_penalty_ratio(getattr(self._preset, "penalty_ratio", None)),
         )
         return reward_raw, reward
+
+    @property
+    def graph_store(self) -> GraphStore:
+        """The GraphStore single source of truth."""
+        return self._graph_store
 
     @property
     def store(self) -> DecisionStore:
@@ -370,6 +402,30 @@ def _conservation_counts(store: Any) -> tuple[int, int]:
     verified = sum(1 for decision in decisions if _is_verified_decision(decision))
     correct = sum(1 for decision in decisions if _is_correct_decision(decision))
     return verified, correct
+
+
+def _decision_field(decision: dict[str, Any], key: str, default: Any = None) -> Any:
+    if key in decision:
+        return decision[key]
+    metadata = decision.get("metadata")
+    if isinstance(metadata, dict) and key in metadata:
+        return metadata[key]
+    factors = decision.get("factors")
+    if isinstance(factors, dict):
+        nested_metadata = factors.get("metadata")
+        if isinstance(nested_metadata, dict) and key in nested_metadata:
+            return nested_metadata[key]
+    return default
+
+
+def _count_categories_with_n(decisions: list[dict[str, Any]], n: int) -> int:
+    counts: dict[str, int] = {}
+    for decision in decisions:
+        category = str(decision.get("category") or "")
+        if not category:
+            continue
+        counts[category] = counts.get(category, 0) + 1
+    return sum(1 for count in counts.values() if count >= n)
 
 
 def _is_verified_decision(decision: dict[str, Any]) -> bool:

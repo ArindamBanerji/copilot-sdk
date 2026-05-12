@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { TrajectoryChart } from "../../../../../copilot_sdk/frontend";
 import { getCentroidHistory, getTrajectory } from "../api";
+import CentroidTimelineChart from "../components/CentroidTimelineChart";
 import CentroidTimeline from "../components/CentroidTimeline";
 import DisruptionAnnotation from "../components/DisruptionAnnotation";
 import type { CentroidHistoryResponse, TrajectoryResponse } from "../types";
@@ -66,6 +67,7 @@ export default function CurveScreen() {
         decisionsTotal={trajectory?.decisionsTotal ?? points[points.length - 1]?.decisions ?? 0}
         daysActive={trajectory?.daysActive ?? 0}
       />
+      <CentroidTimelineChart />
       <DisruptionAnnotation />
       <CentroidTimeline data={centroidHistory} />
     </div>

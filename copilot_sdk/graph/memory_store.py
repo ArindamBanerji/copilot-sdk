@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 import uuid
 from copy import deepcopy
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -14,6 +15,7 @@ class InMemoryGraphStore:
     def __init__(self) -> None:
         self._decisions: dict[str, dict[str, Any]] = {}
         self._outcomes: dict[str, dict[str, Any]] = {}
+        self._centroid_checkpoints: list[dict[str, Any]] = []
         self._sequence = 0
 
     def write_decision(
@@ -99,9 +101,33 @@ class InMemoryGraphStore:
     def get_all_decisions(self) -> list[dict[str, Any]]:
         return self.get_decisions(category=None, limit=len(self._decisions))
 
+    def save_centroids(
+        self,
+        decision_id: str,
+        category: str,
+        centroids: Any,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self._centroid_checkpoints.append(
+            {
+                "decision_id": decision_id,
+                "category": category,
+                "centroids": deepcopy(centroids),
+                "metadata": deepcopy(metadata or {}),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+
+    def get_centroid_checkpoints(self, limit: int = 50) -> list[dict[str, Any]]:
+        limit_value = max(int(limit), 0)
+        if limit_value == 0:
+            return []
+        return deepcopy(self._centroid_checkpoints[-limit_value:])
+
     def reset(self) -> None:
         self._decisions.clear()
         self._outcomes.clear()
+        self._centroid_checkpoints.clear()
         self._sequence = 0
 
     def close(self) -> None:

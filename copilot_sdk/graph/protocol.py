@@ -51,5 +51,17 @@ class GraphStore(Protocol):
     def get_all_decisions(self) -> list[dict[str, Any]]:
         ...
 
+    def save_centroids(
+        self,
+        decision_id: str,
+        category: str,
+        centroids: Any,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        ...
+
+    def get_centroid_checkpoints(self, limit: int = 50) -> list[dict[str, Any]]:
+        ...
+
     def close(self) -> None:
         ...

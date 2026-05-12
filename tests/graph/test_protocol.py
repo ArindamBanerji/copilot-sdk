@@ -18,8 +18,18 @@ def test_graph_store_protocol_required_methods_exist():
         "count_verified",
         "count_correct",
         "get_all_decisions",
+        "save_centroids",
+        "get_centroid_checkpoints",
         "close",
     ]
 
     for method in required:
         assert hasattr(GraphStore, method)
+
+
+def test_graphstore_protocol_has_save_centroids():
+    assert hasattr(GraphStore, "save_centroids")
+
+
+def test_graphstore_protocol_has_get_centroid_checkpoints():
+    assert hasattr(GraphStore, "get_centroid_checkpoints")

@@ -65,14 +65,32 @@ class DecisionStore:
 
             CREATE TABLE IF NOT EXISTS centroid_checkpoints (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                decision_id TEXT,
+                category TEXT,
                 centroids_json TEXT NOT NULL,
                 decisions_count INTEGER NOT NULL,
                 iks REAL NOT NULL,
+                metadata_json TEXT NOT NULL DEFAULT '{}',
                 created_at REAL NOT NULL
             );
             """
         )
+        self._ensure_centroid_columns()
         self.connection.commit()
+
+    def _ensure_centroid_columns(self) -> None:
+        columns = {
+            row["name"]
+            for row in self.connection.execute("PRAGMA table_info(centroid_checkpoints)").fetchall()
+        }
+        if "decision_id" not in columns:
+            self.connection.execute("ALTER TABLE centroid_checkpoints ADD COLUMN decision_id TEXT")
+        if "category" not in columns:
+            self.connection.execute("ALTER TABLE centroid_checkpoints ADD COLUMN category TEXT")
+        if "metadata_json" not in columns:
+            self.connection.execute(
+                "ALTER TABLE centroid_checkpoints ADD COLUMN metadata_json TEXT NOT NULL DEFAULT '{}'"
+            )
 
     def save_decision(
         self,
@@ -138,17 +156,29 @@ class DecisionStore:
         )
         self.connection.commit()
 
-    def save_centroids(self, centroids: np.ndarray, iks: float = 0.0) -> None:
+    def save_centroids(
+        self,
+        centroids: np.ndarray,
+        iks: float = 0.0,
+        *,
+        decision_id: str | None = None,
+        category: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         self.connection.execute(
             """
             INSERT INTO centroid_checkpoints (
-                centroids_json, decisions_count, iks, created_at
-            ) VALUES (?, ?, ?, ?)
+                decision_id, category, centroids_json, decisions_count, iks,
+                metadata_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
+                decision_id,
+                category,
                 _to_json(np.asarray(centroids, dtype=float)),
                 self._count_decisions(),
                 float(iks),
+                _to_json(metadata or {}),
                 time.time(),
             ),
         )
@@ -190,19 +220,33 @@ class DecisionStore:
         ).fetchall()
         return [self._verified_from_row(row) for row in rows]
 
-    def get_centroid_checkpoints(self) -> list[dict[str, Any]]:
-        rows = self.connection.execute(
-            """
-            SELECT * FROM centroid_checkpoints
-            ORDER BY id ASC
-            """
-        ).fetchall()
+    def get_centroid_checkpoints(self, limit: int | None = None) -> list[dict[str, Any]]:
+        if limit is None:
+            rows = self.connection.execute(
+                """
+                SELECT * FROM centroid_checkpoints
+                ORDER BY id ASC
+                """
+            ).fetchall()
+        else:
+            rows = self.connection.execute(
+                """
+                SELECT * FROM centroid_checkpoints
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (max(int(limit), 0),),
+            ).fetchall()
+            rows = list(reversed(rows))
         return [
             {
                 "id": int(row["id"]),
+                "decision_id": row["decision_id"],
+                "category": row["category"],
                 "centroids": np.asarray(_from_json(row["centroids_json"]), dtype=np.float64),
                 "decisions_count": int(row["decisions_count"]),
                 "iks": float(row["iks"]),
+                "metadata": _from_json(row["metadata_json"]),
                 "created_at": float(row["created_at"]),
             }
             for row in rows

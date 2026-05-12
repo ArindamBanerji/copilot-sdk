@@ -21,45 +21,18 @@ for path in (REPO_ROOT, GAE_PATH):
 
 from .context_router import router as context_router  # noqa: E402
 from copilot_sdk.backend import create_conservation_router, create_evolution_router, create_scoring_router  # noqa: E402
+from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.scoring import CompoundingScorer  # noqa: E402
-from copilot_sdk.scoring.storage import DecisionStore  # noqa: E402
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / "purchasing.db"
 
 
-class _StoreProxy:
-    def __init__(self, db_path: str):
-        self._db_path = db_path
-
-    def get_decision(self, decision_id: str) -> dict:
-        store = DecisionStore(self._db_path)
-        try:
-            return store.get_decision(decision_id)
-        finally:
-            store.close()
-
-    def get_all_decisions(self) -> list[dict]:
-        store = DecisionStore(self._db_path)
-        try:
-            return store.get_all_decisions()
-        finally:
-            store.close()
-
-    def count_verified(self) -> int:
-        store = DecisionStore(self._db_path)
-        try:
-            return store.count_verified()
-        finally:
-            store.close()
-
-    def count_correct(self) -> int:
-        store = DecisionStore(self._db_path)
-        try:
-            return store.count_correct()
-        finally:
-            store.close()
+def _graph_store(db_path: str | Path):
+    store = SQLiteGraphStore(str(db_path), domain="purchasing")
+    store.penalty_ratio = 3.0
+    return store
 
 
 class _FreshScorerProxy:
@@ -67,7 +40,7 @@ class _FreshScorerProxy:
 
     def __init__(self, db_path: str):
         self._db_path = db_path
-        self.store = _StoreProxy(db_path)
+        self.store = _graph_store(db_path)
 
     def _scorer(self) -> CompoundingScorer:
         return CompoundingScorer.from_preset("purchasing", db_path=self._db_path)
@@ -113,48 +86,6 @@ class _FixtureEvolutionLedger:
 
 def _ledger_provider() -> _FixtureEvolutionLedger:
     return _FixtureEvolutionLedger(DATA_DIR / "evolution_fixtures.json")
-
-
-def _conservation_state(db_path: str | Path | None = None) -> dict[str, float | int]:
-    store = DecisionStore(str(db_path or DEFAULT_DB_PATH))
-    try:
-        verified_count = _count_verified(store)
-        correct_count = _count_correct(store)
-        total_decisions = len(store.get_all_decisions())
-    finally:
-        store.close()
-    return {
-        "verified_count": verified_count,
-        "correct_count": correct_count,
-        "total_decisions": total_decisions,
-        "penalty_ratio": 3.0,
-    }
-
-
-def _count_verified(store: Any) -> int:
-    count_verified = getattr(store, "count_verified", None)
-    if callable(count_verified):
-        return int(count_verified())
-    return sum(1 for decision in store.get_all_decisions() if _is_verified_decision(decision))
-
-
-def _count_correct(store: Any) -> int:
-    count_correct = getattr(store, "count_correct", None)
-    if callable(count_correct):
-        return int(count_correct())
-    return sum(1 for decision in store.get_all_decisions() if _is_correct_decision(decision))
-
-
-def _is_verified_decision(decision: dict[str, Any]) -> bool:
-    outcome = decision.get("outcome")
-    if outcome is not None:
-        return str(outcome).strip() != ""
-    return decision.get("is_correct") is not None
-
-
-def _is_correct_decision(decision: dict[str, Any]) -> bool:
-    outcome = str(decision.get("outcome") or "").lower()
-    return outcome == "confirmed" or bool(decision.get("is_correct"))
 
 
 def _filter_variants_by_query(
@@ -223,7 +154,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     app.include_router(
         create_conservation_router(
             "purchasing",
-            state_provider=lambda: _conservation_state(scoring_db),
+            state_provider=lambda: _graph_store(scoring_db),
         ),
         prefix="/api",
     )

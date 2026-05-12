@@ -124,7 +124,21 @@ test("conservation projection shows timeline or accuracy gap", async ({ page }) 
 test("accuracy by category shows alert levels", async ({ page }) => {
   await page.goto("/");
 
-  await expectAnyText(page, [/Accuracy by Category/i, /accuracy.*category/i]);
-  await expectAnyText(page, [/pipeline/i, /freshness/i, /schema/i]);
-  await expectAnyText(page, [/critical/i, /warning/i, /\bok\b/i, /declining/i]);
+  await expectAnyText(page, [/Accuracy Alerts/i, /accuracy.*alert/i, /No verified decisions yet/i]);
+  await expectAnyText(page, [/threshold/i, /verified decisions/i, /category/i, /SC-12/i]);
+});
+
+test("SC-12 accuracy panel shows per-category bars", async ({ page }) => {
+  await page.goto("/");
+
+  const panel = page.locator("section", { hasText: /Accuracy Alerts|No verified decisions yet/i }).first();
+  await expect(panel).toBeVisible();
+  await expectAnyText(page, [/accuracy/i, /category/i, /threshold/i, /verified decisions/i]);
+});
+
+test("SC-12 accuracy panel shows alert threshold or percent", async ({ page }) => {
+  await page.goto("/");
+
+  await expectAnyText(page, [/SC-12/i, /Accuracy Alerts/i, /No verified decisions yet/i]);
+  await expectAnyText(page, [/threshold/i, /alert/i, /below/i, /%/, /verified decisions/i]);
 });

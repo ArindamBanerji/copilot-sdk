@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import threading
 
+import numpy as np
+
 from copilot_sdk.graph import SQLiteGraphStore
 from copilot_sdk.scoring.storage import DecisionStore
 
@@ -67,6 +69,63 @@ def test_sqlite_get_all_decisions(tmp_path):
     store.write_decision("e-1", "alpha", "approve", 0.8, {"x": 1.0})
 
     assert len(store.get_all_decisions()) == 1
+
+
+def test_sqlite_save_centroids_persists(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+
+    store.save_centroids(
+        "decision-1",
+        "alpha",
+        [[0.1, 0.2]],
+        metadata={"iks": 4.5, "source": "unit"},
+    )
+
+    checkpoints = store.get_centroid_checkpoints()
+    assert len(checkpoints) == 1
+    assert checkpoints[0]["decision_id"] == "decision-1"
+    assert checkpoints[0]["category"] == "alpha"
+    np.testing.assert_allclose(checkpoints[0]["centroids"], np.array([[0.1, 0.2]]))
+    assert checkpoints[0]["iks"] == 4.5
+    assert checkpoints[0]["metadata"] == {"iks": 4.5, "source": "unit"}
+
+
+def test_sqlite_centroid_checkpoints_ordered(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+    for index in range(3):
+        store.save_centroids(f"decision-{index}", "alpha", [[float(index)]])
+
+    checkpoints = store.get_centroid_checkpoints()
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == [
+        "decision-0",
+        "decision-1",
+        "decision-2",
+    ]
+
+
+def test_sqlite_centroid_checkpoints_limit(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+    for index in range(4):
+        store.save_centroids(f"decision-{index}", "alpha", [[float(index)]])
+
+    checkpoints = store.get_centroid_checkpoints(limit=2)
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == [
+        "decision-2",
+        "decision-3",
+    ]
+
+
+def test_sqlite_centroid_json_roundtrip(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+    centroids = [[0.1, 0.2], [0.3, 0.4]]
+    store.save_centroids("decision-1", "alpha", centroids, metadata={"nested": {"ok": True}})
+
+    checkpoint = store.get_centroid_checkpoints()[0]
+
+    np.testing.assert_allclose(checkpoint["centroids"], np.asarray(centroids))
+    assert checkpoint["metadata"]["nested"]["ok"] is True
 
 
 def test_sqlite_matches_raw_decision_store(tmp_path):

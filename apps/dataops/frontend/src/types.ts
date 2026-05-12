@@ -381,12 +381,14 @@ export interface DecisionExplorerResponse {
 }
 
 export interface CategoryAccuracy {
+  category?: string;
   total?: number;
   correct?: number;
   accuracy?: number | null;
   trend?: "declining" | "improving" | "stable" | string;
   recentAccuracy?: number | null;
   alertLevel?: "critical" | "warning" | "ok" | string;
+  alert?: boolean;
 }
 
 export interface AccuracyByCategoryResponse {
@@ -416,6 +418,63 @@ export interface CentroidHistoryResponse {
   snapshots?: CentroidSnapshot[];
   factorNames?: string[];
   totalDecisions?: number;
+}
+
+export interface CentroidCheckpoint {
+  decisionId?: string;
+  decision_id?: string;
+  category?: string;
+  centroids?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
+  created_at?: string;
+}
+
+export interface SelfCentroidHistoryResponse {
+  checkpoints?: CentroidCheckpoint[];
+  total?: number;
+}
+
+export interface SelfCategoryAccuracy {
+  category?: string;
+  accuracy?: number;
+  total?: number;
+  correct?: number;
+  alert?: boolean;
+}
+
+export interface SelfAccuracyByCategoryResponse {
+  categories?: SelfCategoryAccuracy[];
+  threshold?: number;
+  overallVerified?: number;
+  overall_verified?: number;
+}
+
+export interface SelfDecisionEntry {
+  decisionId?: string;
+  decision_id?: string;
+  entityId?: string;
+  entity_id?: string;
+  category?: string;
+  recommendedAction?: string;
+  recommended_action?: string;
+  actualAction?: string;
+  actual_action?: string;
+  action?: string;
+  confidence?: number;
+  factors?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  isCorrect?: boolean;
+  is_correct?: boolean;
+  createdAt?: number | string;
+  created_at?: number | string;
+  verifiedAt?: number | string;
+  verified_at?: number | string;
+}
+
+export interface SelfDecisionExplorerResponse {
+  decisions?: SelfDecisionEntry[];
+  total?: number;
 }
 
 export interface Transformation {
@@ -760,6 +819,37 @@ export interface AuditTrailResponse {
   system?: string | null;
   chain?: AuditTrailStep[];
   complete?: boolean;
+}
+
+export interface AuditTrailEntry {
+  decisionId?: string;
+  decision_id?: string;
+  category?: string;
+  recommendedAction?: string;
+  recommended_action?: string;
+  actualAction?: string;
+  actual_action?: string;
+  confidence?: number;
+  factors?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  outcomeMetadata?: Record<string, unknown>;
+  outcome_metadata?: Record<string, unknown>;
+  isCorrect?: boolean;
+  is_correct?: boolean;
+  createdAt?: number | string;
+  created_at?: number | string;
+  verifiedAt?: number | string;
+  verified_at?: number | string;
+}
+
+export interface SelfAuditTrailResponse {
+  decision?: AuditTrailEntry | null;
+  outcome?: AuditTrailEntry | null;
+  chainComplete?: boolean;
+  chain_complete?: boolean;
+  trails?: AuditTrailEntry[];
+  total?: number;
+  error?: string;
 }
 
 export interface ScoreResponse {

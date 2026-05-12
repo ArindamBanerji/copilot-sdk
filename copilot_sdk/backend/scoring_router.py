@@ -122,11 +122,13 @@ def create_scoring_router(
     @router.get("/history")
     def history() -> dict[str, Any]:
         scorer = get_scorer()
-        store = getattr(scorer, "store", None)
-        if store is None:
-            store = getattr(scorer, "_store", None)
-        get_all = getattr(store, "get_all_decisions", None)
-        decisions = get_all() if callable(get_all) else []
+        store = _scorer_data_store(scorer)
+        get_decisions = getattr(store, "get_decisions", None)
+        if callable(get_decisions):
+            decisions = get_decisions(limit=10**12)
+        else:
+            get_all = getattr(store, "get_all_decisions", None)
+            decisions = get_all() if callable(get_all) else []
         return {"engine": ENGINE, "decisions": _json_safe(decisions)}
 
     return router
@@ -189,13 +191,22 @@ def _signed_reward(
 
 
 def _get_decision(scorer: Any, decision_id: str) -> dict[str, Any]:
-    store = getattr(scorer, "store", None)
-    if store is None:
-        store = getattr(scorer, "_store", None)
+    store = _scorer_data_store(scorer)
     get_decision = getattr(store, "get_decision", None)
     if not callable(get_decision):
         raise KeyError(decision_id)
-    return dict(get_decision(decision_id))
+    decision = get_decision(decision_id)
+    if decision is None:
+        raise KeyError(decision_id)
+    return dict(decision)
+
+
+def _scorer_data_store(scorer: Any) -> Any:
+    for name in ("graph_store", "_graph_store", "store", "_store"):
+        store = getattr(scorer, name, None)
+        if store is not None:
+            return store
+    return None
 
 
 def _previous_reward(context: dict[str, Any]) -> float | None:

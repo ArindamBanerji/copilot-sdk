@@ -441,11 +441,11 @@ def test_conservation_status_returns_live_counts(client):
     assert payload["penalty_ratio"] == 3.0
 
 
-def test_store_proxy_count_verified(tmp_path):
-    from app.main import _StoreProxy
+def test_graph_store_count_verified(tmp_path):
+    from app.main import _graph_store
     from copilot_sdk.scoring.storage import DecisionStore
 
-    db_path = tmp_path / "proxy.sqlite"
+    db_path = tmp_path / "graph.sqlite"
     store = DecisionStore(db_path)
     try:
         _save_proxy_decision(store, "d-1")
@@ -459,14 +459,14 @@ def test_store_proxy_count_verified(tmp_path):
     finally:
         store.close()
 
-    assert _StoreProxy(str(db_path)).count_verified() == 1
+    assert _graph_store(str(db_path)).count_verified() == 1
 
 
-def test_store_proxy_count_correct(tmp_path):
-    from app.main import _StoreProxy
+def test_graph_store_count_correct(tmp_path):
+    from app.main import _graph_store
     from copilot_sdk.scoring.storage import DecisionStore
 
-    db_path = tmp_path / "proxy.sqlite"
+    db_path = tmp_path / "graph.sqlite"
     store = DecisionStore(db_path)
     try:
         _save_proxy_decision(store, "d-1")
@@ -486,7 +486,7 @@ def test_store_proxy_count_correct(tmp_path):
     finally:
         store.close()
 
-    assert _StoreProxy(str(db_path)).count_correct() == 1
+    assert _graph_store(str(db_path)).count_correct() == 1
 
 
 def test_evolution_variants(client):

@@ -55,6 +55,31 @@ def test_status_uses_state_provider_counts():
     assert "theta_min" in payload
 
 
+def test_status_accepts_graph_store_like_object():
+    class GraphStoreLike:
+        penalty_ratio = 7.0
+
+        def count_verified(self) -> int:
+            return 3
+
+        def count_correct(self) -> int:
+            return 2
+
+        def get_all_decisions(self) -> list[dict]:
+            return [{"decision_id": "d-1"}, {"decision_id": "d-2"}, {"decision_id": "d-3"}, {"decision_id": "d-4"}]
+
+    client = build_client(state_provider=GraphStoreLike())
+
+    response = client.get("/conservation/status")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["verified_count"] == 3
+    assert payload["correct_count"] == 2
+    assert payload["total_decisions"] == 4
+    assert payload["penalty_ratio"] == 7.0
+
+
 def test_what_if_returns_safe_result_and_engine():
     client = build_client()
 

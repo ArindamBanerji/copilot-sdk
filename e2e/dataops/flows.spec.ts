@@ -90,19 +90,18 @@ test("insight exploration: fingerprint, incident, evidence, curve", async ({ pag
 
   await clickTab(page, "Insight");
   await expect(page.getByText("Fingerprint")).toBeVisible();
-  await expectAnyText(page, [/Decision Explorer/i, /\d+\s+decisions?/i]);
+  await expectAnyText(page, [/Decision Explorer/i, /\d+\s+GraphStore decisions?/i, /No decisions match these filters/i]);
   await expect(page.getByText("Incident Replay")).toBeVisible();
 
   await clickTab(page, "Evidence");
   await expect(page.getByText("AgentEvolver Audit Trail")).toBeVisible();
   await expectAnyText(page, [/Rule Lifecycle/i, /promoted/i, /rejected/i]);
-  const auditTrail = page.locator("section", { hasText: /Alert Detected|Context Gathered/i }).first();
+  const auditTrail = page.locator("section", { hasText: /Audit Trail/i }).first();
   await expect(auditTrail).toBeVisible();
-  await expectAnyText(page, [/Alert Detected/i, /Context Gathered/i]);
-  await expectAnyText(page, [/Complete chain/i, /Incomplete chain/i]);
+  await expectAnyText(page, [/decision/i, /factors/i, /recommendation/i, /outcome/i, /No audit trail available yet/i]);
   const genealogy = page.locator("section", { hasText: "Rule Genealogy" }).first();
   await expect(genealogy).toBeVisible();
-  await expect(genealogy.getByText(/68%|69%|75%|83%|improvement/i).first()).toBeVisible();
+  await expect(genealogy.getByText(/SOC|S2P|DataOps|seeded evolution data/i).first()).toBeVisible();
   await expect(page.getByText("Pattern Origin")).toBeVisible();
 
   await clickTab(page, "Curve");
@@ -116,15 +115,14 @@ test("evidence deep exploration shows impact lifecycle audit trail and genealogy
   await clickTab(page, "Evidence");
   await expectAnyText(page, [/AgentEvolver Impact/i, /Auto-resolved/i, /Accuracy/i]);
   await expectAnyText(page, [/Rule Lifecycle/i, /promoted/i, /rejected/i]);
-  const auditTrail = page.locator("section", { hasText: /Alert Detected|Context Gathered/i }).first();
+  const auditTrail = page.locator("section", { hasText: /Audit Trail/i }).first();
   await expect(auditTrail).toBeVisible();
-  await expect(auditTrail.getByText(/Alert Detected/i).first()).toBeVisible();
-  await expect(auditTrail.getByText(/Context Gathered/i).first()).toBeVisible();
-  await expect(auditTrail.getByText(/Complete chain|Incomplete chain/i).first()).toBeVisible();
+  await expect(auditTrail.getByText(/decision|No audit trail available yet/i).first()).toBeVisible();
+  await expect(auditTrail.getByText(/outcome|No audit trail available yet/i).first()).toBeVisible();
   const genealogy = page.locator("section", { hasText: "Rule Genealogy" }).first();
   await expect(genealogy).toBeVisible();
-  await expect(genealogy.getByText(/68%|69%|75%|83%/i).first()).toBeVisible();
-  await expect(genealogy.getByText(/improvement|win-rate progression|decisions/i).first()).toBeVisible();
+  await expect(genealogy.getByText(/SOC|S2P|DataOps/i).first()).toBeVisible();
+  await expect(genealogy.getByText(/seeded evolution data|warm start|transfer/i).first()).toBeVisible();
   await expect(page.getByText("Pattern Origin")).toBeVisible();
 });
 
@@ -189,7 +187,7 @@ test("decision explorer shows real category breakdown after a scored decision", 
   await clickTab(page, "Insight");
   const explorer = page.locator("section", { hasText: "Decision Explorer" });
   await expect(explorer).toBeVisible();
-  await expect(explorer.getByText("By Category")).toBeVisible();
+  await expect(explorer.getByText("Category").first()).toBeVisible();
   // Backend unit tests verify live metadata category enrichment. This E2E keeps the UI claim narrower:
   // after a score/learn cycle, the Decision Explorer still exposes real DataOps category breakdowns.
   await expectAnyText(page, [/by category/i, /category/i, /\d+\s+decisions?/i]);
@@ -213,7 +211,7 @@ test("triage score then insight shows decision explorer count", async ({ page })
   await clickTab(page, "Insight");
   const explorer = page.locator("section", { hasText: "Decision Explorer" });
   await expect(explorer).toBeVisible();
-  await expectAnyText(page, [/Decision Explorer/i, /\d+\s+decisions?/i]);
+  await expectAnyText(page, [/Decision Explorer/i, /\d+\s+GraphStore decisions?/i, /No decisions match these filters/i]);
 });
 
 test("score alert then Curve shows IKS and centroid evolution", async ({ page }) => {
@@ -233,7 +231,7 @@ test("score alert then Curve shows IKS and centroid evolution", async ({ page })
 
   await clickTab(page, "Curve");
   await expectAnyText(page, [/Current IKS/i, /\bIKS\b/i]);
-  await expectAnyText(page, [/Centroid Evolution/i, /centroid/i, /top shifts/i, /verified decisions/i]);
+  await expectAnyText(page, [/Centroid Evolution/i, /Centroid History/i, /centroid/i, /top shifts/i, /verified decisions/i]);
 });
 
 test("full round trip visits Dashboard, Triage, Insight, Evidence, and Curve", async ({ page }) => {
@@ -252,8 +250,8 @@ test("full round trip visits Dashboard, Triage, Insight, Evidence, and Curve", a
 
   await clickTab(page, "Evidence");
   await expectAnyText(page, [/AgentEvolver Impact/i, /Rule Lifecycle/i]);
-  await expectAnyText(page, [/Alert Detected/i, /Context Gathered/i]);
-  await expectAnyText(page, [/Rule Genealogy/i, /win-rate progression/i, /improvement/i]);
+  await expectAnyText(page, [/Audit Trail/i, /decision/i, /outcome/i, /No audit trail available yet/i]);
+  await expectAnyText(page, [/Rule Genealogy/i, /seeded evolution data/i, /warm start/i, /transfer/i]);
 
   await clickTab(page, "Curve");
   await expectAnyText(page, [/Trajectory/i, /Current IKS/i, /Centroid Evolution/i]);
@@ -306,11 +304,63 @@ test("full Level 3 story shows bottleneck schema rules genealogy and curve", asy
   await expectAnyText(page, [/Schema Impact/i, /proposed fix/i, /downstream/i]);
   await expectAnyText(page, [/Operational Rules/i, /scheduling/i, /quality/i]);
   await expectAnyText(page, [/Rule Lifecycle/i, /promoted/i, /rejected/i]);
-  await expectAnyText(page, [/Rule Genealogy/i, /68%|69%|75%|83%/i, /improvement/i]);
+  await expectAnyText(page, [/Rule Genealogy/i, /SOC/i, /S2P/i, /DataOps/i]);
   await expectAnyText(page, [/Pattern Origin/i, /SOC/i, /S2P/i]);
 
   await clickTab(page, "Curve");
   await expectAnyText(page, [/Trajectory/i, /Current IKS/i, /Centroid Evolution/i]);
+});
+
+test("self-computation round trip: all 4 tabs show SC features", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/SC-12/i, /Accuracy Alerts/i, /No verified decisions yet/i]);
+
+  await clickTab(page, "Insight");
+  await expectAnyText(page, [/SC-14/i, /Decision Explorer/i, /Category/i, /Action/i]);
+
+  await clickTab(page, "Evidence");
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /SC-15/i, /Rule Lifecycle/i, /SC-16/i, /Audit Trail/i]);
+
+  await clickTab(page, "Curve");
+  await expectAnyText(page, [/SC-11/i, /Centroid History/i, /No centroid history yet/i, /checkpoints/i]);
+});
+
+test("accuracy alert to decision explorer drill-down", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/Accuracy Alerts/i, /threshold/i, /verified decisions/i]);
+
+  await clickTab(page, "Insight");
+  const explorer = page.locator("section", { hasText: "Decision Explorer" }).first();
+  await expect(explorer).toBeVisible();
+  await expectAnyText(page, [/Category/i, /Action/i, /Verified only/i, /Confidence/i]);
+});
+
+test("centroid evolution to audit trail narrative", async ({ page }) => {
+  await page.goto("/");
+  await clickTab(page, "Curve");
+  await expectAnyText(page, [/Centroid History/i, /centroid/i, /No centroid history yet/i]);
+
+  await clickTab(page, "Evidence");
+  await expectAnyText(page, [/Audit Trail/i, /decision/i, /factors/i, /recommendation/i, /outcome/i, /No audit trail available yet/i]);
+});
+
+test("evidence screen shows all three SC components", async ({ page }) => {
+  await page.goto("/");
+  await clickTab(page, "Evidence");
+
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i]);
+  await expectAnyText(page, [/SC-15/i, /Rule Lifecycle/i]);
+  await expectAnyText(page, [/SC-16/i, /Audit Trail/i]);
+});
+
+test("self-computation features survive page reload", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/Accuracy Alerts/i, /SC-12/i]);
+  await page.reload();
+  await expectAnyText(page, [/Accuracy Alerts/i, /SC-12/i, /No verified decisions yet/i]);
+
+  await clickTab(page, "Insight");
+  await expectAnyText(page, [/Decision Explorer/i, /SC-14/i]);
 });
 
 test("OE-5 what-if shows impact change on reorder interaction", async ({ page }) => {

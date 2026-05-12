@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import pytest
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
 
+from copilot_sdk.backend import scoring_router as scoring_router_module
 from copilot_sdk.backend.scoring_router import create_scoring_router
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 @dataclass(frozen=True)
@@ -158,6 +161,58 @@ class FakeScorer:
             current_win_rate=1.0,
             decisions_total=1,
             days_active=0.0,
+        )
+
+
+class GraphStoreBackedScorer(FakeScorer):
+    def __init__(self) -> None:
+        super().__init__()
+        self.graph_store = InMemoryGraphStore()
+        self.learn_calls = []
+
+    def score(self, factors: dict[str, float], category: str) -> FakeScoreResult:
+        if category == "bad":
+            raise AssertionError("unknown category: bad")
+        decision_id = self.graph_store.write_decision(
+            entity_id="entity-1",
+            category=category,
+            action="auto_approve",
+            confidence=0.72,
+            factors=factors,
+            metadata={"decision_id": "graph-dec-1"},
+        )
+        return FakeScoreResult(
+            decision_id=decision_id,
+            action="auto_approve",
+            action_index=0,
+            confidence=0.72,
+            probabilities=[0.72, 0.28],
+            category=category,
+            factors=factors,
+        )
+
+    def learn(
+        self,
+        decision_id: str,
+        actual_action: str,
+        outcome: str = "confirmed",
+    ) -> FakeLearnResult:
+        self.learn_calls.append((decision_id, actual_action, outcome))
+        decision = self.graph_store.get_decision(decision_id)
+        if decision is None:
+            raise KeyError(decision_id)
+        self.graph_store.write_outcome(
+            decision_id,
+            actual_action,
+            actual_action == decision["recommended_action"],
+        )
+        return FakeLearnResult(
+            decision_id=decision_id,
+            iks_before=0.0,
+            iks_after=25.1,
+            centroid_delta=0.012,
+            decisions_total=1,
+            outcome="applied",
         )
 
 
@@ -353,6 +408,69 @@ def test_history_returns_empty_then_populated_decisions():
 
     assert populated.status_code == 200
     assert len(populated.json()["decisions"]) == 1
+
+
+def test_learn_prelookup_prefers_graph_store_over_legacy_store():
+    scorer = GraphStoreBackedScorer()
+    client = build_client(scorer=scorer)
+    score = client.post(
+        "/score",
+        json={
+            "category": "pipeline_failure",
+            "factors": {
+                "business_criticality": 0.8,
+                "impact_scope": 0.5,
+            },
+        },
+    ).json()
+
+    response = client.post(
+        "/learn",
+        json={"decision_id": score["decision_id"], "actual_action": "auto_approve"},
+    )
+
+    assert response.status_code == 200
+    assert scorer.store.get_all_decisions() == []
+    assert scorer.graph_store.count_verified() == 1
+    assert scorer.learn_calls == [("graph-dec-1", "auto_approve", "confirmed")]
+
+
+def test_history_prefers_graph_store_over_legacy_store():
+    scorer = GraphStoreBackedScorer()
+    client = build_client(scorer=scorer)
+    client.post(
+        "/score",
+        json={
+            "category": "pipeline_failure",
+            "factors": {
+                "business_criticality": 0.8,
+                "impact_scope": 0.5,
+            },
+        },
+    )
+
+    response = client.get("/history")
+
+    assert response.status_code == 200
+    decisions = response.json()["decisions"]
+    assert [decision["decision_id"] for decision in decisions] == ["graph-dec-1"]
+    assert scorer.store.get_all_decisions() == []
+
+
+def test_scoring_router_source_order_prefers_graph_store():
+    source = Path(scoring_router_module.__file__).read_text(encoding="utf-8")
+    graph_pos = min(
+        position
+        for position in [source.find('"graph_store"'), source.find('"_graph_store"')]
+        if position != -1
+    )
+    store_pos = min(
+        position
+        for position in [source.find('"store"'), source.find('"_store"')]
+        if position != -1
+    )
+
+    assert graph_pos < store_pos
 
 
 def test_invalid_score_input_returns_400():

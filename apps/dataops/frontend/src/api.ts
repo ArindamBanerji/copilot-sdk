@@ -34,6 +34,10 @@ import type {
   ProcessData,
   SapPurchaseOrdersResponse,
   SchemaImpactResponse,
+  SelfAccuracyByCategoryResponse,
+  SelfAuditTrailResponse,
+  SelfCentroidHistoryResponse,
+  SelfDecisionExplorerResponse,
   TransformationsResponse,
 } from "./types";
 
@@ -86,6 +90,14 @@ async function apiGet<T>(path: string): Promise<T> {
     throw new Error(`${response.status} ${response.statusText}`);
   }
   return normalize<T>(await response.json());
+}
+
+async function safeApiGet<T>(path: string): Promise<T | null> {
+  try {
+    return await apiGet<T>(path);
+  } catch {
+    return null;
+  }
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
@@ -182,6 +194,18 @@ export async function getCentroidHistory(category?: string): Promise<CentroidHis
   return apiGet<CentroidHistoryResponse>(`/api/context/centroid-history${query ? `?${query}` : ""}`);
 }
 
+export async function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  return safeApiGet<SelfCentroidHistoryResponse>(`/api/self/centroid-history?${params.toString()}`);
+}
+
+export async function fetchAccuracyByCategory(threshold = 0.7): Promise<SelfAccuracyByCategoryResponse | null> {
+  const params = new URLSearchParams();
+  params.set("threshold", String(threshold));
+  return safeApiGet<SelfAccuracyByCategoryResponse>(`/api/self/accuracy-by-category?${params.toString()}`);
+}
+
 export async function getTransformations(system: string): Promise<TransformationsResponse> {
   return apiGet<TransformationsResponse>(`/api/context/transformations/${encodeURIComponent(system)}`);
 }
@@ -205,6 +229,15 @@ export async function getAlert(id: string): Promise<AlertDetail> {
 
 export async function getAuditTrail(alertId: string): Promise<AuditTrailResponse> {
   return apiGet<AuditTrailResponse>(`/api/context/audit-trail/${encodeURIComponent(alertId)}`);
+}
+
+export async function fetchAuditTrail(decisionId?: string): Promise<SelfAuditTrailResponse | null> {
+  const params = new URLSearchParams();
+  if (decisionId) {
+    params.set("decision_id", decisionId);
+  }
+  const query = params.toString();
+  return safeApiGet<SelfAuditTrailResponse>(`/api/self/audit-trail${query ? `?${query}` : ""}`);
 }
 
 export async function getAlertDeps(id: string): Promise<BlastRadius> {
@@ -297,6 +330,29 @@ export async function getDecisions(filters: {
   }
   const query = params.toString();
   return apiGet<DecisionExplorerResponse>(`/api/context/decisions${query ? `?${query}` : ""}`);
+}
+
+export async function fetchDecisions(filters: {
+  category?: string;
+  action?: string;
+  verifiedOnly?: boolean;
+  limit?: number;
+} = {}): Promise<SelfDecisionExplorerResponse | null> {
+  const params = new URLSearchParams();
+  if (filters.category) {
+    params.set("category", filters.category);
+  }
+  if (filters.action) {
+    params.set("action", filters.action);
+  }
+  if (typeof filters.verifiedOnly === "boolean") {
+    params.set("verified_only", filters.verifiedOnly ? "true" : "false");
+  }
+  if (typeof filters.limit === "number") {
+    params.set("limit", String(filters.limit));
+  }
+  const query = params.toString();
+  return safeApiGet<SelfDecisionExplorerResponse>(`/api/self/decisions${query ? `?${query}` : ""}`);
 }
 
 export async function getAeRecommendation(alertId: string): Promise<AERecommendationResponse> {
