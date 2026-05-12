@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -42,6 +43,20 @@ class _StoreProxy:
         store = DecisionStore(self._db_path)
         try:
             return store.get_all_decisions()
+        finally:
+            store.close()
+
+    def count_verified(self) -> int:
+        store = DecisionStore(self._db_path)
+        try:
+            return store.count_verified()
+        finally:
+            store.close()
+
+    def count_correct(self) -> int:
+        store = DecisionStore(self._db_path)
+        try:
+            return store.count_correct()
         finally:
             store.close()
 
@@ -85,6 +100,48 @@ class _FreshScorerProxy:
             scorer._store.close()
 
 
+def _conservation_state(db_path: str | Path | None = None) -> dict[str, float | int]:
+    store = DecisionStore(str(db_path or DEFAULT_DB_PATH))
+    try:
+        verified_count = _count_verified(store)
+        correct_count = _count_correct(store)
+        total_decisions = len(store.get_all_decisions())
+    finally:
+        store.close()
+    return {
+        "verified_count": verified_count,
+        "correct_count": correct_count,
+        "total_decisions": total_decisions,
+        "penalty_ratio": 2.0,
+    }
+
+
+def _count_verified(store: Any) -> int:
+    count_verified = getattr(store, "count_verified", None)
+    if callable(count_verified):
+        return int(count_verified())
+    return sum(1 for decision in store.get_all_decisions() if _is_verified_decision(decision))
+
+
+def _count_correct(store: Any) -> int:
+    count_correct = getattr(store, "count_correct", None)
+    if callable(count_correct):
+        return int(count_correct())
+    return sum(1 for decision in store.get_all_decisions() if _is_correct_decision(decision))
+
+
+def _is_verified_decision(decision: dict[str, Any]) -> bool:
+    outcome = decision.get("outcome")
+    if outcome is not None:
+        return str(outcome).strip() != ""
+    return decision.get("is_correct") is not None
+
+
+def _is_correct_decision(decision: dict[str, Any]) -> bool:
+    outcome = str(decision.get("outcome") or "").lower()
+    return outcome == "confirmed" or bool(decision.get("is_correct"))
+
+
 def create_app(db_path: str | Path | None = None) -> FastAPI:
     app = FastAPI(title="Trading Copilot", version="0.1.0")
     app.add_middleware(
@@ -107,7 +164,10 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
 
     # Conservation router
     app.include_router(
-        create_conservation_router("trading"),
+        create_conservation_router(
+            "trading",
+            state_provider=lambda: _conservation_state(scoring_db),
+        ),
         prefix="/api",
     )
     app.include_router(context_router, prefix="/api/context")

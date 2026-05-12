@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 from pathlib import Path
 
@@ -14,6 +15,28 @@ DATAOPS_FACTORS = {
     "data_freshness": 0.21,
     "business_criticality": 0.9,
 }
+
+
+def _score(client: TestClient) -> dict:
+    response = client.post(
+        "/api/score",
+        json={"category": "freshness_violation", "factors": DATAOPS_FACTORS},
+    )
+    assert response.status_code == 200
+    return response.json()
+
+
+def _learn(client: TestClient, decision_id: str, actual_action: str) -> dict:
+    response = client.post(
+        "/api/learn",
+        json={
+            "decision_id": decision_id,
+            "actual_action": actual_action,
+            "outcome": "confirmed",
+        },
+    )
+    assert response.status_code == 200
+    return response.json()
 
 
 def test_health(client: TestClient) -> None:
@@ -707,13 +730,7 @@ def test_operational_rules_summary_counts(client: TestClient) -> None:
 
 
 def test_score_via_sdk(client: TestClient) -> None:
-    response = client.post(
-        "/api/score",
-        json={"category": "freshness_violation", "factors": DATAOPS_FACTORS},
-    )
-
-    assert response.status_code == 200
-    payload = response.json()
+    payload = _score(client)
     assert payload["action"] in {
         "auto_approve",
         "investigate",
@@ -726,34 +743,32 @@ def test_score_via_sdk(client: TestClient) -> None:
 
 
 def test_learn_returns_reward(client: TestClient) -> None:
-    score = client.post(
-        "/api/score",
-        json={"category": "freshness_violation", "factors": DATAOPS_FACTORS},
-    ).json()
-
-    response = client.post(
-        "/api/learn",
-        json={
-            "decision_id": score["decision_id"],
-            "actual_action": score["action"],
-            "outcome": "confirmed",
-        },
-    )
-
-    assert response.status_code == 200
-    payload = response.json()
+    score = _score(client)
+    payload = _learn(client, score["decision_id"], score["action"])
     assert payload["decision_id"] == score["decision_id"]
     assert payload["reward"] > 0
     assert payload["engine"]["gae"] == "gae.profile_scorer.ProfileScorer"
 
 
-def test_conservation_status(client: TestClient) -> None:
+def test_conservation_status_returns_live_counts(client: TestClient) -> None:
+    before = client.get("/api/conservation/status").json()
+    assert before["total_decisions"] == 0
+    assert before["verified_count"] == 0
+    assert before["correct_count"] == 0
+
+    score = _score(client)
+    after_score = client.get("/api/conservation/status").json()
+    assert after_score["total_decisions"] == 1
+    assert after_score["verified_count"] == 0
+    assert after_score["correct_count"] == 0
+
+    _learn(client, score["decision_id"], score["action"])
     payload = client.get("/api/conservation/status").json()
 
     assert payload["domain"] == "dataops"
-    assert payload["total_decisions"] == 20
-    assert payload["verified_count"] == 20
-    assert payload["correct_count"] > 0
+    assert payload["total_decisions"] == 1
+    assert payload["verified_count"] == 1
+    assert payload["correct_count"] == 1
     assert payload["penalty_ratio"] == 10.0
     assert payload["engine"]["gae"] == "gae.calibration"
 
@@ -775,6 +790,26 @@ def test_evolution_variants(client: TestClient) -> None:
     assert payload["engine"]["gae"] == "gae.evolution"
     assert len(payload["variants"]) == 3
     assert payload["variants"][0]["id"] == "V-DO-RECUR-001"
+
+
+def test_evolution_ledger_filters_promoted(dataops_data_dir: Path) -> None:
+    from app.main import _FixtureEvolutionLedger
+
+    ledger = _FixtureEvolutionLedger(dataops_data_dir / "evolution_fixtures.json")
+    variants = asyncio.run(ledger.run_query("MATCH promoted variants"))
+
+    assert variants
+    assert {variant["event_type"] for variant in variants} == {"promotion_approved"}
+
+
+def test_evolution_ledger_filters_rejected(dataops_data_dir: Path) -> None:
+    from app.main import _FixtureEvolutionLedger
+
+    ledger = _FixtureEvolutionLedger(dataops_data_dir / "evolution_fixtures.json")
+    variants = asyncio.run(ledger.run_query("MATCH rejected variants"))
+
+    assert variants
+    assert {variant["event_type"] for variant in variants} == {"promotion_rejected"}
 
 
 def test_alert_metadata_store(client: TestClient, dataops_data_dir: Path) -> None:

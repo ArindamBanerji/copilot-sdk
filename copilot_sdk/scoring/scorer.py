@@ -8,7 +8,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -133,7 +133,12 @@ class CompoundingScorer:
             factors=factor_values,
         )
 
-    def learn(self, decision_id: str, actual_action: str, outcome: str = "confirmed") -> LearnResult:
+    def learn(
+        self,
+        decision_id: str,
+        actual_action: str,
+        outcome: str = "confirmed",
+    ) -> LearnResult | dict[str, Any]:
         del outcome
         decision = self._store.get_decision(decision_id)
         assert actual_action in self._preset.shape.action_names, f"unknown action: {actual_action}"
@@ -143,6 +148,9 @@ class CompoundingScorer:
         is_correct = actual_action == decision["recommended_action"]
         factor_vector = np.asarray(decision["factor_vector"], dtype=np.float64)
 
+        conservation_pause = self._conservation_pause()
+        if conservation_pause is not None:
+            return conservation_pause
         iks_before = self._compute_iks()
         before_centroids = self._scorer.centroids.copy()
 
@@ -249,6 +257,28 @@ class CompoundingScorer:
         )
         return round(iks, 1)
 
+    def _conservation_pause(self) -> dict[str, Any] | None:
+        try:
+            verified, correct = _conservation_counts(self._store)
+        except Exception:
+            return None
+        if verified <= 0:
+            return None
+
+        q = correct / verified
+        penalty_ratio = _positive_penalty_ratio(getattr(self._preset, "penalty_ratio", None))
+        theta_min = 23.53 / (penalty_ratio * verified)
+        if q < theta_min:
+            return {
+                "status": "paused",
+                "reason": "conservation_red",
+                "q": q,
+                "theta_min": theta_min,
+                "verified_count": verified,
+                "correct_count": correct,
+            }
+        return None
+
     @property
     def store(self) -> DecisionStore:
         return self._store
@@ -256,3 +286,40 @@ class CompoundingScorer:
     @property
     def gae_scorer(self) -> ProfileScorer:
         return self._scorer
+
+
+def _conservation_counts(store: Any) -> tuple[int, int]:
+    count_verified = getattr(store, "count_verified", None)
+    count_correct = getattr(store, "count_correct", None)
+    if callable(count_verified) and callable(count_correct):
+        return max(int(count_verified()), 0), max(int(count_correct()), 0)
+
+    get_all_decisions = getattr(store, "get_all_decisions", None)
+    if not callable(get_all_decisions):
+        return 0, 0
+    decisions = get_all_decisions()
+    verified = sum(1 for decision in decisions if _is_verified_decision(decision))
+    correct = sum(1 for decision in decisions if _is_correct_decision(decision))
+    return verified, correct
+
+
+def _is_verified_decision(decision: dict[str, Any]) -> bool:
+    outcome = decision.get("outcome")
+    if outcome is not None:
+        return str(outcome).strip().lower() in {"confirmed", "overridden"}
+    return decision.get("is_correct") is not None
+
+
+def _is_correct_decision(decision: dict[str, Any]) -> bool:
+    outcome = str(decision.get("outcome") or "").strip().lower()
+    return outcome == "confirmed" or bool(decision.get("is_correct"))
+
+
+def _positive_penalty_ratio(value: Any) -> float:
+    try:
+        penalty_ratio = float(value)
+    except (TypeError, ValueError):
+        return 10.0
+    if not np.isfinite(penalty_ratio) or penalty_ratio <= 0:
+        return 10.0
+    return penalty_ratio

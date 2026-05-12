@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from collections import Counter
 from pathlib import Path
@@ -418,6 +419,76 @@ def test_learn_returns_reward(client):
     assert learn["engine"]["gae"] == "gae.profile_scorer.ProfileScorer"
 
 
+def test_conservation_status_returns_live_counts(client):
+    before = client.get("/api/conservation/status").json()
+    assert before["total_decisions"] == 0
+    assert before["verified_count"] == 0
+    assert before["correct_count"] == 0
+    assert before["penalty_ratio"] == 3.0
+
+    score = _score(client)
+    after_score = client.get("/api/conservation/status").json()
+    assert after_score["total_decisions"] == 1
+    assert after_score["verified_count"] == 0
+    assert after_score["correct_count"] == 0
+
+    _learn(client, score["decision_id"], score["action"])
+    payload = client.get("/api/conservation/status").json()
+    assert payload["domain"] == "purchasing"
+    assert payload["total_decisions"] == 1
+    assert payload["verified_count"] == 1
+    assert payload["correct_count"] == 1
+    assert payload["penalty_ratio"] == 3.0
+
+
+def test_store_proxy_count_verified(tmp_path):
+    from app.main import _StoreProxy
+    from copilot_sdk.scoring.storage import DecisionStore
+
+    db_path = tmp_path / "proxy.sqlite"
+    store = DecisionStore(db_path)
+    try:
+        _save_proxy_decision(store, "d-1")
+        _save_proxy_decision(store, "d-2")
+        store.save_outcome(
+            decision_id="d-1",
+            actual_action="order_as_planned",
+            actual_index=0,
+            is_correct=True,
+        )
+    finally:
+        store.close()
+
+    assert _StoreProxy(str(db_path)).count_verified() == 1
+
+
+def test_store_proxy_count_correct(tmp_path):
+    from app.main import _StoreProxy
+    from copilot_sdk.scoring.storage import DecisionStore
+
+    db_path = tmp_path / "proxy.sqlite"
+    store = DecisionStore(db_path)
+    try:
+        _save_proxy_decision(store, "d-1")
+        _save_proxy_decision(store, "d-2")
+        store.save_outcome(
+            decision_id="d-1",
+            actual_action="order_as_planned",
+            actual_index=0,
+            is_correct=True,
+        )
+        store.save_outcome(
+            decision_id="d-2",
+            actual_action="order_more",
+            actual_index=1,
+            is_correct=False,
+        )
+    finally:
+        store.close()
+
+    assert _StoreProxy(str(db_path)).count_correct() == 1
+
+
 def test_evolution_variants(client):
     response = client.get("/api/evolution/variants")
 
@@ -432,15 +503,73 @@ def test_evolution_variants(client):
     }
 
 
-def test_fingerprint(client):
+def test_evolution_ledger_filters_promoted(temp_data_dir: Path):
+    from app.main import _FixtureEvolutionLedger
+
+    ledger = _FixtureEvolutionLedger(temp_data_dir / "evolution_fixtures.json")
+    variants = asyncio.run(ledger.run_query("MATCH promoted variants"))
+
+    assert variants
+    assert {variant["event_type"] for variant in variants} == {"promotion_approved"}
+
+
+def test_evolution_ledger_filters_rejected(temp_data_dir: Path):
+    from app.main import _FixtureEvolutionLedger
+
+    ledger = _FixtureEvolutionLedger(temp_data_dir / "evolution_fixtures.json")
+    variants = asyncio.run(ledger.run_query("MATCH rejected variants"))
+
+    assert variants
+    assert {variant["event_type"] for variant in variants} == {"promotion_rejected"}
+
+
+def test_fingerprint(client, temp_data_dir: Path):
+    # Strict conservation requires enough verified/correct history before
+    # additional learns mutate centroids. Purchasing threshold is ~8 verified at q=1.
+    _seed_verified_history(temp_data_dir.parent / "purchasing_test.db", total=9)
+
     for _ in range(3):
         score = _score(client)
-        _learn(client, score["decision_id"], score["action"])
+        learn = _learn(client, score["decision_id"], score["action"])
+        assert learn.get("status") != "paused"
 
     response = client.get("/api/fingerprint")
 
     assert response.status_code == 200
     payload = response.json()
     assert payload["engine"]["scoring"] == "copilot_sdk.scoring.CompoundingScorer"
-    assert payload["decisions_analyzed"] == 3
+    assert payload["decisions_analyzed"] >= 12
     assert {factor["name"] for factor in payload["factors"]} == set(PURCHASING_FACTORS)
+
+
+def _save_proxy_decision(store, decision_id: str) -> None:
+    store.save_decision(
+        decision_id=decision_id,
+        domain="purchasing",
+        category="protein",
+        category_index=0,
+        factors=PURCHASING_FACTORS,
+        factor_vector=list(PURCHASING_FACTORS.values()),
+        recommended_action="order_as_planned",
+        recommended_index=0,
+        confidence=0.8,
+        probabilities=[0.8, 0.1, 0.05, 0.05],
+    )
+
+
+def _seed_verified_history(db_path: Path, total: int) -> None:
+    from copilot_sdk.scoring.storage import DecisionStore
+
+    store = DecisionStore(db_path)
+    try:
+        for index in range(total):
+            decision_id = f"seed-{index}"
+            _save_proxy_decision(store, decision_id)
+            store.save_outcome(
+                decision_id=decision_id,
+                actual_action="order_as_planned",
+                actual_index=0,
+                is_correct=True,
+            )
+    finally:
+        store.close()
