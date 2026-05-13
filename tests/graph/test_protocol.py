@@ -20,6 +20,7 @@ def test_graph_store_protocol_required_methods_exist():
         "get_all_decisions",
         "save_centroids",
         "get_centroid_checkpoints",
+        "save_evolution_event",
         "close",
     ]
 
@@ -33,3 +34,7 @@ def test_graphstore_protocol_has_save_centroids():
 
 def test_graphstore_protocol_has_get_centroid_checkpoints():
     assert hasattr(GraphStore, "get_centroid_checkpoints")
+
+
+def test_graphstore_protocol_has_save_evolution_event():
+    assert hasattr(GraphStore, "save_evolution_event")

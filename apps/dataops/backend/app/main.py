@@ -43,6 +43,18 @@ def _graph_store(db_path: str | Path):
     return store
 
 
+def _evolution_variants() -> list[dict[str, Any]]:
+    fixture_path = DATA_DIR / "evolution_fixtures.json"
+    if not fixture_path.exists():
+        return []
+    try:
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    variants = payload.get("variants")
+    return list(variants) if isinstance(variants, list) else []
+
+
 class _FreshScorerProxy:
     """Open scorers per call so FastAPI worker threads do not share SQLite handles."""
 
@@ -96,60 +108,6 @@ class _FreshScorerProxy:
             scorer._store.close()
 
 
-class _FixtureEvolutionLedger:
-    def __init__(self, fixture_path: Path):
-        self._fixture_path = fixture_path
-
-    async def run_query(self, query: str) -> list[dict[str, Any]]:
-        if not self._fixture_path.exists():
-            return []
-        payload = json.loads(self._fixture_path.read_text(encoding="utf-8"))
-        variants = payload.get("variants", [])
-        return _filter_variants_by_query(variants, query)
-
-
-def _ledger_provider() -> _FixtureEvolutionLedger:
-    return _FixtureEvolutionLedger(DATA_DIR / "evolution_fixtures.json")
-
-
-def _filter_variants_by_query(
-    variants: list[dict[str, Any]],
-    query: str | None,
-) -> list[dict[str, Any]]:
-    query_lower = query.lower() if query else ""
-    wants_promoted = "promoted" in query_lower or "promotion_approved" in query_lower
-    wants_rejected = "rejected" in query_lower or "promotion_rejected" in query_lower
-    wants_shadow = "shadow" in query_lower
-    if sum([wants_promoted, wants_rejected, wants_shadow]) != 1:
-        return variants
-    if wants_promoted:
-        return [
-            variant
-            for variant in variants
-            if _variant_status(variant) in {"promoted", "approved", "promotion_approved"}
-        ]
-    if wants_rejected:
-        return [
-            variant
-            for variant in variants
-            if _variant_status(variant) in {"rejected", "promotion_rejected"}
-        ]
-    return [
-        variant
-        for variant in variants
-        if _variant_status(variant) in {"shadow", "shadow_testing"}
-    ]
-
-
-def _variant_status(variant: dict[str, Any]) -> str:
-    return str(
-        variant.get("status")
-        or variant.get("event_type")
-        or variant.get("eventType")
-        or ""
-    ).lower()
-
-
 def create_app(db_path: str | Path | None = None) -> FastAPI:
     app = FastAPI(title="DataOps Copilot", version="0.1.0")
     app.add_middleware(
@@ -177,8 +135,11 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         prefix="/api",
     )
     app.include_router(
-        create_evolution_router("dataops", ledger_provider=_ledger_provider),
-        prefix="/api",
+        create_evolution_router(
+            graph_store_factory=lambda: _graph_store(scoring_db),
+            domain="dataops",
+            variant_provider=_evolution_variants,
+        )
     )
     mount_self_computation_router(app, _graph_store(scoring_db))
     app.include_router(context_router, prefix="/api/context")

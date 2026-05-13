@@ -168,3 +168,62 @@ export async function fetchS2PWhatIf(additionalCorrect: number, additionalIncorr
 export async function fetchS2PSummary(): Promise<PerformanceSummaryResponse | null> {
   return apiGet<PerformanceSummaryResponse>("/api/s2p/performance/summary").catch(() => null);
 }
+
+async function apiGetNullable<T>(path: string): Promise<T | null> {
+  try {
+    const response = await fetch(`${API_URL}${path}`);
+    return response.ok ? ((await response.json()) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchIntents(): Promise<unknown | null> {
+  return apiGetNullable<unknown>("/api/s2p/control-tower/intents");
+}
+
+export async function classifyInvoice(invoiceId?: string, category?: string): Promise<unknown | null> {
+  const params = new URLSearchParams();
+  if (invoiceId) params.set("invoice_id", invoiceId);
+  if (category) params.set("category", category);
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  return apiGetNullable<unknown>(`/api/s2p/control-tower/classify${suffix}`);
+}
+
+export async function fetchCTQueue(limit = 20): Promise<unknown | null> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return apiGetNullable<unknown>(`/api/s2p/control-tower/queue?${params.toString()}`);
+}
+
+export async function fetchVariants(): Promise<unknown | null> {
+  return apiGetNullable<unknown>("/api/s2p/pvg/variants");
+}
+
+export async function fetchImpact(period = "annual"): Promise<unknown | null> {
+  const params = new URLSearchParams({ period });
+  return apiGetNullable<unknown>(`/api/s2p/pvg/impact?${params.toString()}`);
+}
+
+export async function fetchLeakage(): Promise<unknown | null> {
+  return apiGetNullable<unknown>("/api/s2p/pvg/leakage");
+}
+
+export async function fetchCycleTime(): Promise<unknown | null> {
+  return apiGetNullable<unknown>("/api/s2p/pvg/cycle-time");
+}
+
+export async function fetchSuppliers(): Promise<unknown | null> {
+  return apiGetNullable<unknown>("/api/s2p/suppliers");
+}
+
+export async function fetchSupplierProfile(supplierId: string): Promise<unknown | null> {
+  return apiGetNullable<unknown>(`/api/s2p/suppliers/${encodeURIComponent(supplierId)}/profile`);
+}
+
+export async function fetchSupplierHeatmap(supplierId: string): Promise<unknown | null> {
+  return apiGetNullable<unknown>(`/api/s2p/suppliers/${encodeURIComponent(supplierId)}/heatmap`);
+}
+
+export async function fetchSupplierClustering(): Promise<unknown | null> {
+  return apiGetNullable<unknown>("/api/s2p/suppliers/clustering");
+}

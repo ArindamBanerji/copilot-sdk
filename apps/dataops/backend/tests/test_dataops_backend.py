@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime
 from pathlib import Path
 
@@ -795,32 +794,38 @@ def test_conservation_what_if(client: TestClient) -> None:
 
 
 def test_evolution_variants(client: TestClient) -> None:
-    payload = client.get("/api/evolution/variants").json()
+    response = client.get("/api/evolution/variants")
 
+    assert response.status_code == 200
+    payload = response.json()
     assert payload["domain"] == "dataops"
-    assert payload["engine"]["gae"] == "gae.evolution"
-    assert len(payload["variants"]) == 3
-    assert payload["variants"][0]["id"] == "V-DO-RECUR-001"
+    assert "variants" in payload
+    assert isinstance(payload["variants"], list)
+    assert len(payload["variants"]) > 0
+    assert {"id", "variant_id", "event_type", "description"}.issubset(payload["variants"][0])
+    assert payload["active_rules"] == []
+    assert payload["promoted_rules"] == []
+    assert payload["total_active"] == 0
+    assert payload["total_promoted"] == 0
 
 
-def test_evolution_ledger_filters_promoted(dataops_data_dir: Path) -> None:
-    from app.main import _FixtureEvolutionLedger
+def test_evolution_history(client: TestClient) -> None:
+    response = client.get("/api/evolution/history")
 
-    ledger = _FixtureEvolutionLedger(dataops_data_dir / "evolution_fixtures.json")
-    variants = asyncio.run(ledger.run_query("MATCH promoted variants"))
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["domain"] == "dataops"
+    assert payload["events"] == []
+    assert payload["count"] == 0
 
-    assert variants
-    assert {variant["event_type"] for variant in variants} == {"promotion_approved"}
 
+def test_evolution_promoted(client: TestClient) -> None:
+    response = client.get("/api/evolution/promoted")
 
-def test_evolution_ledger_filters_rejected(dataops_data_dir: Path) -> None:
-    from app.main import _FixtureEvolutionLedger
-
-    ledger = _FixtureEvolutionLedger(dataops_data_dir / "evolution_fixtures.json")
-    variants = asyncio.run(ledger.run_query("MATCH rejected variants"))
-
-    assert variants
-    assert {variant["event_type"] for variant in variants} == {"promotion_rejected"}
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["domain"] == "dataops"
+    assert payload["promoted"] == []
 
 
 def test_alert_metadata_store(client: TestClient, dataops_data_dir: Path) -> None:

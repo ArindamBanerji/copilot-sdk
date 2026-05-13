@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getPreviewConservation, getPreviewQueue } from "../api";
 import { ConservationMiniGauge } from "../components/ConservationMiniGauge";
+import { ControlTowerPanel } from "../components/ControlTowerPanel";
+import { FinancialImpactCard } from "../components/FinancialImpactCard";
 import { ProcessContextCard } from "../components/ProcessContextCard";
 import type { ConservationStatus, InvoiceException, PreviewQueueResponse } from "../types";
 
@@ -97,6 +99,11 @@ export function DashboardScreen() {
       </div>
 
       <ProcessContextCard invoice={firstInvoice} />
+
+      <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <ControlTowerPanel />
+        <FinancialImpactCard />
+      </div>
     </section>
   );
 }

@@ -16,6 +16,7 @@ class InMemoryGraphStore:
         self._decisions: dict[str, dict[str, Any]] = {}
         self._outcomes: dict[str, dict[str, Any]] = {}
         self._centroid_checkpoints: list[dict[str, Any]] = []
+        self._evolution_events: list[dict[str, Any]] = []
         self._sequence = 0
 
     def write_decision(
@@ -124,10 +125,28 @@ class InMemoryGraphStore:
             return []
         return deepcopy(self._centroid_checkpoints[-limit_value:])
 
+    def save_evolution_event(
+        self,
+        event_type: str,
+        rule_name: str,
+        variant_id: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self._evolution_events.append(
+            {
+                "event_type": event_type,
+                "rule_name": rule_name,
+                "variant_id": variant_id,
+                "metadata": deepcopy(metadata or {}),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+
     def reset(self) -> None:
         self._decisions.clear()
         self._outcomes.clear()
         self._centroid_checkpoints.clear()
+        self._evolution_events.clear()
         self._sequence = 0
 
     def close(self) -> None:

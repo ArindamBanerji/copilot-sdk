@@ -63,5 +63,14 @@ class GraphStore(Protocol):
     def get_centroid_checkpoints(self, limit: int = 50) -> list[dict[str, Any]]:
         ...
 
+    def save_evolution_event(
+        self,
+        event_type: str,
+        rule_name: str,
+        variant_id: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        ...
+
     def close(self) -> None:
         ...

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 import uuid
 from pathlib import Path
@@ -156,6 +157,44 @@ class SQLiteGraphStore:
         store = DecisionStore(self.db_path)
         try:
             return store.get_centroid_checkpoints(limit=max(int(limit), 0))
+        finally:
+            store.close()
+
+    def save_evolution_event(
+        self,
+        event_type: str,
+        rule_name: str,
+        variant_id: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        store = DecisionStore(self.db_path)
+        try:
+            store.connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS evolution_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_type TEXT NOT NULL,
+                    rule_name TEXT NOT NULL,
+                    variant_id TEXT NOT NULL,
+                    metadata TEXT,
+                    timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            store.connection.execute(
+                """
+                INSERT INTO evolution_events (
+                    event_type, rule_name, variant_id, metadata
+                ) VALUES (?, ?, ?, ?)
+                """,
+                (
+                    event_type,
+                    rule_name,
+                    variant_id,
+                    json.dumps(metadata or {}),
+                ),
+            )
+            store.connection.commit()
         finally:
             store.close()
 

@@ -1,4 +1,5 @@
 import { ConservationMiniGauge } from "../components/ConservationMiniGauge";
+import { CycleTimePanel } from "../components/CycleTimePanel";
 import { OperationalSummary } from "../components/OperationalSummary";
 import { TrajectoryChart } from "../components/TrajectoryChart";
 import { WhatIfSimulator } from "../components/WhatIfSimulator";
@@ -38,6 +39,7 @@ export function PerformanceScreen() {
         <WhatIfSimulator />
         <OperationalSummary />
       </div>
+      <CycleTimePanel />
     </section>
   );
 }

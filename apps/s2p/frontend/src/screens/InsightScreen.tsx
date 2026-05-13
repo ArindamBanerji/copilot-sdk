@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchPreviewQueue } from "../api";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
 import { FactorFingerprintPanel } from "../components/FactorFingerprintPanel";
+import { LeakageDetectionPanel } from "../components/LeakageDetectionPanel";
 import { ProcessSignalsPanel } from "../components/ProcessSignalsPanel";
 import { SimilarInvoicesPanel } from "../components/SimilarInvoicesPanel";
 import type { InvoiceException, PreviewQueueResponse } from "../types";
@@ -70,6 +71,7 @@ export function InsightScreen() {
         <SimilarInvoicesPanel invoiceId={invoiceId(selected)} />
       </div>
       <CrossGraphInsightCard />
+      <LeakageDetectionPanel />
       <ProcessSignalsPanel supplierId={supplierId(selected)} />
     </section>
   );
