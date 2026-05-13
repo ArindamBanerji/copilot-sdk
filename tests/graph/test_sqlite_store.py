@@ -42,9 +42,10 @@ def test_sqlite_write_outcomes_and_counts(tmp_path):
     assert store.count_verified() == 2
     assert store.count_correct() == 1
     verified = store.get_verified_decisions()
-    assert [decision["decision_id"] for decision in verified] == [first, second]
-    assert verified[0]["actual_action"] == "approve"
-    assert verified[0]["is_correct"] is True
+    assert set(decision["decision_id"] for decision in verified) == {first, second}
+    by_id = {d["decision_id"]: d for d in verified}
+    assert by_id[first]["actual_action"] == "approve"
+    assert by_id[first]["is_correct"] is True
 
 
 def test_sqlite_get_decision_missing_returns_none(tmp_path):

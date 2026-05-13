@@ -20,7 +20,12 @@ for path in (REPO_ROOT, GAE_PATH):
         sys.path.insert(0, str(path))
 
 from .context_router import router as context_router  # noqa: E402
-from copilot_sdk.backend import create_conservation_router, create_evolution_router, create_scoring_router  # noqa: E402
+from copilot_sdk.backend import (  # noqa: E402
+    create_conservation_router,
+    create_evolution_router,
+    create_scoring_router,
+    mount_self_computation_router,
+)
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.scoring import CompoundingScorer  # noqa: E402
 
@@ -70,6 +75,20 @@ class _FreshScorerProxy:
         scorer = self._scorer()
         try:
             return scorer.trajectory()
+        finally:
+            scorer._store.close()
+
+    def get_phase(self):
+        scorer = self._scorer()
+        try:
+            return scorer.get_phase()
+        finally:
+            scorer._store.close()
+
+    def get_alpha(self):
+        scorer = self._scorer()
+        try:
+            return scorer.get_alpha()
         finally:
             scorer._store.close()
 
@@ -158,6 +177,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         ),
         prefix="/api",
     )
+    mount_self_computation_router(app, _graph_store(scoring_db))
     app.include_router(context_router, prefix="/api/context")
 
     @app.get("/health")

@@ -163,6 +163,12 @@ class FakeScorer:
             days_active=0.0,
         )
 
+    def get_phase(self) -> str:
+        return "B"
+
+    def get_alpha(self) -> float:
+        return 0.8125
+
 
 class GraphStoreBackedScorer(FakeScorer):
     def __init__(self) -> None:
@@ -384,6 +390,28 @@ def test_trajectory_returns_points_current_iks_and_engine():
     assert payload["engine"]["gae"] == "gae.profile_scorer.ProfileScorer"
     assert payload["current_iks"] == 25.1
     assert len(payload["points"]) == 2
+
+
+def test_health_endpoint_returns_phase_and_alpha():
+    client = build_client()
+
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["phase"] == "B"
+    assert payload["alpha"] == 0.8125
+
+
+def test_health_endpoint_returns_engine():
+    client = build_client()
+
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["engine"]["scoring"] == "copilot_sdk.scoring.CompoundingScorer"
+    assert payload["engine"]["gae"] == "gae.profile_scorer.ProfileScorer"
 
 
 def test_history_returns_empty_then_populated_decisions():

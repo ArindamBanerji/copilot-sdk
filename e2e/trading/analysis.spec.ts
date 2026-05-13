@@ -46,3 +46,18 @@ test("analysis shows behavioral subsections", async ({ page }) => {
 
   await expectAnyText(page, [/Day of Week/i, /Research Impact/i, /Regime Analysis/i, /Risk Management/i]);
 });
+
+test("SC-14 decision explorer renders on analysis", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/SC-14/i, /Decision Explorer/i]);
+  await expectAnyText(page, [/Category/i, /Action/i, /Confidence/i, /verified only/i]);
+});
+
+test("SC-13 and SC-16 analysis evidence panels render", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /lineage/i]);
+  await expectAnyText(page, [/SC-15/i, /Rule Lifecycle/i, /promoted/i, /rejected/i]);
+  await expectAnyText(page, [/SC-16/i, /Audit Trail/i, /decision/i, /outcome/i, /No audit trail available yet/i]);
+});

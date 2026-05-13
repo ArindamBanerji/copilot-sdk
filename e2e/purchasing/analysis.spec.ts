@@ -42,3 +42,10 @@ test("AE rule application card visible", async ({ page }) => {
   await expectAnyText(page, [/Counterfactual/i, /Apply AE Friday produce rule/i, /Applying proven AE rules/i]);
   await expectAnyText(page, [/Orders adjusted/i, /Dollars saved/i]);
 });
+
+test("SC-14 decision explorer renders on analysis", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/SC-14/i, /Decision Explorer/i, /Purchasing decision history/i]);
+  await expectAnyText(page, [/Category/i, /Action/i, /Confidence/i, /verified only/i]);
+});

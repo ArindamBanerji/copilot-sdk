@@ -475,6 +475,49 @@ def test_scorer_exposes_graph_store_property(mock_preset, store):
     assert scorer.graph_store is scorer._graph_store
 
 
+def test_get_phase_a_on_empty(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    assert scorer.get_phase() == "A"
+
+
+def test_get_phase_b_after_verified(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=10, correct=5)
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    assert scorer.get_phase() == "B"
+
+
+def test_get_alpha_zero_on_empty(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    assert scorer.get_alpha() == 0.0
+
+
+def test_get_alpha_correct_ratio(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=12, correct=7)
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    assert scorer.get_alpha() == pytest.approx(0.5833)
+
+
+def test_get_phase_failure_returns_a(monkeypatch, mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    def fail_count_verified():
+        raise RuntimeError("graph unavailable")
+
+    monkeypatch.setattr(graph_store, "count_verified", fail_count_verified)
+
+    assert scorer.get_phase() == "A"
+    assert scorer.get_alpha() == 0.0
+
+
 def test_compounding_scorer_conservation_from_graph_store(mock_preset, store):
     graph_store = InMemoryGraphStore()
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)

@@ -9,6 +9,7 @@ import {
   getTodaySummary,
   getWasteHistory,
 } from "../api";
+import { AccuracyAlertPanel } from "../components/AccuracyAlertPanel";
 import AEStatusBar from "../components/AEStatusBar";
 import EventBadge from "../components/EventBadge";
 import IgnoringCostCard from "../components/IgnoringCostCard";
@@ -178,6 +179,7 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
 
       <IgnoringCostCard analytics={state.analytics} />
       <AEStatusBar analytics={state.analytics} variants={state.variants} />
+      <AccuracyAlertPanel />
 
       <section className="purchase-card dashboard-history">
         <div className="purchase-card-header">

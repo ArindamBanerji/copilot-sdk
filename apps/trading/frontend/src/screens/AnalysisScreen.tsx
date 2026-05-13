@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { FingerprintPanel, type FactorItem } from "../../../../../copilot_sdk/frontend";
 import { getAnalytics, getFingerprint } from "../api";
+import AuditTrailViewer from "../components/AuditTrailViewer";
 import ContrastCard from "../components/ContrastCard";
 import CounterfactualCard from "../components/CounterfactualCard";
 import DayOfWeekChart from "../components/DayOfWeekChart";
+import DecisionExplorerPanel from "../components/DecisionExplorerPanel";
 import ProfileArchetype from "../components/ProfileArchetype";
 import RegimeChart from "../components/RegimeChart";
 import ResearchImpactChart from "../components/ResearchImpactChart";
 import RiskManagementCard from "../components/RiskManagementCard";
+import RuleGenealogyTree from "../components/RuleGenealogyTree";
+import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
 import type { Analytics, FingerprintResponse } from "../types";
 
 const displayNames: Record<string, string> = {
@@ -107,11 +111,15 @@ export default function AnalysisScreen() {
         perCategoryPrecision={fingerprint?.perCategoryPrecision}
         decisionsAnalyzed={fingerprint?.decisionsAnalyzed}
       />
+      <DecisionExplorerPanel />
       <CounterfactualCard analytics={analytics} />
       <DayOfWeekChart analytics={analytics} />
       <ResearchImpactChart analytics={analytics} />
       <RegimeChart analytics={analytics} />
       <RiskManagementCard analytics={analytics} />
+      <RuleGenealogyTree />
+      <RuleLifecyclePanel />
+      <AuditTrailViewer />
     </div>
   );
 }

@@ -51,6 +51,17 @@ def test_health(client: TestClient) -> None:
     assert "gae.evolution" in payload["engine"]
 
 
+def test_api_health_returns_phase_alpha_and_engine(client: TestClient) -> None:
+    response = client.get("/api/health")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["phase"] in {"A", "B"}
+    assert isinstance(payload["alpha"], (int, float))
+    assert "engine" in payload
+    assert payload["engine"]
+
+
 def test_pipelines(client: TestClient) -> None:
     payload = client.get("/api/context/pipelines").json()
 

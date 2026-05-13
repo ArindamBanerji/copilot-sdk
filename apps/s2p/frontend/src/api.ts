@@ -1,8 +1,22 @@
 import type {
   ConservationStatus,
+  AuditTrailResponse,
+  ComplianceResponse,
+  CrossGraphResponse,
   ExceptionQueueResponse,
+  FingerprintResponse,
+  LearnDecisionRequest,
+  LearnDecisionResponse,
+  PerformanceSummaryResponse,
+  PerformanceTrajectoryResponse,
+  ProcessSignalsResponse,
   PreviewQueueResponse,
-  PreviewSuppliersResponse
+  PreviewSuppliersResponse,
+  RuleLifecycleResponse,
+  ScoreInvoiceRequest,
+  ScoreInvoiceResponse,
+  SimilarResponse,
+  WhatIfResponse
 } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8002";
@@ -36,6 +50,10 @@ export async function getPreviewQueue(): Promise<PreviewQueueResponse> {
   }));
 }
 
+export async function fetchPreviewQueue(): Promise<PreviewQueueResponse> {
+  return getPreviewQueue();
+}
+
 export async function getPreviewConservation(): Promise<ConservationStatus | null> {
   return apiGet<ConservationStatus>("/api/s2p/preview/conservation").catch(() => null);
 }
@@ -56,7 +74,13 @@ export async function getTrajectory(): Promise<unknown | null> {
 }
 
 export async function getConservationStatus(): Promise<ConservationStatus | null> {
-  return apiGet<ConservationStatus>("/api/conservation/status").catch(() => null);
+  return apiGet<ConservationStatus>("/api/conservation/status").catch(() =>
+    apiGet<ConservationStatus>("/api/s2p/preview/conservation").catch(() => null)
+  );
+}
+
+export async function fetchConservation(): Promise<ConservationStatus | null> {
+  return getConservationStatus();
 }
 
 export async function getExceptionQueue(): Promise<ExceptionQueueResponse> {
@@ -67,11 +91,19 @@ export async function getExceptionQueue(): Promise<ExceptionQueueResponse> {
 }
 
 export async function scoreException(payload: unknown): Promise<unknown | null> {
-  return apiPost<unknown>("/api/score", payload).catch(() => null);
+  return apiPost<unknown>("/api/s2p/score", payload).catch(() => null);
 }
 
 export async function verifyDecision(payload: unknown): Promise<unknown | null> {
-  return apiPost<unknown>("/api/s2p/verify", payload).catch(() => null);
+  return apiPost<unknown>("/api/s2p/outcome", payload).catch(() => null);
+}
+
+export async function scoreInvoice(payload: ScoreInvoiceRequest): Promise<ScoreInvoiceResponse | null> {
+  return apiPost<ScoreInvoiceResponse>("/api/s2p/score", payload).catch(() => null);
+}
+
+export async function learnDecision(payload: LearnDecisionRequest): Promise<LearnDecisionResponse | null> {
+  return apiPost<LearnDecisionResponse>("/api/learn", payload).catch(() => null);
 }
 
 export async function getDecisions(): Promise<{ decisions: unknown[]; total: number }> {
@@ -83,4 +115,56 @@ export async function getDecisions(): Promise<{ decisions: unknown[]; total: num
 
 export async function getSupplierProfile(id: string): Promise<unknown | null> {
   return apiGet<unknown>(`/api/s2p/supplier/${encodeURIComponent(id)}/profile`).catch(() => null);
+}
+
+export async function fetchS2PFingerprint(invoiceId: string): Promise<FingerprintResponse | null> {
+  return apiGet<FingerprintResponse>(
+    `/api/s2p/insight/fingerprint?invoice_id=${encodeURIComponent(invoiceId)}`
+  ).catch(() => null);
+}
+
+export async function fetchS2PSimilar(invoiceId: string, limit = 5): Promise<SimilarResponse | null> {
+  const params = new URLSearchParams({ invoice_id: invoiceId, limit: String(limit) });
+  return apiGet<SimilarResponse>(`/api/s2p/insight/similar?${params.toString()}`).catch(() => null);
+}
+
+export async function fetchS2PCrossGraph(): Promise<CrossGraphResponse | null> {
+  return apiGet<CrossGraphResponse>("/api/s2p/insight/cross-graph").catch(() => null);
+}
+
+export async function fetchS2PProcessSignals(supplierId?: string): Promise<ProcessSignalsResponse | null> {
+  const params = new URLSearchParams();
+  if (supplierId) params.set("supplier_id", supplierId);
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  return apiGet<ProcessSignalsResponse>(`/api/s2p/insight/process-signals${suffix}`).catch(() => null);
+}
+
+export async function fetchS2PAuditTrail(invoiceId: string): Promise<AuditTrailResponse | null> {
+  return apiGet<AuditTrailResponse>(
+    `/api/s2p/evidence/audit-trail/${encodeURIComponent(invoiceId)}`
+  ).catch(() => null);
+}
+
+export async function fetchS2PRules(): Promise<RuleLifecycleResponse | null> {
+  return apiGet<RuleLifecycleResponse>("/api/s2p/evidence/rules").catch(() => null);
+}
+
+export async function fetchS2PCompliance(): Promise<ComplianceResponse | null> {
+  return apiGet<ComplianceResponse>("/api/s2p/evidence/compliance").catch(() => null);
+}
+
+export async function fetchS2PTrajectory(): Promise<PerformanceTrajectoryResponse | null> {
+  return apiGet<PerformanceTrajectoryResponse>("/api/s2p/performance/trajectory").catch(() => null);
+}
+
+export async function fetchS2PWhatIf(additionalCorrect: number, additionalIncorrect: number): Promise<WhatIfResponse | null> {
+  const params = new URLSearchParams({
+    additional_correct: String(additionalCorrect),
+    additional_incorrect: String(additionalIncorrect)
+  });
+  return apiGet<WhatIfResponse>(`/api/s2p/performance/what-if?${params.toString()}`).catch(() => null);
+}
+
+export async function fetchS2PSummary(): Promise<PerformanceSummaryResponse | null> {
+  return apiGet<PerformanceSummaryResponse>("/api/s2p/performance/summary").catch(() => null);
 }

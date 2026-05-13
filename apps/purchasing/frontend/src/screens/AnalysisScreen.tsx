@@ -5,6 +5,7 @@ import CategoryAccuracyChart from "../components/CategoryAccuracyChart";
 import ContrastCard from "../components/ContrastCard";
 import CounterfactualCard from "../components/CounterfactualCard";
 import DayOfWeekChart from "../components/DayOfWeekChart";
+import { DecisionExplorerPanel } from "../components/DecisionExplorerPanel";
 import EventImpactCard from "../components/EventImpactCard";
 import ProfileArchetype from "../components/ProfileArchetype";
 import WasteCostCard from "../components/WasteCostCard";
@@ -110,6 +111,7 @@ export default function AnalysisScreen() {
         noiseLabel="YOUR BLIND SPOTS"
         decisionsAnalyzed={fingerprint?.decisionsAnalyzed}
       />
+      <DecisionExplorerPanel />
       <CounterfactualCard analytics={analytics} />
       <CategoryAccuracyChart analytics={analytics} />
       <DayOfWeekChart analytics={analytics} />

@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import EvolutionPanel, { type EvolutionStatus, type EvolutionVariant } from "../../../../../copilot_sdk/frontend/EvolutionPanel";
 import { getEvolutionVariants, getItems, getWasteHistory } from "../api";
+import { AuditTrailViewer } from "../components/AuditTrailViewer";
 import CategoryEmoji from "../components/CategoryEmoji";
 import ItemProfile from "../components/ItemProfile";
+import { RuleGenealogyTree } from "../components/RuleGenealogyTree";
+import { RuleLifecyclePanel } from "../components/RuleLifecyclePanel";
 import type { Item, Variant, WasteHistory } from "../types";
 
 const categories = ["protein", "produce", "dairy", "dry_goods", "beverages"];
@@ -148,6 +151,9 @@ export default function InventoryScreen() {
   return (
     <div className="purchase-stack inventory-screen">
       <EvolutionPanel variants={evolutionVariants} title="System Improvements" />
+      <RuleGenealogyTree />
+      <RuleLifecyclePanel />
+      <AuditTrailViewer />
 
       <section className="purchase-card">
         <p className="purchase-kicker">Category summary</p>

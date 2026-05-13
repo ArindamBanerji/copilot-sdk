@@ -286,6 +286,69 @@ export interface ConservationState {
   [key: string]: unknown;
 }
 
+export interface CentroidCheckpoint {
+  decisionId?: string;
+  category?: string;
+  centroids?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface SelfCentroidHistoryResponse {
+  checkpoints?: CentroidCheckpoint[];
+  total?: number;
+}
+
+export interface CategoryAccuracy {
+  category?: string;
+  accuracy?: number;
+  total?: number;
+  correct?: number;
+  alert?: boolean;
+}
+
+export interface SelfAccuracyByCategoryResponse {
+  categories?: CategoryAccuracy[];
+  threshold?: number;
+  overallVerified?: number;
+}
+
+export interface SelfDecisionEntry {
+  decisionId?: string;
+  decision_id?: string;
+  category?: string;
+  recommendedAction?: string;
+  recommended_action?: string;
+  actualAction?: string;
+  actual_action?: string;
+  action?: string;
+  confidence?: number;
+  factors?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  outcomeMetadata?: Record<string, unknown>;
+  isCorrect?: boolean | null;
+  createdAt?: string | number;
+  verifiedAt?: string | number;
+  [key: string]: unknown;
+}
+
+export interface SelfDecisionExplorerResponse {
+  decisions?: SelfDecisionEntry[];
+  total?: number;
+}
+
+export type AuditTrailEntry = SelfDecisionEntry;
+
+export interface SelfAuditTrailResponse {
+  trails?: AuditTrailEntry[];
+  total?: number;
+  decision?: SelfDecisionEntry;
+  outcome?: SelfDecisionEntry | null;
+  chainComplete?: boolean;
+  error?: string;
+}
+
 export interface SimilarOrder {
   orderId?: string;
   item?: string;

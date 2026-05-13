@@ -7,6 +7,7 @@ import {
   getTicker,
   getTradeMetadata,
 } from "../api";
+import AccuracyAlertPanel from "../components/AccuracyAlertPanel";
 import CalendarHeatmap from "../components/CalendarHeatmap";
 import MarketContext from "../components/MarketContext";
 import PortfolioConcentration from "../components/PortfolioConcentration";
@@ -167,6 +168,7 @@ export default function DashboardScreen({
 
       <MarketContext snapshot={state.market} />
       <PortfolioSummary summary={state.analytics?.portfolioSummary} />
+      <AccuracyAlertPanel />
 
       <div className="trading-grid trading-grid-3">
         <PortfolioConcentration

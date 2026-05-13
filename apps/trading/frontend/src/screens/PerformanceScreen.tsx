@@ -7,6 +7,7 @@ import {
 } from "../../../../../copilot_sdk/frontend";
 import { getAnalytics, getConservationStatus, getTrajectory } from "../api";
 import CategoryPerformance from "../components/CategoryPerformance";
+import CentroidTimelineChart from "../components/CentroidTimelineChart";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
@@ -114,6 +115,7 @@ export default function PerformanceScreen() {
         daysActive={daysActive}
       />
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
+      <CentroidTimelineChart />
       <RollingMetrics analytics={analytics} />
       <CategoryPerformance analytics={analytics} />
       <RiskManagementCard analytics={analytics} />

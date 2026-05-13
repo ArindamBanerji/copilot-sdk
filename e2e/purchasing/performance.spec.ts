@@ -38,3 +38,10 @@ test("conservation projection shows automation targets", async ({ page }) => {
   await expectAnyText(page, [/Automation Projection/i, /Projection unavailable/i]);
   await expectAnyText(page, [/55%/, /75%/, /90%/, /verified decisions/i, /accuracy/i]);
 });
+
+test("SC-11 centroid timeline visible on performance", async ({ page }) => {
+  await gotoPerformance(page);
+
+  await expectAnyText(page, [/SC-11/i, /Centroid History/i, /Learning centroid timeline/i]);
+  await expectAnyText(page, [/factor weight/i, /centroid/i, /No centroid history yet/i, /checkpoints/i]);
+});

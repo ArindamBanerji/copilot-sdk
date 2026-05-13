@@ -119,6 +119,15 @@ def create_scoring_router(
         payload["engine"] = ENGINE
         return payload
 
+    @router.get("/health")
+    def health() -> dict[str, Any]:
+        scorer = get_scorer()
+        return {
+            "phase": scorer.get_phase(),
+            "alpha": scorer.get_alpha(),
+            "engine": ENGINE,
+        }
+
     @router.get("/history")
     def history() -> dict[str, Any]:
         scorer = get_scorer()

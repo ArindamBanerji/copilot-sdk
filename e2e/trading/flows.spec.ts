@@ -207,3 +207,25 @@ test("all main tabs load after shared reasoning and projection port", async ({ p
     await expectAnyText(page, [new RegExp(tab, "i"), /Portfolio Summary/i, /Score This Trade/i, /YOUR TWO SELVES/i, /Performance Summary/i]);
   }
 });
+
+test("SC round trip: accuracy to decisions to audit trail", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/SC-12/i, /Accuracy Alerts/i, /accuracy/i, /category/i, /threshold/i, /No verified decisions yet/i, /No verified trading decisions yet/i]);
+
+  await clickTab(page, "Analysis");
+  await expectAnyText(page, [/SC-14/i, /Decision Explorer/i, /Category/i, /Action/i]);
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /SC-15/i, /Rule Lifecycle/i]);
+  await expectAnyText(page, [/SC-16/i, /Audit Trail/i, /decision/i, /outcome/i, /No audit trail available yet/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/SC-11/i, /Centroid History/i, /centroid/i, /No centroid history yet/i]);
+});
+
+test("api self features render populated or empty states", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/Accuracy Alerts/i, /No verified decisions yet/i, /threshold/i]);
+
+  await clickTab(page, "Analysis");
+  await expectAnyText(page, [/Decision Explorer/i, /No decisions match these filters/i, /Confidence/i]);
+  await expectAnyText(page, [/Audit Trail/i, /No audit trail available yet/i, /decision/i]);
+});

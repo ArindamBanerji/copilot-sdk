@@ -81,6 +81,17 @@ def test_health(client):
     assert "gae.profile_scorer" in payload["engine"]
 
 
+def test_api_health_returns_phase_alpha_and_engine(client):
+    response = client.get("/api/health")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["phase"] in {"A", "B"}
+    assert isinstance(payload["alpha"], (int, float))
+    assert payload["engine"]["scoring"] == "copilot_sdk.scoring.CompoundingScorer"
+    assert payload["engine"]["gae"] == "gae.profile_scorer.ProfileScorer"
+
+
 def test_market_snapshot(client):
     response = client.get("/api/context/market-snapshot")
 
@@ -344,6 +355,49 @@ def test_conservation_status_returns_live_counts(client):
     assert payload["verified_count"] == 1
     assert payload["correct_count"] == 1
     assert payload["penalty_ratio"] == 2.0
+
+
+def test_self_computation_centroid_history_available(client):
+    response = client.get("/api/self/centroid-history")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert set(payload) >= {"checkpoints", "total"}
+    assert isinstance(payload["checkpoints"], list)
+
+
+def test_self_computation_accuracy_available(client):
+    response = client.get("/api/self/accuracy-by-category")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert set(payload) >= {"categories", "threshold", "overall_verified"}
+    assert isinstance(payload["categories"], list)
+
+
+def test_self_computation_decisions_available(client):
+    response = client.get("/api/self/decisions")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert set(payload) >= {"decisions", "total"}
+    assert isinstance(payload["decisions"], list)
+
+
+def test_self_computation_audit_trail_available(client):
+    response = client.get("/api/self/audit-trail")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert set(payload) >= {"trails", "total"}
+    assert isinstance(payload["trails"], list)
+
+
+def test_self_computation_mounted_at_api_self(client):
+    response = client.get("/api/self/decisions?limit=1")
+
+    assert response.status_code == 200
+    assert "decisions" in response.json()
 
 
 def test_graph_store_count_verified(tmp_path):

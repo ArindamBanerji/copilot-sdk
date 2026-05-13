@@ -81,6 +81,20 @@ class _FreshScorerProxy:
         finally:
             scorer._store.close()
 
+    def get_phase(self):
+        scorer = self._scorer()
+        try:
+            return scorer.get_phase()
+        finally:
+            scorer._store.close()
+
+    def get_alpha(self):
+        scorer = self._scorer()
+        try:
+            return scorer.get_alpha()
+        finally:
+            scorer._store.close()
+
 
 class _FixtureEvolutionLedger:
     def __init__(self, fixture_path: Path):

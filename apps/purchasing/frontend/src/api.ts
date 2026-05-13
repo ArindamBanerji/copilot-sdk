@@ -11,6 +11,10 @@ import type {
   OrderMetadata,
   FactorMap,
   ScoreResponse,
+  SelfAccuracyByCategoryResponse,
+  SelfAuditTrailResponse,
+  SelfCentroidHistoryResponse,
+  SelfDecisionExplorerResponse,
   SimilarOrder,
   TodaySummary,
   TrajectoryResponse,
@@ -74,6 +78,14 @@ async function apiGet<T>(path: string): Promise<T> {
     throw new Error(`${response.status} ${response.statusText}`);
   }
   return normalize<T>(await response.json());
+}
+
+async function safeApiGet<T>(path: string): Promise<T | null> {
+  try {
+    return await apiGet<T>(path);
+  } catch {
+    return null;
+  }
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
@@ -154,6 +166,27 @@ export function getTrajectory(): Promise<TrajectoryResponse> {
 
 export function getConservationStatus(): Promise<ConservationState> {
   return apiGet<ConservationState>("/api/conservation/status");
+}
+
+export function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {
+  return safeApiGet<SelfCentroidHistoryResponse>(withParams("/api/self/centroid-history", { limit }));
+}
+
+export function fetchAccuracyByCategory(threshold = 0.7): Promise<SelfAccuracyByCategoryResponse | null> {
+  return safeApiGet<SelfAccuracyByCategoryResponse>(withParams("/api/self/accuracy-by-category", { threshold }));
+}
+
+export function fetchDecisions(filters: {
+  category?: string;
+  action?: string;
+  verifiedOnly?: boolean;
+  limit?: number;
+} = {}): Promise<SelfDecisionExplorerResponse | null> {
+  return safeApiGet<SelfDecisionExplorerResponse>(withParams("/api/self/decisions", filters));
+}
+
+export function fetchAuditTrail(decisionId?: string): Promise<SelfAuditTrailResponse | null> {
+  return safeApiGet<SelfAuditTrailResponse>(withParams("/api/self/audit-trail", { decisionId }));
 }
 
 export function getSimilarOrders(

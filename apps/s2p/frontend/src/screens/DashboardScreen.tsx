@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getPreviewConservation, getPreviewQueue } from "../api";
-import type { ConservationStatus, PreviewQueueResponse } from "../types";
+import { ConservationMiniGauge } from "../components/ConservationMiniGauge";
+import { ProcessContextCard } from "../components/ProcessContextCard";
+import type { ConservationStatus, InvoiceException, PreviewQueueResponse } from "../types";
 
 function formatPercent(value?: number): string {
   if (typeof value !== "number") return "n/a";
@@ -32,6 +34,8 @@ export function DashboardScreen() {
   const autoApproveRate = queue?.auto_approve_rate ?? queue?.autoApproveRate;
   const confidenceAvg = queue?.confidence_avg ?? queue?.confidenceAvg;
   const verifiedDecisions = conservation?.verified_decisions ?? conservation?.verifiedDecisions;
+  const recent = queue?.exceptions ?? [];
+  const firstInvoice = recent[0];
 
   return (
     <section className="space-y-6">
@@ -39,8 +43,8 @@ export function DashboardScreen() {
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Source-to-Pay</p>
         <h1 className="mt-1 text-3xl font-semibold text-slate-950">Dashboard</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Preview shell for invoice exception management. Dashboard data comes from the S2P preview
-          backend while Phase 1 workflow screens remain intentionally inactive.
+          Monitor the S2P exception queue, process bottlenecks, recent recommendations, and the
+          conservation state before analysts move into triage.
         </p>
       </div>
 
@@ -74,13 +78,25 @@ export function DashboardScreen() {
         </article>
       </div>
 
-      <article className="copilot-card border-amber-200 bg-amber-50 p-5">
-        <h2 className="text-base font-semibold text-amber-900">Phase 1 scope note</h2>
-        <p className="mt-2 text-sm text-amber-900">
-          This scaffold exposes preview data only. Exception scoring, verification, supplier detail
-          workflows, and learned decision exploration are reserved for Phase 1.
-        </p>
-      </article>
+      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+        <article className="copilot-card p-5">
+          <h2 className="text-lg font-semibold text-slate-900">Recent Decisions</h2>
+          {loading ? (
+            <p className="mt-3 text-sm text-slate-500">Loading recent decisions...</p>
+          ) : recent.length === 0 ? (
+            <p className="mt-3 text-sm text-slate-500">No recent invoice decisions available.</p>
+          ) : (
+            <div className="mt-4 divide-y divide-slate-100">
+              {recent.slice(0, 5).map((invoice) => (
+                <DecisionRow key={invoiceId(invoice)} invoice={invoice} />
+              ))}
+            </div>
+          )}
+        </article>
+        <ConservationMiniGauge conservation={conservation} />
+      </div>
+
+      <ProcessContextCard invoice={firstInvoice} />
     </section>
   );
 }
@@ -90,6 +106,27 @@ function Metric({ label, value }: { label: string; value: string | number }) {
     <div className="rounded-md border border-slate-200 bg-white p-3">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-2 text-xl font-semibold text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function invoiceId(invoice: InvoiceException): string {
+  return invoice.invoice_id ?? invoice.invoiceId ?? invoice.event_id ?? invoice.eventId ?? "invoice";
+}
+
+function DecisionRow({ invoice }: { invoice: InvoiceException }) {
+  const action = invoice.recommended_action ?? invoice.recommendedAction ?? invoice.scored_action ?? invoice.scoredAction ?? "hold_for_review";
+  return (
+    <div className="py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="font-mono text-xs font-semibold text-slate-700">{invoiceId(invoice)}</span>
+        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+          {String(action).replace(/_/g, " ")}
+        </span>
+      </div>
+      <p className="mt-1 text-sm text-slate-600">
+        {invoice.supplier_name ?? invoice.supplierName ?? invoice.supplier ?? "Unknown supplier"} · {invoice.category ?? "uncategorized"}
+      </p>
     </div>
   );
 }

@@ -207,3 +207,28 @@ test("all main tabs load after shared reasoning and projection port", async ({ p
     await expectAnyText(page, [new RegExp(tab, "i"), /items need attention/i, /Score the next purchase/i, /YOUR TWO SELVES/i, /System Improvements/i, /Performance/i]);
   }
 });
+
+test("SC round trip: accuracy to decisions to inventory audit trail", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/SC-12/i, /Accuracy/i, /threshold/i, /No verified decisions yet/i]);
+
+  await clickTab(page, "Analysis");
+  await expectAnyText(page, [/SC-14/i, /Decision Explorer/i, /Category/i, /Action/i]);
+
+  await clickTab(page, "Inventory");
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /lineage/i]);
+  await expectAnyText(page, [/SC-15/i, /Rule Lifecycle/i, /promoted/i, /rejected/i]);
+  await expectAnyText(page, [/SC-16/i, /Audit Trail/i, /decision/i, /outcome/i, /No audit trails yet/i]);
+
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/SC-11/i, /Centroid History/i, /centroid/i, /No centroid history yet/i]);
+});
+
+test("api self features render populated or empty states", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/Category accuracy alerts/i, /No verified decisions yet/i, /Threshold/i]);
+
+  await clickTab(page, "Inventory");
+  await expectAnyText(page, [/Audit Trail/i, /No audit trails yet/i, /decision/i]);
+  await expectAnyText(page, [/Rule Genealogy/i, /Rule Lifecycle/i]);
+});

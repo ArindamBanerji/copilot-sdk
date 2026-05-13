@@ -3,6 +3,7 @@ import { ConservationProjection } from "../../../../../copilot_sdk/frontend";
 import TrajectoryChart, { type TrajectoryPoint } from "../../../../../copilot_sdk/frontend/TrajectoryChart";
 import { getAnalytics, getConservationStatus, getTrajectory } from "../api";
 import CategoryAccuracyChart from "../components/CategoryAccuracyChart";
+import { CentroidTimelineChart } from "../components/CentroidTimelineChart";
 import WasteCostCard from "../components/WasteCostCard";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
 
@@ -103,6 +104,7 @@ export default function PerformanceScreen() {
         daysActive={daysActive}
       />
       <ConservationProjection conservation={conservation} trajectory={trajectory || null} />
+      <CentroidTimelineChart />
 
       <section className="purchase-card">
         <p className="purchase-kicker">Cost impact</p>

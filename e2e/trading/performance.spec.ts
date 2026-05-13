@@ -50,3 +50,9 @@ test("conservation status shows projection targets", async ({ page }) => {
   await expectAnyText(page, [/55%/, /75%/, /90%/]);
   await expectAnyText(page, [/verified/i, /accuracy/i, /projection/i]);
 });
+
+test("SC-11 centroid timeline visible on performance", async ({ page }) => {
+  await gotoPerformance(page);
+
+  await expectAnyText(page, [/centroid/i, /timeline/i, /factor.*weight/i, /no.*centroid.*history/i, /no.*history/i, /evolution/i]);
+});

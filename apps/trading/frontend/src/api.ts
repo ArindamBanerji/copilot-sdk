@@ -5,6 +5,10 @@ import type {
   LearnResponse,
   MarketSnapshot,
   ScoreResponse,
+  SelfAccuracyByCategoryResponse,
+  SelfAuditTrailResponse,
+  SelfCentroidHistoryResponse,
+  SelfDecisionExplorerResponse,
   SimilarTrade,
   TickerData,
   TradeHistoryDecision,
@@ -40,6 +44,14 @@ async function apiGet<T>(path: string): Promise<T> {
     throw new Error(`GET ${path} failed with ${response.status}`);
   }
   return normalizeKeys<T>(await response.json());
+}
+
+async function safeApiGet<T>(path: string): Promise<T | null> {
+  try {
+    return await apiGet<T>(path);
+  } catch {
+    return null;
+  }
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
@@ -82,6 +94,38 @@ export function getTrajectory(): Promise<TrajectoryResponse> {
 
 export function getConservationStatus(): Promise<ConservationState> {
   return apiGet<ConservationState>("/api/conservation/status");
+}
+
+export function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return safeApiGet<SelfCentroidHistoryResponse>(`/api/self/centroid-history?${params.toString()}`);
+}
+
+export function fetchAccuracyByCategory(threshold = 0.7): Promise<SelfAccuracyByCategoryResponse | null> {
+  const params = new URLSearchParams({ threshold: String(threshold) });
+  return safeApiGet<SelfAccuracyByCategoryResponse>(`/api/self/accuracy-by-category?${params.toString()}`);
+}
+
+export function fetchDecisions(filters: {
+  category?: string;
+  action?: string;
+  verifiedOnly?: boolean;
+  limit?: number;
+} = {}): Promise<SelfDecisionExplorerResponse | null> {
+  const params = new URLSearchParams();
+  if (filters.category) params.set("category", filters.category);
+  if (filters.action) params.set("action", filters.action);
+  if (typeof filters.verifiedOnly === "boolean") params.set("verified_only", filters.verifiedOnly ? "true" : "false");
+  if (typeof filters.limit === "number") params.set("limit", String(filters.limit));
+  const query = params.toString();
+  return safeApiGet<SelfDecisionExplorerResponse>(`/api/self/decisions${query ? `?${query}` : ""}`);
+}
+
+export function fetchAuditTrail(decisionId?: string): Promise<SelfAuditTrailResponse | null> {
+  const params = new URLSearchParams();
+  if (decisionId) params.set("decision_id", decisionId);
+  const query = params.toString();
+  return safeApiGet<SelfAuditTrailResponse>(`/api/self/audit-trail${query ? `?${query}` : ""}`);
 }
 
 export function getFingerprint(): Promise<FingerprintResponse> {

@@ -363,6 +363,20 @@ test("self-computation features survive page reload", async ({ page }) => {
   await expectAnyText(page, [/Decision Explorer/i, /SC-14/i]);
 });
 
+test("DataOps SC regression after Trading and Purchasing port", async ({ page }) => {
+  await page.goto("/");
+  await expectAnyText(page, [/SC-12/i, /Accuracy Alerts/i, /threshold/i]);
+
+  await clickTab(page, "Insight");
+  await expectAnyText(page, [/SC-14/i, /Decision Explorer/i, /Category/i, /Action/i]);
+
+  await clickTab(page, "Evidence");
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /SC-15/i, /Rule Lifecycle/i, /SC-16/i, /Audit Trail/i]);
+
+  await clickTab(page, "Curve");
+  await expectAnyText(page, [/SC-11/i, /Centroid History/i, /centroid/i]);
+});
+
 test("OE-5 what-if shows impact change on reorder interaction", async ({ page }) => {
   await page.goto("/");
   await clickTab(page, "Insight");

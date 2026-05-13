@@ -279,6 +279,29 @@ class CompoundingScorer:
             self._preset.shape,
         )
 
+    def get_phase(self) -> str:
+        """Return the current SDK phase from GraphStore verification counts."""
+        try:
+            verified = int(self._graph_store.count_verified())
+            if verified < 10:
+                return "A"
+            correct = int(self._graph_store.count_correct())
+            q = correct / verified
+            return "B" if q >= 0.5 else "A"
+        except Exception:
+            return "A"
+
+    def get_alpha(self) -> float:
+        """Return current verified accuracy from GraphStore counts."""
+        try:
+            verified = int(self._graph_store.count_verified())
+            if verified == 0:
+                return 0.0
+            correct = int(self._graph_store.count_correct())
+            return round(correct / verified, 4)
+        except Exception:
+            return 0.0
+
     def export(self, path: str | Path) -> None:
         destination = Path(path)
         destination.parent.mkdir(parents=True, exist_ok=True)

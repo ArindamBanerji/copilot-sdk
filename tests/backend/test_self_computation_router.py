@@ -100,6 +100,42 @@ def test_centroid_history_normalizes_numpy_like_centroids() -> None:
     assert checkpoint["metadata"]["iks"] == 0.75
 
 
+def test_self_computation_router_isolates_store_per_app() -> None:
+    store_a = InMemoryGraphStore()
+    store_b = InMemoryGraphStore()
+    store_a.write_decision(
+        entity_id="entity-a",
+        category="alpha-only",
+        action="investigate",
+        confidence=0.9,
+        factors={"severity": 0.9},
+        metadata={"decision_id": "decision-a"},
+    )
+    store_b.write_decision(
+        entity_id="entity-b",
+        category="beta-only",
+        action="suppress",
+        confidence=0.7,
+        factors={"severity": 0.4},
+        metadata={"decision_id": "decision-b"},
+    )
+
+    app_a = FastAPI()
+    app_b = FastAPI()
+    mount_self_computation_router(app_a, store_a)
+    mount_self_computation_router(app_b, store_b)
+    client_a = TestClient(app_a)
+    client_b = TestClient(app_b)
+
+    payload_a = client_a.get("/api/self/decisions").json()
+    payload_b = client_b.get("/api/self/decisions").json()
+
+    assert [item["decision_id"] for item in payload_a["decisions"]] == ["decision-a"]
+    assert [item["category"] for item in payload_a["decisions"]] == ["alpha-only"]
+    assert [item["decision_id"] for item in payload_b["decisions"]] == ["decision-b"]
+    assert [item["category"] for item in payload_b["decisions"]] == ["beta-only"]
+
+
 def test_accuracy_by_category_computes_accuracy() -> None:
     store, _ = _seed_store()
     payload = _client(store).get("/api/self/accuracy-by-category").json()
