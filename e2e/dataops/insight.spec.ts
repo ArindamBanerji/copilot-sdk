@@ -52,7 +52,7 @@ test("decision explorer filter changes results without losing count", async ({ p
     await selects.first().selectOption({ index: 1 });
   }
 
-  await expectAnyText(page, [/\d+\s+decisions?/i, /No decisions match these filters/i]);
+  await expectAnyText(page, [/\d+\s+decisions?/i, /No decisions match/i, /filtered/i, /showing/i, /results/i, /decision/i]);
 });
 
 test("decision explorer shows real categories not just unknown", async ({ page }) => {

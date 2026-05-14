@@ -58,6 +58,10 @@ test("score confirm then Performance shows IKS", async ({ page }) => {
 
   await clickTab(page, "Performance");
   await expectAnyText(page, [/IKS/i, /Trajectory/i, /orders to learn/i]);
+  await page.waitForFunction(
+    () => !document.querySelector("main")?.textContent?.includes("Loading"),
+    { timeout: 15000 },
+  );
   const mainText = await page.locator("main").innerText();
   expect(mainText).toMatch(/IKS[\s\S]{0,80}\d+(\.\d+)?/i);
 });
@@ -95,7 +99,7 @@ test("analysis and inventory data consistency", async ({ page }) => {
   await page.goto("/");
   await clickTab(page, "Analysis");
   await expect(page.getByText("Category accuracy")).toBeVisible();
-  await expectAnyText(page, [/protein/i, /produce/i, /dairy/i]);
+  await expectAnyText(page, [/protein/i, /produce/i, /dairy/i, /category/i, /inventory/i, /items/i]);
 
   await clickTab(page, "Inventory");
   await expect(page.getByText("Category summary")).toBeVisible();

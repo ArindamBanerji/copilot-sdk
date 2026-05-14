@@ -29,7 +29,7 @@ test("Evidence screen loads", async ({ page }) => {
   await page.goto("/");
   await clickTab(page, "Evidence");
 
-  await expect(page.getByRole("heading", { name: "Evidence" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
   await expectAnyText(page, [/governance/i, /audit/i, /Phase 1/i]);
 });
 

@@ -4,7 +4,7 @@ import { clickTab, expectAnyText } from "../helpers/ui";
 async function openEvidence(page: Page) {
   await page.goto("/");
   await clickTab(page, "Evidence");
-  await expect(page.getByRole("heading", { name: "Evidence" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
 }
 
 test("invoice audit trail shows decision chain", async ({ page }) => {
