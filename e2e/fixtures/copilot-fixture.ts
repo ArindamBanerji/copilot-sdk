@@ -24,17 +24,24 @@ export const test = base.extend<{ backendHealth: void }>({
       const healthUrl = `http://localhost:${port}/health`;
       let responseText = "";
 
-      try {
-        const response = await request.get(healthUrl, { timeout: 5_000 });
-        responseText = await response.text().catch(() => "");
-        if (!response.ok()) {
-          throw new Error(`HTTP ${response.status()} ${response.statusText()} ${responseText}`.trim());
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const response = await request.get(healthUrl, { timeout: 5_000 });
+          responseText = await response.text().catch(() => "");
+          if (!response.ok()) {
+            throw new Error(`HTTP ${response.status()} ${response.statusText()} ${responseText}`.trim());
+          }
+          break;
+        } catch (error) {
+          if (attempt < 2) {
+            await new Promise(r => setTimeout(r, 2000));
+            continue;
+          }
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(
+            `${projectName} backend is not healthy at ${healthUrl}. Start the live stack before running E2E tests. ${message}`,
+          );
         }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        throw new Error(
-          `${projectName} backend is not healthy at ${healthUrl}. Start the live stack before running E2E tests. ${message}`,
-        );
       }
 
       await use();
