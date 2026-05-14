@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import sys
 import time
 import uuid
@@ -30,6 +31,8 @@ def _ensure_gae_path() -> None:
 _ensure_gae_path()
 
 from gae.profile_scorer import ProfileScorer  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -68,6 +71,7 @@ class CompoundingScorer:
         reward_function: Any | None = None,
         credit_assigner: Any | None = None,
         exploration_policy: Any | None = None,
+        evolve: bool = False,
     ):
         self._preset = preset
         self._store = store
@@ -80,6 +84,11 @@ class CompoundingScorer:
         self._reward_fn = reward_function
         self._credit = credit_assigner
         self._explorer = exploration_policy
+        self._evolve = bool(evolve)
+        self._evolver = None
+        self._evolve_count = 0
+        if self._evolve:
+            self._setup_evolution()
 
     @classmethod
     def from_preset(
@@ -90,6 +99,7 @@ class CompoundingScorer:
         reward_function: Any | None = None,
         credit_assigner: Any | None = None,
         exploration_policy: Any | None = None,
+        evolve: bool = False,
     ) -> "CompoundingScorer":
         if domain not in PRESET_REGISTRY:
             available = ", ".join(sorted(PRESET_REGISTRY)) or "(none)"
@@ -124,6 +134,7 @@ class CompoundingScorer:
             reward_function=reward_function,
             credit_assigner=credit_assigner,
             exploration_policy=exploration_policy,
+            evolve=evolve,
         )
 
     def score(self, factors: dict[str, float], category: str) -> ScoreResult:
@@ -253,6 +264,11 @@ class CompoundingScorer:
                     if name in factors
                 ]
                 self._credit.assign(reward_raw, factor_names)
+
+        if self._evolve and self._evolver is not None:
+            self._evolve_count += 1
+            if self._evolve_count % 20 == 0:
+                self._run_evolution()
 
         return LearnResult(
             decision_id=decision_id,
@@ -397,6 +413,83 @@ class CompoundingScorer:
             _positive_penalty_ratio(getattr(self._preset, "penalty_ratio", None)),
         )
         return reward_raw, reward
+
+    def _setup_evolution(self) -> None:
+        actions = list(getattr(self._preset.shape, "action_names", ()) or ())
+        if len(actions) < 2:
+            logger.warning("Evolution disabled: preset %s has fewer than 2 actions", self._preset.name)
+            self._evolve = False
+            self._evolver = None
+            return
+
+        factor_count = int(getattr(self._preset.shape, "n_factors", 0) or len(getattr(self._preset.shape, "factor_names", ())))
+        try:
+            from copilot_sdk.evolution import (
+                AgentEvolver,
+                DefaultPromotionGate,
+                DefaultShadowRunner,
+                InMemoryEvolutionLedger,
+            )
+            from copilot_sdk.evolution.toy_rules import ActionBiasRule, FactorWeightRule, ThresholdRule
+        except Exception as exc:
+            logger.warning("Evolution disabled: failed to import evolution components: %s", exc)
+            self._evolve = False
+            self._evolver = None
+            return
+
+        ledger = InMemoryEvolutionLedger(graph_store=self._graph_store)
+        evolver = AgentEvolver(
+            ledger=ledger,
+            shadow_runner=DefaultShadowRunner(),
+            promotion_gate=DefaultPromotionGate(),
+        )
+        evolver.register_rule(ThresholdRule(actions))
+        evolver.register_rule(FactorWeightRule(actions, factor_count=factor_count))
+        evolver.register_rule(ActionBiasRule(actions))
+        self._evolver = evolver
+
+    def _run_evolution(self) -> None:
+        if self._evolver is None:
+            return
+        try:
+            decisions = list(self._graph_store.get_verified_decisions() or [])
+            if len(decisions) < 10:
+                return
+            conservation_state = self._evolution_conservation_state()
+            active_rules = self._evolver.get_active_rules()
+            for rule_name in list(active_rules):
+                self._evolver.evolve(
+                    rule_name,
+                    decisions,
+                    conservation_state=conservation_state,
+                )
+        except Exception as exc:
+            logger.warning("Evolution run failed: %s", exc)
+
+    def _evolution_conservation_state(self) -> dict[str, Any] | None:
+        try:
+            verified = int(self._graph_store.count_verified())
+            correct = int(self._graph_store.count_correct())
+        except Exception:
+            return None
+        if verified <= 0:
+            return {
+                "status": "GREEN",
+                "verified_count": 0,
+                "correct_count": 0,
+                "q": 0.0,
+                "theta_min": None,
+            }
+        q = correct / verified
+        penalty_ratio = _positive_penalty_ratio(getattr(self._preset, "penalty_ratio", None))
+        theta_min = 23.53 / (penalty_ratio * verified)
+        return {
+            "status": "GREEN" if q >= theta_min else "RED",
+            "verified_count": verified,
+            "correct_count": correct,
+            "q": q,
+            "theta_min": theta_min,
+        }
 
     @property
     def graph_store(self) -> GraphStore:
