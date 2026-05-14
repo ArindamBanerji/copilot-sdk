@@ -84,10 +84,7 @@ export async function fetchConservation(): Promise<ConservationStatus | null> {
 }
 
 export async function getExceptionQueue(): Promise<ExceptionQueueResponse> {
-  return apiGet<ExceptionQueueResponse>("/api/s2p/queue").catch(() => ({
-    exceptions: [],
-    total: 0
-  }));
+  return getPreviewQueue();
 }
 
 export async function scoreException(payload: unknown): Promise<unknown | null> {
@@ -106,15 +103,8 @@ export async function learnDecision(payload: LearnDecisionRequest): Promise<Lear
   return apiPost<LearnDecisionResponse>("/api/learn", payload).catch(() => null);
 }
 
-export async function getDecisions(): Promise<{ decisions: unknown[]; total: number }> {
-  return apiGet<{ decisions: unknown[]; total: number }>("/api/s2p/decisions").catch(() => ({
-    decisions: [],
-    total: 0
-  }));
-}
-
 export async function getSupplierProfile(id: string): Promise<unknown | null> {
-  return apiGet<unknown>(`/api/s2p/supplier/${encodeURIComponent(id)}/profile`).catch(() => null);
+  return fetchSupplierProfile(id);
 }
 
 export async function fetchS2PFingerprint(invoiceId: string): Promise<FingerprintResponse | null> {
