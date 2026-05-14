@@ -57,7 +57,7 @@ test("SC-14 decision explorer renders on analysis", async ({ page }) => {
 test("SC-13 and SC-16 analysis evidence panels render", async ({ page }) => {
   await gotoAnalysis(page);
 
-  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /lineage/i]);
-  await expectAnyText(page, [/SC-15/i, /Rule Lifecycle/i, /promoted/i, /rejected/i]);
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /No evolution data yet/i, /Evolution variant/i, /Lifecycle event/i]);
+  await expectAnyText(page, [/SC-15/i, /Rule Lifecycle/i, /No evolution data yet/i, /promoted/i, /rejected/i, /shadow/i]);
   await expectAnyText(page, [/SC-16/i, /Audit Trail/i, /decision/i, /outcome/i, /No audit trail available yet/i]);
 });

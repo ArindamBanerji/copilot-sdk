@@ -1,14 +1,81 @@
+import { useEffect, useState } from "react";
+import { getEvolutionHistory, getEvolutionVariants } from "../api";
+import type { EvolutionHistoryEvent, EvolutionVariant } from "../api";
+
+type LoadState = "loading" | "ready" | "error";
+
 export default function RuleGenealogyTree() {
+  const [status, setStatus] = useState<LoadState>("loading");
+  const [variants, setVariants] = useState<EvolutionVariant[]>([]);
+  const [events, setEvents] = useState<EvolutionHistoryEvent[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getEvolutionVariants(), getEvolutionHistory()])
+      .then(([nextVariants, history]) => {
+        if (!cancelled) {
+          setVariants(nextVariants);
+          setEvents(history.events ?? []);
+          setStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStatus("error");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const lineage = buildLineage(variants, events);
+
   return (
     <section className="copilot-card p-5">
       <p className="text-xs font-semibold uppercase" style={{ color: "var(--copilot-primary)" }}>SC-13</p>
       <h2 className="mt-1 text-xl font-semibold">Rule Genealogy</h2>
       <div className="mt-4 grid gap-3 text-sm">
-        <div className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
-          Trading decisions inherit their lineage from GraphStore decision, factor, recommendation, and outcome records.
-        </div>
+        {status === "loading" ? <LineageCard title="Loading evolution lineage" body="Reading Trading evolution history." /> : null}
+        {status === "error" ? <LineageCard title="No evolution data yet" body="Evolution lineage is unavailable right now." /> : null}
+        {status === "ready" && lineage.length === 0 ? (
+          <LineageCard title="No evolution data yet" body="Trading rule lineage will appear after evolution events are recorded." />
+        ) : null}
+        {status === "ready"
+          ? lineage.map((item, index) => (
+              <LineageCard
+                key={`${item.title}-${index}`}
+                title={item.title}
+                body={item.body}
+                label={`step ${index + 1}`}
+              />
+            ))
+          : null}
       </div>
-      <p className="mt-4 text-xs trading-muted">Based on GraphStore audit data.</p>
+      <p className="mt-4 text-xs trading-muted">Based on SDK evolution history and GraphStore audit data.</p>
     </section>
+  );
+}
+
+function buildLineage(variants: EvolutionVariant[], events: EvolutionHistoryEvent[]) {
+  const fromVariants = variants.slice(0, 3).map((variant) => ({
+    title: String(variant.variantId || variant.id || variant.name || "Evolution variant"),
+    body: String(variant.description || variant.sourceRule || "Candidate rule linked to Trading evolution history."),
+  }));
+  if (fromVariants.length > 0) return fromVariants;
+
+  return events.slice(0, 3).map((event) => ({
+    title: String(event.variantId || event.ruleName || event.eventType || "Evolution event"),
+    body: String(event.eventType || "Rule genealogy event recorded by AgentEvolver."),
+  }));
+}
+
+function LineageCard({ title, body, label }: { title: string; body: string; label?: string }) {
+  return (
+    <article className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
+      {label ? <span className="text-xs font-semibold uppercase" style={{ color: "var(--copilot-primary)" }}>{label}</span> : null}
+      <h3 className="font-semibold">{title}</h3>
+      <p className="mt-1 trading-muted">{body}</p>
+    </article>
   );
 }

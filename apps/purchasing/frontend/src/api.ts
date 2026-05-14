@@ -147,8 +147,33 @@ export function saveOrderMetadata(
 }
 
 export async function getEvolutionVariants(): Promise<Variant[]> {
-  const payload = await apiGet<{ variants?: Variant[] } | Variant[]>("/api/evolution/variants");
+  const payload = await safeApiGet<{ variants?: Variant[] } | Variant[]>("/api/evolution/variants");
+  if (!payload) return [];
   return Array.isArray(payload) ? payload : payload.variants ?? [];
+}
+
+export interface EvolutionHistoryEvent {
+  eventType?: string;
+  ruleName?: string;
+  variantId?: string;
+  metadata?: Record<string, unknown> | string;
+  timestamp?: string;
+  [key: string]: unknown;
+}
+
+export interface EvolutionHistoryResponse {
+  domain?: string;
+  events?: EvolutionHistoryEvent[];
+  count?: number;
+}
+
+export async function getEvolutionHistory(): Promise<EvolutionHistoryResponse> {
+  return (await safeApiGet<EvolutionHistoryResponse>("/api/evolution/history")) ?? { events: [], count: 0 };
+}
+
+export async function getPromotedEvolutionRules(): Promise<Variant[]> {
+  const payload = await safeApiGet<{ promoted?: Variant[] }>("/api/evolution/promoted");
+  return payload?.promoted ?? [];
 }
 
 export async function getHistory(): Promise<HistoryDecision[]> {

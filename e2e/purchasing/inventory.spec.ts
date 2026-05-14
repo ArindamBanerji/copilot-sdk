@@ -21,3 +21,10 @@ test("evolution panel shows variants", async ({ page }) => {
   await expect(page.getByText("System Improvements")).toBeVisible();
   await expectAnyText(page, [/promoted/i, /rejected/i, /shadow/i, /No evolution variants available/i, /V-PUR-/i]);
 });
+
+test("SC genealogy and lifecycle are backed by evolution data or empty states", async ({ page }) => {
+  await gotoInventory(page);
+
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /No evolution data yet/i, /V-PUR-/i, /Evolution variant/i]);
+  await expectAnyText(page, [/SC-15/i, /Rule Lifecycle/i, /No evolution data yet/i, /promoted/i, /rejected/i, /shadow/i]);
+});

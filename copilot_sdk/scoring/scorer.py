@@ -137,7 +137,12 @@ class CompoundingScorer:
             evolve=evolve,
         )
 
-    def score(self, factors: dict[str, float], category: str) -> ScoreResult:
+    def score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> ScoreResult:
         assert category in self._preset.shape.category_names, f"unknown category: {category}"
         unknown = set(factors) - set(self._preset.shape.factor_names)
         assert not unknown, f"unknown factors: {sorted(unknown)}"
@@ -160,21 +165,23 @@ class CompoundingScorer:
 
         probabilities = [float(value) for value in gae_result.probabilities]
         decision_id = uuid.uuid4().hex[:12]
+        decision_metadata = dict(metadata or {})
+        decision_metadata.update({
+            "decision_id": decision_id,
+            "domain": self._preset.name,
+            "category_index": category_index,
+            "factor_vector": factor_vector.tolist(),
+            "recommended_index": action_index,
+            "probabilities": probabilities,
+            "created_at": time.time(),
+        })
         stored_id = self._graph_store.write_decision(
             entity_id=decision_id,
             category=category,
             action=action,
             confidence=float(gae_result.confidence),
             factors=factor_values,
-            metadata={
-                "decision_id": decision_id,
-                "domain": self._preset.name,
-                "category_index": category_index,
-                "factor_vector": factor_vector.tolist(),
-                "recommended_index": action_index,
-                "probabilities": probabilities,
-                "created_at": time.time(),
-            },
+            metadata=decision_metadata,
         )
         decision_id = stored_id
 

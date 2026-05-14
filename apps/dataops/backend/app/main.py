@@ -29,8 +29,8 @@ from copilot_sdk.backend import (  # noqa: E402
     create_scoring_router,
     mount_self_computation_router,
 )
+from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
-from copilot_sdk.scoring import CompoundingScorer  # noqa: E402
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -55,59 +55,6 @@ def _evolution_variants() -> list[dict[str, Any]]:
     return list(variants) if isinstance(variants, list) else []
 
 
-class _FreshScorerProxy:
-    """Open scorers per call so FastAPI worker threads do not share SQLite handles."""
-
-    def __init__(self, db_path: str):
-        self._db_path = db_path
-        self.store = _graph_store(db_path)
-
-    def _scorer(self) -> CompoundingScorer:
-        return CompoundingScorer.from_preset("dataops", db_path=self._db_path)
-
-    def score(self, factors: dict[str, float], category: str):
-        scorer = self._scorer()
-        try:
-            return scorer.score(factors, category)
-        finally:
-            scorer._store.close()
-
-    def learn(self, decision_id: str, actual_action: str, outcome: str = "confirmed"):
-        scorer = self._scorer()
-        try:
-            return scorer.learn(decision_id, actual_action, outcome)
-        finally:
-            scorer._store.close()
-
-    def fingerprint(self):
-        scorer = self._scorer()
-        try:
-            return scorer.fingerprint()
-        finally:
-            scorer._store.close()
-
-    def trajectory(self):
-        scorer = self._scorer()
-        try:
-            return scorer.trajectory()
-        finally:
-            scorer._store.close()
-
-    def get_phase(self):
-        scorer = self._scorer()
-        try:
-            return scorer.get_phase()
-        finally:
-            scorer._store.close()
-
-    def get_alpha(self):
-        scorer = self._scorer()
-        try:
-            return scorer.get_alpha()
-        finally:
-            scorer._store.close()
-
-
 def create_app(db_path: str | Path | None = None) -> FastAPI:
     app = FastAPI(title="DataOps Copilot", version="0.1.0")
     app.add_middleware(
@@ -123,7 +70,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         create_scoring_router(
             "dataops",
             db_path=scoring_db,
-            scorer_factory=lambda: _FreshScorerProxy(scoring_db),
+            scorer_factory=lambda: FreshScorerProxy("dataops", scoring_db, _graph_store),
         ),
         prefix="/api",
     )

@@ -76,6 +76,54 @@ export function getHistory(): Promise<TradeHistoryDecision[]> {
   );
 }
 
+export interface EvolutionVariant {
+  id?: string;
+  variantId?: string;
+  name?: string;
+  description?: string;
+  status?: string;
+  eventType?: string;
+  sourceRule?: string | null;
+  sourceCopilot?: string | null;
+  metadata?: Record<string, unknown> | string;
+  [key: string]: unknown;
+}
+
+export interface EvolutionHistoryEvent {
+  eventType?: string;
+  ruleName?: string;
+  variantId?: string;
+  metadata?: Record<string, unknown> | string;
+  timestamp?: string;
+  [key: string]: unknown;
+}
+
+export interface EvolutionHistoryResponse {
+  domain?: string;
+  events?: EvolutionHistoryEvent[];
+  count?: number;
+}
+
+export interface EvolutionPromotedResponse {
+  domain?: string;
+  promoted?: EvolutionVariant[];
+}
+
+export async function getEvolutionVariants(): Promise<EvolutionVariant[]> {
+  const payload = await safeApiGet<{ variants?: EvolutionVariant[] } | EvolutionVariant[]>("/api/evolution/variants");
+  if (!payload) return [];
+  return Array.isArray(payload) ? payload : payload.variants ?? [];
+}
+
+export async function getEvolutionHistory(): Promise<EvolutionHistoryResponse> {
+  return (await safeApiGet<EvolutionHistoryResponse>("/api/evolution/history")) ?? { events: [], count: 0 };
+}
+
+export async function getPromotedEvolutionRules(): Promise<EvolutionVariant[]> {
+  const payload = await safeApiGet<EvolutionPromotedResponse>("/api/evolution/promoted");
+  return payload?.promoted ?? [];
+}
+
 export function getTradeMetadata(): Promise<Record<string, TradeMetadata>> {
   return apiGet<Record<string, TradeMetadata>>("/api/context/trade-metadata");
 }
