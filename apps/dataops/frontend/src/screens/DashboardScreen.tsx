@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ConservationSlider } from "../../../../../copilot_sdk/frontend";
+import { ConservationSlider, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import {
+  BASE,
   getAeImpact,
   getAlertGroups,
   getAlerts,
@@ -142,6 +143,7 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
   return (
     <div className="grid gap-5">
       <EnterpriseHealthBar />
+      <TransferBadge apiBase={BASE} />
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div>

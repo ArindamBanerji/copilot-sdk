@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { DecisionHistory } from "../../../../../copilot_sdk/frontend";
+import { DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import {
+  API_BASE,
   getAnalytics,
   getHistory,
   getMarketSnapshot,
@@ -160,6 +161,9 @@ export default function DashboardScreen({
         <div>
           <h2 className="text-2xl font-semibold">Dashboard</h2>
           <p className="text-sm trading-muted">Trading Backend v2 context, analytics, and decision history.</p>
+          <div className="mt-3">
+            <TransferBadge apiBase={API_BASE} />
+          </div>
         </div>
         <button type="button" className="copilot-button px-4 py-2 text-sm" onClick={onLogTrade}>
           Log New Trade

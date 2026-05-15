@@ -39,3 +39,6 @@ export type {
   GenericTrajectoryPoint,
   GenericTrajectoryResponse,
 } from "./ConservationProjection";
+
+export { default as TransferBadge } from "./TransferBadge";
+export type { TransferBadgeProps } from "./TransferBadge";

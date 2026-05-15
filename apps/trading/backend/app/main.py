@@ -19,6 +19,7 @@ for path in (REPO_ROOT, GAE_PATH):
         sys.path.insert(0, str(path))
 
 from .context_router import router as context_router  # noqa: E402
+from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
     create_evolution_router,
@@ -65,6 +66,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     )
 
     scoring_db = str(db_path or DEFAULT_DB_PATH)
+    scorer_proxy = FreshScorerProxy("trading", scoring_db, _graph_store)
     app.include_router(
         create_scoring_router(
             "trading",
@@ -73,6 +75,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         ),
         prefix="/api",
     )
+    app.include_router(create_transfer_router(scorer_proxy))
     app.include_router(
         create_evolution_router(
             graph_store_factory=lambda: _graph_store(scoring_db),

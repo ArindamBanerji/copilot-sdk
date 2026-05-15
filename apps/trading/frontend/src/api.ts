@@ -16,7 +16,7 @@ import type {
   TrajectoryResponse,
 } from "./types";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8010";
+export const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8010";
 
 type JsonObject = Record<string, unknown>;
 

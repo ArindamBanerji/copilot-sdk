@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { DecisionHistory } from "../../../../../copilot_sdk/frontend";
+import { DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import {
+  BASE,
   getAnalytics,
   getEvolutionVariants,
   getHistory,
@@ -167,6 +168,9 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
           <p className="purchase-muted">
             The dashboard prioritizes on-hand inventory below half par and historical waste signals.
           </p>
+          <div className="mt-3">
+            <TransferBadge apiBase={BASE} />
+          </div>
         </section>
       </div>
 
