@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out ci-platform
+        uses: actions/checkout@v4
+        with:
+          repository: ArindamBanerji/ci-platform
+          path: ci-platform
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ci-platform
+          python -m pip install -e ".[dev]" pytest-timeout
+
+      - name: Run SDK tests
+        run: python -m pytest tests/ -q --timeout=120
+
+      - name: Run Trading backend tests
+        run: python -m pytest apps/trading/backend/tests/ -q --timeout=120
+
+      - name: Run Purchasing backend tests
+        run: python -m pytest apps/purchasing/backend/tests/ -q --timeout=120
+
+      - name: Run DataOps backend tests
+        run: python -m pytest apps/dataops/backend/tests/ -q --timeout=120
+
+  frontend-typecheck:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - apps/trading/frontend
+          - apps/purchasing/frontend
+          - apps/dataops/frontend
+          - apps/s2p/frontend
+          - e2e
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.workspace }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Typecheck
+        working-directory: ${{ matrix.workspace }}
+        run: npx tsc --noEmit

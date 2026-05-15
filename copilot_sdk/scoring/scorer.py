@@ -325,6 +325,77 @@ class CompoundingScorer:
         except Exception:
             return 0.0
 
+    def warm_start(
+        self,
+        patterns: Any,
+        category_mapping: dict[str, str] | None = None,
+        blend_weight: float = 0.25,
+    ) -> dict[str, Any]:
+        """Apply shared transfer patterns to the active GAE centroid tensor."""
+        from copilot_sdk.transfer.registry import SharedPatternRegistry
+        from copilot_sdk.transfer.warm_start import (
+            applied_patterns,
+            warm_start_centroids,
+        )
+
+        target_copilot = str(getattr(self._preset, "name", "") or "unknown")
+        if isinstance(patterns, SharedPatternRegistry):
+            transfer_patterns = patterns.get_patterns_for_warm_start(
+                target_copilot,
+                category_mapping=category_mapping,
+            )
+        else:
+            transfer_patterns = list(patterns or [])
+
+        current_centroids = np.array(self._scorer.centroids, dtype=np.float64, copy=True)
+        applied_transfer_patterns = applied_patterns(
+            current_centroids,
+            transfer_patterns,
+            self._preset.shape.category_names,
+            self._preset.shape.action_names,
+        )
+        applied = len(applied_transfer_patterns)
+        updated_centroids, score = warm_start_centroids(
+            current_centroids,
+            transfer_patterns,
+            self._preset.shape.category_names,
+            self._preset.shape.action_names,
+            blend_weight=blend_weight,
+        )
+        if applied:
+            self._scorer.centroids = updated_centroids
+            source_copilots = sorted(
+                {
+                    str(getattr(pattern, "source_copilot", ""))
+                    for pattern in applied_transfer_patterns
+                    if str(getattr(pattern, "source_copilot", ""))
+                }
+            )
+            save_centroids = getattr(self._graph_store, "save_centroids", None)
+            if callable(save_centroids):
+                try:
+                    save_centroids(
+                        f"warm-start-{uuid.uuid4().hex[:12]}",
+                        "warm_start",
+                        self._scorer.centroids,
+                        metadata={
+                            "source": "warm_start",
+                            "score": score,
+                            "applied": applied,
+                            "source_copilots": source_copilots,
+                        },
+                    )
+                except Exception as exc:
+                    logger.warning("Failed to save warm-start centroid checkpoint: %s", exc)
+        else:
+            source_copilots = []
+
+        return {
+            "applied": applied,
+            "score": score,
+            "source_copilots": source_copilots,
+        }
+
     def export(self, path: str | Path) -> None:
         destination = Path(path)
         destination.parent.mkdir(parents=True, exist_ok=True)

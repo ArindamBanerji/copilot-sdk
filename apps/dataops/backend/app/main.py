@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -35,6 +36,21 @@ from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / "dataops.db"
+DEFAULT_CORS_ORIGINS = (
+    "http://localhost:5173,"
+    "http://localhost:5174,"
+    "http://localhost:5175,"
+    "http://localhost:5176,"
+    "http://localhost:5177"
+)
+
+
+def _cors_origins() -> list[str]:
+    return [
+        origin.strip()
+        for origin in os.environ.get("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
+        if origin.strip()
+    ]
 
 
 def _graph_store(db_path: str | Path):
@@ -59,7 +75,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     app = FastAPI(title="DataOps Copilot", version="0.1.0")
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=_cors_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
