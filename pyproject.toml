@@ -13,3 +13,28 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0.0", "fastapi>=0.100.0", "httpx"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "copilot_sdk.data.*",
+    "copilot_sdk.frontend.*",
+]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "copilot_sdk.backend.*",
+    "copilot_sdk.discovery.*",
+    "copilot_sdk.evolution.*",
+    "copilot_sdk.framework.*",
+    "copilot_sdk.graph.*",
+    "copilot_sdk.scoring.*",
+]
+ignore_errors = true

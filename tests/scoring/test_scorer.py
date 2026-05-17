@@ -251,7 +251,8 @@ def test_compounding_scorer_learn_pauses_when_below_threshold(mock_preset, store
     assert learn["status"] == "paused"
     assert learn["reason"] == "conservation_red"
     assert learn["q"] == 0.0
-    assert learn["theta_min"] == pytest.approx(23.53 / (mock_preset.penalty_ratio * 25))
+    assert learn["override_rate"] == pytest.approx(1.0)
+    assert learn["theta_min"] == pytest.approx(23.53 / 25)
     assert learn["verified_count"] == 25
     assert learn["correct_count"] == 0
     np.testing.assert_allclose(scorer.gae_scorer.centroids, before_centroids)
@@ -272,7 +273,8 @@ def test_compounding_scorer_learn_pauses_when_low_verified_threshold_exceeds_one
     assert learn["status"] == "paused"
     assert learn["reason"] == "conservation_red"
     assert learn["q"] == 0.0
-    assert learn["theta_min"] == pytest.approx(23.53 / mock_preset.penalty_ratio)
+    assert learn["override_rate"] == pytest.approx(1.0)
+    assert learn["theta_min"] == pytest.approx(23.53)
     assert learn["verified_count"] == 1
     assert learn["correct_count"] == 0
     np.testing.assert_allclose(scorer.gae_scorer.centroids, before_centroids)
@@ -281,7 +283,7 @@ def test_compounding_scorer_learn_pauses_when_low_verified_threshold_exceeds_one
 
 def test_compounding_scorer_learn_allows_when_above_threshold(mock_preset, store):
     scorer = build_compounding_scorer(mock_preset, store)
-    _seed_verified_history(store, total=25, correct=25)
+    _seed_verified_history(store, total=100, correct=90, overrides=50)
     result = scorer.score(sample_factors(), "alpha")
     before_verified = store.count_verified()
 
@@ -667,13 +669,14 @@ def test_iks_zero_at_start(mock_preset, store):
 def test_iks_increases_with_correct_decisions(mock_preset, store):
     high_penalty_preset = replace(mock_preset, penalty_ratio=100.0)
     scorer = build_compounding_scorer(high_penalty_preset, store)
+    _seed_verified_history(store, total=100, correct=90, overrides=50)
 
     for index in range(10):
         result = scorer.score(sample_factors(amount=0.2 + index * 0.01), "alpha")
         scorer.learn(result.decision_id, result.action)
 
     assert scorer._compute_iks() > 0
-    assert store.count_verified() == 10
+    assert store.count_verified() == 110
 
 
 def test_export_json_contains_state(mock_preset, store, tmp_path):
@@ -716,7 +719,13 @@ def test_load_restores_centroids(monkeypatch, mock_preset, store, tmp_path):
         restored.store.close()
 
 
-def _seed_verified_history(store, total: int, correct: int) -> None:
+def _seed_verified_history(
+    store,
+    total: int,
+    correct: int,
+    overrides: int | None = None,
+) -> None:
+    override_count = total - correct if overrides is None else overrides
     for index in range(total):
         decision_id = f"history-{index}"
         store.save_decision(
@@ -733,10 +742,11 @@ def _seed_verified_history(store, total: int, correct: int) -> None:
             created_at=1000.0 + index,
         )
         is_correct = index < correct
+        is_override = index < override_count
         store.save_outcome(
             decision_id=decision_id,
-            actual_action="approve" if is_correct else "review",
-            actual_index=0 if is_correct else 1,
+            actual_action="review" if is_override else "approve",
+            actual_index=1 if is_override else 0,
             is_correct=is_correct,
             verified_at=2000.0 + index,
         )

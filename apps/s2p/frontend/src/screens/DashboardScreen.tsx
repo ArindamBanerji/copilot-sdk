@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { getPreviewConservation, getPreviewQueue } from "../api";
+import { TransferBadge } from "../../../../../copilot_sdk/frontend";
+import { API_URL, getPreviewConservation, getPreviewQueue } from "../api";
 import { ConservationMiniGauge } from "../components/ConservationMiniGauge";
 import { ControlTowerPanel } from "../components/ControlTowerPanel";
 import { FinancialImpactCard } from "../components/FinancialImpactCard";
@@ -48,6 +49,9 @@ export function DashboardScreen() {
           Monitor the S2P exception queue, process bottlenecks, recent recommendations, and the
           conservation state before analysts move into triage.
         </p>
+        <div className="mt-3">
+          <TransferBadge apiBase={API_URL} />
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

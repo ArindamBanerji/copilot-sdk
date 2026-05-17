@@ -450,10 +450,11 @@ def test_graph_store_count_correct(tmp_path):
 
 def test_fingerprint(client):
     # Strict conservation requires enough verified/correct history before
-    # additional learns mutate centroids. Trading threshold is ~12 verified at q=1.
+    # additional learns mutate centroids. theta_min = 23.53 / override_count;
+    # at q=1, >=24 correct overrides are required. Seed 30 for margin.
     _seed_verified_history(
         Path(client.app.state.trading_data_dir).parent / "trading_test.db",
-        total=13,
+        total=50,
     )
 
     for _ in range(3):
@@ -488,15 +489,25 @@ def _save_proxy_decision(store, decision_id: str) -> None:
 def _seed_verified_history(db_path: Path, total: int) -> None:
     from copilot_sdk.scoring.storage import DecisionStore
 
+    override_count = 30
+    alternate_actions = [("hold", 1), ("sell", 2)]
+    assert total >= override_count
+
     store = DecisionStore(db_path)
     try:
         for index in range(total):
             decision_id = f"seed-{index}"
             _save_proxy_decision(store, decision_id)
+            if index < override_count:
+                actual_action, actual_index = alternate_actions[
+                    index % len(alternate_actions)
+                ]
+            else:
+                actual_action, actual_index = "buy", 0
             store.save_outcome(
                 decision_id=decision_id,
-                actual_action="buy",
-                actual_index=0,
+                actual_action=actual_action,
+                actual_index=actual_index,
                 is_correct=True,
             )
     finally:

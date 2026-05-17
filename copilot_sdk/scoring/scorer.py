@@ -35,6 +35,28 @@ from gae.profile_scorer import ProfileScorer  # noqa: E402
 logger = logging.getLogger(__name__)
 
 
+def compute_theta_min(alpha: float, verified: int | float) -> float:
+    """Return the canonical conservation threshold.
+
+    ``alpha`` is analyst override rate: the fraction of verified decisions where
+    the analyst disagreed with the system recommendation. It is not the domain
+    penalty ratio used for asymmetric loss or reward scaling.
+    """
+    try:
+        alpha_value = float(alpha)
+        verified_value = float(verified)
+    except (TypeError, ValueError):
+        return float("inf")
+    if (
+        not np.isfinite(alpha_value)
+        or not np.isfinite(verified_value)
+        or alpha_value <= 0
+        or verified_value <= 0
+    ):
+        return float("inf")
+    return 23.53 / (alpha_value * verified_value)
+
+
 @dataclass(frozen=True)
 class ScoreResult:
     decision_id: str
@@ -422,11 +444,19 @@ class CompoundingScorer:
         return scorer
 
     def _compute_iks(self) -> float:
-        verified = self._graph_store.count_verified()
+        try:
+            verified = self._graph_store.count_verified()
+        except Exception:
+            verified_decisions = _verified_decisions(self._graph_store) or []
+            verified = len(verified_decisions)
         if verified == 0:
             return 0.0
 
-        correct = self._graph_store.count_correct()
+        try:
+            correct = self._graph_store.count_correct()
+        except Exception:
+            verified_decisions = _verified_decisions(self._graph_store) or []
+            correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
         accuracy = correct / verified
         fingerprint = self.fingerprint()
         mean_sigma = (
@@ -450,15 +480,14 @@ class CompoundingScorer:
 
     def _conservation_pause(self) -> dict[str, Any] | None:
         try:
-            verified, correct = _conservation_counts(self._graph_store)
+            verified, correct, override_rate = _conservation_stats(self._graph_store)
         except Exception:
             return None
         if verified <= 0:
             return None
 
         q = correct / verified
-        penalty_ratio = _positive_penalty_ratio(getattr(self._preset, "penalty_ratio", None))
-        theta_min = 23.53 / (penalty_ratio * verified)
+        theta_min = compute_theta_min(override_rate, verified)
         if q < theta_min:
             return {
                 "status": "paused",
@@ -467,6 +496,7 @@ class CompoundingScorer:
                 "theta_min": theta_min,
                 "verified_count": verified,
                 "correct_count": correct,
+                "override_rate": override_rate,
             }
         return None
 
@@ -546,8 +576,7 @@ class CompoundingScorer:
 
     def _evolution_conservation_state(self) -> dict[str, Any] | None:
         try:
-            verified = int(self._graph_store.count_verified())
-            correct = int(self._graph_store.count_correct())
+            verified, correct, override_rate = _conservation_stats(self._graph_store)
         except Exception:
             return None
         if verified <= 0:
@@ -557,16 +586,17 @@ class CompoundingScorer:
                 "correct_count": 0,
                 "q": 0.0,
                 "theta_min": None,
+                "override_rate": 0.0,
             }
         q = correct / verified
-        penalty_ratio = _positive_penalty_ratio(getattr(self._preset, "penalty_ratio", None))
-        theta_min = 23.53 / (penalty_ratio * verified)
+        theta_min = compute_theta_min(override_rate, verified)
         return {
             "status": "GREEN" if q >= theta_min else "RED",
             "verified_count": verified,
             "correct_count": correct,
             "q": q,
             "theta_min": theta_min,
+            "override_rate": override_rate,
         }
 
     @property
@@ -584,18 +614,47 @@ class CompoundingScorer:
 
 
 def _conservation_counts(store: Any) -> tuple[int, int]:
+    verified, correct, _override_rate = _conservation_stats(store)
+    return verified, correct
+
+
+def _conservation_stats(store: Any) -> tuple[int, int, float]:
+    verified_decisions = _verified_decisions(store)
+    if verified_decisions is not None:
+        verified = len(verified_decisions)
+        correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
+        overrides = sum(1 for decision in verified_decisions if _is_override_decision(decision))
+        override_rate = overrides / verified if verified > 0 else 0.0
+        return verified, correct, override_rate
+
     count_verified = getattr(store, "count_verified", None)
     count_correct = getattr(store, "count_correct", None)
     if callable(count_verified) and callable(count_correct):
-        return max(int(count_verified()), 0), max(int(count_correct()), 0)
+        return max(int(count_verified()), 0), max(int(count_correct()), 0), 0.0
 
     get_all_decisions = getattr(store, "get_all_decisions", None)
     if not callable(get_all_decisions):
-        return 0, 0
+        return 0, 0, 0.0
     decisions = get_all_decisions()
     verified = sum(1 for decision in decisions if _is_verified_decision(decision))
     correct = sum(1 for decision in decisions if _is_correct_decision(decision))
-    return verified, correct
+    overrides = sum(
+        1
+        for decision in decisions
+        if _is_verified_decision(decision) and _is_override_decision(decision)
+    )
+    override_rate = overrides / verified if verified > 0 else 0.0
+    return verified, correct, override_rate
+
+
+def _verified_decisions(store: Any) -> list[dict[str, Any]] | None:
+    get_verified_decisions = getattr(store, "get_verified_decisions", None)
+    if not callable(get_verified_decisions):
+        return None
+    decisions = get_verified_decisions()
+    if decisions is None:
+        return None
+    return [decision for decision in decisions if _is_verified_decision(decision)]
 
 
 def _decision_field(decision: dict[str, Any], key: str, default: Any = None) -> Any:
@@ -632,6 +691,18 @@ def _is_verified_decision(decision: dict[str, Any]) -> bool:
 def _is_correct_decision(decision: dict[str, Any]) -> bool:
     outcome = str(decision.get("outcome") or "").strip().lower()
     return outcome == "confirmed" or bool(decision.get("is_correct"))
+
+
+def _is_override_decision(decision: dict[str, Any]) -> bool:
+    actual_action = _decision_field(decision, "actual_action")
+    recommended_action = _decision_field(
+        decision,
+        "recommended_action",
+        _decision_field(decision, "action"),
+    )
+    if actual_action is None or recommended_action is None:
+        return False
+    return str(actual_action) != str(recommended_action)
 
 
 def _positive_penalty_ratio(value: Any) -> float:
