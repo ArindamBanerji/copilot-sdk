@@ -317,6 +317,74 @@ export interface RuleLifecycleResponse {
   note?: string;
 }
 
+export interface S2PEvolutionRule extends RuleLifecycle {
+  label?: string;
+  success_metric_name?: string;
+  successMetricName?: string;
+  applicable_categories?: string[];
+  applicableCategories?: string[];
+  variant_count?: number;
+  variantCount?: number;
+}
+
+export interface S2PEvolutionRulesResponse {
+  rules: S2PEvolutionRule[];
+  count?: number;
+  total?: number;
+}
+
+export interface S2PEvolutionVariant {
+  id?: string;
+  variant_id?: string;
+  variantId?: string;
+  template_name?: string;
+  templateName?: string;
+  category?: string;
+  categories?: string[];
+  parameter?: string;
+  win_rate?: number;
+  winRate?: number;
+  sample_size?: number;
+  sampleSize?: number;
+  status?: string;
+  source?: string;
+  description?: string;
+  [key: string]: unknown;
+}
+
+export interface S2PEvolutionVariantsResponse {
+  variants: S2PEvolutionVariant[];
+  total?: number;
+}
+
+export interface S2PShadowResult {
+  variant_id?: string;
+  variantId?: string;
+  metric_name?: string;
+  metricName?: string;
+  better?: boolean;
+  win?: boolean;
+  accuracy?: number;
+  baseline_accuracy?: number;
+  baselineAccuracy?: number;
+  regression?: boolean;
+  sample_size?: number;
+  sampleSize?: number;
+  [key: string]: unknown;
+}
+
+export interface S2PShadowResultsResponse {
+  variant_id?: string;
+  variantId?: string;
+  total_variants?: number;
+  totalVariants?: number;
+  results?: Record<string, S2PShadowResult[]> | S2PShadowResult[];
+}
+
+export interface S2PPromotedResponse {
+  promoted?: Record<string, unknown> | null;
+}
+
 export interface ComplianceInvoice {
   invoice_id?: string;
   invoiceId?: string;

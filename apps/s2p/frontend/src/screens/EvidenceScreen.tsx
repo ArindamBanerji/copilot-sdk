@@ -3,6 +3,7 @@ import { fetchPreviewQueue } from "../api";
 import { AuditTrailPanel } from "../components/AuditTrailPanel";
 import { CompliancePanel } from "../components/CompliancePanel";
 import { RuleLifecyclePanel } from "../components/RuleLifecyclePanel";
+import { S2PEvolutionPanel } from "../components/S2PEvolutionPanel";
 import type { InvoiceException, PreviewQueueResponse } from "../types";
 
 function invoiceId(invoice?: InvoiceException | null): string {
@@ -61,6 +62,7 @@ export function EvidenceScreen() {
       </article>
 
       <AuditTrailPanel invoiceId={invoiceId(selected)} />
+      <S2PEvolutionPanel />
       <RuleLifecyclePanel />
       <CompliancePanel />
     </section>

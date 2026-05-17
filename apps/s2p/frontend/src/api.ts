@@ -13,6 +13,10 @@ import type {
   PreviewQueueResponse,
   PreviewSuppliersResponse,
   RuleLifecycleResponse,
+  S2PEvolutionRulesResponse,
+  S2PEvolutionVariantsResponse,
+  S2PPromotedResponse,
+  S2PShadowResultsResponse,
   ScoreInvoiceRequest,
   ScoreInvoiceResponse,
   SimilarResponse,
@@ -137,6 +141,22 @@ export async function fetchS2PAuditTrail(invoiceId: string): Promise<AuditTrailR
 
 export async function fetchS2PRules(): Promise<RuleLifecycleResponse | null> {
   return apiGet<RuleLifecycleResponse>("/api/s2p/evidence/rules").catch(() => null);
+}
+
+export async function fetchS2PEvolutionRules(): Promise<S2PEvolutionRulesResponse | null> {
+  return apiGet<S2PEvolutionRulesResponse>("/api/s2p/evolution/rules").catch(() => null);
+}
+
+export async function fetchS2PEvolutionVariants(): Promise<S2PEvolutionVariantsResponse | null> {
+  return apiGet<S2PEvolutionVariantsResponse>("/api/s2p/evolution/variants").catch(() => null);
+}
+
+export async function fetchS2PShadowResults(): Promise<S2PShadowResultsResponse | null> {
+  return apiGet<S2PShadowResultsResponse>("/api/s2p/evolution/shadow-results").catch(() => null);
+}
+
+export async function fetchS2PPromotedRules(): Promise<S2PPromotedResponse | null> {
+  return apiGet<S2PPromotedResponse>("/api/s2p/evolution/promoted").catch(() => null);
 }
 
 export async function fetchS2PCompliance(): Promise<ComplianceResponse | null> {

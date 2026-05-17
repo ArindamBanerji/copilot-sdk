@@ -7,6 +7,8 @@ from typing import Protocol
 
 import numpy as np
 
+from copilot_sdk.evolution import PlateauConfig
+
 
 @dataclass(frozen=True)
 class DomainShape:
@@ -46,3 +48,4 @@ class DomainPreset(Protocol):
     eta_confirm: float
     eta_override: float
     temperature: float
+    plateau_config: PlateauConfig | None

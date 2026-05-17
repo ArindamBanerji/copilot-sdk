@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
+from copilot_sdk.evolution import PlateauConfig
 from copilot_sdk.scoring.config import DomainShape
 
 
@@ -54,6 +55,10 @@ class TradingPreset:
     @property
     def temperature(self) -> float:
         return 0.1
+
+    @property
+    def plateau_config(self) -> PlateauConfig:
+        return PlateauConfig()
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:

@@ -562,6 +562,7 @@ class CompoundingScorer:
             ledger=ledger,
             shadow_runner=DefaultShadowRunner(),
             promotion_gate=DefaultPromotionGate(),
+            plateau_config=getattr(self._preset, "plateau_config", None),
         )
         evolver.register_rule(ThresholdRule(actions))
         evolver.register_rule(FactorWeightRule(actions, factor_count=factor_count))

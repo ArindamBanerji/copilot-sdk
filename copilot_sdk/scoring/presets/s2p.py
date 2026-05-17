@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from copilot_sdk.evolution import PlateauConfig
 from copilot_sdk.scoring.config import DomainShape
 
 
@@ -58,6 +59,10 @@ class S2PPreset:
     @property
     def temperature(self) -> float:
         return 0.1
+
+    @property
+    def plateau_config(self) -> PlateauConfig:
+        return PlateauConfig()
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:
