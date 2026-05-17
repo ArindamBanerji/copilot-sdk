@@ -20,7 +20,7 @@ async function scoreOrder(page: Page) {
 test("item dropdown exists", async ({ page }) => {
   await gotoOrder(page);
 
-  await expect(page.getByText("Item")).toBeVisible();
+  await expect(page.getByText("Item", { exact: true })).toBeVisible();
   await expect(page.locator(".order-form-grid select").first()).toBeVisible();
 });
 

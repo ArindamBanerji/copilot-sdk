@@ -1,6 +1,6 @@
 """Domain-neutral agent evolution primitives."""
 
-from copilot_sdk.evolution.evolver import AgentEvolver
+from copilot_sdk.evolution.evolver import AgentEvolver, PlateauConfig
 from copilot_sdk.evolution.autonomous_promotion import AutonomousPromotionGate, PromotionDecision
 from copilot_sdk.evolution.context_selector import ContextAwareSelector, SelectionContext
 from copilot_sdk.evolution.credit_attribution import StepCredit, StepCreditAssigner, StepRecord
@@ -29,6 +29,7 @@ __all__ = [
     "InMemoryEvolutionLedger",
     "PromotionGate",
     "PromotionDecision",
+    "PlateauConfig",
     "SelectionContext",
     "ShadowRunner",
     "StepCredit",

@@ -222,6 +222,8 @@ class CompoundingScorer:
         decision_id: str,
         actual_action: str,
         outcome: str = "confirmed",
+        *,
+        context: dict[str, Any] | None = None,
     ) -> LearnResult | dict[str, Any]:
         decision = self._graph_store.get_decision(decision_id)
         if decision is None:
@@ -264,16 +266,23 @@ class CompoundingScorer:
             self._scorer.eta_override = old_eta_override
 
         centroid_delta = float(np.linalg.norm(self._scorer.centroids - before_centroids))
+        outcome_metadata: dict[str, Any] = {
+            "actual_index": actual_index,
+            "verified_at": time.time(),
+            "outcome": outcome,
+        }
+        if context is not None:
+            outcome_metadata["context"] = dict(context)
         self._graph_store.write_outcome(
             decision_id=decision_id,
             actual_action=actual_action,
             is_correct=is_correct,
-            metadata={
-                "actual_index": actual_index,
-                "verified_at": time.time(),
-                "outcome": outcome,
-            },
+            metadata=outcome_metadata,
         )
+        invoice_id = (context or {}).get("invoice_id")
+        link_decision_to_entity = getattr(self._graph_store, "link_decision_to_entity", None)
+        if invoice_id and callable(link_decision_to_entity):
+            link_decision_to_entity(decision_id, str(invoice_id), edge_type="DECIDED_ON")
         iks_after = self._compute_iks()
         self._graph_store.save_centroids(
             decision_id,
@@ -281,7 +290,7 @@ class CompoundingScorer:
             self._scorer.centroids,
             metadata={"iks": iks_after},
         )
-        reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome)
+        reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome, context)
         if reward_raw is not None:
             if self._explorer is not None:
                 self._explorer.update(predicted_index, reward_raw)
@@ -505,11 +514,14 @@ class CompoundingScorer:
         decision: dict[str, Any],
         actual_action: str,
         outcome: str,
+        context: dict[str, Any] | None = None,
     ) -> tuple[float | None, float | None]:
         if self._reward_fn is None:
             return None, None
 
         outcome_dict = {"outcome": outcome}
+        if context:
+            outcome_dict.update(dict(context))
         recommended_action = str(_decision_field(decision, "recommended_action", _decision_field(decision, "action", "")))
         reward_raw = float(self._reward_fn.compute(
             recommended_action,

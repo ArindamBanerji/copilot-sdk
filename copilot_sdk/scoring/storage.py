@@ -60,7 +60,8 @@ class DecisionStore:
                 actual_action TEXT NOT NULL,
                 actual_index INTEGER NOT NULL,
                 is_correct INTEGER NOT NULL,
-                verified_at REAL NOT NULL
+                verified_at REAL NOT NULL,
+                context_json TEXT
             );
 
             CREATE TABLE IF NOT EXISTS centroid_checkpoints (
@@ -75,8 +76,17 @@ class DecisionStore:
             );
             """
         )
+        self._ensure_outcome_columns()
         self._ensure_centroid_columns()
         self.connection.commit()
+
+    def _ensure_outcome_columns(self) -> None:
+        columns = {
+            row["name"]
+            for row in self.connection.execute("PRAGMA table_info(outcomes)").fetchall()
+        }
+        if "context_json" not in columns:
+            self.connection.execute("ALTER TABLE outcomes ADD COLUMN context_json TEXT")
 
     def _ensure_centroid_columns(self) -> None:
         columns = {
@@ -139,12 +149,14 @@ class DecisionStore:
         actual_index: int,
         is_correct: bool,
         verified_at: float | None = None,
+        context: dict[str, Any] | None = None,
     ) -> None:
         self.connection.execute(
             """
             INSERT OR REPLACE INTO outcomes (
-                decision_id, actual_action, actual_index, is_correct, verified_at
-            ) VALUES (?, ?, ?, ?, ?)
+                decision_id, actual_action, actual_index, is_correct, verified_at,
+                context_json
+            ) VALUES (?, ?, ?, ?, ?, ?)
             """,
             (
                 decision_id,
@@ -152,6 +164,7 @@ class DecisionStore:
                 int(actual_index),
                 1 if is_correct else 0,
                 float(verified_at if verified_at is not None else time.time()),
+                _to_json(context) if context is not None else None,
             ),
         )
         self.connection.commit()
@@ -212,7 +225,8 @@ class DecisionStore:
                 o.actual_action,
                 o.actual_index,
                 o.is_correct,
-                o.verified_at
+                o.verified_at,
+                o.context_json
             FROM decisions d
             INNER JOIN outcomes o ON d.decision_id = o.decision_id
             ORDER BY d.created_at ASC, d.decision_id ASC
@@ -311,6 +325,7 @@ class DecisionStore:
                 "actual_index": int(row["actual_index"]),
                 "is_correct": bool(row["is_correct"]),
                 "verified_at": float(row["verified_at"]),
+                "context": _from_json(row["context_json"]) if row["context_json"] else {},
             }
         )
         return data

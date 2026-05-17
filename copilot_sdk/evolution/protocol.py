@@ -15,6 +15,7 @@ EVOLUTION_EVENT_TYPES = frozenset(
         "promoted",
         "rejected",
         "rollback",
+        "plateau_detected",
     }
 )
 

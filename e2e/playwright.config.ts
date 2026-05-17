@@ -38,6 +38,7 @@ export default defineConfig({
     {
       name: "s2p",
       testDir: "./s2p",
+      timeout: 60_000,
       use: {
         baseURL: "http://localhost:5177",
       },

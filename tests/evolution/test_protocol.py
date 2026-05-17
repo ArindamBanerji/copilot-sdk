@@ -54,6 +54,7 @@ def test_event_types_are_expected():
             "promoted",
             "rejected",
             "rollback",
+            "plateau_detected",
         }
     )
 

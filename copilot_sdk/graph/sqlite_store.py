@@ -76,6 +76,7 @@ class SQLiteGraphStore:
                 actual_index=int(meta.get("actual_index", 0)),
                 is_correct=bool(is_correct),
                 verified_at=float(meta.get("verified_at", time.time())),
+                context=meta.get("context"),
             )
         finally:
             store.close()
@@ -198,8 +199,69 @@ class SQLiteGraphStore:
         finally:
             store.close()
 
+    def link_decision_to_entity(
+        self,
+        decision_id: str,
+        entity_id: str,
+        edge_type: str = "DECIDED_ON",
+    ) -> None:
+        store = DecisionStore(self.db_path)
+        try:
+            self._ensure_edges_table(store)
+            store.connection.execute(
+                """
+                INSERT INTO decision_entity_edges (
+                    decision_id, entity_id, edge_type, created_at
+                ) VALUES (?, ?, ?, ?)
+                """,
+                (decision_id, entity_id, edge_type, time.time()),
+            )
+            store.connection.commit()
+        finally:
+            store.close()
+
+    def get_decision_links(self, decision_id: str | None = None) -> list[dict[str, Any]]:
+        store = DecisionStore(self.db_path)
+        try:
+            self._ensure_edges_table(store)
+            if decision_id is None:
+                rows = store.connection.execute(
+                    """
+                    SELECT decision_id, entity_id, edge_type, created_at
+                    FROM decision_entity_edges
+                    ORDER BY id ASC
+                    """
+                ).fetchall()
+            else:
+                rows = store.connection.execute(
+                    """
+                    SELECT decision_id, entity_id, edge_type, created_at
+                    FROM decision_entity_edges
+                    WHERE decision_id = ?
+                    ORDER BY id ASC
+                    """,
+                    (decision_id,),
+                ).fetchall()
+            return [dict(row) for row in rows]
+        finally:
+            store.close()
+
     def close(self) -> None:
         return None
+
+    def _ensure_edges_table(self, store: DecisionStore) -> None:
+        store.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS decision_entity_edges (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                decision_id TEXT NOT NULL,
+                entity_id TEXT NOT NULL,
+                edge_type TEXT NOT NULL,
+                created_at REAL NOT NULL
+            )
+            """
+        )
+        store.connection.commit()
 
     def _normalize_decision(self, decision: dict[str, Any]) -> dict[str, Any]:
         factors = dict(decision.get("factors") or {})

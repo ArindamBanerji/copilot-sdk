@@ -15,6 +15,7 @@ class InMemoryGraphStore:
     def __init__(self) -> None:
         self._decisions: dict[str, dict[str, Any]] = {}
         self._outcomes: dict[str, dict[str, Any]] = {}
+        self._edges: list[dict[str, Any]] = []
         self._centroid_checkpoints: list[dict[str, Any]] = []
         self._evolution_events: list[dict[str, Any]] = []
         self._sequence = 0
@@ -142,9 +143,33 @@ class InMemoryGraphStore:
             }
         )
 
+    def link_decision_to_entity(
+        self,
+        decision_id: str,
+        entity_id: str,
+        edge_type: str = "DECIDED_ON",
+    ) -> None:
+        self._edges.append(
+            {
+                "decision_id": decision_id,
+                "entity_id": entity_id,
+                "edge_type": edge_type,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+
+    def get_decision_links(self, decision_id: str | None = None) -> list[dict[str, Any]]:
+        links = [
+            edge
+            for edge in self._edges
+            if decision_id is None or edge["decision_id"] == decision_id
+        ]
+        return deepcopy(links)
+
     def reset(self) -> None:
         self._decisions.clear()
         self._outcomes.clear()
+        self._edges.clear()
         self._centroid_checkpoints.clear()
         self._evolution_events.clear()
         self._sequence = 0
