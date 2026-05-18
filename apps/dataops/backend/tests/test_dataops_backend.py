@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -255,6 +256,91 @@ def test_ae_recommendation_no_match(client: TestClient) -> None:
     assert payload["has_recommendation"] is False
     assert payload["recommendations"] == []
     assert payload["count"] == 0
+
+
+def _write_ae_fixtures(data_dir: Path) -> None:
+    data_dir.mkdir(exist_ok=True)
+    (data_dir / "evolution_fixtures.json").write_text(json.dumps({"variants": []}), encoding="utf-8")
+    (data_dir / "ae_impact.json").write_text(json.dumps({"auto_resolved_count": 1}), encoding="utf-8")
+    (data_dir / "incident.json").write_text(json.dumps({"estimated_cost": 1}), encoding="utf-8")
+    (data_dir / "conservation_history.json").write_text(json.dumps({"events": []}), encoding="utf-8")
+
+
+def test_ae_fixtures_cached(monkeypatch, tmp_path: Path) -> None:
+    from app import ae_router
+
+    _write_ae_fixtures(tmp_path)
+    reads = 0
+    original_read_text = Path.read_text
+
+    def counted_read_text(self: Path, *args, **kwargs) -> str:
+        nonlocal reads
+        if self.name == "evolution_fixtures.json":
+            reads += 1
+        return original_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(ae_router, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(Path, "read_text", counted_read_text)
+    ae_router.reset_ae_fixtures()
+
+    ae_router._get_fixtures()
+    ae_router._get_fixtures()
+
+    assert reads == 1
+    ae_router.reset_ae_fixtures()
+
+
+def test_ae_fixtures_resettable(monkeypatch, tmp_path: Path) -> None:
+    from app import ae_router
+
+    _write_ae_fixtures(tmp_path)
+    reads = 0
+    original_read_text = Path.read_text
+
+    def counted_read_text(self: Path, *args, **kwargs) -> str:
+        nonlocal reads
+        if self.name == "evolution_fixtures.json":
+            reads += 1
+        return original_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(ae_router, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(Path, "read_text", counted_read_text)
+    ae_router.reset_ae_fixtures()
+
+    ae_router._get_fixtures()
+    ae_router.reset_ae_fixtures()
+    ae_router._get_fixtures()
+
+    assert reads == 2
+    ae_router.reset_ae_fixtures()
+
+
+def test_ae_endpoints_still_return_fixture_source(client: TestClient) -> None:
+    recommendation = client.get("/api/ae/recommendation/DQ-001").json()
+    pattern_origin = client.get("/api/ae/pattern-origin").json()
+    lifecycle = client.get("/api/ae/rule-lifecycle").json()
+    operational_rules = client.get("/api/ae/operational-rules").json()
+
+    assert recommendation["source"] == "fixture"
+    assert pattern_origin["source"] == "fixture"
+    assert lifecycle["source"] == "fixture"
+    assert operational_rules["source"] == "fixture"
+
+
+def test_fixture_read_site_single() -> None:
+    from app import ae_router
+
+    source = Path(ae_router.__file__).read_text(encoding="utf-8")
+    read_site_lines = [
+        line for line in source.splitlines()
+        if "json.loads(" in line or "json.load(" in line or "read_text" in line
+    ]
+    get_fixtures_start = source.index("def _get_fixtures()")
+    reset_start = source.index("def reset_ae_fixtures()")
+
+    assert len(read_site_lines) == 1
+    assert source.index(read_site_lines[0]) > get_fixtures_start
+    assert source.index(read_site_lines[0]) < reset_start
 
 
 def test_ae_impact(client: TestClient) -> None:

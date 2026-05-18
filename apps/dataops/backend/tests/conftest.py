@@ -52,12 +52,17 @@ def dataops_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
     from app import ae_router, context_router, main
 
+    ae_router.reset_ae_fixtures()
     monkeypatch.setattr(context_router, "DATA_DIR", target)
     monkeypatch.setattr(context_router, "METADATA_PATH", target / "alert_metadata.json")
     monkeypatch.setattr(ae_router, "DATA_DIR", target)
     monkeypatch.setattr(main, "DATA_DIR", target)
     monkeypatch.setattr(main, "DEFAULT_DB_PATH", target / "dataops.db")
-    return target
+    ae_router.reset_ae_fixtures()
+    try:
+        yield target
+    finally:
+        ae_router.reset_ae_fixtures()
 
 
 @pytest.fixture()

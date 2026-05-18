@@ -74,17 +74,3 @@ class GraphStore(Protocol):
 
     def close(self) -> None:
         ...
-
-
-@runtime_checkable
-class SupportsDecisionEntityLinks(Protocol):
-    """Optional capability for graph stores that persist decision-entity links."""
-
-    def link_decision_to_entity(
-        self,
-        decision_id: str,
-        entity_id: str,
-        edge_type: str = "DECIDED_ON",
-    ) -> None:
-        """Link a decision to a domain entity such as an invoice."""
-        ...

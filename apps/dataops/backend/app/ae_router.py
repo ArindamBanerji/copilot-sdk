@@ -14,6 +14,13 @@ from .graph_queries import DataOpsGraphClient
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 ENGINE_EVOLUTION = {"gae": "gae.evolution"}
 ENGINE_CONSERVATION = {"gae": "gae.calibration"}
+_evolution_fixtures: dict[str, Any] | None = None
+_AE_FIXTURE_DEFAULTS: dict[str, Any] = {
+    "evolution_fixtures.json": {"variants": []},
+    "ae_impact.json": {},
+    "incident.json": {},
+    "conservation_history.json": {"events": []},
+}
 OPERATIONAL_RULES = [
     {
         "id": "OE-SCHED-001",
@@ -64,11 +71,19 @@ def _graph_client() -> DataOpsGraphClient:
     return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
 
 
-def _load_json(name: str, default: Any | None = None) -> Any:
-    path = DATA_DIR / name
-    if not path.exists():
-        return {} if default is None else default
-    return json.loads(path.read_text(encoding="utf-8"))
+def _get_fixtures() -> dict[str, Any]:
+    global _evolution_fixtures
+    if _evolution_fixtures is None:
+        _evolution_fixtures = {}
+        for name, default in _AE_FIXTURE_DEFAULTS.items():
+            path = DATA_DIR / name
+            _evolution_fixtures[name] = json.loads(path.read_text(encoding="utf-8")) if path.exists() else default
+    return _evolution_fixtures
+
+
+def reset_ae_fixtures() -> None:
+    global _evolution_fixtures
+    _evolution_fixtures = None
 
 
 def _factor(alert: dict[str, Any], name: str) -> float:
@@ -80,7 +95,7 @@ def _factor(alert: dict[str, Any], name: str) -> float:
 
 
 def _variants() -> list[dict[str, Any]]:
-    payload = _load_json("evolution_fixtures.json", {"variants": []})
+    payload = _get_fixtures()["evolution_fixtures.json"]
     if isinstance(payload, list):
         variants = payload
     elif isinstance(payload, dict):
@@ -287,7 +302,7 @@ async def recommendation(alert_id: str) -> dict[str, Any]:
         }
 
     recommendations = []
-    for variant in _load_json("evolution_fixtures.json", {"variants": []}).get("variants", []):
+    for variant in _get_fixtures()["evolution_fixtures.json"].get("variants", []):
         if variant.get("event_type") != "promotion_approved":
             continue
         matched, reason = match_ae_rule(alert, variant)
@@ -316,7 +331,7 @@ async def recommendation(alert_id: str) -> dict[str, Any]:
 
 @router.get("/impact")
 def impact() -> dict[str, Any]:
-    payload = _load_json("ae_impact.json")
+    payload = dict(_get_fixtures()["ae_impact.json"])
     payload.setdefault("engine", ENGINE_EVOLUTION)
     return payload
 
@@ -349,7 +364,7 @@ def _pattern_genealogy(promoted: list[dict[str, Any]]) -> dict[str, Any]:
 
 @router.get("/pattern-origin")
 def pattern_origin() -> dict[str, Any]:
-    variants = _load_json("evolution_fixtures.json", {"variants": []}).get("variants", [])
+    variants = _get_fixtures()["evolution_fixtures.json"].get("variants", [])
     promoted = [variant for variant in variants if variant.get("event_type") == "promotion_approved"]
     rejected = [variant for variant in variants if variant.get("event_type") != "promotion_approved"]
     chain = [
@@ -427,6 +442,7 @@ def rule_lifecycle(variant_id: str | None = None, status: str | None = None) -> 
 
 @router.get("/operational-rules")
 def operational_rules() -> dict[str, Any]:
+    _get_fixtures()
     summary = {"proposed": 0, "shadow": 0, "promoted": 0, "rejected": 0}
     for rule in OPERATIONAL_RULES:
         status = str(rule.get("status") or "proposed")
@@ -443,13 +459,13 @@ def operational_rules() -> dict[str, Any]:
 
 @router.get("/incident")
 def incident() -> dict[str, Any]:
-    payload = _load_json("incident.json")
+    payload = dict(_get_fixtures()["incident.json"])
     payload.setdefault("engine", ENGINE_EVOLUTION)
     return payload
 
 
 @router.get("/conservation-history")
 def conservation_history() -> dict[str, Any]:
-    payload = _load_json("conservation_history.json", {"events": []})
+    payload = dict(_get_fixtures()["conservation_history.json"])
     payload.setdefault("engine", ENGINE_CONSERVATION)
     return payload

@@ -12,7 +12,8 @@ from typing import Any
 class InMemoryGraphStore:
     """Dictionary-backed decision and outcome store."""
 
-    def __init__(self) -> None:
+    def __init__(self, decision_id_prefix: str = "") -> None:
+        self._decision_id_prefix = str(decision_id_prefix or "")
         self._decisions: dict[str, dict[str, Any]] = {}
         self._outcomes: dict[str, dict[str, Any]] = {}
         self._edges: list[dict[str, Any]] = []
@@ -31,6 +32,11 @@ class InMemoryGraphStore:
     ) -> str:
         self._sequence += 1
         decision_id = str((metadata or {}).get("decision_id") or uuid.uuid4().hex[:12])
+        if self._decision_id_prefix and not decision_id.startswith(self._decision_id_prefix):
+            decision_id = f"{self._decision_id_prefix}{decision_id}"
+        decision_metadata = deepcopy(metadata or {})
+        if self._decision_id_prefix or "decision_id" in decision_metadata:
+            decision_metadata["decision_id"] = decision_id
         created_at = float((metadata or {}).get("created_at", time.time()))
         self._decisions[decision_id] = {
             "decision_id": decision_id,
@@ -39,7 +45,7 @@ class InMemoryGraphStore:
             "recommended_action": action,
             "confidence": float(confidence),
             "factors": deepcopy(factors),
-            "metadata": deepcopy(metadata or {}),
+            "metadata": decision_metadata,
             "created_at": created_at,
             "_sequence": self._sequence,
         }
