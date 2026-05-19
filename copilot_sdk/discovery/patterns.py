@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from itertools import combinations
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 import numpy as np
 
@@ -201,7 +201,7 @@ def _centroid_mean_vector(scorer: Any) -> np.ndarray | None:
     vector = tensor.mean(axis=(0, 1))
     if not np.any(vector):
         return None
-    return vector
+    return cast(np.ndarray, vector)
 
 
 def _cosine_similarity(left: np.ndarray, right: np.ndarray) -> float | None:

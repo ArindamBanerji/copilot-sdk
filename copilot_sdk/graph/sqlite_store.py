@@ -265,7 +265,8 @@ class SQLiteGraphStore:
 
     def _normalize_decision(self, decision: dict[str, Any]) -> dict[str, Any]:
         factors = dict(decision.get("factors") or {})
-        metadata = factors.get("metadata") if isinstance(factors.get("metadata"), dict) else {}
+        raw_metadata = factors.get("metadata")
+        metadata = raw_metadata if isinstance(raw_metadata, dict) else {}
         entity_id = str(factors.get("entity_id") or metadata.get("entity_id") or decision["decision_id"])
         normalized = dict(decision)
         normalized.update({

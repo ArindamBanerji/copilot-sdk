@@ -107,7 +107,7 @@ class CompoundingScorer:
         self._credit = credit_assigner
         self._explorer = exploration_policy
         self._evolve = bool(evolve)
-        self._evolver = None
+        self._evolver: Any | None = None
         self._evolve_count = 0
         if self._evolve:
             self._setup_evolution()
@@ -550,7 +550,8 @@ class CompoundingScorer:
                 DefaultShadowRunner,
                 InMemoryEvolutionLedger,
             )
-            from copilot_sdk.evolution.toy_rules import ActionBiasRule, FactorWeightRule, ThresholdRule
+            from copilot_sdk.evolution.toy_rules import ActionBiasRule, ConfidenceBoundaryRule, FactorWeightRule
+            ThresholdRule = ConfidenceBoundaryRule
         except Exception as exc:
             logger.warning("Evolution disabled: failed to import evolution components: %s", exc)
             self._evolve = False

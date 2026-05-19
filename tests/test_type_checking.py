@@ -43,3 +43,32 @@ def test_mypy_passes_with_config() -> None:
         (result.stdout + "\n" + result.stderr).splitlines()[-40:]
     )
     assert result.returncode == 0, output
+
+
+def test_unsuppressed_mypy_targets_pass_individually() -> None:
+    targets = [
+        "copilot_sdk/discovery",
+        "copilot_sdk/evolution",
+        "copilot_sdk/graph",
+        "copilot_sdk/scoring",
+    ]
+
+    for target in targets:
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "mypy",
+                target,
+                "--ignore-missing-imports",
+                "--no-incremental",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        output = "\n".join(
+            (result.stdout + "\n" + result.stderr).splitlines()[-40:]
+        )
+        assert result.returncode == 0, f"{target}\n{output}"

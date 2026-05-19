@@ -31,10 +31,6 @@ disallow_incomplete_defs = true
 [[tool.mypy.overrides]]
 module = [
     "copilot_sdk.backend.*",
-    "copilot_sdk.discovery.*",
-    "copilot_sdk.evolution.*",
     "copilot_sdk.framework.*",
-    "copilot_sdk.graph.*",
-    "copilot_sdk.scoring.*",
 ]
 ignore_errors = true

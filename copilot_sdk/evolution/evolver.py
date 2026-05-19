@@ -136,7 +136,7 @@ class AgentEvolver:
         name = getattr(rule, "name", None)
         if name:
             return str(name)
-        return rule.__class__.__name__
+        return str(rule.__class__.__name__)
 
     def _variant_id(self, variant: Any) -> str:
         if isinstance(variant, dict):
