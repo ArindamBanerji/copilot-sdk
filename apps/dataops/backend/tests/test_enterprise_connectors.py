@@ -21,7 +21,7 @@ def test_sap_connector_cache_fallback(dataops_data_dir: Path) -> None:
     payload = _run(connector.get_purchase_orders())
 
     assert payload["source"] == "sap_cache"
-    assert payload["total"] == 20
+    assert payload["total"] == 12
 
 
 def test_sap_purchase_orders_cached(dataops_data_dir: Path) -> None:
@@ -62,7 +62,7 @@ def test_sap_health_cache_connected(dataops_data_dir: Path) -> None:
 
     assert health["status"] == "cache"
     assert health["live"] is False
-    assert health["cached_records"] == 20
+    assert health["cached_records"] == 12
 
 
 def test_sap_cache_missing_returns_empty(tmp_path: Path) -> None:
@@ -93,7 +93,7 @@ def test_celonis_connector_cache_fallback(dataops_data_dir: Path) -> None:
     payload = _run(connector.get_process_data("km-p2p-dataops"))
 
     assert payload["source"] == "celonis_cache"
-    assert payload["process_data"]["process_model"] == "Purchase-to-Pay"
+    assert payload["process_data"]["process_model"] == "Continental Tire Procure-to-Pay"
 
 
 def test_celonis_knowledge_models_cached(dataops_data_dir: Path) -> None:
@@ -120,7 +120,7 @@ def test_celonis_process_data_cached(dataops_data_dir: Path) -> None:
 
     process_data = _run(connector.get_process_data("km-p2p-dataops"))["process_data"]
 
-    assert process_data["variant"] == "Standard with Returns"
+    assert process_data["variant"] == "Supplier Catalog Expansion with Invoice Rework"
     assert process_data["variant_frequency"] == 340
 
 
@@ -205,16 +205,16 @@ def test_celonis_process_data_endpoint(client: TestClient, monkeypatch: pytest.M
     assert payload["source"] == "celonis_cache"
     assert payload["knowledge_models"]
     assert payload["kpis"]
-    assert payload["process_data"]["process_model"] == "Purchase-to-Pay"
+    assert payload["process_data"]["process_model"] == "Continental Tire Procure-to-Pay"
 
 
 def test_process_signals_includes_celonis_live(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     _patch_context_connectors(monkeypatch)
 
-    payload = client.get("/api/context/process-signals/sap_s4hana_extract").json()
+    payload = client.get("/api/context/process-signals/sap_mm").json()
 
     assert payload["celonis_live"] is False
-    assert payload["sap_po_count"] == 20
+    assert payload["sap_po_count"] == 12
     assert payload["source"] == "celonis_ems"
 
 
@@ -241,10 +241,10 @@ def test_celonis_process_data_has_cross_graph_insights(dataops_data_dir: Path) -
     payload = _load_json(dataops_data_dir / "celonis_process_data.json")
     titles = {insight["title"] for insight in payload["cross_graph_insights"]}
 
-    assert "Aster 3.1x slower" in titles
+    assert "Aster Rubber 9x fanout" in titles
     assert "MATKL_V2 downstream impact" in titles
-    assert "billing_api early signal" in titles
-    assert any(insight.get("monthly_impact_usd") == 604000 for insight in payload["cross_graph_insights"])
+    assert "$8,400/day active bottleneck" in titles
+    assert any(insight.get("monthly_impact_usd") == 1449000 for insight in payload["cross_graph_insights"])
 
 
 def test_celonis_process_data_has_compounding_trajectory(dataops_data_dir: Path) -> None:

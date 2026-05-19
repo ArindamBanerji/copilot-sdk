@@ -42,6 +42,7 @@ def dataops_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         "celonis_knowledge_models.json",
         "celonis_kpis.json",
         "celonis_process_data.json",
+        "process_timeline.json",
     ):
         shutil.copyfile(source / name, target / name)
 

@@ -619,6 +619,29 @@ export interface ProcessSignalsResponse {
   narrative?: string;
 }
 
+export interface ProcessTimelineActivity {
+  id?: string;
+  name?: string;
+  avgDuration?: number;
+  normalDuration?: number;
+  currentDuration?: number;
+  automationRate?: number;
+  reworkRate?: number;
+  isBottleneck?: boolean;
+  slowdownMultiplier?: number | null;
+}
+
+export interface ProcessTimelineResponse {
+  processModels?: Array<Record<string, unknown>>;
+  activities?: ProcessTimelineActivity[];
+  bottleneckId?: string;
+  normalDuration?: number;
+  currentDuration?: number;
+  slowdownMultiplier?: number | null;
+  dollarCalibration?: Record<string, number>;
+  crossGraphRefs?: Record<string, unknown>;
+}
+
 export interface EnterpriseSystemHealth {
   status?: string;
   source?: string;

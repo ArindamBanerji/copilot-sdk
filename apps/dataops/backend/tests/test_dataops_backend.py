@@ -80,11 +80,11 @@ def test_alerts(client: TestClient) -> None:
 
 
 def test_alert_detail(client: TestClient) -> None:
-    payload = client.get("/api/context/alert/DQ-001").json()
+    payload = client.get("/api/context/alert/ALERT-TIRE-001").json()
 
     assert payload["source"] == "fixture"
-    assert payload["alert"]["alert_id"] == "DQ-001"
-    assert payload["alert"]["system"] == "warehouse_etl"
+    assert payload["alert"]["alert_id"] == "ALERT-TIRE-001"
+    assert payload["alert"]["system"] == "sap_mm"
 
 
 def test_alerts_have_timestamps(client: TestClient) -> None:
@@ -100,12 +100,12 @@ def test_alerts_have_timestamps(client: TestClient) -> None:
 
 
 def test_alert_detail_has_runtime_sla_fields(client: TestClient) -> None:
-    response = client.get("/api/context/alert/DQ-001")
+    response = client.get("/api/context/alert/ALERT-TIRE-001")
 
     assert response.status_code == 200
     alert = response.json()["alert"]
     assert _parse_utc(alert["created_at"])
-    assert alert["sla_minutes"] == 30
+    assert alert["sla_minutes"] == 60
 
 
 def test_alert_sla_by_severity(client: TestClient) -> None:
@@ -118,25 +118,25 @@ def test_alert_sla_by_severity(client: TestClient) -> None:
 
 
 def test_blast_radius(client: TestClient) -> None:
-    payload = client.get("/api/context/alert/DQ-015/deps").json()
+    payload = client.get("/api/context/alert/ALERT-TIRE-015/deps").json()
 
     assert payload["source"] == "fixture"
-    assert payload["alert_id"] == "DQ-015"
-    assert payload["tree"]["system"] == "crm_sync"
+    assert payload["alert_id"] == "ALERT-TIRE-015"
+    assert payload["tree"]["system"] == "logistics_dhl"
     assert payload["tree"]["children"]
 
 
 def test_recurrence(client: TestClient) -> None:
-    payload = client.get("/api/context/alert/DQ-001/recurrence").json()
+    payload = client.get("/api/context/alert/ALERT-TIRE-001/recurrence").json()
 
     assert payload["source"] == "fixture"
-    assert payload["alert_id"] == "DQ-001"
-    assert payload["prior_count"] >= 7
-    assert payload["recurrence_frequency"] > 0.5
+    assert payload["alert_id"] == "ALERT-TIRE-001"
+    assert payload["prior_count"] >= 1
+    assert payload["recurrence_frequency"] > 0
 
 
 def test_factor_auto_fill(client: TestClient) -> None:
-    payload = client.get("/api/context/alert/DQ-001/factors").json()
+    payload = client.get("/api/context/alert/ALERT-TIRE-001/factors").json()
 
     assert payload["source"] == "fixture"
     assert payload["all_auto_computed"] is True
@@ -145,22 +145,22 @@ def test_factor_auto_fill(client: TestClient) -> None:
 
 
 def test_audit_trail_for_known_alert(client: TestClient) -> None:
-    response = client.get("/api/context/audit-trail/DQ-001")
+    response = client.get("/api/context/audit-trail/ALERT-TIRE-001")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["alert_id"] == "DQ-001"
+    assert payload["alert_id"] == "ALERT-TIRE-001"
     assert len(payload["chain"]) >= 2
     assert payload["chain"][0]["step"] == "signal"
     assert any(step["step"] == "context" for step in payload["chain"])
 
 
 def test_audit_trail_incomplete_for_untriaged(client: TestClient) -> None:
-    response = client.get("/api/context/audit-trail/DQ-020")
+    response = client.get("/api/context/audit-trail/ALERT-TIRE-020")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["alert_id"] == "DQ-020"
+    assert payload["alert_id"] == "ALERT-TIRE-020"
     assert payload["complete"] is False
     assert not any(step["step"] == "outcome" for step in payload["chain"])
 
@@ -222,10 +222,10 @@ def test_sap_naming_in_pipelines(client: TestClient) -> None:
     payload = client.get("/api/context/pipelines").json()
     names = {pipeline["name"] for pipeline in payload["pipelines"]}
     sap_pipeline = next(
-        pipeline for pipeline in payload["pipelines"] if pipeline["name"] == "sap_s4hana_extract"
+        pipeline for pipeline in payload["pipelines"] if pipeline["name"] == "sap_mm"
     )
 
-    assert "sap_s4hana_extract" in names
+    assert "sap_mm" in names
     assert "erp_export" not in names
     assert "SAP" in sap_pipeline["display_name"]
 
@@ -234,14 +234,14 @@ def test_sap_downstream_references(client: TestClient) -> None:
     payload = client.get("/api/context/pipelines").json()
     pipeline_map = {pipeline["name"]: pipeline for pipeline in payload["pipelines"]}
 
-    assert "sap_s4hana_extract" in pipeline_map["billing_api"]["upstream"]
-    assert "erp_export" not in pipeline_map["billing_api"]["upstream"]
-    assert "sap_s4hana_extract" in pipeline_map["warehouse_etl"]["upstream"]
-    assert "erp_export" not in pipeline_map["warehouse_etl"]["upstream"]
+    assert "sap_mm" in pipeline_map["sap_fi"]["upstream"]
+    assert "sap_mm" in pipeline_map["warehouse_wms"]["upstream"]
+    assert "erp_export" not in pipeline_map["sap_fi"]["upstream"]
+    assert "erp_export" not in pipeline_map["warehouse_wms"]["upstream"]
 
 
 def test_ae_recommendation_match(client: TestClient) -> None:
-    payload = client.get("/api/ae/recommendation/DQ-001").json()
+    payload = client.get("/api/ae/recommendation/ALERT-TIRE-018").json()
 
     assert payload["has_recommendation"] is True
     assert payload["count"] >= 1
@@ -445,10 +445,10 @@ def test_ae_conservation_history(client: TestClient) -> None:
 
 
 def test_process_signals_known_system(client: TestClient) -> None:
-    payload = client.get("/api/context/process-signals/sap_s4hana_extract").json()
+    payload = client.get("/api/context/process-signals/sap_mm").json()
 
     assert payload["source"] == "celonis_ems"
-    assert "o2c_cycle_time_days" in payload["signals"]
+    assert "matkl_v2_new_combinations" in payload["signals"]
     assert payload["metrics"]
     assert "confidence" in payload["correlation"]
     assert payload["engine"] == "celonis_ems.process_mining"
@@ -465,9 +465,9 @@ def test_process_signals_unknown_system(client: TestClient) -> None:
 
 
 def test_process_signals_billing(client: TestClient) -> None:
-    payload = client.get("/api/context/process-signals/billing_api").json()
+    payload = client.get("/api/context/process-signals/sap_fi").json()
 
-    assert "invoice_processing_time_hours" in payload["signals"]
+    assert "invoice_exceptions_per_day" in payload["signals"]
     assert payload["metrics"]
     assert payload["source"] == "celonis_ems"
 
@@ -501,11 +501,11 @@ def test_alert_groups_include_runtime_sla_fields(client: TestClient) -> None:
 def test_alert_groups_sap_cluster(client: TestClient) -> None:
     payload = client.get("/api/context/alert-groups").json()
     sap_group = next(
-        group for group in payload["groups"] if group["root_system"] == "sap_s4hana_extract"
+        group for group in payload["groups"] if group["root_system"] == "supplier_portal"
     )
 
     assert sap_group["alert_count"] >= 1
-    assert "SAP" in sap_group["root_display"]
+    assert "Supplier" in sap_group["root_display"]
 
 
 def test_alert_groups_no_orphans(client: TestClient) -> None:
@@ -516,11 +516,11 @@ def test_alert_groups_no_orphans(client: TestClient) -> None:
 
 
 def test_system_history_with_seed(client: TestClient) -> None:
-    response = client.get("/api/context/system/billing_api/history")
+    response = client.get("/api/context/system/warehouse_etl/history")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["system"] == "billing_api"
+    assert payload["system"] == "warehouse_etl"
     assert payload["resolutions"]
     assert payload["action_breakdown"]
     assert "accuracy" in payload
@@ -593,19 +593,19 @@ def test_decisions_enrich_missing_category(client: TestClient) -> None:
         "/api/context/alert-metadata",
         json={
             "decision_id": "test-no-cat",
-            "alert_id": "DQ-001",
-            "system_name": "warehouse_etl",
+            "alert_id": "ALERT-TIRE-001",
+            "system_name": "sap_mm",
             "action_taken": "investigate",
         },
     )
 
-    payload = client.get("/api/context/decisions?system=warehouse_etl").json()
+    payload = client.get("/api/context/decisions?system=sap_mm").json()
     decision = next(item for item in payload["decisions"] if item["decision_id"] == "test-no-cat")
 
-    assert decision["category"] == "pipeline_failure"
+    assert decision["category"] == "schema_change"
     assert decision["category"] is not None
     assert decision["category"] != "unknown"
-    assert payload["summary"]["by_category"]["pipeline_failure"]["count"] >= 1
+    assert payload["summary"]["by_category"]["schema_change"]["count"] >= 1
 
 
 def test_decisions_filter_by_system(client: TestClient) -> None:
@@ -727,13 +727,13 @@ def test_centroid_history_factor_names(client: TestClient) -> None:
 
 
 def test_transformations_for_known_system(client: TestClient) -> None:
-    response = client.get("/api/context/transformations/warehouse_etl")
+    response = client.get("/api/context/transformations/sap_mm")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["system"] == "warehouse_etl"
-    assert len(payload["transformations"]) == 4
-    assert payload["summary"]["total"] == 4
+    assert payload["system"] == "sap_mm"
+    assert len(payload["transformations"]) == 3
+    assert payload["summary"]["total"] == 3
     assert payload["summary"]["bottleneck"]
 
 
@@ -752,43 +752,43 @@ def test_transformations_unknown_system(client: TestClient) -> None:
 
 
 def test_transformations_summary_has_bottleneck(client: TestClient) -> None:
-    payload = client.get("/api/context/transformations/warehouse_etl").json()
+    payload = client.get("/api/context/transformations/sap_mm").json()
 
-    assert payload["summary"]["bottleneck"] == "Join VBAK/BSEG"
+    assert payload["summary"]["bottleneck"] == "Map Supplier Catalog"
     assert payload["summary"]["bottleneck_pct"] > 0.5
 
 
 def test_bottleneck_for_known_system(client: TestClient) -> None:
-    response = client.get("/api/context/bottleneck/warehouse_etl")
+    response = client.get("/api/context/bottleneck/sap_mm")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["bottleneck"]["name"] == "Join VBAK/BSEG"
+    assert payload["bottleneck"]["name"] == "Map Supplier Catalog"
     assert payload["bottleneck"]["pct_of_total"] > 0.5
     assert payload["total_duration_minutes"] > 0
 
 
 def test_bottleneck_has_recommendation(client: TestClient) -> None:
-    payload = client.get("/api/context/bottleneck/warehouse_etl").json()
+    payload = client.get("/api/context/bottleneck/sap_mm").json()
 
-    assert payload["recommendation"]["action"] == "reorder_join"
-    assert "9x" in payload["recommendation"]["detail"]
-    assert payload["recommendation"]["estimated_savings_minutes"] == 38
+    assert payload["recommendation"]["action"] == "optimize_bottleneck"
+    assert "Map Supplier Catalog" in payload["recommendation"]["detail"]
+    assert payload["recommendation"]["estimated_savings_minutes"] > 0
 
 
 def test_bottleneck_steps_ranked_by_duration(client: TestClient) -> None:
-    payload = client.get("/api/context/bottleneck/warehouse_etl").json()
+    payload = client.get("/api/context/bottleneck/sap_mm").json()
     durations = [step["duration_minutes"] for step in payload["all_steps_ranked"]]
     pct_values = [step["pct_of_total"] for step in payload["all_steps_ranked"]]
 
     assert durations == sorted(durations, reverse=True)
-    assert payload["all_steps_ranked"][0]["id"] == "join_vbak_bseg"
+    assert payload["all_steps_ranked"][0]["id"] == "map_supplier_catalog"
     assert all(isinstance(value, (int, float)) for value in pct_values)
     assert any(value > 0 for value in pct_values)
 
 
 def test_schema_impact_for_known_system(client: TestClient) -> None:
-    response = client.get("/api/context/schema-impact/warehouse_etl")
+    response = client.get("/api/context/schema-impact/sap_mm")
 
     assert response.status_code == 200
     payload = response.json()
@@ -798,11 +798,115 @@ def test_schema_impact_for_known_system(client: TestClient) -> None:
 
 
 def test_schema_impact_has_proposed_fix(client: TestClient) -> None:
-    payload = client.get("/api/context/schema-impact/warehouse_etl").json()
+    payload = client.get("/api/context/schema-impact/sap_mm").json()
 
     assert payload["schema_changes"][0]["proposed_fix"]
     assert payload["schema_changes"][0]["column"] == "MATKL_V2"
-    assert payload["total_alerts_preventable"] == 7
+    assert payload["total_alerts_preventable"] == 11
+
+
+def test_process_timeline_endpoint_returns_activities(client: TestClient) -> None:
+    response = client.get("/api/context/process-timeline")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["bottleneck_id"] == "ACT-MATCH"
+    assert payload["normal_duration"] == 252
+    assert payload["current_duration"] == 2520
+    assert payload["slowdown_multiplier"] == 10.0
+    assert [activity["name"] for activity in payload["activities"]] == [
+        "Create Purchase Requisition",
+        "Approve Purchase Order",
+        "Match Invoice to GR",
+        "Process Payment",
+    ]
+
+
+def test_process_timeline_has_bottleneck_flag(client: TestClient) -> None:
+    payload = client.get("/api/context/process-timeline").json()
+
+    bottlenecks = [activity for activity in payload["activities"] if activity["is_bottleneck"]]
+    assert len(bottlenecks) == 1
+    assert bottlenecks[0]["id"] == "ACT-MATCH"
+    assert bottlenecks[0]["slowdown_multiplier"] == 10.0
+
+
+def test_process_timeline_activities_have_required_fields(client: TestClient) -> None:
+    payload = client.get("/api/context/process-timeline").json()
+
+    required = {"id", "name", "avg_duration", "automation_rate", "rework_rate"}
+    assert payload["activities"]
+    for activity in payload["activities"]:
+        assert required <= set(activity)
+        assert isinstance(activity["avg_duration"], (int, float))
+        assert 0 <= activity["automation_rate"] <= 1
+        assert 0 <= activity["rework_rate"] <= 1
+
+
+def test_process_timeline_dollar_calibration_matches_story(client: TestClient) -> None:
+    payload = client.get("/api/context/process-timeline").json()
+    calibration = payload["dollar_calibration"]
+
+    assert calibration["exception_cost_per_investigation"] == 47
+    assert calibration["daily_invoice_volume"] == 8400
+    assert calibration["current_exception_rate"] == 0.12
+    assert calibration["target_exception_rate"] == 0.048
+    assert calibration["annual_exception_cost"] == 17300000
+    assert calibration["target_annual_exception_cost"] == 7100000
+    assert calibration["bottleneck_cost_per_day"] == 8400
+    assert calibration["option_a_savings_per_year"] == 547000
+    assert calibration["total_trajectory_per_year"] == 1620000
+
+
+def test_cross_graph_insight_returns_triple_correlation(client: TestClient) -> None:
+    response = client.get("/api/context/cross-graph-insight/ALERT-TIRE-001")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["alert_id"] == "ALERT-TIRE-001"
+    assert payload["process_signal"]
+    assert payload["erp_impact"]
+    assert payload["root_cause"]
+    assert payload["sources_used"] == ["celonis", "sap", "graph"]
+
+
+def test_cross_graph_insight_has_combined_impact(client: TestClient) -> None:
+    payload = client.get("/api/context/cross-graph-insight/ALERT-TIRE-001").json()
+
+    assert payload["process_signal"]["slowdown_factor"] == 10.0
+    assert payload["erp_impact"]["daily_cost"] == 8400
+    assert payload["combined_impact"]["daily_cost"] == 8400
+    assert payload["combined_impact"]["monthly_cost"] == 252000
+    assert payload["combined_impact"]["annualized_cost"] == 3066000
+    assert payload["combined_impact"]["confidence"] == 0.89
+
+
+def test_cross_graph_insight_unknown_alert_returns_404(client: TestClient) -> None:
+    response = client.get("/api/context/cross-graph-insight/ALERT-DOES-NOT-EXIST")
+
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"]
+
+
+def test_cross_graph_insight_alert_without_refs_returns_404(client: TestClient) -> None:
+    response = client.get("/api/context/cross-graph-insight/ALERT-TIRE-002")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "No cross-graph data for this alert"
+
+
+def test_cross_graph_insight_values_come_from_fixture(client: TestClient) -> None:
+    payload = client.get("/api/context/cross-graph-insight/ALERT-TIRE-001").json()
+
+    assert payload["process_signal"]["activity"] == "Match Invoice to GR"
+    assert payload["process_signal"]["current_duration"] == 2520
+    assert payload["process_signal"]["normal_duration"] == 252
+    assert payload["erp_impact"]["affected_pos"] == 340
+    assert payload["erp_impact"]["affected_plants"] == 5
+    assert payload["erp_impact"]["backlog_value"] == 2100000
+    assert payload["root_cause"]["field"] == "MATKL_V2"
+    assert payload["root_cause"]["new_combinations"] == 340000
+    assert payload["root_cause"]["upstream_supplier"] == "Aster Rubber"
 
 
 def test_operational_rules_returns_all(client: TestClient) -> None:

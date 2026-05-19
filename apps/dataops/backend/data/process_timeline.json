@@ -1,0 +1,86 @@
+{
+  "process_models": [
+    {
+      "id": "PM-TIRE-P2P",
+      "name": "Continental Tire Procure-to-Pay",
+      "company": "Continental Tire",
+      "revenue_usd": 14000000000,
+      "plants": 14,
+      "suppliers": 380,
+      "source": "dataops_fixture"
+    }
+  ],
+  "activities": [
+    {
+      "id": "ACT-REQ",
+      "name": "Create Purchase Requisition",
+      "system": "sap_mm",
+      "normal_duration": 180,
+      "current_duration": 210,
+      "status": "ok"
+    },
+    {
+      "id": "ACT-PO",
+      "name": "Approve Purchase Order",
+      "system": "sap_mm",
+      "normal_duration": 720,
+      "current_duration": 840,
+      "status": "warning"
+    },
+    {
+      "id": "ACT-MATCH",
+      "name": "Match Invoice to GR",
+      "system": "celonis_p2p",
+      "normal_duration": 252,
+      "current_duration": 2520,
+      "status": "critical",
+      "bottleneck": true,
+      "root_cause": "MATKL_V2 schema expansion from Aster Rubber material catalog update",
+      "fanout_multiplier": 9
+    },
+    {
+      "id": "ACT-PAY",
+      "name": "Process Payment",
+      "system": "sap_fi",
+      "normal_duration": 900,
+      "current_duration": 1080,
+      "status": "warning"
+    }
+  ],
+  "bottleneck_id": "ACT-MATCH",
+  "normal_duration": 252,
+  "current_duration": 2520,
+  "dollar_calibration": {
+    "exception_cost_per_investigation": 47,
+    "daily_invoice_volume": 8400,
+    "current_exception_rate": 0.12,
+    "target_exception_rate": 0.048,
+    "annual_exception_cost": 17300000,
+    "target_annual_exception_cost": 7100000,
+    "bottleneck_cost_per_day": 8400,
+    "option_a_savings_per_year": 547000,
+    "total_trajectory_per_year": 1620000
+  },
+  "cross_graph_refs": {
+    "process_signal": {
+      "activity": "Match Invoice to GR",
+      "current_duration": 2520,
+      "normal_duration": 252,
+      "source": "celonis"
+    },
+    "erp_impact": {
+      "affected_pos": 340,
+      "affected_plants": 5,
+      "backlog_value": 2100000,
+      "source": "sap"
+    },
+    "root_cause": {
+      "change_type": "schema_expansion",
+      "field": "MATKL_V2",
+      "new_combinations": 340000,
+      "fanout_multiplier": 9,
+      "upstream_supplier": "Aster Rubber",
+      "source": "graph"
+    }
+  }
+}

@@ -1,150 +1,90 @@
 {
-  "sap_s4hana_extract": {
+  "sap_mm": {
     "source": "celonis_ems",
     "signals": {
-      "o2c_cycle_time_days": 7.4,
-      "o2c_baseline_days": 5.8,
-      "o2c_delta_pct": 27.6,
-      "three_way_match_failures": 184,
-      "three_way_match_baseline": 121,
-      "three_way_match_delta_pct": 52.1,
-      "active_variant": "V-12",
-      "variant_description": "Manual rework loop via VBAK \u2192 BSEG posting",
-      "rework_rate_pct": 18.5,
-      "rework_baseline_pct": 11.2
+      "matkl_v2_new_combinations": 340000,
+      "join_fanout_multiplier": 9,
+      "affected_pos": 340,
+      "affected_plants": 5,
+      "active_variant": "TIRE-V-09",
+      "variant_description": "Supplier catalog expansion into material master and invoice match",
+      "rework_rate_pct": 12.0,
+      "rework_baseline_pct": 4.8
     },
     "metrics": [
-      {
-        "name": "O2C cycle time",
-        "value": 7.4,
-        "baseline": 5.8,
-        "unit": "days",
-        "delta_pct": 27.6
-      },
-      {
-        "name": "3-way match failures",
-        "value": 184,
-        "baseline": 121,
-        "unit": "failures",
-        "delta_pct": 52.1
-      },
-      {
-        "name": "Rework rate",
-        "value": 18.5,
-        "baseline": 11.2,
-        "unit": "pct",
-        "delta_pct": 65.2
-      }
+      {"name": "MATKL_V2 combinations", "value": 340000, "baseline": 38000, "unit": "codes", "delta_pct": 794.7},
+      {"name": "Join fanout", "value": 9, "baseline": 1, "unit": "x", "delta_pct": 800.0},
+      {"name": "Affected POs", "value": 340, "baseline": 42, "unit": "orders", "delta_pct": 709.5}
     ],
     "variant": {
-      "id": "V-12",
-      "description": "Manual rework loop via VBAK \u2192 BSEG posting",
-      "rework_rate_pct": 18.5,
-      "baseline_pct": 11.2
+      "id": "TIRE-V-09",
+      "description": "Supplier catalog expansion into material master and invoice match",
+      "rework_rate_pct": 12.0,
+      "baseline_pct": 4.8
     },
     "correlation": {
-      "confidence": 0.78,
-      "signal": "three_way_match_failures",
-      "factor": "source_reliability",
-      "narrative": "Manual SAP posting rework correlates with lower source reliability on downstream extracts."
+      "confidence": 0.91,
+      "signal": "join_fanout_multiplier",
+      "factor": "impact_scope",
+      "narrative": "MATKL_V2 expansion from Aster Rubber drives a 9x fanout into SAP FI and Celonis P2P matching."
     }
   },
-  "billing_api": {
+  "sap_fi": {
     "source": "celonis_ems",
     "signals": {
-      "invoice_processing_time_hours": 31.6,
-      "invoice_baseline_hours": 18.2,
-      "invoice_delta_pct": 73.6,
-      "rejection_rate_pct": 9.8,
-      "rejection_baseline_pct": 4.1,
-      "active_variant": "V-07",
-      "variant_description": "Manual approval loop for flagged invoices",
-      "rework_rate_pct": 22.1,
-      "rework_baseline_pct": 8.4
+      "invoice_exceptions_per_day": 1008,
+      "target_exceptions_per_day": 403,
+      "backlog_value": 2100000,
+      "active_variant": "TIRE-V-09",
+      "variant_description": "Invoice-to-GR exception loop from expanded tire material groups",
+      "rework_rate_pct": 12.0,
+      "rework_baseline_pct": 4.8
     },
     "metrics": [
-      {
-        "name": "Invoice processing time",
-        "value": 31.6,
-        "baseline": 18.2,
-        "unit": "hours",
-        "delta_pct": 73.6
-      },
-      {
-        "name": "Rejection rate",
-        "value": 9.8,
-        "baseline": 4.1,
-        "unit": "pct",
-        "delta_pct": 139.0
-      },
-      {
-        "name": "Rework rate",
-        "value": 22.1,
-        "baseline": 8.4,
-        "unit": "pct",
-        "delta_pct": 163.1
-      }
+      {"name": "Daily invoice exceptions", "value": 1008, "baseline": 403, "unit": "exceptions", "delta_pct": 150.1},
+      {"name": "Backlog value", "value": 2100000, "baseline": 420000, "unit": "usd", "delta_pct": 400.0},
+      {"name": "Exception rate", "value": 12.0, "baseline": 4.8, "unit": "pct", "delta_pct": 150.0}
     ],
     "variant": {
-      "id": "V-07",
-      "description": "Manual approval loop for flagged invoices",
-      "rework_rate_pct": 22.1,
-      "baseline_pct": 8.4
+      "id": "TIRE-V-09",
+      "description": "Invoice-to-GR exception loop from expanded tire material groups",
+      "rework_rate_pct": 12.0,
+      "baseline_pct": 4.8
     },
     "correlation": {
-      "confidence": 0.84,
-      "signal": "invoice_processing_time_hours",
+      "confidence": 0.88,
+      "signal": "invoice_exceptions_per_day",
       "factor": "downstream_urgency",
-      "narrative": "Invoice approval loops increase downstream urgency for billing freshness alerts."
+      "narrative": "The $47 exception investigation cost compounds across 8,400 invoices per day."
     }
   },
-  "warehouse_etl": {
+  "celonis_p2p": {
     "source": "celonis_ems",
     "signals": {
-      "etl_batch_duration_minutes": 74,
-      "etl_baseline_minutes": 46,
-      "etl_delta_pct": 60.9,
-      "transform_failures": 17,
-      "transform_baseline": 6,
-      "active_variant": "V-03",
-      "variant_description": "Schema migration retry loop",
-      "rework_rate_pct": 14.2,
-      "rework_baseline_pct": 3.1
+      "match_invoice_to_gr_seconds": 2520,
+      "normal_match_seconds": 252,
+      "bottleneck_cost_per_day": 8400,
+      "active_variant": "TIRE-V-09",
+      "variant_description": "Match Invoice to GR bottleneck after supplier catalog expansion",
+      "rework_rate_pct": 12.0,
+      "rework_baseline_pct": 4.8
     },
     "metrics": [
-      {
-        "name": "ETL duration",
-        "value": 74,
-        "baseline": 46,
-        "unit": "minutes",
-        "delta_pct": 60.9
-      },
-      {
-        "name": "Transform failures",
-        "value": 17,
-        "baseline": 6,
-        "unit": "failures",
-        "delta_pct": 183.3
-      },
-      {
-        "name": "Rework rate",
-        "value": 14.2,
-        "baseline": 3.1,
-        "unit": "pct",
-        "delta_pct": 358.1
-      }
+      {"name": "Match Invoice to GR", "value": 2520, "baseline": 252, "unit": "seconds", "delta_pct": 900.0},
+      {"name": "Active bottleneck cost", "value": 8400, "baseline": 1200, "unit": "usd_per_day", "delta_pct": 600.0},
+      {"name": "Option A savings", "value": 547000, "baseline": 0, "unit": "usd_per_year", "delta_pct": 100.0}
     ],
     "variant": {
-      "id": "V-03",
-      "description": "Schema migration retry loop",
-      "rework_rate_pct": 14.2,
-      "baseline_pct": 3.1
+      "id": "TIRE-V-09",
+      "description": "Match Invoice to GR bottleneck after supplier catalog expansion",
+      "rework_rate_pct": 12.0,
+      "baseline_pct": 4.8
     },
     "correlation": {
-      "confidence": 0.71,
-      "signal": "transform_failures",
-      "factor": "data_freshness",
-      "narrative": "Retry-heavy schema migration variants explain freshness risk in warehouse batches."
+      "confidence": 0.93,
+      "signal": "match_invoice_to_gr_seconds",
+      "factor": "business_criticality",
+      "narrative": "Celonis process timing pinpoints Match Invoice to GR as the active tire P2P bottleneck."
     }
   }
 }

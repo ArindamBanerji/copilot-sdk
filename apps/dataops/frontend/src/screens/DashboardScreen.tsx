@@ -30,6 +30,7 @@ import ConservationProjection from "../components/ConservationProjection";
 import ConservationTimeline from "../components/ConservationTimeline";
 import { EnterpriseHealthBar } from "../components/EnterpriseHealthBar";
 import PipelineGrid from "../components/PipelineGrid";
+import ProcessTimelinePanel from "../components/ProcessTimelinePanel";
 
 interface DashboardScreenProps {
   onSelectAlert: (alertId: string) => void;
@@ -155,6 +156,8 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
         </div>
         <AEImpactPanel impact={state.aeImpact} compact />
       </section>
+
+      <ProcessTimelinePanel />
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,26rem)_1fr]">
         {hasGroups ? (

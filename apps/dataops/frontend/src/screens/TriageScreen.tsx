@@ -15,6 +15,7 @@ import {
   scoreAlert,
 } from "../api";
 import ActionPicker, { actionFromScoreLabel, labelForAction } from "../components/ActionPicker";
+import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
 import DependencyTree from "../components/DependencyTree";
 import FactorAutoFill, { buildScoreFactors } from "../components/FactorAutoFill";
 import ProcessSignalsPanel from "../components/ProcessSignalsPanel";
@@ -345,6 +346,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_28rem]">
         <div className="grid gap-4">
           <DependencyTree deps={data.deps} />
+          <CrossGraphInsightCard alertId={selectedAlertId} />
           <ResolutionTimeline history={systemHistory} loading={systemHistoryLoading} />
           <ProcessSignalsPanel signals={processSignals} loading={processSignalsLoading} />
           <FactorAutoFill response={data.factors} />

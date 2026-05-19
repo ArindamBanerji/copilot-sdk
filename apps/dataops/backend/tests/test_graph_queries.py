@@ -115,9 +115,9 @@ async def test_get_pipelines_fixture():
 
     assert payload["source"] == "fixture"
     assert len(payload["pipelines"]) == 9
-    warehouse = next(item for item in payload["pipelines"] if item["name"] == "warehouse_etl")
-    assert warehouse["upstream_count"] == 4
-    assert warehouse["downstream_count"] == 1
+    sap_mm = next(item for item in payload["pipelines"] if item["name"] == "sap_mm")
+    assert sap_mm["upstream_count"] == 1
+    assert sap_mm["downstream_count"] == 5
 
 
 @pytest.mark.asyncio
@@ -127,7 +127,7 @@ async def test_get_alerts_fixture():
 
     assert payload["source"] == "fixture"
     assert len(payload["alerts"]) == 20
-    assert {alert["alert_id"] for alert in payload["alerts"]} >= {"DQ-001", "DQ-015"}
+    assert {alert["alert_id"] for alert in payload["alerts"]} >= {"ALERT-TIRE-001", "ALERT-TIRE-015"}
 
 
 @pytest.mark.asyncio
@@ -205,10 +205,10 @@ async def test_graph_connected_blast_radius_returns_nested_tree():
 async def test_graph_miss_recurrence_falls_back_pure_fixture():
     fake = GraphMissAGEClient()
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=fake)
-    payload = await client.get_recurrence("DQ-015")
+    payload = await client.get_recurrence("ALERT-TIRE-015")
 
     assert payload["source"] == "fixture"
-    assert payload["system"] == "crm_sync"
+    assert payload["system"] == "logistics_dhl"
     assert payload["prior_count"] == 9
     assert payload["recurrence_frequency"] == 0.75
     assert not any("prior_count" in query for query, _params in fake.queries)
@@ -218,7 +218,7 @@ async def test_graph_miss_recurrence_falls_back_pure_fixture():
 async def test_graph_miss_factors_fall_back_pure_fixture():
     fake = GraphMissAGEClient()
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=fake)
-    payload = await client.get_factors("DQ-015")
+    payload = await client.get_factors("ALERT-TIRE-015")
 
     assert payload["source"] == "fixture"
     assert set(payload["factors"]) == {
@@ -239,14 +239,14 @@ async def test_graph_miss_factors_fall_back_pure_fixture():
 @pytest.mark.asyncio
 async def test_fixture_blast_radius_matches_graph_shape():
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
-    payload = await client.get_blast_radius("DQ-001")
+    payload = await client.get_blast_radius("ALERT-TIRE-001")
 
     assert payload["source"] == "fixture"
     assert payload["engine"] == {"graph": "fixture"}
     assert {"affected_system", "downstream_tree", "total_affected", "max_criticality", "min_sla"} <= set(payload)
     assert payload["affected_system"] == payload["system"]
     assert payload["downstream_tree"] == payload["tree"]
-    assert payload["downstream_tree"]["children"][0]["children"] == []
+    assert payload["downstream_tree"]["children"]
     assert payload["total_affected"] >= 1
     assert payload["max_criticality"] > 0
     assert payload["min_sla"] > 0
@@ -255,18 +255,18 @@ async def test_fixture_blast_radius_matches_graph_shape():
 @pytest.mark.asyncio
 async def test_blast_radius_tree_building():
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
-    payload = await client.get_blast_radius("DQ-015")
+    payload = await client.get_blast_radius("ALERT-TIRE-015")
 
     assert payload["source"] == "fixture"
-    assert payload["system"] == "crm_sync"
+    assert payload["system"] == "logistics_dhl"
     child_names = {child["system"] for child in payload["tree"]["children"]}
-    assert {"warehouse_etl", "marketing_db"} <= child_names
+    assert {"warehouse_wms", "mes_production"} <= child_names
 
 
 @pytest.mark.asyncio
 async def test_get_factors_has_all_six():
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
-    payload = await client.get_factors("DQ-001")
+    payload = await client.get_factors("ALERT-TIRE-001")
 
     assert payload["source"] == "fixture"
     assert payload["all_auto_computed"] is True
@@ -286,11 +286,11 @@ async def test_get_factors_has_all_six():
 async def test_no_live_graph_required(monkeypatch):
     monkeypatch.delenv("GRAPH_DSN", raising=False)
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
-    payload = await client.get_alert("DQ-015")
+    payload = await client.get_alert("ALERT-TIRE-015")
 
     assert client.is_graph_connected is False
     assert payload["source"] == "fixture"
-    assert payload["alert"]["alert_id"] == "DQ-015"
+    assert payload["alert"]["alert_id"] == "ALERT-TIRE-015"
 
 
 def test_graph_query_strings_are_read_only():

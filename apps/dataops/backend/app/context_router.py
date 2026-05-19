@@ -1060,6 +1060,145 @@ def schema_impact(system: str, column: str | None = None) -> dict[str, Any]:
     }
 
 
+@router.get("/process-timeline")
+def process_timeline() -> dict[str, Any]:
+    payload = _load_json(DATA_DIR / "process_timeline.json", {})
+    if not isinstance(payload, dict):
+        payload = {}
+
+    bottleneck_id = str(payload.get("bottleneck_id") or "")
+    normal_duration = _numeric_or_none(payload.get("normal_duration"))
+    current_duration = _numeric_or_none(payload.get("current_duration"))
+    dollar_calibration = payload.get("dollar_calibration")
+    if not isinstance(dollar_calibration, dict):
+        dollar_calibration = {}
+
+    activities = []
+    raw_activities = payload.get("activities")
+    if isinstance(raw_activities, list):
+        for raw in raw_activities:
+            if not isinstance(raw, dict):
+                continue
+            activity = dict(raw)
+            activity_id = str(activity.get("id") or "")
+            activity_normal = _numeric_or_none(activity.get("normal_duration"))
+            activity_current = _numeric_or_none(activity.get("current_duration"))
+            is_bottleneck = bool(activity_id and activity_id == bottleneck_id)
+            avg_duration = activity_current if activity_current is not None else activity_normal
+            activity["avg_duration"] = avg_duration if avg_duration is not None else 0
+            activity["automation_rate"] = _timeline_rate(
+                activity.get("automation_rate"),
+                0.35 if is_bottleneck else 0.7,
+            )
+            activity["rework_rate"] = _timeline_rate(
+                activity.get("rework_rate"),
+                _timeline_rate(
+                    dollar_calibration.get("current_exception_rate" if is_bottleneck else "target_exception_rate"),
+                    0.0,
+                ),
+            )
+            activity["is_bottleneck"] = is_bottleneck
+            activity["slowdown_multiplier"] = _slowdown_multiplier(activity_normal, activity_current)
+            activities.append(activity)
+
+    return {
+        "process_models": payload.get("process_models") if isinstance(payload.get("process_models"), list) else [],
+        "activities": activities,
+        "bottleneck_id": bottleneck_id,
+        "normal_duration": normal_duration if normal_duration is not None else 0,
+        "current_duration": current_duration if current_duration is not None else 0,
+        "slowdown_multiplier": _slowdown_multiplier(normal_duration, current_duration),
+        "dollar_calibration": dollar_calibration,
+        "cross_graph_refs": payload.get("cross_graph_refs") if isinstance(payload.get("cross_graph_refs"), dict) else {},
+    }
+
+
+def _timeline_rate(value: Any, default: float) -> float:
+    numeric = _numeric_or_none(value)
+    if numeric is None:
+        return default
+    return max(0.0, min(numeric, 1.0))
+
+
+def _slowdown_multiplier(normal_duration: float | None, current_duration: float | None) -> float | None:
+    if normal_duration is None or current_duration is None or normal_duration <= 0:
+        return None
+    return round(current_duration / normal_duration, 3)
+
+
+def _cross_graph_sources(refs: dict[str, Any]) -> list[str]:
+    sources: list[str] = []
+    for section in ("process_signal", "erp_impact", "root_cause"):
+        payload = refs.get(section)
+        if not isinstance(payload, dict):
+            continue
+        source = payload.get("source")
+        if source and str(source) not in sources:
+            sources.append(str(source))
+    return sources
+
+
+def _cross_graph_daily_cost(erp_impact: dict[str, Any]) -> float | None:
+    fixture_daily_cost = _numeric_or_none(erp_impact.get("daily_cost"))
+    if fixture_daily_cost is not None:
+        return fixture_daily_cost
+
+    timeline = _load_json(DATA_DIR / "process_timeline.json", {})
+    calibration = timeline.get("dollar_calibration") if isinstance(timeline, dict) else None
+    if not isinstance(calibration, dict):
+        return None
+    return _numeric_or_none(calibration.get("bottleneck_cost_per_day"))
+
+
+def _cross_graph_combined_impact(erp_impact: dict[str, Any], sources_used: list[str]) -> dict[str, Any]:
+    daily_cost = _cross_graph_daily_cost(erp_impact)
+    if daily_cost is not None and "daily_cost" not in erp_impact:
+        erp_impact["daily_cost"] = daily_cost
+
+    monthly_cost = round(daily_cost * 30, 2) if daily_cost is not None else None
+    annualized_cost = round(daily_cost * 365, 2) if daily_cost is not None else None
+    # Demo confidence is deterministic from independent local fixture sources, not a live model score.
+    confidence = round(min(0.95, 0.8 + (0.03 * len(sources_used))), 2)
+
+    return {
+        "daily_cost": daily_cost,
+        "monthly_cost": monthly_cost,
+        "annualized_cost": annualized_cost,
+        "confidence": confidence,
+    }
+
+
+@router.get("/cross-graph-insight/{alert_id}")
+def cross_graph_insight(alert_id: str) -> dict[str, Any]:
+    alert = _fallback_alerts_by_id().get(alert_id)
+    if not alert:
+        raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
+
+    refs = alert.get("cross_graph_refs")
+    if not isinstance(refs, dict) or not refs:
+        raise HTTPException(status_code=404, detail="No cross-graph data for this alert")
+
+    process_signal = dict(refs.get("process_signal")) if isinstance(refs.get("process_signal"), dict) else {}
+    erp_impact = dict(refs.get("erp_impact")) if isinstance(refs.get("erp_impact"), dict) else {}
+    root_cause = dict(refs.get("root_cause")) if isinstance(refs.get("root_cause"), dict) else {}
+
+    current_duration = _numeric_or_none(process_signal.get("current_duration"))
+    normal_duration = _numeric_or_none(process_signal.get("normal_duration"))
+    if current_duration is not None and normal_duration is not None and normal_duration > 0:
+        process_signal["slowdown_factor"] = round(current_duration / normal_duration, 1)
+
+    sources_used = _cross_graph_sources(refs)
+
+    return {
+        "alert_id": str(alert.get("alert_id") or alert_id),
+        "process_signal": process_signal,
+        "erp_impact": erp_impact,
+        "root_cause": root_cause,
+        "combined_impact": _cross_graph_combined_impact(erp_impact, sources_used),
+        "sources_used": sources_used,
+    }
+
+
 @router.get("/system/{name}")
 async def system_detail(name: str) -> dict[str, Any]:
     return await _graph_client().get_system(name)

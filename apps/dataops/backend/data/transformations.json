@@ -1,156 +1,35 @@
 {
   "systems": {
-    "warehouse_etl": [
-      {
-        "id": "extract_orders_daily",
-        "name": "Extract Orders Daily",
-        "type": "extract",
-        "source": "SAP_VBAK",
-        "target": "stg_orders_daily",
-        "avg_duration_minutes": 6,
-        "avg_rows": 1850000,
-        "schema_columns": ["VBELN", "ERDAT", "VKORG", "NETWR", "WAERK"],
-        "last_run": "2026-05-08T00:10:00Z",
-        "status": "ok"
-      },
-      {
-        "id": "join_vbak_bseg",
-        "name": "Join VBAK/BSEG",
-        "type": "join",
-        "source": "stg_orders_daily + SAP_BSEG",
-        "target": "fact_order_revenue",
-        "avg_duration_minutes": 42,
-        "avg_rows": 9200000,
-        "schema_columns": ["VBELN", "BELNR", "DMBTR", "MATKL", "BUKRS"],
-        "last_run": "2026-05-08T00:18:00Z",
-        "status": "degraded"
-      },
-      {
-        "id": "aggregate_daily_revenue",
-        "name": "Aggregate Daily Revenue",
-        "type": "aggregate",
-        "source": "fact_order_revenue",
-        "target": "mart_daily_revenue",
-        "avg_duration_minutes": 8,
-        "avg_rows": 420000,
-        "schema_columns": ["business_date", "revenue", "currency", "material_group"],
-        "last_run": "2026-05-08T01:05:00Z",
-        "status": "ok"
-      },
-      {
-        "id": "load_to_warehouse",
-        "name": "Load to Warehouse",
-        "type": "load",
-        "source": "mart_daily_revenue",
-        "target": "warehouse.revenue_daily",
-        "avg_duration_minutes": 4,
-        "avg_rows": 420000,
-        "schema_columns": ["business_date", "revenue", "currency", "material_group"],
-        "last_run": "2026-05-08T01:14:00Z",
-        "status": "ok"
-      }
+    "sap_mm": [
+      {"id": "extract_material_master", "name": "Extract Material Master", "type": "extract", "source": "SAP_MARA", "target": "stg_material_master", "avg_duration_minutes": 9, "avg_rows": 340000, "schema_columns": ["MATNR", "MATKL", "MATKL_V2", "WERKS"], "last_run": "2026-05-18T00:00:00Z", "status": "warning"},
+      {"id": "map_supplier_catalog", "name": "Map Supplier Catalog", "type": "join", "source": "stg_material_master + supplier_catalog", "target": "material_supplier_bridge", "avg_duration_minutes": 54, "avg_rows": 3060000, "schema_columns": ["MATNR", "SUPPLIER", "MATKL_V2", "COMPOUND_GRADE"], "last_run": "2026-05-18T00:12:00Z", "status": "degraded"},
+      {"id": "publish_material_dim", "name": "Publish Material Dimension", "type": "load", "source": "material_supplier_bridge", "target": "dim_tire_material", "avg_duration_minutes": 11, "avg_rows": 340000, "schema_columns": ["material_id", "supplier_id", "material_group_v2"], "last_run": "2026-05-18T01:09:00Z", "status": "warning"}
     ],
-    "billing_api": [
-      {
-        "id": "extract_billing_exports",
-        "name": "Extract Billing Exports",
-        "type": "extract",
-        "source": "SAP_BSEG",
-        "target": "billing_export_raw",
-        "avg_duration_minutes": 12,
-        "avg_rows": 740000,
-        "schema_columns": ["BELNR", "BUKRS", "DMBTR", "WAERS", "AUGDT"],
-        "last_run": "2026-05-08T00:22:00Z",
-        "status": "warning"
-      },
-      {
-        "id": "validate_billing_schema",
-        "name": "Validate Billing Schema",
-        "type": "quality_gate",
-        "source": "billing_export_raw",
-        "target": "billing_export_validated",
-        "avg_duration_minutes": 9,
-        "avg_rows": 735000,
-        "schema_columns": ["invoice_id", "amount", "currency", "clearing_date"],
-        "last_run": "2026-05-08T00:36:00Z",
-        "status": "degraded"
-      }
+    "sap_fi": [
+      {"id": "extract_invoice_lines", "name": "Extract Invoice Lines", "type": "extract", "source": "SAP_BSEG", "target": "stg_invoice_lines", "avg_duration_minutes": 12, "avg_rows": 8400, "schema_columns": ["BELNR", "BUKRS", "DMBTR", "MATNR"], "last_run": "2026-05-18T00:05:00Z", "status": "warning"},
+      {"id": "match_invoice_to_gr", "name": "Match Invoice to GR", "type": "join", "source": "stg_invoice_lines + goods_receipts + dim_tire_material", "target": "fact_invoice_match", "avg_duration_minutes": 42, "avg_rows": 1008, "schema_columns": ["invoice_id", "gr_id", "MATKL_V2", "exception_reason"], "last_run": "2026-05-18T00:22:00Z", "status": "degraded"}
     ],
-    "payment_gateway": [
-      {
-        "id": "extract_payment_events",
-        "name": "Extract Payment Events",
-        "type": "extract",
-        "source": "payment_gateway_api",
-        "target": "payment_events_raw",
-        "avg_duration_minutes": 7,
-        "avg_rows": 510000,
-        "schema_columns": ["payment_id", "merchant_id", "auth_code", "amount", "status"],
-        "last_run": "2026-05-08T00:08:00Z",
-        "status": "ok"
-      },
-      {
-        "id": "dedupe_authorizations",
-        "name": "Dedupe Authorizations",
-        "type": "dedupe",
-        "source": "payment_events_raw",
-        "target": "payment_authorizations",
-        "avg_duration_minutes": 16,
-        "avg_rows": 498000,
-        "schema_columns": ["payment_id", "merchant_id", "auth_code", "amount", "status"],
-        "last_run": "2026-05-08T00:18:00Z",
-        "status": "warning"
-      },
-      {
-        "id": "publish_settlement_feed",
-        "name": "Publish Settlement Feed",
-        "type": "load",
-        "source": "payment_authorizations",
-        "target": "settlement_feed",
-        "avg_duration_minutes": 5,
-        "avg_rows": 498000,
-        "schema_columns": ["payment_id", "settlement_date", "amount", "currency"],
-        "last_run": "2026-05-08T00:36:00Z",
-        "status": "ok"
-      }
+    "celonis_p2p": [
+      {"id": "load_p2p_events", "name": "Load P2P Events", "type": "extract", "source": "sap_fi + sap_mm", "target": "celonis_event_log", "avg_duration_minutes": 16, "avg_rows": 8400, "schema_columns": ["case_id", "activity", "timestamp", "supplier"], "last_run": "2026-05-18T00:08:00Z", "status": "ok"},
+      {"id": "compute_variant_frequency", "name": "Compute Variant Frequency", "type": "aggregate", "source": "celonis_event_log", "target": "p2p_variant_metrics", "avg_duration_minutes": 18, "avg_rows": 21, "schema_columns": ["variant_id", "frequency", "avg_duration"], "last_run": "2026-05-18T00:28:00Z", "status": "warning"}
     ],
-    "crm_sync": [
-      {
-        "id": "extract_account_updates",
-        "name": "Extract Account Updates",
-        "type": "extract",
-        "source": "salesforce_accounts",
-        "target": "crm_accounts_raw",
-        "avg_duration_minutes": 10,
-        "avg_rows": 165000,
-        "schema_columns": ["account_id", "segment", "owner_id", "updated_at"],
-        "last_run": "2026-05-08T00:12:00Z",
-        "status": "warning"
-      },
-      {
-        "id": "merge_customer_identity",
-        "name": "Merge Customer Identity",
-        "type": "merge",
-        "source": "crm_accounts_raw + identity_dim",
-        "target": "customer_identity",
-        "avg_duration_minutes": 14,
-        "avg_rows": 162000,
-        "schema_columns": ["customer_id", "account_id", "email_hash", "segment"],
-        "last_run": "2026-05-08T00:25:00Z",
-        "status": "degraded"
-      },
-      {
-        "id": "sync_marketing_segments",
-        "name": "Sync Marketing Segments",
-        "type": "load",
-        "source": "customer_identity",
-        "target": "marketing_segments",
-        "avg_duration_minutes": 6,
-        "avg_rows": 162000,
-        "schema_columns": ["customer_id", "segment", "score", "updated_at"],
-        "last_run": "2026-05-08T00:41:00Z",
-        "status": "ok"
-      }
+    "qms_pirelli": [
+      {"id": "validate_compound_certificate", "name": "Validate Compound Certificate", "type": "quality_gate", "source": "qms_certificates", "target": "compound_quality_release", "avg_duration_minutes": 14, "avg_rows": 5200, "schema_columns": ["lot_id", "compound_grade", "supplier", "MATKL_V2"], "last_run": "2026-05-18T00:18:00Z", "status": "warning"}
+    ],
+    "logistics_dhl": [
+      {"id": "ingest_inbound_asn", "name": "Ingest Inbound ASN", "type": "extract", "source": "dhl_asn_api", "target": "stg_inbound_shipments", "avg_duration_minutes": 10, "avg_rows": 1600, "schema_columns": ["shipment_id", "supplier", "material_code", "eta"], "last_run": "2026-05-18T00:20:00Z", "status": "warning"}
+    ],
+    "mes_production": [
+      {"id": "join_batch_lineage", "name": "Join Batch Lineage", "type": "join", "source": "mes_batches + compound_quality_release", "target": "batch_material_lineage", "avg_duration_minutes": 21, "avg_rows": 48000, "schema_columns": ["batch_id", "plant", "material_id", "compound_grade"], "last_run": "2026-05-18T00:25:00Z", "status": "active"}
+    ],
+    "supplier_portal": [
+      {"id": "load_supplier_catalog", "name": "Load Supplier Catalog", "type": "extract", "source": "supplier_catalog_uploads", "target": "supplier_catalog", "avg_duration_minutes": 13, "avg_rows": 340000, "schema_columns": ["supplier_id", "material_code", "MATKL_V2", "compound_grade"], "last_run": "2026-05-18T00:30:00Z", "status": "degraded"}
+    ],
+    "warehouse_wms": [
+      {"id": "refresh_plant_stock", "name": "Refresh Plant Stock", "type": "load", "source": "wms_receipts + dim_tire_material", "target": "plant_stock_snapshot", "avg_duration_minutes": 19, "avg_rows": 92000, "schema_columns": ["plant", "material_id", "available_qty", "MATKL_V2"], "last_run": "2026-05-18T00:35:00Z", "status": "warning"}
+    ],
+    "bi_analytics": [
+      {"id": "publish_exception_cost", "name": "Publish Exception Cost", "type": "aggregate", "source": "fact_invoice_match", "target": "mart_p2p_exception_cost", "avg_duration_minutes": 15, "avg_rows": 8400, "schema_columns": ["business_date", "exception_count", "cost_usd", "target_rate"], "last_run": "2026-05-18T00:40:00Z", "status": "warning"}
     ]
   }
 }

@@ -1,17 +1,313 @@
-import { useEffect, useMemo, useState } from "react";
-import { fetchProcessData } from "../api";
-import type { CrossGraphInsight, ProcessData } from "../types";
+import { useEffect, useState } from "react";
+import { BASE, normalize } from "../api";
 
 interface CrossGraphInsightCardProps {
-  insight?: CrossGraphInsight | null;
-  data?: ProcessData | null;
+  alertId?: string | null;
 }
 
-function currency(value?: number) {
-  if (typeof value !== "number") {
+interface ProcessSignal {
+  activity?: string;
+  currentDuration?: number;
+  normalDuration?: number;
+  slowdownFactor?: number;
+  source?: string;
+}
+
+interface ErpImpact {
+  affectedPos?: number;
+  affectedPlants?: number;
+  backlogValue?: number;
+  dailyCost?: number;
+  source?: string;
+}
+
+interface RootCause {
+  changeType?: string;
+  field?: string;
+  newCombinations?: number;
+  fanoutMultiplier?: number;
+  upstreamSupplier?: string;
+  source?: string;
+}
+
+interface CombinedImpact {
+  monthlyCost?: number;
+  annualizedCost?: number;
+  confidence?: number;
+}
+
+interface CrossGraphInsightResponse {
+  alertId?: string;
+  processSignal?: ProcessSignal;
+  erpImpact?: ErpImpact;
+  rootCause?: RootCause;
+  combinedImpact?: CombinedImpact;
+  sourcesUsed?: string[];
+}
+
+type LoadState = "idle" | "loading" | "ready" | "hidden" | "error";
+
+const DEFAULT_INSIGHT: CrossGraphInsightResponse = {
+  alertId: "demo",
+  processSignal: {
+    activity: "Process mining signal",
+    source: "celonis",
+  },
+  erpImpact: {
+    source: "sap",
+  },
+  rootCause: {
+    field: "Enterprise graph context",
+    changeType: "correlated evidence",
+    source: "graph",
+  },
+  combinedImpact: {},
+  sourcesUsed: ["celonis", "sap", "graph"],
+};
+
+export function CrossGraphInsightCard({ alertId }: CrossGraphInsightCardProps) {
+  const [state, setState] = useState<LoadState>("idle");
+  const [data, setData] = useState<CrossGraphInsightResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!alertId) {
+      setState("idle");
+      setData(null);
+      setError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setState("loading");
+    setData(null);
+    setError(null);
+
+    fetch(`${BASE}/api/context/cross-graph-insight/${encodeURIComponent(alertId)}`)
+      .then(async (response) => {
+        if (response.status === 404) {
+          return null;
+        }
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`);
+        }
+        return normalize<CrossGraphInsightResponse>(await response.json());
+      })
+      .then((payload) => {
+        if (cancelled) {
+          return;
+        }
+        if (!payload) {
+          setState("hidden");
+          setData(null);
+          return;
+        }
+        setData(payload);
+        setState("ready");
+      })
+      .catch((caught) => {
+        if (!cancelled) {
+          setError(caught instanceof Error ? caught.message : "Could not load cross-graph insight.");
+          setData(null);
+          setState("error");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [alertId]);
+
+  if (!alertId) {
+    return <InsightCard data={DEFAULT_INSIGHT} alertId={null} defaultMode />;
+  }
+
+  if (state === "idle" || state === "hidden") {
     return null;
   }
 
+  if (state === "loading") {
+    return (
+      <section className="copilot-card p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--copilot-primary)" }}>
+          Cross-Graph Insight
+        </p>
+        <p className="mt-2 text-sm dataops-muted">Correlating process, ERP, and graph signals...</p>
+      </section>
+    );
+  }
+
+  if (state === "error") {
+    return (
+      <section className="copilot-card p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--copilot-primary)" }}>
+          Cross-Graph Insight
+        </p>
+        <p className="mt-2 text-sm" style={{ color: "var(--copilot-danger)" }}>
+          {error || "Could not load cross-graph insight."}
+        </p>
+      </section>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return <InsightCard data={data} alertId={alertId} />;
+}
+
+function InsightCard({
+  data,
+  alertId,
+  defaultMode = false,
+}: {
+  data: CrossGraphInsightResponse;
+  alertId?: string | null;
+  defaultMode?: boolean;
+}) {
+  const sources = data.sourcesUsed || [];
+  const processSignal = data.processSignal || {};
+  const erpImpact = data.erpImpact || {};
+  const rootCause = data.rootCause || {};
+  const combinedImpact = data.combinedImpact || {};
+
+  return (
+    <section className="copilot-card p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--copilot-primary)" }}>
+            Cross-Graph Insight
+          </p>
+          <h2 className="mt-1 text-xl font-semibold" style={{ color: "var(--copilot-text)" }}>
+            SAP, Celonis, and graph evidence aligned
+          </h2>
+          <p className="mt-1 text-sm dataops-muted">
+            {defaultMode
+              ? "Default enterprise context view for process, ERP, and graph evidence."
+              : sources.length
+                ? `${sources.length} sources linked to alert ${data.alertId || alertId}`
+                : "Enterprise context available for this alert."}
+          </p>
+        </div>
+        {sources.length ? (
+          <span className="rounded-full px-2 py-1 text-xs font-semibold" style={{ background: "var(--copilot-primary-light)", color: "var(--copilot-primary)" }}>
+            {sources.length} sources
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-5 grid gap-3">
+        <SourceRow
+          source="Celonis"
+          color="blue"
+          title={processSignal.activity || "Process activity"}
+          details={[
+            ["Current duration", formatDuration(processSignal.currentDuration)],
+            ["Normal duration", formatDuration(processSignal.normalDuration)],
+            ["Slowdown", formatMultiplier(processSignal.slowdownFactor)],
+          ]}
+        />
+        <SourceRow
+          source="SAP"
+          color="green"
+          title={formatNumber(erpImpact.affectedPos, "POs affected")}
+          details={[
+            ["Affected plants", formatNumber(erpImpact.affectedPlants)],
+            ["Backlog value", formatCurrency(erpImpact.backlogValue)],
+            ["Daily cost", formatCurrency(erpImpact.dailyCost)],
+          ]}
+        />
+        <SourceRow
+          source="Graph"
+          color="purple"
+          title={rootCause.field || "Root cause field"}
+          details={[
+            ["Change type", humanize(rootCause.changeType)],
+            ["New combinations", formatNumber(rootCause.newCombinations)],
+            ["Fanout", formatMultiplier(rootCause.fanoutMultiplier)],
+            ["Supplier", rootCause.upstreamSupplier || null],
+          ]}
+        />
+      </div>
+
+      <div className="mt-5 rounded-md border p-4" style={{ borderColor: "var(--copilot-border)", background: "var(--copilot-surface-muted)" }}>
+        <div className="text-xs font-semibold uppercase tracking-[0.16em] dataops-muted">Combined impact</div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <ImpactMetric label="Monthly cost" value={formatCurrency(combinedImpact.monthlyCost)} />
+          <ImpactMetric label="Annualized cost" value={formatCurrency(combinedImpact.annualizedCost)} />
+          <ImpactMetric label="Confidence" value={formatPercent(combinedImpact.confidence)} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SourceRow({
+  source,
+  color,
+  title,
+  details,
+}: {
+  source: string;
+  color: "blue" | "green" | "purple";
+  title: string | null;
+  details: Array<[string, string | null]>;
+}) {
+  const palette = sourcePalette(color);
+  return (
+    <article className="rounded-md border p-4" style={{ borderColor: "var(--copilot-border)" }}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <span className="rounded-full px-2 py-1 text-xs font-semibold" style={{ background: palette.background, color: palette.color }}>
+            {source}
+          </span>
+          <h3 className="mt-3 text-base font-semibold" style={{ color: "var(--copilot-text)" }}>
+            {title || "Signal unavailable"}
+          </h3>
+        </div>
+      </div>
+      <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+        {details
+          .filter(([, value]) => Boolean(value))
+          .map(([label, value]) => (
+            <div key={label} className="rounded-md border px-3 py-2" style={{ borderColor: "var(--copilot-border)" }}>
+              <dt className="text-xs font-semibold uppercase dataops-muted">{label}</dt>
+              <dd className="mt-1 text-sm font-semibold" style={{ color: "var(--copilot-text)" }}>
+                {value}
+              </dd>
+            </div>
+          ))}
+      </dl>
+    </article>
+  );
+}
+
+function ImpactMetric({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div>
+      <div className="text-xs font-semibold uppercase dataops-muted">{label}</div>
+      <div className="mt-1 text-lg font-semibold" style={{ color: "var(--copilot-text)" }}>
+        {value || "n/a"}
+      </div>
+    </div>
+  );
+}
+
+function sourcePalette(color: "blue" | "green" | "purple") {
+  if (color === "blue") {
+    return { background: "rgba(59, 130, 246, 0.16)", color: "#93c5fd" };
+  }
+  if (color === "green") {
+    return { background: "rgba(16, 185, 129, 0.16)", color: "#6ee7b7" };
+  }
+  return { background: "rgba(168, 85, 247, 0.16)", color: "#d8b4fe" };
+}
+
+function formatCurrency(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -19,68 +315,38 @@ function currency(value?: number) {
   }).format(value);
 }
 
-export function CrossGraphInsightCard({ insight, data }: CrossGraphInsightCardProps) {
-  const [remoteData, setRemoteData] = useState<ProcessData | null>(null);
+function formatDuration(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value)} sec`;
+}
 
-  useEffect(() => {
-    if (insight || data) {
-      return;
-    }
+function formatNumber(value?: number, suffix?: string) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+  const formatted = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
+  return suffix ? `${formatted} ${suffix}` : formatted;
+}
 
-    let cancelled = false;
-    fetchProcessData().then((response) => {
-      if (!cancelled) {
-        setRemoteData(response);
-      }
-    });
+function formatMultiplier(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value)}x`;
+}
 
-    return () => {
-      cancelled = true;
-    };
-  }, [data, insight]);
+function formatPercent(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+  return `${Math.round(value * 100)}%`;
+}
 
-  const activeInsight = useMemo(() => {
-    if (insight) {
-      return insight;
-    }
-    const source = data ?? remoteData;
-    return source?.crossGraphInsights?.[0] ?? null;
-  }, [data, insight, remoteData]);
-
-  const impact =
-    currency(activeInsight?.monthlyImpactUsd) ??
-    currency(activeInsight?.annualImpactUsd) ??
-    currency(activeInsight?.annualizedSavingsUsd) ??
-    currency(activeInsight?.preventableImpactUsd);
-
-  return (
-    <section className="rounded-md border border-purple-300/20 bg-purple-500/10 p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-200/80">
-        Cross-Graph Insight
-      </p>
-      <h2 className="mt-2 text-xl font-semibold text-white">
-        {activeInsight?.title ?? activeInsight?.finding ?? "SAP, Celonis, and Graph signals aligned"}
-      </h2>
-      <p className="mt-2 text-sm leading-6 text-slate-300">
-        {activeInsight?.detail ??
-          activeInsight?.finding ??
-          "Process intelligence is correlating enterprise events with graph evidence."}
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2 text-sm">
-        {typeof activeInsight?.confidence === "number" ? (
-          <span className="rounded-md border border-white/10 bg-white/10 px-3 py-1 text-slate-100">
-            {Math.round(activeInsight.confidence * 100)}% confidence
-          </span>
-        ) : null}
-        {impact ? (
-          <span className="rounded-md border border-emerald-300/30 bg-emerald-500/10 px-3 py-1 text-emerald-100">
-            {impact} impact
-          </span>
-        ) : null}
-      </div>
-      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-        SAP × Celonis × Graph
-      </p>
-    </section>
-  );
+function humanize(value?: string) {
+  if (!value) {
+    return null;
+  }
+  return value.replace(/_/g, " ");
 }
