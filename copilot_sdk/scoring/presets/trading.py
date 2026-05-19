@@ -58,7 +58,12 @@ class TradingPreset:
 
     @property
     def plateau_config(self) -> PlateauConfig:
-        return PlateauConfig()
+        # C*A=15; window=round(10*sqrt((C*A)/20))=9; cooldown=5*window.
+        return PlateauConfig(
+            plateau_window=9,
+            min_improvement_rate=0.20,
+            plateau_cooldown=45,
+        )
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:

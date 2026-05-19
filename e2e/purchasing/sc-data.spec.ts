@@ -1,11 +1,6 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
-
-async function gotoInventory(page: import("@playwright/test").Page) {
-  await page.goto("/");
-  await clickTab(page, "Inventory");
-  await expect(page.getByText("System Improvements")).toBeVisible({ timeout: 10_000 });
-}
+import { collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
+import { gotoInventory } from "./helpers";
 
 test("SC genealogy shows live data or empty state", async ({ page }) => {
   await gotoInventory(page);

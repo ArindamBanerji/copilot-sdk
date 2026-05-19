@@ -1,11 +1,6 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText } from "../helpers/ui";
-
-async function gotoInventory(page: import("@playwright/test").Page) {
-  await page.goto("/");
-  await clickTab(page, "Inventory");
-  await expect(page.getByText("System Improvements")).toBeVisible();
-}
+import { expectAnyText } from "../helpers/ui";
+import { gotoInventory } from "./helpers";
 
 test("items grouped by category", async ({ page }) => {
   await gotoInventory(page);

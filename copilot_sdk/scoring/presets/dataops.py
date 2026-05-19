@@ -65,7 +65,12 @@ class DataOpsPreset:
 
     @property
     def plateau_config(self) -> PlateauConfig:
-        return PlateauConfig()
+        # C*A=30; window=round(10*sqrt((C*A)/20))=12; cooldown=5*window.
+        return PlateauConfig(
+            plateau_window=12,
+            min_improvement_rate=0.20,
+            plateau_cooldown=60,
+        )
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:

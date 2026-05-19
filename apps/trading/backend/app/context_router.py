@@ -166,7 +166,7 @@ def save_trade_metadata(payload: dict[str, Any]) -> dict[str, Any]:
     if not decision_id:
         raise HTTPException(status_code=400, detail="decision_id is required")
 
-    metadata = _load_json("trade_metadata.json")
+    metadata = _load_json_optional("trade_metadata.json") or {}
     record = dict(payload)
     metadata[str(decision_id)] = record
     _write_json("trade_metadata.json", metadata)
@@ -175,4 +175,5 @@ def save_trade_metadata(payload: dict[str, Any]) -> dict[str, Any]:
 
 @router.get("/trade-metadata")
 def get_trade_metadata() -> dict[str, Any]:
-    return _load_json("trade_metadata.json")
+    return _load_json_optional("trade_metadata.json") or {}
+

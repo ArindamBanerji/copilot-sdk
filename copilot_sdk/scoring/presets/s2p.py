@@ -62,7 +62,12 @@ class S2PPreset:
 
     @property
     def plateau_config(self) -> PlateauConfig:
-        return PlateauConfig()
+        # C*A=25; window=round(10*sqrt((C*A)/20))=11; cooldown=5*window.
+        return PlateauConfig(
+            plateau_window=11,
+            min_improvement_rate=0.20,
+            plateau_cooldown=55,
+        )
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:

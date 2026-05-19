@@ -63,7 +63,12 @@ class PurchasingPreset:
 
     @property
     def plateau_config(self) -> PlateauConfig:
-        return PlateauConfig()
+        # C*A=20; window=round(10*sqrt((C*A)/20))=10; cooldown=5*window.
+        return PlateauConfig(
+            plateau_window=10,
+            min_improvement_rate=0.20,
+            plateau_cooldown=50,
+        )
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:

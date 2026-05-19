@@ -44,6 +44,12 @@ export const test = base.extend<{ backendHealth: void }>({
         }
       }
 
+      const base = `http://localhost:${port}`;
+      await Promise.all([
+        request.get(`${base}/api/fingerprint`, { timeout: 5_000 }).catch(() => {}),
+        request.get(`${base}/api/conservation/status`, { timeout: 5_000 }).catch(() => {}),
+      ]);
+
       await use();
     },
     { auto: true },
