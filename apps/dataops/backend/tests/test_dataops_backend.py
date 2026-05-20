@@ -909,6 +909,91 @@ def test_cross_graph_insight_values_come_from_fixture(client: TestClient) -> Non
     assert payload["root_cause"]["upstream_supplier"] == "Aster Rubber"
 
 
+def _valid_apply_fix_request() -> dict:
+    return {
+        "alert_id": "ALERT-TIRE-001",
+        "option": "A",
+        "option_label": "Pre-join filter on MATKL_V2 range",
+        "entity_type": "PurchaseOrder",
+        "entity_id": "PO-4500001234",
+        "payload": {"matching_parameter": "MATKL_V2_FILTER"},
+    }
+
+
+def test_apply_fix_returns_success(client: TestClient) -> None:
+    response = client.post("/api/context/apply-fix", json=_valid_apply_fix_request())
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "applied"
+    assert payload["alert_id"] == "ALERT-TIRE-001"
+    assert payload["option"] == "A"
+    assert payload["option_label"] == "Pre-join filter on MATKL_V2 range"
+    assert payload["estimated_savings"] == "$547K/year"
+    assert payload["timestamp"] == "2026-05-19T10:00:00Z"
+
+
+def test_apply_fix_includes_conservation_check(client: TestClient) -> None:
+    payload = client.post("/api/context/apply-fix", json=_valid_apply_fix_request()).json()
+    conservation = payload["conservation_check"]
+
+    assert conservation["status"] == "GREEN"
+    assert conservation["current_automation"] == 0.35
+    assert conservation["projected_automation"] == 0.38
+    assert conservation["theta_min"] == 0.67
+    assert conservation["safe"] is True
+
+
+def test_apply_fix_includes_sap_response(client: TestClient) -> None:
+    payload = client.post("/api/context/apply-fix", json=_valid_apply_fix_request()).json()
+
+    sap_response = payload["sap_response"]["d"]
+    assert sap_response["PurchaseOrder"] == "PO-4500001234"
+    assert sap_response["Status"] == "updated"
+    assert sap_response["MatchingParameter"] == "MATKL_V2_FILTER"
+    assert sap_response["LastChangedDateTime"] == "2026-05-19T10:00:00Z"
+
+
+def test_apply_fix_rejects_invalid_entity_type(client: TestClient) -> None:
+    request = _valid_apply_fix_request()
+    request["entity_type"] = "BusinessPartner"
+
+    response = client.post("/api/context/apply-fix", json=request)
+
+    assert response.status_code == 400
+    assert "PurchaseOrder" in response.json()["detail"]
+
+
+def test_apply_fix_rejects_empty_payload(client: TestClient) -> None:
+    request = _valid_apply_fix_request()
+    request["payload"] = {}
+
+    response = client.post("/api/context/apply-fix", json=request)
+
+    assert response.status_code == 400
+    assert "non-empty" in response.json()["detail"]
+
+
+def test_apply_fix_rejects_unknown_payload_field(client: TestClient) -> None:
+    request = _valid_apply_fix_request()
+    request["payload"] = {"matching_parameter": "MATKL_V2_FILTER", "unsafe_field": "x"}
+
+    response = client.post("/api/context/apply-fix", json=request)
+
+    assert response.status_code == 400
+    assert "unsafe_field" in response.json()["detail"]
+
+
+def test_apply_fix_unknown_alert_returns_404(client: TestClient) -> None:
+    request = _valid_apply_fix_request()
+    request["alert_id"] = "ALERT-DOES-NOT-EXIST"
+
+    response = client.post("/api/context/apply-fix", json=request)
+
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"]
+
+
 def test_operational_rules_returns_all(client: TestClient) -> None:
     response = client.get("/api/ae/operational-rules")
 

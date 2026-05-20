@@ -32,6 +32,8 @@ import type {
   BottleneckResponse,
   OperationalRulesResponse,
   ProcessData,
+  ApplyFixRequest,
+  ApplyFixResponse,
   SapPurchaseOrdersResponse,
   SchemaImpactResponse,
   SelfAccuracyByCategoryResponse,
@@ -406,6 +408,10 @@ export async function learnAlert(body: unknown): Promise<LearnResponse> {
 
 export async function saveAlertMetadata(body: unknown) {
   return apiPost("/api/context/alert-metadata", body);
+}
+
+export async function applyFix(body: ApplyFixRequest): Promise<ApplyFixResponse> {
+  return apiPost<ApplyFixResponse>("/api/context/apply-fix", body);
 }
 
 export function numberOr(value: unknown, fallback: number): number {

@@ -14,6 +14,7 @@ from typing import Any, Optional
 import numpy as np
 
 from copilot_sdk.scoring.config import DomainPreset
+from copilot_sdk.scoring.conflict import JudgmentConflict, detect_conflict
 from copilot_sdk.scoring.fingerprint import FingerprintResult, compute_fingerprint
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.storage import DecisionStore
@@ -94,6 +95,7 @@ class CompoundingScorer:
         credit_assigner: Any | None = None,
         exploration_policy: Any | None = None,
         evolve: bool = False,
+        consolidation_enabled: bool = False,
     ):
         self._preset = preset
         self._store = store
@@ -109,6 +111,12 @@ class CompoundingScorer:
         self._evolve = bool(evolve)
         self._evolver: Any | None = None
         self._evolve_count = 0
+        self._last_conflict: JudgmentConflict | None = None
+        self._consolidation_enabled = bool(consolidation_enabled)
+        self._batch_decision_count = 0
+        self._last_checkpoint_decision_id: str | None = None
+        self._last_checkpoint_category: str | None = None
+        self._last_checkpoint_iks: float | None = None
         if self._evolve:
             self._setup_evolution()
 
@@ -122,6 +130,7 @@ class CompoundingScorer:
         credit_assigner: Any | None = None,
         exploration_policy: Any | None = None,
         evolve: bool = False,
+        consolidation_enabled: bool = False,
     ) -> "CompoundingScorer":
         if domain not in PRESET_REGISTRY:
             available = ", ".join(sorted(PRESET_REGISTRY)) or "(none)"
@@ -157,6 +166,7 @@ class CompoundingScorer:
             credit_assigner=credit_assigner,
             exploration_policy=exploration_policy,
             evolve=evolve,
+            consolidation_enabled=consolidation_enabled,
         )
 
     def score(
@@ -223,6 +233,7 @@ class CompoundingScorer:
         actual_action: str,
         outcome: str = "confirmed",
         *,
+        consolidate: bool = False,
         context: dict[str, Any] | None = None,
     ) -> LearnResult | dict[str, Any]:
         decision = self._graph_store.get_decision(decision_id)
@@ -237,6 +248,14 @@ class CompoundingScorer:
         factor_vector = np.asarray(_decision_field(decision, "factor_vector", []), dtype=np.float64)
         category_index = int(_decision_field(decision, "category_index", 0))
         confidence = float(_decision_field(decision, "confidence", 0.0))
+        self._detect_judgment_conflict(
+            decision_id=decision_id,
+            decision=decision,
+            predicted_index=predicted_index,
+            actual_correct=is_correct,
+            factor_vector=factor_vector,
+            confidence=confidence,
+        )
 
         conservation_pause = self._conservation_pause()
         if conservation_pause is not None:
@@ -284,12 +303,28 @@ class CompoundingScorer:
         if invoice_id and callable(link_decision_to_entity):
             link_decision_to_entity(decision_id, str(invoice_id), edge_type="DECIDED_ON")
         iks_after = self._compute_iks()
-        self._graph_store.save_centroids(
-            decision_id,
-            str(_decision_field(decision, "category", "")),
-            self._scorer.centroids,
-            metadata={"iks": iks_after},
-        )
+        category = str(_decision_field(decision, "category", ""))
+        self._last_checkpoint_decision_id = decision_id
+        self._last_checkpoint_category = category
+        self._last_checkpoint_iks = iks_after
+        if self._consolidation_enabled:
+            self._batch_decision_count += 1
+            if consolidate:
+                self._save_centroids_checkpoint(
+                    decision_id=decision_id,
+                    category=category,
+                    iks=iks_after,
+                    boundary="learn",
+                    decisions_in_batch=self._batch_decision_count,
+                    consolidation=True,
+                )
+                self._batch_decision_count = 0
+        else:
+            self._save_centroids_checkpoint(
+                decision_id=decision_id,
+                category=category,
+                iks=iks_after,
+            )
         reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome, context)
         if reward_raw is not None:
             if self._explorer is not None:
@@ -325,6 +360,27 @@ class CompoundingScorer:
             self._graph_store.get_verified_decisions(),
             list(self._preset.shape.factor_names),
         )
+
+    @property
+    def last_conflict(self) -> JudgmentConflict | None:
+        return self._last_conflict
+
+    def flush_centroids(self, reason: str = "manual") -> int:
+        if not self._consolidation_enabled or self._batch_decision_count == 0:
+            return 0
+        if self._last_checkpoint_decision_id is None or self._last_checkpoint_category is None:
+            return 0
+        flushed = self._batch_decision_count
+        self._save_centroids_checkpoint(
+            decision_id=self._last_checkpoint_decision_id,
+            category=self._last_checkpoint_category,
+            iks=self._last_checkpoint_iks if self._last_checkpoint_iks is not None else self._compute_iks(),
+            boundary=str(reason),
+            decisions_in_batch=flushed,
+            consolidation=True,
+        )
+        self._batch_decision_count = 0
+        return flushed
 
     def trajectory(self) -> TrajectoryResult:
         return compute_trajectory(
@@ -534,6 +590,71 @@ class CompoundingScorer:
         )
         return reward_raw, reward
 
+    def _detect_judgment_conflict(
+        self,
+        *,
+        decision_id: str,
+        decision: dict[str, Any],
+        predicted_index: int,
+        actual_correct: bool,
+        factor_vector: np.ndarray,
+        confidence: float,
+    ) -> None:
+        self._last_conflict = None
+        try:
+            self._last_conflict = detect_conflict(
+                decision_id=decision_id,
+                predicted_success=_predicted_success(decision, predicted_index, confidence),
+                actual_correct=actual_correct,
+                factors=factor_vector.tolist(),
+                fingerprint_weights=self._fingerprint_weight_map(),
+                factor_names=list(self._preset.shape.factor_names),
+            )
+        except (TypeError, ValueError) as exc:
+            logger.debug("Could not compute judgment conflict for %s: %s", decision_id, exc)
+            self._last_conflict = None
+
+    def _fingerprint_weight_map(self) -> dict[str, float]:
+        try:
+            fingerprint = self.fingerprint()
+        except Exception as exc:
+            logger.debug("Could not compute fingerprint weights for conflict detection: %s", exc)
+            return {}
+        weights: dict[str, float] = {}
+        for factor in fingerprint.factors:
+            try:
+                weight = float(factor.weight)
+            except (TypeError, ValueError):
+                weight = 0.0
+            if not np.isfinite(weight):
+                weight = 0.0
+            weights[str(factor.name)] = max(0.0, min(weight, 1.0))
+        return weights
+
+    def _save_centroids_checkpoint(
+        self,
+        *,
+        decision_id: str,
+        category: str,
+        iks: float,
+        boundary: str | None = None,
+        decisions_in_batch: int | None = None,
+        consolidation: bool = False,
+    ) -> None:
+        metadata: dict[str, Any] = {"iks": iks}
+        if consolidation:
+            metadata.update({
+                "boundary": boundary,
+                "decisions_in_batch": decisions_in_batch,
+                "consolidation": True,
+            })
+        self._graph_store.save_centroids(
+            decision_id,
+            category,
+            self._scorer.centroids,
+            metadata=metadata,
+        )
+
     def _setup_evolution(self) -> None:
         actions = list(getattr(self._preset.shape, "action_names", ()) or ())
         if len(actions) < 2:
@@ -683,6 +804,20 @@ def _decision_field(decision: dict[str, Any], key: str, default: Any = None) -> 
         if isinstance(nested_metadata, dict) and key in nested_metadata:
             return nested_metadata[key]
     return default
+
+
+def _predicted_success(decision: dict[str, Any], predicted_index: int, confidence: float) -> float:
+    probabilities = _decision_field(decision, "probabilities")
+    if isinstance(probabilities, (list, tuple)) and 0 <= predicted_index < len(probabilities):
+        try:
+            predicted = float(probabilities[predicted_index])
+        except (TypeError, ValueError):
+            predicted = float(confidence)
+    else:
+        predicted = float(confidence)
+    if not np.isfinite(predicted):
+        predicted = 0.0
+    return max(0.0, min(predicted, 1.0))
 
 
 def _count_categories_with_n(decisions: list[dict[str, Any]], n: int) -> int:

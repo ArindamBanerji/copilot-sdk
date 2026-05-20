@@ -43,6 +43,13 @@ CATEGORY_SLA_MINUTES = {
     "transform_drift": 60,
 }
 DEFAULT_SLA_MINUTES = 30
+APPLY_FIX_ALLOWED_PAYLOAD_FIELDS = {
+    "matching_parameter",
+    "approval_threshold",
+    "routing_rule",
+    "hold_status",
+}
+APPLY_FIX_TIMESTAMP = "2026-05-19T10:00:00Z"
 SEVERITY_AGE_MINUTES = {
     "critical": 5,
     "high": 15,
@@ -1196,6 +1203,87 @@ def cross_graph_insight(alert_id: str) -> dict[str, Any]:
         "root_cause": root_cause,
         "combined_impact": _cross_graph_combined_impact(erp_impact, sources_used),
         "sources_used": sources_used,
+    }
+
+
+def _apply_fix_sap_response(entity_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "d": {
+            "PurchaseOrder": entity_id,
+            "__metadata": {
+                "type": "API_PURCHASEORDER_PROCESS_SRV.A_PurchaseOrderType",
+                "source": "fixture_demo",
+            },
+            "Status": "updated",
+            "MatchingParameter": payload.get("matching_parameter"),
+            "LastChangedDateTime": APPLY_FIX_TIMESTAMP,
+        }
+    }
+
+
+def _apply_fix_estimated_savings() -> str:
+    timeline = _load_json(DATA_DIR / "process_timeline.json", {})
+    calibration = timeline.get("dollar_calibration") if isinstance(timeline, dict) else None
+    if not isinstance(calibration, dict):
+        return "$547K/year"
+    savings = _numeric_or_none(calibration.get("option_a_savings_per_year"))
+    if savings is None:
+        return "$547K/year"
+    if savings >= 1000:
+        return f"${round(savings / 1000):.0f}K/year"
+    return f"${round(savings):.0f}/year"
+
+
+def _validate_apply_fix_payload(payload: dict[str, Any]) -> tuple[str, str, str, dict[str, Any]]:
+    alert_id = str(payload.get("alert_id") or "").strip()
+    option = str(payload.get("option") or "").strip()
+    entity_type = str(payload.get("entity_type") or "").strip()
+    entity_id = str(payload.get("entity_id") or "").strip()
+    write_payload = payload.get("payload")
+
+    if not alert_id:
+        raise HTTPException(status_code=400, detail="alert_id is required")
+    if alert_id not in _fallback_alerts_by_id():
+        raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
+    if not option:
+        raise HTTPException(status_code=400, detail="option is required")
+    if entity_type != "PurchaseOrder":
+        raise HTTPException(status_code=400, detail="entity_type must be PurchaseOrder for this demo")
+    if not entity_id:
+        raise HTTPException(status_code=400, detail="entity_id is required")
+    if not isinstance(write_payload, dict) or not write_payload:
+        raise HTTPException(status_code=400, detail="payload must be a non-empty object")
+
+    unknown_keys = sorted(set(write_payload) - APPLY_FIX_ALLOWED_PAYLOAD_FIELDS)
+    if unknown_keys:
+        raise HTTPException(status_code=400, detail=f"Unsupported payload fields: {', '.join(unknown_keys)}")
+
+    return alert_id, option, entity_id, dict(write_payload)
+
+
+@router.post("/apply-fix")
+def apply_fix(payload: dict[str, Any]) -> dict[str, Any]:
+    alert_id, option, entity_id, write_payload = _validate_apply_fix_payload(payload)
+    option_label = str(payload.get("option_label") or "Pre-join filter on MATKL_V2 range")
+
+    # Story-calibrated fixture response only: no SAP connector, network, or conservation engine call.
+    conservation_check = {
+        "status": "GREEN",
+        "current_automation": 0.35,
+        "projected_automation": 0.38,
+        "theta_min": 0.67,
+        "safe": True,
+    }
+
+    return {
+        "status": "applied",
+        "alert_id": alert_id,
+        "option": option,
+        "option_label": option_label,
+        "sap_response": _apply_fix_sap_response(entity_id, write_payload),
+        "conservation_check": conservation_check,
+        "estimated_savings": _apply_fix_estimated_savings(),
+        "timestamp": APPLY_FIX_TIMESTAMP,
     }
 
 

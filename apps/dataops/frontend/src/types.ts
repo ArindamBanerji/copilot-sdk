@@ -679,6 +679,45 @@ export interface SapPurchaseOrdersResponse {
   purchaseOrders?: SapPurchaseOrder[];
 }
 
+export interface ApplyFixConservationCheck {
+  status?: string;
+  currentAutomation?: number;
+  projectedAutomation?: number;
+  thetaMin?: number;
+  safe?: boolean;
+}
+
+export interface ApplyFixRequest {
+  alertId: string;
+  option: string;
+  optionLabel: string;
+  entityType: "PurchaseOrder";
+  entityId: string;
+  payload: {
+    matchingParameter: string;
+  };
+}
+
+export interface ApplyFixResponse {
+  status?: string;
+  alertId?: string;
+  option?: string;
+  optionLabel?: string;
+  sapResponse?: {
+    d?: {
+      PurchaseOrder?: string;
+      Status?: string;
+      MatchingParameter?: string;
+      LastChangedDateTime?: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  conservationCheck?: ApplyFixConservationCheck;
+  estimatedSavings?: string;
+  timestamp?: string;
+}
+
 export interface CelonisKnowledgeModel {
   id?: string;
   name?: string;

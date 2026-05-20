@@ -15,6 +15,7 @@ import {
   scoreAlert,
 } from "../api";
 import ActionPicker, { actionFromScoreLabel, labelForAction } from "../components/ActionPicker";
+import ApplyFixModal from "../components/ApplyFixModal";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
 import DependencyTree from "../components/DependencyTree";
 import FactorAutoFill, { buildScoreFactors } from "../components/FactorAutoFill";
@@ -38,6 +39,7 @@ import type {
   ScoreResponse,
   SimilarAlert,
   SystemHistoryResponse,
+  ApplyFixResponse,
 } from "../types";
 
 interface TriageScreenProps {
@@ -52,6 +54,21 @@ interface TriageData {
   recurrence: RecurrenceResponse | null;
   recommendation: AERecommendationResponse | null;
 }
+
+const APPLY_FIX_DEMO = {
+  option: "A",
+  optionLabel: "Pre-join filter on MATKL_V2 range",
+  entityId: "PO-4500001234",
+  supplier: "Aster Rubber",
+  matchingParameter: "MATKL_V2_FILTER",
+  conservationPreview: {
+    status: "GREEN",
+    currentAutomation: 0.35,
+    projectedAutomation: 0.38,
+    thetaMin: 0.67,
+    safe: true,
+  },
+} as const;
 
 export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenProps) {
   const [data, setData] = useState<TriageData>({
@@ -79,6 +96,8 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
   const [systemHistory, setSystemHistory] = useState<SystemHistoryResponse | null>(null);
   const [systemHistoryLoading, setSystemHistoryLoading] = useState(false);
   const [fingerprint, setFingerprint] = useState<FingerprintResponse | null>(null);
+  const [applyFixOpen, setApplyFixOpen] = useState(false);
+  const [appliedFix, setAppliedFix] = useState<ApplyFixResponse | null>(null);
 
   useEffect(() => {
     if (!selectedAlertId) {
@@ -96,6 +115,8 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     setProcessSignals(null);
     setSystemHistory(null);
     setFingerprint(null);
+    setApplyFixOpen(false);
+    setAppliedFix(null);
     setSimilarLoading(false);
     setProcessSignalsLoading(false);
     setSystemHistoryLoading(false);
@@ -207,6 +228,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     () => data.recommendation?.recommendations?.[0] || null,
     [data.recommendation],
   );
+  const applyFixReady = Boolean(selectedAlertId && score && rewardLine && APPLY_FIX_DEMO.conservationPreview.safe);
 
   async function handleAction(action: string) {
     if (!alert?.category || !selectedAlertId) {
@@ -214,6 +236,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       return;
     }
 
+    setAppliedFix(null);
     setSelectedAction(action);
     setScoring(true);
     setError(null);
@@ -255,6 +278,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       return;
     }
 
+    setAppliedFix(null);
     try {
       const result = await learnAlert({
         decisionId,
@@ -280,6 +304,13 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     if (typeof result.iksAfter === "number" && typeof result.iksBefore === "number") {
       setIksDelta(result.iksAfter - result.iksBefore);
     }
+  }
+
+  function handleApplyFixApplied(result: ApplyFixResponse, appliedAlertId: string) {
+    if (appliedAlertId !== selectedAlertId) {
+      return;
+    }
+    setAppliedFix(result);
   }
 
   if (!selectedAlertId) {
@@ -368,6 +399,40 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
                 iksDelta={iksDelta}
                 rewardLine={rewardLine || undefined}
               />
+              <section className="copilot-card p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-semibold" style={{ color: "var(--copilot-text)" }}>
+                      SAP Write-back
+                    </h2>
+                    <p className="mt-1 text-sm dataops-muted">
+                      Confirm the score, then apply the MATKL_V2 guardrail through the fixture-backed SAP endpoint.
+                    </p>
+                  </div>
+                  {appliedFix ? (
+                    <span className="rounded-full px-2 py-1 text-xs font-semibold" style={{ background: "rgba(34, 197, 94, 0.12)", color: "var(--copilot-success)" }}>
+                      Applied
+                    </span>
+                  ) : null}
+                </div>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm dataops-muted">
+                    {appliedFix?.estimatedSavings
+                      ? `Estimated savings: ${appliedFix.estimatedSavings}`
+                      : applyFixReady
+                        ? "Conservation check is ready for SAP fixture write-back."
+                        : "Confirm the recommended action before applying to SAP."}
+                  </div>
+                  <button
+                    type="button"
+                    className="copilot-button px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={!applyFixReady}
+                    onClick={() => setApplyFixOpen(true)}
+                  >
+                    {appliedFix ? "View Applied Fix" : "Apply to SAP"}
+                  </button>
+                </div>
+              </section>
               <ReasoningPanel
                 scoreResult={score}
                 similarAlerts={similarAlerts}
@@ -383,6 +448,18 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
           )}
         </div>
       </div>
+      <ApplyFixModal
+        open={applyFixOpen}
+        alertId={selectedAlertId}
+        option={APPLY_FIX_DEMO.option}
+        optionLabel={APPLY_FIX_DEMO.optionLabel}
+        entityId={APPLY_FIX_DEMO.entityId}
+        supplier={APPLY_FIX_DEMO.supplier}
+        matchingParameter={APPLY_FIX_DEMO.matchingParameter}
+        conservationPreview={APPLY_FIX_DEMO.conservationPreview}
+        onClose={() => setApplyFixOpen(false)}
+        onApplied={handleApplyFixApplied}
+      />
     </div>
   );
 }
