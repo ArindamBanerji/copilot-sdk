@@ -8,6 +8,7 @@ import sys
 import time
 import uuid
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -114,6 +115,8 @@ class CompoundingScorer:
         self._last_conflict: JudgmentConflict | None = None
         self._consolidation_enabled = bool(consolidation_enabled)
         self._batch_decision_count = 0
+        self._batch_decision_time_start: str | None = None
+        self._batch_decision_time_end: str | None = None
         self._last_checkpoint_decision_id: str | None = None
         self._last_checkpoint_category: str | None = None
         self._last_checkpoint_iks: float | None = None
@@ -307,6 +310,8 @@ class CompoundingScorer:
         self._last_checkpoint_decision_id = decision_id
         self._last_checkpoint_category = category
         self._last_checkpoint_iks = iks_after
+        decision_timestamp = self._extract_decision_timestamp(decision)
+        self._update_batch_decision_time_range(decision_timestamp)
         if self._consolidation_enabled:
             self._batch_decision_count += 1
             if consolidate:
@@ -317,13 +322,19 @@ class CompoundingScorer:
                     boundary="learn",
                     decisions_in_batch=self._batch_decision_count,
                     consolidation=True,
+                    decision_time_start=self._batch_decision_time_start,
+                    decision_time_end=self._batch_decision_time_end,
                 )
                 self._batch_decision_count = 0
+                self._batch_decision_time_start = None
+                self._batch_decision_time_end = None
         else:
             self._save_centroids_checkpoint(
                 decision_id=decision_id,
                 category=category,
                 iks=iks_after,
+                decision_time_start=decision_timestamp,
+                decision_time_end=decision_timestamp,
             )
         reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome, context)
         if reward_raw is not None:
@@ -378,13 +389,31 @@ class CompoundingScorer:
             boundary=str(reason),
             decisions_in_batch=flushed,
             consolidation=True,
+            decision_time_start=self._batch_decision_time_start,
+            decision_time_end=self._batch_decision_time_end,
         )
         self._batch_decision_count = 0
+        self._batch_decision_time_start = None
+        self._batch_decision_time_end = None
         return flushed
 
-    def trajectory(self) -> TrajectoryResult:
+    def trajectory(
+        self,
+        *,
+        checkpoint_time_start: str | None = None,
+        checkpoint_time_end: str | None = None,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        category: str | None = None,
+    ) -> TrajectoryResult:
         return compute_trajectory(
-            self._graph_store.get_centroid_checkpoints(),
+            self._graph_store.get_centroid_checkpoints(
+                checkpoint_time_start=checkpoint_time_start,
+                checkpoint_time_end=checkpoint_time_end,
+                decision_time_start=decision_time_start,
+                decision_time_end=decision_time_end,
+                category=category,
+            ),
             self._graph_store.get_verified_decisions(),
             self._preset.shape,
         )
@@ -640,6 +669,8 @@ class CompoundingScorer:
         boundary: str | None = None,
         decisions_in_batch: int | None = None,
         consolidation: bool = False,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
     ) -> None:
         metadata: dict[str, Any] = {"iks": iks}
         if consolidation:
@@ -653,7 +684,27 @@ class CompoundingScorer:
             category,
             self._scorer.centroids,
             metadata=metadata,
+            decision_time_start=decision_time_start,
+            decision_time_end=decision_time_end,
         )
+
+    def _extract_decision_timestamp(self, decision: dict[str, Any] | None) -> str | None:
+        """Extract the decision-time timestamp without substituting wall clock time."""
+        if not isinstance(decision, dict):
+            return None
+        for key in ("decision_time", "event_time", "timestamp", "created_at"):
+            normalized = _normalize_decision_timestamp(_decision_field(decision, key))
+            if normalized is not None:
+                return normalized
+        return None
+
+    def _update_batch_decision_time_range(self, timestamp: str | None) -> None:
+        if timestamp is None:
+            return
+        if self._batch_decision_time_start is None or timestamp < self._batch_decision_time_start:
+            self._batch_decision_time_start = timestamp
+        if self._batch_decision_time_end is None or timestamp > self._batch_decision_time_end:
+            self._batch_decision_time_end = timestamp
 
     def _setup_evolution(self) -> None:
         actions = list(getattr(self._preset.shape, "action_names", ()) or ())
@@ -804,6 +855,30 @@ def _decision_field(decision: dict[str, Any], key: str, default: Any = None) -> 
         if isinstance(nested_metadata, dict) and key in nested_metadata:
             return nested_metadata[key]
     return default
+
+
+def _normalize_decision_timestamp(value: Any) -> str | None:
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float, np.integer, np.floating)):
+        epoch = float(value)
+        if not np.isfinite(epoch):
+            return None
+        return datetime.fromtimestamp(epoch, timezone.utc).isoformat().replace("+00:00", "Z")
+    if isinstance(value, str):
+        raw = value.strip()
+        if not raw:
+            return None
+        try:
+            parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        else:
+            parsed = parsed.astimezone(timezone.utc)
+        return parsed.isoformat().replace("+00:00", "Z")
+    return None
 
 
 def _predicted_success(decision: dict[str, Any], predicted_index: int, confidence: float) -> float:

@@ -57,10 +57,23 @@ class GraphStore(Protocol):
         category: str,
         centroids: Any,
         metadata: dict[str, Any] | None = None,
+        *,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        checkpoint_time: str | None = None,
     ) -> None:
         ...
 
-    def get_centroid_checkpoints(self, limit: int = 50) -> list[dict[str, Any]]:
+    def get_centroid_checkpoints(
+        self,
+        limit: int = 50,
+        *,
+        checkpoint_time_start: str | None = None,
+        checkpoint_time_end: str | None = None,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        category: str | None = None,
+    ) -> list[dict[str, Any]]:
         ...
 
     def save_evolution_event(

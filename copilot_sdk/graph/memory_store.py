@@ -9,6 +9,10 @@ from datetime import datetime, timezone
 from typing import Any
 
 
+def _utc_iso_now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
 class InMemoryGraphStore:
     """Dictionary-backed decision and outcome store."""
 
@@ -115,6 +119,10 @@ class InMemoryGraphStore:
         category: str,
         centroids: Any,
         metadata: dict[str, Any] | None = None,
+        *,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        checkpoint_time: str | None = None,
     ) -> None:
         self._centroid_checkpoints.append(
             {
@@ -123,14 +131,38 @@ class InMemoryGraphStore:
                 "centroids": deepcopy(centroids),
                 "metadata": deepcopy(metadata or {}),
                 "created_at": datetime.now(timezone.utc).isoformat(),
+                "decision_time_start": decision_time_start,
+                "decision_time_end": decision_time_end,
+                "checkpoint_time": checkpoint_time or _utc_iso_now(),
             }
         )
 
-    def get_centroid_checkpoints(self, limit: int = 50) -> list[dict[str, Any]]:
+    def get_centroid_checkpoints(
+        self,
+        limit: int = 50,
+        *,
+        checkpoint_time_start: str | None = None,
+        checkpoint_time_end: str | None = None,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        category: str | None = None,
+    ) -> list[dict[str, Any]]:
         limit_value = max(int(limit), 0)
         if limit_value == 0:
             return []
-        return deepcopy(self._centroid_checkpoints[-limit_value:])
+        checkpoints = [
+            checkpoint
+            for checkpoint in self._centroid_checkpoints
+            if _matches_checkpoint_filters(
+                checkpoint,
+                checkpoint_time_start=checkpoint_time_start,
+                checkpoint_time_end=checkpoint_time_end,
+                decision_time_start=decision_time_start,
+                decision_time_end=decision_time_end,
+                category=category,
+            )
+        ]
+        return deepcopy(checkpoints[-limit_value:])
 
     def save_evolution_event(
         self,
@@ -188,3 +220,32 @@ class InMemoryGraphStore:
             self._decisions.values(),
             key=lambda decision: (decision["created_at"], decision["_sequence"], decision["decision_id"]),
         )
+
+
+def _matches_checkpoint_filters(
+    checkpoint: dict[str, Any],
+    *,
+    checkpoint_time_start: str | None,
+    checkpoint_time_end: str | None,
+    decision_time_start: str | None,
+    decision_time_end: str | None,
+    category: str | None,
+) -> bool:
+    if category is not None and checkpoint.get("category") != category:
+        return False
+    checkpoint_time = checkpoint.get("checkpoint_time")
+    if checkpoint_time_start is not None:
+        if checkpoint_time is None or checkpoint_time < checkpoint_time_start:
+            return False
+    if checkpoint_time_end is not None:
+        if checkpoint_time is None or checkpoint_time > checkpoint_time_end:
+            return False
+    stored_decision_start = checkpoint.get("decision_time_start")
+    if decision_time_start is not None:
+        if stored_decision_start is None or stored_decision_start < decision_time_start:
+            return False
+    stored_decision_end = checkpoint.get("decision_time_end")
+    if decision_time_end is not None:
+        if stored_decision_end is None or stored_decision_end > decision_time_end:
+            return False
+    return True

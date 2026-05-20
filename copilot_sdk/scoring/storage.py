@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -27,6 +28,10 @@ def _to_json(value: Any) -> str:
 
 def _from_json(value: str) -> Any:
     return json.loads(value)
+
+
+def _utc_iso_now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 class DecisionStore:
@@ -101,6 +106,30 @@ class DecisionStore:
             self.connection.execute(
                 "ALTER TABLE centroid_checkpoints ADD COLUMN metadata_json TEXT NOT NULL DEFAULT '{}'"
             )
+        if "decision_time_start" not in columns:
+            self.connection.execute(
+                "ALTER TABLE centroid_checkpoints ADD COLUMN decision_time_start TEXT"
+            )
+        if "decision_time_end" not in columns:
+            self.connection.execute(
+                "ALTER TABLE centroid_checkpoints ADD COLUMN decision_time_end TEXT"
+            )
+        if "checkpoint_time" not in columns:
+            self.connection.execute(
+                "ALTER TABLE centroid_checkpoints ADD COLUMN checkpoint_time TEXT"
+            )
+        self.connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cc_checkpoint_time "
+            "ON centroid_checkpoints(checkpoint_time)"
+        )
+        self.connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cc_decision_time "
+            "ON centroid_checkpoints(decision_time_start, decision_time_end)"
+        )
+        self.connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cc_category "
+            "ON centroid_checkpoints(category)"
+        )
 
     def save_decision(
         self,
@@ -177,13 +206,17 @@ class DecisionStore:
         decision_id: str | None = None,
         category: str | None = None,
         metadata: dict[str, Any] | None = None,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        checkpoint_time: str | None = None,
     ) -> None:
         self.connection.execute(
             """
             INSERT INTO centroid_checkpoints (
                 decision_id, category, centroids_json, decisions_count, iks,
-                metadata_json, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                metadata_json, created_at, decision_time_start, decision_time_end,
+                checkpoint_time
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 decision_id,
@@ -193,6 +226,9 @@ class DecisionStore:
                 float(iks),
                 _to_json(metadata or {}),
                 time.time(),
+                decision_time_start,
+                decision_time_end,
+                checkpoint_time or _utc_iso_now(),
             ),
         )
         self.connection.commit()
@@ -234,22 +270,41 @@ class DecisionStore:
         ).fetchall()
         return [self._verified_from_row(row) for row in rows]
 
-    def get_centroid_checkpoints(self, limit: int | None = None) -> list[dict[str, Any]]:
+    def get_centroid_checkpoints(
+        self,
+        limit: int | None = None,
+        *,
+        checkpoint_time_start: str | None = None,
+        checkpoint_time_end: str | None = None,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        category: str | None = None,
+    ) -> list[dict[str, Any]]:
+        where, params = _checkpoint_where_clause(
+            checkpoint_time_start=checkpoint_time_start,
+            checkpoint_time_end=checkpoint_time_end,
+            decision_time_start=decision_time_start,
+            decision_time_end=decision_time_end,
+            category=category,
+        )
         if limit is None:
             rows = self.connection.execute(
-                """
+                f"""
                 SELECT * FROM centroid_checkpoints
+                {where}
                 ORDER BY id ASC
-                """
+                """,
+                params,
             ).fetchall()
         else:
             rows = self.connection.execute(
-                """
+                f"""
                 SELECT * FROM centroid_checkpoints
+                {where}
                 ORDER BY id DESC
                 LIMIT ?
                 """,
-                (max(int(limit), 0),),
+                (*params, max(int(limit), 0)),
             ).fetchall()
             rows = list(reversed(rows))
         return [
@@ -262,6 +317,9 @@ class DecisionStore:
                 "iks": float(row["iks"]),
                 "metadata": _from_json(row["metadata_json"]),
                 "created_at": float(row["created_at"]),
+                "decision_time_start": row["decision_time_start"],
+                "decision_time_end": row["decision_time_end"],
+                "checkpoint_time": row["checkpoint_time"],
             }
             for row in rows
         ]
@@ -329,3 +387,37 @@ class DecisionStore:
             }
         )
         return data
+
+
+def _checkpoint_where_clause(
+    *,
+    checkpoint_time_start: str | None,
+    checkpoint_time_end: str | None,
+    decision_time_start: str | None,
+    decision_time_end: str | None,
+    category: str | None,
+) -> tuple[str, list[Any]]:
+    clauses: list[str] = []
+    params: list[Any] = []
+    if category is not None:
+        clauses.append("category = ?")
+        params.append(category)
+    if checkpoint_time_start is not None:
+        clauses.append("checkpoint_time IS NOT NULL")
+        clauses.append("checkpoint_time >= ?")
+        params.append(checkpoint_time_start)
+    if checkpoint_time_end is not None:
+        clauses.append("checkpoint_time IS NOT NULL")
+        clauses.append("checkpoint_time <= ?")
+        params.append(checkpoint_time_end)
+    if decision_time_start is not None:
+        clauses.append("decision_time_start IS NOT NULL")
+        clauses.append("decision_time_start >= ?")
+        params.append(decision_time_start)
+    if decision_time_end is not None:
+        clauses.append("decision_time_end IS NOT NULL")
+        clauses.append("decision_time_end <= ?")
+        params.append(decision_time_end)
+    if not clauses:
+        return "", params
+    return "WHERE " + " AND ".join(clauses), params

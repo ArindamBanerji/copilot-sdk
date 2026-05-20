@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sqlite3
+
 import numpy as np
 import pytest
 
@@ -104,6 +106,176 @@ def test_decision_store_get_centroid_checkpoints_metadata(store):
     assert checkpoints[0]["iks"] == 2.5
     assert checkpoints[0]["metadata"] == {"source": "unit"}
     np.testing.assert_allclose(checkpoints[0]["centroids"], centroids)
+
+
+def test_decision_store_save_generates_checkpoint_time(store):
+    store.save_centroids(np.ones((1, 1)), decision_id="decision-1", category="alpha")
+
+    checkpoint = store.get_centroid_checkpoints(limit=1)[0]
+
+    assert checkpoint["checkpoint_time"].endswith("Z")
+    assert checkpoint["decision_time_start"] is None
+    assert checkpoint["decision_time_end"] is None
+
+
+def test_decision_store_save_with_bitemporal_stores_fields(store):
+    centroids = np.ones((1, 1))
+
+    store.save_centroids(
+        centroids,
+        decision_id="decision-1",
+        category="alpha",
+        decision_time_start="2026-05-01T00:00:00Z",
+        decision_time_end="2026-05-01T01:00:00Z",
+        checkpoint_time="2026-05-01T02:00:00Z",
+    )
+
+    checkpoint = store.get_centroid_checkpoints(limit=1)[0]
+    assert checkpoint["decision_time_start"] == "2026-05-01T00:00:00Z"
+    assert checkpoint["decision_time_end"] == "2026-05-01T01:00:00Z"
+    assert checkpoint["checkpoint_time"] == "2026-05-01T02:00:00Z"
+
+
+def test_decision_store_checkpoint_time_filter(store):
+    store.save_centroids(
+        np.ones((1, 1)),
+        decision_id="old",
+        category="alpha",
+        checkpoint_time="2026-05-01T00:00:00Z",
+    )
+    store.save_centroids(
+        np.ones((1, 1)),
+        decision_id="new",
+        category="alpha",
+        checkpoint_time="2026-05-02T00:00:00Z",
+    )
+
+    checkpoints = store.get_centroid_checkpoints(
+        checkpoint_time_start="2026-05-01T12:00:00Z",
+    )
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["new"]
+
+
+def test_decision_store_decision_time_filter(store):
+    store.save_centroids(
+        np.ones((1, 1)),
+        decision_id="outside",
+        category="alpha",
+        decision_time_start="2026-05-01T00:00:00Z",
+        decision_time_end="2026-05-03T00:00:00Z",
+    )
+    store.save_centroids(
+        np.ones((1, 1)),
+        decision_id="inside",
+        category="alpha",
+        decision_time_start="2026-05-02T00:00:00Z",
+        decision_time_end="2026-05-02T12:00:00Z",
+    )
+
+    checkpoints = store.get_centroid_checkpoints(
+        decision_time_start="2026-05-01T12:00:00Z",
+        decision_time_end="2026-05-02T18:00:00Z",
+    )
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["inside"]
+
+
+def test_decision_store_temporal_filters_exclude_null(store):
+    store.save_centroids(np.ones((1, 1)), decision_id="null-range", category="alpha")
+    store.save_centroids(
+        np.ones((1, 1)),
+        decision_id="with-range",
+        category="alpha",
+        decision_time_start="2026-05-02T00:00:00Z",
+        decision_time_end="2026-05-02T12:00:00Z",
+    )
+
+    checkpoints = store.get_centroid_checkpoints(
+        decision_time_start="2026-05-01T00:00:00Z",
+    )
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["with-range"]
+
+
+def test_decision_store_category_filter(store):
+    store.save_centroids(np.ones((1, 1)), decision_id="alpha-1", category="alpha")
+    store.save_centroids(np.ones((1, 1)), decision_id="beta-1", category="beta")
+
+    checkpoints = store.get_centroid_checkpoints(category="beta")
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["beta-1"]
+
+
+def test_decision_store_migration_adds_bitemporal_columns(tmp_path):
+    db_path = tmp_path / "old.sqlite"
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.executescript(
+            """
+            CREATE TABLE decisions (
+                decision_id TEXT PRIMARY KEY,
+                domain TEXT NOT NULL,
+                category TEXT NOT NULL,
+                category_index INTEGER NOT NULL,
+                factors_json TEXT NOT NULL,
+                factor_vector_json TEXT NOT NULL,
+                recommended_action TEXT NOT NULL,
+                recommended_index INTEGER NOT NULL,
+                confidence REAL NOT NULL,
+                probabilities_json TEXT NOT NULL,
+                created_at REAL NOT NULL
+            );
+            CREATE TABLE outcomes (
+                decision_id TEXT PRIMARY KEY REFERENCES decisions(decision_id),
+                actual_action TEXT NOT NULL,
+                actual_index INTEGER NOT NULL,
+                is_correct INTEGER NOT NULL,
+                verified_at REAL NOT NULL
+            );
+            CREATE TABLE centroid_checkpoints (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                centroids_json TEXT NOT NULL,
+                decisions_count INTEGER NOT NULL,
+                iks REAL NOT NULL,
+                created_at REAL NOT NULL
+            );
+            """
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+    migrated = DecisionStore(db_path)
+    try:
+        columns = {
+            row["name"]
+            for row in migrated.connection.execute("PRAGMA table_info(centroid_checkpoints)")
+        }
+        indexes = {
+            row["name"]
+            for row in migrated.connection.execute("PRAGMA index_list(centroid_checkpoints)")
+        }
+    finally:
+        migrated.close()
+
+    assert {"decision_time_start", "decision_time_end", "checkpoint_time"} <= columns
+    assert {
+        "idx_cc_checkpoint_time",
+        "idx_cc_decision_time",
+        "idx_cc_category",
+    } <= indexes
+
+
+def test_decision_store_migration_idempotent(tmp_path):
+    db_path = tmp_path / "graph.sqlite"
+    store = DecisionStore(db_path)
+    try:
+        store._ensure_centroid_columns()
+        store._ensure_centroid_columns()
+        store.connection.commit()
+    finally:
+        store.close()
 
 
 def test_decision_store_get_centroid_checkpoints_limit(store):

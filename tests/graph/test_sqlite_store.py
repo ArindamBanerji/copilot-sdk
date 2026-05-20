@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 import threading
 
 import numpy as np
@@ -89,6 +90,178 @@ def test_sqlite_save_centroids_persists(tmp_path):
     np.testing.assert_allclose(checkpoints[0]["centroids"], np.array([[0.1, 0.2]]))
     assert checkpoints[0]["iks"] == 4.5
     assert checkpoints[0]["metadata"] == {"iks": 4.5, "source": "unit"}
+
+
+def test_sqlite_save_without_bitemporal_works(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+
+    store.save_centroids("decision-1", "alpha", [[0.1]])
+
+    checkpoint = store.get_centroid_checkpoints()[0]
+    assert checkpoint["decision_time_start"] is None
+    assert checkpoint["decision_time_end"] is None
+    assert checkpoint["checkpoint_time"].endswith("Z")
+
+
+def test_sqlite_save_generates_checkpoint_time(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+
+    store.save_centroids("decision-1", "alpha", [[0.1]])
+
+    checkpoint = store.get_centroid_checkpoints()[0]
+    assert "T" in checkpoint["checkpoint_time"]
+    assert checkpoint["checkpoint_time"].endswith("Z")
+
+
+def test_sqlite_save_with_bitemporal_stores_fields(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+
+    store.save_centroids(
+        "decision-1",
+        "alpha",
+        [[0.1]],
+        decision_time_start="2026-05-01T00:00:00Z",
+        decision_time_end="2026-05-01T01:00:00Z",
+        checkpoint_time="2026-05-01T02:00:00Z",
+    )
+
+    checkpoint = store.get_centroid_checkpoints()[0]
+    assert checkpoint["decision_time_start"] == "2026-05-01T00:00:00Z"
+    assert checkpoint["decision_time_end"] == "2026-05-01T01:00:00Z"
+    assert checkpoint["checkpoint_time"] == "2026-05-01T02:00:00Z"
+
+
+def test_sqlite_migration_adds_columns(tmp_path):
+    db_path = tmp_path / "old.sqlite"
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.executescript(
+            """
+            CREATE TABLE decisions (
+                decision_id TEXT PRIMARY KEY,
+                domain TEXT NOT NULL,
+                category TEXT NOT NULL,
+                category_index INTEGER NOT NULL,
+                factors_json TEXT NOT NULL,
+                factor_vector_json TEXT NOT NULL,
+                recommended_action TEXT NOT NULL,
+                recommended_index INTEGER NOT NULL,
+                confidence REAL NOT NULL,
+                probabilities_json TEXT NOT NULL,
+                created_at REAL NOT NULL
+            );
+            CREATE TABLE outcomes (
+                decision_id TEXT PRIMARY KEY REFERENCES decisions(decision_id),
+                actual_action TEXT NOT NULL,
+                actual_index INTEGER NOT NULL,
+                is_correct INTEGER NOT NULL,
+                verified_at REAL NOT NULL
+            );
+            CREATE TABLE centroid_checkpoints (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                centroids_json TEXT NOT NULL,
+                decisions_count INTEGER NOT NULL,
+                iks REAL NOT NULL,
+                created_at REAL NOT NULL
+            );
+            """
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+    store = DecisionStore(db_path)
+    try:
+        columns = {
+            row["name"]
+            for row in store.connection.execute("PRAGMA table_info(centroid_checkpoints)")
+        }
+    finally:
+        store.close()
+
+    assert {"decision_time_start", "decision_time_end", "checkpoint_time"} <= columns
+
+
+def test_sqlite_migration_idempotent(tmp_path):
+    db_path = tmp_path / "graph.sqlite"
+    first = DecisionStore(db_path)
+    first.close()
+
+    second = DecisionStore(db_path)
+    try:
+        second._ensure_centroid_columns()
+        second._ensure_centroid_columns()
+        second.connection.commit()
+    finally:
+        second.close()
+
+
+def test_sqlite_checkpoint_time_filter(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+    store.save_centroids("old", "alpha", [[0.1]], checkpoint_time="2026-05-01T00:00:00Z")
+    store.save_centroids("new", "alpha", [[0.2]], checkpoint_time="2026-05-02T00:00:00Z")
+
+    checkpoints = store.get_centroid_checkpoints(
+        checkpoint_time_start="2026-05-01T12:00:00Z",
+    )
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["new"]
+
+
+def test_sqlite_decision_time_filter(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+    store.save_centroids(
+        "outside",
+        "alpha",
+        [[0.1]],
+        decision_time_start="2026-05-01T00:00:00Z",
+        decision_time_end="2026-05-03T00:00:00Z",
+    )
+    store.save_centroids(
+        "inside",
+        "alpha",
+        [[0.2]],
+        decision_time_start="2026-05-02T00:00:00Z",
+        decision_time_end="2026-05-02T12:00:00Z",
+    )
+
+    checkpoints = store.get_centroid_checkpoints(
+        decision_time_start="2026-05-01T12:00:00Z",
+        decision_time_end="2026-05-02T18:00:00Z",
+    )
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["inside"]
+
+
+def test_sqlite_temporal_filters_exclude_null(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+    store.save_centroids("null-range", "alpha", [[0.1]])
+    store.save_centroids(
+        "with-range",
+        "alpha",
+        [[0.2]],
+        decision_time_start="2026-05-02T00:00:00Z",
+        decision_time_end="2026-05-02T12:00:00Z",
+    )
+
+    checkpoints = store.get_centroid_checkpoints(
+        decision_time_start="2026-05-01T00:00:00Z",
+    )
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["with-range"]
+
+
+def test_sqlite_no_filter_unchanged(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+    for index in range(4):
+        store.save_centroids(f"decision-{index}", "alpha", [[float(index)]])
+
+    checkpoints = store.get_centroid_checkpoints(limit=2)
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == [
+        "decision-2",
+        "decision-3",
+    ]
 
 
 def test_sqlite_centroid_checkpoints_ordered(tmp_path):

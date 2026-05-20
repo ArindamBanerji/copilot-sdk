@@ -140,6 +140,10 @@ class SQLiteGraphStore:
         category: str,
         centroids: Any,
         metadata: dict[str, Any] | None = None,
+        *,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        checkpoint_time: str | None = None,
     ) -> None:
         meta = metadata or {}
         store = DecisionStore(self.db_path)
@@ -150,14 +154,33 @@ class SQLiteGraphStore:
                 decision_id=decision_id,
                 category=category,
                 metadata=meta,
+                decision_time_start=decision_time_start,
+                decision_time_end=decision_time_end,
+                checkpoint_time=checkpoint_time,
             )
         finally:
             store.close()
 
-    def get_centroid_checkpoints(self, limit: int = 50) -> list[dict[str, Any]]:
+    def get_centroid_checkpoints(
+        self,
+        limit: int = 50,
+        *,
+        checkpoint_time_start: str | None = None,
+        checkpoint_time_end: str | None = None,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        category: str | None = None,
+    ) -> list[dict[str, Any]]:
         store = DecisionStore(self.db_path)
         try:
-            return store.get_centroid_checkpoints(limit=max(int(limit), 0))
+            return store.get_centroid_checkpoints(
+                limit=max(int(limit), 0),
+                checkpoint_time_start=checkpoint_time_start,
+                checkpoint_time_end=checkpoint_time_end,
+                decision_time_start=decision_time_start,
+                decision_time_end=decision_time_end,
+                category=category,
+            )
         finally:
             store.close()
 

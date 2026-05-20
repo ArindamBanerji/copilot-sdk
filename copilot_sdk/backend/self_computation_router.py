@@ -17,8 +17,23 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
         return graph_store
 
     @router.get("/centroid-history")
-    def centroid_history(limit: int = Query(50, ge=1, le=500)) -> dict[str, Any]:
-        checkpoints = _gs().get_centroid_checkpoints(limit=limit)
+    def centroid_history(
+        limit: int = Query(50, ge=1, le=500),
+        checkpoint_time_start: str | None = None,
+        checkpoint_time_end: str | None = None,
+        decision_time_start: str | None = None,
+        decision_time_end: str | None = None,
+        category: str | None = None,
+    ) -> dict[str, Any]:
+        filters = {
+            "checkpoint_time_start": checkpoint_time_start,
+            "checkpoint_time_end": checkpoint_time_end,
+            "decision_time_start": decision_time_start,
+            "decision_time_end": decision_time_end,
+            "category": category,
+        }
+        active_filters = {key: value for key, value in filters.items() if value is not None}
+        checkpoints = _gs().get_centroid_checkpoints(limit=limit, **active_filters)
         normalized = [_json_safe(checkpoint) for checkpoint in checkpoints]
         return {"checkpoints": normalized, "total": len(normalized)}
 

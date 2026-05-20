@@ -103,6 +103,123 @@ def test_memory_save_centroids_stores():
     assert checkpoints[0]["created_at"]
 
 
+def test_memory_save_without_bitemporal_works():
+    store = InMemoryGraphStore()
+
+    store.save_centroids("decision-1", "alpha", [[0.1]])
+
+    checkpoint = store.get_centroid_checkpoints()[0]
+    assert checkpoint["decision_time_start"] is None
+    assert checkpoint["decision_time_end"] is None
+    assert checkpoint["checkpoint_time"].endswith("Z")
+
+
+def test_memory_save_generates_checkpoint_time():
+    store = InMemoryGraphStore()
+
+    store.save_centroids("decision-1", "alpha", [[0.1]])
+
+    checkpoint = store.get_centroid_checkpoints()[0]
+    assert "T" in checkpoint["checkpoint_time"]
+    assert checkpoint["checkpoint_time"].endswith("Z")
+
+
+def test_memory_save_with_bitemporal_stores_fields():
+    store = InMemoryGraphStore()
+
+    store.save_centroids(
+        "decision-1",
+        "alpha",
+        [[0.1]],
+        decision_time_start="2026-05-01T00:00:00Z",
+        decision_time_end="2026-05-01T01:00:00Z",
+        checkpoint_time="2026-05-01T02:00:00Z",
+    )
+
+    checkpoint = store.get_centroid_checkpoints()[0]
+    assert checkpoint["decision_time_start"] == "2026-05-01T00:00:00Z"
+    assert checkpoint["decision_time_end"] == "2026-05-01T01:00:00Z"
+    assert checkpoint["checkpoint_time"] == "2026-05-01T02:00:00Z"
+
+
+def test_memory_checkpoint_time_filter():
+    store = InMemoryGraphStore()
+    store.save_centroids("old", "alpha", [[0.1]], checkpoint_time="2026-05-01T00:00:00Z")
+    store.save_centroids("new", "alpha", [[0.2]], checkpoint_time="2026-05-02T00:00:00Z")
+
+    checkpoints = store.get_centroid_checkpoints(
+        checkpoint_time_start="2026-05-01T12:00:00Z",
+    )
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["new"]
+
+
+def test_memory_decision_time_filter():
+    store = InMemoryGraphStore()
+    store.save_centroids(
+        "outside",
+        "alpha",
+        [[0.1]],
+        decision_time_start="2026-05-01T00:00:00Z",
+        decision_time_end="2026-05-03T00:00:00Z",
+    )
+    store.save_centroids(
+        "inside",
+        "alpha",
+        [[0.2]],
+        decision_time_start="2026-05-02T00:00:00Z",
+        decision_time_end="2026-05-02T12:00:00Z",
+    )
+
+    checkpoints = store.get_centroid_checkpoints(
+        decision_time_start="2026-05-01T12:00:00Z",
+        decision_time_end="2026-05-02T18:00:00Z",
+    )
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["inside"]
+
+
+def test_memory_temporal_filters_exclude_null():
+    store = InMemoryGraphStore()
+    store.save_centroids("null-range", "alpha", [[0.1]])
+    store.save_centroids(
+        "with-range",
+        "alpha",
+        [[0.2]],
+        decision_time_start="2026-05-02T00:00:00Z",
+        decision_time_end="2026-05-02T12:00:00Z",
+    )
+
+    checkpoints = store.get_centroid_checkpoints(
+        decision_time_start="2026-05-01T00:00:00Z",
+    )
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["with-range"]
+
+
+def test_memory_no_filter_unchanged():
+    store = InMemoryGraphStore()
+    for index in range(4):
+        store.save_centroids(f"decision-{index}", "alpha", [[float(index)]])
+
+    checkpoints = store.get_centroid_checkpoints(limit=2)
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == [
+        "decision-2",
+        "decision-3",
+    ]
+
+
+def test_memory_category_filter():
+    store = InMemoryGraphStore()
+    store.save_centroids("alpha-1", "alpha", [[0.1]])
+    store.save_centroids("beta-1", "beta", [[0.2]])
+
+    checkpoints = store.get_centroid_checkpoints(category="beta")
+
+    assert [checkpoint["decision_id"] for checkpoint in checkpoints] == ["beta-1"]
+
+
 def test_memory_centroid_checkpoints_limit():
     store = InMemoryGraphStore()
     for index in range(4):
