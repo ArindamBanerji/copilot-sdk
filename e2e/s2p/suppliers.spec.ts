@@ -1,35 +1,80 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { clickTab, expectAnyText } from "../helpers/ui";
 
-async function openSuppliers(page: import("@playwright/test").Page) {
+async function openSuppliers(page: Page) {
   await page.goto("/");
   await clickTab(page, "Suppliers");
   await expect(page.getByRole("heading", { name: "Suppliers" })).toBeVisible();
 }
 
-test("Suppliers tab shows clusters", async ({ page }) => {
-  await openSuppliers(page);
+function supplierCards(page: Page) {
+  return page.getByRole("button").filter({ hasText: /Exceptions/i }).filter({ hasText: /OTIF/i });
+}
 
-  await expectAnyText(page, [/Supplier clustering/i, /Threshold-based cohorts/i]);
-  await expectAnyText(page, [/High Reliability/i, /Volume Leaders/i, /Risk Watch/i, /New\/Low Volume/i, /Supplier clusters are unavailable/i]);
-});
-
-test("Supplier list shows OTIF and exception rate", async ({ page }) => {
-  await openSuppliers(page);
-
-  await expectAnyText(page, [/Supplier list/i, /Select supplier/i]);
-  await expectAnyText(page, [/OTIF/i, /exception rate/i, /No supplier profiles available/i]);
-});
-
-test("Selecting supplier shows profile trend and heatmap", async ({ page }) => {
-  await openSuppliers(page);
-
-  const supplierButton = page.getByRole("button").filter({ hasText: /OTIF/i }).first();
-  if (await supplierButton.count()) {
-    await supplierButton.click();
+async function selectFirstSupplierIfPresent(page: Page) {
+  const cards = supplierCards(page);
+  if ((await cards.count()) > 0) {
+    await cards.first().click();
   }
+}
 
-  await expectAnyText(page, [/Supplier profile/i, /OTIF trend/i, /Exception trend/i, /Supplier profile is unavailable/i]);
+test("test_suppliers_screen_renders_profiles", async ({ page }) => {
+  await openSuppliers(page);
+
+  await expectAnyText(page, [/Supplier list/i, /Profile source/i]);
+  await expectAnyText(page, [/computed profiles/i, /No supplier data yet/i, /Unable to load supplier profiles/i]);
+});
+
+test("test_supplier_card_shows_exception_rate", async ({ page }) => {
+  await openSuppliers(page);
+
+  await expectAnyText(page, [/Exceptions/i, /No supplier data yet/i, /Unable to load supplier profiles/i]);
+});
+
+test("test_supplier_card_shows_otif", async ({ page }) => {
+  await openSuppliers(page);
+
+  await expectAnyText(page, [/OTIF/i, /No supplier data yet/i, /Unable to load supplier profiles/i]);
+});
+
+test("test_supplier_trend_indicator_visible", async ({ page }) => {
+  await openSuppliers(page);
+
+  await expectAnyText(page, [/Insufficient data/i, /Worsening/i, /Improving/i, /Flat/i, /No supplier data yet/i]);
+});
+
+test("test_supplier_source_badge_visible", async ({ page }) => {
+  await openSuppliers(page);
+
+  await expectAnyText(page, [/Demo Data/i, /Fixture \+ Live/i, /Live Profiles/i, /No supplier data yet/i]);
+});
+
+test("test_declining_supplier_highlighted", async ({ page }) => {
+  await openSuppliers(page);
+
+  const decliningBadge = page.getByText(/Declining/i).first();
+  if ((await decliningBadge.count()) > 0) {
+    await expect(decliningBadge).toBeVisible();
+  } else {
+    await expectAnyText(page, [/computed profiles/i, /No supplier data yet/i, /Unable to load supplier profiles/i]);
+  }
+});
+
+test("test_supplier_history_panel_renders", async ({ page }) => {
+  await openSuppliers(page);
+  await selectFirstSupplierIfPresent(page);
+
+  await expectAnyText(page, [/Verified decision history/i, /Accumulator events/i]);
+  await expectAnyText(page, [/No verified decisions yet for this supplier/i, /Invoice/i, /Supplier history is unavailable/i]);
+});
+
+test("Selecting supplier shows profile, seasonality, history, and heatmap", async ({ page }) => {
+  await openSuppliers(page);
+  await selectFirstSupplierIfPresent(page);
+
+  await expectAnyText(page, [/Supplier profile/i, /Exception trend/i, /Select a supplier to view profile details/i]);
+  await expectAnyText(page, [/Seasonality/i, /Insufficient seasonal data/i, /Lead time by quarter/i, /OTIF by quarter/i]);
+  await expectAnyText(page, [/Verified decision history/i, /Accumulator events/i]);
   await expectAnyText(page, [/Supplier heatmap/i, /Category exception pattern/i, /No heatmap categories available/i]);
 });
 

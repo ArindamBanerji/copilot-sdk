@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { TransferBadge } from "../../../../../copilot_sdk/frontend";
 import { API_URL, getPreviewConservation, getPreviewQueue } from "../api";
+import { AutoApprovePanel } from "../components/AutoApprovePanel";
 import { ConservationMiniGauge } from "../components/ConservationMiniGauge";
 import { ControlTowerPanel } from "../components/ControlTowerPanel";
 import { FinancialImpactCard } from "../components/FinancialImpactCard";
@@ -101,6 +102,8 @@ export function DashboardScreen() {
         </article>
         <ConservationMiniGauge conservation={conservation} />
       </div>
+
+      <AutoApprovePanel />
 
       <ProcessContextCard invoice={firstInvoice} />
 

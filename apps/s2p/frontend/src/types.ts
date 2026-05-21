@@ -69,24 +69,55 @@ export interface InvoiceException {
 }
 
 export interface SupplierProfile {
-  supplier_id?: string;
+  supplier_id: string;
+  supplier_name: string;
+  exception_rate: number;
+  exception_rate_trend: number | null;
+  otif: number | null;
+  otif_by_quarter: Record<string, number>;
+  avg_lead_time_days: number | null;
+  lead_time_by_quarter: Record<string, number>;
+  invoice_count: number;
+  last_invoice_date: string | null;
+  pricing_trend: number | null;
+  categories: string[];
+  last_updated: string | null;
+  source: "fixture" | "computed" | "hybrid";
   supplierId?: string;
-  name: string;
+  name?: string;
   category?: string;
-  exception_rate?: number;
-  exceptionRate?: number;
-  avg_invoice_amount?: number;
-  avgInvoiceAmount?: number;
-  payment_terms?: string;
-  paymentTerms?: string;
   otif_score?: number;
   otifScore?: number;
   total_invoices?: number;
   totalInvoices?: number;
-  total_exceptions?: number;
-  totalExceptions?: number;
-  recent_trend?: string;
-  recentTrend?: string;
+  trend_direction?: string;
+  trendDirection?: string;
+}
+
+export interface SupplierHistoryEvent {
+  invoice_id: string;
+  invoice_date: string | null;
+  category: string;
+  is_correct: boolean;
+  reward: number;
+  amount: number;
+  supplier_id?: string;
+  supplier_name?: string;
+  recommended_action?: string;
+  actual_action?: string;
+  factors?: Record<string, number>;
+  timestamp?: string | null;
+}
+
+export interface SupplierProfilesResponse {
+  suppliers: SupplierProfile[];
+  total: number;
+  source: string;
+}
+
+export interface SupplierHistoryResponse {
+  events: SupplierHistoryEvent[];
+  total: number;
 }
 
 export interface ConservationStatus {
@@ -181,6 +212,60 @@ export interface ScoreInvoiceResponse {
   processContext?: ProcessContext | null;
   active_variant?: S2PVariantSummary | null;
   activeVariant?: S2PVariantSummary | null;
+  auto_approve?: AutoApproveDecision | null;
+  autoApprove?: AutoApproveDecision | null;
+}
+
+export interface AutoApproveDecision {
+  auto_approved: boolean;
+  autoApproved?: boolean;
+  reason: string;
+  threshold: number | null;
+  spot_check: boolean;
+  spotCheck?: boolean;
+  category: string;
+  confidence?: number;
+  conservation_status?: string;
+  conservationStatus?: string;
+  action?: string;
+}
+
+export interface AutoApproveCategoryStats {
+  approved: number;
+  held: number;
+  threshold: number | null;
+}
+
+export interface AutoApproveStats {
+  total_auto_approved: number;
+  totalAutoApproved?: number;
+  total_spot_checked: number;
+  totalSpotChecked?: number;
+  spot_check_accuracy: number;
+  spotCheckAccuracy?: number;
+  per_category: Record<string, AutoApproveCategoryStats>;
+  perCategory?: Record<string, AutoApproveCategoryStats>;
+  current_auto_approve_rate: number;
+  currentAutoApproveRate?: number;
+  source?: string;
+}
+
+export interface ExpansionProof {
+  category: string;
+  current_threshold: number;
+  currentThreshold?: number;
+  proposed_threshold: number;
+  proposedThreshold?: number;
+  verified_decisions: number;
+  verifiedDecisions?: number;
+  accuracy: number;
+  conservation_status: string;
+  conservationStatus?: string;
+  safe_to_expand: boolean;
+  safeToExpand?: boolean;
+  evidence: string;
+  rollback_available: boolean;
+  rollbackAvailable?: boolean;
 }
 
 export interface LearnDecisionRequest {

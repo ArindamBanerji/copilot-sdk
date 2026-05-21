@@ -1,9 +1,11 @@
 import type {
+  AutoApproveStats,
   ConservationStatus,
   AuditTrailResponse,
   ComplianceResponse,
   CrossGraphResponse,
   EvidenceTemplateResponse,
+  ExpansionProof,
   ExceptionQueueResponse,
   FingerprintResponse,
   LearnDecisionRequest,
@@ -19,6 +21,9 @@ import type {
   S2PPromotionCheckResponse,
   S2PPromotedResponse,
   S2PShadowResultsResponse,
+  SupplierHistoryResponse,
+  SupplierProfile,
+  SupplierProfilesResponse,
   ScoreInvoiceRequest,
   ScoreInvoiceResponse,
   SimilarResponse,
@@ -209,6 +214,17 @@ export async function fetchS2PSummary(): Promise<PerformanceSummaryResponse | nu
   return apiGet<PerformanceSummaryResponse>("/api/s2p/performance/summary").catch(() => null);
 }
 
+export async function fetchAutoApproveStats(): Promise<AutoApproveStats | null> {
+  return apiGet<AutoApproveStats>("/api/s2p/auto-approve/stats").catch(() => null);
+}
+
+export async function fetchExpansionProof(category?: string): Promise<ExpansionProof | null> {
+  const params = new URLSearchParams();
+  if (category) params.set("category", category);
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  return apiGet<ExpansionProof>(`/api/s2p/auto-approve/expansion-proof${suffix}`).catch(() => null);
+}
+
 async function apiGetNullable<T>(path: string): Promise<T | null> {
   try {
     const response = await fetch(`${API_URL}${path}`);
@@ -253,11 +269,29 @@ export async function fetchCycleTime(): Promise<unknown | null> {
 }
 
 export async function fetchSuppliers(): Promise<unknown | null> {
-  return apiGetNullable<unknown>("/api/s2p/suppliers");
+  return fetchSupplierProfiles().catch(() => null);
 }
 
-export async function fetchSupplierProfile(supplierId: string): Promise<unknown | null> {
-  return apiGetNullable<unknown>(`/api/s2p/suppliers/${encodeURIComponent(supplierId)}/profile`);
+export async function fetchSupplierProfiles(): Promise<SupplierProfilesResponse> {
+  return apiGet<SupplierProfilesResponse>("/api/s2p/suppliers");
+}
+
+export async function fetchDecliningSuppliers(): Promise<SupplierProfilesResponse> {
+  return apiGet<SupplierProfilesResponse>("/api/s2p/suppliers/declining");
+}
+
+export async function fetchSupplierProfile(supplierId: string): Promise<SupplierProfile | null> {
+  return apiGetNullable<SupplierProfile>(`/api/s2p/suppliers/${encodeURIComponent(supplierId)}/profile`);
+}
+
+export async function fetchSupplierHistory(
+  supplierId: string,
+  limit = 200
+): Promise<SupplierHistoryResponse> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return apiGet<SupplierHistoryResponse>(
+    `/api/s2p/suppliers/${encodeURIComponent(supplierId)}/history?${params.toString()}`
+  );
 }
 
 export async function fetchSupplierHeatmap(supplierId: string): Promise<unknown | null> {
