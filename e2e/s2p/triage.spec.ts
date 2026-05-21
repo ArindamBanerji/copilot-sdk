@@ -60,7 +60,9 @@ test("confirm button records reward or confirmed result", async ({ page }) => {
 test("override path records reward and learned text", async ({ page }) => {
   await scoreFirstInvoice(page);
 
+  await page.getByRole("button", { name: /^Override$/i }).first().click();
   await page.getByLabel(/Override action/i).selectOption("hold_for_review");
+  await page.getByLabel(/Reason code/i).selectOption("wrong_action");
   await page.getByRole("button", { name: /Override and learn/i }).first().click();
   await expectAnyText(page, [/Learning Result/i, /Reward/i, /override/i, /Learned/i]);
 });

@@ -3,6 +3,7 @@ import type {
   AuditTrailResponse,
   ComplianceResponse,
   CrossGraphResponse,
+  EvidenceTemplateResponse,
   ExceptionQueueResponse,
   FingerprintResponse,
   LearnDecisionRequest,
@@ -15,6 +16,7 @@ import type {
   RuleLifecycleResponse,
   S2PEvolutionRulesResponse,
   S2PEvolutionVariantsResponse,
+  S2PPromotionCheckResponse,
   S2PPromotedResponse,
   S2PShadowResultsResponse,
   ScoreInvoiceRequest,
@@ -107,6 +109,14 @@ export async function learnDecision(payload: LearnDecisionRequest): Promise<Lear
   return apiPost<LearnDecisionResponse>("/api/learn", payload).catch(() => null);
 }
 
+export async function getEvidenceTemplate(
+  invoiceId: string,
+  category: string
+): Promise<EvidenceTemplateResponse | null> {
+  const params = new URLSearchParams({ invoice_id: invoiceId, category });
+  return apiGet<EvidenceTemplateResponse>(`/api/s2p/evidence/template?${params.toString()}`).catch(() => null);
+}
+
 export async function getSupplierProfile(id: string): Promise<unknown | null> {
   return fetchSupplierProfile(id);
 }
@@ -120,6 +130,10 @@ export async function fetchS2PFingerprint(invoiceId: string): Promise<Fingerprin
 export async function fetchS2PSimilar(invoiceId: string, limit = 5): Promise<SimilarResponse | null> {
   const params = new URLSearchParams({ invoice_id: invoiceId, limit: String(limit) });
   return apiGet<SimilarResponse>(`/api/s2p/insight/similar?${params.toString()}`).catch(() => null);
+}
+
+export async function getSimilarInvoices(invoiceId: string, limit = 5): Promise<SimilarResponse | null> {
+  return fetchS2PSimilar(invoiceId, limit);
 }
 
 export async function fetchS2PCrossGraph(): Promise<CrossGraphResponse | null> {
@@ -139,6 +153,10 @@ export async function fetchS2PAuditTrail(invoiceId: string): Promise<AuditTrailR
   ).catch(() => null);
 }
 
+export async function getAuditTrail(invoiceId: string): Promise<AuditTrailResponse | null> {
+  return fetchS2PAuditTrail(invoiceId);
+}
+
 export async function fetchS2PRules(): Promise<RuleLifecycleResponse | null> {
   return apiGet<RuleLifecycleResponse>("/api/s2p/evidence/rules").catch(() => null);
 }
@@ -149,6 +167,18 @@ export async function fetchS2PEvolutionRules(): Promise<S2PEvolutionRulesRespons
 
 export async function fetchS2PEvolutionVariants(): Promise<S2PEvolutionVariantsResponse | null> {
   return apiGet<S2PEvolutionVariantsResponse>("/api/s2p/evolution/variants").catch(() => null);
+}
+
+export async function getS2PEvolutionVariants(): Promise<S2PEvolutionVariantsResponse | null> {
+  return fetchS2PEvolutionVariants();
+}
+
+export async function getS2PPromotionCheck(): Promise<S2PPromotionCheckResponse | null> {
+  return apiGet<S2PPromotionCheckResponse>("/api/s2p/evolution/promotion-check").catch(() => null);
+}
+
+export async function resetS2PEvolution(): Promise<{ status: string } | null> {
+  return apiPost<{ status: string }>("/api/s2p/evolution/reset", {}).catch(() => null);
 }
 
 export async function fetchS2PShadowResults(): Promise<S2PShadowResultsResponse | null> {

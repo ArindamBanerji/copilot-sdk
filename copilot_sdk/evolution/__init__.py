@@ -6,6 +6,7 @@ from copilot_sdk.evolution.context_selector import ContextAwareSelector, Selecti
 from copilot_sdk.evolution.credit_attribution import StepCredit, StepCreditAssigner, StepRecord
 from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.evolution.ledger import InMemoryEvolutionLedger
+from copilot_sdk.evolution.prompt_evolver import PromptEvolverConfig, PromptVariantEvolver
 from copilot_sdk.evolution.protocol import (
     EVOLUTION_EVENT_TYPES,
     EvolutionEvent,
@@ -15,6 +16,12 @@ from copilot_sdk.evolution.protocol import (
     ShadowRunner,
 )
 from copilot_sdk.evolution.shadow import DefaultShadowRunner
+from copilot_sdk.evolution.variant_store import (
+    CategoryVariantStats,
+    InMemoryVariantStore,
+    VariantSpec,
+    VariantStats,
+)
 
 __all__ = [
     "AgentEvolver",
@@ -27,12 +34,18 @@ __all__ = [
     "EvolutionLedger",
     "EvolutionRule",
     "InMemoryEvolutionLedger",
+    "InMemoryVariantStore",
     "PromotionGate",
     "PromotionDecision",
     "PlateauConfig",
+    "PromptEvolverConfig",
+    "PromptVariantEvolver",
     "SelectionContext",
     "ShadowRunner",
     "StepCredit",
     "StepCreditAssigner",
     "StepRecord",
+    "CategoryVariantStats",
+    "VariantSpec",
+    "VariantStats",
 ]

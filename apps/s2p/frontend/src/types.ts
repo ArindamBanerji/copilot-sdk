@@ -28,6 +28,16 @@ export type S2PCategory = (typeof S2P_CATEGORIES)[number];
 export type S2PAction = (typeof S2P_ACTIONS)[number];
 export type S2PFactor = (typeof S2P_FACTORS)[number];
 
+export const S2P_REASON_CODES = [
+  "wrong_category",
+  "wrong_action",
+  "missing_context",
+  "system_correct_but_override_policy",
+  "novel_situation"
+] as const;
+
+export type S2PReasonCode = (typeof S2P_REASON_CODES)[number];
+
 export type FactorMap = Partial<Record<S2PFactor, number>> & Record<string, number | undefined>;
 
 export interface InvoiceException {
@@ -169,18 +179,31 @@ export interface ScoreInvoiceResponse {
   decisionId?: string;
   process_context?: ProcessContext | null;
   processContext?: ProcessContext | null;
+  active_variant?: S2PVariantSummary | null;
+  activeVariant?: S2PVariantSummary | null;
 }
 
 export interface LearnDecisionRequest {
   decision_id: string;
   actual_action: string;
   outcome?: "confirmed" | "confirm" | "override" | string;
+  reason_code?: S2PReasonCode | string;
+  variant_id?: string;
+  variantId?: string;
   context?: {
     amount?: number;
     at_risk?: number;
     recovery_pct?: number;
     [key: string]: unknown;
   };
+}
+
+export interface EvidenceTemplateResponse {
+  invoice_id: string;
+  category: string;
+  template: string;
+  rendered: string;
+  variables: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface LearnDecisionResponse {
@@ -197,6 +220,12 @@ export interface LearnDecisionResponse {
   decisionsTotal?: number;
   centroid_delta?: number;
   centroidDelta?: number;
+  active_variant_id?: string;
+  activeVariantId?: string;
+  evolution_recorded?: boolean;
+  evolutionRecorded?: boolean;
+  evolution_note?: string;
+  evolutionNote?: string;
 }
 
 export interface FingerprintResponse {
@@ -352,9 +381,54 @@ export interface S2PEvolutionVariant {
   [key: string]: unknown;
 }
 
+export interface S2PVariantSummary {
+  id: string;
+  family: string;
+  version?: number;
+  status: string;
+  metadata?: Record<string, unknown>;
+  successes?: number;
+  failures?: number;
+  total?: number;
+  success_rate?: number;
+  successRate?: number;
+}
+
+export interface S2PEvolutionSummary {
+  domain?: string;
+  variant_count?: number;
+  variantCount?: number;
+  active_count?: number;
+  activeCount?: number;
+  families?: string[];
+  categories?: string[];
+  variants: S2PVariantSummary[];
+}
+
 export interface S2PEvolutionVariantsResponse {
   variants: S2PEvolutionVariant[];
   total?: number;
+  sdk_summary?: S2PEvolutionSummary;
+  sdkSummary?: S2PEvolutionSummary;
+}
+
+export interface S2PPromotionResult {
+  family?: string;
+  promoted_id?: string;
+  promotedId?: string;
+  previous_id?: string;
+  previousId?: string;
+  improvement?: number;
+  candidate_rate?: number;
+  candidateRate?: number;
+  active_rate?: number;
+  activeRate?: number;
+  candidate_total?: number;
+  candidateTotal?: number;
+}
+
+export interface S2PPromotionCheckResponse {
+  promotion?: S2PPromotionResult | null;
 }
 
 export interface S2PShadowResult {

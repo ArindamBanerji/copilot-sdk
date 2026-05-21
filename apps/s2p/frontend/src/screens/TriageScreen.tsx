@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchPreviewQueue, learnDecision, scoreInvoice } from "../api";
+import { fetchConservation, fetchPreviewQueue, learnDecision, scoreInvoice } from "../api";
+import { EvidenceTemplatePanel } from "../components/EvidenceTemplatePanel";
 import { ProcessContextPanel } from "../components/ProcessContextPanel";
 import { S2PConservationProjection } from "../components/S2PConservationProjection";
 import { S2PReasoningPanel } from "../components/S2PReasoningPanel";
 import {
   S2P_ACTIONS,
   S2P_FACTORS,
+  S2P_REASON_CODES,
+  type ConservationStatus,
   type FactorMap,
   type InvoiceException,
   type LearnDecisionResponse,
   type PreviewQueueResponse,
   type ProcessContext,
   type S2PAction,
+  type S2PReasonCode,
   type ScoreInvoiceResponse
 } from "../types";
 
@@ -41,6 +45,14 @@ function actionLabel(action?: string): string {
   if (!action) return "n/a";
   return action.replace(/_/g, " ");
 }
+
+const REASON_LABELS: Record<S2PReasonCode, string> = {
+  wrong_category: "Wrong category assigned",
+  wrong_action: "Wrong action recommended",
+  missing_context: "Missing relevant context",
+  system_correct_but_override_policy: "System correct, overriding by policy",
+  novel_situation: "Novel situation not seen before"
+};
 
 function recommendedAction(score?: ScoreInvoiceResponse | null, invoice?: InvoiceException | null): string {
   return (
@@ -79,6 +91,10 @@ export function TriageScreen() {
   const [score, setScore] = useState<ScoreInvoiceResponse | null>(null);
   const [learnResult, setLearnResult] = useState<LearnDecisionResponse | null>(null);
   const [overrideAction, setOverrideAction] = useState<S2PAction>("hold_for_review");
+  const [overrideOpen, setOverrideOpen] = useState(false);
+  const [overrideReason, setOverrideReason] = useState<S2PReasonCode | "">("");
+  const [submitError, setSubmitError] = useState("");
+  const [conservation, setConservation] = useState<ConservationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [scoring, setScoring] = useState(false);
   const [learning, setLearning] = useState(false);
@@ -100,6 +116,16 @@ export function TriageScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetchConservation().then((data) => {
+      if (!cancelled) setConservation(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const invoices = queue?.exceptions ?? [];
   const selected = useMemo(
     () => invoices.find((invoice) => invoiceId(invoice) === selectedId) ?? invoices[0] ?? null,
@@ -109,14 +135,19 @@ export function TriageScreen() {
   const factors = factorMap(score, selected);
   const context = processContext(score, selected);
   const decisionId = score?.decision_id ?? score?.decisionId ?? "";
+  const selectedCategory = String(selected?.category ?? "price_variance");
+  const conservationState = conservation?.status ?? (conservation?.passed ? "GREEN" : undefined);
 
   async function handleScore() {
     if (!selected) return;
     setScoring(true);
     setLearnResult(null);
+    setSubmitError("");
+    setOverrideOpen(false);
+    setOverrideReason("");
     const result = await scoreInvoice({
       event_id: invoiceId(selected),
-      category: String(selected.category ?? "price_variance"),
+      category: selectedCategory,
       amount: Number(selected.amount ?? 0),
       supplier_id: supplierId(selected),
     });
@@ -126,17 +157,26 @@ export function TriageScreen() {
     setScoring(false);
   }
 
-  async function handleLearn(actualAction: string, outcome: "confirm" | "override") {
+  async function handleLearn(actualAction: string, outcome: "confirm" | "override", reasonCode?: S2PReasonCode) {
     if (!score || !selected || !decisionId) return;
+    if (outcome === "override" && !reasonCode) {
+      setSubmitError("Select an override reason before submitting.");
+      return;
+    }
+    setSubmitError("");
     setLearning(true);
+    const activeVariantId = score.active_variant?.id ?? score.activeVariant?.id;
     const result = await learnDecision({
       decision_id: decisionId,
       actual_action: actualAction,
       outcome: outcome === "confirm" ? "confirmed" : "override",
+      ...(activeVariantId ? { variant_id: activeVariantId } : {}),
+      ...(outcome === "override" && reasonCode ? { reason_code: reasonCode } : {}),
       context: {
         amount: Number(selected.amount ?? 0),
         at_risk: outcome === "override" ? Number(selected.amount ?? 0) : 0,
         recovery_pct: outcome === "confirm" ? 100 : 0,
+        ...(outcome === "override" && reasonCode ? { reason_code: reasonCode } : {}),
       },
     });
     setLearnResult(result);
@@ -179,6 +219,9 @@ export function TriageScreen() {
                       setSelectedId(id);
                       setScore(null);
                       setLearnResult(null);
+                      setOverrideOpen(false);
+                      setOverrideReason("");
+                      setSubmitError("");
                     }}
                     className={`w-full rounded-md border p-3 text-left transition ${
                       selectedRow ? "border-amber-500 bg-amber-50" : "border-slate-200 bg-white hover:border-amber-300"
@@ -226,21 +269,18 @@ export function TriageScreen() {
             </div>
           </article>
 
+          <EvidenceTemplatePanel invoiceId={invoiceId(selected)} category={selectedCategory} />
+
           {score ? (
             <>
-              <article className="copilot-card p-5">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Recommendation</p>
-                    <h2 className="mt-1 text-2xl font-semibold text-slate-950">{actionLabel(action)}</h2>
-                    <p className="mt-1 text-sm text-slate-500">Decision {decisionId}</p>
-                  </div>
-                  <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-right">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Confidence</p>
-                    <p className="mt-1 text-2xl font-semibold text-slate-950">{percent(score.confidence)}</p>
-                  </div>
-                </div>
+              <ScoreResultCard
+                score={score}
+                action={action}
+                decisionId={decisionId}
+                conservationState={conservationState}
+              />
 
+              <article className="copilot-card p-5">
                 <div className="mt-5 flex flex-wrap items-end gap-3">
                   <button
                     type="button"
@@ -250,29 +290,61 @@ export function TriageScreen() {
                   >
                     Confirm recommendation
                   </button>
-                  <label className="text-sm font-medium text-slate-700">
-                    Override action
-                    <select
-                      value={overrideAction}
-                      onChange={(event) => setOverrideAction(event.target.value as S2PAction)}
-                      className="mt-1 block rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
-                    >
-                      {S2P_ACTIONS.map((item) => (
-                        <option key={item} value={item}>
-                          {actionLabel(item)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
                   <button
                     type="button"
-                    onClick={() => handleLearn(overrideAction, "override")}
+                    onClick={() => setOverrideOpen((open) => !open)}
                     disabled={learning}
-                    className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+                    className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100"
                   >
-                    Override and learn
+                    Override
                   </button>
                 </div>
+
+                {overrideOpen ? (
+                  <div className="mt-4 grid gap-3 border-t border-slate-200 pt-4 md:grid-cols-[1fr_1fr_auto]">
+                    <label className="text-sm font-medium text-slate-700">
+                      Override action
+                      <select
+                        value={overrideAction}
+                        onChange={(event) => setOverrideAction(event.target.value as S2PAction)}
+                        className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                      >
+                        {S2P_ACTIONS.map((item) => (
+                          <option key={item} value={item}>
+                            {actionLabel(item)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-sm font-medium text-slate-700">
+                      Reason code
+                      <select
+                        value={overrideReason}
+                        onChange={(event) => setOverrideReason(event.target.value as S2PReasonCode | "")}
+                        className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                      >
+                        <option value="">Select reason</option>
+                        {S2P_REASON_CODES.map((code) => (
+                          <option key={code} value={code}>
+                            {REASON_LABELS[code]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (overrideReason) void handleLearn(overrideAction, "override", overrideReason);
+                        else setSubmitError("Select an override reason before submitting.");
+                      }}
+                      disabled={learning || !overrideReason}
+                      className="self-end rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+                    >
+                      Override and learn
+                    </button>
+                  </div>
+                ) : null}
+                {submitError ? <p className="mt-3 text-sm font-medium text-red-700">{submitError}</p> : null}
               </article>
 
               <div className="grid gap-4 xl:grid-cols-2">
@@ -310,6 +382,46 @@ function Metric({ label, value }: { label: string; value: string | number }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-2 break-words text-sm font-semibold text-slate-950">{value}</p>
     </div>
+  );
+}
+
+function ScoreResultCard({
+  score,
+  action,
+  decisionId,
+  conservationState
+}: {
+  score: ScoreInvoiceResponse;
+  action: string;
+  decisionId: string;
+  conservationState?: string;
+}) {
+  const factorCount = score.factor_names?.length ?? score.factorNames?.length ?? score.factor_vector?.length ?? score.factorVector?.length ?? 0;
+  return (
+    <article className="copilot-card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Recommendation</p>
+          <h2 className="mt-1 text-2xl font-semibold text-slate-950">{actionLabel(action)}</h2>
+          <p className="mt-1 text-sm text-slate-500">Decision {decisionId}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {conservationState ? (
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800">
+              Conservation {conservationState}
+            </span>
+          ) : null}
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+            {factorCount} factors
+          </span>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <Metric label="Confidence" value={percent(score.confidence)} />
+        <Metric label="Category" value={score.category} />
+        <Metric label="Action index" value={score.action_index ?? score.actionIndex ?? "n/a"} />
+      </div>
+    </article>
   );
 }
 
