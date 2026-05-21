@@ -165,7 +165,8 @@ export function TriageScreen() {
     }
     setSubmitError("");
     setLearning(true);
-    const activeVariantId = score.active_variant?.id ?? score.activeVariant?.id;
+    const activeVariantId =
+      conservationState === "GREEN" ? score.active_variant?.id ?? score.activeVariant?.id : undefined;
     const result = await learnDecision({
       decision_id: decisionId,
       actual_action: actualAction,

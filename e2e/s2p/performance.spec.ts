@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { clickTab, expectAnyText } from "../helpers/ui";
+import { clickTab } from "../helpers/ui";
 
 async function openPerformance(page: Page) {
   await page.goto("/");
@@ -7,22 +7,30 @@ async function openPerformance(page: Page) {
   await expect(page.getByRole("heading", { name: "Performance" })).toBeVisible();
 }
 
+function panel(page: Page, text: string | RegExp) {
+  return page.locator("article").filter({
+    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
+      hasText: text,
+    }),
+  });
+}
+
 test("trajectory chart or empty learning curve renders", async ({ page }) => {
   await openPerformance(page);
 
-  await expectAnyText(page, [/Learning trajectory/i, /Centroid checkpoints/i, /No centroid trajectory/i]);
+  await expect(panel(page, "Learning trajectory")).toContainText(/Centroid checkpoints|No centroid trajectory/i);
 });
 
 test("conservation shows penalty verified or accuracy", async ({ page }) => {
   await openPerformance(page);
 
-  await expectAnyText(page, [/Conservation mini-gauge/i, /penalty 5:1/i, /verified/i, /accuracy/i]);
+  await expect(panel(page, "Conservation mini-gauge")).toContainText(/penalty 5:1|verified|accuracy/i);
 });
 
 test("what-if simulator has controls", async ({ page }) => {
   await openPerformance(page);
 
-  await expectAnyText(page, [/What-if simulator/i, /Projected conservation/i]);
+  await expect(panel(page, "What-if simulator")).toContainText(/Projected conservation/i);
   await expect(page.getByLabel(/Additional correct/i)).toBeVisible();
   await expect(page.getByLabel(/Additional incorrect/i)).toBeVisible();
 });
@@ -30,14 +38,16 @@ test("what-if simulator has controls", async ({ page }) => {
 test("operational summary shows metrics and savings", async ({ page }) => {
   await openPerformance(page);
 
-  await expectAnyText(page, [/Operational summary/i, /Learning, approvals, savings/i]);
-  await expectAnyText(page, [/Scored/i, /Accuracy/i, /Auto approve/i, /Savings estimate/i, /Annual target/i]);
+  const summary = panel(page, "Operational summary");
+  await expect(summary).toContainText(/Learning, approvals, savings/i);
+  await expect(summary).toContainText(/Scored|Accuracy|Auto approve|Savings estimate|Annual target/i);
 });
 
 test("dashboard mini process context shows bottleneck", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-  await expectAnyText(page, [/Process context/i, /Celonis bottleneck/i]);
-  await expectAnyText(page, [/Match Invoice/i, /bottleneck/i, /50 invoice/i]);
+  const process = panel(page, "Celonis bottleneck");
+  await expect(process).toContainText(/Process context/i);
+  await expect(process).toContainText(/Match Invoice|bottleneck|50 invoice/i);
 });

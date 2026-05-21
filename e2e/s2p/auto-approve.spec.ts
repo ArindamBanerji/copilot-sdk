@@ -73,47 +73,63 @@ async function openDashboard(page: Page) {
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 }
 
+function autoApprovePanel(page: Page) {
+  return page.locator("article", { hasText: "Auto-Approve Status" });
+}
+
+function expansionProofPanel(page: Page) {
+  return autoApprovePanel(page)
+    .locator("div", { has: page.getByRole("heading", { name: "Price Variance expansion proof" }) })
+    .filter({ hasText: "Current threshold" });
+}
+
 test("dashboard shows auto-approve panel", async ({ page }) => {
   await openDashboard(page);
+  const panel = autoApprovePanel(page);
 
-  await expect(page.getByRole("heading", { name: "Auto-Approve Status" })).toBeVisible();
-  await expect(page.getByText("Auto-approve rate")).toBeVisible();
+  await expect(panel).toBeVisible();
+  await expect(panel).toContainText("Auto-approve rate");
 });
 
 test("auto-approve panel displays per-category thresholds", async ({ page }) => {
   await openDashboard(page);
+  const panel = autoApprovePanel(page);
 
-  await expect(page.getByText("Price Variance")).toBeVisible();
-  await expect(page.getByText("Format Compliance")).toBeVisible();
-  await expect(page.getByText("91%")).toBeVisible();
-  await expect(page.getByText("80%")).toBeVisible();
+  await expect(panel.getByRole("cell", { name: "Price Variance" })).toBeVisible();
+  await expect(panel.getByRole("cell", { name: "Format Compliance" })).toBeVisible();
+  await expect(panel).toContainText("91%");
+  await expect(panel).toContainText("80%");
 });
 
 test("auto-approve panel shows spot-check count and accuracy", async ({ page }) => {
   await openDashboard(page);
+  const panel = autoApprovePanel(page);
 
-  await expect(page.getByText("Spot checks")).toBeVisible();
-  await expect(page.getByText("12")).toBeVisible();
-  await expect(page.getByText("Spot-check accuracy")).toBeVisible();
-  await expect(page.getByText("75%")).toBeVisible();
+  await expect(panel).toContainText("Spot checks");
+  await expect(panel).toContainText("12");
+  await expect(panel).toContainText("Spot-check accuracy");
+  await expect(panel).toContainText("75%");
 });
 
 test("auto-approve expansion proof button is visible", async ({ page }) => {
   await openDashboard(page);
+  const panel = autoApprovePanel(page);
 
-  await expect(page.getByRole("button", { name: "View Expansion Proof" })).toBeVisible();
+  await expect(panel.getByRole("button", { name: "View Expansion Proof" })).toBeVisible();
 });
 
 test("clicking expansion proof shows proof evidence", async ({ page }) => {
   await openDashboard(page);
+  const panel = autoApprovePanel(page);
 
-  await page.getByRole("button", { name: "View Expansion Proof" }).click();
+  await panel.getByRole("button", { name: "View Expansion Proof" }).click();
 
-  await expect(page.getByRole("heading", { name: "Price Variance expansion proof" })).toBeVisible();
-  await expect(page.getByText("Current threshold")).toBeVisible();
-  await expect(page.getByText("Proposed threshold")).toBeVisible();
-  await expect(page.getByText("Verified decisions")).toBeVisible();
-  await expect(page.getByText("GREEN")).toBeVisible();
-  await expect(page.getByText(/accuracy is below the expansion floor/i)).toBeVisible();
-  await expect(page.getByText("Available")).toBeVisible();
+  const proof = expansionProofPanel(page);
+  await expect(proof).toBeVisible();
+  await expect(proof).toContainText("Current threshold");
+  await expect(proof).toContainText("Proposed threshold");
+  await expect(proof).toContainText("Verified decisions");
+  await expect(proof).toContainText("GREEN");
+  await expect(proof).toContainText(/accuracy is below the expansion floor/i);
+  await expect(proof).toContainText("Available");
 });

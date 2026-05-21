@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchPreviewQueue } from "../api";
 import { AuditTrailPanel } from "../components/AuditTrailPanel";
 import { CompliancePanel } from "../components/CompliancePanel";
+import { DiscoveryPanel } from "../components/DiscoveryPanel";
+import { DisruptionRecoveryPanel } from "../components/DisruptionRecoveryPanel";
 import { EvolutionPanel } from "../components/EvolutionPanel";
 import { RuleLifecyclePanel } from "../components/RuleLifecyclePanel";
 import type { InvoiceException, PreviewQueueResponse } from "../types";
@@ -63,6 +65,8 @@ export function EvidenceScreen() {
 
       <AuditTrailPanel invoiceId={invoiceId(selected)} />
       <EvolutionPanel />
+      <DiscoveryPanel />
+      <DisruptionRecoveryPanel />
       <RuleLifecyclePanel />
       <CompliancePanel />
     </section>

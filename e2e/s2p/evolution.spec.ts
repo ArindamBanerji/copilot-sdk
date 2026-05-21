@@ -1,39 +1,46 @@
 import { test, expect, type Page } from "@playwright/test";
-import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
+import { clickTab, collectConsoleErrors, expectNoConsoleErrors } from "../helpers/ui";
 
 async function openEvidence(page: Page) {
   await page.goto("/");
   await clickTab(page, "Evidence");
-  await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "S2P evolution" })).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator("main h1", { hasText: "Evidence" })).toBeVisible();
+  await expect(evolutionRegion(page)).toBeVisible({ timeout: 10_000 });
+}
+
+function evolutionRegion(page: Page) {
+  return page.getByRole("region", { name: "S2P preset evolution" });
 }
 
 test("Evolution panel is visible on Evidence", async ({ page }) => {
   await openEvidence(page);
+  const region = evolutionRegion(page);
 
-  await expectAnyText(page, [/AgentEvolver/i, /S2P evolution/i]);
-  await expectAnyText(page, [/Evolution variants/i, /No evolution data yet/i, /No evolution history yet/i]);
+  await expect(region).toContainText(/Variant Evolution|No S2P variants/i);
+  await expect(region).toContainText(/Active.*Evidence|Active.*Routing|No S2P variants|variant/i);
 });
 
 test("Rule lifecycle shows states or empty state", async ({ page }) => {
   await openEvidence(page);
+  const region = evolutionRegion(page);
 
-  await expectAnyText(page, [/variants/i, /All S2P categories/i, /No evolution data yet/i]);
-  await expectAnyText(page, [/promoted/i, /shadow/i, /created/i, /No promoted rules yet/i, /No evolution data yet/i]);
+  await expect(region).toContainText(/variant|active|No S2P variants/i);
+  await expect(region).toContainText(/promoted|shadow|active|No S2P variants/i);
 });
 
 test("Evolution history shows events or empty state", async ({ page }) => {
   await openEvidence(page);
+  const region = evolutionRegion(page);
 
-  await expectAnyText(page, [/Evolution history/i]);
-  await expectAnyText(page, [/win/i, /regression/i, /shadow/i, /No evolution history yet/i]);
+  await expect(region).toContainText(/Variant Evolution|Self-tuning/i);
+  await expect(region).toContainText(/win|shadow|active|No S2P variants/i);
 });
 
 test("Evolution screen has no console errors", async ({ page }) => {
   const errors = collectConsoleErrors(page);
 
   await openEvidence(page);
-  await expectAnyText(page, [/S2P evolution/i, /No evolution data yet/i]);
+  await expect(evolutionRegion(page)).toContainText(/Variant Evolution|No S2P variants/i);
 
   expectNoConsoleErrors(errors);
 });

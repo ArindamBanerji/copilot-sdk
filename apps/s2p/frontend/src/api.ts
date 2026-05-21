@@ -1,15 +1,21 @@
 import type {
   AutoApproveStats,
+  ClusteringResponse,
   ConservationStatus,
   AuditTrailResponse,
   ComplianceResponse,
   CrossGraphResponse,
+  DiscoveryResponse,
+  DisruptionResponse,
   EvidenceTemplateResponse,
+  EarlyWarningResponse,
   ExpansionProof,
   ExceptionQueueResponse,
   FingerprintResponse,
   LearnDecisionRequest,
   LearnDecisionResponse,
+  PaymentBehavior,
+  PaymentOptimizationResponse,
   PerformanceSummaryResponse,
   PerformanceTrajectoryResponse,
   ProcessSignalsResponse,
@@ -22,8 +28,10 @@ import type {
   S2PPromotedResponse,
   S2PShadowResultsResponse,
   SupplierHistoryResponse,
+  SupplierSimilarityResponse,
   SupplierProfile,
   SupplierProfilesResponse,
+  TrendSignal,
   ScoreInvoiceRequest,
   ScoreInvoiceResponse,
   SimilarResponse,
@@ -152,6 +160,19 @@ export async function fetchS2PProcessSignals(supplierId?: string): Promise<Proce
   return apiGet<ProcessSignalsResponse>(`/api/s2p/insight/process-signals${suffix}`).catch(() => null);
 }
 
+export async function getEarlyWarnings(): Promise<EarlyWarningResponse | null> {
+  return apiGet<EarlyWarningResponse>("/api/s2p/suppliers/early-warnings").catch(() => null);
+}
+
+export async function getTrendSignals(
+  supplierId: string
+): Promise<{ supplier_id: string; signals: TrendSignal[] } | null> {
+  const params = new URLSearchParams({ supplier_id: supplierId });
+  return apiGet<{ supplier_id: string; signals: TrendSignal[] }>(
+    `/api/s2p/suppliers/trend-signals?${params.toString()}`
+  ).catch(() => null);
+}
+
 export async function fetchS2PAuditTrail(invoiceId: string): Promise<AuditTrailResponse | null> {
   return apiGet<AuditTrailResponse>(
     `/api/s2p/evidence/audit-trail/${encodeURIComponent(invoiceId)}`
@@ -196,6 +217,14 @@ export async function fetchS2PPromotedRules(): Promise<S2PPromotedResponse | nul
 
 export async function fetchS2PCompliance(): Promise<ComplianceResponse | null> {
   return apiGet<ComplianceResponse>("/api/s2p/evidence/compliance").catch(() => null);
+}
+
+export async function getDiscoveryAlerts(): Promise<DiscoveryResponse | null> {
+  return apiGetNullable<DiscoveryResponse>("/api/s2p/discovery/alerts");
+}
+
+export async function getDisruptionRecovery(): Promise<DisruptionResponse | null> {
+  return apiGetNullable<DisruptionResponse>("/api/s2p/discovery/disruptions");
 }
 
 export async function fetchS2PTrajectory(): Promise<PerformanceTrajectoryResponse | null> {
@@ -298,6 +327,24 @@ export async function fetchSupplierHeatmap(supplierId: string): Promise<unknown 
   return apiGetNullable<unknown>(`/api/s2p/suppliers/${encodeURIComponent(supplierId)}/heatmap`);
 }
 
+export async function getPaymentStrategy(): Promise<PaymentOptimizationResponse | null> {
+  return apiGetNullable<PaymentOptimizationResponse>("/api/s2p/suppliers/payment-strategy");
+}
+
+export async function getPaymentBehavior(supplierId: string): Promise<PaymentBehavior | null> {
+  const params = new URLSearchParams({ supplier_id: supplierId });
+  return apiGetNullable<PaymentBehavior>(`/api/s2p/suppliers/payment-behavior?${params.toString()}`);
+}
+
 export async function fetchSupplierClustering(): Promise<unknown | null> {
   return apiGetNullable<unknown>("/api/s2p/suppliers/clustering");
+}
+
+export async function getSupplierClusters(): Promise<ClusteringResponse | null> {
+  return apiGetNullable<ClusteringResponse>("/api/s2p/suppliers/clusters");
+}
+
+export async function getSupplierSimilarity(supplierId: string): Promise<SupplierSimilarityResponse | null> {
+  const params = new URLSearchParams({ supplier_id: supplierId });
+  return apiGetNullable<SupplierSimilarityResponse>(`/api/s2p/suppliers/similarity?${params.toString()}`);
 }

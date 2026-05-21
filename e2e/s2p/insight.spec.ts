@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { clickTab, expectAnyText } from "../helpers/ui";
+import { clickTab } from "../helpers/ui";
 
 async function openInsight(page: Page) {
   await page.goto("/");
@@ -7,33 +7,45 @@ async function openInsight(page: Page) {
   await expect(page.getByRole("heading", { name: "Insight" })).toBeVisible();
 }
 
+function panel(page: Page, text: string | RegExp) {
+  return page.locator("article").filter({
+    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
+      hasText: text,
+    }),
+  });
+}
+
 test("factor fingerprint shows seven S2P factors", async ({ page }) => {
   await openInsight(page);
+  const fingerprint = panel(page, "Factor fingerprint");
 
-  await expectAnyText(page, [/Factor fingerprint/i, /why this invoice was flagged/i]);
-  await expectAnyText(page, [/match status/i, /match_status/i]);
-  await expectAnyText(page, [/amount variance/i, /amount_variance/i]);
-  await expectAnyText(page, [/duplicate/i, /supplier exception/i]);
-  await expectAnyText(page, [/payment terms/i, /commodity/i, /tax regulatory/i]);
+  await expect(fingerprint).toContainText(/why this invoice was flagged/i);
+  await expect(fingerprint).toContainText(/match status|match_status/i);
+  await expect(fingerprint).toContainText(/amount variance|amount_variance/i);
+  await expect(fingerprint).toContainText(/duplicate|supplier exception/i);
+  await expect(fingerprint).toContainText(/payment terms|commodity|tax regulatory/i);
 });
 
 test("similar invoices list renders with distances", async ({ page }) => {
   await openInsight(page);
+  const similar = panel(page, "Similar invoices");
 
-  await expectAnyText(page, [/Similar invoices/i, /Nearest exceptions/i]);
-  await expectAnyText(page, [/distance/i, /S2P-INV/i, /INV-S2P/i]);
+  await expect(similar).toContainText(/Nearest exceptions/i);
+  await expect(similar).toContainText(/distance|S2P-INV|INV-S2P/i);
 });
 
 test("cross-graph shows supplier and commodity impact correlation", async ({ page }) => {
   await openInsight(page);
+  const crossGraph = panel(page, "Supplier exceptions align with process delay");
 
-  await expectAnyText(page, [/Cross-graph signal/i, /cross graph/i]);
-  await expectAnyText(page, [/supplier/i, /commodity/i, /impact/i, /correlation/i, /Aster/i]);
+  await expect(crossGraph).toContainText(/Cross-graph signal|cross graph/i);
+  await expect(crossGraph).toContainText(/supplier|commodity|impact|correlation|Aster/i);
 });
 
 test("process signals show Celonis bottleneck data", async ({ page }) => {
   await openInsight(page);
+  const process = panel(page, "Process signals");
 
-  await expectAnyText(page, [/Process signals/i, /Celonis/i, /Purchase-to-Pay/i]);
-  await expectAnyText(page, [/bottleneck/i, /variant/i, /recommendation/i, /Match Invoice/i]);
+  await expect(process).toContainText(/Celonis|Purchase-to-Pay/i);
+  await expect(process).toContainText(/bottleneck|variant|recommendation|Match Invoice/i);
 });

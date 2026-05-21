@@ -1,12 +1,28 @@
-import { test, expect } from "@playwright/test";
-import { clickTab, expectAnyText } from "../helpers/ui";
+import { test, expect, type Page } from "@playwright/test";
+import { clickTab } from "../helpers/ui";
+
+function main(page: Page) {
+  return page.locator("main");
+}
+
+function panel(page: Page, text: string | RegExp) {
+  return page.locator("article").filter({
+    has: page.locator("h1, h2, h3, h4, p.font-semibold, [class*='font-semibold']", {
+      hasText: text,
+    }),
+  });
+}
+
+function pageHeading(page: Page, text: string | RegExp) {
+  return page.locator("main h1", { hasText: text });
+}
 
 test("Dashboard loads with exception queue", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-  await expectAnyText(page, [/Exception Queue/i, /exception/i]);
-  await expectAnyText(page, [/Conservation Status/i, /conservation/i]);
+  await expect(panel(page, "Exception Queue")).toContainText(/exception/i);
+  await expect(panel(page, "Conservation Status")).toContainText(/conservation/i);
 });
 
 test("Exception Triage screen loads", async ({ page }) => {
@@ -14,7 +30,7 @@ test("Exception Triage screen loads", async ({ page }) => {
   await clickTab(page, "Exception Triage");
 
   await expect(page.getByRole("heading", { name: "Exception Triage" })).toBeVisible();
-  await expectAnyText(page, [/triage/i, /exception/i, /invoice/i, /Phase 1/i]);
+  await expect(main(page)).toContainText(/triage|exception|invoice|Phase 1/i);
 });
 
 test("Insight screen loads", async ({ page }) => {
@@ -22,15 +38,15 @@ test("Insight screen loads", async ({ page }) => {
   await clickTab(page, "Insight");
 
   await expect(page.getByRole("heading", { name: "Insight" })).toBeVisible();
-  await expectAnyText(page, [/profile/i, /fingerprint/i, /Phase 1/i]);
+  await expect(main(page)).toContainText(/profile|fingerprint|Phase 1/i);
 });
 
 test("Evidence screen loads", async ({ page }) => {
   await page.goto("/");
   await clickTab(page, "Evidence");
 
-  await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
-  await expectAnyText(page, [/governance/i, /audit/i, /Phase 1/i]);
+  await expect(pageHeading(page, "Evidence")).toBeVisible();
+  await expect(main(page)).toContainText(/governance|audit|Phase 1/i);
 });
 
 test("Suppliers screen loads with profiles", async ({ page }) => {
@@ -38,8 +54,8 @@ test("Suppliers screen loads with profiles", async ({ page }) => {
   await clickTab(page, "Suppliers");
 
   await expect(page.getByRole("heading", { name: "Suppliers" })).toBeVisible();
-  await expectAnyText(page, [/supplier/i, /profile/i, /OTIF/i]);
-  await expectAnyText(page, [/Chen-Lin/i, /Exception rate/i, /No supplier profiles available/i]);
+  await expect(main(page)).toContainText(/supplier|profile|OTIF/i);
+  await expect(panel(page, "Profile source")).toContainText(/Exceptions|No supplier data yet|Unable to load supplier profiles/i);
 });
 
 test("Performance screen loads", async ({ page }) => {
@@ -47,5 +63,5 @@ test("Performance screen loads", async ({ page }) => {
   await clickTab(page, "Performance");
 
   await expect(page.getByRole("heading", { name: "Performance" })).toBeVisible();
-  await expectAnyText(page, [/performance/i, /trajectory/i, /IKS/i, /Phase 1/i]);
+  await expect(main(page)).toContainText(/performance|trajectory|IKS|Phase 1/i);
 });

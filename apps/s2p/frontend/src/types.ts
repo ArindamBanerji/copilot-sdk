@@ -120,6 +120,121 @@ export interface SupplierHistoryResponse {
   total: number;
 }
 
+export interface PaymentBehavior {
+  supplier_id: string;
+  supplier_name: string;
+  current_terms: string;
+  recommended_strategy: "early_pay" | "on_time" | "extend";
+  reason: string;
+  payment_otif_correlation: number;
+  discount_opportunity: number;
+  risk_if_delayed: string;
+  confidence: number;
+}
+
+export interface PaymentOptimizationResponse {
+  strategies: PaymentBehavior[];
+  total_discount_opportunity: number;
+  suppliers_analyzed: number;
+  dpo_improvement_days: number;
+  summary: string;
+}
+
+export interface CrossSystemDiscovery {
+  discovery_id: string;
+  title: string;
+  sources: string[];
+  correlation_strength: number;
+  impact_estimate: string;
+  pattern: string;
+  confidence: number;
+  discovered_at: string;
+  recommendation: string;
+}
+
+export interface DiscoveryResponse {
+  discoveries: CrossSystemDiscovery[];
+  total_discoveries: number;
+  sources_connected: number;
+  highest_impact: string;
+}
+
+export interface DisruptionRecovery {
+  disruption_id: string;
+  disruption_type: string;
+  occurrence: number;
+  recovery_time_days: number;
+  recovery_cost: number;
+  improvement_from_first: number;
+  pattern_reuse: string;
+  decisions_applied: number;
+}
+
+export interface DisruptionResponse {
+  disruptions: DisruptionRecovery[];
+  total_disruptions: number;
+  cumulative_savings: number;
+  avg_improvement_pct: number;
+  learning_narrative: string;
+}
+
+export interface BehavioralCluster {
+  cluster_id: number;
+  label: string;
+  members: string[];
+  centroid?: number[];
+  consolidation_potential: "high" | "medium" | "low";
+  estimated_savings: number;
+}
+
+export interface ClusteringResponse {
+  clusters: BehavioralCluster[];
+  total_suppliers: number;
+  consolidation_candidates: number;
+  estimated_annual_savings: number;
+  method: string;
+}
+
+export interface SimilarSupplier {
+  supplier_id: string;
+  supplier_name: string;
+  distance: number;
+  similarity: number;
+}
+
+export interface SupplierSimilarityResponse {
+  supplier_id: string;
+  similar_suppliers: SimilarSupplier[];
+  method: string;
+}
+
+export interface TrendSignal {
+  signal_name: string;
+  current_value: number;
+  baseline_value: number;
+  delta_pct: number;
+  direction: "declining" | "stable" | "improving";
+  severity: "normal" | "watch" | "warning" | "critical";
+}
+
+export interface EarlyWarning {
+  supplier_id: string;
+  supplier_name: string;
+  risk_score: number;
+  confidence: number;
+  signals: TrendSignal[];
+  pattern: string;
+  recommendation: string;
+  lead_time_weeks: number;
+}
+
+export interface EarlyWarningResponse {
+  warnings: EarlyWarning[];
+  monitored_suppliers: number;
+  active_warnings: number;
+  patterns_detected: number;
+}
+
 export interface ConservationStatus {
   engine_version?: string;
   source?: string;

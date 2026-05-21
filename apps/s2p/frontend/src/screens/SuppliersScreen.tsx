@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { fetchDecliningSuppliers, fetchSupplierHistory, fetchSupplierProfiles } from "../api";
-import { SupplierClusteringPanel } from "../components/SupplierClusteringPanel";
+import { ClusteringPanel } from "../components/ClusteringPanel";
+import { PaymentStrategyPanel } from "../components/PaymentStrategyPanel";
 import { SupplierHeatmap } from "../components/SupplierHeatmap";
 import type { SupplierHistoryEvent, SupplierProfile, SupplierProfilesResponse } from "../types";
 
@@ -154,7 +155,8 @@ export function SuppliersScreen() {
         </p>
       </div>
 
-      <SupplierClusteringPanel />
+      <ClusteringPanel />
+      <PaymentStrategyPanel />
 
       <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
         <article className="copilot-card p-5">
