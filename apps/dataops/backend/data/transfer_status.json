@@ -1,0 +1,53 @@
+{
+  "transfers": [
+    {
+      "transfer_id": "TRF-001",
+      "source_system": "erp_core",
+      "source_pattern": "pre-join filter on MATKL_V2",
+      "target_system": "billing_api",
+      "target_action": "auto-resolved",
+      "transfer_date": "2026-04-15",
+      "status": "active",
+      "confidence": 0.87,
+      "decisions_since_transfer": 42,
+      "accuracy_at_target": 0.91,
+      "savings_estimate": 50000,
+      "description": "Pattern learned from ERP join bottleneck applied to billing_api. Plant 7 Brazil."
+    },
+    {
+      "transfer_id": "TRF-002",
+      "source_system": "erp_core",
+      "source_pattern": "schema validation pre-check",
+      "target_system": "warehouse_sync",
+      "target_action": "applied",
+      "transfer_date": "2026-05-01",
+      "status": "monitoring",
+      "confidence": 0.72,
+      "decisions_since_transfer": 8,
+      "accuracy_at_target": 0.75,
+      "savings_estimate": 12000,
+      "description": "Schema validation pattern transferred. Under monitoring."
+    },
+    {
+      "transfer_id": "TRF-003",
+      "source_system": "billing_api",
+      "source_pattern": "duplicate detection threshold",
+      "target_system": "payments_gateway",
+      "target_action": "pending",
+      "transfer_date": "2026-05-18",
+      "status": "pending_verification",
+      "confidence": 0.65,
+      "decisions_since_transfer": 0,
+      "accuracy_at_target": null,
+      "savings_estimate": null,
+      "description": "Duplicate detection pattern queued for transfer."
+    }
+  ],
+  "summary": {
+    "total_transfers": 3,
+    "active": 1,
+    "monitoring": 1,
+    "pending": 1,
+    "cumulative_savings": 62000
+  }
+}

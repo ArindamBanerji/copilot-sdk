@@ -28,6 +28,7 @@ from copilot_sdk.backend import (  # noqa: E402
 )
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
+from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -51,7 +52,7 @@ def _cors_origins() -> list[str]:
 
 def _graph_store(db_path: str | Path):
     store = SQLiteGraphStore(str(db_path), domain="trading")
-    store.penalty_ratio = 2.0
+    store.penalty_ratio = TradingPreset().penalty_ratio
     return store
 
 

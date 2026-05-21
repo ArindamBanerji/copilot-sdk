@@ -18,6 +18,16 @@ router = APIRouter(tags=["context"])
 _APP_DIR = Path(__file__).resolve().parent
 _DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 _DEFAULT_DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+_FACTOR_NAMES = (
+    # Mirrors PurchasingPreset factor order.
+    "expected_demand",
+    "day_of_week",
+    "weather_forecast",
+    "event_flag",
+    "historical_waste",
+    "supplier_lead_time",
+    "price_memory_index",
+)
 
 
 def _load_json(path: Path) -> Any:
@@ -49,6 +59,18 @@ def _cosine_similarity(left: list[float], right: list[float]) -> float:
     if left_norm == 0 or right_norm == 0:
         return 0.0
     return sum(a * b for a, b in zip(left, right)) / (left_norm * right_norm)
+
+
+def _order_vector(order: dict[str, Any]) -> list[float]:
+    return [
+        float(order.get("expected_demand", 0.0)),
+        float(order.get("day_of_week_factor", 0.0)),
+        float(order.get("weather_forecast", 0.0)),
+        float(order.get("event_flag", 0.0)),
+        float(order.get("historical_waste", 0.0)),
+        float(order.get("supplier_lead_time", 0.0)),
+        float(order.get("price_memory_index", 0.5)),
+    ]
 
 
 def _waste_trend(values: list[float]) -> str:
@@ -168,6 +190,7 @@ def similar_orders(
     event_flag: float,
     historical_waste: float,
     supplier_lead_time: float,
+    price_memory_index: float = 0.5,
     n: int = 5,
 ) -> dict[str, Any]:
     seed = _load_data_json("purchasing_seed_v2.json", [])
@@ -181,19 +204,15 @@ def similar_orders(
         event_flag,
         historical_waste,
         supplier_lead_time,
+        price_memory_index,
     ]
+    if len(query_vector) != len(_FACTOR_NAMES):
+        return {"similar": [], "count": 0}
     results = []
     for order in seed:
         if category and order.get("category") != category:
             continue
-        order_vector = [
-            float(order.get("expected_demand", 0.0)),
-            float(order.get("day_of_week_factor", 0.0)),
-            float(order.get("weather_forecast", 0.0)),
-            float(order.get("event_flag", 0.0)),
-            float(order.get("historical_waste", 0.0)),
-            float(order.get("supplier_lead_time", 0.0)),
-        ]
+        order_vector = _order_vector(order)
         similarity = _cosine_similarity(query_vector, order_vector)
         if similarity <= 0.85:
             continue

@@ -5,6 +5,8 @@ import json
 from collections import Counter
 from pathlib import Path
 
+from app import context_router
+
 
 PURCHASING_FACTORS = {
     "expected_demand": 0.72,
@@ -13,6 +15,7 @@ PURCHASING_FACTORS = {
     "event_flag": 0.1,
     "historical_waste": 0.18,
     "supplier_lead_time": 0.45,
+    "price_memory_index": 0.50,
 }
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
@@ -278,6 +281,34 @@ def test_analytics_consistent_with_seed_v2(temp_data_dir):
     ]["total_stockout_cost"]
 
 
+def test_context_similarity_factor_order_includes_price_memory_index():
+    assert context_router._FACTOR_NAMES == (
+        "expected_demand",
+        "day_of_week",
+        "weather_forecast",
+        "event_flag",
+        "historical_waste",
+        "supplier_lead_time",
+        "price_memory_index",
+    )
+    assert len(context_router._FACTOR_NAMES) == 7
+
+
+def test_context_similarity_order_vector_defaults_price_memory_index():
+    vector = context_router._order_vector(
+        {
+            "expected_demand": 0.7,
+            "day_of_week_factor": 0.71,
+            "weather_forecast": 0.2,
+            "event_flag": 0.7,
+            "historical_waste": 0.04,
+            "supplier_lead_time": 0.45,
+        }
+    )
+
+    assert vector == [0.7, 0.71, 0.2, 0.7, 0.04, 0.45, 0.5]
+
+
 def test_similar_orders(client):
     response = client.get(
         "/api/context/similar",
@@ -289,6 +320,7 @@ def test_similar_orders(client):
             "event_flag": 0.7,
             "historical_waste": 0.04,
             "supplier_lead_time": 0.45,
+            "price_memory_index": 0.5,
         },
     )
 
@@ -370,6 +402,25 @@ def test_v2_endpoints_use_temp_data(client, temp_data_dir):
     assert similar_response.status_code == 200
     assert "TEMP-SIMILAR-001" in {
         row["order_id"] for row in similar_response.json()["similar"]
+    }
+
+    explicit_response = client.get(
+        "/api/context/similar",
+        params={
+            "category": "protein",
+            "expected_demand": 0.7,
+            "day_of_week": 0.71,
+            "weather_forecast": 0.2,
+            "event_flag": 0.7,
+            "historical_waste": 0.04,
+            "supplier_lead_time": 0.45,
+            "price_memory_index": 0.5,
+            "n": 10,
+        },
+    )
+    assert explicit_response.status_code == 200
+    assert "TEMP-SIMILAR-001" in {
+        row["order_id"] for row in explicit_response.json()["similar"]
     }
 
 

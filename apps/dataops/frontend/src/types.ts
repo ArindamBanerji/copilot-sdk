@@ -223,6 +223,32 @@ export interface ConservationHistory {
   events?: ConservationEvent[];
 }
 
+export interface PatternTransfer {
+  transferId: string;
+  sourceSystem: string;
+  sourcePattern: string;
+  targetSystem: string;
+  targetAction: string;
+  transferDate?: string;
+  status: string;
+  confidence: number;
+  decisionsSinceTransfer: number;
+  accuracyAtTarget: number | null;
+  savingsEstimate: number | null;
+  description: string;
+}
+
+export interface TransferStatusResponse {
+  transfers: PatternTransfer[];
+  summary: {
+    totalTransfers: number;
+    active: number;
+    monitoring: number;
+    pending: number;
+    cumulativeSavings: number;
+  };
+}
+
 export interface ConservationState {
   domain?: string;
   verifiedCount?: number;

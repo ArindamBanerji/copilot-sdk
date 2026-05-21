@@ -24,6 +24,22 @@ from copilot_sdk.scoring.verification.price import verify_trade
 PRESET_DIR = Path(__file__).resolve().parents[2] / "copilot_sdk" / "scoring" / "presets"
 SEED_PATH = PRESET_DIR / "trading_seed.json"
 BOOTSTRAP_PATH = PRESET_DIR / "trading_bootstrap.json"
+EXISTING_CATEGORIES = (
+    "equity_long",
+    "equity_short",
+    "crypto_spot",
+    "options",
+    "etf",
+)
+EXISTING_ACTIONS = ("buy", "hold", "sell")
+EXISTING_FACTORS = (
+    "conviction",
+    "research_depth",
+    "technical_signal",
+    "position_size",
+    "time_horizon",
+    "market_regime",
+)
 
 
 def load_seed_trades() -> list[dict]:
@@ -36,7 +52,7 @@ def build_verified_decisions(trades: list[dict], preset: TradingPreset) -> list[
         {
             "category": trade["category"],
             "factor_vector": [
-                float(trade["factors"][factor])
+                float(trade["factors"].get(factor, 0.5))
                 for factor in preset.shape.factor_names
             ],
             "is_correct": bool(trade["is_correct"]),
@@ -55,12 +71,17 @@ def test_preset_loads():
 
     assert preset.name == "trading"
     assert preset.shape.n_categories == 5
-    assert preset.shape.n_actions == 3
-    assert preset.shape.n_factors == 6
+    assert preset.shape.n_actions == 4
+    assert preset.shape.n_factors == 7
     assert len(preset.shape.category_names) == 5
-    assert len(preset.shape.action_names) == 3
-    assert len(preset.shape.factor_names) == 6
-    assert preset.penalty_ratio == 2.0
+    assert len(preset.shape.action_names) == 4
+    assert len(preset.shape.factor_names) == 7
+    assert preset.shape.category_names == EXISTING_CATEGORIES
+    assert preset.shape.action_names[:3] == EXISTING_ACTIONS
+    assert preset.shape.action_names[3] == "skip_recommended"
+    assert preset.shape.factor_names[:6] == EXISTING_FACTORS
+    assert preset.shape.factor_names[6] == "signal_confidence"
+    assert preset.penalty_ratio == 3.0
     assert preset.eta_confirm == 0.05
     assert preset.eta_override == 0.01
     assert preset.temperature == 0.1
@@ -117,12 +138,12 @@ def test_seed_factors_match_preset():
     for trade in trades:
         assert trade["category"] in preset.shape.category_names
         assert trade["direction"] in preset.shape.action_names
-        assert set(trade["factors"]) == factor_names
+        assert set(trade["factors"]) == factor_names - {"signal_confidence"}
         assert all(0.0 <= float(value) <= 1.0 for value in trade["factors"].values())
 
 
 def test_bootstrap_centroids_shape():
-    assert TradingPreset().bootstrap_centroids.shape == (5, 3, 6)
+    assert TradingPreset().bootstrap_centroids.shape == (5, 4, 7)
 
 
 def test_bootstrap_produces_target_correct_action_probability():
@@ -143,7 +164,7 @@ def test_bootstrap_produces_target_correct_action_probability():
 
     for trade in trades:
         factors = np.array(
-            [float(trade["factors"][factor]) for factor in preset.shape.factor_names],
+            [float(trade["factors"].get(factor, 0.5)) for factor in preset.shape.factor_names],
             dtype=float,
         )
         result = scorer.score(factors, category_index[trade["category"]])
@@ -154,7 +175,7 @@ def test_bootstrap_produces_target_correct_action_probability():
     mean_probability = sum(correct_action_probabilities) / len(
         correct_action_probabilities
     )
-    assert 0.45 <= mean_probability <= 0.60
+    assert 0.40 <= mean_probability <= 0.55
 
     metadata = json.loads(BOOTSTRAP_PATH.read_text(encoding="utf-8"))
     if "mean_confidence" in metadata:

@@ -20,6 +20,7 @@ _AE_FIXTURE_DEFAULTS: dict[str, Any] = {
     "ae_impact.json": {},
     "incident.json": {},
     "conservation_history.json": {"events": []},
+    "transfer_status.json": {"transfers": [], "summary": {}},
 }
 OPERATIONAL_RULES = [
     {
@@ -469,3 +470,9 @@ def conservation_history() -> dict[str, Any]:
     payload = dict(_get_fixtures()["conservation_history.json"])
     payload.setdefault("engine", ENGINE_CONSERVATION)
     return payload
+
+
+@router.get("/transfer-status")
+def transfer_status() -> dict[str, Any]:
+    """Act 5: Pattern transfer status across systems."""
+    return dict(_get_fixtures()["transfer_status.json"])

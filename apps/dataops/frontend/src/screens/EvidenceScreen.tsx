@@ -8,6 +8,7 @@ import PatternOriginCard from "../components/PatternOriginCard";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
 import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
 import SchemaImpactPanel from "../components/SchemaImpactPanel";
+import TransferStatusPanel from "../components/TransferStatusPanel";
 import type { AEImpact, EvolutionVariant, PatternOrigin } from "../types";
 
 export default function EvidenceScreen() {
@@ -59,6 +60,7 @@ export default function EvidenceScreen() {
       <SchemaImpactPanel />
       <OperationalRulesPanel />
       <PatternOriginCard origin={origin} />
+      <TransferStatusPanel />
     </div>
   );
 }

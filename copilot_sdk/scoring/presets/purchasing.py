@@ -21,7 +21,7 @@ class PurchasingPreset:
         return DomainShape(
             n_categories=5,
             n_actions=4,
-            n_factors=6,
+            n_factors=7,
             category_names=(
                 "protein",
                 "produce",
@@ -42,6 +42,9 @@ class PurchasingPreset:
                 "event_flag",
                 "historical_waste",
                 "supplier_lead_time",
+                # price_memory_index: historical price tracking per supplier x category.
+                # High means price within learned norms; low means anomalous spike or hidden discount.
+                "price_memory_index",
             ),
         )
 
@@ -81,6 +84,8 @@ def _load_bootstrap(preset: PurchasingPreset) -> np.ndarray:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
         centroids = np.asarray(data["centroids"], dtype=np.float64)
+        if centroids.shape == (5, 4, 6) and expected_shape == (5, 4, 7):
+            return _migrate_legacy_centroids(centroids)
         if centroids.shape != expected_shape:
             raise ValueError(
                 f"purchasing bootstrap shape {centroids.shape} != {expected_shape}"
@@ -88,3 +93,10 @@ def _load_bootstrap(preset: PurchasingPreset) -> np.ndarray:
         return centroids
     except Exception:
         return np.full(expected_shape, 0.5, dtype=np.float64)
+
+
+def _migrate_legacy_centroids(centroids: np.ndarray) -> np.ndarray:
+    migrated = np.full((5, 4, 7), 0.5, dtype=np.float64)
+    migrated[:, :, :6] = centroids
+    migrated[:, :, 6] = 0.5
+    return migrated

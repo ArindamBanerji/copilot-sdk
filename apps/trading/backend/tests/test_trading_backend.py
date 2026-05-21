@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from app import context_router
+from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
 TRADING_FACTORS = {
@@ -13,7 +14,9 @@ TRADING_FACTORS = {
     "position_size": 0.34,
     "time_horizon": 0.67,
     "market_regime": 0.71,
+    "signal_confidence": 0.50,
 }
+TRADING_SEED_FACTORS = tuple(name for name in TRADING_FACTORS if name != "signal_confidence")
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 REQUIRED_SEED_FIELDS = {
     "trade_id",
@@ -210,7 +213,7 @@ def test_seed_v2_exists(client):
         assert trade["action_taken"] == trade["direction"]
         assert len(trade["research_checklist"]) == 5
         assert all(isinstance(item, bool) for item in trade["research_checklist"])
-        for factor in TRADING_FACTORS:
+        for factor in TRADING_SEED_FACTORS:
             assert 0.0 <= trade[factor] <= 1.0
 
 
@@ -317,9 +320,9 @@ def test_score_via_sdk_router(client):
     payload = _score(client)
 
     assert payload["category"] == "equity_long"
-    assert payload["action"] in {"buy", "hold", "sell"}
+    assert payload["action"] in {"buy", "hold", "sell", "skip_recommended"}
     assert 0.0 <= payload["confidence"] <= 1.0
-    assert len(payload["probabilities"]) == 3
+    assert len(payload["probabilities"]) == 4
     assert payload["engine"]["scoring"] == "copilot_sdk.scoring.CompoundingScorer"
 
 
@@ -340,7 +343,7 @@ def test_conservation_status_returns_live_counts(client):
     assert before["total_decisions"] == 0
     assert before["verified_count"] == 0
     assert before["correct_count"] == 0
-    assert before["penalty_ratio"] == 2.0
+    assert before["penalty_ratio"] == TradingPreset().penalty_ratio
 
     score = _score(client)
     after_score = client.get("/api/conservation/status").json()
@@ -354,7 +357,7 @@ def test_conservation_status_returns_live_counts(client):
     assert payload["total_decisions"] == 1
     assert payload["verified_count"] == 1
     assert payload["correct_count"] == 1
-    assert payload["penalty_ratio"] == 2.0
+    assert payload["penalty_ratio"] == TradingPreset().penalty_ratio
 
 
 def test_self_computation_centroid_history_available(client):
@@ -482,7 +485,7 @@ def _save_proxy_decision(store, decision_id: str) -> None:
         recommended_action="buy",
         recommended_index=0,
         confidence=0.8,
-        probabilities=[0.8, 0.1, 0.1],
+        probabilities=[0.8, 0.1, 0.1, 0.0],
     )
 
 

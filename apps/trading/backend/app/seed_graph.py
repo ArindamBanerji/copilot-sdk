@@ -16,6 +16,7 @@ FACTOR_NAMES = (
     "position_size",
     "time_horizon",
     "market_regime",
+    "signal_confidence",
 )
 
 

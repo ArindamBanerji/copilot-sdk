@@ -29,6 +29,8 @@ TRADING_FACTORS = [
     "position_size",
     "time_horizon",
     "market_regime",
+    # Existing Trading seeds omit this seventh factor; extract_factors defaults it to neutral 0.50.
+    "signal_confidence",
 ]
 
 PURCHASING_FACTORS = [
@@ -38,6 +40,8 @@ PURCHASING_FACTORS = [
     "event_flag",
     "historical_waste",
     "supplier_lead_time",
+    # Existing Purchasing seeds omit this seventh factor; extract_factors defaults it to neutral 0.50.
+    "price_memory_index",
 ]
 
 PURCHASING_FIELD_MAP = {

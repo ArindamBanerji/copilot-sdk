@@ -26,6 +26,27 @@ from copilot_sdk.scoring.verification.weather import _WEATHER_CACHE, get_weather
 PRESET_DIR = Path(__file__).resolve().parents[2] / "copilot_sdk" / "scoring" / "presets"
 SEED_PATH = PRESET_DIR / "purchasing_seed.json"
 BOOTSTRAP_PATH = PRESET_DIR / "purchasing_bootstrap.json"
+EXISTING_CATEGORIES = (
+    "protein",
+    "produce",
+    "dairy",
+    "dry_goods",
+    "beverages",
+)
+EXISTING_ACTIONS = (
+    "order_as_planned",
+    "order_more",
+    "order_less",
+    "skip",
+)
+EXISTING_FACTORS = (
+    "expected_demand",
+    "day_of_week",
+    "weather_forecast",
+    "event_flag",
+    "historical_waste",
+    "supplier_lead_time",
+)
 
 
 def load_seed_orders() -> list[dict]:
@@ -38,7 +59,7 @@ def build_verified_decisions(orders: list[dict], preset: PurchasingPreset) -> li
         {
             "category": order["category"],
             "factor_vector": [
-                float(order["factors"][factor])
+                float(order["factors"].get(factor, 0.5))
                 for factor in preset.shape.factor_names
             ],
             "is_correct": bool(order["is_correct"]),
@@ -58,10 +79,14 @@ def test_preset_loads():
     assert preset.name == "purchasing"
     assert preset.shape.n_categories == 5
     assert preset.shape.n_actions == 4
-    assert preset.shape.n_factors == 6
+    assert preset.shape.n_factors == 7
     assert len(preset.shape.category_names) == 5
     assert len(preset.shape.action_names) == 4
-    assert len(preset.shape.factor_names) == 6
+    assert len(preset.shape.factor_names) == 7
+    assert preset.shape.category_names == EXISTING_CATEGORIES
+    assert preset.shape.action_names == EXISTING_ACTIONS
+    assert preset.shape.factor_names[:6] == EXISTING_FACTORS
+    assert preset.shape.factor_names[6] == "price_memory_index"
     assert preset.penalty_ratio == 3.0
     assert preset.eta_confirm == 0.05
     assert preset.eta_override == 0.01
@@ -118,12 +143,12 @@ def test_seed_factors_match_preset():
     for order in orders:
         assert order["category"] in preset.shape.category_names
         assert order["action_taken"] in preset.shape.action_names
-        assert set(order["factors"]) == factor_names
+        assert set(order["factors"]) == factor_names - {"price_memory_index"}
         assert all(0.0 <= float(value) <= 1.0 for value in order["factors"].values())
 
 
 def test_bootstrap_centroids_shape():
-    assert PurchasingPreset().bootstrap_centroids.shape == (5, 4, 6)
+    assert PurchasingPreset().bootstrap_centroids.shape == (5, 4, 7)
 
 
 def test_bootstrap_produces_target_correct_action_probability():
@@ -144,7 +169,7 @@ def test_bootstrap_produces_target_correct_action_probability():
 
     for order in orders:
         factors = np.array(
-            [float(order["factors"][factor]) for factor in preset.shape.factor_names],
+            [float(order["factors"].get(factor, 0.5)) for factor in preset.shape.factor_names],
             dtype=float,
         )
         result = scorer.score(factors, category_index[order["category"]])

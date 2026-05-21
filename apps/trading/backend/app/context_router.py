@@ -20,6 +20,7 @@ _FACTOR_NAMES = (
     "position_size",
     "time_horizon",
     "market_regime",
+    "signal_confidence",
 )
 
 
@@ -119,6 +120,7 @@ def similar_trades(
     position_size: float,
     time_horizon: float,
     market_regime: float,
+    signal_confidence: float = 0.5,
     n: int = 5,
 ) -> dict[str, Any]:
     seed = _load_json_optional("trading_seed_v2.json")
@@ -132,6 +134,7 @@ def similar_trades(
         position_size,
         time_horizon,
         market_regime,
+        signal_confidence,
     ]
     matches = []
     for trade in seed:
@@ -176,4 +179,3 @@ def save_trade_metadata(payload: dict[str, Any]) -> dict[str, Any]:
 @router.get("/trade-metadata")
 def get_trade_metadata() -> dict[str, Any]:
     return _load_json_optional("trade_metadata.json") or {}
-

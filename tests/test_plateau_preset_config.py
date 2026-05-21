@@ -49,14 +49,14 @@ def test_purchasing_is_plateau_baseline() -> None:
 def test_plateau_window_ordering_by_cells() -> None:
     presets = {name: preset_cls() for name, preset_cls in PRESET_REGISTRY.items()}
 
-    assert presets["trading"].shape.n_categories * presets["trading"].shape.n_actions == 15
+    assert presets["trading"].shape.n_categories * presets["trading"].shape.n_actions == 20
     assert presets["purchasing"].shape.n_categories * presets["purchasing"].shape.n_actions == 20
     assert presets["s2p"].shape.n_categories * presets["s2p"].shape.n_actions == 25
     assert presets["dataops"].shape.n_categories * presets["dataops"].shape.n_actions == 30
 
+    assert presets["trading"].plateau_config.plateau_window == presets["purchasing"].plateau_config.plateau_window
     assert (
-        presets["trading"].plateau_config.plateau_window
-        < presets["purchasing"].plateau_config.plateau_window
+        presets["purchasing"].plateau_config.plateau_window
         < presets["s2p"].plateau_config.plateau_window
         < presets["dataops"].plateau_config.plateau_window
     )

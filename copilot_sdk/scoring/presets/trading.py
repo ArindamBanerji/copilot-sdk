@@ -11,6 +11,10 @@ from copilot_sdk.evolution import PlateauConfig
 from copilot_sdk.scoring.config import DomainShape
 
 
+_LEGACY_ACTION_CONFIDENCE = (0.65, 0.55, 0.50)
+_NEUTRAL_SKIP_CENTROID = (0.30, 0.35, 0.50, 0.50, 0.50, 0.25, 0.40)
+
+
 class TradingPreset:
     @property
     def name(self) -> str:
@@ -20,8 +24,8 @@ class TradingPreset:
     def shape(self) -> DomainShape:
         return DomainShape(
             n_categories=5,
-            n_actions=3,
-            n_factors=6,
+            n_actions=4,
+            n_factors=7,
             category_names=(
                 "equity_long",
                 "equity_short",
@@ -29,7 +33,7 @@ class TradingPreset:
                 "options",
                 "etf",
             ),
-            action_names=("buy", "hold", "sell"),
+            action_names=("buy", "hold", "sell", "skip_recommended"),
             factor_names=(
                 "conviction",
                 "research_depth",
@@ -37,12 +41,14 @@ class TradingPreset:
                 "position_size",
                 "time_horizon",
                 "market_regime",
+                "signal_confidence",
             ),
         )
 
     @property
     def penalty_ratio(self) -> float:
-        return 2.0
+        # Trading errors are recoverable via stop loss, but still asymmetric.
+        return 3.0
 
     @property
     def eta_confirm(self) -> float:
@@ -50,6 +56,7 @@ class TradingPreset:
 
     @property
     def eta_override(self) -> float:
+        # Calibration pending with pilot data.
         return 0.01
 
     @property
@@ -57,12 +64,17 @@ class TradingPreset:
         return 0.1
 
     @property
+    def q_window(self) -> int:
+        # Theorem-validated / math synopsis v14; active traders converge over months.
+        return 400
+
+    @property
     def plateau_config(self) -> PlateauConfig:
-        # C*A=15; window=round(10*sqrt((C*A)/20))=9; cooldown=5*window.
+        # C*A=20; window=round(10*sqrt((C*A)/20))=10; cooldown=5*window.
         return PlateauConfig(
-            plateau_window=9,
+            plateau_window=10,
             min_improvement_rate=0.20,
-            plateau_cooldown=45,
+            plateau_cooldown=50,
         )
 
     @property
@@ -76,8 +88,21 @@ def _load_bootstrap(preset: TradingPreset) -> np.ndarray:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
         centroids = np.asarray(data["centroids"], dtype=np.float64)
+        if centroids.shape == (5, 3, 6) and expected_shape == (5, 4, 7):
+            return _migrate_legacy_centroids(centroids)
         if centroids.shape != expected_shape:
             raise ValueError(f"trading bootstrap shape {centroids.shape} != {expected_shape}")
         return centroids
     except Exception:
         return np.full(expected_shape, 0.5, dtype=np.float64)
+
+
+def _migrate_legacy_centroids(centroids: np.ndarray) -> np.ndarray:
+    migrated = np.full((5, 4, 7), 0.5, dtype=np.float64)
+    migrated[:, :3, :6] = centroids
+    for action_index, signal_confidence in enumerate(_LEGACY_ACTION_CONFIDENCE):
+        migrated[:, action_index, 6] = signal_confidence
+    # Existing categories are instrument classes, not strategy styles; use the
+    # conservative neutral skip profile for every category until pilot data lands.
+    migrated[:, 3, :] = np.asarray(_NEUTRAL_SKIP_CENTROID, dtype=np.float64)
+    return migrated

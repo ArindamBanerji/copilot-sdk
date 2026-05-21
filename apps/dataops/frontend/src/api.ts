@@ -41,6 +41,7 @@ import type {
   SelfCentroidHistoryResponse,
   SelfDecisionExplorerResponse,
   TransformationsResponse,
+  TransferStatusResponse,
 } from "./types";
 
 export const BASE = import.meta.env.VITE_API_URL || "http://localhost:8030";
@@ -157,6 +158,10 @@ export async function getAeImpact(): Promise<AEImpact> {
 
 export async function getConservationHistory(): Promise<ConservationHistory> {
   return apiGet<ConservationHistory>("/api/ae/conservation-history");
+}
+
+export async function getTransferStatus(): Promise<TransferStatusResponse | null> {
+  return safeApiGet<TransferStatusResponse>("/api/ae/transfer-status");
 }
 
 export async function getConservationStatus(): Promise<ConservationState> {
