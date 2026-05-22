@@ -19,6 +19,7 @@ for path in (REPO_ROOT, GAE_PATH):
         sys.path.insert(0, str(path))
 
 from .context_router import router as context_router  # noqa: E402
+from .routers.data_import import router as data_import_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
@@ -95,6 +96,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     )
     mount_self_computation_router(app, _graph_store(scoring_db))
     app.include_router(context_router, prefix="/api/context")
+    app.include_router(data_import_router)
 
     @app.get("/health")
     def health() -> dict[str, str]:
