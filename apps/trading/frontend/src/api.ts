@@ -14,6 +14,7 @@ import type {
   TradeHistoryDecision,
   TradeMetadata,
   TrajectoryResponse,
+  TrustAnalysisResponse,
 } from "./types";
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8010";
@@ -178,6 +179,10 @@ export function fetchAuditTrail(decisionId?: string): Promise<SelfAuditTrailResp
 
 export function getFingerprint(): Promise<FingerprintResponse> {
   return apiGet<FingerprintResponse>("/api/fingerprint");
+}
+
+export function getTrustAnalysis(): Promise<TrustAnalysisResponse | null> {
+  return safeApiGet<TrustAnalysisResponse>("/api/context/trust-analysis");
 }
 
 export function scoreTrade(payload: unknown): Promise<ScoreResponse> {

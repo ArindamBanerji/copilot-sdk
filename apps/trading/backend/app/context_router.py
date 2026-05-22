@@ -9,6 +9,9 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
 
+from app.factors.registry import ALL_FACTOR_NAMES, TRADING_FACTOR_COMPUTERS, compute_factors
+from app.routers.data_import import _trade_store_ref
+
 
 router = APIRouter(tags=["context"])
 _DEFAULT_DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -75,6 +78,82 @@ def _trade_vector(trade: dict[str, Any]) -> list[float]:
     return [float(trade.get(name, 0.0) or 0.0) for name in _FACTOR_NAMES]
 
 
+def _as_trade_dict(trade: Any) -> dict[str, Any]:
+    if isinstance(trade, dict):
+        return trade
+    if hasattr(trade, "to_dict"):
+        return trade.to_dict()
+    return {}
+
+
+def _population_variance(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    average = sum(values) / len(values)
+    return sum((value - average) ** 2 for value in values) / len(values)
+
+
+def _trust_label(factor: str, variance: float, n_samples: int) -> str:
+    if factor not in TRADING_FACTOR_COMPUTERS:
+        return "not_computed"
+    if n_samples == 0:
+        return "insufficient_data"
+    if variance < 0.01:
+        return "highly_trusted"
+    if variance < 0.03:
+        return "trusted"
+    if variance < 0.08:
+        return "moderate"
+    if variance < 0.15:
+        return "noisy"
+    return "very_noisy"
+
+
+def _trust_scores(trades: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    computed = [compute_factors(trade) for trade in trades[:500]]
+    scores: dict[str, dict[str, Any]] = {}
+    for factor in ALL_FACTOR_NAMES:
+        values = [float(row.get(factor, 0.5)) for row in computed]
+        n_samples = len(values)
+        average = sum(values) / n_samples if n_samples else 0.5
+        variance = _population_variance(values)
+        sigma = math.sqrt(variance)
+        scores[factor] = {
+            "variance": round(variance, 6),
+            "mean": round(average, 6),
+            "n_samples": n_samples,
+            "trust_label": _trust_label(factor, variance, n_samples),
+            "sigma": round(sigma, 6),
+        }
+    return scores
+
+
+def _hero_insight(scores: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
+    implemented = [
+        factor
+        for factor in ALL_FACTOR_NAMES
+        if factor in TRADING_FACTOR_COMPUTERS and scores[factor]["n_samples"] > 0
+    ]
+    if len(implemented) < 2:
+        return None
+    overused = max(implemented, key=lambda factor: scores[factor]["variance"])
+    underused = min(implemented, key=lambda factor: scores[factor]["variance"])
+    if overused == underused:
+        return None
+    overused_sigma = float(scores[overused]["sigma"])
+    underused_sigma = float(scores[underused]["sigma"])
+    return {
+        "overused_factor": overused,
+        "overused_sigma": overused_sigma,
+        "underused_factor": underused,
+        "underused_sigma": underused_sigma,
+        "message": (
+            f"{overused.replace('_', ' ')} is varying most across recent trades; "
+            f"{underused.replace('_', ' ')} is currently the steadiest implemented signal."
+        ),
+    }
+
+
 @router.get("/market-snapshot")
 def market_snapshot() -> dict[str, Any]:
     return _load_json("market_snapshot.json")
@@ -109,6 +188,20 @@ def analytics() -> dict[str, Any]:
     if isinstance(payload, dict):
         return payload
     return _empty_analytics()
+
+
+@router.get("/trust-analysis")
+def trust_analysis() -> dict[str, Any]:
+    trades = [_as_trade_dict(trade) for trade in list(_trade_store_ref)]
+    trades = [trade for trade in trades if trade]
+    scores = _trust_scores(trades)
+    return {
+        "factors": list(ALL_FACTOR_NAMES),
+        "implemented": list(TRADING_FACTOR_COMPUTERS),
+        "trust_scores": scores,
+        "total_trades": len(trades),
+        "hero_insight": _hero_insight(scores) if trades else None,
+    }
 
 
 @router.get("/similar")

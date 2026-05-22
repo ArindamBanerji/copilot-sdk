@@ -1,11 +1,16 @@
 import type {
+  AuditPackResponse,
   AutoApproveStats,
+  CentroidResponse,
   ClusteringResponse,
   ConservationStatus,
   AuditTrailResponse,
+  ChainIntegrityResponse,
   ComplianceResponse,
   CrossGraphResponse,
+  DKWeightsResponse,
   DiscoveryResponse,
+  DriftResponse,
   DisruptionResponse,
   EvidenceTemplateResponse,
   EarlyWarningResponse,
@@ -32,6 +37,9 @@ import type {
   SupplierProfile,
   SupplierProfilesResponse,
   TrendSignal,
+  NoveltyHistoryResponse,
+  NoveltyStatusResponse,
+  ReceiptsResponse,
   ScoreInvoiceRequest,
   ScoreInvoiceResponse,
   SimilarResponse,
@@ -241,6 +249,42 @@ export async function fetchS2PWhatIf(additionalCorrect: number, additionalIncorr
 
 export async function fetchS2PSummary(): Promise<PerformanceSummaryResponse | null> {
   return apiGet<PerformanceSummaryResponse>("/api/s2p/performance/summary").catch(() => null);
+}
+
+export async function getNoveltyStatus(): Promise<NoveltyStatusResponse | null> {
+  return apiGet<NoveltyStatusResponse>("/api/s2p/novelty/status").catch(() => null);
+}
+
+export async function getNoveltyHistory(limit = 50): Promise<NoveltyHistoryResponse | null> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return apiGet<NoveltyHistoryResponse>(`/api/s2p/novelty/history?${params.toString()}`).catch(() => null);
+}
+
+export async function getCentroid(category: string, action: string): Promise<CentroidResponse | null> {
+  return apiGet<CentroidResponse>(
+    `/api/s2p/explorer/centroid/${encodeURIComponent(category)}/${encodeURIComponent(action)}`
+  ).catch(() => null);
+}
+
+export async function getDrift(category: string): Promise<DriftResponse | null> {
+  return apiGet<DriftResponse>(`/api/s2p/explorer/drift/${encodeURIComponent(category)}`).catch(() => null);
+}
+
+export async function getDKWeights(): Promise<DKWeightsResponse | null> {
+  return apiGet<DKWeightsResponse>("/api/s2p/explorer/dk-weights").catch(() => null);
+}
+
+export async function getReceipts(limit = 50): Promise<ReceiptsResponse | null> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return apiGet<ReceiptsResponse>(`/api/s2p/evidence/receipts?${params.toString()}`).catch(() => null);
+}
+
+export async function getChainIntegrity(): Promise<ChainIntegrityResponse | null> {
+  return apiGet<ChainIntegrityResponse>("/api/s2p/evidence/chain-integrity").catch(() => null);
+}
+
+export async function getAuditPack(): Promise<AuditPackResponse | null> {
+  return apiGet<AuditPackResponse>("/api/s2p/evidence/audit-pack").catch(() => null);
 }
 
 export async function fetchAutoApproveStats(): Promise<AutoApproveStats | null> {

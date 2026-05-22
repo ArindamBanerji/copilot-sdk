@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchPreviewQueue } from "../api";
+import { CentroidExplorerPanel } from "../components/CentroidExplorerPanel";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
 import { EarlyWarningPanel } from "../components/EarlyWarningPanel";
 import { FactorFingerprintPanel } from "../components/FactorFingerprintPanel";
@@ -75,6 +76,7 @@ export function InsightScreen() {
       <EarlyWarningPanel />
       <LeakageDetectionPanel />
       <ProcessSignalsPanel supplierId={supplierId(selected)} />
+      <CentroidExplorerPanel />
     </section>
   );
 }

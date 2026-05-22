@@ -1,0 +1,269 @@
+"""Offline Phase 0 CLI for Trading Copilot."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import types
+from datetime import datetime, timezone
+from pathlib import Path
+from statistics import mean
+from typing import Any
+
+
+BACKEND_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+for path in (BACKEND_ROOT, REPO_ROOT):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
+
+# Avoid executing app/__init__.py, which imports FastAPI app.main. The CLI only
+# needs specific offline modules under app/.
+if "app" not in sys.modules:
+    app_package = types.ModuleType("app")
+    app_package.__path__ = [str(BACKEND_ROOT / "app")]  # type: ignore[attr-defined]
+    sys.modules["app"] = app_package
+
+from app.connectors.csv_connector import CSVConnector  # noqa: E402
+from app.factors.registry import (  # noqa: E402
+    ALL_FACTOR_NAMES,
+    TRADING_FACTOR_COMPUTERS,
+    compute_factors,
+)
+
+
+DEFAULT_CONFIG_DIR = os.path.expanduser("~/.ci-trading")
+CONFIG_FILENAME = "config.json"
+TRADES_FILENAME = "trades.json"
+
+
+def _config_path(config_dir: str | os.PathLike[str]) -> Path:
+    return Path(config_dir).expanduser() / CONFIG_FILENAME
+
+
+def _trades_path(config_dir: str | os.PathLike[str]) -> Path:
+    return Path(config_dir).expanduser() / TRADES_FILENAME
+
+
+def _ensure_config_dir(config_dir: str | os.PathLike[str]) -> Path:
+    path = Path(config_dir).expanduser()
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _load_config(config_dir: str | os.PathLike[str]) -> dict[str, Any] | None:
+    path = _config_path(config_dir)
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _save_config(config: dict[str, Any], config_dir: str | os.PathLike[str]) -> None:
+    _ensure_config_dir(config_dir)
+    _config_path(config_dir).write_text(json.dumps(config, indent=2), encoding="utf-8")
+
+
+def _load_trades(config_dir: str | os.PathLike[str]) -> list[dict[str, Any]]:
+    path = _trades_path(config_dir)
+    if not path.exists():
+        return []
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return data if isinstance(data, list) else []
+
+
+def _save_trades(trades: list[dict[str, Any]], config_dir: str | os.PathLike[str]) -> None:
+    _ensure_config_dir(config_dir)
+    _trades_path(config_dir).write_text(json.dumps(trades, indent=2), encoding="utf-8")
+
+
+def _initialized(config_dir: str | os.PathLike[str]) -> bool:
+    return _load_config(config_dir) is not None
+
+
+def _print_factor_table(factors: dict[str, float]) -> None:
+    print("Factor scores")
+    for name in ALL_FACTOR_NAMES:
+        value = float(factors.get(name, 0.5))
+        bar = "#" * int(round(value * 20))
+        print(f"{name:20} {value:0.3f} {bar}")
+
+
+def cmd_init(args: argparse.Namespace) -> int:
+    config_dir = _ensure_config_dir(args.config_dir)
+    config_path = _config_path(config_dir)
+    trades_path = _trades_path(config_dir)
+
+    if not config_path.exists():
+        config = {
+            "created": datetime.now(timezone.utc).isoformat(),
+            "version": "0.1.0",
+            "broker": None,
+            "data_dir": str(config_dir),
+        }
+        _save_config(config, config_dir)
+        print(f"Created config: {config_path}")
+    else:
+        print(f"Config already exists: {config_path}")
+
+    if not trades_path.exists():
+        _save_trades([], config_dir)
+        print(f"Created trades store: {trades_path}")
+    else:
+        print(f"Trades store already exists: {trades_path}")
+    return 0
+
+
+def cmd_import(args: argparse.Namespace) -> int:
+    if not _initialized(args.config_dir):
+        print("Trading CLI is not initialized. Run init first.", file=sys.stderr)
+        return 1
+
+    csv_path = Path(args.file).expanduser()
+    if not csv_path.exists():
+        print(f"CSV file not found: {csv_path}", file=sys.stderr)
+        return 1
+
+    parsed = CSVConnector().import_from_file(str(csv_path))
+    if not parsed:
+        print("No trades parsed from CSV.", file=sys.stderr)
+        return 1
+
+    existing = _load_trades(args.config_dir)
+    seen = {str(trade.get("trade_id")) for trade in existing}
+    imported: list[dict[str, Any]] = []
+    duplicates = 0
+    for trade in parsed:
+        row = trade.to_dict()
+        trade_id = str(row["trade_id"])
+        if trade_id in seen:
+            duplicates += 1
+            continue
+        seen.add(trade_id)
+        imported.append(row)
+
+    all_trades = [*existing, *imported]
+    _save_trades(all_trades, args.config_dir)
+    print(f"Imported: {len(imported)}")
+    print(f"Duplicates: {duplicates}")
+    print(f"Total trades: {len(all_trades)}")
+    return 0
+
+
+def cmd_score(args: argparse.Namespace) -> int:
+    trades = _load_trades(args.config_dir)
+    if not trades:
+        print("No trades available. Import trades first.", file=sys.stderr)
+        return 1
+
+    if args.trade_id:
+        trade = next((row for row in trades if row.get("trade_id") == args.trade_id), None)
+        if trade is None:
+            print(f"Trade not found: {args.trade_id}", file=sys.stderr)
+            return 1
+        print(f"Trade: {args.trade_id}")
+        _print_factor_table(compute_factors(trade))
+        print("Offline factor scoring only; no decision recorded.")
+        return 0
+
+    rows = [compute_factors(trade) for trade in trades]
+    print(f"Trades scored: {len(rows)}")
+    print("Factor summary")
+    for name in ALL_FACTOR_NAMES:
+        values = [float(row.get(name, 0.5)) for row in rows]
+        print(
+            f"{name:20} avg={mean(values):0.3f} "
+            f"min={min(values):0.3f} max={max(values):0.3f}"
+        )
+    print("Offline factor scoring only; no decision recorded.")
+    return 0
+
+
+def cmd_trust(args: argparse.Namespace) -> int:
+    trades = _load_trades(args.config_dir)
+    if not trades:
+        print("No trades available. Import trades first.", file=sys.stderr)
+        return 1
+
+    implemented = set(TRADING_FACTOR_COMPUTERS)
+    neutral = [name for name in ALL_FACTOR_NAMES if name not in implemented]
+    print("Implemented factors:")
+    for name in sorted(implemented):
+        print(f"- {name}")
+    print("Neutral factors:")
+    for name in neutral:
+        print(f"- {name}")
+    print(f"Neutral factor count: {len(neutral)}")
+
+    sample = trades[:100]
+    print("Implemented factor variance:")
+    for name in sorted(implemented):
+        values = [float(compute_factors(trade).get(name, 0.5)) for trade in sample]
+        avg = mean(values)
+        variance = mean([(value - avg) ** 2 for value in values])
+        print(f"{name:20} variance={variance:0.6f}")
+    return 0
+
+
+def cmd_conservation(args: argparse.Namespace) -> int:
+    trades = _load_trades(args.config_dir)
+    if not trades:
+        print("No trades available. Import trades first.", file=sys.stderr)
+        return 1
+
+    groups: dict[str, int] = {}
+    for trade in trades:
+        key = str(trade.get("category") or trade.get("strategy_tag") or "unknown")
+        groups[key] = groups.get(key, 0) + 1
+
+    print("Offline conservation proxy")
+    for key in sorted(groups):
+        count = groups[key]
+        state = "GREEN" if count >= 50 else "AMBER" if count >= 20 else "RED"
+        print(f"{key:20} {count:4d} {state}")
+    print("Full conservation requires the scoring server.")
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="ci-trading")
+    parser.add_argument("--config-dir", default=DEFAULT_CONFIG_DIR)
+
+    subparsers = parser.add_subparsers(dest="command")
+
+    init_parser = subparsers.add_parser("init", help="Initialize local Trading CLI storage.")
+    init_parser.set_defaults(func=cmd_init)
+
+    import_parser = subparsers.add_parser("import", help="Import trades from CSV.")
+    import_parser.add_argument("--file", required=True)
+    import_parser.set_defaults(func=cmd_import)
+
+    score_parser = subparsers.add_parser("score", help="Compute offline factor scores.")
+    score_parser.add_argument("--trade-id")
+    score_parser.set_defaults(func=cmd_score)
+
+    trust_parser = subparsers.add_parser("trust", help="Summarize factor computer coverage.")
+    trust_parser.set_defaults(func=cmd_trust)
+
+    conservation_parser = subparsers.add_parser(
+        "conservation",
+        help="Show an offline conservation proxy.",
+    )
+    conservation_parser.set_defaults(func=cmd_conservation)
+
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if not hasattr(args, "func"):
+        parser.print_help()
+        return 1
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

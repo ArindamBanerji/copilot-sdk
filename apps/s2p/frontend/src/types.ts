@@ -739,3 +739,111 @@ export interface PerformanceSummaryResponse {
   penalty_ratio?: number;
   penaltyRatio?: number;
 }
+
+export interface NoveltyPerCategory {
+  total_in_window?: number;
+  novelty_count?: number;
+  novelty_rate?: number;
+  alert_active?: boolean;
+  [key: string]: number | boolean | undefined;
+}
+
+export interface NoveltyStatusResponse {
+  window_size: number;
+  distance_threshold: number;
+  total_in_window: number;
+  novelty_count: number;
+  novelty_rate: number;
+  alert_active: boolean;
+  per_category: Record<string, NoveltyPerCategory | number>;
+}
+
+export interface NoveltyHistoryEntry {
+  sequence?: number;
+  category?: string;
+  nearest_distance?: number;
+  is_novel?: boolean;
+  vector_norm?: number;
+  timestamp?: string;
+  [key: string]: unknown;
+}
+
+export interface NoveltyHistoryResponse {
+  entries: NoveltyHistoryEntry[];
+  total_in_window: number;
+  alert_active: boolean;
+}
+
+export interface CentroidResponse {
+  category: number;
+  category_name: string;
+  action: number;
+  action_name: string;
+  centroid: number[];
+  factors: string[];
+}
+
+export interface DriftResponse {
+  category: number;
+  category_name: string;
+  factors: string[];
+  centroids: Record<string, number[]>;
+}
+
+export interface DKWeightsResponse {
+  factors: string[];
+  weights: number[];
+  available: boolean;
+}
+
+export interface OutcomeReceipt {
+  receipt_id: string;
+  invoice_id: string;
+  timestamp: string;
+  scored_action: string;
+  confidence?: number;
+  factor_vector?: number[];
+  category: string;
+  human_action: string;
+  override_reason?: string | null;
+  reward?: number;
+  centroid_updated?: boolean;
+  conservation_state_before?: string;
+  conservation_state_after?: string;
+  verified_count_before?: number;
+  verified_count_after?: number;
+  previous_hash?: string;
+  receipt_hash: string;
+}
+
+export interface ReceiptStats {
+  total_receipts: number;
+  confirms: number;
+  overrides: number;
+  override_rate: number;
+  chain_valid: boolean;
+}
+
+export interface ReceiptsResponse {
+  receipts: OutcomeReceipt[];
+  stats: ReceiptStats;
+}
+
+export interface ChainIntegrityResponse {
+  verified: boolean;
+  count?: number;
+  broken_at?: number | null;
+  reason?: string;
+  [key: string]: unknown;
+}
+
+export interface AuditPackResponse {
+  export_timestamp: string;
+  receipt_count: number;
+  chain_integrity: ChainIntegrityResponse;
+  conservation_state: Record<string, unknown>;
+  override_distribution: Record<string, number>;
+  override_count: number;
+  confirm_count: number;
+  receipts: OutcomeReceipt[];
+}

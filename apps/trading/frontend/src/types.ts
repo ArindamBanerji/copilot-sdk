@@ -177,6 +177,30 @@ export interface FingerprintResponse {
   [key: string]: unknown;
 }
 
+export interface TrustScore {
+  variance: number;
+  mean: number;
+  nSamples: number;
+  trustLabel: string;
+  sigma: number;
+}
+
+export interface HeroInsight {
+  overusedFactor: string;
+  overusedSigma: number;
+  underusedFactor: string;
+  underusedSigma: number;
+  message: string;
+}
+
+export interface TrustAnalysisResponse {
+  factors: string[];
+  implemented: string[];
+  trustScores: Record<string, TrustScore>;
+  totalTrades: number;
+  heroInsight: HeroInsight | null;
+}
+
 export interface TrajectoryResponse {
   currentIks?: number;
   iks?: number;

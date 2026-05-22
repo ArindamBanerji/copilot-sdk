@@ -5,6 +5,7 @@ import { AutoApprovePanel } from "../components/AutoApprovePanel";
 import { ConservationMiniGauge } from "../components/ConservationMiniGauge";
 import { ControlTowerPanel } from "../components/ControlTowerPanel";
 import { FinancialImpactCard } from "../components/FinancialImpactCard";
+import { NoveltyStatusPanel } from "../components/NoveltyStatusPanel";
 import { ProcessContextCard } from "../components/ProcessContextCard";
 import type { ConservationStatus, InvoiceException, PreviewQueueResponse } from "../types";
 
@@ -102,6 +103,8 @@ export function DashboardScreen() {
         </article>
         <ConservationMiniGauge conservation={conservation} />
       </div>
+
+      <NoveltyStatusPanel />
 
       <AutoApprovePanel />
 

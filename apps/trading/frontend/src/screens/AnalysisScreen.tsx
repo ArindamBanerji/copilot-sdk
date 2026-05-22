@@ -12,6 +12,7 @@ import ResearchImpactChart from "../components/ResearchImpactChart";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
 import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
+import TrustRadarPanel from "../components/TrustRadarPanel";
 import type { Analytics, FingerprintResponse } from "../types";
 
 const displayNames: Record<string, string> = {
@@ -102,6 +103,7 @@ export default function AnalysisScreen() {
 
   return (
     <div className="flex flex-col gap-4">
+      <TrustRadarPanel />
       <ContrastCard analytics={analytics} />
       <ProfileArchetype fingerprint={fingerprint} />
       <FingerprintPanel
