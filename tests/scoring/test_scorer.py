@@ -24,6 +24,15 @@ from copilot_sdk.backend.scoring_router import _json_safe
 from copilot_sdk.rl import BinaryRewardFunction
 
 
+@pytest.fixture
+def store():
+    graph_store = InMemoryGraphStore(domain="mock")
+    try:
+        yield graph_store
+    finally:
+        graph_store.close()
+
+
 def build_compounding_scorer(
     mock_preset,
     store,
@@ -39,9 +48,8 @@ def build_compounding_scorer(
     )
     return CompoundingScorer(
         mock_preset,
-        store,
         gae_scorer,
-        graph_store=graph_store,
+        graph_store=graph_store or store,
         reward_function=reward_function,
         credit_assigner=credit_assigner,
         exploration_policy=exploration_policy,
@@ -73,7 +81,7 @@ def test_from_preset_with_graph_store(monkeypatch, mock_preset, tmp_path):
     try:
         assert scorer._graph_store is graph_store
     finally:
-        scorer.store.close()
+        scorer.graph_store.close()
 
 
 def test_scorer_from_preset_creates_sqlite_graph_store(monkeypatch, mock_preset, tmp_path):
@@ -86,7 +94,7 @@ def test_scorer_from_preset_creates_sqlite_graph_store(monkeypatch, mock_preset,
     try:
         assert isinstance(scorer._graph_store, SQLiteGraphStore)
     finally:
-        scorer.store.close()
+        scorer.graph_store.close()
 
 
 def test_scorer_from_preset_accepts_custom_graph_store(monkeypatch, mock_preset, tmp_path):
@@ -101,7 +109,7 @@ def test_scorer_from_preset_accepts_custom_graph_store(monkeypatch, mock_preset,
     try:
         assert scorer._graph_store is graph_store
     finally:
-        scorer.store.close()
+        scorer.graph_store.close()
 
 
 def test_from_preset_with_rl_components(monkeypatch, mock_preset, tmp_path):
@@ -122,7 +130,7 @@ def test_from_preset_with_rl_components(monkeypatch, mock_preset, tmp_path):
         assert scorer._credit is credit
         assert scorer._explorer is explorer
     finally:
-        scorer.store.close()
+        scorer.graph_store.close()
 
 
 def test_score_returns_valid_result(mock_preset, store):
@@ -148,8 +156,7 @@ def test_scorer_score_writes_to_graph_store(mock_preset, store):
     assert decision["decision_id"] == result.decision_id
     assert decision["recommended_action"] == result.action
     assert decision["metadata"]["recommended_index"] == result.action_index
-    with pytest.raises(KeyError):
-        store.get_decision(result.decision_id)
+    assert store.get_decision(result.decision_id) is None
 
 
 def test_score_probabilities_sum_to_1(mock_preset, store):
@@ -181,8 +188,8 @@ def test_learn_changes_centroids(mock_preset, store):
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.centroid_delta > 0
-    assert store.count_verified() == 1
-    assert store.get_centroid_checkpoints()[-1]["iks"] == learn.iks_after
+    assert store.count_verified("mock") == 1
+    assert store.get_centroid_checkpoints("mock")[-1]["iks"] == learn.iks_after
 
 
 def test_scorer_learn_writes_outcome_to_graph_store(mock_preset, store):
@@ -192,12 +199,12 @@ def test_scorer_learn_writes_outcome_to_graph_store(mock_preset, store):
 
     scorer.learn(result.decision_id, result.action)
 
-    verified = graph_store.get_verified_decisions()
+    verified = graph_store.get_verified_decisions("test")
     assert len(verified) == 1
     assert verified[0]["decision_id"] == result.decision_id
     assert verified[0]["actual_action"] == result.action
     assert verified[0]["is_correct"] is True
-    assert store.count_verified() == 0
+    assert store.count_verified("mock") == 0
 
 
 def test_scorer_learn_writes_centroids_to_graph_store(mock_preset, store):
@@ -207,12 +214,12 @@ def test_scorer_learn_writes_centroids_to_graph_store(mock_preset, store):
 
     learn = scorer.learn(result.decision_id, result.action)
 
-    checkpoints = graph_store.get_centroid_checkpoints()
+    checkpoints = graph_store.get_centroid_checkpoints("test")
     assert len(checkpoints) == 1
     assert checkpoints[0]["decision_id"] == result.decision_id
     assert checkpoints[0]["category"] == "alpha"
     assert checkpoints[0]["metadata"]["iks"] == learn.iks_after
-    assert store.get_centroid_checkpoints() == []
+    assert store.get_centroid_checkpoints("mock") == []
 
 
 def test_scorer_learn_metadata_roundtrip(mock_preset, store):
@@ -237,7 +244,7 @@ def test_compounding_scorer_learn_allows_on_empty_store(mock_preset, store):
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.centroid_delta > 0
-    assert store.count_verified() == 1
+    assert store.count_verified("mock") == 1
 
 
 def test_compounding_scorer_learn_pauses_when_below_threshold(mock_preset, store):
@@ -256,7 +263,7 @@ def test_compounding_scorer_learn_pauses_when_below_threshold(mock_preset, store
     assert learn["verified_count"] == 25
     assert learn["correct_count"] == 0
     np.testing.assert_allclose(scorer.gae_scorer.centroids, before_centroids)
-    assert store.count_verified() == 25
+    assert store.count_verified("mock") == 25
 
 
 def test_compounding_scorer_learn_pauses_when_low_verified_threshold_exceeds_one(
@@ -278,19 +285,19 @@ def test_compounding_scorer_learn_pauses_when_low_verified_threshold_exceeds_one
     assert learn["verified_count"] == 1
     assert learn["correct_count"] == 0
     np.testing.assert_allclose(scorer.gae_scorer.centroids, before_centroids)
-    assert store.count_verified() == 1
+    assert store.count_verified("mock") == 1
 
 
 def test_compounding_scorer_learn_allows_when_above_threshold(mock_preset, store):
     scorer = build_compounding_scorer(mock_preset, store)
     _seed_verified_history(store, total=100, correct=90, overrides=50)
     result = scorer.score(sample_factors(), "alpha")
-    before_verified = store.count_verified()
+    before_verified = store.count_verified("mock")
 
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.centroid_delta > 0
-    assert store.count_verified() == before_verified + 1
+    assert store.count_verified("mock") == before_verified + 1
 
 
 def test_learn_without_rl_no_reward(mock_preset, store):
@@ -477,6 +484,52 @@ def test_scorer_exposes_graph_store_property(mock_preset, store):
     assert scorer.graph_store is scorer._graph_store
 
 
+def test_maybe_archive_exists(mock_preset, store):
+    scorer = build_compounding_scorer(mock_preset, store)
+
+    assert callable(getattr(scorer, "_maybe_archive"))
+
+
+def test_archive_triggered_on_learn(monkeypatch, mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+    monkeypatch.setattr(scorer, "_conservation_pause", lambda: None)
+    for index in range(801):
+        graph_store.write_decision(
+            "test",
+            category="alpha",
+            action="approve",
+            confidence=0.7,
+            factors=sample_factors(amount=0.1 + index * 0.001),
+            metadata={
+                "decision_id": f"archive-seed-{index}",
+                "category_index": 0,
+                "factor_vector": [0.1, 0.35, 0.45],
+                "recommended_index": 0,
+                "probabilities": [0.7, 0.3],
+                "created_at": float(index),
+            },
+        )
+    result = scorer.score(sample_factors(), "alpha")
+
+    scorer.learn(result.decision_id, result.action)
+
+    assert graph_store.count_decisions("test") == 800
+    assert graph_store.count_archived("test") == 2
+
+
+def test_maybe_archive_failure_is_non_fatal(monkeypatch, mock_preset, store):
+    scorer = build_compounding_scorer(mock_preset, store)
+    monkeypatch.setattr(scorer.graph_store, "count_decisions", lambda _domain: 801)
+
+    def fail_archive(*_args, **_kwargs):
+        raise RuntimeError("archive unavailable")
+
+    monkeypatch.setattr(scorer.graph_store, "archive_old_decisions", fail_archive)
+
+    scorer._maybe_archive()
+
+
 def test_get_phase_a_on_empty(mock_preset, store):
     graph_store = InMemoryGraphStore()
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
@@ -511,7 +564,7 @@ def test_get_phase_failure_returns_a(monkeypatch, mock_preset, store):
     graph_store = InMemoryGraphStore()
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
 
-    def fail_count_verified():
+    def fail_count_verified(_domain):
         raise RuntimeError("graph unavailable")
 
     monkeypatch.setattr(graph_store, "count_verified", fail_count_verified)
@@ -534,7 +587,7 @@ def test_compounding_scorer_conservation_from_graph_store(mock_preset, store):
     assert learn["verified_count"] == 1
     assert learn["correct_count"] == 0
     np.testing.assert_allclose(scorer.gae_scorer.centroids, before_centroids)
-    assert store.count_verified() == 0
+    assert store.count_verified("mock") == 0
 
 
 def test_compounding_scorer_no_graph_store_uses_sqlite(mock_preset, store):
@@ -554,8 +607,8 @@ def test_compounding_scorer_graph_store_counts_match(mock_preset, store):
     _seed_graph_history(graph_store, total=25, correct=0)
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
 
-    assert scorer._conservation_pause()["verified_count"] == graph_store.count_verified()
-    assert scorer._conservation_pause()["correct_count"] == graph_store.count_correct()
+    assert scorer._conservation_pause()["verified_count"] == graph_store.count_verified("test")
+    assert scorer._conservation_pause()["correct_count"] == graph_store.count_correct("test")
 
 
 def test_scorer_conservation_reads_from_graph_store(mock_preset, store):
@@ -585,7 +638,7 @@ def test_compounding_scorer_learn_store_failure_allows_learning(
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.centroid_delta > 0
-    assert store.count_verified() == 1
+    assert store.count_verified("mock") == 1
 
 
 def test_compounding_scorer_learn_count_method_failure_allows_learning(
@@ -598,17 +651,17 @@ def test_compounding_scorer_learn_count_method_failure_allows_learning(
     calls = {"count_verified": 0}
     original_count_verified = scorer._graph_store.count_verified
 
-    def flaky_count_verified():
+    def flaky_count_verified(domain):
         calls["count_verified"] += 1
         if calls["count_verified"] == 1:
             raise RuntimeError("count failure")
-        return original_count_verified()
+        return original_count_verified(domain)
 
     monkeypatch.setattr(scorer._graph_store, "count_verified", flaky_count_verified)
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.centroid_delta > 0
-    assert store.count_verified() == 1
+    assert store.count_verified("mock") == 1
 
 
 def test_scorer_no_store_bypass_for_decision_writes(monkeypatch, mock_preset, store):
@@ -616,11 +669,11 @@ def test_scorer_no_store_bypass_for_decision_writes(monkeypatch, mock_preset, st
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
 
     def fail(*_args, **_kwargs):
-        raise AssertionError("legacy DecisionStore data path used")
+        raise AssertionError("legacy storage data path used")
 
-    monkeypatch.setattr(store, "save_decision", fail)
+    monkeypatch.setattr(store, "save_decision", fail, raising=False)
     monkeypatch.setattr(store, "get_decision", fail)
-    monkeypatch.setattr(store, "save_outcome", fail)
+    monkeypatch.setattr(store, "save_outcome", fail, raising=False)
     monkeypatch.setattr(store, "save_centroids", fail)
     monkeypatch.setattr(store, "count_verified", fail)
     monkeypatch.setattr(store, "count_correct", fail)
@@ -630,7 +683,7 @@ def test_scorer_no_store_bypass_for_decision_writes(monkeypatch, mock_preset, st
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.centroid_delta > 0
-    assert graph_store.count_verified() == 1
+    assert graph_store.count_verified("test") == 1
 
 
 def test_scorer_has_no_direct_store_data_calls():
@@ -676,7 +729,7 @@ def test_iks_increases_with_correct_decisions(mock_preset, store):
         scorer.learn(result.decision_id, result.action)
 
     assert scorer._compute_iks() > 0
-    assert store.count_verified() == 110
+    assert store.count_verified("mock") == 110
 
 
 def test_export_json_contains_state(mock_preset, store, tmp_path):
@@ -716,7 +769,7 @@ def test_load_restores_centroids(monkeypatch, mock_preset, store, tmp_path):
     try:
         np.testing.assert_allclose(restored.gae_scorer.centroids, expected)
     finally:
-        restored.store.close()
+        restored.graph_store.close()
 
 
 def _seed_verified_history(
@@ -728,39 +781,40 @@ def _seed_verified_history(
     override_count = total - correct if overrides is None else overrides
     for index in range(total):
         decision_id = f"history-{index}"
-        store.save_decision(
-            decision_id=decision_id,
-            domain="mock",
+        stored_id = store.write_decision(
+            "mock",
             category="alpha",
-            category_index=0,
-            factors=sample_factors(amount=0.1 + index * 0.001),
-            factor_vector=[0.1 + index * 0.001, 0.35, 0.45],
-            recommended_action="approve",
-            recommended_index=0,
+            action="approve",
             confidence=0.75,
-            probabilities=[0.75, 0.25],
-            created_at=1000.0 + index,
+            factors=sample_factors(amount=0.1 + index * 0.001),
+            metadata={
+                "decision_id": decision_id,
+                "category_index": 0,
+                "factor_vector": [0.1 + index * 0.001, 0.35, 0.45],
+                "recommended_index": 0,
+                "probabilities": [0.75, 0.25],
+                "created_at": 1000.0 + index,
+            },
         )
         is_correct = index < correct
         is_override = index < override_count
-        store.save_outcome(
-            decision_id=decision_id,
+        store.write_outcome(
+            decision_id=stored_id,
             actual_action="review" if is_override else "approve",
-            actual_index=1 if is_override else 0,
             is_correct=is_correct,
-            verified_at=2000.0 + index,
+            metadata={"actual_index": 1 if is_override else 0, "verified_at": 2000.0 + index},
         )
 
 
 def _seed_graph_history(graph_store: InMemoryGraphStore, total: int, correct: int) -> None:
     for index in range(total):
         decision_id = graph_store.write_decision(
-            entity_id=f"history-{index}",
+            getattr(graph_store, "domain", "test"),
             category="alpha",
             action="approve",
             confidence=0.8,
             factors=sample_factors(amount=10.0 + index),
-            metadata={"created_at": 1000.0 + index},
+            metadata={"decision_id": f"history-{index}", "entity_id": f"history-{index}", "created_at": 1000.0 + index},
         )
         is_correct = index < correct
         graph_store.write_outcome(

@@ -16,33 +16,33 @@ def _client(store: InMemoryGraphStore | None = None) -> TestClient:
 def _seed_store() -> tuple[InMemoryGraphStore, dict[str, str]]:
     store = InMemoryGraphStore()
     d1 = store.write_decision(
-        entity_id="entity-1",
+        "test",
         category="schema",
         action="investigate",
         confidence=0.91,
         factors={"severity": 0.8},
-        metadata={"decision_id": "d1"},
+        metadata={"decision_id": "d1", "entity_id": "entity-1"},
     )
     d2 = store.write_decision(
-        entity_id="entity-2",
+        "test",
         category="quality",
         action="suppress",
         confidence=0.62,
         factors={"severity": 0.5},
-        metadata={"decision_id": "d2"},
+        metadata={"decision_id": "d2", "entity_id": "entity-2"},
     )
     d3 = store.write_decision(
-        entity_id="entity-3",
+        "test",
         category="schema",
         action="escalate",
         confidence=0.73,
         factors={"severity": 0.7},
-        metadata={"decision_id": "d3"},
+        metadata={"decision_id": "d3", "entity_id": "entity-3"},
     )
     store.write_outcome(d1, actual_action="investigate", is_correct=True)
     store.write_outcome(d2, actual_action="escalate", is_correct=False)
-    store.save_centroids(d1, "schema", {"schema": [0.1, 0.2]}, metadata={"iks": 10.0})
-    store.save_centroids(d2, "quality", {"quality": [0.3, 0.4]}, metadata={"iks": 12.0})
+    store.save_centroids("test", "schema", {"schema": [0.1, 0.2]}, metadata={"iks": 10.0}, decision_id=d1)
+    store.save_centroids("test", "quality", {"quality": [0.3, 0.4]}, metadata={"iks": 12.0}, decision_id=d2)
     return store, {"d1": d1, "d2": d2, "d3": d3}
 
 
@@ -80,7 +80,7 @@ def test_centroid_history_normalizes_numpy_like_centroids() -> None:
             return 0.75
 
     class GraphStoreWithArrayCheckpoint(InMemoryGraphStore):
-        def get_centroid_checkpoints(self, limit: int = 50) -> list[dict]:
+        def get_centroid_checkpoints(self, domain: str, limit: int = 50, **kwargs) -> list[dict]:
             return [
                 {
                     "decision_id": "d-array",
@@ -104,20 +104,20 @@ def test_self_computation_router_isolates_store_per_app() -> None:
     store_a = InMemoryGraphStore()
     store_b = InMemoryGraphStore()
     store_a.write_decision(
-        entity_id="entity-a",
+        "test",
         category="alpha-only",
         action="investigate",
         confidence=0.9,
         factors={"severity": 0.9},
-        metadata={"decision_id": "decision-a"},
+        metadata={"decision_id": "decision-a", "entity_id": "entity-a"},
     )
     store_b.write_decision(
-        entity_id="entity-b",
+        "test",
         category="beta-only",
         action="suppress",
         confidence=0.7,
         factors={"severity": 0.4},
-        metadata={"decision_id": "decision-b"},
+        metadata={"decision_id": "decision-b", "entity_id": "entity-b"},
     )
 
     app_a = FastAPI()

@@ -3,6 +3,7 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recha
 import { fetchDecliningSuppliers, fetchSupplierHistory, fetchSupplierProfiles } from "../api";
 import { ClusteringPanel } from "../components/ClusteringPanel";
 import { PaymentStrategyPanel } from "../components/PaymentStrategyPanel";
+import { RationalizationPanel } from "../components/RationalizationPanel";
 import { SupplierHeatmap } from "../components/SupplierHeatmap";
 import type { SupplierHistoryEvent, SupplierProfile, SupplierProfilesResponse } from "../types";
 
@@ -157,6 +158,7 @@ export function SuppliersScreen() {
 
       <ClusteringPanel />
       <PaymentStrategyPanel />
+      <RationalizationPanel />
 
       <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
         <article className="copilot-card p-5">

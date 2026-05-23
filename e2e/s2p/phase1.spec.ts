@@ -89,9 +89,9 @@ test("test_s2p_evidence_renders_template", async ({ page }) => {
 
 test("test_s2p_evidence_renders_compliance", async ({ page }) => {
   await openTab(page, "Evidence");
-  await expect(page.locator("main h1", { hasText: "Evidence" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Evidence$/ })).toBeVisible();
 
-  const compliance = panel(page, "Compliance");
+  const compliance = panel(page, /^Compliance$/i).first();
   await expect(compliance).toContainText(/Tax and regulatory/i);
   await expect(compliance).toContainText(/Compliant|Flagged|Total invoices/i);
 });

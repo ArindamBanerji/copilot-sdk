@@ -21,7 +21,7 @@ class FreshScorerProxy:
     ) -> None:
         self._preset_name = preset_name
         self._db_path = str(db_path)
-        self.store = graph_store_factory(db_path)
+        self.graph_store = graph_store_factory(db_path)
 
     def _scorer(self) -> CompoundingScorer:
         return CompoundingScorer.from_preset(self._preset_name, db_path=self._db_path)
@@ -75,7 +75,7 @@ class FreshScorerProxy:
 
     @staticmethod
     def _close_scorer_store(scorer: CompoundingScorer) -> None:
-        store = getattr(scorer, "_store", None)
+        store = getattr(scorer, "_graph_store", None) or getattr(scorer, "graph_store", None)
         close = getattr(store, "close", None)
         if callable(close):
             close()

@@ -30,8 +30,7 @@ async function gotoTrustPanel(page: Page): Promise<Locator> {
 
 async function expectTrustDataOrNoData(panel: Locator, populatedPattern: RegExp) {
   const populated = panel.getByText(populatedPattern);
-  const noData = panel.getByText(/Import trades to see which signals you should trust/i);
-  await expect(populated.or(noData)).toBeVisible();
+  await expect(populated.first()).toBeVisible();
 }
 
 test("Analysis screen shows Signal Trust Analysis panel", async ({ page }) => {
@@ -69,9 +68,12 @@ test("Trust panel handles optional hero insight", async ({ page }) => {
   const panel = await gotoTrustPanel(page);
 
   const heroInsight = panel.getByText(/Noisiest:|Steadiest:/i);
-  const noData = panel.getByText(/Import trades to see which signals you should trust/i);
   const factorRows = panel.getByText(/variance\s+\d/i);
-  await expect(heroInsight.or(noData).or(factorRows)).toBeVisible();
+  await expect(factorRows.first()).toBeVisible();
+
+  if ((await heroInsight.count()) > 0) {
+    await expect(heroInsight.first()).toBeVisible();
+  }
 });
 
 test("Trust panel has no SOC vocabulary", async ({ page }) => {

@@ -15,7 +15,7 @@ def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
     router = APIRouter(prefix="/api/trading", tags=["trading-data"])
     trade_store: list[NormalizedTrade] = []
 
-    # Demo in-memory storage. Production should replace this with SQLite/DecisionStore.
+    # Demo in-memory storage. Production should replace this with GraphStore-backed persistence.
     @router.post("/import/csv")
     def import_csv(csv_content: bytes = Body(..., media_type="text/csv")) -> dict[str, Any]:
         text = csv_content.decode("utf-8-sig")

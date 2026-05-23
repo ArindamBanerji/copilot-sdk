@@ -23,7 +23,6 @@ from copilot_sdk.scoring.conflict import (
     detect_conflict,
 )
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.scoring.storage import DecisionStore
 
 
 @dataclass(frozen=True)
@@ -49,7 +48,6 @@ class ConflictPreset:
 
 def _build_scorer(tmp_path, graph_store=None) -> CompoundingScorer:
     preset = ConflictPreset()
-    store = DecisionStore(tmp_path / "conflict.sqlite")
     scorer = ProfileScorer(
         mu=preset.bootstrap_centroids.copy(),
         actions=list(preset.shape.action_names),
@@ -57,7 +55,6 @@ def _build_scorer(tmp_path, graph_store=None) -> CompoundingScorer:
     )
     return CompoundingScorer(
         preset,
-        store,
         scorer,
         graph_store=graph_store or InMemoryGraphStore(),
     )
@@ -233,7 +230,7 @@ def test_scorer_last_conflict_resets_on_next_learn(tmp_path):
     scorer.learn(second.decision_id, second.action)
 
     assert scorer.last_conflict is None
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_scorer_uses_pre_learn_fingerprint_for_conflict_detection(tmp_path, monkeypatch):
@@ -243,7 +240,7 @@ def test_scorer_uses_pre_learn_fingerprint_for_conflict_detection(tmp_path, monk
     calls = []
 
     def fake_weight_map():
-        calls.append(scorer.graph_store.count_verified())
+        calls.append(scorer.graph_store.count_verified("test"))
         return {"amount": 1.0, "risk": 0.5, "history": 0.25}
 
     monkeypatch.setattr(scorer, "_fingerprint_weight_map", fake_weight_map)
@@ -251,7 +248,7 @@ def test_scorer_uses_pre_learn_fingerprint_for_conflict_detection(tmp_path, monk
     scorer.learn(result.decision_id, result.action)
 
     assert calls == [0]
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_conflict_detection_does_not_block_centroid_update_or_outcome_write(tmp_path):
@@ -263,8 +260,8 @@ def test_conflict_detection_does_not_block_centroid_update_or_outcome_write(tmp_
 
     assert learn.centroid_delta > 0
     assert not np.array_equal(before, scorer.gae_scorer.centroids)
-    assert scorer.graph_store.count_verified() == 1
-    scorer.store.close()
+    assert scorer.graph_store.count_verified("test") == 1
+    scorer.graph_store.close()
 
 
 def test_conflict_detection_runs_before_conservation_pause_without_changing_pause_result(tmp_path):
@@ -272,13 +269,14 @@ def test_conflict_detection_runs_before_conservation_pause_without_changing_paus
     scorer = _build_scorer(tmp_path, graph_store=graph_store)
     for index in range(25):
         decision_id = graph_store.write_decision(
-            entity_id=f"seed-{index}",
+            "test",
             category="alpha",
             action="approve",
             confidence=0.9,
             factors={"amount": 0.2, "risk": 0.3, "history": 0.4},
             metadata={
                 "decision_id": f"seed-{index}",
+                "entity_id": f"seed-{index}",
                 "factor_vector": [0.2, 0.3, 0.4],
                 "recommended_index": 0,
                 "probabilities": [0.9, 0.1],
@@ -299,5 +297,5 @@ def test_conflict_detection_runs_before_conservation_pause_without_changing_paus
     assert learn["status"] == "paused"
     assert scorer.last_conflict is not None
     assert scorer.last_conflict.conflict_type == "surprising_failure"
-    assert graph_store.count_verified() == 25
-    scorer.store.close()
+    assert graph_store.count_verified("test") == 25
+    scorer.graph_store.close()

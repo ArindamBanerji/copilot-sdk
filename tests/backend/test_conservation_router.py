@@ -59,13 +59,13 @@ def test_status_accepts_graph_store_like_object():
     class GraphStoreLike:
         penalty_ratio = 7.0
 
-        def count_verified(self) -> int:
+        def count_verified(self, domain: str = "dataops") -> int:
             return 3
 
-        def count_correct(self) -> int:
+        def count_correct(self, domain: str = "dataops") -> int:
             return 2
 
-        def get_all_decisions(self) -> list[dict]:
+        def get_all_decisions(self, domain: str = "dataops") -> list[dict]:
             return [{"decision_id": "d-1"}, {"decision_id": "d-2"}, {"decision_id": "d-3"}, {"decision_id": "d-4"}]
 
     client = build_client(state_provider=GraphStoreLike())

@@ -1,9 +1,11 @@
 import type {
   Analytics,
+  ConservationBreakdownResponse,
   ConservationState,
   FingerprintResponse,
   LearnResponse,
   MarketSnapshot,
+  PatternDetectionResponse,
   ScoreResponse,
   SelfAccuracyByCategoryResponse,
   SelfAuditTrailResponse,
@@ -145,6 +147,10 @@ export function getConservationStatus(): Promise<ConservationState> {
   return apiGet<ConservationState>("/api/conservation/status");
 }
 
+export function getConservationBreakdown(): Promise<ConservationBreakdownResponse | null> {
+  return safeApiGet<ConservationBreakdownResponse>("/api/context/conservation-breakdown");
+}
+
 export function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {
   const params = new URLSearchParams({ limit: String(limit) });
   return safeApiGet<SelfCentroidHistoryResponse>(`/api/self/centroid-history?${params.toString()}`);
@@ -183,6 +189,10 @@ export function getFingerprint(): Promise<FingerprintResponse> {
 
 export function getTrustAnalysis(): Promise<TrustAnalysisResponse | null> {
   return safeApiGet<TrustAnalysisResponse>("/api/context/trust-analysis");
+}
+
+export function getPatterns(): Promise<PatternDetectionResponse | null> {
+  return safeApiGet<PatternDetectionResponse>("/api/context/patterns");
 }
 
 export function scoreTrade(payload: unknown): Promise<ScoreResponse> {

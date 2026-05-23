@@ -68,6 +68,7 @@ class FakeTrajectoryResult:
 
 class FakeStore:
     def __init__(self) -> None:
+        self.domain = "dataops"
         self.decisions: dict[str, dict] = {}
 
     def save(self, decision: dict) -> None:
@@ -78,13 +79,21 @@ class FakeStore:
             raise KeyError(decision_id)
         return self.decisions[decision_id]
 
-    def get_all_decisions(self) -> list[dict]:
+    def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict]:
+        decisions = [
+            decision
+            for decision in self.decisions.values()
+            if category is None or decision.get("category") == category
+        ]
+        return decisions[:limit]
+
+    def get_all_decisions(self, domain: str) -> list[dict]:
         return list(self.decisions.values())
 
 
 class FakeScorer:
     def __init__(self) -> None:
-        self.store = FakeStore()
+        self.graph_store = FakeStore()
 
     def score(self, factors: dict[str, float], category: str) -> FakeScoreResult:
         if category == "bad":
@@ -98,7 +107,7 @@ class FakeScorer:
             category=category,
             factors=factors,
         )
-        self.store.save(
+        self.graph_store.save(
             {
                 "decision_id": result.decision_id,
                 "category": category,
@@ -116,7 +125,7 @@ class FakeScorer:
         outcome: str = "confirmed",
     ) -> FakeLearnResult:
         del actual_action, outcome
-        self.store.get_decision(decision_id)
+        self.graph_store.get_decision(decision_id)
         return FakeLearnResult(
             decision_id=decision_id,
             iks_before=0.0,
@@ -180,12 +189,12 @@ class GraphStoreBackedScorer(FakeScorer):
         if category == "bad":
             raise AssertionError("unknown category: bad")
         decision_id = self.graph_store.write_decision(
-            entity_id="entity-1",
+            "test",
             category=category,
             action="auto_approve",
             confidence=0.72,
             factors=factors,
-            metadata={"decision_id": "graph-dec-1"},
+            metadata={"decision_id": "graph-dec-1", "entity_id": "entity-1"},
         )
         return FakeScoreResult(
             decision_id=decision_id,
@@ -458,8 +467,7 @@ def test_learn_prelookup_prefers_graph_store_over_legacy_store():
     )
 
     assert response.status_code == 200
-    assert scorer.store.get_all_decisions() == []
-    assert scorer.graph_store.count_verified() == 1
+    assert scorer.graph_store.count_verified("test") == 1
     assert scorer.learn_calls == [("graph-dec-1", "auto_approve", "confirmed")]
 
 
@@ -482,23 +490,15 @@ def test_history_prefers_graph_store_over_legacy_store():
     assert response.status_code == 200
     decisions = response.json()["decisions"]
     assert [decision["decision_id"] for decision in decisions] == ["graph-dec-1"]
-    assert scorer.store.get_all_decisions() == []
+    assert scorer.graph_store.get_all_decisions("test") == decisions
 
 
-def test_scoring_router_source_order_prefers_graph_store():
+def test_scoring_router_uses_graph_store_only():
     source = Path(scoring_router_module.__file__).read_text(encoding="utf-8")
-    graph_pos = min(
-        position
-        for position in [source.find('"graph_store"'), source.find('"_graph_store"')]
-        if position != -1
-    )
-    store_pos = min(
-        position
-        for position in [source.find('"store"'), source.find('"_store"')]
-        if position != -1
-    )
-
-    assert graph_pos < store_pos
+    assert '"graph_store"' in source
+    assert '"_graph_store"' in source
+    assert '"store"' not in source
+    assert '"_store"' not in source
 
 
 def test_invalid_score_input_returns_400():

@@ -7,7 +7,7 @@ from pathlib import Path
 from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
 
 
-class MinimalOldStore:
+class MinimalStore:
     def write_decision(self, *args, **kwargs):
         return "decision-1"
 
@@ -20,16 +20,16 @@ class MinimalOldStore:
     def get_decisions(self, *args, **kwargs):
         return []
 
-    def get_verified_decisions(self):
+    def get_verified_decisions(self, domain):
         return []
 
-    def count_verified(self):
+    def count_verified(self, domain):
         return 0
 
-    def count_correct(self):
+    def count_correct(self, domain):
         return 0
 
-    def get_all_decisions(self):
+    def get_all_decisions(self, domain):
         return []
 
     def save_centroids(self, *args, **kwargs):
@@ -38,8 +38,23 @@ class MinimalOldStore:
     def get_centroid_checkpoints(self, *args, **kwargs):
         return []
 
+    def load_latest_centroids(self, domain):
+        return None
+
+    def count_decisions(self, domain):
+        return 0
+
     def save_evolution_event(self, *args, **kwargs):
         return None
+
+    def get_evolution_events(self, *args, **kwargs):
+        return []
+
+    def archive_old_decisions(self, domain, keep_recent=800):
+        return 0
+
+    def count_archived(self, domain):
+        return 0
 
     def close(self):
         return None
@@ -61,8 +76,8 @@ def _sqlite_events(db_path: Path) -> list[dict]:
         connection.close()
 
 
-def test_graphstore_protocol_remains_narrow_for_old_shape_stores():
-    store = MinimalOldStore()
+def test_graphstore_protocol_remains_narrow_for_entity_link_helpers():
+    store = MinimalStore()
 
     assert isinstance(store, GraphStore)
     assert not hasattr(GraphStore, "link_decision_to_entity")
@@ -99,18 +114,18 @@ def test_inmemory_decision_id_prefix_default_unchanged():
     metadata = {"decision_id": "decision-1", "source": "unit"}
 
     decision_id = store.write_decision(
-        entity_id="entity-1",
-        category="category",
-        action="approve",
-        confidence=0.9,
-        factors={},
+        "test",
+        "category",
+        "approve",
+        0.9,
+        {},
         metadata=metadata,
     )
 
     assert decision_id == "decision-1"
     decision = store.get_decision(decision_id)
     assert decision["decision_id"] == "decision-1"
-    assert decision["metadata"] == {"decision_id": "decision-1", "source": "unit"}
+    assert decision["metadata"] == {"decision_id": "decision-1", "source": "unit", "entity_id": "decision-1"}
     assert metadata == {"decision_id": "decision-1", "source": "unit"}
 
 
@@ -119,16 +134,16 @@ def test_inmemory_no_prefix_metadata_without_decision_id_unchanged():
     metadata = {"source": "unit"}
 
     decision_id = store.write_decision(
-        entity_id="entity-1",
-        category="category",
-        action="approve",
-        confidence=0.9,
-        factors={},
+        "test",
+        "category",
+        "approve",
+        0.9,
+        {},
         metadata=metadata,
     )
 
     decision = store.get_decision(decision_id)
-    assert decision["metadata"] == {"source": "unit"}
+    assert decision["metadata"] == {"source": "unit", "entity_id": decision_id}
     assert metadata == {"source": "unit"}
 
 
@@ -136,11 +151,11 @@ def test_inmemory_decision_id_prefix_applied():
     store = InMemoryGraphStore(decision_id_prefix="S2P-")
 
     decision_id = store.write_decision(
-        entity_id="entity-1",
-        category="category",
-        action="approve",
-        confidence=0.9,
-        factors={},
+        "test",
+        "category",
+        "approve",
+        0.9,
+        {},
         metadata={"decision_id": "decision-1"},
     )
 
@@ -153,11 +168,11 @@ def test_inmemory_decision_id_prefix_updates_metadata_decision_id():
     metadata = {"decision_id": "decision-1", "source": "scorer"}
 
     decision_id = store.write_decision(
-        entity_id="entity-1",
-        category="category",
-        action="approve",
-        confidence=0.9,
-        factors={},
+        "test",
+        "category",
+        "approve",
+        0.9,
+        {},
         metadata=metadata,
     )
 
@@ -173,11 +188,11 @@ def test_inmemory_decision_id_prefix_not_double_applied():
     store = InMemoryGraphStore(decision_id_prefix="S2P-")
 
     decision_id = store.write_decision(
-        entity_id="entity-1",
-        category="category",
-        action="approve",
-        confidence=0.9,
-        factors={},
+        "test",
+        "category",
+        "approve",
+        0.9,
+        {},
         metadata={"decision_id": "S2P-decision-1"},
     )
 
@@ -189,11 +204,11 @@ def test_inmemory_decision_id_prefix_does_not_double_prefix_metadata():
     store = InMemoryGraphStore(decision_id_prefix="S2P-")
 
     decision_id = store.write_decision(
-        entity_id="entity-1",
-        category="category",
-        action="approve",
-        confidence=0.9,
-        factors={},
+        "test",
+        "category",
+        "approve",
+        0.9,
+        {},
         metadata={"decision_id": "S2P-decision-1"},
     )
 
@@ -206,11 +221,11 @@ def test_inmemory_decision_id_prefix_does_not_double_prefix_metadata():
 def test_inmemory_store_has_evolution_and_link_parity():
     store = InMemoryGraphStore()
 
-    store.save_evolution_event("variant_generated", "threshold_rule", "variant-1", {"seed": 7})
+    store.save_evolution_event("test", "variant_generated", "threshold_rule", "variant-1", {"seed": 7})
     store.link_decision_to_entity("decision-1", "entity-1")
 
-    assert store._evolution_events[0]["event_type"] == "variant_generated"
-    assert store._evolution_events[0]["metadata"] == {"seed": 7}
+    assert store.get_evolution_events("test")[0]["event_type"] == "variant_generated"
+    assert store.get_evolution_events("test")[0]["metadata"] == {"seed": 7}
     assert store.get_decision_links("decision-1") == [
         {
             "decision_id": "decision-1",
@@ -225,7 +240,7 @@ def test_sqlite_store_has_evolution_and_link_parity(tmp_path):
     db_path = tmp_path / "graph.sqlite"
     store = SQLiteGraphStore(db_path)
 
-    store.save_evolution_event("variant_generated", "threshold_rule", "variant-1", {"seed": 7})
+    store.save_evolution_event("graph", "variant_generated", "threshold_rule", "variant-1", {"seed": 7})
     store.link_decision_to_entity("decision-1", "entity-1", edge_type="REVIEWS")
 
     events = _sqlite_events(db_path)

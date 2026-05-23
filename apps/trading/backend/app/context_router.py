@@ -11,6 +11,8 @@ from fastapi import APIRouter, HTTPException, status
 
 from app.factors.registry import ALL_FACTOR_NAMES, TRADING_FACTOR_COMPUTERS, compute_factors
 from app.routers.data_import import _trade_store_ref
+from app.services.pattern_detector import detect_patterns
+from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
 router = APIRouter(tags=["context"])
@@ -154,6 +156,95 @@ def _hero_insight(scores: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
     }
 
 
+def _trading_conservation_config() -> dict[str, Any]:
+    try:
+        preset = TradingPreset()
+        shape = preset.shape
+        return {
+            "categories": list(shape.category_names),
+            "penalty_ratio": float(preset.penalty_ratio),
+            "n_actions": int(shape.n_actions),
+            "n_factors": int(shape.n_factors),
+        }
+    except Exception:
+        return {
+            "categories": ["equity_long", "equity_short", "crypto_spot", "options", "etf"],
+            "penalty_ratio": 3.0,
+            "n_actions": 4,
+            "n_factors": 7,
+        }
+
+
+def _safe_float(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    return number
+
+
+def _was_correct(trade: dict[str, Any]) -> bool:
+    pnl = _safe_float(trade.get("pnl"))
+    if pnl is not None:
+        return pnl > 0
+
+    verification_score = _safe_float(trade.get("verification_score"))
+    if verification_score is not None:
+        return verification_score >= 0.5
+
+    return False
+
+
+def _category_for_trade(trade: dict[str, Any]) -> str | None:
+    value = trade.get("category") or trade.get("strategy_tag")
+    return str(value) if value is not None else None
+
+
+def _conservation_category_row(
+    category: str,
+    trades: list[dict[str, Any]],
+    *,
+    penalty_ratio: float,
+    n_actions: int,
+    n_factors: int,
+) -> dict[str, Any]:
+    category_trades = [trade for trade in trades if _category_for_trade(trade) == category]
+    verified = [trade for trade in category_trades if bool(trade.get("verified", False))]
+    correct = [trade for trade in verified if _was_correct(trade)]
+    accuracy = len(correct) / len(verified) if verified else 0.0
+
+    v_cat = n_actions * n_factors
+    effective_alpha = penalty_ratio * max(accuracy, 0.01) if verified else 0.01
+    theta_min_proxy = 23.53 / (effective_alpha * v_cat) if v_cat > 0 else 1.0
+
+    if len(verified) < 10:
+        status_value = "BOOTSTRAP"
+    elif accuracy >= theta_min_proxy:
+        status_value = "GREEN"
+    elif accuracy >= theta_min_proxy * 0.8:
+        status_value = "AMBER"
+    else:
+        status_value = "RED"
+
+    note = None
+    if status_value in {"AMBER", "RED"}:
+        note = "Simplified proxy. Full conservation at /api/conservation/status."
+
+    return {
+        "category": category,
+        "total_trades": len(category_trades),
+        "verified": len(verified),
+        "correct": len(correct),
+        "accuracy": round(accuracy, 6),
+        "theta_min_proxy": round(theta_min_proxy, 6),
+        "status": status_value,
+        "can_trade": status_value != "RED",
+        "note": note,
+    }
+
+
 @router.get("/market-snapshot")
 def market_snapshot() -> dict[str, Any]:
     return _load_json("market_snapshot.json")
@@ -201,6 +292,65 @@ def trust_analysis() -> dict[str, Any]:
         "trust_scores": scores,
         "total_trades": len(trades),
         "hero_insight": _hero_insight(scores) if trades else None,
+    }
+
+
+@router.get("/patterns")
+def behavioral_patterns() -> dict[str, Any]:
+    trades = [_as_trade_dict(trade) for trade in list(_trade_store_ref)]
+    trades = [trade for trade in trades if trade]
+    if not trades:
+        return {
+            "patterns": [],
+            "total_trades": 0,
+            "message": "Import trades to detect patterns.",
+        }
+
+    patterns = detect_patterns(trades)
+    most_severe = max(patterns, key=lambda pattern: pattern["severity"])["name"] if patterns else None
+    return {
+        "patterns": patterns,
+        "total_patterns_detected": len(patterns),
+        "total_trades_analyzed": len(trades),
+        "most_severe": most_severe,
+    }
+
+
+@router.get("/conservation-breakdown")
+def conservation_breakdown() -> dict[str, Any]:
+    """Return a simplified proxy breakdown; /api/conservation/status remains authoritative."""
+    config = _trading_conservation_config()
+    trades = [_as_trade_dict(trade) for trade in list(_trade_store_ref)]
+    trades = [trade for trade in trades if trade]
+
+    categories = [
+        _conservation_category_row(
+            category,
+            trades,
+            penalty_ratio=config["penalty_ratio"],
+            n_actions=config["n_actions"],
+            n_factors=config["n_factors"],
+        )
+        for category in config["categories"]
+    ]
+    red_categories = sum(1 for category in categories if category["status"] == "RED")
+    amber_categories = sum(1 for category in categories if category["status"] == "AMBER")
+    green_categories = sum(1 for category in categories if category["status"] == "GREEN")
+
+    return {
+        "categories": categories,
+        "total_categories": len(categories),
+        "red_categories": red_categories,
+        "amber_categories": amber_categories,
+        "green_categories": green_categories,
+        "total_verified": sum(category["verified"] for category in categories),
+        "overall_safe": red_categories == 0,
+        "penalty_ratio": config["penalty_ratio"],
+        "methodology": (
+            "Simplified per-category proxy using theta_min_proxy = "
+            "23.53 / (penalty * accuracy * V_cat). "
+            "Global conservation at /api/conservation/status remains authoritative."
+        ),
     }
 
 

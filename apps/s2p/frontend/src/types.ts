@@ -847,3 +847,126 @@ export interface AuditPackResponse {
   confirm_count: number;
   receipts: OutcomeReceipt[];
 }
+
+export interface SimulationMitigation {
+  action: string;
+  effort: string;
+  impact_reduction: number;
+  description: string;
+}
+
+export interface SimulationScenario {
+  scenario_id: string;
+  name: string;
+  type: string;
+  description: string;
+  affected_suppliers: string[];
+  affected_categories: string[];
+  trigger: string;
+  conservation_impact: string;
+  estimated_quarterly_cost: number;
+  recovery_time_days: number;
+  mitigation?: {
+    recommended?: string;
+    available_actions?: SimulationMitigation[];
+  };
+  impact?: Record<string, string | number | boolean>;
+}
+
+export interface SimulationScenariosResponse {
+  scenarios: SimulationScenario[];
+  total: number;
+}
+
+export interface ImpactSummaryResponse {
+  total_scenarios: number;
+  total_quarterly_exposure: number;
+  worst_case_recovery_days: number;
+  scenarios_causing_red: number;
+  scenarios_causing_amber: number;
+  scenarios_green_safe: number;
+}
+
+export interface ExtendedDiscovery {
+  discovery_id: string;
+  title: string;
+  type: string;
+  sources: string[];
+  correlation_strength: number;
+  confidence: number;
+  impact_estimate: string;
+  supplier_ids: string[];
+  pattern: string;
+  first_detected: string;
+  detection_count: number;
+  recommendation: string;
+  propagation_path: string[];
+}
+
+export interface ExtendedDiscoveryResponse {
+  discoveries: ExtendedDiscovery[];
+  total: number;
+  per_supplier: Record<string, {
+    supplier_id: string;
+    discovery_count: number;
+    detection_count: number;
+    highest_correlation: number;
+  }>;
+  by_type: Record<string, number>;
+  sources_connected: number;
+}
+
+export interface ComplianceScreeningResponse {
+  screening_timestamp: string;
+  total_decisions_screened: number;
+  compliant: number;
+  with_gaps: number;
+  compliance_rate: number;
+  chain_integrity: ChainIntegrityResponse;
+  conservation_state: Record<string, unknown>;
+  receipt_stats: ReceiptStats;
+  gaps: Array<Record<string, unknown>>;
+  eu_ai_act: {
+    article_14_traceable: boolean;
+    human_oversight_documented: boolean;
+    automated_decision_logged: boolean;
+  };
+  sox_readiness: {
+    hash_chain_valid: boolean;
+    override_distribution_available: boolean;
+    conservation_proof_available: boolean;
+    score: number;
+  };
+}
+
+export interface SupplierRecommendation {
+  supplier_id: string;
+  name: string;
+  recommendation: "grow" | "maintain" | "phase_out" | string;
+  exception_rate: number;
+  otif: number;
+  trend: string;
+  region?: string;
+  total_invoices?: number;
+  reason: string;
+  action: string;
+}
+
+export interface RationalizationSavings {
+  currency: string;
+  estimated_quarterly_savings: number;
+  estimated_annual_savings: number;
+  phase_out_invoice_volume: number;
+  total_invoice_volume: number;
+  suppliers_affected: number;
+  basis: string;
+}
+
+export interface RationalizationResponse {
+  total_suppliers: number;
+  grow: number;
+  maintain: number;
+  phase_out: number;
+  recommendations: SupplierRecommendation[];
+  estimated_savings: RationalizationSavings;
+}

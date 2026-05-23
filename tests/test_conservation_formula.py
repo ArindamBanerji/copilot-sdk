@@ -20,7 +20,7 @@ def _seed_verified(
 ) -> None:
     for index in range(total):
         decision_id = store.write_decision(
-            entity_id=f"entity-{index}",
+            getattr(store, "domain", "dataops"),
             category="batch_failure",
             action="retry",
             confidence=0.8,
@@ -32,6 +32,7 @@ def _seed_verified(
             },
             metadata={
                 "created_at": 1000.0 + index,
+                "entity_id": f"entity-{index}",
                 "recommended_index": 0,
                 "category_index": 0,
                 "factor_vector": [0.4, 0.4, 0.4, 0.4],

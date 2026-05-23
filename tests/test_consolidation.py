@@ -17,7 +17,6 @@ ProfileScorer = profile_module.ProfileScorer
 from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.config import DomainShape
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.scoring.storage import DecisionStore
 
 
 @dataclass(frozen=True)
@@ -43,7 +42,6 @@ class ConsolidationPreset:
 
 def _build_scorer(tmp_path, *, consolidation_enabled=False) -> tuple[CompoundingScorer, InMemoryGraphStore]:
     preset = ConsolidationPreset()
-    store = DecisionStore(tmp_path / "consolidation.sqlite")
     graph_store = InMemoryGraphStore()
     scorer = ProfileScorer(
         mu=preset.bootstrap_centroids.copy(),
@@ -52,7 +50,6 @@ def _build_scorer(tmp_path, *, consolidation_enabled=False) -> tuple[Compounding
     )
     wrapper = CompoundingScorer(
         preset,
-        store,
         scorer,
         graph_store=graph_store,
         consolidation_enabled=consolidation_enabled,
@@ -73,11 +70,11 @@ def test_default_behavior_saves_centroids_every_successful_learn(tmp_path):
     scorer.learn(first.decision_id, first.action)
     scorer.learn(second.decision_id, second.action)
 
-    checkpoints = graph_store.get_centroid_checkpoints()
+    checkpoints = graph_store.get_centroid_checkpoints("test")
     assert len(checkpoints) == 2
     assert checkpoints[0]["metadata"] == {"iks": checkpoints[0]["metadata"]["iks"]}
     assert "consolidation" not in checkpoints[0]["metadata"]
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_consolidation_enabled_buffers_persistence(tmp_path):
@@ -88,9 +85,9 @@ def test_consolidation_enabled_buffers_persistence(tmp_path):
     scorer.learn(first.decision_id, first.action)
     scorer.learn(second.decision_id, second.action)
 
-    assert graph_store.get_centroid_checkpoints() == []
-    assert graph_store.count_verified() == 2
-    scorer.store.close()
+    assert graph_store.get_centroid_checkpoints("test") == []
+    assert graph_store.count_verified("test") == 2
+    scorer.graph_store.close()
 
 
 def test_consolidation_in_memory_centroids_update_while_buffered(tmp_path):
@@ -102,8 +99,8 @@ def test_consolidation_in_memory_centroids_update_while_buffered(tmp_path):
 
     assert learn.centroid_delta > 0
     assert not np.array_equal(before, scorer.gae_scorer.centroids)
-    assert graph_store.get_centroid_checkpoints() == []
-    scorer.store.close()
+    assert graph_store.get_centroid_checkpoints("test") == []
+    scorer.graph_store.close()
 
 
 def test_consolidate_true_saves_checkpoint_with_metadata(tmp_path):
@@ -114,7 +111,7 @@ def test_consolidate_true_saves_checkpoint_with_metadata(tmp_path):
     scorer.learn(first.decision_id, first.action)
     scorer.learn(second.decision_id, second.action, consolidate=True)
 
-    checkpoints = graph_store.get_centroid_checkpoints()
+    checkpoints = graph_store.get_centroid_checkpoints("test")
     assert len(checkpoints) == 1
     assert checkpoints[0]["decision_id"] == second.decision_id
     assert checkpoints[0]["metadata"]["boundary"] == "learn"
@@ -122,7 +119,7 @@ def test_consolidate_true_saves_checkpoint_with_metadata(tmp_path):
     assert checkpoints[0]["metadata"]["consolidation"] is True
     assert "iks" in checkpoints[0]["metadata"]
     assert scorer.flush_centroids() == 0
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_flush_centroids_saves_and_resets_count(tmp_path):
@@ -134,22 +131,22 @@ def test_flush_centroids_saves_and_resets_count(tmp_path):
     scorer.learn(second.decision_id, second.action)
     flushed = scorer.flush_centroids(reason="end-of-batch")
 
-    checkpoints = graph_store.get_centroid_checkpoints()
+    checkpoints = graph_store.get_centroid_checkpoints("test")
     assert flushed == 2
     assert len(checkpoints) == 1
     assert checkpoints[0]["decision_id"] == second.decision_id
     assert checkpoints[0]["metadata"]["boundary"] == "end-of-batch"
     assert checkpoints[0]["metadata"]["decisions_in_batch"] == 2
     assert scorer.flush_centroids() == 0
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_flush_centroids_empty_returns_zero_without_save(tmp_path):
     scorer, graph_store = _build_scorer(tmp_path, consolidation_enabled=True)
 
     assert scorer.flush_centroids() == 0
-    assert graph_store.get_centroid_checkpoints() == []
-    scorer.store.close()
+    assert graph_store.get_centroid_checkpoints("test") == []
+    scorer.graph_store.close()
 
 
 def test_flush_centroids_disabled_returns_zero_without_changing_default_behavior(tmp_path):
@@ -158,8 +155,8 @@ def test_flush_centroids_disabled_returns_zero_without_changing_default_behavior
     scorer.learn(result.decision_id, result.action)
 
     assert scorer.flush_centroids() == 0
-    assert len(graph_store.get_centroid_checkpoints()) == 1
-    scorer.store.close()
+    assert len(graph_store.get_centroid_checkpoints("test")) == 1
+    scorer.graph_store.close()
 
 
 def test_conflict_detection_not_delayed_by_consolidation(tmp_path):
@@ -171,8 +168,8 @@ def test_conflict_detection_not_delayed_by_consolidation(tmp_path):
 
     assert scorer.last_conflict is not None
     assert scorer.last_conflict.conflict_type == "surprising_failure"
-    assert graph_store.get_centroid_checkpoints() == []
-    scorer.store.close()
+    assert graph_store.get_centroid_checkpoints("test") == []
+    scorer.graph_store.close()
 
 
 def test_write_outcome_still_runs_every_learn_when_buffered(tmp_path):
@@ -183,13 +180,13 @@ def test_write_outcome_still_runs_every_learn_when_buffered(tmp_path):
     scorer.learn(first.decision_id, first.action)
     scorer.learn(second.decision_id, second.action)
 
-    verified = graph_store.get_verified_decisions()
+    verified = graph_store.get_verified_decisions("test")
     assert len(verified) == 2
     assert {decision["decision_id"] for decision in verified} == {
         first.decision_id,
         second.decision_id,
     }
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_existing_callers_remain_compatible(tmp_path):
@@ -199,7 +196,7 @@ def test_existing_callers_remain_compatible(tmp_path):
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.decision_id == result.decision_id
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_consolidated_learn_context_keyword_remains_compatible(tmp_path):
@@ -214,7 +211,7 @@ def test_consolidated_learn_context_keyword_remains_compatible(tmp_path):
     )
 
     assert learn.decision_id == result.decision_id
-    verified = graph_store.get_verified_decisions()
+    verified = graph_store.get_verified_decisions("test")
     assert verified[0]["outcome_metadata"]["context"] == {"invoice_id": "INV-001"}
-    assert len(graph_store.get_centroid_checkpoints()) == 1
-    scorer.store.close()
+    assert len(graph_store.get_centroid_checkpoints("test")) == 1
+    scorer.graph_store.close()

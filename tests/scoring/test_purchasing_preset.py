@@ -106,7 +106,7 @@ def test_from_preset_purchasing_works(tmp_path):
     scorer = CompoundingScorer.from_preset("purchasing", db_path=str(db_path))
 
     assert scorer is not None
-    scorer._store.close()
+    scorer.graph_store.close()
 
 
 def test_seed_data_loads():
@@ -319,6 +319,6 @@ def test_end_to_end_score_learn_fingerprint_smoke(tmp_path):
     assert learn.decisions_total == 1
     assert fingerprint.decisions_analyzed == 1
     assert trajectory.decisions_total == 1
-    scorer._store.close()
+    scorer.graph_store.close()
     if db_path.exists():
         os.remove(db_path)

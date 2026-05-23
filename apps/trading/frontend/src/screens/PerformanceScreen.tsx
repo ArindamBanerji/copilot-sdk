@@ -10,6 +10,7 @@ import CategoryPerformance from "../components/CategoryPerformance";
 import CentroidTimelineChart from "../components/CentroidTimelineChart";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
+import StrategySafetyBreakdownPanel from "../components/StrategySafetyBreakdownPanel";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
 
 function pct(value: number | null | undefined): string {
@@ -115,6 +116,7 @@ export default function PerformanceScreen() {
         daysActive={daysActive}
       />
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
+      <StrategySafetyBreakdownPanel />
       <CentroidTimelineChart />
       <RollingMetrics analytics={analytics} />
       <CategoryPerformance analytics={analytics} />

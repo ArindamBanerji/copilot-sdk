@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+from typing import get_type_hints
 
 from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
 
@@ -16,13 +17,18 @@ def test_graph_store_protocol_required_methods_exist():
         "write_outcome",
         "get_decision",
         "get_decisions",
+        "get_all_decisions",
         "get_verified_decisions",
         "count_verified",
         "count_correct",
-        "get_all_decisions",
+        "count_decisions",
         "save_centroids",
+        "load_latest_centroids",
         "get_centroid_checkpoints",
         "save_evolution_event",
+        "get_evolution_events",
+        "archive_old_decisions",
+        "count_archived",
         "close",
     ]
 
@@ -30,45 +36,86 @@ def test_graph_store_protocol_required_methods_exist():
         assert hasattr(GraphStore, method)
 
 
-def test_graphstore_protocol_has_save_centroids():
-    assert hasattr(GraphStore, "save_centroids")
+def test_protocol_write_decision_is_domain_first():
+    signature = inspect.signature(GraphStore.write_decision)
+
+    assert list(signature.parameters)[:7] == [
+        "self",
+        "domain",
+        "category",
+        "action",
+        "confidence",
+        "factors",
+        "metadata",
+    ]
 
 
-def test_graphstore_protocol_has_get_centroid_checkpoints():
-    assert hasattr(GraphStore, "get_centroid_checkpoints")
+def test_protocol_write_outcome_has_no_domain_parameter():
+    signature = inspect.signature(GraphStore.write_outcome)
+
+    assert list(signature.parameters) == [
+        "self",
+        "decision_id",
+        "actual_action",
+        "is_correct",
+        "metadata",
+    ]
 
 
-def test_protocol_save_centroids_accepts_bitemporal_keywords():
+def test_protocol_queries_are_domain_scoped():
+    for method_name in (
+        "get_decisions",
+        "get_all_decisions",
+        "get_verified_decisions",
+        "count_verified",
+        "count_correct",
+        "count_decisions",
+        "get_centroid_checkpoints",
+        "get_evolution_events",
+        "archive_old_decisions",
+        "count_archived",
+    ):
+        signature = inspect.signature(getattr(GraphStore, method_name))
+        assert list(signature.parameters)[1] == "domain"
+
+
+def test_protocol_save_centroids_is_domain_first_and_flexible():
     signature = inspect.signature(GraphStore.save_centroids)
 
     assert list(signature.parameters)[:5] == [
         "self",
-        "decision_id",
+        "domain",
         "category",
         "centroids",
         "metadata",
     ]
-    for name in ("decision_time_start", "decision_time_end", "checkpoint_time"):
-        parameter = signature.parameters[name]
-        assert parameter.default is None
-        assert parameter.kind is inspect.Parameter.KEYWORD_ONLY
+    assert any(
+        parameter.kind is inspect.Parameter.VAR_KEYWORD
+        for parameter in signature.parameters.values()
+    )
 
 
-def test_protocol_get_checkpoints_accepts_filter_keywords():
-    signature = inspect.signature(GraphStore.get_centroid_checkpoints)
+def test_protocol_load_latest_centroids_returns_raw_object_type():
+    hints = get_type_hints(GraphStore.load_latest_centroids)
 
-    assert list(signature.parameters)[:2] == ["self", "limit"]
-    for name in (
-        "checkpoint_time_start",
-        "checkpoint_time_end",
-        "decision_time_start",
-        "decision_time_end",
-        "category",
-    ):
-        parameter = signature.parameters[name]
-        assert parameter.default is None
-        assert parameter.kind is inspect.Parameter.KEYWORD_ONLY
+    assert str(hints["return"]) in {"typing.Any | None", "typing.Optional[typing.Any]"} or hints["return"] is object | None
 
 
-def test_graphstore_protocol_has_save_evolution_event():
-    assert hasattr(GraphStore, "save_evolution_event")
+def test_protocol_save_evolution_event_domain_first():
+    signature = inspect.signature(GraphStore.save_evolution_event)
+
+    assert list(signature.parameters)[:6] == [
+        "self",
+        "domain",
+        "event_type",
+        "rule_name",
+        "variant_id",
+        "metadata",
+    ]
+    assert signature.parameters["rule_name"].default == ""
+    assert signature.parameters["variant_id"].default == ""
+
+
+def test_entity_link_helpers_are_not_protocol_required():
+    assert not hasattr(GraphStore, "link_decision_to_entity")
+    assert not hasattr(GraphStore, "get_decision_links")

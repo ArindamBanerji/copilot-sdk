@@ -6,8 +6,13 @@ from copilot_sdk.graph.memory_store import InMemoryGraphStore as MemoryStore
 
 
 def _write_decision(store, metadata=None):
+    decision_metadata = dict(metadata or {})
+    if metadata is None:
+        metadata = None
+    else:
+        metadata = decision_metadata
     return store.write_decision(
-        entity_id="entity-1",
+        getattr(store, "domain", "test"),
         category="price_variance",
         action="hold_for_review",
         confidence=0.82,
@@ -35,7 +40,7 @@ def test_in_memory_write_decision_without_metadata_still_works():
 
     decision = store.get_decision(decision_id)
     assert decision["decision_id"] == decision_id
-    assert decision["metadata"] == {}
+    assert decision["metadata"]["entity_id"]
 
 
 def test_sqlite_write_decision_preserves_metadata(tmp_path):
@@ -59,7 +64,7 @@ def test_sqlite_write_decision_without_metadata_still_works(tmp_path):
 
     decision = store.get_decision(decision_id)
     assert decision["decision_id"] == decision_id
-    assert decision["metadata"] == {}
+    assert decision["metadata"]["entity_id"]
 
 
 def test_sqlite_decision_metadata_persists_after_reopen(tmp_path):
@@ -77,7 +82,7 @@ def test_sqlite_decision_metadata_persists_after_reopen(tmp_path):
 
 
 def test_compounding_scorer_score_persists_caller_metadata(tmp_path):
-    graph_store = MemoryStore()
+    graph_store = MemoryStore(domain="s2p")
     scorer = CompoundingScorer.from_preset(
         "s2p",
         db_path=str(tmp_path / "s2p.db"),
@@ -95,4 +100,4 @@ def test_compounding_scorer_score_persists_caller_metadata(tmp_path):
     assert decision["metadata"]["invoice_id"] == "S2P-INV-0004"
     assert decision["metadata"]["supplier_id"] == "SUP-001"
     assert decision["metadata"]["domain"] == "s2p"
-    scorer.store.close()
+    scorer.graph_store.close()

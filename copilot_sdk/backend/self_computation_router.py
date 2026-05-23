@@ -16,6 +16,9 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
     def _gs() -> GraphStore:
         return graph_store
 
+    def _domain() -> str:
+        return str(getattr(graph_store, "domain", "") or "")
+
     @router.get("/centroid-history")
     def centroid_history(
         limit: int = Query(50, ge=1, le=500),
@@ -33,7 +36,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
             "category": category,
         }
         active_filters = {key: value for key, value in filters.items() if value is not None}
-        checkpoints = _gs().get_centroid_checkpoints(limit=limit, **active_filters)
+        checkpoints = _gs().get_centroid_checkpoints(_domain(), limit=limit, **active_filters)
         normalized = [_json_safe(checkpoint) for checkpoint in checkpoints]
         return {"checkpoints": normalized, "total": len(normalized)}
 
@@ -41,7 +44,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
     def accuracy_by_category(
         threshold: float = Query(0.70, ge=0.0, le=1.0),
     ) -> dict[str, Any]:
-        verified = _gs().get_verified_decisions()
+        verified = _gs().get_verified_decisions(_domain())
         grouped: dict[str, dict[str, int]] = {}
         for decision in verified:
             category = str(decision.get("category") or "uncategorized")
@@ -80,11 +83,11 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
     ) -> dict[str, Any]:
         store = _gs()
         source = (
-            store.get_verified_decisions()
+            store.get_verified_decisions(_domain())
             if verified_only
             else _merge_verified_fields(
-                store.get_all_decisions(),
-                store.get_verified_decisions(),
+                store.get_all_decisions(_domain()),
+                store.get_verified_decisions(_domain()),
             )
         )
         filtered = [
@@ -107,7 +110,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
             outcome = next(
                 (
                     verified
-                    for verified in store.get_verified_decisions()
+                    for verified in store.get_verified_decisions(_domain())
                     if verified.get("decision_id") == decision_id
                 ),
                 None,
@@ -118,7 +121,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
                 "chain_complete": outcome is not None,
             }
 
-        verified = store.get_verified_decisions()[:limit]
+        verified = store.get_verified_decisions(_domain())[:limit]
         return {"trails": verified, "total": len(verified)}
 
     return router

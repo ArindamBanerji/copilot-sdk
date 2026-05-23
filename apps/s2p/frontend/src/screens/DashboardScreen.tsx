@@ -4,6 +4,7 @@ import { API_URL, getPreviewConservation, getPreviewQueue } from "../api";
 import { AutoApprovePanel } from "../components/AutoApprovePanel";
 import { ConservationMiniGauge } from "../components/ConservationMiniGauge";
 import { ControlTowerPanel } from "../components/ControlTowerPanel";
+import { DisruptionSimPanel } from "../components/DisruptionSimPanel";
 import { FinancialImpactCard } from "../components/FinancialImpactCard";
 import { NoveltyStatusPanel } from "../components/NoveltyStatusPanel";
 import { ProcessContextCard } from "../components/ProcessContextCard";
@@ -105,6 +106,8 @@ export function DashboardScreen() {
       </div>
 
       <NoveltyStatusPanel />
+
+      <DisruptionSimPanel />
 
       <AutoApprovePanel />
 

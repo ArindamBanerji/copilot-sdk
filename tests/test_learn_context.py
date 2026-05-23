@@ -5,10 +5,9 @@ import sqlite3
 
 import numpy as np
 
-from copilot_sdk.graph import InMemoryGraphStore
+from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
 from copilot_sdk.scoring.config import DomainShape
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.scoring.storage import DecisionStore
 
 from gae.profile_scorer import ProfileScorer
 
@@ -50,7 +49,7 @@ class RecordingReward:
 
 def _build_scorer(tmp_path, reward_function=None) -> CompoundingScorer:
     preset = ContextPreset()
-    store = DecisionStore(tmp_path / "context.sqlite")
+    graph_store = InMemoryGraphStore()
     gae_scorer = ProfileScorer(
         mu=preset.bootstrap_centroids.copy(),
         actions=list(preset.shape.action_names),
@@ -58,22 +57,21 @@ def _build_scorer(tmp_path, reward_function=None) -> CompoundingScorer:
     )
     return CompoundingScorer(
         preset,
-        store,
         gae_scorer,
-        graph_store=InMemoryGraphStore(),
+        graph_store=graph_store,
         reward_function=reward_function,
     )
 
 
 def _build_default_sqlite_scorer(tmp_path) -> CompoundingScorer:
     preset = ContextPreset()
-    store = DecisionStore(tmp_path / "default-sqlite.sqlite")
+    graph_store = SQLiteGraphStore(tmp_path / "default-sqlite.sqlite", domain="context-test")
     gae_scorer = ProfileScorer(
         mu=preset.bootstrap_centroids.copy(),
         actions=list(preset.shape.action_names),
         categories=list(preset.shape.category_names),
     )
-    return CompoundingScorer(preset, store, gae_scorer)
+    return CompoundingScorer(preset, gae_scorer, graph_store=graph_store)
 
 
 def _score(scorer: CompoundingScorer):
@@ -87,9 +85,9 @@ def test_learn_accepts_context(tmp_path):
     learn = scorer.learn(result.decision_id, result.action, context={"invoice_id": "INV-001"})
 
     assert learn.decision_id == result.decision_id
-    verified = scorer.graph_store.get_verified_decisions()
+    verified = scorer.graph_store.get_verified_decisions("test")
     assert verified[0]["outcome_metadata"]["context"] == {"invoice_id": "INV-001"}
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_learn_without_context_backward_compatible(tmp_path):
@@ -99,35 +97,39 @@ def test_learn_without_context_backward_compatible(tmp_path):
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.decision_id == result.decision_id
-    verified = scorer.graph_store.get_verified_decisions()
+    verified = scorer.graph_store.get_verified_decisions("test")
     assert "context" not in verified[0]["outcome_metadata"]
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_save_outcome_stores_context(tmp_path):
-    store = DecisionStore(tmp_path / "store.sqlite")
+    store = SQLiteGraphStore(tmp_path / "store.sqlite", domain="mock")
     try:
-        store.save_decision(
-            decision_id="d-1",
-            domain="mock",
+        store.write_decision(
+            "mock",
             category="alpha",
-            category_index=0,
-            factors={"amount": 0.2, "risk": 0.4, "history": 0.6},
-            factor_vector=[0.2, 0.4, 0.6],
-            recommended_action="approve",
-            recommended_index=0,
+            action="approve",
             confidence=0.75,
-            probabilities=[0.75, 0.25],
+            factors={"amount": 0.2, "risk": 0.4, "history": 0.6},
+            metadata={
+                "decision_id": "d-1",
+                "category_index": 0,
+                "factor_vector": [0.2, 0.4, 0.6],
+                "recommended_index": 0,
+                "probabilities": [0.75, 0.25],
+            },
         )
-        store.save_outcome(
+        store.write_outcome(
             decision_id="d-1",
             actual_action="approve",
-            actual_index=0,
             is_correct=True,
-            context={"invoice_id": "INV-001", "amount": 125.5},
+            metadata={
+                "actual_index": 0,
+                "context": {"invoice_id": "INV-001", "amount": 125.5},
+            },
         )
 
-        verified = store.get_verified_decisions()
+        verified = store.get_verified_decisions("mock")
 
         assert verified[0]["context"] == {"amount": 125.5, "invoice_id": "INV-001"}
     finally:
@@ -144,7 +146,7 @@ def test_default_sqlite_graph_store_persists_learn_context(tmp_path):
         context={"invoice_id": "INV-SQLITE-001", "supplier_id": "SUP-1"},
     )
 
-    verified = scorer.graph_store.get_verified_decisions()
+    verified = scorer.graph_store.get_verified_decisions("context-test")
 
     assert len(verified) == 1
     assert verified[0]["decision_id"] == result.decision_id
@@ -152,7 +154,7 @@ def test_default_sqlite_graph_store_persists_learn_context(tmp_path):
         "invoice_id": "INV-SQLITE-001",
         "supplier_id": "SUP-1",
     }
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_outcome_context_column_migrates_existing_db(tmp_path):
@@ -187,7 +189,7 @@ def test_outcome_context_column_migrates_existing_db(tmp_path):
     finally:
         connection.close()
 
-    store = DecisionStore(db_path)
+    store = SQLiteGraphStore(db_path, domain="mock")
     try:
         columns = {
             row[1]
@@ -216,7 +218,7 @@ def test_context_available_in_reward_function(tmp_path):
         "outcome": "confirmed",
         "recovery_pct": 80,
     }
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_existing_reward_function_without_context_still_works(tmp_path):
@@ -228,4 +230,4 @@ def test_existing_reward_function_without_context_still_works(tmp_path):
 
     assert learn.reward_raw == 1.0
     assert reward.calls[0]["outcome"] == {"outcome": "confirmed"}
-    scorer.store.close()
+    scorer.graph_store.close()

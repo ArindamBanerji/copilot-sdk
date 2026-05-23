@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from fastapi.testclient import TestClient
+
 from app import context_router
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
@@ -217,6 +219,77 @@ def test_seed_v2_exists(client):
             assert 0.0 <= trade[factor] <= 1.0
 
 
+def test_auto_seed_empty_db(tmp_path):
+    from app.main import create_app
+
+    db_path = tmp_path / "trading_seeded.db"
+    with TestClient(create_app(db_path=db_path)) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    expected_verified, expected_correct = _fixture_outcome_counts(DATA_DIR / "trading_seed_v2.json")
+    assert _count_decisions(db_path, "trading") == 40
+    assert _count_verified(db_path, "trading") == expected_verified
+    assert _count_correct(db_path, "trading") == expected_correct
+
+
+def test_auto_seed_skips_populated(tmp_path):
+    from app.main import create_app
+    from copilot_sdk.graph import SQLiteGraphStore
+
+    db_path = tmp_path / "trading_populated.db"
+    store = SQLiteGraphStore(db_path, domain="trading")
+    try:
+        _save_proxy_decision(store, "existing")
+    finally:
+        store.close()
+
+    with TestClient(create_app(db_path=db_path)) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    assert _count_decisions(db_path, "trading") == 1
+
+
+def test_ci_data_dir_creates_db(tmp_path, monkeypatch):
+    from app.main import create_app
+
+    data_dir = tmp_path / "ci-data"
+    monkeypatch.setenv("CI_DATA_DIR", str(data_dir))
+    with TestClient(create_app()) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    db_path = data_dir / "trading.db"
+    assert db_path.exists()
+    assert _count_decisions(db_path, "trading") == 40
+    assert _count_verified(db_path, "trading") == _fixture_outcome_counts(DATA_DIR / "trading_seed_v2.json")[0]
+
+
+def test_explicit_db_path_wins(tmp_path, monkeypatch):
+    from app.main import create_app
+
+    ci_dir = tmp_path / "ci-data"
+    explicit_db = tmp_path / "explicit.db"
+    monkeypatch.setenv("CI_DATA_DIR", str(ci_dir))
+
+    with TestClient(create_app(db_path=explicit_db)) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    assert explicit_db.exists()
+    assert not (ci_dir / "trading.db").exists()
+    assert _count_decisions(explicit_db, "trading") == 40
+
+
+def test_no_env_uses_explicit_fallback(tmp_path, monkeypatch):
+    from app.main import create_app
+
+    monkeypatch.delenv("CI_DATA_DIR", raising=False)
+    db_path = tmp_path / "fallback.db"
+    with TestClient(create_app(db_path=db_path)) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    assert db_path.exists()
+    assert _count_decisions(db_path, "trading") == 40
+
+
 def test_analytics(client):
     response = client.get("/api/context/analytics")
 
@@ -405,50 +478,50 @@ def test_self_computation_mounted_at_api_self(client):
 
 def test_graph_store_count_verified(tmp_path):
     from app.main import _graph_store
-    from copilot_sdk.scoring.storage import DecisionStore
+    from copilot_sdk.graph import SQLiteGraphStore
 
     db_path = tmp_path / "graph.sqlite"
-    store = DecisionStore(db_path)
+    store = SQLiteGraphStore(db_path, domain="trading")
     try:
         _save_proxy_decision(store, "d-1")
         _save_proxy_decision(store, "d-2")
-        store.save_outcome(
+        store.write_outcome(
             decision_id="d-1",
             actual_action="buy",
-            actual_index=0,
             is_correct=True,
+            metadata={"actual_index": 0},
         )
     finally:
         store.close()
 
-    assert _graph_store(str(db_path)).count_verified() == 1
+    assert _graph_store(str(db_path)).count_verified("trading") == 1
 
 
 def test_graph_store_count_correct(tmp_path):
     from app.main import _graph_store
-    from copilot_sdk.scoring.storage import DecisionStore
+    from copilot_sdk.graph import SQLiteGraphStore
 
     db_path = tmp_path / "graph.sqlite"
-    store = DecisionStore(db_path)
+    store = SQLiteGraphStore(db_path, domain="trading")
     try:
         _save_proxy_decision(store, "d-1")
         _save_proxy_decision(store, "d-2")
-        store.save_outcome(
+        store.write_outcome(
             decision_id="d-1",
             actual_action="buy",
-            actual_index=0,
             is_correct=True,
+            metadata={"actual_index": 0},
         )
-        store.save_outcome(
+        store.write_outcome(
             decision_id="d-2",
             actual_action="hold",
-            actual_index=1,
             is_correct=False,
+            metadata={"actual_index": 1},
         )
     finally:
         store.close()
 
-    assert _graph_store(str(db_path)).count_correct() == 1
+    assert _graph_store(str(db_path)).count_correct("trading") == 1
 
 
 def test_fingerprint(client):
@@ -475,28 +548,30 @@ def test_fingerprint(client):
 
 
 def _save_proxy_decision(store, decision_id: str) -> None:
-    store.save_decision(
-        decision_id=decision_id,
-        domain="trading",
+    store.write_decision(
+        "trading",
         category="equity_long",
-        category_index=0,
-        factors=TRADING_FACTORS,
-        factor_vector=list(TRADING_FACTORS.values()),
-        recommended_action="buy",
-        recommended_index=0,
+        action="buy",
         confidence=0.8,
-        probabilities=[0.8, 0.1, 0.1, 0.0],
+        factors=TRADING_FACTORS,
+        metadata={
+            "decision_id": decision_id,
+            "category_index": 0,
+            "factor_vector": list(TRADING_FACTORS.values()),
+            "recommended_index": 0,
+            "probabilities": [0.8, 0.1, 0.1, 0.0],
+        },
     )
 
 
 def _seed_verified_history(db_path: Path, total: int) -> None:
-    from copilot_sdk.scoring.storage import DecisionStore
+    from copilot_sdk.graph import SQLiteGraphStore
 
     override_count = 30
     alternate_actions = [("hold", 1), ("sell", 2)]
     assert total >= override_count
 
-    store = DecisionStore(db_path)
+    store = SQLiteGraphStore(db_path, domain="trading")
     try:
         for index in range(total):
             decision_id = f"seed-{index}"
@@ -507,11 +582,48 @@ def _seed_verified_history(db_path: Path, total: int) -> None:
                 ]
             else:
                 actual_action, actual_index = "buy", 0
-            store.save_outcome(
+            store.write_outcome(
                 decision_id=decision_id,
                 actual_action=actual_action,
-                actual_index=actual_index,
                 is_correct=True,
+                metadata={"actual_index": actual_index},
             )
     finally:
         store.close()
+
+
+def _count_decisions(db_path: Path, domain: str) -> int:
+    from copilot_sdk.graph import SQLiteGraphStore
+
+    store = SQLiteGraphStore(db_path, domain=domain)
+    try:
+        return store.count_decisions(domain)
+    finally:
+        store.close()
+
+
+def _count_verified(db_path: Path, domain: str) -> int:
+    from copilot_sdk.graph import SQLiteGraphStore
+
+    store = SQLiteGraphStore(db_path, domain=domain)
+    try:
+        return store.count_verified(domain)
+    finally:
+        store.close()
+
+
+def _count_correct(db_path: Path, domain: str) -> int:
+    from copilot_sdk.graph import SQLiteGraphStore
+
+    store = SQLiteGraphStore(db_path, domain=domain)
+    try:
+        return store.count_correct(domain)
+    finally:
+        store.close()
+
+
+def _fixture_outcome_counts(path: Path) -> tuple[int, int]:
+    seed = json.loads(path.read_text(encoding="utf-8"))
+    verified = sum(1 for entry in seed if "is_correct" in entry)
+    correct = sum(1 for entry in seed if bool(entry.get("is_correct")))
+    return verified, correct

@@ -10,8 +10,11 @@ Usage:
     python demo.py --sdk            # Trading + Purchasing + DataOps only
     python demo.py --dataops        # DataOps only
     python demo.py --stop           # Stop all copilot processes
-    python demo.py --status         # Show what's running
-    python demo.py --preseed        # Pre-seed after start
+    python demo.py --status         # Show what's running + persistent data
+    python demo.py --reset          # Wipe ALL persistent data, fresh start
+    python demo.py --reset trading  # Wipe one copilot's data only
+    python demo.py --reset --sdk    # Wipe + restart SDK copilots
+    python demo.py --preseed        # Pre-seed after start (deprecated)
     python demo.py --graph          # AGE graph mode for DataOps
     python demo.py --no-browser     # Don't open browser tabs
     python demo.py --kill-all       # Kill all known copilot ports
@@ -20,6 +23,8 @@ Usage:
 import argparse
 import json
 import os
+import shutil
+import sqlite3
 import subprocess
 import sys
 import time
@@ -39,6 +44,13 @@ KEEPALIVE_PID_FILE = SCRIPT_DIR / ".wsl_keepalive.pid"
 
 IS_WINDOWS = sys.platform == "win32"
 CREATE_FLAGS = subprocess.CREATE_NEW_CONSOLE if IS_WINDOWS else 0
+
+# --- Persistent Storage ---
+# One data directory per copilot. Backend constructs its own db
+# filename (e.g. trading.db) matching its DEFAULT_DB_PATH pattern.
+# demo.py passes CI_DATA_DIR only — backend owns the filename.
+# See docs/storage_architecture.md.
+DEFAULT_DATA_DIR = Path.home() / ".ci-platform"
 
 # AGE connection parameters
 AGE_DSN_SOC = "host=127.0.0.1 port=5433 dbname=soc_copilot user=postgres password=postgres"
@@ -63,6 +75,8 @@ COPILOTS = [
             "GRAPH_BACKEND": "age",
             "GRAPH_DSN": AGE_DSN_SOC,
         },
+        "persistent": False,  # SOC uses AGE, not file-backed SQLite
+        "db_filename": None,
     },
     {
         "name": "Trading",
@@ -70,6 +84,8 @@ COPILOTS = [
         "fe_port": 5174,
         "be_path": SCRIPT_DIR / "apps" / "trading" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "trading" / "frontend",
+        "persistent": True,
+        "db_filename": "trading.db",
     },
     {
         "name": "Purchasing",
@@ -77,6 +93,8 @@ COPILOTS = [
         "fe_port": 5175,
         "be_path": SCRIPT_DIR / "apps" / "purchasing" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "purchasing" / "frontend",
+        "persistent": True,
+        "db_filename": "purchasing.db",
     },
     {
         "name": "DataOps",
@@ -84,6 +102,8 @@ COPILOTS = [
         "fe_port": 5176,
         "be_path": SCRIPT_DIR / "apps" / "dataops" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "dataops" / "frontend",
+        "persistent": True,
+        "db_filename": "dataops.db",
     },
     {
         "name": "S2P",
@@ -94,6 +114,8 @@ COPILOTS = [
             str(SCRIPT_DIR.parent / "s2p-copilot"),
         )) / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "s2p" / "frontend",
+        "persistent": True,
+        "db_filename": "s2p.db",
     },
 ]
 
@@ -102,10 +124,52 @@ SDK_NAMES = {"trading", "purchasing", "dataops"}
 PLAYWRIGHT_NAMES = {"soc", "s2p"}
 
 
+# --- Persistent Data Helpers ---
+
+def _copilot_data_dir(copilot_name: str, data_root: Path = DEFAULT_DATA_DIR) -> Path:
+    """Get or create persistent data directory for a copilot."""
+    d = data_root / copilot_name.lower()
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _copilot_db_path(copilot: dict, data_root: Path = DEFAULT_DATA_DIR) -> Path | None:
+    """Full path to a copilot's db file, or None if not persistent."""
+    if not copilot.get("persistent") or not copilot.get("db_filename"):
+        return None
+    return _copilot_data_dir(copilot["name"], data_root) / copilot["db_filename"]
+
+
+def _read_copilot_data_stats(copilot: dict, data_root: Path = DEFAULT_DATA_DIR) -> dict:
+    """Read decision count from a copilot's persistent DB."""
+    result = {"copilot": copilot["name"], "db_exists": False, "decisions": 0, "archived": 0}
+    db_path = _copilot_db_path(copilot, data_root)
+    if db_path is None or not db_path.exists():
+        return result
+    result["db_exists"] = True
+    try:
+        conn = sqlite3.connect(str(db_path))
+        try:
+            result["decisions"] = conn.execute(
+                "SELECT COUNT(*) FROM decisions"
+            ).fetchone()[0]
+        except sqlite3.OperationalError:
+            pass
+        try:
+            result["archived"] = conn.execute(
+                "SELECT COUNT(*) FROM decisions_archive"
+            ).fetchone()[0]
+        except sqlite3.OperationalError:
+            pass
+        conn.close()
+    except Exception:
+        pass
+    return result
+
+
 # --- Helpers ---
 
 def check_port(port: int) -> bool:
-    """Check if a port is responding."""
     import socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
@@ -118,7 +182,6 @@ def check_port(port: int) -> bool:
 
 
 def check_health(port: int, path: str = "/health") -> dict | None:
-    """Check backend health endpoint."""
     try:
         r = urlopen(f"http://localhost:{port}{path}", timeout=5)
         return json.loads(r.read())
@@ -127,7 +190,6 @@ def check_health(port: int, path: str = "/health") -> dict | None:
 
 
 def verify_age(dsn: str) -> bool:
-    """Verify AGE/PostgreSQL is reachable."""
     try:
         import psycopg
         conn = psycopg.connect(dsn, autocommit=True)
@@ -138,13 +200,11 @@ def verify_age(dsn: str) -> bool:
 
 
 def verify_wsl2_running() -> bool:
-    """Check if any WSL2 distribution is running."""
     try:
         result = subprocess.run(
             ["wsl", "--list", "--running"],
             capture_output=True, text=True, timeout=5,
         )
-        # "no running distributions" means nothing is up
         output = result.stdout + result.stderr
         if "no running" in output.lower() or not result.stdout.strip():
             return False
@@ -154,10 +214,8 @@ def verify_wsl2_running() -> bool:
 
 
 def start_wsl2_postgres() -> bool:
-    """Start PostgreSQL inside WSL2 and keep WSL2 alive."""
     print("  Starting WSL2 + PostgreSQL...")
     try:
-        # wsl -u root bypasses sudo entirely — no password prompt
         result = subprocess.run(
             ["wsl", "-d", "Ubuntu-24.04", "-u", "root", "--",
              "bash", "-c",
@@ -170,15 +228,9 @@ def start_wsl2_postgres() -> bool:
             output = (result.stdout + result.stderr).strip()
             print(f"  ✗ PostgreSQL did not start: {output[:200]}")
             return False
-
         print("  ✓ PostgreSQL started in WSL2")
-
-        # Keep WSL2 alive with a background sleep process.
-        # Without this, WSL2 may idle-shutdown and kill PostgreSQL
-        # between backend starts (~30s gap is enough to trigger it).
         _start_wsl2_keepalive()
         return True
-
     except subprocess.TimeoutExpired:
         print("  ✗ WSL2 start timed out (30s)")
         return False
@@ -191,18 +243,14 @@ _wsl_keepalive_proc = None
 
 
 def _start_wsl2_keepalive():
-    """Start a background WSL2 process to prevent idle shutdown."""
     global _wsl_keepalive_proc
     if _wsl_keepalive_proc and _wsl_keepalive_proc.poll() is None:
-        return  # already running
-
+        return
     _wsl_keepalive_proc = subprocess.Popen(
         ["wsl", "-d", "Ubuntu-24.04", "-u", "root", "--",
          "bash", "-c", "while true; do sleep 300; done"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
-    # Save PID so --stop in a later process can find it
     try:
         KEEPALIVE_PID_FILE.write_text(str(_wsl_keepalive_proc.pid))
     except Exception:
@@ -211,24 +259,17 @@ def _start_wsl2_keepalive():
 
 
 def _stop_wsl2_keepalive():
-    """Stop the WSL2 keepalive process, whether from this run or a prior one."""
     global _wsl_keepalive_proc
-
-    # Try in-process handle first
     if _wsl_keepalive_proc and _wsl_keepalive_proc.poll() is None:
         _wsl_keepalive_proc.terminate()
         print("  Stopped WSL2 keepalive")
         _wsl_keepalive_proc = None
-
-    # Also check saved PID file (from a prior demo.py run)
     if KEEPALIVE_PID_FILE.exists():
         try:
             pid = int(KEEPALIVE_PID_FILE.read_text().strip())
             if IS_WINDOWS:
-                subprocess.run(
-                    ["taskkill", "/F", "/PID", str(pid)],
-                    capture_output=True, timeout=5,
-                )
+                subprocess.run(["taskkill", "/F", "/PID", str(pid)],
+                               capture_output=True, timeout=5)
             else:
                 os.kill(pid, 9)
             print(f"  Stopped prior WSL2 keepalive (PID {pid})")
@@ -238,15 +279,11 @@ def _stop_wsl2_keepalive():
 
 
 def ensure_age_available(dsn: str) -> bool:
-    """Ensure AGE is reachable, starting WSL2/PostgreSQL if needed."""
     if verify_age(dsn):
         print("  ✓ AGE connection verified")
-        _start_wsl2_keepalive()  # ensure keepalive even if PG was already up
+        _start_wsl2_keepalive()
         return True
-
     print("  AGE not reachable. Checking WSL2...")
-
-    # Whether WSL2 is running or not, try starting PostgreSQL
     if not start_wsl2_postgres():
         print()
         print("  ╔════════════════════════════════════════════╗")
@@ -259,21 +296,17 @@ def ensure_age_available(dsn: str) -> bool:
         print("  ║  4. Re-run demo.py                        ║")
         print("  ╚════════════════════════════════════════════╝")
         return False
-
-    # PostgreSQL reported ready — verify from Windows side
     for attempt in range(5):
         time.sleep(2)
         if verify_age(dsn):
             print("  ✓ AGE connection verified")
             return True
         print(f"  Waiting for AGE... ({attempt + 1}/5)")
-
     print("  ✗ AGE not reachable after PostgreSQL start")
     return False
 
 
 def wait_for_health(name: str, port: int, timeout: int = 30) -> bool:
-    """Poll /health until healthy or timeout."""
     for i in range(timeout):
         time.sleep(1)
         h = check_health(port)
@@ -287,7 +320,6 @@ def wait_for_health(name: str, port: int, timeout: int = 30) -> bool:
 
 
 def wait_for_frontend(name: str, port: int, timeout: int = 15) -> bool:
-    """Poll frontend port until it responds or timeout."""
     for _ in range(timeout):
         time.sleep(1)
         if check_port(port):
@@ -298,7 +330,6 @@ def wait_for_frontend(name: str, port: int, timeout: int = 15) -> bool:
 
 
 def find_pids_on_port(port: int) -> list[int]:
-    """Find process IDs listening on a port."""
     pids: set[int] = set()
     target_port = str(port)
     try:
@@ -325,7 +356,6 @@ def find_pids_on_port(port: int) -> list[int]:
 
 
 def _port_from_local_address(local_address: str) -> str | None:
-    """Extract the port from netstat's local address column."""
     if local_address.startswith("[") and "]:" in local_address:
         return local_address.rsplit("]:", 1)[-1]
     if ":" not in local_address:
@@ -334,7 +364,6 @@ def _port_from_local_address(local_address: str) -> str | None:
 
 
 def kill_port(port: int, name: str = "") -> bool:
-    """Kill processes on a specific port."""
     pids = find_pids_on_port(port)
     if not pids:
         return False
@@ -361,7 +390,6 @@ def kill_port(port: int, name: str = "") -> bool:
 
 
 def known_ports(selected: list[dict] | None = None) -> list[int]:
-    """Return configured backend and frontend ports."""
     copilots = selected or COPILOTS
     ports: list[int] = []
     for c in copilots:
@@ -374,21 +402,17 @@ def known_ports(selected: list[dict] | None = None) -> list[int]:
 # --- Commands ---
 
 def cmd_stop(selected: list[dict]):
-    """Stop all selected copilot processes."""
     print("Stopping copilots...")
     for c in selected:
         kill_port(c["be_port"], f"{c['name']} backend")
         if c.get("fe_port") is not None:
             kill_port(c["fe_port"], f"{c['name']} frontend")
-
     _stop_wsl2_keepalive()
-
     time.sleep(2)
     print("Done.")
 
 
 def cmd_kill_all():
-    """Kill listeners on all configured copilot ports."""
     print("Killing all copilot port listeners...")
     killed_any = False
     for port in known_ports():
@@ -398,14 +422,48 @@ def cmd_kill_all():
     print("Done.")
 
 
-def cmd_status(selected: list[dict]):
-    """Show status of selected copilots."""
+def cmd_reset(target: str, selected: list[dict], data_root: Path = DEFAULT_DATA_DIR):
+    """Reset persistent data. Stops affected copilots first."""
+    print()
+    if target == "ALL":
+        # Stop all persistent copilots before wiping
+        for c in selected:
+            if c.get("persistent") and check_port(c["be_port"]):
+                print(f"  Stopping {c['name']} before reset...")
+                kill_port(c["be_port"], f"{c['name']} backend")
+                if c.get("fe_port") is not None:
+                    kill_port(c["fe_port"], f"{c['name']} frontend")
+        time.sleep(1)
+        if data_root.exists():
+            shutil.rmtree(data_root)
+            print(f"  Reset: wiped {data_root} (all copilots)")
+        else:
+            print("  Reset: no persistent data to wipe")
+    else:
+        target_lower = target.lower()
+        for c in COPILOTS:
+            if c["name"].lower() == target_lower and check_port(c["be_port"]):
+                print(f"  Stopping {c['name']} before reset...")
+                kill_port(c["be_port"], f"{c['name']} backend")
+                if c.get("fe_port") is not None:
+                    kill_port(c["fe_port"], f"{c['name']} frontend")
+                time.sleep(1)
+                break
+        copilot_dir = data_root / target_lower
+        if copilot_dir.exists():
+            shutil.rmtree(copilot_dir)
+            print(f"  Reset: wiped {copilot_dir}")
+        else:
+            print(f"  Reset: no data for {target}")
+    print()
+
+
+def cmd_status(selected: list[dict], data_root: Path = DEFAULT_DATA_DIR):
     print()
     print("╔══════════════════════════════════════════════════════╗")
     print("║  Copilot Platform Status                             ║")
     print("╚══════════════════════════════════════════════════════╝")
 
-    # AGE status
     age_ok = verify_age(AGE_DSN_SOC)
     wsl_ok = verify_wsl2_running()
     print(f"  AGE/PostgreSQL  {'UP ✓' if age_ok else 'DOWN ✗':8s}  "
@@ -427,18 +485,42 @@ def cmd_status(selected: list[dict]):
         print(f"  {c['name']:12s}  backend :{c['be_port']} {be_status:8s}"
               f"  frontend {fe_label:>5s} {fe_status:8s}"
               f"  {domain}{age_flag}")
+
+    # Persistent data
+    print()
+    print("  Persistent Data:")
+    has_any = False
+    for c in selected:
+        if c.get("persistent"):
+            has_any = True
+            stats = _read_copilot_data_stats(c, data_root)
+            if not stats["db_exists"]:
+                print(f"    {c['name']:12s}  no data (will auto-seed on first start)")
+            else:
+                parts = [f"{stats['decisions']} decisions"]
+                if stats["archived"] > 0:
+                    parts.append(f"+{stats['archived']} archived")
+                db_path = _copilot_db_path(c, data_root)
+                if db_path and db_path.exists():
+                    size_kb = db_path.stat().st_size // 1024
+                    parts.append(f"{size_kb}KB")
+                print(f"    {c['name']:12s}  {', '.join(parts)}")
+        elif c.get("requires_age"):
+            has_any = True
+            print(f"    {c['name']:12s}  managed by AGE (PostgreSQL)")
+    if not has_any:
+        print("    (no persistent copilots selected)")
     print()
 
 
-def cmd_start(selected: list[dict], args):
-    """Start selected copilots."""
+def cmd_start(selected: list[dict], args, data_root: Path = DEFAULT_DATA_DIR):
     print()
     print("╔══════════════════════════════════════════════════════╗")
     print(f"║  Starting {len(selected)} copilot(s)...                        ║")
     print("╚══════════════════════════════════════════════════════╝")
     print()
 
-    # --- AGE pre-check for copilots that need it ---
+    # AGE pre-check
     age_needed = [c for c in selected if c.get("requires_age")]
     if age_needed or args.graph:
         dsn = age_needed[0]["graph_dsn"] if age_needed else AGE_DSN_DATAOPS
@@ -446,7 +528,6 @@ def cmd_start(selected: list[dict], args):
         if not ensure_age_available(dsn):
             print()
             print("Cannot start AGE-dependent copilots. Exiting.")
-            # Start non-AGE copilots anyway
             non_age = [c for c in selected if not c.get("requires_age")]
             if non_age:
                 print(f"Starting {len(non_age)} non-AGE copilot(s) instead...")
@@ -455,11 +536,10 @@ def cmd_start(selected: list[dict], args):
                 return
         print()
 
-    # --- Graph mode (DataOps AGE) ---
     if args.graph:
         setup_graph_mode()
 
-    # --- Start backends ---
+    # Start backends
     print("Starting backends...")
     for c in selected:
         port = c["be_port"]
@@ -473,10 +553,15 @@ def cmd_start(selected: list[dict], args):
             print(f"  ✗ {c['name']}: main.py not found at {be_path}")
             continue
 
-        # Build environment with copilot-specific vars
         env = os.environ.copy()
         if c.get("env"):
             env.update(c["env"])
+
+        # Persistent storage: pass data DIRECTORY to backend.
+        # Backend constructs its own db filename (e.g. trading.db).
+        if c.get("persistent"):
+            copilot_dir = _copilot_data_dir(c["name"], data_root)
+            env["CI_DATA_DIR"] = str(copilot_dir)
 
         proc = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "app.main:app",
@@ -487,7 +572,7 @@ def cmd_start(selected: list[dict], args):
         )
         print(f"  {c['name']} backend starting on :{port} (PID {proc.pid})")
 
-    # --- Wait for health ---
+    # Wait for health
     print()
     print("Waiting for backends...")
     all_healthy = True
@@ -499,13 +584,16 @@ def cmd_start(selected: list[dict], args):
     if not all_healthy:
         print()
         print("Some backends failed. Check the console windows for errors.")
-        # Continue anyway — some backends may be up
 
-    # --- Pre-seed ---
+    # Pre-seed (deprecated)
     if args.preseed:
+        print()
+        print("  NOTE: --preseed is deprecated. Backends auto-seed on first start.")
+        print("  Use --reset to wipe and re-seed on next start.")
+        print("  Running legacy preseed for backward compatibility...")
         run_preseed(selected)
 
-    # --- Start frontends ---
+    # Start frontends
     print()
     print("Starting frontends...")
     for c in selected:
@@ -513,17 +601,14 @@ def cmd_start(selected: list[dict], args):
         if fe_port is None:
             print(f"  {c['name']} has no frontend; skipping")
             continue
-
         kill_port(fe_port, f"{c['name']} frontend")
         if check_port(fe_port):
             print(f"  {c['name']} frontend already on :{fe_port}")
             continue
-
         fe_path = c.get("fe_path")
         if not fe_path or not (fe_path / "package.json").exists():
             print(f"  ✗ {c['name']}: package.json not found at {fe_path}")
             continue
-
         subprocess.Popen(
             ["npx", "vite", "--port", str(fe_port), "--host", "127.0.0.1"],
             cwd=str(fe_path),
@@ -532,7 +617,7 @@ def cmd_start(selected: list[dict], args):
         )
         print(f"  {c['name']} frontend starting on :{fe_port}")
 
-    # --- Wait for frontends ---
+    # Wait for frontends
     print()
     print("Waiting for frontends...")
     for c in selected:
@@ -540,7 +625,7 @@ def cmd_start(selected: list[dict], args):
         if fe_port is not None:
             wait_for_frontend(c["name"], fe_port, timeout=15)
 
-    # --- Open browsers ---
+    # Open browsers
     if not args.no_browser:
         urls = []
         for c in selected:
@@ -551,10 +636,8 @@ def cmd_start(selected: list[dict], args):
             print()
             print("Opening browsers...")
             url_list = [url for _, url in urls]
-
             edge = Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
             chrome = Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
-
             if edge.exists():
                 subprocess.Popen([str(edge), "--inprivate"] + url_list)
                 print("  Opened in Edge InPrivate:")
@@ -566,11 +649,10 @@ def cmd_start(selected: list[dict], args):
                     webbrowser.open_new_tab(url)
                     time.sleep(1)
                 print("  Opened in default browser:")
-
             for name, url in urls:
                 print(f"    {name}: {url}")
 
-    # --- Summary ---
+    # Summary
     print()
     print("╔══════════════════════════════════════════════════════╗")
     print("║  Platform Ready                                      ║")
@@ -578,32 +660,30 @@ def cmd_start(selected: list[dict], args):
     for c in selected:
         fe_port = c.get("fe_port")
         age_flag = " [AGE]" if c.get("requires_age") else ""
+        persist_flag = " [persistent]" if c.get("persistent") else ""
         if fe_port is None:
             print(f"  {c['name']:12s}  backend http://localhost:{c['be_port']}{age_flag}")
         else:
             print(f"  {c['name']:12s}  http://localhost:{fe_port}"
-                  f"  (backend :{c['be_port']}){age_flag}")
+                  f"  (backend :{c['be_port']}){age_flag}{persist_flag}")
     print()
     print("  Stop:       python demo.py --stop")
     print("  Status:     python demo.py --status")
+    print("  Reset:      python demo.py --reset [copilot]")
     print("  Playwright: python demo.py --playwright --no-browser")
     print()
 
 
 def setup_graph_mode():
-    """Set GRAPH_DSN and optionally seed the DataOps graph."""
     print("Setting up graph mode...")
     os.environ["GRAPH_DSN"] = AGE_DSN_DATAOPS
-
     seed_script = CI_PLATFORM / "scripts" / "seed_dataops_graph.py"
     if seed_script.exists():
         print("  Seeding DataOps graph...")
         try:
             subprocess.run(
                 [sys.executable, str(seed_script), "--force"],
-                cwd=str(CI_PLATFORM),
-                timeout=30,
-                check=True,
+                cwd=str(CI_PLATFORM), timeout=30, check=True,
             )
             print("  ✓ Graph seeded")
         except Exception as e:
@@ -611,21 +691,18 @@ def setup_graph_mode():
             del os.environ["GRAPH_DSN"]
     else:
         print(f"  WARN: Seed script not found: {seed_script}")
-
     print()
 
 
 def run_preseed(selected: list[dict]):
-    """Run pre-seeding script."""
+    """Run pre-seeding script (deprecated — backends auto-seed now)."""
     print()
     print("Pre-seeding copilots...")
     script = SCRIPT_DIR / "scripts" / "preseed_all_copilots.py"
     if not script.exists():
         print(f"  WARN: Pre-seed script not found: {script}")
         return
-
     cmd = [sys.executable, str(script)]
-
     preseed_names = {"trading", "purchasing", "dataops"}
     names = {c["name"].lower() for c in selected if c["name"].lower() in preseed_names}
     if not names:
@@ -634,7 +711,6 @@ def run_preseed(selected: list[dict]):
     if names != preseed_names:
         for name in names:
             cmd.append(f"--{name}-only")
-
     try:
         subprocess.run(cmd, cwd=str(SCRIPT_DIR), timeout=600)
     except Exception as e:
@@ -652,31 +728,33 @@ def main():
     parser.add_argument("--status", action="store_true", help="Show status")
     parser.add_argument("--kill-all", action="store_true",
                         help="Kill listeners on all known copilot ports")
+    parser.add_argument("--reset", nargs="?", const="ALL", default=None,
+                        help="Reset persistent data. No arg=all, or specify copilot name")
 
-    # Individual copilot flags
     parser.add_argument("--soc", action="store_true", help="SOC only")
     parser.add_argument("--trading", action="store_true", help="Trading only")
     parser.add_argument("--purchasing", action="store_true", help="Purchasing only")
     parser.add_argument("--dataops", action="store_true", help="DataOps only")
     parser.add_argument("--s2p", action="store_true", help="S2P only")
 
-    # Group flags
     parser.add_argument("--sdk", action="store_true",
                         help="SDK copilots only (Trading + Purchasing + DataOps)")
     parser.add_argument("--playwright", action="store_true",
                         help="Playwright prereqs only (SOC + S2P)")
 
-    # Options
     parser.add_argument("--graph", action="store_true", help="AGE graph mode for DataOps")
-    parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
+    parser.add_argument("--preseed", action="store_true",
+                        help="Pre-seed after start (deprecated: backends auto-seed)")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")
+    parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR,
+                        help=f"Override data directory (default: {DEFAULT_DATA_DIR})")
 
     args = parser.parse_args()
+    data_root = args.data_dir
 
-    # --- Select copilots ---
+    # Select copilots
     individual = args.soc or args.trading or args.purchasing or args.dataops or args.s2p
     group = args.sdk or args.playwright
-
     if individual or group:
         selected_names = set()
         if args.soc:
@@ -697,15 +775,22 @@ def main():
     else:
         selected = list(COPILOTS)
 
-    # --- Dispatch ---
+    # Handle reset FIRST (combinable with other actions)
+    if args.reset is not None:
+        cmd_reset(args.reset, selected, data_root)
+
+    # Dispatch
     if args.kill_all:
         cmd_kill_all()
     elif args.stop:
         cmd_stop(selected)
     elif args.status:
-        cmd_status(selected)
+        cmd_status(selected, data_root)
+    elif args.reset is not None:
+        # Reset already done above, no other action → exit
+        pass
     else:
-        cmd_start(selected, args)
+        cmd_start(selected, args, data_root)
 
 
 if __name__ == "__main__":

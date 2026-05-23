@@ -20,7 +20,6 @@ from copilot_sdk.backend.self_computation_router import mount_self_computation_r
 from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.config import DomainShape
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.scoring.storage import DecisionStore
 from copilot_sdk.transfer import TransferPattern
 
 
@@ -59,7 +58,6 @@ def _build_scorer(
     )
     wrapper = CompoundingScorer(
         preset,
-        DecisionStore(tmp_path / "bitemporal.sqlite"),
         scorer,
         graph_store=graph_store,
         consolidation_enabled=consolidation_enabled,
@@ -85,7 +83,7 @@ def test_extract_decision_timestamp_from_created_at(tmp_path: Path) -> None:
     scorer, _graph_store = _build_scorer(tmp_path)
 
     assert scorer._extract_decision_timestamp({"created_at": 1_779_148_800.0}) == "2026-05-19T00:00:00Z"
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_extract_decision_timestamp_from_explicit_key(tmp_path: Path) -> None:
@@ -96,14 +94,14 @@ def test_extract_decision_timestamp_from_explicit_key(tmp_path: Path) -> None:
     }
 
     assert scorer._extract_decision_timestamp(decision) == "2026-05-20T10:00:00Z"
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_extract_decision_timestamp_missing_returns_none(tmp_path: Path) -> None:
     scorer, _graph_store = _build_scorer(tmp_path)
 
     assert scorer._extract_decision_timestamp({"metadata": {"note": "no timestamp"}}) is None
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_learn_checkpoint_has_per_decision_time_range(tmp_path: Path) -> None:
@@ -112,10 +110,10 @@ def test_learn_checkpoint_has_per_decision_time_range(tmp_path: Path) -> None:
 
     scorer.learn(result.decision_id, result.action)
 
-    checkpoint = graph_store.get_centroid_checkpoints()[0]
+    checkpoint = graph_store.get_centroid_checkpoints("test")[0]
     assert checkpoint["decision_time_start"] == "2026-05-19T10:00:00Z"
     assert checkpoint["decision_time_end"] == "2026-05-19T10:00:00Z"
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_non_consolidated_no_timestamp_passes_none(tmp_path: Path) -> None:
@@ -129,10 +127,10 @@ def test_non_consolidated_no_timestamp_passes_none(tmp_path: Path) -> None:
     decision["metadata"].pop("created_at", None)
     scorer.learn(second.decision_id, second.action)
 
-    checkpoint = graph_store.get_centroid_checkpoints()[-1]
+    checkpoint = graph_store.get_centroid_checkpoints("test")[-1]
     assert checkpoint["decision_time_start"] is None
     assert checkpoint["decision_time_end"] is None
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_consolidation_flush_passes_batch_time_range(tmp_path: Path) -> None:
@@ -144,10 +142,10 @@ def test_consolidation_flush_passes_batch_time_range(tmp_path: Path) -> None:
     scorer.learn(second.decision_id, second.action)
     assert scorer.flush_centroids(reason="end-of-batch") == 2
 
-    checkpoint = graph_store.get_centroid_checkpoints()[0]
+    checkpoint = graph_store.get_centroid_checkpoints("test")[0]
     assert checkpoint["decision_time_start"] == "2026-05-19T10:00:00Z"
     assert checkpoint["decision_time_end"] == "2026-05-20T10:00:00Z"
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_consolidate_true_passes_batch_time_range(tmp_path: Path) -> None:
@@ -158,10 +156,10 @@ def test_consolidate_true_passes_batch_time_range(tmp_path: Path) -> None:
     scorer.learn(first.decision_id, first.action)
     scorer.learn(second.decision_id, second.action, consolidate=True)
 
-    checkpoint = graph_store.get_centroid_checkpoints()[0]
+    checkpoint = graph_store.get_centroid_checkpoints("test")[0]
     assert checkpoint["decision_time_start"] == "2026-05-18T10:00:00Z"
     assert checkpoint["decision_time_end"] == "2026-05-19T10:00:00Z"
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_batch_range_resets_after_flush(tmp_path: Path) -> None:
@@ -173,7 +171,7 @@ def test_batch_range_resets_after_flush(tmp_path: Path) -> None:
 
     assert scorer._batch_decision_time_start is None
     assert scorer._batch_decision_time_end is None
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_batch_range_resets_after_consolidate_true(tmp_path: Path) -> None:
@@ -184,7 +182,7 @@ def test_batch_range_resets_after_consolidate_true(tmp_path: Path) -> None:
 
     assert scorer._batch_decision_time_start is None
     assert scorer._batch_decision_time_end is None
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_warm_start_checkpoint_has_null_decision_range(tmp_path: Path) -> None:
@@ -206,10 +204,10 @@ def test_warm_start_checkpoint_has_null_decision_range(tmp_path: Path) -> None:
 
     scorer.warm_start([pattern])
 
-    checkpoint = scorer.graph_store.get_centroid_checkpoints(limit=1)[0]
+    checkpoint = scorer.graph_store.get_centroid_checkpoints("test", limit=1)[0]
     assert checkpoint["decision_time_start"] is None
     assert checkpoint["decision_time_end"] is None
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_centroid_history_accepts_checkpoint_time_filters() -> None:
@@ -218,8 +216,8 @@ def test_centroid_history_accepts_checkpoint_time_filters() -> None:
             super().__init__()
             self.kwargs: dict | None = None
 
-        def get_centroid_checkpoints(self, limit: int = 50, **kwargs) -> list[dict]:
-            self.kwargs = {"limit": limit, **kwargs}
+        def get_centroid_checkpoints(self, domain: str, limit: int = 50, **kwargs) -> list[dict]:
+            self.kwargs = {"domain": domain, "limit": limit, **kwargs}
             return []
 
     store = CapturingStore()
@@ -233,6 +231,7 @@ def test_centroid_history_accepts_checkpoint_time_filters() -> None:
 
     assert response.status_code == 200
     assert store.kwargs == {
+        "domain": "test",
         "limit": 50,
         "checkpoint_time_start": "2026-05-19T00:00:00Z",
         "checkpoint_time_end": "2026-05-20T00:00:00Z",
@@ -245,8 +244,8 @@ def test_centroid_history_accepts_decision_time_filters() -> None:
             super().__init__()
             self.kwargs: dict | None = None
 
-        def get_centroid_checkpoints(self, limit: int = 50, **kwargs) -> list[dict]:
-            self.kwargs = {"limit": limit, **kwargs}
+        def get_centroid_checkpoints(self, domain: str, limit: int = 50, **kwargs) -> list[dict]:
+            self.kwargs = {"domain": domain, "limit": limit, **kwargs}
             return []
 
     store = CapturingStore()
@@ -260,6 +259,7 @@ def test_centroid_history_accepts_decision_time_filters() -> None:
 
     assert response.status_code == 200
     assert store.kwargs == {
+        "domain": "test",
         "limit": 50,
         "decision_time_start": "2026-05-19T00:00:00Z",
         "decision_time_end": "2026-05-20T00:00:00Z",
@@ -269,7 +269,7 @@ def test_centroid_history_accepts_decision_time_filters() -> None:
 
 def test_centroid_history_without_filters_unchanged() -> None:
     store = InMemoryGraphStore()
-    store.save_centroids("decision-1", "alpha", {"alpha": [0.1]}, metadata={"iks": 1.0})
+    store.save_centroids("test", "alpha", {"alpha": [0.1]}, metadata={"iks": 1.0}, decision_id="decision-1")
     app = FastAPI()
     mount_self_computation_router(app, store)
 

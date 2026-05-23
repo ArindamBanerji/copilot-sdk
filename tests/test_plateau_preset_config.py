@@ -96,7 +96,6 @@ def test_scorer_uses_preset_plateau_config(monkeypatch, tmp_path) -> None:
         assert scorer._evolver.plateau_config == CustomPreset.plateau_config
     finally:
         scorer.graph_store.close()
-        scorer.store.close()
 
 
 def test_plateau_config_backward_compatible(monkeypatch, tmp_path) -> None:
@@ -128,4 +127,3 @@ def test_plateau_config_backward_compatible(monkeypatch, tmp_path) -> None:
         assert scorer._evolver.plateau_config == PlateauConfig()
     finally:
         scorer.graph_store.close()
-        scorer.store.close()

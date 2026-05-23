@@ -14,20 +14,22 @@ def _utc_iso_now() -> str:
 
 
 class InMemoryGraphStore:
-    """Dictionary-backed decision and outcome store."""
+    """Dictionary-backed domain-aware decision and outcome store."""
 
-    def __init__(self, decision_id_prefix: str = "") -> None:
+    def __init__(self, domain: str = "test", decision_id_prefix: str = "") -> None:
+        self.domain = str(domain)
         self._decision_id_prefix = str(decision_id_prefix or "")
         self._decisions: dict[str, dict[str, Any]] = {}
         self._outcomes: dict[str, dict[str, Any]] = {}
         self._edges: list[dict[str, Any]] = []
         self._centroid_checkpoints: list[dict[str, Any]] = []
         self._evolution_events: list[dict[str, Any]] = []
+        self._archive: list[dict[str, Any]] = []
         self._sequence = 0
 
     def write_decision(
         self,
-        entity_id: str,
+        domain: str,
         category: str,
         action: str,
         confidence: float,
@@ -41,14 +43,30 @@ class InMemoryGraphStore:
         decision_metadata = deepcopy(metadata or {})
         if self._decision_id_prefix or "decision_id" in decision_metadata:
             decision_metadata["decision_id"] = decision_id
+        entity_id = str(decision_metadata.get("entity_id") or decision_id)
+        if "entity_id" not in decision_metadata:
+            decision_metadata["entity_id"] = entity_id
         created_at = float((metadata or {}).get("created_at", time.time()))
+        category_index = int((metadata or {}).get("category_index", 0))
+        recommended_index = int((metadata or {}).get("recommended_index", 0))
+        factor_vector = deepcopy((metadata or {}).get("factor_vector"))
+        if factor_vector is None:
+            factor_vector = [float(factors[name]) for name in factors]
+        probabilities = deepcopy((metadata or {}).get("probabilities"))
+        if probabilities is None:
+            probabilities = [float(confidence)]
         self._decisions[decision_id] = {
             "decision_id": decision_id,
+            "domain": str(domain),
             "entity_id": entity_id,
             "category": category,
+            "category_index": category_index,
             "recommended_action": action,
+            "recommended_index": recommended_index,
             "confidence": float(confidence),
             "factors": deepcopy(factors),
+            "factor_vector": factor_vector,
+            "probabilities": probabilities,
             "metadata": decision_metadata,
             "created_at": created_at,
             "_sequence": self._sequence,
@@ -64,12 +82,16 @@ class InMemoryGraphStore:
     ) -> None:
         if decision_id not in self._decisions:
             raise KeyError(decision_id)
+        meta = metadata or {}
         self._outcomes[decision_id] = {
             "decision_id": decision_id,
+            "domain": self._decisions[decision_id].get("domain", self.domain),
             "actual_action": actual_action,
+            "actual_index": int(meta.get("actual_index", 0)),
             "is_correct": bool(is_correct),
-            "metadata": deepcopy(metadata or {}),
-            "verified_at": float((metadata or {}).get("verified_at", time.time())),
+            "metadata": deepcopy(meta),
+            "context": deepcopy(meta.get("context", {})),
+            "verified_at": float(meta.get("verified_at", time.time())),
         }
 
     def get_decision(self, decision_id: str) -> dict[str, Any] | None:
@@ -78,101 +100,125 @@ class InMemoryGraphStore:
 
     def get_decisions(
         self,
+        domain: str,
         category: str | None = None,
         limit: int = 400,
     ) -> list[dict[str, Any]]:
         decisions = [
             decision
             for decision in self._ordered_decisions()
-            if category is None or decision["category"] == category
+            if decision.get("domain") == domain
+            and (category is None or decision["category"] == category)
         ]
         return deepcopy(decisions[: max(int(limit), 0)])
 
-    def get_verified_decisions(self) -> list[dict[str, Any]]:
+    def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
+        return self.get_decisions(domain, category=None, limit=len(self._decisions))
+
+    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
         verified = []
         for decision in self._ordered_decisions():
+            if decision.get("domain") != domain:
+                continue
             outcome = self._outcomes.get(decision["decision_id"])
             if outcome is None:
                 continue
             merged = dict(decision)
             merged.update({
                 "actual_action": outcome["actual_action"],
+                "actual_index": outcome["actual_index"],
                 "is_correct": outcome["is_correct"],
                 "verified_at": outcome["verified_at"],
+                "context": deepcopy(outcome["context"]),
                 "outcome_metadata": deepcopy(outcome["metadata"]),
             })
             verified.append(merged)
         return deepcopy(verified)
 
-    def count_verified(self) -> int:
-        return len(self._outcomes)
+    def count_verified(self, domain: str) -> int:
+        return len(self.get_verified_decisions(domain))
 
-    def count_correct(self) -> int:
-        return sum(1 for outcome in self._outcomes.values() if outcome["is_correct"])
+    def count_correct(self, domain: str) -> int:
+        return sum(
+            1
+            for outcome in self._outcomes.values()
+            if outcome.get("domain") == domain and outcome["is_correct"]
+        )
 
-    def get_all_decisions(self) -> list[dict[str, Any]]:
-        return self.get_decisions(category=None, limit=len(self._decisions))
+    def count_decisions(self, domain: str) -> int:
+        return sum(1 for decision in self._decisions.values() if decision.get("domain") == domain)
 
     def save_centroids(
         self,
-        decision_id: str,
+        domain: str,
         category: str,
         centroids: Any,
         metadata: dict[str, Any] | None = None,
-        *,
-        decision_time_start: str | None = None,
-        decision_time_end: str | None = None,
-        checkpoint_time: str | None = None,
+        **kwargs: Any,
     ) -> None:
         self._centroid_checkpoints.append(
             {
-                "decision_id": decision_id,
+                "domain": str(domain),
+                "decision_id": kwargs.get("decision_id"),
                 "category": category,
                 "centroids": deepcopy(centroids),
+                "decisions_count": self.count_decisions(str(domain)),
+                "iks": float((metadata or {}).get("iks", 0.0)),
                 "metadata": deepcopy(metadata or {}),
                 "created_at": datetime.now(timezone.utc).isoformat(),
-                "decision_time_start": decision_time_start,
-                "decision_time_end": decision_time_end,
-                "checkpoint_time": checkpoint_time or _utc_iso_now(),
+                "decision_time_start": kwargs.get("decision_time_start"),
+                "decision_time_end": kwargs.get("decision_time_end"),
+                "checkpoint_time": kwargs.get("checkpoint_time") or _utc_iso_now(),
             }
         )
 
-    def get_centroid_checkpoints(
-        self,
-        limit: int = 50,
-        *,
-        checkpoint_time_start: str | None = None,
-        checkpoint_time_end: str | None = None,
-        decision_time_start: str | None = None,
-        decision_time_end: str | None = None,
-        category: str | None = None,
-    ) -> list[dict[str, Any]]:
-        limit_value = max(int(limit), 0)
-        if limit_value == 0:
-            return []
+    def load_latest_centroids(self, domain: str) -> Any | None:
         checkpoints = [
             checkpoint
             for checkpoint in self._centroid_checkpoints
-            if _matches_checkpoint_filters(
+            if checkpoint.get("domain") == domain
+        ]
+        if not checkpoints:
+            return None
+        return deepcopy(checkpoints[-1]["centroids"])
+
+    def get_centroid_checkpoints(
+        self,
+        domain: str,
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
+        limit_value = kwargs.get("limit", 50)
+        checkpoints = [
+            checkpoint
+            for checkpoint in self._centroid_checkpoints
+            if checkpoint.get("domain") == domain
+            and _matches_checkpoint_filters(
                 checkpoint,
-                checkpoint_time_start=checkpoint_time_start,
-                checkpoint_time_end=checkpoint_time_end,
-                decision_time_start=decision_time_start,
-                decision_time_end=decision_time_end,
-                category=category,
+                checkpoint_time_start=kwargs.get("checkpoint_time_start"),
+                checkpoint_time_end=kwargs.get("checkpoint_time_end"),
+                decision_time_start=kwargs.get("decision_time_start"),
+                decision_time_end=kwargs.get("decision_time_end"),
+                category=kwargs.get("category"),
             )
         ]
+        if limit_value is None:
+            return deepcopy(checkpoints)
+        limit_value = max(int(limit_value), 0)
+        if limit_value == 0:
+            return []
         return deepcopy(checkpoints[-limit_value:])
 
     def save_evolution_event(
         self,
+        domain: str,
         event_type: str,
-        rule_name: str,
-        variant_id: str,
+        rule_name: str = "",
+        variant_id: str = "",
         metadata: dict[str, Any] | None = None,
     ) -> None:
         self._evolution_events.append(
             {
+                "domain": str(domain),
                 "event_type": event_type,
                 "rule_name": rule_name,
                 "variant_id": variant_id,
@@ -181,14 +227,61 @@ class InMemoryGraphStore:
             }
         )
 
+    def get_evolution_events(self, domain: str, **kwargs: Any) -> list[dict[str, Any]]:
+        rule_name = kwargs.get("rule_name")
+        limit = max(int(kwargs.get("limit", 100)), 0)
+        events = [
+            event
+            for event in self._evolution_events
+            if event.get("domain") == domain
+            and (rule_name is None or event.get("rule_name") == rule_name)
+        ]
+        return deepcopy(events[-limit:] if limit else [])
+
+    def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
+        keep_recent = max(int(keep_recent), 0)
+        decisions = [
+            decision
+            for decision in self._ordered_decisions()
+            if decision.get("domain") == domain
+        ]
+        if len(decisions) <= keep_recent:
+            return 0
+        to_archive = decisions[: len(decisions) - keep_recent]
+        archived_at = time.time()
+        for decision in to_archive:
+            decision_id = decision["decision_id"]
+            outcome = self._outcomes.get(decision_id)
+            self._archive.append(
+                {
+                    "decision": deepcopy(decision),
+                    "outcome": deepcopy(outcome),
+                    "domain": domain,
+                    "archived_at": archived_at,
+                    "archive_reason": "retention_window",
+                }
+            )
+            self._outcomes.pop(decision_id, None)
+            self._decisions.pop(decision_id, None)
+            self._edges = [
+                edge for edge in self._edges if edge.get("decision_id") != decision_id
+            ]
+        return len(to_archive)
+
+    def count_archived(self, domain: str) -> int:
+        return sum(1 for row in self._archive if row.get("domain") == domain)
+
     def link_decision_to_entity(
         self,
         decision_id: str,
         entity_id: str,
         edge_type: str = "DECIDED_ON",
     ) -> None:
+        decision = self._decisions.get(decision_id)
+        domain = str((decision or {}).get("domain") or self.domain)
         self._edges.append(
             {
+                "domain": domain,
                 "decision_id": decision_id,
                 "entity_id": entity_id,
                 "edge_type": edge_type,
@@ -198,9 +291,14 @@ class InMemoryGraphStore:
 
     def get_decision_links(self, decision_id: str | None = None) -> list[dict[str, Any]]:
         links = [
-            edge
+            {
+                key: value
+                for key, value in edge.items()
+                if key != "domain"
+            }
             for edge in self._edges
-            if decision_id is None or edge["decision_id"] == decision_id
+            if edge.get("domain") == self.domain
+            and (decision_id is None or edge["decision_id"] == decision_id)
         ]
         return deepcopy(links)
 
@@ -210,6 +308,7 @@ class InMemoryGraphStore:
         self._edges.clear()
         self._centroid_checkpoints.clear()
         self._evolution_events.clear()
+        self._archive.clear()
         self._sequence = 0
 
     def close(self) -> None:

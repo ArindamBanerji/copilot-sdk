@@ -9,7 +9,6 @@ from copy import deepcopy
 from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
 from copilot_sdk.scoring.config import DomainShape
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.scoring.storage import DecisionStore
 
 from gae.profile_scorer import ProfileScorer
 
@@ -36,14 +35,16 @@ class LinkPreset:
 
 class MinimalGraphStore:
     def __init__(self):
+        self.domain = "test"
         self.decisions = {}
         self.outcomes = {}
 
-    def write_decision(self, entity_id, category, action, confidence, factors, metadata=None):
+    def write_decision(self, domain, category, action, confidence, factors, metadata=None):
         decision_id = str((metadata or {}).get("decision_id") or "decision-1")
         self.decisions[decision_id] = {
             "decision_id": decision_id,
-            "entity_id": entity_id,
+            "domain": domain,
+            "entity_id": (metadata or {}).get("entity_id"),
             "category": category,
             "recommended_action": action,
             "confidence": confidence,
@@ -66,17 +67,19 @@ class MinimalGraphStore:
             return None
         return deepcopy(decision)
 
-    def get_decisions(self, category=None, limit=400):
+    def get_decisions(self, domain, category=None, limit=400):
         decisions = [
             decision
             for decision in self.decisions.values()
-            if category is None or decision["category"] == category
+            if decision.get("domain") == domain and (category is None or decision["category"] == category)
         ]
         return deepcopy(decisions[:limit])
 
-    def get_verified_decisions(self):
+    def get_verified_decisions(self, domain):
         verified = []
         for decision_id, decision in self.decisions.items():
+            if decision.get("domain") != domain:
+                continue
             outcome = self.outcomes.get(decision_id)
             if outcome is None:
                 continue
@@ -91,16 +94,28 @@ class MinimalGraphStore:
             verified.append(merged)
         return verified
 
-    def count_verified(self):
+    def count_verified(self, domain):
         return len(self.outcomes)
 
-    def count_correct(self):
+    def count_correct(self, domain):
         return sum(1 for outcome in self.outcomes.values() if outcome["is_correct"])
 
-    def get_all_decisions(self):
-        return self.get_decisions(category=None, limit=len(self.decisions))
+    def count_decisions(self, domain):
+        return len(self.get_all_decisions(domain))
+
+    def get_all_decisions(self, domain):
+        return self.get_decisions(domain, category=None, limit=len(self.decisions))
+
+    def archive_old_decisions(self, domain, keep_recent=800):
+        return 0
+
+    def count_archived(self, domain):
+        return 0
 
     def save_centroids(self, *args, **kwargs):
+        return None
+
+    def load_latest_centroids(self, domain):
         return None
 
     def get_centroid_checkpoints(self, *args, **kwargs):
@@ -109,19 +124,21 @@ class MinimalGraphStore:
     def save_evolution_event(self, *args, **kwargs):
         return None
 
+    def get_evolution_events(self, *args, **kwargs):
+        return []
+
     def close(self):
         return None
 
 
 def _build_scorer(tmp_path, graph_store=None) -> CompoundingScorer:
     preset = LinkPreset()
-    store = DecisionStore(tmp_path / "links.sqlite")
     gae_scorer = ProfileScorer(
         mu=preset.bootstrap_centroids.copy(),
         actions=list(preset.shape.action_names),
         categories=list(preset.shape.category_names),
     )
-    return CompoundingScorer(preset, store, gae_scorer, graph_store=graph_store)
+    return CompoundingScorer(preset, gae_scorer, graph_store=graph_store or InMemoryGraphStore())
 
 
 def _score(scorer: CompoundingScorer):
@@ -173,7 +190,7 @@ def test_learn_with_context_invoice_creates_link(tmp_path):
             "created_at": graph_store.get_decision_links(result.decision_id)[0]["created_at"],
         }
     ]
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_learn_without_entity_unchanged(tmp_path):
@@ -184,10 +201,10 @@ def test_learn_without_entity_unchanged(tmp_path):
     scorer.learn(result.decision_id, result.action)
 
     assert graph_store.get_decision_links(result.decision_id) == []
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
-def test_old_shape_structural_graphstore_still_satisfies_graphstore_protocol():
+def test_minimal_structural_graphstore_still_satisfies_graphstore_protocol():
     store = MinimalGraphStore()
 
     assert isinstance(store, GraphStore)
@@ -202,7 +219,7 @@ def test_learn_with_context_tolerates_graphstore_without_link_method(tmp_path):
     learn = scorer.learn(result.decision_id, result.action, context={"invoice_id": "INV-001"})
 
     assert learn.decision_id == result.decision_id
-    verified = graph_store.get_verified_decisions()
+    verified = graph_store.get_verified_decisions("test")
     assert verified[0]["outcome_metadata"]["context"] == {"invoice_id": "INV-001"}
     assert not hasattr(graph_store, "link_decision_to_entity")
-    scorer.store.close()
+    scorer.graph_store.close()

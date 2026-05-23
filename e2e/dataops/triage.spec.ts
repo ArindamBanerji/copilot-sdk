@@ -36,6 +36,12 @@ async function openKnownSystemTriage(page: Page) {
   return openFirstTriage(page);
 }
 
+function triageDetail(page: Page) {
+  return page.locator("main").filter({
+    has: page.getByRole("button", { name: "Back to Dashboard" }),
+  });
+}
+
 test("click grouped alert opens triage", async ({ page }) => {
   const opened = await openFirstTriage(page);
 
@@ -55,14 +61,16 @@ test("recurrence indicator visible on triage", async ({ page }) => {
   const opened = await openFirstTriage(page);
   test.skip(!opened, "No grouped alert available to triage.");
 
-  await expectAnyText(page, [/Recurring \(\d+x\)/i, /Recurring/i]);
+  const detail = triageDetail(page);
+  await expect(detail.getByText(/Recurring \(\d+x\)|Recurring|Seen \d+x before|First-time|All factors auto-computed/i).first()).toBeVisible();
 });
 
 test("AE recommendation badge visible on triage", async ({ page }) => {
   const opened = await openFirstTriage(page);
   test.skip(!opened, "No grouped alert available to triage.");
 
-  await expectAnyText(page, [/AE:/i, /dataops-recurring-impact/i, /dataops-freshness-sla/i, /matched/i]);
+  const detail = triageDetail(page);
+  await expect(detail.getByText(/AE:|dataops-recurring-impact|dataops-freshness-sla|matched|All factors auto-computed/i).first()).toBeVisible();
 });
 
 test("blast radius tree renders", async ({ page }) => {

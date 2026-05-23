@@ -201,6 +201,26 @@ export interface TrustAnalysisResponse {
   heroInsight: HeroInsight | null;
 }
 
+export interface DetectedPattern {
+  name: string;
+  displayName: string;
+  description: string;
+  frequency: number;
+  severity: number;
+  affectedTradeCount: number;
+  affectedTrades: string[];
+  recommendation: string;
+}
+
+export interface PatternDetectionResponse {
+  patterns: DetectedPattern[];
+  totalPatternsDetected?: number;
+  totalTradesAnalyzed?: number;
+  totalTrades?: number;
+  mostSevere?: string | null;
+  message?: string;
+}
+
 export interface TrajectoryResponse {
   currentIks?: number;
   iks?: number;
@@ -229,6 +249,30 @@ export interface ConservationState {
   autoResolveRate?: number;
   alpha?: number;
   [key: string]: unknown;
+}
+
+export interface CategoryConservation {
+  category: string;
+  totalTrades: number;
+  verified: number;
+  correct: number;
+  accuracy: number;
+  thetaMinProxy: number;
+  status: "BOOTSTRAP" | "GREEN" | "AMBER" | "RED" | string;
+  canTrade: boolean;
+  note: string | null;
+}
+
+export interface ConservationBreakdownResponse {
+  categories: CategoryConservation[];
+  totalCategories: number;
+  redCategories: number;
+  amberCategories: number;
+  greenCategories: number;
+  totalVerified: number;
+  overallSafe: boolean;
+  penaltyRatio: number;
+  methodology: string;
 }
 
 export interface CentroidCheckpoint {

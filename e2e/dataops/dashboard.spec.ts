@@ -1,6 +1,12 @@
 import { test, expect } from "../fixtures/copilot-fixture";
 import { expectAnyText } from "../helpers/ui";
 
+function dashboardPanel(page: import("@playwright/test").Page, heading: string | RegExp) {
+  return page.locator("section, article").filter({
+    has: page.locator("h1, h2, h3, h4", { hasText: heading }),
+  }).first();
+}
+
 test("dashboard loads", async ({ page }) => {
   await page.goto("/");
 
@@ -12,8 +18,9 @@ test("dashboard loads", async ({ page }) => {
 test("pipeline grid shows systems", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByText("Pipeline Status")).toBeVisible();
-  await expectAnyText(page, [/SAP S\/4HANA/i, /billing/i, /warehouse/i, /Active alerts/i, /Business criticality/i]);
+  const pipeline = dashboardPanel(page, "Pipeline Status");
+  await expect(pipeline).toBeVisible();
+  await expect(pipeline.getByText(/SAP MM|SAP FI|Celonis P2P|Warehouse WMS|Logistics DHL|Active alerts|Business criticality/i).first()).toBeVisible();
 });
 
 test("enterprise health bar shows connection status", async ({ page }) => {
@@ -27,9 +34,10 @@ test("enterprise health bar shows connection status", async ({ page }) => {
 test("pipeline status shows system names with criticality", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByText("Pipeline Status")).toBeVisible();
-  await expectAnyText(page, [/Warehouse ETL/i, /Payment Gateway/i, /CRM Sync/i, /SAP S\/4HANA Extract/i]);
-  await expectAnyText(page, [/Business criticality/i, /\d+%/]);
+  const pipeline = dashboardPanel(page, "Pipeline Status");
+  await expect(pipeline).toBeVisible();
+  await expect(pipeline.getByText(/SAP MM|SAP FI|Celonis P2P|Warehouse WMS|Logistics DHL/i).first()).toBeVisible();
+  await expect(pipeline.getByText(/Business criticality|\d+%/i).first()).toBeVisible();
 });
 
 test("AgentEvolver impact shows auto-resolved count and accuracy", async ({ page }) => {
@@ -50,9 +58,10 @@ test("alerts grouped by root cause", async ({ page }) => {
 test("alert groups show counts and multiple systems", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByText("Alert Root Causes")).toBeVisible();
-  await expectAnyText(page, [/\d+\s+alert/i, /\d+\s+root causes/i]);
-  await expectAnyText(page, [/SAP S\/4HANA/i, /CRM/i, /HR Feed/i, /IoT/i, /Warehouse/i, /Billing/i]);
+  const alerts = dashboardPanel(page, "Alert Root Causes");
+  await expect(alerts).toBeVisible();
+  await expect(alerts.getByText(/\d+\s+alert|\d+\s+root causes/i).first()).toBeVisible();
+  await expect(alerts.getByText(/SAP MM|SAP FI|Celonis P2P|QMS Pirelli|Warehouse WMS|BI Analytics|Logistics DHL|Supplier Portal|MES Production/i).first()).toBeVisible();
 });
 
 test("IKS value visible and numeric", async ({ page }) => {
@@ -62,10 +71,11 @@ test("IKS value visible and numeric", async ({ page }) => {
   await expect(page.getByLabel(/^IKS \d+$/).first()).toBeVisible();
 });
 
-test("SAP S/4HANA visible", async ({ page }) => {
+test("SAP systems visible", async ({ page }) => {
   await page.goto("/");
 
-  await expectAnyText(page, [/SAP S\/4HANA Extract/i, /sap_s4hana_extract/i]);
+  const pipeline = dashboardPanel(page, "Pipeline Status");
+  await expect(pipeline.getByText(/SAP MM|SAP FI/i).first()).toBeVisible();
 });
 
 test("conservation slider renders", async ({ page }) => {
@@ -133,7 +143,7 @@ test("SC-12 accuracy panel shows per-category bars", async ({ page }) => {
 
   const panel = page.locator("section", { hasText: /Accuracy Alerts|No verified decisions yet/i }).first();
   await expect(panel).toBeVisible();
-  await expectAnyText(page, [/accuracy/i, /category/i, /threshold/i, /verified decisions/i]);
+  await expect(panel.getByText(/accuracy|category|threshold|verified decisions/i).first()).toBeVisible();
 });
 
 test("SC-12 accuracy panel shows alert threshold or percent", async ({ page }) => {

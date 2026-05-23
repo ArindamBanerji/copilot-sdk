@@ -53,7 +53,7 @@ def test_from_preset_s2p_works(tmp_path):
 
     assert scorer._preset.name == "s2p"
     assert scorer._preset.shape.tensor_shape == (5, 5, 7)
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_s2p_scoring_returns_valid_action(tmp_path):
@@ -65,7 +65,7 @@ def test_s2p_scoring_returns_valid_action(tmp_path):
     assert result.action in scorer._preset.shape.action_names
     assert result.category == "price_variance"
     assert len(result.probabilities) == 5
-    scorer.store.close()
+    scorer.graph_store.close()
 
 
 def test_s2p_preset_contains_no_soc_vocabulary():

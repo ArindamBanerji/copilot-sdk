@@ -152,7 +152,7 @@ def test_scorer_can_initialize_with_purchasing_config(tmp_path):
     try:
         assert scorer.gae_scorer.centroids.shape == (5, 4, 7)
     finally:
-        scorer._store.close()
+        scorer.graph_store.close()
 
 
 def test_iks_endpoint_or_iks_config_available(client):

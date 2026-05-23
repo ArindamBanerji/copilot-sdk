@@ -11,7 +11,7 @@ def _scorer(tmp_path) -> CompoundingScorer:
     return CompoundingScorer.from_preset(
         "s2p",
         db_path=str(tmp_path / "s2p.db"),
-        graph_store=InMemoryGraphStore(),
+        graph_store=InMemoryGraphStore(domain="s2p"),
     )
 
 
@@ -105,7 +105,7 @@ def test_source_copilots_include_only_applied_patterns(tmp_path) -> None:
     )
 
     summary = scorer.warm_start([_pattern(), skipped])
-    checkpoint = scorer.graph_store.get_centroid_checkpoints(limit=1)[0]
+    checkpoint = scorer.graph_store.get_centroid_checkpoints(scorer._domain, limit=1)[0]
 
     assert summary["applied"] == 1
     assert summary["source_copilots"] == ["dataops"]

@@ -116,19 +116,18 @@ def _state_counts(state: Any) -> dict[str, float | int]:
         store = (
             getattr(state, "graph_store", None)
             or getattr(state, "_graph_store", None)
-            or getattr(state, "store", None)
-            or getattr(state, "_store", None)
             or state
         )
+    store_domain = _store_domain(store, state)
     count_verified = getattr(store, "count_verified", None)
     count_correct = getattr(store, "count_correct", None)
     get_all_decisions = getattr(store, "get_all_decisions", None)
     preset = getattr(state, "_preset", None)
 
-    verified_count = int(count_verified()) if callable(count_verified) else 0
-    correct_count = int(count_correct()) if callable(count_correct) else 0
+    verified_count = int(count_verified(store_domain)) if callable(count_verified) else 0
+    correct_count = int(count_correct(store_domain)) if callable(count_correct) else 0
     total_decisions = (
-        len(get_all_decisions()) if callable(get_all_decisions) else verified_count
+        len(get_all_decisions(store_domain)) if callable(get_all_decisions) else verified_count
     )
     penalty_ratio = _positive_float(
         getattr(store, "penalty_ratio", None)
@@ -142,6 +141,16 @@ def _state_counts(state: Any) -> dict[str, float | int]:
         "total_decisions": max(total_decisions, 0),
         "penalty_ratio": penalty_ratio,
     }
+
+
+def _store_domain(store: Any, state: Any) -> str:
+    preset = getattr(state, "_preset", None)
+    return str(
+        getattr(store, "domain", "")
+        or getattr(state, "_domain", "")
+        or getattr(preset, "name", "")
+        or ""
+    )
 
 
 def _default_counts() -> dict[str, float | int]:

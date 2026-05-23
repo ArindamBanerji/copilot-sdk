@@ -26,11 +26,11 @@ class DemoGraphStore(InMemoryGraphStore):
         decision["category_index"] = int(metadata.get("category_index", 0))
         return decision_id
 
-    def count_verified(self) -> int:
-        return super().count_verified() + 50
+    def count_verified(self, domain: str | None = None) -> int:
+        return super().count_verified(domain or self.domain) + 50
 
-    def count_correct(self) -> int:
-        return super().count_correct() + 50
+    def count_correct(self, domain: str | None = None) -> int:
+        return super().count_correct(domain or self.domain) + 50
 
 
 def _factors(names: tuple[str, ...], step: int, seed: int) -> dict[str, float]:
@@ -48,7 +48,7 @@ def run(domain: str, decisions: int, seed: int) -> None:
         scorer = CompoundingScorer.from_preset(
             domain,
             db_path=db_path,
-            graph_store=DemoGraphStore(),
+            graph_store=DemoGraphStore(domain=domain),
             evolve=True,
         )
         categories = tuple(preset.shape.category_names)
@@ -69,7 +69,7 @@ def run(domain: str, decisions: int, seed: int) -> None:
         print(f"event_count: {len(history)}")
         print(f"promoted_rules: {promoted}")
         print(f"elapsed_seconds: {elapsed:.3f}")
-        scorer.store.close()
+        scorer.graph_store.close()
 
 
 def main() -> None:

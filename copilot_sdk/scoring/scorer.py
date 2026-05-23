@@ -18,7 +18,6 @@ from copilot_sdk.scoring.config import DomainPreset
 from copilot_sdk.scoring.conflict import JudgmentConflict, detect_conflict
 from copilot_sdk.scoring.fingerprint import FingerprintResult, compute_fingerprint
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
-from copilot_sdk.scoring.storage import DecisionStore
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
 from copilot_sdk.graph.protocol import GraphStore
 
@@ -89,9 +88,8 @@ class CompoundingScorer:
     def __init__(
         self,
         preset: DomainPreset,
-        store: DecisionStore,
         scorer: ProfileScorer,
-        graph_store: GraphStore | None = None,
+        graph_store: GraphStore,
         reward_function: Any | None = None,
         credit_assigner: Any | None = None,
         exploration_policy: Any | None = None,
@@ -99,13 +97,9 @@ class CompoundingScorer:
         consolidation_enabled: bool = False,
     ):
         self._preset = preset
-        self._store = store
         self._scorer = scorer
-        if graph_store is None:
-            from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
-
-            graph_store = SQLiteGraphStore(store.db_path, domain=preset.name)
         self._graph_store = graph_store
+        self._domain = str(getattr(graph_store, "domain", preset.name) or preset.name)
         self._reward_fn = reward_function
         self._credit = credit_assigner
         self._explorer = exploration_policy
@@ -146,14 +140,13 @@ class CompoundingScorer:
             data_dir.mkdir(parents=True, exist_ok=True)
             db_path = str(data_dir / f"{domain}.db")
 
-        store = DecisionStore(db_path)
-        centroids = store.load_latest_centroids()
-        if centroids is None:
-            centroids = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
         if graph_store is None:
             from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
             graph_store = SQLiteGraphStore(db_path, domain=preset.name)
+        centroids = graph_store.load_latest_centroids(preset.name)
+        if centroids is None:
+            centroids = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
 
         scorer = ProfileScorer(
             mu=centroids,
@@ -162,7 +155,6 @@ class CompoundingScorer:
         )
         return cls(
             preset=preset,
-            store=store,
             scorer=scorer,
             graph_store=graph_store,
             reward_function=reward_function,
@@ -203,15 +195,16 @@ class CompoundingScorer:
         decision_metadata = dict(metadata or {})
         decision_metadata.update({
             "decision_id": decision_id,
-            "domain": self._preset.name,
+            "domain": self._domain,
             "category_index": category_index,
             "factor_vector": factor_vector.tolist(),
             "recommended_index": action_index,
             "probabilities": probabilities,
             "created_at": time.time(),
         })
+        decision_metadata.setdefault("entity_id", decision_id)
         stored_id = self._graph_store.write_decision(
-            entity_id=decision_id,
+            self._domain,
             category=category,
             action=action,
             confidence=float(gae_result.confidence),
@@ -354,6 +347,8 @@ class CompoundingScorer:
             if self._evolve_count % 20 == 0:
                 self._run_evolution()
 
+        self._maybe_archive()
+
         return LearnResult(
             decision_id=decision_id,
             iks_before=iks_before,
@@ -368,7 +363,7 @@ class CompoundingScorer:
 
     def fingerprint(self) -> FingerprintResult:
         return compute_fingerprint(
-            self._graph_store.get_verified_decisions(),
+            self._graph_store.get_verified_decisions(self._domain),
             list(self._preset.shape.factor_names),
         )
 
@@ -408,23 +403,24 @@ class CompoundingScorer:
     ) -> TrajectoryResult:
         return compute_trajectory(
             self._graph_store.get_centroid_checkpoints(
+                self._domain,
                 checkpoint_time_start=checkpoint_time_start,
                 checkpoint_time_end=checkpoint_time_end,
                 decision_time_start=decision_time_start,
                 decision_time_end=decision_time_end,
                 category=category,
             ),
-            self._graph_store.get_verified_decisions(),
+            self._graph_store.get_verified_decisions(self._domain),
             self._preset.shape,
         )
 
     def get_phase(self) -> str:
         """Return the current SDK phase from GraphStore verification counts."""
         try:
-            verified = int(self._graph_store.count_verified())
+            verified = int(self._graph_store.count_verified(self._domain))
             if verified < 10:
                 return "A"
-            correct = int(self._graph_store.count_correct())
+            correct = int(self._graph_store.count_correct(self._domain))
             q = correct / verified
             return "B" if q >= 0.5 else "A"
         except Exception:
@@ -433,10 +429,10 @@ class CompoundingScorer:
     def get_alpha(self) -> float:
         """Return current verified accuracy from GraphStore counts."""
         try:
-            verified = int(self._graph_store.count_verified())
+            verified = int(self._graph_store.count_verified(self._domain))
             if verified == 0:
                 return 0.0
-            correct = int(self._graph_store.count_correct())
+            correct = int(self._graph_store.count_correct(self._domain))
             return round(correct / verified, 4)
         except Exception:
             return 0.0
@@ -491,10 +487,11 @@ class CompoundingScorer:
             if callable(save_centroids):
                 try:
                     save_centroids(
-                        f"warm-start-{uuid.uuid4().hex[:12]}",
+                        self._domain,
                         "warm_start",
                         self._scorer.centroids,
                         metadata={
+                            "decision_id": f"warm-start-{uuid.uuid4().hex[:12]}",
                             "source": "warm_start",
                             "score": score,
                             "applied": applied,
@@ -518,7 +515,7 @@ class CompoundingScorer:
         payload = {
             "domain": self._preset.name,
             "centroids": self._scorer.centroids.tolist(),
-            "decisions": self._graph_store.get_all_decisions(),
+            "decisions": self._graph_store.get_all_decisions(self._domain),
             "shape": {
                 "n_categories": self._preset.shape.n_categories,
                 "n_actions": self._preset.shape.n_actions,
@@ -539,7 +536,7 @@ class CompoundingScorer:
 
     def _compute_iks(self) -> float:
         try:
-            verified = self._graph_store.count_verified()
+            verified = self._graph_store.count_verified(self._domain)
         except Exception:
             verified_decisions = _verified_decisions(self._graph_store) or []
             verified = len(verified_decisions)
@@ -547,7 +544,7 @@ class CompoundingScorer:
             return 0.0
 
         try:
-            correct = self._graph_store.count_correct()
+            correct = self._graph_store.count_correct(self._domain)
         except Exception:
             verified_decisions = _verified_decisions(self._graph_store) or []
             correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
@@ -560,7 +557,7 @@ class CompoundingScorer:
         )
         fingerprint_component = max(0.0, min((1.0 - mean_sigma / 0.5) * 25.0, 25.0))
         coverage = _count_categories_with_n(
-            self._graph_store.get_verified_decisions(),
+            self._graph_store.get_verified_decisions(self._domain),
             10,
         ) / self._preset.shape.n_categories
 
@@ -680,13 +677,30 @@ class CompoundingScorer:
                 "consolidation": True,
             })
         self._graph_store.save_centroids(
-            decision_id,
+            self._domain,
             category,
             self._scorer.centroids,
             metadata=metadata,
+            decision_id=decision_id,
             decision_time_start=decision_time_start,
             decision_time_end=decision_time_end,
         )
+
+    def _maybe_archive(self, keep_recent: int = 800) -> None:
+        try:
+            count = int(self._graph_store.count_decisions(self._domain))
+            if count <= keep_recent:
+                return
+            archived = int(
+                self._graph_store.archive_old_decisions(
+                    self._domain,
+                    keep_recent=keep_recent,
+                )
+            )
+            if archived > 0:
+                print(f"[{self._domain}] archived {archived} old decisions")
+        except Exception as exc:
+            logger.warning("Decision archive failed for %s: %s", self._domain, exc)
 
     def _extract_decision_timestamp(self, decision: dict[str, Any] | None) -> str | None:
         """Extract the decision-time timestamp without substituting wall clock time."""
@@ -730,7 +744,9 @@ class CompoundingScorer:
             self._evolver = None
             return
 
-        ledger = InMemoryEvolutionLedger(graph_store=self._graph_store)
+        ledger = InMemoryEvolutionLedger(
+            graph_store=_DomainEvolutionGraphStore(self._graph_store, self._domain)
+        )
         evolver = AgentEvolver(
             ledger=ledger,
             shadow_runner=DefaultShadowRunner(),
@@ -746,7 +762,7 @@ class CompoundingScorer:
         if self._evolver is None:
             return
         try:
-            decisions = list(self._graph_store.get_verified_decisions() or [])
+            decisions = list(self._graph_store.get_verified_decisions(self._domain) or [])
             if len(decisions) < 10:
                 return
             conservation_state = self._evolution_conservation_state()
@@ -791,10 +807,6 @@ class CompoundingScorer:
         return self._graph_store
 
     @property
-    def store(self) -> DecisionStore:
-        return self._store
-
-    @property
     def gae_scorer(self) -> ProfileScorer:
         return self._scorer
 
@@ -805,6 +817,7 @@ def _conservation_counts(store: Any) -> tuple[int, int]:
 
 
 def _conservation_stats(store: Any) -> tuple[int, int, float]:
+    domain = _store_domain(store)
     verified_decisions = _verified_decisions(store)
     if verified_decisions is not None:
         verified = len(verified_decisions)
@@ -816,12 +829,12 @@ def _conservation_stats(store: Any) -> tuple[int, int, float]:
     count_verified = getattr(store, "count_verified", None)
     count_correct = getattr(store, "count_correct", None)
     if callable(count_verified) and callable(count_correct):
-        return max(int(count_verified()), 0), max(int(count_correct()), 0), 0.0
+        return max(int(count_verified(domain)), 0), max(int(count_correct(domain)), 0), 0.0
 
     get_all_decisions = getattr(store, "get_all_decisions", None)
     if not callable(get_all_decisions):
         return 0, 0, 0.0
-    decisions = get_all_decisions()
+    decisions = get_all_decisions(domain)
     verified = sum(1 for decision in decisions if _is_verified_decision(decision))
     correct = sum(1 for decision in decisions if _is_correct_decision(decision))
     overrides = sum(
@@ -834,13 +847,41 @@ def _conservation_stats(store: Any) -> tuple[int, int, float]:
 
 
 def _verified_decisions(store: Any) -> list[dict[str, Any]] | None:
+    domain = _store_domain(store)
     get_verified_decisions = getattr(store, "get_verified_decisions", None)
     if not callable(get_verified_decisions):
         return None
-    decisions = get_verified_decisions()
+    decisions = get_verified_decisions(domain)
     if decisions is None:
         return None
     return [decision for decision in decisions if _is_verified_decision(decision)]
+
+
+def _store_domain(store: Any) -> str:
+    return str(getattr(store, "domain", "") or "")
+
+
+class _DomainEvolutionGraphStore:
+    """Adapter for the evolution ledger's pre-domain persistence call shape."""
+
+    def __init__(self, graph_store: GraphStore, domain: str) -> None:
+        self._graph_store = graph_store
+        self._domain = domain
+
+    def save_evolution_event(
+        self,
+        event_type: str,
+        rule_name: str = "",
+        variant_id: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self._graph_store.save_evolution_event(
+            self._domain,
+            event_type,
+            rule_name=rule_name,
+            variant_id=variant_id,
+            metadata=metadata,
+        )
 
 
 def _decision_field(decision: dict[str, Any], key: str, default: Any = None) -> Any:

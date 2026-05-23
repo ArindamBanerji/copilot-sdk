@@ -96,9 +96,7 @@ def run_demo() -> dict[str, Any]:
         }
     finally:
         source.graph_store.close()
-        source.store.close()
         target.graph_store.close()
-        target.store.close()
 
 
 def main() -> int:

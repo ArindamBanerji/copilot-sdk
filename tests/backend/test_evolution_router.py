@@ -10,8 +10,16 @@ class RecordingGraphStore:
     def __init__(self) -> None:
         self.events = []
 
-    def save_evolution_event(self, event_type, rule_name, variant_id, metadata=None):
-        self.events.append((event_type, rule_name, variant_id, metadata or {}))
+    def save_evolution_event(self, domain, event_type=None, rule_name="", variant_id="", metadata=None):
+        if event_type is None or (variant_id == "" and rule_name):
+            old_event_type = domain
+            old_rule_name = event_type or ""
+            old_variant_id = rule_name
+            domain = "dataops"
+            event_type = old_event_type
+            rule_name = old_rule_name
+            variant_id = old_variant_id
+        self.events.append((domain, event_type, rule_name, variant_id, metadata or {}))
 
 
 def build_client(graph_store_factory=None, domain="dataops") -> TestClient:

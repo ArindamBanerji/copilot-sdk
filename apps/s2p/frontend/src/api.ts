@@ -6,6 +6,7 @@ import type {
   ConservationStatus,
   AuditTrailResponse,
   ChainIntegrityResponse,
+  ComplianceScreeningResponse,
   ComplianceResponse,
   CrossGraphResponse,
   DKWeightsResponse,
@@ -14,9 +15,11 @@ import type {
   DisruptionResponse,
   EvidenceTemplateResponse,
   EarlyWarningResponse,
+  ExtendedDiscoveryResponse,
   ExpansionProof,
   ExceptionQueueResponse,
   FingerprintResponse,
+  ImpactSummaryResponse,
   LearnDecisionRequest,
   LearnDecisionResponse,
   PaymentBehavior,
@@ -40,9 +43,11 @@ import type {
   NoveltyHistoryResponse,
   NoveltyStatusResponse,
   ReceiptsResponse,
+  RationalizationResponse,
   ScoreInvoiceRequest,
   ScoreInvoiceResponse,
   SimilarResponse,
+  SimulationScenariosResponse,
   WhatIfResponse
 } from "./types";
 
@@ -285,6 +290,26 @@ export async function getChainIntegrity(): Promise<ChainIntegrityResponse | null
 
 export async function getAuditPack(): Promise<AuditPackResponse | null> {
   return apiGet<AuditPackResponse>("/api/s2p/evidence/audit-pack").catch(() => null);
+}
+
+export async function getSimulationScenarios(): Promise<SimulationScenariosResponse | null> {
+  return apiGet<SimulationScenariosResponse>("/api/s2p/simulation/scenarios").catch(() => null);
+}
+
+export async function getImpactSummary(): Promise<ImpactSummaryResponse | null> {
+  return apiGet<ImpactSummaryResponse>("/api/s2p/simulation/impact-summary").catch(() => null);
+}
+
+export async function getExtendedDiscoveries(): Promise<ExtendedDiscoveryResponse | null> {
+  return apiGet<ExtendedDiscoveryResponse>("/api/s2p/discovery/extended").catch(() => null);
+}
+
+export async function getComplianceScreening(): Promise<ComplianceScreeningResponse | null> {
+  return apiGet<ComplianceScreeningResponse>("/api/s2p/governance/compliance-screening").catch(() => null);
+}
+
+export async function getRationalizationRecs(): Promise<RationalizationResponse | null> {
+  return apiGet<RationalizationResponse>("/api/s2p/governance/rationalization").catch(() => null);
 }
 
 export async function fetchAutoApproveStats(): Promise<AutoApproveStats | null> {

@@ -34,13 +34,14 @@ def _find_warm_start_info(
 
 
 def _latest_checkpoint_info(scorer: Any) -> dict[str, Any] | None:
-    store = getattr(scorer, "store", None)
+    store = getattr(scorer, "graph_store", None) or getattr(scorer, "_graph_store", None)
     get_checkpoints = getattr(store, "get_centroid_checkpoints", None)
     if not callable(get_checkpoints):
         return None
+    domain = str(getattr(store, "domain", "") or getattr(scorer, "_domain", "") or "")
 
     try:
-        checkpoints = get_checkpoints(limit=10)
+        checkpoints = get_checkpoints(domain, limit=10)
     except Exception:
         return None
 

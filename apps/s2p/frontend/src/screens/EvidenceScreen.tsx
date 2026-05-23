@@ -3,6 +3,7 @@ import { fetchPreviewQueue } from "../api";
 import { AuditTrailPanel } from "../components/AuditTrailPanel";
 import { AuditExportPanel } from "../components/AuditExportPanel";
 import { CompliancePanel } from "../components/CompliancePanel";
+import { ComplianceScreeningPanel } from "../components/ComplianceScreeningPanel";
 import { DiscoveryPanel } from "../components/DiscoveryPanel";
 import { DisruptionRecoveryPanel } from "../components/DisruptionRecoveryPanel";
 import { EvolutionPanel } from "../components/EvolutionPanel";
@@ -73,6 +74,7 @@ export function EvidenceScreen() {
       <CompliancePanel />
       <ReceiptChainPanel />
       <AuditExportPanel />
+      <ComplianceScreeningPanel />
     </section>
   );
 }

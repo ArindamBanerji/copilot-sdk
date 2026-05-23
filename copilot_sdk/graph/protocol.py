@@ -7,11 +7,11 @@ from typing import Any, Protocol, runtime_checkable
 
 @runtime_checkable
 class GraphStore(Protocol):
-    """Decision/outcome persistence contract shared by graph backends."""
+    """Domain-scoped decision/outcome persistence contract."""
 
     def write_decision(
         self,
-        entity_id: str,
+        domain: str,
         category: str,
         action: str,
         confidence: float,
@@ -34,55 +34,68 @@ class GraphStore(Protocol):
 
     def get_decisions(
         self,
+        domain: str,
         category: str | None = None,
         limit: int = 400,
     ) -> list[dict[str, Any]]:
         ...
 
-    def get_verified_decisions(self) -> list[dict[str, Any]]:
+    def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
         ...
 
-    def count_verified(self) -> int:
+    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
         ...
 
-    def count_correct(self) -> int:
+    def count_verified(self, domain: str) -> int:
         ...
 
-    def get_all_decisions(self) -> list[dict[str, Any]]:
+    def count_correct(self, domain: str) -> int:
+        ...
+
+    def count_decisions(self, domain: str) -> int:
         ...
 
     def save_centroids(
         self,
-        decision_id: str,
+        domain: str,
         category: str,
         centroids: Any,
         metadata: dict[str, Any] | None = None,
-        *,
-        decision_time_start: str | None = None,
-        decision_time_end: str | None = None,
-        checkpoint_time: str | None = None,
+        **kwargs: Any,
     ) -> None:
+        ...
+
+    def load_latest_centroids(self, domain: str) -> Any | None:
         ...
 
     def get_centroid_checkpoints(
         self,
-        limit: int = 50,
-        *,
-        checkpoint_time_start: str | None = None,
-        checkpoint_time_end: str | None = None,
-        decision_time_start: str | None = None,
-        decision_time_end: str | None = None,
-        category: str | None = None,
+        domain: str,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         ...
 
     def save_evolution_event(
         self,
+        domain: str,
         event_type: str,
-        rule_name: str,
-        variant_id: str,
+        rule_name: str = "",
+        variant_id: str = "",
         metadata: dict[str, Any] | None = None,
     ) -> None:
+        ...
+
+    def get_evolution_events(
+        self,
+        domain: str,
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
+        ...
+
+    def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
+        ...
+
+    def count_archived(self, domain: str) -> int:
         ...
 
     def close(self) -> None:

@@ -6,6 +6,7 @@ import ContrastCard from "../components/ContrastCard";
 import CounterfactualCard from "../components/CounterfactualCard";
 import DayOfWeekChart from "../components/DayOfWeekChart";
 import DecisionExplorerPanel from "../components/DecisionExplorerPanel";
+import PatternDetectionPanel from "../components/PatternDetectionPanel";
 import ProfileArchetype from "../components/ProfileArchetype";
 import RegimeChart from "../components/RegimeChart";
 import ResearchImpactChart from "../components/ResearchImpactChart";
@@ -104,6 +105,7 @@ export default function AnalysisScreen() {
   return (
     <div className="flex flex-col gap-4">
       <TrustRadarPanel />
+      <PatternDetectionPanel />
       <ContrastCard analytics={analytics} />
       <ProfileArchetype fingerprint={fingerprint} />
       <FingerprintPanel

@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from copilot_sdk.scoring.config import DomainShape
-from copilot_sdk.scoring.storage import DecisionStore
+from copilot_sdk.graph import SQLiteGraphStore
 
 
 @dataclass(frozen=True)
@@ -49,7 +49,7 @@ def temp_db(tmp_path):
 
 @pytest.fixture
 def store(temp_db):
-    decision_store = DecisionStore(temp_db)
+    decision_store = SQLiteGraphStore(temp_db, domain="mock")
     try:
         yield decision_store
     finally:

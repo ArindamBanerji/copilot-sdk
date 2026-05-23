@@ -36,7 +36,6 @@ def test_warm_start_transfers_patterns(tmp_path) -> None:
         )
     finally:
         target.graph_store.close()
-        target.store.close()
 
     assert summary["applied"] == 2, f"warm_start did not apply demo patterns: {summary}"
     assert summary["score"] > 0.0

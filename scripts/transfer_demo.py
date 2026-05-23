@@ -46,7 +46,6 @@ def main() -> int:
     print(f"before_action={before.action} before_confidence={before.confidence:.4f}")
     print(f"after_action={after.action} after_confidence={after.confidence:.4f}")
     scorer.graph_store.close()
-    scorer.store.close()
     return 0
 
 

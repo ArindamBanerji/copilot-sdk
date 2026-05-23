@@ -9,12 +9,20 @@ class RecordingGraphStore:
     def __init__(self):
         self.calls = []
 
-    def save_evolution_event(self, event_type, rule_name, variant_id, metadata=None):
-        self.calls.append((event_type, rule_name, variant_id, metadata))
+    def save_evolution_event(self, domain, event_type=None, rule_name="", variant_id="", metadata=None):
+        if event_type is None or (variant_id == "" and rule_name):
+            old_event_type = domain
+            old_rule_name = event_type or ""
+            old_variant_id = rule_name
+            domain = "test"
+            event_type = old_event_type
+            rule_name = old_rule_name
+            variant_id = old_variant_id
+        self.calls.append((domain, event_type, rule_name, variant_id, metadata))
 
 
 class FailingGraphStore:
-    def save_evolution_event(self, event_type, rule_name, variant_id, metadata=None):
+    def save_evolution_event(self, domain, event_type=None, rule_name="", variant_id="", metadata=None):
         raise RuntimeError("write failed")
 
 
@@ -77,9 +85,9 @@ def test_ledger_persists_to_graph_store():
 
     ledger.append(EvolutionEvent("shadow_started", "rule", "variant", metadata={"x": 1}))
 
-    assert graph_store.calls[0][0:3] == ("shadow_started", "rule", "variant")
-    assert graph_store.calls[0][3]["x"] == 1
-    assert graph_store.calls[0][3]["timestamp"]
+    assert graph_store.calls[0][1:4] == ("shadow_started", "rule", "variant")
+    assert graph_store.calls[0][4]["x"] == 1
+    assert graph_store.calls[0][4]["timestamp"]
 
 
 def test_ledger_graph_store_failure_logs_warning(caplog):

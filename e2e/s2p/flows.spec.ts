@@ -168,7 +168,7 @@ test("cross-graph insight shows supplier impact ranking", async ({ page }) => {
 test("evidence to performance connects compliance and conservation", async ({ page }) => {
   await page.goto("/");
   await clickTab(page, "Evidence");
-  await expect(panel(page, "Compliance")).toContainText(/Flagged|Compliant/i);
+  await expect(panel(page, /^Compliance$/i).first()).toContainText(/Flagged|Compliant/i);
 
   await clickTab(page, "Performance");
   await expect(panel(page, "Conservation mini-gauge")).toContainText(/penalty 5:1|verified/i);

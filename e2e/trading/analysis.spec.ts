@@ -10,8 +10,10 @@ async function gotoAnalysis(page: import("@playwright/test").Page) {
 test("contrast card is first and visible", async ({ page }) => {
   await gotoAnalysis(page);
 
-  const firstCard = page.locator("main section, main .copilot-card").first();
-  await expect(firstCard).toContainText("YOUR TWO SELVES");
+  const contrastCard = page.locator("main .copilot-card").filter({
+    has: page.getByText("YOUR TWO SELVES"),
+  }).first();
+  await expect(contrastCard).toBeVisible();
   await expectAnyText(page, [/Aligned/i, /Misaligned/i, /\d+(\.\d+)?%/]);
 });
 

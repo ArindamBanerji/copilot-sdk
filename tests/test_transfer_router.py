@@ -8,14 +8,15 @@ class FakeScorer:
     def __init__(self, warm_start_info=None, store=None):
         if warm_start_info is not None:
             self._warm_start_info = warm_start_info
-        self.store = store
+        self.graph_store = store
+        self._domain = "test"
 
 
 class FakeStore:
     def __init__(self, checkpoints):
         self._checkpoints = checkpoints
 
-    def get_centroid_checkpoints(self, limit=50):
+    def get_centroid_checkpoints(self, domain="test", limit=50):
         return self._checkpoints[-limit:]
 
 

@@ -4,7 +4,7 @@ import { clickTab } from "../helpers/ui";
 async function openEvidence(page: Page) {
   await page.goto("/");
   await clickTab(page, "Evidence");
-  await expect(page.locator("main h1", { hasText: "Evidence" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Evidence$/ })).toBeVisible();
 }
 
 function panel(page: Page, text: string | RegExp) {
@@ -33,7 +33,7 @@ test("rule lifecycle shows states", async ({ page }) => {
 
 test("compliance summary shows percentages", async ({ page }) => {
   await openEvidence(page);
-  const compliance = panel(page, "Compliance");
+  const compliance = panel(page, /^Compliance$/i).first();
 
   await expect(compliance).toContainText(/Tax and regulatory/i);
   await expect(compliance).toContainText(/Compliant|Flagged|Total invoices|%/i);

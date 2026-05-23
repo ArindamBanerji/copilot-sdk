@@ -68,7 +68,7 @@ def test_score_learn_no_crash_with_evolve_true(tmp_path):
 
     _score_and_learn(scorer, preset, count=1)
 
-    assert scorer.graph_store.count_verified() == 1
+    assert scorer.graph_store.count_verified(scorer._domain) == 1
 
 
 def test_evolution_triggers_after_twenty_learns(tmp_path):

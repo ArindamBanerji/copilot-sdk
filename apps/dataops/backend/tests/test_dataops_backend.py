@@ -15,6 +15,7 @@ DATAOPS_FACTORS = {
     "data_freshness": 0.21,
     "business_criticality": 0.9,
 }
+DATAOPS_SEED_PATH = Path(__file__).resolve().parents[4] / "copilot_sdk" / "scoring" / "presets" / "dataops_seed.json"
 
 
 def _score(client: TestClient) -> dict:
@@ -77,6 +78,77 @@ def test_alerts(client: TestClient) -> None:
     assert payload["source"] == "fixture"
     assert len(payload["alerts"]) == 20
     assert {"alert_id", "system", "category", "factors"} <= set(payload["alerts"][0])
+
+
+def test_auto_seed_empty_db(tmp_path: Path) -> None:
+    from app.main import create_app
+
+    db_path = tmp_path / "dataops_seeded.db"
+    with TestClient(create_app(db_path=db_path)) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    expected_verified, expected_correct = _fixture_outcome_counts(DATAOPS_SEED_PATH)
+    assert _count_decisions(db_path, "dataops") == 20
+    assert _count_verified(db_path, "dataops") == expected_verified
+    assert _count_correct(db_path, "dataops") == expected_correct
+
+
+def test_auto_seed_skips_populated(tmp_path: Path) -> None:
+    from app.main import create_app
+    from copilot_sdk.graph import SQLiteGraphStore
+
+    db_path = tmp_path / "dataops_populated.db"
+    store = SQLiteGraphStore(db_path, domain="dataops")
+    try:
+        _save_proxy_decision(store, "existing")
+    finally:
+        store.close()
+
+    with TestClient(create_app(db_path=db_path)) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    assert _count_decisions(db_path, "dataops") == 1
+
+
+def test_ci_data_dir_creates_db(tmp_path: Path, monkeypatch) -> None:
+    from app.main import create_app
+
+    data_dir = tmp_path / "ci-data"
+    monkeypatch.setenv("CI_DATA_DIR", str(data_dir))
+    with TestClient(create_app()) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    db_path = data_dir / "dataops.db"
+    assert db_path.exists()
+    assert _count_decisions(db_path, "dataops") == 20
+    assert _count_verified(db_path, "dataops") == _fixture_outcome_counts(DATAOPS_SEED_PATH)[0]
+
+
+def test_explicit_db_path_wins(tmp_path: Path, monkeypatch) -> None:
+    from app.main import create_app
+
+    ci_dir = tmp_path / "ci-data"
+    explicit_db = tmp_path / "explicit.db"
+    monkeypatch.setenv("CI_DATA_DIR", str(ci_dir))
+
+    with TestClient(create_app(db_path=explicit_db)) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    assert explicit_db.exists()
+    assert not (ci_dir / "dataops.db").exists()
+    assert _count_decisions(explicit_db, "dataops") == 20
+
+
+def test_no_env_uses_explicit_fallback(tmp_path: Path, monkeypatch) -> None:
+    from app.main import create_app
+
+    monkeypatch.delenv("CI_DATA_DIR", raising=False)
+    db_path = tmp_path / "fallback.db"
+    with TestClient(create_app(db_path=db_path)) as startup_client:
+        assert startup_client.get("/health").status_code == 200
+
+    assert db_path.exists()
+    assert _count_decisions(db_path, "dataops") == 20
 
 
 def test_alert_detail(client: TestClient) -> None:
@@ -1152,3 +1224,57 @@ def test_fingerprint(client: TestClient) -> None:
 
 def _parse_utc(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def _save_proxy_decision(store, decision_id: str) -> None:
+    store.write_decision(
+        "dataops",
+        category="freshness_violation",
+        action="auto_approve",
+        confidence=0.8,
+        factors=DATAOPS_FACTORS,
+        metadata={
+            "decision_id": decision_id,
+            "category_index": 0,
+            "factor_vector": list(DATAOPS_FACTORS.values()),
+            "recommended_index": 0,
+            "probabilities": [0.8, 0.05, 0.05, 0.05, 0.05],
+        },
+    )
+
+
+def _count_decisions(db_path: Path, domain: str) -> int:
+    from copilot_sdk.graph import SQLiteGraphStore
+
+    store = SQLiteGraphStore(db_path, domain=domain)
+    try:
+        return store.count_decisions(domain)
+    finally:
+        store.close()
+
+
+def _count_verified(db_path: Path, domain: str) -> int:
+    from copilot_sdk.graph import SQLiteGraphStore
+
+    store = SQLiteGraphStore(db_path, domain=domain)
+    try:
+        return store.count_verified(domain)
+    finally:
+        store.close()
+
+
+def _count_correct(db_path: Path, domain: str) -> int:
+    from copilot_sdk.graph import SQLiteGraphStore
+
+    store = SQLiteGraphStore(db_path, domain=domain)
+    try:
+        return store.count_correct(domain)
+    finally:
+        store.close()
+
+
+def _fixture_outcome_counts(path: Path) -> tuple[int, int]:
+    seed = json.loads(path.read_text(encoding="utf-8"))
+    verified = sum(1 for entry in seed if "is_correct" in entry)
+    correct = sum(1 for entry in seed if bool(entry.get("is_correct")))
+    return verified, correct

@@ -14,7 +14,6 @@ from copilot_sdk.generators.archetype import ArchetypeGenerator
 from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.scorer import CompoundingScorer
-from copilot_sdk.scoring.storage import DecisionStore
 
 GAE_PATH = Path(__file__).resolve().parents[2] / "graph-attention-engine-v50"
 if str(GAE_PATH) not in sys.path:
@@ -155,7 +154,6 @@ def test_from_archetype_unknown_raises():
 
 def test_generated_config_constructs_scorer(tmp_path):
     preset = ArchetypeGenerator.from_archetype("dataops")
-    store = DecisionStore(tmp_path / "generated.sqlite")
     graph_store = InMemoryGraphStore()
     scorer = ProfileScorer(
         mu=preset.bootstrap_centroids.copy(),
@@ -165,14 +163,13 @@ def test_generated_config_constructs_scorer(tmp_path):
     try:
         wrapper = CompoundingScorer(
             preset,
-            store,
             scorer,
             graph_store=graph_store,
         )
         assert wrapper._preset is preset
         assert wrapper._graph_store is graph_store
     finally:
-        store.close()
+        graph_store.close()
 
 
 def test_plateau_follows_cells_formula():

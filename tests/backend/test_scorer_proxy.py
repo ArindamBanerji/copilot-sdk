@@ -38,7 +38,7 @@ def test_fresh_scorer_proxy_scores_and_learns(tmp_path):
     assert score.category == "equity_long"
     assert score.action in {"buy", "hold", "sell"}
     assert learn.decision_id == score.decision_id
-    assert proxy.store.count_verified() == 1
+    assert proxy.graph_store.count_verified("trading") == 1
 
 
 def test_fresh_scorer_proxy_phase_and_alpha(tmp_path):

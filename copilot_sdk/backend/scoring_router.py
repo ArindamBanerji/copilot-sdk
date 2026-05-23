@@ -132,12 +132,13 @@ def create_scoring_router(
     def history() -> dict[str, Any]:
         scorer = get_scorer()
         store = _scorer_data_store(scorer)
+        store_domain = _store_domain(store, domain)
         get_decisions = getattr(store, "get_decisions", None)
         if callable(get_decisions):
-            decisions = get_decisions(limit=10**12)
+            decisions = get_decisions(store_domain, limit=10**12)
         else:
             get_all = getattr(store, "get_all_decisions", None)
-            decisions = get_all() if callable(get_all) else []
+            decisions = get_all(store_domain) if callable(get_all) else []
         return {"engine": ENGINE, "decisions": _json_safe(decisions)}
 
     return router
@@ -211,11 +212,15 @@ def _get_decision(scorer: Any, decision_id: str) -> dict[str, Any]:
 
 
 def _scorer_data_store(scorer: Any) -> Any:
-    for name in ("graph_store", "_graph_store", "store", "_store"):
+    for name in ("graph_store", "_graph_store"):
         store = getattr(scorer, name, None)
         if store is not None:
             return store
     return None
+
+
+def _store_domain(store: Any, fallback: str) -> str:
+    return str(getattr(store, "domain", "") or fallback)
 
 
 def _previous_reward(context: dict[str, Any]) -> float | None:
