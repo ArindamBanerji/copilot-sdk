@@ -50,15 +50,15 @@ def test_new_components_importable():
 def test_compounding_scorer_default_path_without_evolution_config(tmp_path):
     scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"))
     factors = {
-        "conviction": 0.5,
-        "research_depth": 0.5,
-        "technical_signal": 0.5,
-        "position_size": 0.5,
-        "time_horizon": 0.5,
+        "signal_alignment": 0.5,
         "market_regime": 0.5,
+        "position_sizing": 0.5,
+        "timing_quality": 0.5,
+        "risk_reward_actual": 0.5,
+        "emotional_indicator": 0.5,
     }
 
-    result = scorer.score(factors, "equity_long")
+    result = scorer.score(factors, "trend_following")
 
     assert result.action
     assert 0.0 <= result.confidence <= 1.0

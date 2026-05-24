@@ -8,7 +8,7 @@ from app.factors.base import clamp, mean_or_neutral
 
 
 class ConvictionFactor:
-    factor_name = "conviction"
+    factor_name = "signal_alignment"
     factor_index = 0
 
     def compute(self, event: object) -> float:

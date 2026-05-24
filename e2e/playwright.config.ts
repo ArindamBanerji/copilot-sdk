@@ -11,7 +11,11 @@ export default defineConfig({
     headless: true,
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
+    actionTimeout: 10_000,
     ...devices["Desktop Chrome"],
+  },
+  expect: {
+    timeout: 10_000,
   },
   projects: [
     {

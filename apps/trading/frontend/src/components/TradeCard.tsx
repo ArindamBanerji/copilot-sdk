@@ -74,7 +74,7 @@ export default function TradeCard({ trade, onClick }: { trade: JoinedTrade; onCl
         </div>
         <div>
           <div className="text-xs trading-muted">Conviction</div>
-          <div className="mt-1 flex gap-1">{dots(trade.conviction)}</div>
+          <div className="mt-1 flex gap-1">{dots(trade.signal_alignment)}</div>
         </div>
       </div>
     </button>

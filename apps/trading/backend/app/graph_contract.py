@@ -13,10 +13,10 @@ TRADING_GRAPH_CONTRACT = GraphContract(
         NodeType("Decision", ["decision_id", "category", "recommended_action", "confidence", "created_at"]),
         NodeType("Instrument", ["ticker", "asset_class", "category", "sector"]),
         NodeType("Portfolio", ["portfolio_id", "name", "total_value", "cash_buffer"]),
-        NodeType("Position", ["position_id", "ticker", "shares", "entry_price", "position_size"]),
-        NodeType("TradeSignal", ["signal_id", "thesis_type", "timeframe", "technical_signal", "conviction"]),
+        NodeType("Position", ["position_id", "ticker", "shares", "entry_price", "timing_quality"]),
+        NodeType("TradeSignal", ["signal_id", "thesis_type", "timeframe", "position_sizing", "signal_alignment"]),
         NodeType("RiskFactor", ["factor_id", "name", "value"]),
-        NodeType("MarketEvent", ["event_id", "date", "vix_at_entry", "market_regime"]),
+        NodeType("MarketEvent", ["event_id", "date", "vix_at_entry", "emotional_indicator"]),
     ],
     edge_types=[
         EdgeType("DECIDED_ON", "Decision", "Instrument"),

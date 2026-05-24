@@ -13,6 +13,7 @@ import CalendarHeatmap from "../components/CalendarHeatmap";
 import MarketContext from "../components/MarketContext";
 import PortfolioConcentration from "../components/PortfolioConcentration";
 import PortfolioSummary from "../components/PortfolioSummary";
+import RegimePanel from "../components/RegimePanel";
 import ThesisBreakdown from "../components/ThesisBreakdown";
 import TradeCard from "../components/TradeCard";
 import type {
@@ -171,6 +172,7 @@ export default function DashboardScreen({
       </div>
 
       <MarketContext snapshot={state.market} />
+      <RegimePanel />
       <PortfolioSummary summary={state.analytics?.portfolioSummary} />
       <AccuracyAlertPanel />
 

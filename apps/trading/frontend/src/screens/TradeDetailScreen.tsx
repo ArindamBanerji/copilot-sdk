@@ -3,12 +3,12 @@ import { getHistory, getTicker, getTradeMetadata } from "../api";
 import type { JoinedTrade, TickerData, TradeHistoryDecision, TradeMetadata } from "../types";
 
 const factorOrder = [
-  { camelKey: "conviction", snakeKey: "conviction", label: "Conviction" },
-  { camelKey: "researchDepth", snakeKey: "research_depth", label: "Research depth" },
-  { camelKey: "technicalSignal", snakeKey: "technical_signal", label: "Technical signal" },
-  { camelKey: "positionSize", snakeKey: "position_size", label: "Position size" },
-  { camelKey: "timeHorizon", snakeKey: "time_horizon", label: "Time horizon" },
-  { camelKey: "marketRegime", snakeKey: "market_regime", label: "Market regime" },
+  { camelKey: "signal_alignment", snakeKey: "signal_alignment", label: "Conviction" },
+  { camelKey: "researchDepth", snakeKey: "market_regime", label: "Research depth" },
+  { camelKey: "technicalSignal", snakeKey: "position_sizing", label: "Technical signal" },
+  { camelKey: "positionSize", snakeKey: "timing_quality", label: "Position size" },
+  { camelKey: "timeHorizon", snakeKey: "risk_reward_actual", label: "Time horizon" },
+  { camelKey: "marketRegime", snakeKey: "emotional_indicator", label: "Market regime" },
 ] as const;
 
 function getDecisionId(decision: TradeHistoryDecision): string | undefined {
@@ -31,7 +31,7 @@ function getFactorValue(
   trade: JoinedTrade,
   camelKey: keyof Pick<
     JoinedTrade,
-    "conviction" | "researchDepth" | "technicalSignal" | "positionSize" | "timeHorizon" | "marketRegime"
+    "signal_alignment" | "researchDepth" | "technicalSignal" | "positionSize" | "timeHorizon" | "marketRegime"
   >,
   snakeKey: string,
 ): number | undefined {
@@ -213,7 +213,7 @@ export default function TradeDetailScreen({
         )}
         <div className="mt-4">
           <div className="text-xs trading-muted">Conviction</div>
-          <div className="mt-1 flex gap-1">{dots(trade.conviction)}</div>
+          <div className="mt-1 flex gap-1">{dots(trade.signal_alignment)}</div>
         </div>
       </section>
 

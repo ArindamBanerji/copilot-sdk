@@ -75,8 +75,8 @@ def test_trust_with_trades(client):
     payload = client.get("/api/context/trust-analysis").json()
 
     assert payload["total_trades"] == 3
-    assert payload["trust_scores"]["conviction"]["n_samples"] == 3
-    assert payload["trust_scores"]["conviction"]["variance"] > 0.0
+    assert payload["trust_scores"]["signal_alignment"]["n_samples"] == 3
+    assert payload["trust_scores"]["signal_alignment"]["variance"] > 0.0
 
 
 def test_trust_scores_have_required_fields(client):

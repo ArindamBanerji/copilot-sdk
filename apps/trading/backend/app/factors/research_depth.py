@@ -8,7 +8,7 @@ from app.factors.base import clamp, mean_or_neutral
 
 
 class ResearchDepthFactor:
-    factor_name = "research_depth"
+    factor_name = "market_regime"
     factor_index = 1
 
     def compute(self, event: object) -> float:

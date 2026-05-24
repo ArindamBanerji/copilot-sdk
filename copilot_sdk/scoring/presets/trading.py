@@ -27,20 +27,20 @@ class TradingPreset:
             n_actions=4,
             n_factors=7,
             category_names=(
-                "equity_long",
-                "equity_short",
-                "crypto_spot",
-                "options",
-                "etf",
+                "trend_following",
+                "mean_reversion",
+                "event_driven",
+                "income_strategy",
+                "scalp_intraday",
             ),
-            action_names=("buy", "hold", "sell", "skip_recommended"),
+            action_names=("strong_execution", "partial_execution", "poor_execution", "skip_recommended"),
             factor_names=(
-                "conviction",
-                "research_depth",
-                "technical_signal",
-                "position_size",
-                "time_horizon",
+                "signal_alignment",
                 "market_regime",
+                "position_sizing",
+                "timing_quality",
+                "risk_reward_actual",
+                "emotional_indicator",
                 "signal_confidence",
             ),
         )
@@ -102,7 +102,7 @@ def _migrate_legacy_centroids(centroids: np.ndarray) -> np.ndarray:
     migrated[:, :3, :6] = centroids
     for action_index, signal_confidence in enumerate(_LEGACY_ACTION_CONFIDENCE):
         migrated[:, action_index, 6] = signal_confidence
-    # Existing categories are instrument classes, not strategy styles; use the
-    # conservative neutral skip profile for every category until pilot data lands.
+    # Legacy bootstrap data did not include the skip action; use the conservative
+    # neutral skip profile for every strategy category until pilot data lands.
     migrated[:, 3, :] = np.asarray(_NEUTRAL_SKIP_CENTROID, dtype=np.float64)
     return migrated

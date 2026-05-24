@@ -1,27 +1,27 @@
 import type { FingerprintResponse } from "../types";
 
 const archetypes: Record<string, { name: string; description: string }> = {
-  research_depth: {
+  market_regime: {
     name: "The Researcher",
     description: "Your edge improves when the checklist is complete before the trade.",
   },
-  position_size: {
+  timing_quality: {
     name: "The Sizer",
     description: "Position sizing explains more of the outcome than the setup label.",
   },
-  technical_signal: {
+  position_sizing: {
     name: "The Technician",
     description: "Clean technical context separates your best entries from noise.",
   },
-  time_horizon: {
+  risk_reward_actual: {
     name: "The Timer",
     description: "Holding period discipline is a major part of the edge.",
   },
-  conviction: {
+  signal_alignment: {
     name: "The Gut Trader",
     description: "Conviction is powerful, but it needs evidence around it.",
   },
-  market_regime: {
+  emotional_indicator: {
     name: "The Weather Vane",
     description: "Market backdrop changes whether the same setup works or fails.",
   },

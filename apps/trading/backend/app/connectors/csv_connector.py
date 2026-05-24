@@ -10,6 +10,43 @@ from typing import Iterable
 from app.models.trade import NormalizedTrade
 
 
+BROKER_PRESETS = {
+    "thinkorswim": {
+        "trade_id": "Exec ID",
+        "ticker": "Symbol",
+        "direction": "Side",
+        "entry_price": "Price",
+        "size": "Qty",
+        "entry_time": "Exec Time",
+        "fees": "Commission",
+        "pnl": "P/L",
+        "notes": "Description",
+    },
+    "webull": {
+        "trade_id": "Order ID",
+        "ticker": "Symbol",
+        "direction": "Side",
+        "entry_price": "Filled Price",
+        "size": "Filled",
+        "entry_time": "Filled Time",
+        "fees": "Fees",
+        "pnl": "Realized P&L",
+        "notes": "Notes",
+    },
+    "robinhood": {
+        "trade_id": "Activity ID",
+        "ticker": "Instrument",
+        "direction": "Trans Code",
+        "entry_price": "Price",
+        "size": "Quantity",
+        "entry_time": "Activity Date",
+        "fees": "Fees",
+        "pnl": "Amount",
+        "notes": "Description",
+    },
+}
+
+
 class CSVConnector:
     _ALIASES = {
         "trade_id": ("trade_id", "id", "order_id"),
@@ -29,6 +66,30 @@ class CSVConnector:
 
     def import_from_file(self, filepath: str) -> list[NormalizedTrade]:
         return self.import_from_string(Path(filepath).read_text(encoding="utf-8-sig"))
+
+    def import_flexible(
+        self,
+        filepath: str,
+        column_map: dict[str, str] | None = None,
+        broker_preset: str | None = None,
+    ) -> list[NormalizedTrade]:
+        content = Path(filepath).read_text(encoding="utf-8-sig")
+        if not content.strip():
+            return []
+        reader = csv.DictReader(content.splitlines())
+        if not reader.fieldnames:
+            return []
+        mapping = self._auto_detect_columns(reader.fieldnames)
+        if broker_preset:
+            mapping.update(BROKER_PRESETS.get(broker_preset.lower(), {}))
+        if column_map:
+            mapping.update(column_map)
+        trades: list[NormalizedTrade] = []
+        for index, row in enumerate(reader, start=1):
+            trade = self._row_to_trade(row, mapping, index)
+            if trade is not None:
+                trades.append(trade)
+        return trades
 
     def import_from_string(self, csv_content: str) -> list[NormalizedTrade]:
         if not csv_content.strip():
@@ -74,6 +135,53 @@ class CSVConnector:
                 continue
         return trades
 
+    def _auto_detect_columns(self, headers: Iterable[str]) -> dict[str, str]:
+        normalized_headers = {
+            header: header.strip().lower().replace(" ", "_")
+            for header in headers
+            if header is not None
+        }
+        mapping: dict[str, str] = {}
+        for field, aliases in self._ALIASES.items():
+            alias_set = set(aliases)
+            for original, normalized in normalized_headers.items():
+                if normalized in alias_set:
+                    mapping[field] = original
+                    break
+        return mapping
+
+    def _row_to_trade(
+        self,
+        row: dict[str, str],
+        mapping: dict[str, str],
+        index: int,
+    ) -> NormalizedTrade | None:
+        try:
+            ticker = str(_mapped(row, mapping, "ticker") or "").strip()
+            if not ticker:
+                return None
+            return NormalizedTrade(
+                trade_id=str(_mapped(row, mapping, "trade_id") or f"csv-{index}"),
+                broker="csv",
+                ticker=ticker,
+                direction=_normalize_direction(_mapped(row, mapping, "direction")),
+                entry_price=_parse_float(_mapped(row, mapping, "entry_price")),
+                exit_price=_parse_optional_float(_mapped(row, mapping, "exit_price")),
+                size=_parse_optional_float(_mapped(row, mapping, "size")) or 0.0,
+                entry_time=self._parse_date(_mapped(row, mapping, "entry_time")),
+                exit_time=_parse_optional_datetime(_mapped(row, mapping, "exit_time")),
+                strategy_tag=_optional_str(_mapped(row, mapping, "strategy_tag")),
+                asset_type=_optional_str(_mapped(row, mapping, "asset_type")) or "equity",
+                fees=_parse_optional_float(_mapped(row, mapping, "fees")) or 0.0,
+                pnl=_parse_optional_float(_mapped(row, mapping, "pnl")),
+                notes=_optional_str(_mapped(row, mapping, "notes")),
+            )
+        except (TypeError, ValueError):
+            return None
+
+    def _parse_date(self, date_str: object) -> datetime:
+        return _parse_datetime(date_str)
+
     def _value(
         self,
         row: dict[str, str],
@@ -89,8 +197,10 @@ class CSVConnector:
 
 def _normalize_direction(value: object) -> str:
     normalized = str(value or "long").strip().lower()
-    if normalized in {"sell", "short", "sold"}:
+    if normalized in {"sell", "sld", "short", "sold", "s"}:
         return "short"
+    if normalized in {"buy", "bot", "long", "b"}:
+        return "long"
     return "long"
 
 
@@ -160,3 +270,8 @@ def _strptime(value: str, date_format: str) -> datetime | None:
 def _optional_str(value: object) -> str | None:
     text = str(value).strip() if value is not None else ""
     return text or None
+
+
+def _mapped(row: dict[str, str], mapping: dict[str, str], field: str) -> str | None:
+    column = mapping.get(field)
+    return row.get(column) if column else None

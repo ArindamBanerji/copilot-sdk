@@ -8,7 +8,7 @@ from app.factors.base import clamp, mean_or_neutral
 
 
 class PositionSizeFactor:
-    factor_name = "position_size"
+    factor_name = "timing_quality"
     factor_index = 3
 
     def compute(self, event: object) -> float:

@@ -1,11 +1,16 @@
 import type {
   Analytics,
+  AnalyticsResponse,
   ConservationBreakdownResponse,
   ConservationState,
+  EvidenceResponse,
   FingerprintResponse,
   LearnResponse,
   MarketSnapshot,
   PatternDetectionResponse,
+  PrescoreRequest,
+  PrescoreResponse,
+  RegimeResponse,
   ScoreResponse,
   SelfAccuracyByCategoryResponse,
   SelfAuditTrailResponse,
@@ -13,8 +18,11 @@ import type {
   SelfDecisionExplorerResponse,
   SimilarTrade,
   TickerData,
+  TradeDetailResponse,
   TradeHistoryDecision,
+  TradeJournalEntry,
   TradeMetadata,
+  TradesResponse,
   TrajectoryResponse,
   TrustAnalysisResponse,
 } from "./types";
@@ -71,6 +79,72 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
 
 export function getAnalytics(): Promise<Analytics> {
   return apiGet<Analytics>("/api/context/analytics");
+}
+
+export interface TradeJournalFilters {
+  ticker?: string;
+  category?: string;
+  strategyTag?: string;
+  regime?: string;
+  outcome?: "win" | "loss" | "";
+  dateFrom?: string;
+  dateTo?: string;
+  limit?: number;
+  offset?: number;
+}
+
+function journalQuery(params: TradeJournalFilters = {}): string {
+  const query = new URLSearchParams();
+  if (params.ticker) query.set("ticker", params.ticker);
+  if (params.category) query.set("category", params.category);
+  if (params.strategyTag) query.set("strategy_tag", params.strategyTag);
+  if (params.regime) query.set("regime", params.regime);
+  if (params.outcome) query.set("outcome", params.outcome);
+  if (params.dateFrom) query.set("date_from", params.dateFrom);
+  if (params.dateTo) query.set("date_to", params.dateTo);
+  if (typeof params.limit === "number") query.set("limit", String(params.limit));
+  if (typeof params.offset === "number") query.set("offset", String(params.offset));
+  return query.toString();
+}
+
+export function fetchTrades(params: TradeJournalFilters = {}): Promise<TradesResponse | null> {
+  const query = journalQuery(params);
+  return safeApiGet<TradesResponse>(`/api/trading/trades${query ? `?${query}` : ""}`);
+}
+
+export function fetchTradeDetail(tradeId: string): Promise<TradeDetailResponse | null> {
+  return safeApiGet<TradeJournalEntry>(`/api/trading/trades/${encodeURIComponent(tradeId)}`);
+}
+
+export function fetchAnalytics(
+  groupBy: "category" | "ticker" | "strategy_tag" | "regime" | "month" = "category",
+  params: TradeJournalFilters = {},
+): Promise<AnalyticsResponse | null> {
+  const query = new URLSearchParams(journalQuery(params));
+  query.set("group_by", groupBy);
+  return safeApiGet<AnalyticsResponse>(`/api/trading/analytics?${query.toString()}`);
+}
+
+export function fetchEvidence(tradeId: string): Promise<EvidenceResponse | null> {
+  return safeApiGet<EvidenceResponse>(`/api/trading/evidence/${encodeURIComponent(tradeId)}`);
+}
+
+export function fetchRegime(): Promise<RegimeResponse | null> {
+  return safeApiGet<RegimeResponse>("/api/trading/regime");
+}
+
+export async function prescoreTrade(payload: PrescoreRequest): Promise<PrescoreResponse | null> {
+  try {
+    return await apiPost<PrescoreResponse>("/api/trading/prescore", {
+      ticker: payload.ticker,
+      direction: payload.direction,
+      strategy_tag: payload.strategyTag,
+      category: payload.category,
+      size_pct: payload.sizePct,
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function getHistory(): Promise<TradeHistoryDecision[]> {
@@ -198,7 +272,7 @@ export function getPatterns(): Promise<PatternDetectionResponse | null> {
 export function scoreTrade(payload: unknown): Promise<ScoreResponse> {
   return apiPost<ScoreResponse>("/api/score", payload).then((result) => ({
     ...result,
-    actionNames: result.actionNames || ["buy", "hold", "sell"],
+    actionNames: result.actionNames || ["strong_execution", "partial_execution", "poor_execution"],
   }));
 }
 
@@ -226,7 +300,7 @@ export function saveTradeMetadata(
 export function getSimilarTrades(
   input: {
     category: string;
-    conviction: number;
+    signal_alignment: number;
     researchDepth: number;
     technicalSignal: number;
     positionSize: number;
@@ -237,12 +311,12 @@ export function getSimilarTrades(
 ): Promise<{ similar: SimilarTrade[]; count: number }> {
   const params = new URLSearchParams({
     category: input.category,
-    conviction: String(input.conviction),
-    research_depth: String(input.researchDepth),
-    technical_signal: String(input.technicalSignal),
-    position_size: String(input.positionSize),
-    time_horizon: String(input.timeHorizon),
-    market_regime: String(input.marketRegime),
+    signal_alignment: String(input.signal_alignment),
+    market_regime: String(input.researchDepth),
+    position_sizing: String(input.technicalSignal),
+    timing_quality: String(input.positionSize),
+    risk_reward_actual: String(input.timeHorizon),
+    emotional_indicator: String(input.marketRegime),
     n: String(n),
   });
   return apiGet<{ similar: SimilarTrade[]; count: number }>(`/api/context/similar?${params.toString()}`);

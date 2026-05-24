@@ -1,7 +1,7 @@
 export type NullableNumber = number | null;
 
-export type TradingCategory = "equity_long" | "equity_short" | "crypto_spot" | "options" | "etf";
-export type TradingAction = "buy" | "hold" | "sell";
+export type TradingCategory = "trend_following" | "mean_reversion" | "event_driven" | "income_strategy" | "scalp_intraday";
+export type TradingAction = "strong_execution" | "partial_execution" | "poor_execution";
 
 export interface MetricBreakdown {
   count?: number;
@@ -61,7 +61,7 @@ export interface TradeSeedV2 {
   timeframe?: string;
   researchChecklist?: boolean[];
   researchDepth?: NullableNumber;
-  conviction?: NullableNumber;
+  signal_alignment?: NullableNumber;
   technicalSignal?: NullableNumber;
   positionSize?: NullableNumber;
   timeHorizon?: NullableNumber;
@@ -103,6 +103,109 @@ export interface TradeHistoryDecision {
   outcome?: string;
   reward?: NullableNumber;
   [key: string]: unknown;
+}
+
+export interface JournalAggregate {
+  totalTrades?: number;
+  winRate?: NullableNumber;
+  avgPnl?: NullableNumber;
+  totalPnl?: NullableNumber;
+  avgConfidence?: NullableNumber;
+}
+
+export interface TradeJournalEntry {
+  tradeId?: string;
+  ticker?: string | null;
+  direction?: string | null;
+  entryPrice?: NullableNumber;
+  exitPrice?: NullableNumber;
+  size?: NullableNumber;
+  entryTime?: string | null;
+  exitTime?: string | null;
+  strategyTag?: string | null;
+  category?: string | null;
+  regime?: string | null;
+  pnl?: NullableNumber;
+  factors?: Record<string, unknown>;
+  action?: string | null;
+  confidence?: NullableNumber;
+  metadata?: Record<string, unknown>;
+}
+
+export interface TradesResponse {
+  trades?: TradeJournalEntry[];
+  count?: number;
+  total?: number;
+  filtersApplied?: Record<string, string>;
+  aggregate?: JournalAggregate;
+}
+
+export type TradeDetailResponse = TradeJournalEntry;
+
+export interface AnalyticsGroup extends JournalAggregate {
+  key: string;
+  count?: number;
+}
+
+export interface AnalyticsResponse {
+  groupBy?: string;
+  groups?: AnalyticsGroup[];
+  total?: number;
+}
+
+export interface EvidenceResponse {
+  tradeId?: string;
+  evidenceText?: string;
+  factorBreakdown?: string[];
+  factors?: Record<string, number>;
+  action?: string;
+  confidence?: NullableNumber;
+}
+
+export interface RegimeCurrent {
+  regime?: "trending" | "ranging" | "volatile" | string;
+  vix?: NullableNumber;
+  adx?: NullableNumber;
+  spyPrice?: NullableNumber;
+  timestamp?: string;
+  asOf?: string;
+  source?: string;
+}
+
+export interface RegimeRecommendation {
+  category?: string;
+  action?: "increase" | "reduce" | "hold" | string;
+  accuracy?: NullableNumber;
+  vsBaseline?: NullableNumber;
+  delta?: NullableNumber;
+  baseline?: NullableNumber;
+  currentRegime?: string;
+}
+
+export interface RegimeResponse {
+  current?: RegimeCurrent;
+  accuracyByCategory?: Record<string, Record<string, number>>;
+  recommendations?: RegimeRecommendation[];
+}
+
+export interface PrescoreRequest {
+  ticker: string;
+  direction: "long" | "short" | string;
+  strategyTag?: string;
+  category?: TradingCategory | string;
+  sizePct?: number;
+}
+
+export interface PrescoreResponse {
+  recommendation?: "proceed" | "reduce" | "skip" | string;
+  confidence?: NullableNumber;
+  action?: string;
+  factors?: Record<string, number>;
+  regime?: RegimeCurrent;
+  regimeAccuracy?: NullableNumber;
+  warnings?: string[];
+  evidence?: string;
+  category?: string;
 }
 
 export interface TickerData {
@@ -357,7 +460,7 @@ export interface TradeFormState {
   thesisType: string;
   timeframe: "intraday" | "swing" | "position" | "long";
   researchChecklist: boolean[];
-  conviction: number;
+  signal_alignment: number;
   shares: number;
   entryPrice: number;
   portfolioValue: number;

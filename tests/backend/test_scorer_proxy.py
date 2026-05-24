@@ -7,12 +7,12 @@ from copilot_sdk.graph import SQLiteGraphStore
 
 
 TRADING_FACTORS = {
-    "conviction": 0.82,
-    "research_depth": 0.88,
-    "technical_signal": 0.76,
-    "position_size": 0.34,
-    "time_horizon": 0.67,
-    "market_regime": 0.71,
+    "signal_alignment": 0.82,
+    "market_regime": 0.88,
+    "position_sizing": 0.76,
+    "timing_quality": 0.34,
+    "risk_reward_actual": 0.67,
+    "emotional_indicator": 0.71,
 }
 
 
@@ -32,11 +32,11 @@ def test_fresh_scorer_proxy_exposes_required_methods(tmp_path):
 def test_fresh_scorer_proxy_scores_and_learns(tmp_path):
     proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store)
 
-    score = proxy.score(TRADING_FACTORS, "equity_long")
+    score = proxy.score(TRADING_FACTORS, "trend_following")
     learn = proxy.learn(score.decision_id, score.action)
 
-    assert score.category == "equity_long"
-    assert score.action in {"buy", "hold", "sell"}
+    assert score.category == "trend_following"
+    assert score.action in {"strong_execution", "partial_execution", "poor_execution"}
     assert learn.decision_id == score.decision_id
     assert proxy.graph_store.count_verified("trading") == 1
 

@@ -90,9 +90,9 @@ def test_registry_factor_names_sourced_from_preset():
 def test_registry_unimplemented_factors_neutral():
     values = compute_factors({})
 
-    assert values["research_depth"] == 0.5
-    assert values["position_size"] == 0.5
-    assert values["time_horizon"] == 0.5
+    assert values["market_regime"] == 0.5
+    assert values["timing_quality"] == 0.5
+    assert values["risk_reward_actual"] == 0.5
     assert values["signal_confidence"] == 0.5
 
 
@@ -112,9 +112,9 @@ def test_registry_implemented_factors_respond_to_context():
         }
     )
 
-    assert values["conviction"] > 0.8
-    assert values["technical_signal"] > 0.8
-    assert values["market_regime"] == 0.9
+    assert values["signal_alignment"] > 0.8
+    assert values["position_sizing"] > 0.8
+    assert values["emotional_indicator"] == 0.9
 
 
 def test_registry_all_values_bounded():
@@ -135,6 +135,6 @@ def test_registry_exception_in_factor_defaults_neutral(monkeypatch):
         def compute(self, event: object) -> float:
             raise RuntimeError("boom")
 
-    monkeypatch.setitem(TRADING_FACTOR_COMPUTERS, "conviction", FailingFactor())
+    monkeypatch.setitem(TRADING_FACTOR_COMPUTERS, "signal_alignment", FailingFactor())
 
-    assert compute_factors({"position_conviction": 0.9})["conviction"] == 0.5
+    assert compute_factors({"position_conviction": 0.9})["signal_alignment"] == 0.5

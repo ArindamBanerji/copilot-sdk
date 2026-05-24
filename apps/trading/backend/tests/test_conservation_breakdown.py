@@ -17,7 +17,7 @@ def reset_trade_store():
 def _trade(index: int, **overrides):
     payload = {
         "trade_id": f"t-{index}",
-        "category": "equity_long",
+        "category": "trend_following",
         "verified": True,
         "pnl": 10.0,
     }
@@ -63,16 +63,16 @@ def test_empty_categories_bootstrap(client):
 
 
 def test_with_trades_not_bootstrap(client):
-    _trade_store_ref.extend(_trade(index, category="equity_long") for index in range(20))
+    _trade_store_ref.extend(_trade(index, category="trend_following") for index in range(20))
 
-    category = _category(_breakdown(client), "equity_long")
+    category = _category(_breakdown(client), "trend_following")
 
     assert category["verified"] == 20
     assert category["status"] != "BOOTSTRAP"
 
 
 def test_overall_safe_when_no_red(client):
-    _trade_store_ref.extend(_trade(index, category="equity_long") for index in range(20))
+    _trade_store_ref.extend(_trade(index, category="trend_following") for index in range(20))
 
     payload = _breakdown(client)
 
@@ -113,10 +113,10 @@ def test_red_amber_green_counts_sum(client):
 
 def test_can_trade_false_when_red(client):
     _trade_store_ref.extend(
-        _trade(index, category="options", pnl=-10.0) for index in range(20)
+        _trade(index, category="income_strategy", pnl=-10.0) for index in range(20)
     )
 
-    category = _category(_breakdown(client), "options")
+    category = _category(_breakdown(client), "income_strategy")
 
     assert category["status"] == "RED"
     assert category["can_trade"] is False
@@ -124,10 +124,10 @@ def test_can_trade_false_when_red(client):
 
 def test_note_present_for_amber_or_red(client):
     _trade_store_ref.extend(
-        _trade(index, category="options", pnl=-10.0) for index in range(20)
+        _trade(index, category="income_strategy", pnl=-10.0) for index in range(20)
     )
 
-    category = _category(_breakdown(client), "options")
+    category = _category(_breakdown(client), "income_strategy")
 
     assert category["status"] in {"AMBER", "RED"}
     assert "conservation" in category["note"]

@@ -60,7 +60,7 @@ test("score produces result", async ({ page }) => {
   await page.getByRole("button", { name: "Score This Trade" }).click();
   await scoreResponse;
 
-  await expectAnyText(page, [/buy/i, /hold/i, /sell/i, /confidence/i, /\d+%/]);
+  await expectAnyText(page, [/strong execution/i, /partial execution/i, /poor execution/i, /confidence/i, /\d+%/]);
   await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
 });
 
@@ -91,7 +91,7 @@ test("reasoning panel appears after scoring", async ({ page }) => {
   await page.getByRole("button", { name: "Score This Trade" }).click();
   await scoreResponse;
 
-  await expectAnyText(page, [/confidence/i, /buy/i, /hold/i, /sell/i, /\d+%/]);
+  await expectAnyText(page, [/confidence/i, /strong execution/i, /partial execution/i, /poor execution/i, /\d+%/]);
   await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /reasoning/i]);
   await expectAnyText(page, [/Confidence Breakdown/i, /Historical Evidence/i, /Learned from/i]);
 });

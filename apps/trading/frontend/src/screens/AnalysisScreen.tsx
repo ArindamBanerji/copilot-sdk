@@ -17,22 +17,22 @@ import TrustRadarPanel from "../components/TrustRadarPanel";
 import type { Analytics, FingerprintResponse } from "../types";
 
 const displayNames: Record<string, string> = {
-  conviction: "Conviction",
-  research_depth: "Research Depth",
-  technical_signal: "Technical Signal",
-  position_size: "Position Size",
-  time_horizon: "Time Horizon",
-  market_regime: "Market Regime",
+  signal_alignment: "Conviction",
+  market_regime: "Research Depth",
+  position_sizing: "Technical Signal",
+  timing_quality: "Position Size",
+  risk_reward_actual: "Time Horizon",
+  emotional_indicator: "Market Regime",
 };
 
 function interpretation(name: string, weight: number): string {
-  if (name === "conviction" && weight < 0.35) {
+  if (name === "signal_alignment" && weight < 0.35) {
     return "Conviction needs confirmation from evidence.";
   }
-  if (name === "research_depth") {
+  if (name === "market_regime") {
     return "Checklist depth is a repeatable edge.";
   }
-  if (name === "market_regime") {
+  if (name === "emotional_indicator") {
     return "Market context changes setup quality.";
   }
   return weight >= 0.6 ? "High-signal factor." : weight >= 0.3 ? "Useful with confirmation." : "Noisy on its own.";

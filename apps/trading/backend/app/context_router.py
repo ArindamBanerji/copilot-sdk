@@ -19,12 +19,12 @@ router = APIRouter(tags=["context"])
 _DEFAULT_DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 _DATA_DIR = _DEFAULT_DATA_DIR
 _FACTOR_NAMES = (
-    "conviction",
-    "research_depth",
-    "technical_signal",
-    "position_size",
-    "time_horizon",
+    "signal_alignment",
     "market_regime",
+    "position_sizing",
+    "timing_quality",
+    "risk_reward_actual",
+    "emotional_indicator",
     "signal_confidence",
 )
 
@@ -168,7 +168,7 @@ def _trading_conservation_config() -> dict[str, Any]:
         }
     except Exception:
         return {
-            "categories": ["equity_long", "equity_short", "crypto_spot", "options", "etf"],
+            "categories": ["trend_following", "mean_reversion", "event_driven", "income_strategy", "scalp_intraday"],
             "penalty_ratio": 3.0,
             "n_actions": 4,
             "n_factors": 7,
@@ -357,12 +357,12 @@ def conservation_breakdown() -> dict[str, Any]:
 @router.get("/similar")
 def similar_trades(
     category: str,
-    conviction: float,
-    research_depth: float,
-    technical_signal: float,
-    position_size: float,
-    time_horizon: float,
+    signal_alignment: float,
     market_regime: float,
+    position_sizing: float,
+    timing_quality: float,
+    risk_reward_actual: float,
+    emotional_indicator: float,
     signal_confidence: float = 0.5,
     n: int = 5,
 ) -> dict[str, Any]:
@@ -371,12 +371,12 @@ def similar_trades(
         return {"similar": [], "count": 0}
 
     query = [
-        conviction,
-        research_depth,
-        technical_signal,
-        position_size,
-        time_horizon,
+        signal_alignment,
         market_regime,
+        position_sizing,
+        timing_quality,
+        risk_reward_actual,
+        emotional_indicator,
         signal_confidence,
     ]
     matches = []
@@ -393,7 +393,7 @@ def similar_trades(
                 "ticker": trade.get("ticker"),
                 "thesis_type": trade.get("thesis_type"),
                 "timeframe": trade.get("timeframe"),
-                "research_depth": trade.get("research_depth"),
+                "market_regime": trade.get("market_regime"),
                 "pnl_pct": trade.get("pnl_pct"),
                 "outcome": trade.get("outcome"),
                 "is_correct": trade.get("is_correct"),

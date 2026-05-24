@@ -26,14 +26,14 @@ def build_transfer_registry() -> SharedPatternRegistry:
             source_copilot=SOURCE_COPILOT,
             pattern_type="centroid_delta",
             category="freshness_violation",
-            action="buy",
+            action="strong_execution",
             win_rate=0.78,
             centroid_delta=[0.05, 0.03, 0.04, 0.02, 0.01, 0.03, 0.0],
             confidence=0.86,
             metadata={
                 "source_rule": "freshness_violation_signal",
                 "source_action": "auto_approve",
-                "target_action": "buy",
+                "target_action": "strong_execution",
             },
         )
     )
@@ -43,14 +43,14 @@ def build_transfer_registry() -> SharedPatternRegistry:
             source_copilot=SOURCE_COPILOT,
             pattern_type="centroid_delta",
             category="pipeline_failure",
-            action="hold",
+            action="partial_execution",
             win_rate=0.72,
             centroid_delta=[0.02, 0.04, 0.01, 0.03, 0.05, 0.02, 0.0],
             confidence=0.81,
             metadata={
                 "source_rule": "pipeline_failure_risk",
                 "source_action": "investigate",
-                "target_action": "hold",
+                "target_action": "partial_execution",
             },
         )
     )
@@ -73,16 +73,16 @@ def run_demo() -> dict[str, Any]:
             name: 0.5
             for name in target._preset.shape.factor_names
         }
-        before = target.score(factors, "equity_long")
+        before = target.score(factors, "trend_following")
         summary = target.warm_start(
             registry,
             category_mapping={
-                "freshness_violation": "equity_long",
-                "pipeline_failure": "equity_short",
+                "freshness_violation": "trend_following",
+                "pipeline_failure": "mean_reversion",
             },
             blend_weight=0.35,
         )
-        after = target.score(factors, "equity_long")
+        after = target.score(factors, "trend_following")
         return {
             "source_copilot": source._preset.name,
             "target_copilot": target._preset.name,

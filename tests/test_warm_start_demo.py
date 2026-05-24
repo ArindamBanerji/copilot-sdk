@@ -29,8 +29,8 @@ def test_warm_start_transfers_patterns(tmp_path) -> None:
         summary = target.warm_start(
             demo.build_transfer_registry(),
             category_mapping={
-                "freshness_violation": "equity_long",
-                "pipeline_failure": "equity_short",
+                "freshness_violation": "trend_following",
+                "pipeline_failure": "mean_reversion",
             },
             blend_weight=0.35,
         )

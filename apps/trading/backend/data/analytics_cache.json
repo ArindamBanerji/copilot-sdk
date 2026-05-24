@@ -5,10 +5,10 @@
   "closed_trades": 37,
   "open_positions": 3,
   "category_counts": {
-    "equity_long": 24,
-    "etf": 6,
-    "crypto_spot": 6,
-    "options": 4
+    "trend_following": 24,
+    "scalp_intraday": 6,
+    "event_driven": 6,
+    "income_strategy": 4
   },
   "thesis_counts": {
     "momentum": 20,
@@ -76,7 +76,7 @@
     "basis": "all_trades"
   },
   "counterfactual": {
-    "scenario": "skip trades with checklist_count <= 1 or research_depth <= 0.2",
+    "scenario": "skip trades with checklist_count <= 1 or market_regime <= 0.2",
     "skipped_trade_count": 4,
     "skipped_trade_ids": [
       "V2-014",
@@ -269,7 +269,7 @@
     }
   },
   "portfolio_concentration": {
-    "equity_long": {
+    "trend_following": {
       "count": 24,
       "closed": 22,
       "wins": 16,
@@ -280,7 +280,7 @@
       "open_positions": 2,
       "exposure_dollars": 625186
     },
-    "crypto_spot": {
+    "event_driven": {
       "count": 6,
       "closed": 6,
       "wins": 2,
@@ -291,7 +291,7 @@
       "open_positions": 0,
       "exposure_dollars": 151670.0
     },
-    "options": {
+    "income_strategy": {
       "count": 4,
       "closed": 3,
       "wins": 2,
@@ -302,7 +302,7 @@
       "open_positions": 1,
       "exposure_dollars": 56614
     },
-    "etf": {
+    "scalp_intraday": {
       "count": 6,
       "closed": 6,
       "wins": 5,
@@ -442,8 +442,8 @@
     "closed_trades": 37,
     "open_positions": 3,
     "win_rate": 0.6757,
-    "best_category": "etf",
-    "worst_category": "crypto_spot",
+    "best_category": "scalp_intraday",
+    "worst_category": "event_driven",
     "gross_exposure": 0.17,
     "cash_buffer": 0.82,
     "open_exposure_dollars": 75840,

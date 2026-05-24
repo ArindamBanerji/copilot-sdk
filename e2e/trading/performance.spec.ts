@@ -26,7 +26,7 @@ test("category performance shows categories", async ({ page }) => {
   await gotoPerformance(page);
 
   await expect(page.getByText("Category Performance")).toBeVisible();
-  await expectAnyText(page, [/equity/i, /crypto/i, /options/i, /etf/i, /No category performance available/i]);
+  await expectAnyText(page, [/trend following/i, /event driven/i, /income strategy/i, /scalp intraday/i, /No category performance available/i]);
 });
 
 test("trajectory shows competitor and switching cost narrative", async ({ page }) => {

@@ -23,12 +23,12 @@ PRESEED_DECISIONS_PER_COPILOT = 200
 PRESEED_OVERRIDE_COUNT = 50
 
 TRADING_FACTORS = [
-    "conviction",
-    "research_depth",
-    "technical_signal",
-    "position_size",
-    "time_horizon",
+    "signal_alignment",
     "market_regime",
+    "position_sizing",
+    "timing_quality",
+    "risk_reward_actual",
+    "emotional_indicator",
     # Existing Trading seeds omit this seventh factor; extract_factors defaults it to neutral 0.50.
     "signal_confidence",
 ]
@@ -91,7 +91,7 @@ DOMAINS = [
         default_url="http://localhost:8010",
         seed_path=REPO_ROOT / "apps" / "trading" / "backend" / "data" / "trading_seed_v2.json",
         factors=TRADING_FACTORS,
-        actions=["buy", "hold", "sell"],
+        actions=["strong_execution", "partial_execution", "poor_execution"],
         metadata_path="/api/context/trade-metadata",
         field_map={},
     ),

@@ -25,20 +25,20 @@ PRESET_DIR = Path(__file__).resolve().parents[2] / "copilot_sdk" / "scoring" / "
 SEED_PATH = PRESET_DIR / "trading_seed.json"
 BOOTSTRAP_PATH = PRESET_DIR / "trading_bootstrap.json"
 EXISTING_CATEGORIES = (
-    "equity_long",
-    "equity_short",
-    "crypto_spot",
-    "options",
-    "etf",
+    "trend_following",
+    "mean_reversion",
+    "event_driven",
+    "income_strategy",
+    "scalp_intraday",
 )
-EXISTING_ACTIONS = ("buy", "hold", "sell")
+EXISTING_ACTIONS = ("strong_execution", "partial_execution", "poor_execution")
 EXISTING_FACTORS = (
-    "conviction",
-    "research_depth",
-    "technical_signal",
-    "position_size",
-    "time_horizon",
+    "signal_alignment",
     "market_regime",
+    "position_sizing",
+    "timing_quality",
+    "risk_reward_actual",
+    "emotional_indicator",
 )
 
 
@@ -116,15 +116,15 @@ def test_seed_covers_expected_categories():
     observed = {trade["category"] for trade in trades}
 
     assert set(preset.shape.category_names) == {
-        "equity_long",
-        "equity_short",
-        "crypto_spot",
-        "options",
-        "etf",
+        "trend_following",
+        "mean_reversion",
+        "event_driven",
+        "income_strategy",
+        "scalp_intraday",
     }
-    assert {"equity_long", "crypto_spot", "options", "etf"}.issubset(observed)
+    assert {"trend_following", "event_driven", "income_strategy", "scalp_intraday"}.issubset(observed)
     assert len(observed) >= 4
-    assert "equity_short" not in observed
+    assert "mean_reversion" not in observed
 
 
 def test_seed_factors_match_preset():
@@ -182,31 +182,31 @@ def test_bootstrap_produces_target_correct_action_probability():
         assert 0.45 <= float(metadata["mean_confidence"]) <= 0.60
 
 
-def test_research_depth_more_predictive_than_conviction_in_seed():
+def test_market_regime_more_predictive_than_signal_alignment_in_seed():
     trades = load_seed_trades()
     high_research = [
-        trade for trade in trades if trade["factors"]["research_depth"] >= 0.7
+        trade for trade in trades if trade["factors"]["market_regime"] >= 0.7
     ]
     low_research = [
-        trade for trade in trades if trade["factors"]["research_depth"] < 0.4
+        trade for trade in trades if trade["factors"]["market_regime"] < 0.4
     ]
-    high_conviction = [
-        trade for trade in trades if trade["factors"]["conviction"] >= 0.7
+    high_signal_alignment = [
+        trade for trade in trades if trade["factors"]["signal_alignment"] >= 0.7
     ]
-    low_conviction = [
-        trade for trade in trades if trade["factors"]["conviction"] < 0.4
+    low_signal_alignment = [
+        trade for trade in trades if trade["factors"]["signal_alignment"] < 0.4
     ]
 
     research_separation = correct_rate(high_research) - correct_rate(low_research)
-    conviction_separation = correct_rate(high_conviction) - correct_rate(
-        low_conviction
+    signal_alignment_separation = correct_rate(high_signal_alignment) - correct_rate(
+        low_signal_alignment
     )
 
     assert research_separation > 0.40
-    assert research_separation > conviction_separation
+    assert research_separation > signal_alignment_separation
 
 
-def test_fingerprint_shows_research_depth_signal_if_stable():
+def test_fingerprint_shows_market_regime_signal_if_stable():
     preset = TradingPreset()
     trades = load_seed_trades()
     result = compute_fingerprint(
@@ -216,8 +216,8 @@ def test_fingerprint_shows_research_depth_signal_if_stable():
     factors = {factor.name: factor for factor in result.factors}
 
     assert set(factors) == set(preset.shape.factor_names)
-    assert factors["research_depth"].weight >= factors["conviction"].weight
-    assert factors["research_depth"].sigma <= factors["conviction"].sigma
+    assert factors["market_regime"].weight >= factors["signal_alignment"].weight
+    assert factors["market_regime"].sigma <= factors["signal_alignment"].sigma
 
 
 def test_price_verification_cached():
@@ -235,7 +235,7 @@ def test_price_verification_sell_incorrect():
 
 
 def test_price_verification_unknown_ticker():
-    result = verify_trade("ZZZZ", 100.0, "buy", use_live=False)
+    result = verify_trade("ZZZZ", 100.0, "strong_execution", use_live=False)
 
     assert result.source == "unknown_ticker"
     assert result.is_correct is False

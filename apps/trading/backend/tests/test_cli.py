@@ -51,6 +51,38 @@ def _init_and_import(tmp_path: Path) -> Path:
     return config_dir
 
 
+def _write_journal_trades(config_dir: Path) -> None:
+    cli._save_trades(
+        [
+            {
+                "trade_id": "j-1",
+                "ticker": "MSFT",
+                "direction": "long",
+                "pnl": 120.0,
+                "category": "trend_following",
+                "strategy_tag": "momentum",
+            },
+            {
+                "trade_id": "j-2",
+                "ticker": "SPY",
+                "direction": "short",
+                "pnl": -30.0,
+                "category": "mean_reversion",
+                "strategy_tag": "hedge",
+            },
+            {
+                "trade_id": "j-3",
+                "ticker": "NVDA",
+                "direction": "long",
+                "pnl": 40.0,
+                "category": "trend_following",
+                "strategy_tag": "momentum",
+            },
+        ],
+        config_dir,
+    )
+
+
 def test_init_creates_config(tmp_path):
     config_dir = _config_dir(tmp_path)
 
@@ -133,10 +165,7 @@ def test_import_without_file_flag_fails(tmp_path):
     config_dir = _config_dir(tmp_path)
     assert _run(config_dir, "init") == 0
 
-    with pytest.raises(SystemExit) as exc:
-        _run(config_dir, "import")
-
-    assert exc.value.code == 2
+    assert _run(config_dir, "import") == 1
 
 
 def test_imported_trades_have_tickers(tmp_path):
@@ -232,6 +261,91 @@ def test_conservation_no_trades_fails(tmp_path, capsys):
     assert _run(config_dir, "conservation") == 1
 
     assert "No trades available" in capsys.readouterr().err
+
+
+def test_journal_shows_trades(tmp_path, capsys):
+    config_dir = _config_dir(tmp_path)
+    assert _run(config_dir, "init") == 0
+    _write_journal_trades(config_dir)
+
+    assert _run(config_dir, "journal") == 0
+    output = capsys.readouterr().out
+
+    assert "Trades: 3" in output
+    assert "MSFT" in output
+    assert "Total P&L: 130.00" in output
+
+
+def test_journal_filter_ticker(tmp_path, capsys):
+    config_dir = _config_dir(tmp_path)
+    assert _run(config_dir, "init") == 0
+    _write_journal_trades(config_dir)
+
+    assert _run(config_dir, "journal", "--ticker", "msft") == 0
+    output = capsys.readouterr().out
+
+    assert "Trades: 1" in output
+    assert "MSFT" in output
+    assert "SPY" not in output
+
+
+def test_journal_filter_wins_only(tmp_path, capsys):
+    config_dir = _config_dir(tmp_path)
+    assert _run(config_dir, "init") == 0
+    _write_journal_trades(config_dir)
+
+    assert _run(config_dir, "journal", "--wins-only") == 0
+    output = capsys.readouterr().out
+
+    assert "Trades: 2" in output
+    assert "j-1" in output
+    assert "j-3" in output
+    assert "j-2" not in output
+
+
+def test_journal_filter_losses_only(tmp_path, capsys):
+    config_dir = _config_dir(tmp_path)
+    assert _run(config_dir, "init") == 0
+    _write_journal_trades(config_dir)
+
+    assert _run(config_dir, "journal", "--losses-only") == 0
+    output = capsys.readouterr().out
+
+    assert "Trades: 1" in output
+    assert "j-2" in output
+    assert "j-1" not in output
+
+
+def test_journal_no_trades_message(tmp_path, capsys):
+    config_dir = _config_dir(tmp_path)
+    assert _run(config_dir, "init") == 0
+
+    assert _run(config_dir, "journal") == 1
+
+    assert "No trades available" in capsys.readouterr().err
+
+
+def test_journal_limit_controls_output(tmp_path, capsys):
+    config_dir = _config_dir(tmp_path)
+    assert _run(config_dir, "init") == 0
+    _write_journal_trades(config_dir)
+
+    assert _run(config_dir, "journal", "--limit", "1") == 0
+    output = capsys.readouterr().out
+
+    assert "Trades: 3" in output
+    assert "j-1" in output
+    assert "j-2" not in output
+
+
+def test_journal_no_match_message(tmp_path, capsys):
+    config_dir = _config_dir(tmp_path)
+    assert _run(config_dir, "init") == 0
+    _write_journal_trades(config_dir)
+
+    assert _run(config_dir, "journal", "--ticker", "AAPL") == 0
+
+    assert "No trades match filters." in capsys.readouterr().out
 
 
 def test_no_command_prints_help(tmp_path, capsys):

@@ -7,20 +7,20 @@ from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
 EXISTING_CATEGORIES = (
-    "equity_long",
-    "equity_short",
-    "crypto_spot",
-    "options",
-    "etf",
+    "trend_following",
+    "mean_reversion",
+    "event_driven",
+    "income_strategy",
+    "scalp_intraday",
 )
-EXISTING_ACTIONS = ("buy", "hold", "sell")
+EXISTING_ACTIONS = ("strong_execution", "partial_execution", "poor_execution")
 EXISTING_FACTORS = (
-    "conviction",
-    "research_depth",
-    "technical_signal",
-    "position_size",
-    "time_horizon",
+    "signal_alignment",
     "market_regime",
+    "position_sizing",
+    "timing_quality",
+    "risk_reward_actual",
+    "emotional_indicator",
 )
 
 

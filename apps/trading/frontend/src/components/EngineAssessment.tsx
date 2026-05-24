@@ -1,12 +1,12 @@
 import type { Analytics, FingerprintResponse } from "../types";
 
 const factorLabels: Record<string, string> = {
-  conviction: "Conviction",
-  research_depth: "Research",
-  technical_signal: "Technical",
-  position_size: "Position Size",
-  time_horizon: "Time Horizon",
-  market_regime: "Market Regime",
+  signal_alignment: "Conviction",
+  market_regime: "Research",
+  position_sizing: "Technical",
+  timing_quality: "Position Size",
+  risk_reward_actual: "Time Horizon",
+  emotional_indicator: "Market Regime",
 };
 
 function level(weight: number): "HIGH" | "MODERATE" | "LOW" {

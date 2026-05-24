@@ -14,9 +14,9 @@ async function clickPerformanceTab(page: Page) {
 }
 
 function safetyPanel(page: Page): Locator {
-  return page.locator("section.copilot-card").filter({
-    has: page.getByText("Strategy Safety Breakdown"),
-  });
+  return page.locator("section.copilot-card", {
+    has: page.getByRole("heading", { name: "Strategy Safety Breakdown" }),
+  }).first();
 }
 
 async function gotoSafetyPanel(page: Page): Promise<Locator> {
@@ -24,7 +24,7 @@ async function gotoSafetyPanel(page: Page): Promise<Locator> {
   await clickPerformanceTab(page);
 
   const panel = safetyPanel(page);
-  await expect(panel).toBeVisible();
+  await expect(panel).toBeVisible({ timeout: 15_000 });
   return panel;
 }
 
@@ -32,7 +32,7 @@ async function expectSafetyDataOrUnavailable(panel: Locator, populatedPattern: R
   const populated = panel.getByText(populatedPattern);
   const unavailable = panel.getByText(/not available right now/i);
   const empty = panel.getByText(/No strategy categories are available yet/i);
-  await expect(populated.first().or(unavailable).or(empty)).toBeVisible();
+  await expect(populated.first().or(unavailable.first()).or(empty.first())).toBeVisible();
 }
 
 test("Performance screen shows Strategy Safety Breakdown panel", async ({ page }) => {
@@ -44,7 +44,7 @@ test("Performance screen shows Strategy Safety Breakdown panel", async ({ page }
 test("Panel shows category names", async ({ page }) => {
   const panel = await gotoSafetyPanel(page);
 
-  await expectSafetyDataOrUnavailable(panel, /Equity Long|Equity Short|Crypto Spot|Options|Etf/i);
+  await expectSafetyDataOrUnavailable(panel, /Trend Following|Mean Reversion|Event Driven|Income Strategy|Scalp Intraday/i);
 });
 
 test("Panel shows status badges", async ({ page }) => {

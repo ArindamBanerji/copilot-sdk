@@ -17,7 +17,7 @@ SESSIONS = {
 
 
 class TimeHorizonFactor:
-    factor_name = "time_horizon"
+    factor_name = "risk_reward_actual"
     factor_index = 4
 
     def compute(self, event: object) -> float:

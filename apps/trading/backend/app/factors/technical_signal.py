@@ -8,7 +8,7 @@ from app.factors.base import clamp, mean_or_neutral
 
 
 class TechnicalSignalFactor:
-    factor_name = "technical_signal"
+    factor_name = "position_sizing"
     factor_index = 2
 
     def compute(self, event: object) -> float:

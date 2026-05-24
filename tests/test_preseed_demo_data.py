@@ -32,7 +32,7 @@ def _source_seed() -> list[dict[str, Any]]:
         {
             "category": "demo_category",
             "factors": {
-                "conviction": 0.7,
+                "signal_alignment": 0.7,
                 "expected_demand": 0.8,
                 "impact_scope": 0.9,
             },
@@ -43,7 +43,7 @@ def _source_seed() -> list[dict[str, Any]]:
         {
             "category": "demo_category",
             "factors": {
-                "research_depth": 0.4,
+                "market_regime": 0.4,
                 "weather_forecast": 0.3,
                 "data_freshness": 0.6,
             },

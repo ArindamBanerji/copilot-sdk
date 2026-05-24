@@ -43,7 +43,7 @@ def test_plan_false():
     assert ConvictionFactor().compute({"has_trade_plan": False}) == 0.3
 
 
-def test_conviction_high_low_clamped():
+def test_signal_alignment_high_low_clamped():
     factor = ConvictionFactor()
 
     assert factor.compute({"position_conviction": 0.9}) == 0.9

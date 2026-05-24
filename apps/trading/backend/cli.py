@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import sys
@@ -91,6 +92,28 @@ def _print_factor_table(factors: dict[str, float]) -> None:
         print(f"{name:20} {value:0.3f} {bar}")
 
 
+def _save_imported_trades(
+    parsed: list[Any],
+    config_dir: str | os.PathLike[str],
+) -> tuple[int, int, int]:
+    existing = _load_trades(config_dir)
+    seen = {str(trade.get("trade_id")) for trade in existing}
+    imported: list[dict[str, Any]] = []
+    duplicates = 0
+    for trade in parsed:
+        row = trade.to_dict() if hasattr(trade, "to_dict") else dict(trade)
+        trade_id = str(row["trade_id"])
+        if trade_id in seen:
+            duplicates += 1
+            continue
+        seen.add(trade_id)
+        imported.append(row)
+
+    all_trades = [*existing, *imported]
+    _save_trades(all_trades, config_dir)
+    return len(imported), duplicates, len(all_trades)
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     config_dir = _ensure_config_dir(args.config_dir)
     config_path = _config_path(config_dir)
@@ -121,34 +144,38 @@ def cmd_import(args: argparse.Namespace) -> int:
         print("Trading CLI is not initialized. Run init first.", file=sys.stderr)
         return 1
 
-    csv_path = Path(args.file).expanduser()
-    if not csv_path.exists():
-        print(f"CSV file not found: {csv_path}", file=sys.stderr)
+    broker = str(args.broker or "csv").lower()
+    if broker == "csv":
+        csv_path = Path(args.file).expanduser() if args.file else None
+        if csv_path is None or not csv_path.exists():
+            print(f"CSV file not found: {csv_path}", file=sys.stderr)
+            return 1
+        connector = CSVConnector()
+        parsed = (
+            connector.import_flexible(str(csv_path), broker_preset=args.preset)
+            if args.preset
+            else connector.import_from_file(str(csv_path))
+        )
+    elif broker == "ibkr":
+        try:
+            from app.connectors.ibkr_connector import IBKRConnector
+
+            parsed = IBKRConnector().import_trades(days=int(args.days))
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+    else:
+        print(f"Unsupported broker: {args.broker}", file=sys.stderr)
         return 1
 
-    parsed = CSVConnector().import_from_file(str(csv_path))
     if not parsed:
-        print("No trades parsed from CSV.", file=sys.stderr)
+        print("No trades parsed from import source.", file=sys.stderr)
         return 1
 
-    existing = _load_trades(args.config_dir)
-    seen = {str(trade.get("trade_id")) for trade in existing}
-    imported: list[dict[str, Any]] = []
-    duplicates = 0
-    for trade in parsed:
-        row = trade.to_dict()
-        trade_id = str(row["trade_id"])
-        if trade_id in seen:
-            duplicates += 1
-            continue
-        seen.add(trade_id)
-        imported.append(row)
-
-    all_trades = [*existing, *imported]
-    _save_trades(all_trades, args.config_dir)
-    print(f"Imported: {len(imported)}")
+    imported, duplicates, total = _save_imported_trades(parsed, args.config_dir)
+    print(f"Imported: {imported}")
     print(f"Duplicates: {duplicates}")
-    print(f"Total trades: {len(all_trades)}")
+    print(f"Total trades: {total}")
     return 0
 
 
@@ -227,6 +254,197 @@ def cmd_conservation(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_journal(args: argparse.Namespace) -> int:
+    trades = _load_trades(args.config_dir)
+    if not trades:
+        print("No trades available. Import trades first.", file=sys.stderr)
+        return 1
+
+    filtered = _filter_journal_trades(
+        trades,
+        ticker=args.ticker,
+        category=args.category,
+        strategy=args.strategy,
+        wins_only=args.wins_only,
+        losses_only=args.losses_only,
+    )
+    if not filtered:
+        print("No trades match filters.")
+        return 0
+
+    limit = max(int(args.limit), 0)
+    visible = filtered[:limit] if limit else []
+    pnls = [_trade_pnl(trade) for trade in filtered if _trade_pnl(trade) is not None]
+    wins = sum(1 for trade in filtered if (_trade_pnl(trade) or 0.0) > 0)
+    win_rate = wins / len(filtered) if filtered else 0.0
+    avg_pnl = mean(pnls) if pnls else 0.0
+    total_pnl = sum(pnls) if pnls else 0.0
+
+    print(f"Trades: {len(filtered)}")
+    print(f"Win rate: {win_rate:.1%}")
+    print(f"Avg P&L: {avg_pnl:.2f}")
+    print(f"Total P&L: {total_pnl:.2f}")
+    print(f"{'ID':12} {'Ticker':8} {'Dir':6} {'P&L':>10} {'Category':18} {'Strategy':18}")
+    for trade in visible:
+        print(
+            f"{str(trade.get('trade_id', '-'))[:12]:12} "
+            f"{str(trade.get('ticker', '-'))[:8]:8} "
+            f"{str(trade.get('direction', '-'))[:6]:6} "
+            f"{(_trade_pnl(trade) or 0.0):10.2f} "
+            f"{str(trade.get('category') or '-')[:18]:18} "
+            f"{str(trade.get('strategy_tag') or trade.get('thesis_type') or '-')[:18]:18}"
+        )
+    return 0
+
+
+def cmd_regime(args: argparse.Namespace) -> int:
+    from app.services.regime import RegimeService
+
+    service = RegimeService()
+    current = service.get_current_regime()
+    print(f"Current regime: {current.get('regime', 'ranging')}")
+    print(f"VIX: {float(current.get('vix', 20.0) or 0.0):0.2f}")
+    print(f"ADX: {float(current.get('adx', 20.0) or 0.0):0.2f}")
+    print(f"Source: {current.get('source', 'default')}")
+
+    trades = _load_trades(args.config_dir)
+    if not trades:
+        print("No local trades available for regime accuracy.")
+        return 0
+
+    accuracy = service.get_regime_accuracy(trades)
+    if not accuracy:
+        print("No regime accuracy available.")
+        return 0
+
+    print(f"{'Category':20} {'Trending':>10} {'Ranging':>10} {'Volatile':>10}")
+    for category, regimes in sorted(accuracy.items()):
+        print(
+            f"{category[:20]:20} "
+            f"{_format_rate(regimes.get('trending')):>10} "
+            f"{_format_rate(regimes.get('ranging')):>10} "
+            f"{_format_rate(regimes.get('volatile')):>10}"
+        )
+    return 0
+
+
+def _format_rate(value: float | None) -> str:
+    return "-" if value is None else f"{value:.0%}"
+
+
+def _filter_journal_trades(
+    trades: list[dict[str, Any]],
+    *,
+    ticker: str | None,
+    category: str | None,
+    strategy: str | None,
+    wins_only: bool,
+    losses_only: bool,
+) -> list[dict[str, Any]]:
+    output = list(trades)
+    if ticker:
+        output = [trade for trade in output if str(trade.get("ticker") or "").upper() == ticker.upper()]
+    if category:
+        output = [trade for trade in output if str(trade.get("category") or "") == category]
+    if strategy:
+        output = [
+            trade for trade in output
+            if str(trade.get("strategy_tag") or trade.get("thesis_type") or "") == strategy
+        ]
+    if wins_only:
+        output = [trade for trade in output if (_trade_pnl(trade) or 0.0) > 0]
+    if losses_only:
+        output = [trade for trade in output if _trade_pnl(trade) is not None and (_trade_pnl(trade) or 0.0) <= 0]
+    return output
+
+
+def _trade_pnl(trade: dict[str, Any]) -> float | None:
+    value = trade.get("pnl")
+    if value is None:
+        value = trade.get("pnl_dollars")
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    trades = _load_trades(args.config_dir)
+    if not trades:
+        print("No trades to export.", file=sys.stderr)
+        return 1
+    export_format = str(args.format).lower()
+    output = Path(args.output).expanduser() if args.output else Path(args.config_dir).expanduser() / f"export.{export_format}"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    if export_format == "json":
+        output.write_text(json.dumps(trades, indent=2, default=str), encoding="utf-8")
+    elif export_format == "csv":
+        fieldnames = sorted({key for trade in trades for key in trade})
+        with output.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(trades)
+    else:
+        print(f"Unsupported export format: {args.format}", file=sys.stderr)
+        return 1
+    print(f"Exported {len(trades)} trades to {output}")
+    return 0
+
+
+def cmd_backup(args: argparse.Namespace) -> int:
+    _ensure_config_dir(args.config_dir)
+    trades = _load_trades(args.config_dir)
+    config = _load_config(args.config_dir) or {}
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    backup = {
+        "version": "0.1.0",
+        "timestamp": timestamp,
+        "config": config,
+        "trades": trades,
+        "trade_count": len(trades),
+    }
+    backup_dir = Path(args.config_dir).expanduser() / "backup"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    output = backup_dir / f"trading-backup-{timestamp}.json"
+    output.write_text(json.dumps(backup, indent=2, default=str), encoding="utf-8")
+    print(f"Backup written: {output}")
+    print(f"Trade count: {len(trades)}")
+    return 0
+
+
+def cmd_restore(args: argparse.Namespace) -> int:
+    backup_path = Path(getattr(args, "from_file")).expanduser()
+    if not backup_path.exists():
+        print(f"Backup file not found: {backup_path}", file=sys.stderr)
+        return 1
+    payload = json.loads(backup_path.read_text(encoding="utf-8"))
+    trades = payload.get("trades") if isinstance(payload, dict) else None
+    if not isinstance(trades, list):
+        print("Backup file does not contain trades.", file=sys.stderr)
+        return 1
+    config = payload.get("config") if isinstance(payload.get("config"), dict) else None
+    if config is not None:
+        _save_config(config, args.config_dir)
+    else:
+        _ensure_config_dir(args.config_dir)
+    _save_trades(trades, args.config_dir)
+    print(f"Restored {len(trades)} trades from {backup_path}")
+    return 0
+
+
+def cmd_retag(args: argparse.Namespace) -> int:
+    trades = _load_trades(args.config_dir)
+    for trade in trades:
+        if str(trade.get("trade_id")) == str(args.trade_id):
+            old = trade.get("category")
+            trade["category"] = args.category
+            _save_trades(trades, args.config_dir)
+            print(f"Retagged {args.trade_id}: {old or '-'} -> {args.category}")
+            return 0
+    print(f"Trade not found: {args.trade_id}", file=sys.stderr)
+    return 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ci-trading")
     parser.add_argument("--config-dir", default=DEFAULT_CONFIG_DIR)
@@ -237,7 +455,10 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.set_defaults(func=cmd_init)
 
     import_parser = subparsers.add_parser("import", help="Import trades from CSV.")
-    import_parser.add_argument("--file", required=True)
+    import_parser.add_argument("--file")
+    import_parser.add_argument("--broker", choices=["csv", "ibkr"], default="csv")
+    import_parser.add_argument("--preset", choices=["thinkorswim", "webull", "robinhood"])
+    import_parser.add_argument("--days", type=int, default=365)
     import_parser.set_defaults(func=cmd_import)
 
     score_parser = subparsers.add_parser("score", help="Compute offline factor scores.")
@@ -252,6 +473,35 @@ def build_parser() -> argparse.ArgumentParser:
         help="Show an offline conservation proxy.",
     )
     conservation_parser.set_defaults(func=cmd_conservation)
+
+    journal_parser = subparsers.add_parser("journal", help="Show local imported trade journal.")
+    journal_parser.add_argument("--ticker")
+    journal_parser.add_argument("--category")
+    journal_parser.add_argument("--strategy")
+    journal_parser.add_argument("--wins-only", action="store_true")
+    journal_parser.add_argument("--losses-only", action="store_true")
+    journal_parser.add_argument("--limit", type=int, default=20)
+    journal_parser.set_defaults(func=cmd_journal)
+
+    regime_parser = subparsers.add_parser("regime", help="Show current market regime and local regime accuracy.")
+    regime_parser.set_defaults(func=cmd_regime)
+
+    export_parser = subparsers.add_parser("export", help="Export local trades.")
+    export_parser.add_argument("--format", choices=["json", "csv"], default="json")
+    export_parser.add_argument("--output")
+    export_parser.set_defaults(func=cmd_export)
+
+    backup_parser = subparsers.add_parser("backup", help="Back up local CLI state.")
+    backup_parser.set_defaults(func=cmd_backup)
+
+    restore_parser = subparsers.add_parser("restore", help="Restore local CLI state from backup.")
+    restore_parser.add_argument("--from", dest="from_file", required=True)
+    restore_parser.set_defaults(func=cmd_restore)
+
+    retag_parser = subparsers.add_parser("retag", help="Update a trade category.")
+    retag_parser.add_argument("--trade-id", required=True)
+    retag_parser.add_argument("--category", required=True)
+    retag_parser.set_defaults(func=cmd_retag)
 
     return parser
 

@@ -10,7 +10,9 @@ import {
   scoreTrade,
 } from "../api";
 import EngineAssessment from "../components/EngineAssessment";
+import EvidencePanel from "../components/EvidencePanel";
 import PositionSizer, { computePositionSizing } from "../components/PositionSizer";
+import PreScorePanel from "../components/PreScorePanel";
 import ResearchChecklist from "../components/ResearchChecklist";
 import SimilarTradesPanel from "../components/SimilarTradesPanel";
 import TickerLookup from "../components/TickerLookup";
@@ -26,41 +28,41 @@ import type {
   TradingCategory,
 } from "../types";
 
-const categories: TradingCategory[] = ["equity_long", "equity_short", "crypto_spot", "options", "etf"];
-const directions: TradingAction[] = ["buy", "hold", "sell"];
+const categories: TradingCategory[] = ["trend_following", "mean_reversion", "event_driven", "income_strategy", "scalp_intraday"];
+const directions: TradingAction[] = ["strong_execution", "partial_execution", "poor_execution"];
 const thesisTypes = ["momentum", "event", "mean_reversion", "technical", "fundamental"];
 const timeframes: TradeFormState["timeframe"][] = ["intraday", "swing", "position", "long"];
-const tradingActionNames = ["buy", "hold", "sell"];
+const tradingActionNames = ["strong_execution", "partial_execution", "poor_execution"];
 const tradingActionLabels: Record<string, string> = {
-  buy: "Buy",
-  hold: "Hold",
-  sell: "Sell",
+  strong_execution: "Strong execution",
+  partial_execution: "Partial execution",
+  poor_execution: "Poor execution",
 };
 const tradingFactorNames = [
-  "conviction",
-  "research_depth",
-  "technical_signal",
-  "position_size",
-  "time_horizon",
+  "signal_alignment",
   "market_regime",
+  "position_sizing",
+  "timing_quality",
+  "risk_reward_actual",
+  "emotional_indicator",
 ];
 const tradingFactorLabels: Record<string, string> = {
-  conviction: "Conviction",
-  research_depth: "Research depth",
-  technical_signal: "Technical signal",
-  position_size: "Position size",
-  time_horizon: "Time horizon",
+  signal_alignment: "Signal alignment",
   market_regime: "Market regime",
+  position_sizing: "Position sizing",
+  timing_quality: "Timing quality",
+  risk_reward_actual: "Risk/reward actual",
+  emotional_indicator: "Decision context",
 };
 
 const initialForm: TradeFormState = {
   ticker: "MSFT",
-  direction: "buy",
-  category: "equity_long",
+  direction: "strong_execution",
+  category: "trend_following",
   thesisType: "momentum",
   timeframe: "swing",
   researchChecklist: [false, false, false, false, false],
-  conviction: 3,
+  signal_alignment: 3,
   shares: 10,
   entryPrice: 0,
   portfolioValue: 250000,
@@ -117,6 +119,7 @@ export default function LogTradeScreen() {
   const [fingerprint, setFingerprint] = useState<FingerprintResponse | undefined>();
   const [analytics, setAnalytics] = useState<Analytics | undefined>();
   const [score, setScore] = useState<ScoreResponse | undefined>();
+  const [evidenceReady, setEvidenceReady] = useState(false);
   const [similar, setSimilar] = useState<SimilarTrade[]>([]);
   const [similarCount, setSimilarCount] = useState(0);
   const [rewardLine, setRewardLine] = useState<RewardLine | undefined>();
@@ -164,23 +167,25 @@ export default function LogTradeScreen() {
 
   const factors = useMemo(
     () => ({
-      conviction: clamp(form.conviction / 5, 0, 1),
-      research_depth: form.researchChecklist.filter(Boolean).length / 5,
-      technical_signal: computeTechnicalSignal(ticker),
-      position_size: clamp(sizing.exposurePct / 100, 0, 1),
-      time_horizon: timeframeFactor(form.timeframe),
-      market_regime: computeMarketRegime(market),
+      signal_alignment: clamp(form.signal_alignment / 5, 0, 1),
+      market_regime: form.researchChecklist.filter(Boolean).length / 5,
+      position_sizing: computeTechnicalSignal(ticker),
+      timing_quality: clamp(sizing.exposurePct / 100, 0, 1),
+      risk_reward_actual: timeframeFactor(form.timeframe),
+      emotional_indicator: computeMarketRegime(market),
     }),
-    [form.conviction, form.researchChecklist, form.timeframe, market, sizing.exposurePct, ticker],
+    [form.signal_alignment, form.researchChecklist, form.timeframe, market, sizing.exposurePct, ticker],
   );
 
   function update<K extends keyof TradeFormState>(key: K, value: TradeFormState[K]) {
+    setEvidenceReady(false);
     setForm((current) => ({ ...current, [key]: value }));
   }
 
   async function submitScore() {
     setError(null);
     setStatus("Scoring trade...");
+    setEvidenceReady(false);
     setRewardLine(undefined);
     setIksDelta(undefined);
     try {
@@ -198,12 +203,12 @@ export default function LogTradeScreen() {
         thesisType: form.thesisType,
         timeframe: form.timeframe,
         researchChecklist: form.researchChecklist,
-        researchDepth: factors.research_depth,
-        conviction: factors.conviction,
-        technicalSignal: factors.technical_signal,
-        positionSize: factors.position_size,
-        timeHorizon: factors.time_horizon,
-        marketRegime: factors.market_regime,
+        researchDepth: factors.market_regime,
+        signal_alignment: factors.signal_alignment,
+        technicalSignal: factors.position_sizing,
+        positionSize: factors.timing_quality,
+        timeHorizon: factors.risk_reward_actual,
+        marketRegime: factors.emotional_indicator,
         shares: form.shares,
         entryPrice: form.entryPrice,
         portfolioValue: form.portfolioValue,
@@ -219,15 +224,16 @@ export default function LogTradeScreen() {
         actionTaken: result.action,
         createdAt: new Date().toISOString(),
       });
+      setEvidenceReady(true);
       const similarPayload = await getSimilarTrades(
         {
           category: form.category,
-          conviction: factors.conviction,
-          researchDepth: factors.research_depth,
-          technicalSignal: factors.technical_signal,
-          positionSize: factors.position_size,
-          timeHorizon: factors.time_horizon,
-          marketRegime: factors.market_regime,
+          signal_alignment: factors.signal_alignment,
+          researchDepth: factors.market_regime,
+          technicalSignal: factors.position_sizing,
+          positionSize: factors.timing_quality,
+          timeHorizon: factors.risk_reward_actual,
+          marketRegime: factors.emotional_indicator,
         },
         5,
       );
@@ -235,6 +241,7 @@ export default function LogTradeScreen() {
       setSimilarCount(similarPayload.count);
       setStatus("Score ready. Review the engine assessment and similar trades before confirming.");
     } catch (submitError) {
+      setEvidenceReady(false);
       setError(submitError instanceof Error ? submitError.message : "Score failed");
       setStatus(null);
     }
@@ -275,6 +282,8 @@ export default function LogTradeScreen() {
         onTicker={setTicker}
       />
 
+      <PreScorePanel ticker={form.ticker} category={form.category} sizePct={sizing.exposurePct || 2} />
+
       <section className="copilot-card p-4">
         <h2 className="text-base font-semibold">Trade Thesis</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -283,16 +292,16 @@ export default function LogTradeScreen() {
           <Select label="Thesis" value={form.thesisType} options={thesisTypes} onChange={(value) => update("thesisType", value)} />
           <Select label="Timeframe" value={form.timeframe} options={timeframes} onChange={(value) => update("timeframe", value as TradeFormState["timeframe"])} />
           <label className="text-sm">
-            <span className="mb-1 block trading-muted">Conviction</span>
+            <span className="mb-1 block trading-muted">Signal alignment</span>
             <input
               type="range"
               min={1}
               max={5}
-              value={form.conviction}
-              onChange={(event) => update("conviction", Number(event.target.value))}
+              value={form.signal_alignment}
+              onChange={(event) => update("signal_alignment", Number(event.target.value))}
               className="w-full"
             />
-            <span className="text-xs trading-muted">{form.conviction}/5</span>
+            <span className="text-xs trading-muted">{form.signal_alignment}/5</span>
           </label>
           <label className="text-sm">
             <span className="mb-1 block trading-muted">Entry Price</span>
@@ -321,7 +330,7 @@ export default function LogTradeScreen() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold">Factor Vector</h2>
-            <p className="text-sm trading-muted">conviction, research, technical, position, horizon, regime</p>
+            <p className="text-sm trading-muted">signal alignment, regime, sizing, timing, risk/reward, emotion</p>
           </div>
           <button type="button" className="copilot-button px-4 py-2 text-sm" onClick={submitScore}>
             Score This Trade
@@ -351,6 +360,7 @@ export default function LogTradeScreen() {
             rewardLine={rewardLine}
             iksDelta={iksDelta}
           />
+          {score.decisionId && evidenceReady ? <EvidencePanel tradeId={score.decisionId} /> : null}
           <ReasoningPanel
             scoreResult={score}
             similarItems={similar.map((trade) => ({

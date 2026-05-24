@@ -133,7 +133,7 @@ test("dashboard shows decision history entries", async ({ page }) => {
   await page.goto("/");
 
   await expectAnyText(page, [/Decision History/i]);
-  await expectAnyText(page, [/buy/i, /sell/i, /hold/i, /trade/i, /open/i]);
+  await expectAnyText(page, [/strong execution/i, /partial execution/i, /poor execution/i, /trade/i, /open/i]);
 });
 
 test("analysis contrast card reflects pre-seeded alignment", async ({ page }) => {

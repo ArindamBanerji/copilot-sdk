@@ -19,23 +19,23 @@ try:
     ALL_FACTOR_NAMES = tuple(TradingPreset().shape.factor_names)
 except Exception:
     ALL_FACTOR_NAMES = (
-        "conviction",
-        "research_depth",
-        "technical_signal",
-        "position_size",
-        "time_horizon",
+        "signal_alignment",
         "market_regime",
+        "position_sizing",
+        "timing_quality",
+        "risk_reward_actual",
+        "emotional_indicator",
         "signal_confidence",
     )
 
 
 TRADING_FACTOR_COMPUTERS = {
-    "conviction": ConvictionFactor(),
-    "research_depth": ResearchDepthFactor(),
-    "technical_signal": TechnicalSignalFactor(),
-    "position_size": PositionSizeFactor(),
-    "time_horizon": TimeHorizonFactor(),
-    "market_regime": MarketRegimeFactor(),
+    "signal_alignment": ConvictionFactor(),
+    "market_regime": ResearchDepthFactor(),
+    "position_sizing": TechnicalSignalFactor(),
+    "timing_quality": PositionSizeFactor(),
+    "risk_reward_actual": TimeHorizonFactor(),
+    "emotional_indicator": MarketRegimeFactor(),
     "signal_confidence": SignalConfidenceFactor(),
 }
 

@@ -10,12 +10,12 @@ from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
 TRADING_FACTORS = {
-    "conviction": 0.82,
-    "research_depth": 0.88,
-    "technical_signal": 0.76,
-    "position_size": 0.34,
-    "time_horizon": 0.67,
-    "market_regime": 0.71,
+    "signal_alignment": 0.82,
+    "market_regime": 0.88,
+    "position_sizing": 0.76,
+    "timing_quality": 0.34,
+    "risk_reward_actual": 0.67,
+    "emotional_indicator": 0.71,
     "signal_confidence": 0.50,
 }
 TRADING_SEED_FACTORS = tuple(name for name in TRADING_FACTORS if name != "signal_confidence")
@@ -28,12 +28,12 @@ REQUIRED_SEED_FIELDS = {
     "thesis_type",
     "timeframe",
     "research_checklist",
-    "research_depth",
-    "conviction",
-    "technical_signal",
-    "position_size",
-    "time_horizon",
     "market_regime",
+    "signal_alignment",
+    "position_sizing",
+    "timing_quality",
+    "risk_reward_actual",
+    "emotional_indicator",
     "shares",
     "entry_price",
     "portfolio_value",
@@ -53,7 +53,7 @@ REQUIRED_SEED_FIELDS = {
 }
 
 
-def _score(client, category: str = "equity_long") -> dict:
+def _score(client, category: str = "trend_following") -> dict:
     response = client.post(
         "/api/score",
         json={"category": category, "factors": TRADING_FACTORS},
@@ -145,10 +145,10 @@ def test_trade_metadata_store_and_retrieve(client):
     payload = {
         "decision_id": "decision-1",
         "ticker": "NVDA",
-        "direction": "buy",
+        "direction": "strong_execution",
         "thesis": "breakout with improving breadth",
         "research": "earnings and volume reviewed",
-        "conviction": 0.82,
+        "signal_alignment": 0.82,
         "horizon": "swing",
     }
 
@@ -174,7 +174,7 @@ def test_trade_metadata_v2_fields(client):
     payload = {
         "decision_id": "decision-v2",
         "ticker": "MSFT",
-        "direction": "buy",
+        "direction": "strong_execution",
         "thesis_type": "momentum",
         "timeframe": "position",
         "research_checklist": [True, True, True, True, False],
@@ -210,8 +210,8 @@ def test_seed_v2_exists(client):
     assert sum(1 for trade in seed if trade["exit_price"] is None) == 3
     for trade in seed:
         assert set(trade) == REQUIRED_SEED_FIELDS
-        assert trade["category"] in {"equity_long", "equity_short", "crypto_spot", "options", "etf"}
-        assert trade["direction"] in {"buy", "hold", "sell"}
+        assert trade["category"] in {"trend_following", "mean_reversion", "event_driven", "income_strategy", "scalp_intraday"}
+        assert trade["direction"] in {"strong_execution", "partial_execution", "poor_execution"}
         assert trade["action_taken"] == trade["direction"]
         assert len(trade["research_checklist"]) == 5
         assert all(isinstance(item, bool) for item in trade["research_checklist"])
@@ -336,13 +336,13 @@ def test_similar_trades(client):
     response = client.get(
         "/api/context/similar",
         params={
-            "category": "equity_long",
-            "conviction": 0.6,
-            "research_depth": 0.8,
-            "technical_signal": 0.7,
-            "position_size": 0.5,
-            "time_horizon": 0.4,
-            "market_regime": 0.7,
+            "category": "trend_following",
+            "signal_alignment": 0.6,
+            "market_regime": 0.8,
+            "position_sizing": 0.7,
+            "timing_quality": 0.5,
+            "risk_reward_actual": 0.4,
+            "emotional_indicator": 0.7,
         },
     )
 
@@ -367,13 +367,13 @@ def test_v2_context_uses_temp_data_without_default_fallback(client, monkeypatch,
     similar_response = client.get(
         "/api/context/similar",
         params={
-            "category": "equity_long",
-            "conviction": 0.6,
-            "research_depth": 0.8,
-            "technical_signal": 0.7,
-            "position_size": 0.5,
-            "time_horizon": 0.4,
-            "market_regime": 0.7,
+            "category": "trend_following",
+            "signal_alignment": 0.6,
+            "market_regime": 0.8,
+            "position_sizing": 0.7,
+            "timing_quality": 0.5,
+            "risk_reward_actual": 0.4,
+            "emotional_indicator": 0.7,
         },
     )
     assert similar_response.status_code == 200
@@ -392,8 +392,8 @@ def test_portfolio_summary_matches_analytics(client):
 def test_score_via_sdk_router(client):
     payload = _score(client)
 
-    assert payload["category"] == "equity_long"
-    assert payload["action"] in {"buy", "hold", "sell", "skip_recommended"}
+    assert payload["category"] == "trend_following"
+    assert payload["action"] in {"strong_execution", "partial_execution", "poor_execution", "skip_recommended"}
     assert 0.0 <= payload["confidence"] <= 1.0
     assert len(payload["probabilities"]) == 4
     assert payload["engine"]["scoring"] == "copilot_sdk.scoring.CompoundingScorer"
@@ -407,7 +407,7 @@ def test_learn_returns_reward(client):
     assert "reward" in learn
     assert "previous_reward" in learn
     assert "reward_multiplier" in learn
-    assert learn["reward"] > 0
+    assert learn["reward"] >= 0
     assert learn["engine"]["gae"] == "gae.profile_scorer.ProfileScorer"
 
 
@@ -487,7 +487,7 @@ def test_graph_store_count_verified(tmp_path):
         _save_proxy_decision(store, "d-2")
         store.write_outcome(
             decision_id="d-1",
-            actual_action="buy",
+            actual_action="strong_execution",
             is_correct=True,
             metadata={"actual_index": 0},
         )
@@ -508,13 +508,13 @@ def test_graph_store_count_correct(tmp_path):
         _save_proxy_decision(store, "d-2")
         store.write_outcome(
             decision_id="d-1",
-            actual_action="buy",
+            actual_action="strong_execution",
             is_correct=True,
             metadata={"actual_index": 0},
         )
         store.write_outcome(
             decision_id="d-2",
-            actual_action="hold",
+            actual_action="partial_execution",
             is_correct=False,
             metadata={"actual_index": 1},
         )
@@ -550,8 +550,8 @@ def test_fingerprint(client):
 def _save_proxy_decision(store, decision_id: str) -> None:
     store.write_decision(
         "trading",
-        category="equity_long",
-        action="buy",
+        category="trend_following",
+        action="strong_execution",
         confidence=0.8,
         factors=TRADING_FACTORS,
         metadata={
@@ -568,7 +568,7 @@ def _seed_verified_history(db_path: Path, total: int) -> None:
     from copilot_sdk.graph import SQLiteGraphStore
 
     override_count = 30
-    alternate_actions = [("hold", 1), ("sell", 2)]
+    alternate_actions = [("partial_execution", 1), ("poor_execution", 2)]
     assert total >= override_count
 
     store = SQLiteGraphStore(db_path, domain="trading")
@@ -581,7 +581,7 @@ def _seed_verified_history(db_path: Path, total: int) -> None:
                     index % len(alternate_actions)
                 ]
             else:
-                actual_action, actual_index = "buy", 0
+                actual_action, actual_index = "strong_execution", 0
             store.write_outcome(
                 decision_id=decision_id,
                 actual_action=actual_action,

@@ -23,6 +23,10 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
 
 from .context_router import router as context_router  # noqa: E402
 from .routers.data_import import router as data_import_router  # noqa: E402
+from .routers.evidence import create_evidence_router  # noqa: E402
+from .routers.journal import create_journal_router  # noqa: E402
+from .routers.prescore import create_prescore_router  # noqa: E402
+from .routers.regime import create_regime_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
@@ -42,12 +46,12 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / DB_FILENAME
 SEED_FIXTURE_PATH = DATA_DIR / "trading_seed_v2.json"
 FACTOR_NAMES = (
-    "conviction",
-    "research_depth",
-    "technical_signal",
-    "position_size",
-    "time_horizon",
+    "signal_alignment",
     "market_regime",
+    "position_sizing",
+    "timing_quality",
+    "risk_reward_actual",
+    "emotional_indicator",
     "signal_confidence",
 )
 DEFAULT_CORS_ORIGINS = (
@@ -245,6 +249,10 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     )
     mount_self_computation_router(app, _graph_store(scoring_db))
     app.include_router(context_router, prefix="/api/context")
+    app.include_router(create_evidence_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_journal_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_prescore_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_regime_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
     app.include_router(data_import_router)
 
     def _run_startup_seed_once() -> None:

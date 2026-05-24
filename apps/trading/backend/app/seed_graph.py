@@ -10,12 +10,12 @@ from typing import Any
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 FACTOR_NAMES = (
-    "conviction",
-    "research_depth",
-    "technical_signal",
-    "position_size",
-    "time_horizon",
+    "signal_alignment",
     "market_regime",
+    "position_sizing",
+    "timing_quality",
+    "risk_reward_actual",
+    "emotional_indicator",
     "signal_confidence",
 )
 
@@ -110,7 +110,7 @@ def seed_trading_graph(seed: int = 42) -> tuple[list[dict[str, Any]], list[dict[
             "event_id": "current_regime",
             "date": "current",
             "vix_at_entry": (market.get("vix") or {}).get("value"),
-            "market_regime": (market.get("vix") or {}).get("regime"),
+            "emotional_indicator": (market.get("vix") or {}).get("regime"),
         },
     )
     factor_ids = {
@@ -152,7 +152,7 @@ def seed_trading_graph(seed: int = 42) -> tuple[list[dict[str, Any]], list[dict[
                 "ticker": ticker,
                 "shares": trade.get("shares"),
                 "entry_price": trade.get("entry_price"),
-                "position_size": trade.get("position_size"),
+                "timing_quality": trade.get("timing_quality"),
             },
         )
         signal_id = _add_node(
@@ -164,8 +164,8 @@ def seed_trading_graph(seed: int = 42) -> tuple[list[dict[str, Any]], list[dict[
                 "signal_id": trade_id,
                 "thesis_type": trade.get("thesis_type"),
                 "timeframe": trade.get("timeframe"),
-                "technical_signal": trade.get("technical_signal"),
-                "conviction": trade.get("conviction"),
+                "position_sizing": trade.get("position_sizing"),
+                "signal_alignment": trade.get("signal_alignment"),
             },
         )
         event_id = _add_node(
@@ -177,7 +177,7 @@ def seed_trading_graph(seed: int = 42) -> tuple[list[dict[str, Any]], list[dict[
                 "event_id": trade.get("date") or trade_id,
                 "date": trade.get("date"),
                 "vix_at_entry": trade.get("vix_at_entry"),
-                "market_regime": trade.get("market_regime", (market.get("vix") or {}).get("regime")),
+                "emotional_indicator": trade.get("emotional_indicator", (market.get("vix") or {}).get("regime")),
             },
         )
         decision_id = _add_node(
@@ -202,7 +202,7 @@ def seed_trading_graph(seed: int = 42) -> tuple[list[dict[str, Any]], list[dict[
         for factor, factor_id in factor_ids.items():
             value = trade.get(factor)
             _add_edge(edges, seen_edges, "EVALUATED_WITH", decision_id, factor_id, {"value": value})
-            if factor in {"position_size", "market_regime"}:
+            if factor in {"timing_quality", "emotional_indicator"}:
                 _add_edge(edges, seen_edges, "RISK_EXPOSURE", position_id, factor_id, {"value": value})
 
     return nodes, edges

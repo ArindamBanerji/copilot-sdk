@@ -1,4 +1,21 @@
 {
+  "0039cd463e89": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "0039cd463e89",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "006ec33c7e73": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -15,6 +32,62 @@
     },
     "followed_ae": false,
     "system_name": "sap_mm"
+  },
+  "009d5a5ef3f1": {
+    "_preseed_sequence": 100,
+    "_preseed_source_index": 20,
+    "action_taken": "investigate",
+    "category": "transform_drift",
+    "dataset": "customer_360",
+    "decision_id": "009d5a5ef3f1",
+    "event_id": "DOP-020",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5256198325892076,
+    "scored_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    },
+    "seed_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    }
+  },
+  "00f50d733f88": {
+    "_preseed_sequence": 90,
+    "_preseed_source_index": 10,
+    "action_taken": "investigate",
+    "category": "volume_anomaly",
+    "dataset": "settlement_batches",
+    "decision_id": "00f50d733f88",
+    "event_id": "DOP-010",
+    "is_correct": false,
+    "score_action": "investigate",
+    "score_confidence": 0.6729660058232095,
+    "scored_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    },
+    "seed_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    }
   },
   "011cca276ae2": {
     "action_taken": "investigate",
@@ -67,6 +140,62 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "04f48c89c72c": {
+    "_preseed_sequence": 159,
+    "_preseed_source_index": 19,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "campaign_attribution",
+    "decision_id": "04f48c89c72c",
+    "event_id": "DOP-019",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.8160092025997594,
+    "scored_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    },
+    "seed_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    }
+  },
+  "053b5fb569ee": {
+    "_preseed_sequence": 199,
+    "_preseed_source_index": 19,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "campaign_attribution",
+    "decision_id": "053b5fb569ee",
+    "event_id": "DOP-019",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.8160092025997594,
+    "scored_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    },
+    "seed_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    }
+  },
   "054383dee775": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -83,6 +212,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "062f4a3c567d": {
+    "_preseed_sequence": 48,
+    "_preseed_source_index": 8,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "traffic_counts",
+    "decision_id": "062f4a3c567d",
+    "event_id": "DOP-008",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9947719034157692,
+    "scored_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    },
+    "seed_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    }
   },
   "06367d67c795": {
     "action_taken": "investigate",
@@ -117,6 +274,34 @@
     },
     "followed_ae": false,
     "system_name": "sap_mm"
+  },
+  "06e2cdaea3ff": {
+    "_preseed_sequence": 39,
+    "_preseed_source_index": 19,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "campaign_attribution",
+    "decision_id": "06e2cdaea3ff",
+    "event_id": "DOP-019",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.8160092025997594,
+    "scored_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    },
+    "seed_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    }
   },
   "0707b00adabb": {
     "action_taken": "investigate",
@@ -236,6 +421,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "094214ba97ce": {
+    "_preseed_sequence": 137,
+    "_preseed_source_index": 17,
+    "action_taken": "escalate_to_owner",
+    "category": "freshness_violation",
+    "dataset": "billing_exports",
+    "decision_id": "094214ba97ce",
+    "event_id": "DOP-017",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9374730510407764,
+    "scored_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    },
+    "seed_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    }
+  },
   "09784211803d": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -285,6 +498,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "0ac717babfb7": {
+    "_preseed_sequence": 78,
+    "_preseed_source_index": 18,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "feature_store",
+    "decision_id": "0ac717babfb7",
+    "event_id": "DOP-018",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7750346016965467,
+    "scored_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    },
+    "seed_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    }
+  },
+  "0ad6e74d5cc7": {
+    "_preseed_sequence": 24,
+    "_preseed_source_index": 4,
+    "action_taken": "pause_downstream",
+    "category": "pipeline_failure",
+    "dataset": "risk_features",
+    "decision_id": "0ad6e74d5cc7",
+    "event_id": "DOP-004",
+    "is_correct": false,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7115676995134805,
+    "scored_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    },
+    "seed_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    }
   },
   "0ba18101d6dd": {
     "_preseed_sequence": 187,
@@ -402,6 +671,34 @@
       "source_reliability": 0.72
     }
   },
+  "0e2a232648e7": {
+    "_preseed_sequence": 134,
+    "_preseed_source_index": 14,
+    "action_taken": "refer_to_specialist",
+    "category": "quality_anomaly",
+    "dataset": "supplier_risk",
+    "decision_id": "0e2a232648e7",
+    "event_id": "DOP-014",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.579660420272313,
+    "scored_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    },
+    "seed_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    }
+  },
   "0f1c6bc997a9": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -486,6 +783,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "0fc33adc71e6": {
+    "_preseed_sequence": 181,
+    "_preseed_source_index": 1,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "orders_daily",
+    "decision_id": "0fc33adc71e6",
+    "event_id": "DOP-001",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.5396582925500194,
+    "scored_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    },
+    "seed_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    }
+  },
+  "0fd4170bb440": {
+    "_preseed_sequence": 47,
+    "_preseed_source_index": 7,
+    "action_taken": "escalate_to_owner",
+    "category": "schema_change",
+    "dataset": "identity_dim",
+    "decision_id": "0fd4170bb440",
+    "event_id": "DOP-007",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5677219192677362,
+    "scored_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    },
+    "seed_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    }
+  },
   "100e1cb7eb74": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -562,6 +915,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "10e7b10f08bc": {
+    "_preseed_sequence": 99,
+    "_preseed_source_index": 19,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "campaign_attribution",
+    "decision_id": "10e7b10f08bc",
+    "event_id": "DOP-019",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.8160092025997594,
+    "scored_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    },
+    "seed_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    }
+  },
   "112b49c5adb6": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -578,6 +959,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "1137fc423abb": {
+    "_preseed_sequence": 98,
+    "_preseed_source_index": 18,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "feature_store",
+    "decision_id": "1137fc423abb",
+    "event_id": "DOP-018",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7750346016965467,
+    "scored_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    },
+    "seed_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    }
+  },
+  "121ebaf9b844": {
+    "_preseed_sequence": 138,
+    "_preseed_source_index": 18,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "feature_store",
+    "decision_id": "121ebaf9b844",
+    "event_id": "DOP-018",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7750346016965467,
+    "scored_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    },
+    "seed_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    }
   },
   "1266f2fc14d6": {
     "action_taken": "investigate",
@@ -612,6 +1049,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "12cddbb06269": {
+    "_preseed_sequence": 144,
+    "_preseed_source_index": 4,
+    "action_taken": "pause_downstream",
+    "category": "pipeline_failure",
+    "dataset": "risk_features",
+    "decision_id": "12cddbb06269",
+    "event_id": "DOP-004",
+    "is_correct": false,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7115676995134805,
+    "scored_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    },
+    "seed_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    }
   },
   "13063c11bd1e": {
     "_preseed_sequence": 190,
@@ -726,6 +1191,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "166dbe754208": {
+    "_preseed_sequence": 50,
+    "_preseed_source_index": 10,
+    "action_taken": "investigate",
+    "category": "volume_anomaly",
+    "dataset": "settlement_batches",
+    "decision_id": "166dbe754208",
+    "event_id": "DOP-010",
+    "is_correct": false,
+    "score_action": "investigate",
+    "score_confidence": 0.6729660058232095,
+    "scored_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    },
+    "seed_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    }
+  },
+  "1680c18ee20e": {
+    "_preseed_sequence": 197,
+    "_preseed_source_index": 17,
+    "action_taken": "escalate_to_owner",
+    "category": "freshness_violation",
+    "dataset": "billing_exports",
+    "decision_id": "1680c18ee20e",
+    "event_id": "DOP-017",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9374730510407764,
+    "scored_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    },
+    "seed_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    }
+  },
   "170448b8b680": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -760,6 +1281,90 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "1720638ad249": {
+    "_preseed_sequence": 171,
+    "_preseed_source_index": 11,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "inventory_snapshots",
+    "decision_id": "1720638ad249",
+    "event_id": "DOP-011",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9999547159550704,
+    "scored_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    },
+    "seed_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    }
+  },
+  "182fa32bf922": {
+    "_preseed_sequence": 123,
+    "_preseed_source_index": 3,
+    "action_taken": "investigate",
+    "category": "pipeline_failure",
+    "dataset": "customer_events",
+    "decision_id": "182fa32bf922",
+    "event_id": "DOP-003",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.4902307320451104,
+    "scored_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    },
+    "seed_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    }
+  },
+  "1864a68556eb": {
+    "_preseed_sequence": 153,
+    "_preseed_source_index": 13,
+    "action_taken": "pause_downstream",
+    "category": "quality_anomaly",
+    "dataset": "policy_scores",
+    "decision_id": "1864a68556eb",
+    "event_id": "DOP-013",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.6359456511571303,
+    "scored_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    },
+    "seed_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    }
+  },
   "18c9a224b2c4": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -775,6 +1380,23 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "19349c69d67e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "19349c69d67e",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "198261b77b53": {
     "action_taken": "investigate",
@@ -792,6 +1414,118 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "199d151ded08": {
+    "_preseed_sequence": 72,
+    "_preseed_source_index": 12,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "lead_scoring",
+    "decision_id": "199d151ded08",
+    "event_id": "DOP-012",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9644113363071872,
+    "scored_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    },
+    "seed_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    }
+  },
+  "19c99020d81d": {
+    "_preseed_sequence": 150,
+    "_preseed_source_index": 10,
+    "action_taken": "investigate",
+    "category": "volume_anomaly",
+    "dataset": "settlement_batches",
+    "decision_id": "19c99020d81d",
+    "event_id": "DOP-010",
+    "is_correct": false,
+    "score_action": "investigate",
+    "score_confidence": 0.6729660058232095,
+    "scored_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    },
+    "seed_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    }
+  },
+  "19fa3519c60e": {
+    "_preseed_sequence": 148,
+    "_preseed_source_index": 8,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "traffic_counts",
+    "decision_id": "19fa3519c60e",
+    "event_id": "DOP-008",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9947719034157692,
+    "scored_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    },
+    "seed_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    }
+  },
+  "1a0a57aba712": {
+    "_preseed_sequence": 23,
+    "_preseed_source_index": 3,
+    "action_taken": "investigate",
+    "category": "pipeline_failure",
+    "dataset": "customer_events",
+    "decision_id": "1a0a57aba712",
+    "event_id": "DOP-003",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.4902307320451104,
+    "scored_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    },
+    "seed_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    }
   },
   "1a400ceb4735": {
     "action_taken": "auto_approve",
@@ -835,6 +1569,40 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "1a932b777f37": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "1a932b777f37",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "1ad7b73c5678": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "1ad7b73c5678",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "1aec9a590adb": {
     "action_taken": "investigate",
@@ -887,6 +1655,23 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "1b2412da1dcb": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "1b2412da1dcb",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "1b506a34094d": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -920,6 +1705,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "1bff46f45bea": {
+    "_preseed_sequence": 126,
+    "_preseed_source_index": 6,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "revenue_mart",
+    "decision_id": "1bff46f45bea",
+    "event_id": "DOP-006",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.7028766246669793,
+    "scored_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    },
+    "seed_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    }
   },
   "1c513491a8e5": {
     "action_taken": "investigate",
@@ -1060,6 +1873,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "1ff4eb7ad756": {
+    "_preseed_sequence": 157,
+    "_preseed_source_index": 17,
+    "action_taken": "escalate_to_owner",
+    "category": "freshness_violation",
+    "dataset": "billing_exports",
+    "decision_id": "1ff4eb7ad756",
+    "event_id": "DOP-017",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9374730510407764,
+    "scored_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    },
+    "seed_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    }
+  },
+  "211131c8c1db": {
+    "_preseed_sequence": 71,
+    "_preseed_source_index": 11,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "inventory_snapshots",
+    "decision_id": "211131c8c1db",
+    "event_id": "DOP-011",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9999547159550704,
+    "scored_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    },
+    "seed_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    }
+  },
   "22b859fccfa3": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1093,6 +1962,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "2460a9fd6944": {
+    "_preseed_sequence": 180,
+    "_preseed_source_index": 20,
+    "action_taken": "investigate",
+    "category": "transform_drift",
+    "dataset": "customer_360",
+    "decision_id": "2460a9fd6944",
+    "event_id": "DOP-020",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5256198325892076,
+    "scored_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    },
+    "seed_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    }
+  },
+  "24a556186d81": {
+    "_preseed_sequence": 43,
+    "_preseed_source_index": 3,
+    "action_taken": "investigate",
+    "category": "pipeline_failure",
+    "dataset": "customer_events",
+    "decision_id": "24a556186d81",
+    "event_id": "DOP-003",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.4902307320451104,
+    "scored_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    },
+    "seed_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    }
+  },
   "257fffd15ff3": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1109,6 +2034,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "25a9de756625": {
+    "_preseed_sequence": 178,
+    "_preseed_source_index": 18,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "feature_store",
+    "decision_id": "25a9de756625",
+    "event_id": "DOP-018",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7750346016965467,
+    "scored_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    },
+    "seed_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    }
+  },
+  "2613663f6328": {
+    "_preseed_sequence": 37,
+    "_preseed_source_index": 17,
+    "action_taken": "escalate_to_owner",
+    "category": "freshness_violation",
+    "dataset": "billing_exports",
+    "decision_id": "2613663f6328",
+    "event_id": "DOP-017",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9374730510407764,
+    "scored_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    },
+    "seed_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    }
   },
   "261636ee2a2b": {
     "action_taken": "investigate",
@@ -1143,6 +2124,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "2825baa4cf0d": {
+    "_preseed_sequence": 142,
+    "_preseed_source_index": 2,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "payments_hourly",
+    "decision_id": "2825baa4cf0d",
+    "event_id": "DOP-002",
+    "is_correct": false,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.656163456176566,
+    "scored_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    },
+    "seed_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    }
   },
   "283a306f25e7": {
     "action_taken": "investigate",
@@ -1212,6 +2221,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "295bd9a2ea4a": {
+    "_preseed_sequence": 119,
+    "_preseed_source_index": 19,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "campaign_attribution",
+    "decision_id": "295bd9a2ea4a",
+    "event_id": "DOP-019",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.8160092025997594,
+    "scored_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    },
+    "seed_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    }
+  },
+  "2a223f514ce3": {
+    "_preseed_sequence": 154,
+    "_preseed_source_index": 14,
+    "action_taken": "refer_to_specialist",
+    "category": "quality_anomaly",
+    "dataset": "supplier_risk",
+    "decision_id": "2a223f514ce3",
+    "event_id": "DOP-014",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.579660420272313,
+    "scored_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    },
+    "seed_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    }
+  },
   "2a6ab987cc50": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -1228,6 +2293,34 @@
     },
     "followed_ae": false,
     "system_name": "sap_mm"
+  },
+  "2a6cfd4baf7a": {
+    "_preseed_sequence": 163,
+    "_preseed_source_index": 3,
+    "action_taken": "investigate",
+    "category": "pipeline_failure",
+    "dataset": "customer_events",
+    "decision_id": "2a6cfd4baf7a",
+    "event_id": "DOP-003",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.4902307320451104,
+    "scored_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    },
+    "seed_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    }
   },
   "2ab51d688c43": {
     "action_taken": "investigate",
@@ -1246,6 +2339,23 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "2abad72d2dfc": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "2abad72d2dfc",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "2c0c9eb0eba3": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1262,6 +2372,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "2c6acf19da32": {
+    "_preseed_sequence": 169,
+    "_preseed_source_index": 9,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "partner_uploads",
+    "decision_id": "2c6acf19da32",
+    "event_id": "DOP-009",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9872430632887595,
+    "scored_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    },
+    "seed_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    }
   },
   "2d142ae12d22": {
     "action_taken": "investigate",
@@ -1357,6 +2495,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "31653dc1460c": {
+    "_preseed_sequence": 158,
+    "_preseed_source_index": 18,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "feature_store",
+    "decision_id": "31653dc1460c",
+    "event_id": "DOP-018",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7750346016965467,
+    "scored_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    },
+    "seed_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    }
+  },
   "32170e2426f8": {
     "_preseed_sequence": 184,
     "_preseed_source_index": 4,
@@ -1385,6 +2551,34 @@
       "source_reliability": 0.72
     }
   },
+  "326f4ed458b9": {
+    "_preseed_sequence": 88,
+    "_preseed_source_index": 8,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "traffic_counts",
+    "decision_id": "326f4ed458b9",
+    "event_id": "DOP-008",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9947719034157692,
+    "scored_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    },
+    "seed_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    }
+  },
   "3272e3c5c631": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1402,6 +2596,90 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "330f1eaab1c9": {
+    "_preseed_sequence": 107,
+    "_preseed_source_index": 7,
+    "action_taken": "escalate_to_owner",
+    "category": "schema_change",
+    "dataset": "identity_dim",
+    "decision_id": "330f1eaab1c9",
+    "event_id": "DOP-007",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5677219192677362,
+    "scored_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    },
+    "seed_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    }
+  },
+  "339ed69eb9a3": {
+    "_preseed_sequence": 122,
+    "_preseed_source_index": 2,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "payments_hourly",
+    "decision_id": "339ed69eb9a3",
+    "event_id": "DOP-002",
+    "is_correct": false,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.656163456176566,
+    "scored_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    },
+    "seed_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    }
+  },
+  "33b62ad9333d": {
+    "_preseed_sequence": 96,
+    "_preseed_source_index": 16,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "search_index",
+    "decision_id": "33b62ad9333d",
+    "event_id": "DOP-016",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9063154738484043,
+    "scored_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    },
+    "seed_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    }
+  },
   "33c8274b7e98": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1418,6 +2696,51 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "35373a43c7bd": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "35373a43c7bd",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "360c0801218e": {
+    "_preseed_sequence": 162,
+    "_preseed_source_index": 2,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "payments_hourly",
+    "decision_id": "360c0801218e",
+    "event_id": "DOP-002",
+    "is_correct": false,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.656163456176566,
+    "scored_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    },
+    "seed_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    }
   },
   "36267b24e92e": {
     "action_taken": "investigate",
@@ -1503,6 +2826,34 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "37d99bd4e6df": {
+    "_preseed_sequence": 30,
+    "_preseed_source_index": 10,
+    "action_taken": "investigate",
+    "category": "volume_anomaly",
+    "dataset": "settlement_batches",
+    "decision_id": "37d99bd4e6df",
+    "event_id": "DOP-010",
+    "is_correct": false,
+    "score_action": "investigate",
+    "score_confidence": 0.6729660058232095,
+    "scored_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    },
+    "seed_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    }
+  },
   "38805cb5ea34": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1552,6 +2903,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "39b3ff2de7bf": {
+    "_preseed_sequence": 55,
+    "_preseed_source_index": 15,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "user_activity",
+    "decision_id": "39b3ff2de7bf",
+    "event_id": "DOP-015",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9824096974801976,
+    "scored_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    },
+    "seed_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    }
   },
   "3a9a1cc05272": {
     "action_taken": "investigate",
@@ -1682,6 +3061,23 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "3d6d20adf8d2": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "3d6d20adf8d2",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "3d6d5e786dfd": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1698,6 +3094,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "3dec33254cdf": {
+    "_preseed_sequence": 187,
+    "_preseed_source_index": 7,
+    "action_taken": "escalate_to_owner",
+    "category": "schema_change",
+    "dataset": "identity_dim",
+    "decision_id": "3dec33254cdf",
+    "event_id": "DOP-007",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5677219192677362,
+    "scored_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    },
+    "seed_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    }
   },
   "3eb03a894963": {
     "action_taken": "investigate",
@@ -1749,6 +3173,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "40013d81467b": {
+    "_preseed_sequence": 155,
+    "_preseed_source_index": 15,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "user_activity",
+    "decision_id": "40013d81467b",
+    "event_id": "DOP-015",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9824096974801976,
+    "scored_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    },
+    "seed_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    }
   },
   "404a84b23fc1": {
     "action_taken": "investigate",
@@ -1817,6 +3269,34 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "41d7362f641c": {
+    "_preseed_sequence": 46,
+    "_preseed_source_index": 6,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "revenue_mart",
+    "decision_id": "41d7362f641c",
+    "event_id": "DOP-006",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.7028766246669793,
+    "scored_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    },
+    "seed_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    }
+  },
   "42879ef04c43": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1851,6 +3331,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "44fa7b967295": {
+    "_preseed_sequence": 152,
+    "_preseed_source_index": 12,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "lead_scoring",
+    "decision_id": "44fa7b967295",
+    "event_id": "DOP-012",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9644113363071872,
+    "scored_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    },
+    "seed_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    }
+  },
   "4684c2d0a724": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1868,6 +3376,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "471d93f8ff6a": {
+    "_preseed_sequence": 73,
+    "_preseed_source_index": 13,
+    "action_taken": "pause_downstream",
+    "category": "quality_anomaly",
+    "dataset": "policy_scores",
+    "decision_id": "471d93f8ff6a",
+    "event_id": "DOP-013",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.6359456511571303,
+    "scored_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    },
+    "seed_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    }
+  },
+  "483a456b7bc9": {
+    "_preseed_sequence": 145,
+    "_preseed_source_index": 5,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "product_catalog",
+    "decision_id": "483a456b7bc9",
+    "event_id": "DOP-005",
+    "is_correct": true,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.5222668826602824,
+    "scored_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    },
+    "seed_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    }
+  },
   "486d9e216c8d": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1884,6 +3448,23 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "49029af1c513": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "49029af1c513",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "4905ec6cb1ea": {
     "action_taken": "investigate",
@@ -1919,6 +3500,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "4a42450f2a0f": {
+    "_preseed_sequence": 111,
+    "_preseed_source_index": 11,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "inventory_snapshots",
+    "decision_id": "4a42450f2a0f",
+    "event_id": "DOP-011",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9999547159550704,
+    "scored_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    },
+    "seed_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    }
+  },
   "4ab537c9d2ca": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1936,6 +3545,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "4ae85b96a07e": {
+    "_preseed_sequence": 115,
+    "_preseed_source_index": 15,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "user_activity",
+    "decision_id": "4ae85b96a07e",
+    "event_id": "DOP-015",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9824096974801976,
+    "scored_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    },
+    "seed_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    }
+  },
+  "4b444174d0e4": {
+    "_preseed_sequence": 31,
+    "_preseed_source_index": 11,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "inventory_snapshots",
+    "decision_id": "4b444174d0e4",
+    "event_id": "DOP-011",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9999547159550704,
+    "scored_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    },
+    "seed_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    }
+  },
   "4b49c68b99de": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -1952,6 +3617,79 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "4ba3b6ba79d6": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "4ba3b6ba79d6",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "4d3269b5b86e": {
+    "_preseed_sequence": 56,
+    "_preseed_source_index": 16,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "search_index",
+    "decision_id": "4d3269b5b86e",
+    "event_id": "DOP-016",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9063154738484043,
+    "scored_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    },
+    "seed_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    }
+  },
+  "4d4b28d4d46e": {
+    "_preseed_sequence": 79,
+    "_preseed_source_index": 19,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "campaign_attribution",
+    "decision_id": "4d4b28d4d46e",
+    "event_id": "DOP-019",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.8160092025997594,
+    "scored_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    },
+    "seed_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    }
   },
   "4d8002dd60d5": {
     "action_taken": "investigate",
@@ -1987,6 +3725,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "4f0ac72c2508": {
+    "_preseed_sequence": 114,
+    "_preseed_source_index": 14,
+    "action_taken": "refer_to_specialist",
+    "category": "quality_anomaly",
+    "dataset": "supplier_risk",
+    "decision_id": "4f0ac72c2508",
+    "event_id": "DOP-014",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.579660420272313,
+    "scored_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    },
+    "seed_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    }
+  },
+  "4f605e075185": {
+    "_preseed_sequence": 161,
+    "_preseed_source_index": 1,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "orders_daily",
+    "decision_id": "4f605e075185",
+    "event_id": "DOP-001",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.5396582925500194,
+    "scored_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    },
+    "seed_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    }
+  },
   "4fb3cb3bb2b7": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -2003,6 +3797,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "5039b3714d4c": {
+    "_preseed_sequence": 61,
+    "_preseed_source_index": 1,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "orders_daily",
+    "decision_id": "5039b3714d4c",
+    "event_id": "DOP-001",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.5396582925500194,
+    "scored_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    },
+    "seed_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    }
   },
   "503c001b5a72": {
     "action_taken": "investigate",
@@ -2052,6 +3874,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "509e9dc2e77f": {
+    "_preseed_sequence": 103,
+    "_preseed_source_index": 3,
+    "action_taken": "investigate",
+    "category": "pipeline_failure",
+    "dataset": "customer_events",
+    "decision_id": "509e9dc2e77f",
+    "event_id": "DOP-003",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.4902307320451104,
+    "scored_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    },
+    "seed_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    }
   },
   "510f8dbce050": {
     "action_taken": "investigate",
@@ -2114,6 +3964,51 @@
       "recurrence_frequency": 0.08,
       "source_reliability": 0.33
     }
+  },
+  "5388fe642fb6": {
+    "_preseed_sequence": 151,
+    "_preseed_source_index": 11,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "inventory_snapshots",
+    "decision_id": "5388fe642fb6",
+    "event_id": "DOP-011",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9999547159550704,
+    "scored_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    },
+    "seed_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    }
+  },
+  "53bb8dc6bf6c": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "53bb8dc6bf6c",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "53ec8de0523f": {
     "action_taken": "investigate",
@@ -2181,6 +4076,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "5734d4dcb191": {
+    "_preseed_sequence": 29,
+    "_preseed_source_index": 9,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "partner_uploads",
+    "decision_id": "5734d4dcb191",
+    "event_id": "DOP-009",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9872430632887595,
+    "scored_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    },
+    "seed_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    }
+  },
+  "57353c62aa02": {
+    "_preseed_sequence": 49,
+    "_preseed_source_index": 9,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "partner_uploads",
+    "decision_id": "57353c62aa02",
+    "event_id": "DOP-009",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9872430632887595,
+    "scored_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    },
+    "seed_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    }
   },
   "579ca123af32": {
     "action_taken": "escalate_to_owner",
@@ -2259,6 +4210,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "5a853649daf4": {
+    "_preseed_sequence": 105,
+    "_preseed_source_index": 5,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "product_catalog",
+    "decision_id": "5a853649daf4",
+    "event_id": "DOP-005",
+    "is_correct": true,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.5222668826602824,
+    "scored_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    },
+    "seed_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    }
+  },
   "5b2487f9a78f": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -2275,6 +4254,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "5b8f1a5473bf": {
+    "_preseed_sequence": 26,
+    "_preseed_source_index": 6,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "revenue_mart",
+    "decision_id": "5b8f1a5473bf",
+    "event_id": "DOP-006",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.7028766246669793,
+    "scored_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    },
+    "seed_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    }
   },
   "5c88f3db5607": {
     "action_taken": "investigate",
@@ -2567,6 +4574,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "673ac23e2534": {
+    "_preseed_sequence": 121,
+    "_preseed_source_index": 1,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "orders_daily",
+    "decision_id": "673ac23e2534",
+    "event_id": "DOP-001",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.5396582925500194,
+    "scored_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    },
+    "seed_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    }
+  },
+  "6799a72dd59f": {
+    "_preseed_sequence": 131,
+    "_preseed_source_index": 11,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "inventory_snapshots",
+    "decision_id": "6799a72dd59f",
+    "event_id": "DOP-011",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9999547159550704,
+    "scored_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    },
+    "seed_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    }
+  },
   "67c6c6ceb342": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -2617,6 +4680,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "68fd410343d1": {
+    "_preseed_sequence": 116,
+    "_preseed_source_index": 16,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "search_index",
+    "decision_id": "68fd410343d1",
+    "event_id": "DOP-016",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9063154738484043,
+    "scored_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    },
+    "seed_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    }
+  },
   "6a3a8d8e7c2b": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -2633,6 +4724,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "6a5186d77b37": {
+    "_preseed_sequence": 38,
+    "_preseed_source_index": 18,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "feature_store",
+    "decision_id": "6a5186d77b37",
+    "event_id": "DOP-018",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7750346016965467,
+    "scored_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    },
+    "seed_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    }
+  },
+  "6ab6a714012a": {
+    "_preseed_sequence": 86,
+    "_preseed_source_index": 6,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "revenue_mart",
+    "decision_id": "6ab6a714012a",
+    "event_id": "DOP-006",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.7028766246669793,
+    "scored_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    },
+    "seed_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    }
   },
   "6b1c86bb49e9": {
     "action_taken": "investigate",
@@ -2683,6 +4830,23 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "6d5b128e447e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "6d5b128e447e",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "6f10ad48aee7": {
     "action_taken": "auto_approve",
@@ -2822,6 +4986,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "7323f97fed12": {
+    "_preseed_sequence": 64,
+    "_preseed_source_index": 4,
+    "action_taken": "pause_downstream",
+    "category": "pipeline_failure",
+    "dataset": "risk_features",
+    "decision_id": "7323f97fed12",
+    "event_id": "DOP-004",
+    "is_correct": false,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7115676995134805,
+    "scored_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    },
+    "seed_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    }
+  },
   "74c730777016": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -2899,6 +5091,62 @@
       "source_reliability": 0.36
     }
   },
+  "75a9fcc6f179": {
+    "_preseed_sequence": 41,
+    "_preseed_source_index": 1,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "orders_daily",
+    "decision_id": "75a9fcc6f179",
+    "event_id": "DOP-001",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.5396582925500194,
+    "scored_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    },
+    "seed_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    }
+  },
+  "75f5e2042cc7": {
+    "_preseed_sequence": 193,
+    "_preseed_source_index": 13,
+    "action_taken": "pause_downstream",
+    "category": "quality_anomaly",
+    "dataset": "policy_scores",
+    "decision_id": "75f5e2042cc7",
+    "event_id": "DOP-013",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.6359456511571303,
+    "scored_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    },
+    "seed_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    }
+  },
   "75faa7bfcb83": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -2949,6 +5197,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "780ab6c3b302": {
+    "_preseed_sequence": 182,
+    "_preseed_source_index": 2,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "payments_hourly",
+    "decision_id": "780ab6c3b302",
+    "event_id": "DOP-002",
+    "is_correct": false,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.656163456176566,
+    "scored_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    },
+    "seed_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    }
   },
   "78446c3ac64a": {
     "action_taken": "investigate",
@@ -3044,6 +5320,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "7a75834ef147": {
+    "_preseed_sequence": 173,
+    "_preseed_source_index": 13,
+    "action_taken": "pause_downstream",
+    "category": "quality_anomaly",
+    "dataset": "policy_scores",
+    "decision_id": "7a75834ef147",
+    "event_id": "DOP-013",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.6359456511571303,
+    "scored_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    },
+    "seed_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    }
+  },
   "7a84a0fdc8a8": {
     "action_taken": "investigate",
     "category": "transform_drift",
@@ -3085,6 +5389,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "7ada22ddd75d": {
+    "_preseed_sequence": 83,
+    "_preseed_source_index": 3,
+    "action_taken": "investigate",
+    "category": "pipeline_failure",
+    "dataset": "customer_events",
+    "decision_id": "7ada22ddd75d",
+    "event_id": "DOP-003",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.4902307320451104,
+    "scored_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    },
+    "seed_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    }
+  },
+  "7b5060dc5ffa": {
+    "_preseed_sequence": 175,
+    "_preseed_source_index": 15,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "user_activity",
+    "decision_id": "7b5060dc5ffa",
+    "event_id": "DOP-015",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9824096974801976,
+    "scored_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    },
+    "seed_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    }
   },
   "7bf21898caa6": {
     "action_taken": "investigate",
@@ -3137,6 +5497,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "7d9c7195b244": {
+    "_preseed_sequence": 27,
+    "_preseed_source_index": 7,
+    "action_taken": "escalate_to_owner",
+    "category": "schema_change",
+    "dataset": "identity_dim",
+    "decision_id": "7d9c7195b244",
+    "event_id": "DOP-007",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5677219192677362,
+    "scored_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    },
+    "seed_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    }
+  },
   "7ec0dc6c17ab": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -3170,6 +5558,23 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "7f6738cbfcd5": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "7f6738cbfcd5",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "7f6f45f6577d": {
     "action_taken": "investigate",
@@ -3205,6 +5610,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "800c6aa97ce1": {
+    "_preseed_sequence": 176,
+    "_preseed_source_index": 16,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "search_index",
+    "decision_id": "800c6aa97ce1",
+    "event_id": "DOP-016",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9063154738484043,
+    "scored_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    },
+    "seed_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    }
+  },
   "80108ec49914": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -3239,6 +5672,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "807d1f695ade": {
+    "_preseed_sequence": 92,
+    "_preseed_source_index": 12,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "lead_scoring",
+    "decision_id": "807d1f695ade",
+    "event_id": "DOP-012",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9644113363071872,
+    "scored_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    },
+    "seed_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    }
+  },
   "814396f15e26": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -3256,6 +5717,62 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "817b1788ed97": {
+    "_preseed_sequence": 141,
+    "_preseed_source_index": 1,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "orders_daily",
+    "decision_id": "817b1788ed97",
+    "event_id": "DOP-001",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.5396582925500194,
+    "scored_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    },
+    "seed_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    }
+  },
+  "81b5710925ea": {
+    "_preseed_sequence": 165,
+    "_preseed_source_index": 5,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "product_catalog",
+    "decision_id": "81b5710925ea",
+    "event_id": "DOP-005",
+    "is_correct": true,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.5222668826602824,
+    "scored_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    },
+    "seed_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    }
+  },
   "8215544bb007": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -3272,6 +5789,90 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "82793df323c2": {
+    "_preseed_sequence": 89,
+    "_preseed_source_index": 9,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "partner_uploads",
+    "decision_id": "82793df323c2",
+    "event_id": "DOP-009",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9872430632887595,
+    "scored_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    },
+    "seed_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    }
+  },
+  "82fdec45238e": {
+    "_preseed_sequence": 42,
+    "_preseed_source_index": 2,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "payments_hourly",
+    "decision_id": "82fdec45238e",
+    "event_id": "DOP-002",
+    "is_correct": false,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.656163456176566,
+    "scored_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    },
+    "seed_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    }
+  },
+  "8310fa22048a": {
+    "_preseed_sequence": 63,
+    "_preseed_source_index": 3,
+    "action_taken": "investigate",
+    "category": "pipeline_failure",
+    "dataset": "customer_events",
+    "decision_id": "8310fa22048a",
+    "event_id": "DOP-003",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.4902307320451104,
+    "scored_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    },
+    "seed_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    }
   },
   "8316ff9ad308": {
     "action_taken": "investigate",
@@ -3307,6 +5908,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "848a39cc63a1": {
+    "_preseed_sequence": 97,
+    "_preseed_source_index": 17,
+    "action_taken": "escalate_to_owner",
+    "category": "freshness_violation",
+    "dataset": "billing_exports",
+    "decision_id": "848a39cc63a1",
+    "event_id": "DOP-017",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9374730510407764,
+    "scored_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    },
+    "seed_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    }
+  },
   "84ac47c52892": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -3340,6 +5969,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "85a53bd67da4": {
+    "_preseed_sequence": 140,
+    "_preseed_source_index": 20,
+    "action_taken": "investigate",
+    "category": "transform_drift",
+    "dataset": "customer_360",
+    "decision_id": "85a53bd67da4",
+    "event_id": "DOP-020",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5256198325892076,
+    "scored_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    },
+    "seed_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    }
+  },
   "86453bda8fdb": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -3356,6 +6013,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "8678491c4d72": {
+    "_preseed_sequence": 60,
+    "_preseed_source_index": 20,
+    "action_taken": "investigate",
+    "category": "transform_drift",
+    "dataset": "customer_360",
+    "decision_id": "8678491c4d72",
+    "event_id": "DOP-020",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5256198325892076,
+    "scored_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    },
+    "seed_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    }
   },
   "8694e7c05a38": {
     "action_taken": "auto_approve",
@@ -3433,6 +6118,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "878e0b42805c": {
+    "_preseed_sequence": 128,
+    "_preseed_source_index": 8,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "traffic_counts",
+    "decision_id": "878e0b42805c",
+    "event_id": "DOP-008",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9947719034157692,
+    "scored_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    },
+    "seed_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    }
   },
   "87b8c939403b": {
     "action_taken": "investigate",
@@ -3579,6 +6292,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "8c94f0a97fe5": {
+    "_preseed_sequence": 74,
+    "_preseed_source_index": 14,
+    "action_taken": "refer_to_specialist",
+    "category": "quality_anomaly",
+    "dataset": "supplier_risk",
+    "decision_id": "8c94f0a97fe5",
+    "event_id": "DOP-014",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.579660420272313,
+    "scored_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    },
+    "seed_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    }
+  },
+  "8d26874e3ea8": {
+    "_preseed_sequence": 80,
+    "_preseed_source_index": 20,
+    "action_taken": "investigate",
+    "category": "transform_drift",
+    "dataset": "customer_360",
+    "decision_id": "8d26874e3ea8",
+    "event_id": "DOP-020",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5256198325892076,
+    "scored_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    },
+    "seed_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    }
+  },
   "8d4a36115073": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -3629,6 +6398,90 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "8d959e598b1e": {
+    "_preseed_sequence": 164,
+    "_preseed_source_index": 4,
+    "action_taken": "pause_downstream",
+    "category": "pipeline_failure",
+    "dataset": "risk_features",
+    "decision_id": "8d959e598b1e",
+    "event_id": "DOP-004",
+    "is_correct": false,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7115676995134805,
+    "scored_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    },
+    "seed_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    }
+  },
+  "8e1a852f9784": {
+    "_preseed_sequence": 196,
+    "_preseed_source_index": 16,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "search_index",
+    "decision_id": "8e1a852f9784",
+    "event_id": "DOP-016",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9063154738484043,
+    "scored_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    },
+    "seed_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    }
+  },
+  "8fa3af5982b5": {
+    "_preseed_sequence": 94,
+    "_preseed_source_index": 14,
+    "action_taken": "refer_to_specialist",
+    "category": "quality_anomaly",
+    "dataset": "supplier_risk",
+    "decision_id": "8fa3af5982b5",
+    "event_id": "DOP-014",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.579660420272313,
+    "scored_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    },
+    "seed_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    }
   },
   "91ab19adf5d7": {
     "action_taken": "investigate",
@@ -3681,6 +6534,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "923529444461": {
+    "_preseed_sequence": 91,
+    "_preseed_source_index": 11,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "inventory_snapshots",
+    "decision_id": "923529444461",
+    "event_id": "DOP-011",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9999547159550704,
+    "scored_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    },
+    "seed_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    }
+  },
   "9254a34308ae": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -3697,6 +6578,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "926d31a93e34": {
+    "_preseed_sequence": 95,
+    "_preseed_source_index": 15,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "user_activity",
+    "decision_id": "926d31a93e34",
+    "event_id": "DOP-015",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9824096974801976,
+    "scored_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    },
+    "seed_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    }
   },
   "92e2d5309ca6": {
     "action_taken": "investigate",
@@ -3749,6 +6658,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "941e7b67fab7": {
+    "_preseed_sequence": 147,
+    "_preseed_source_index": 7,
+    "action_taken": "escalate_to_owner",
+    "category": "schema_change",
+    "dataset": "identity_dim",
+    "decision_id": "941e7b67fab7",
+    "event_id": "DOP-007",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5677219192677362,
+    "scored_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    },
+    "seed_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    }
+  },
+  "944f05eb5258": {
+    "_preseed_sequence": 81,
+    "_preseed_source_index": 1,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "orders_daily",
+    "decision_id": "944f05eb5258",
+    "event_id": "DOP-001",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.5396582925500194,
+    "scored_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    },
+    "seed_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    }
+  },
   "94a8c6a5d937": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -3772,6 +6737,163 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "9587183a38c9",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "95a25899e820": {
+    "_preseed_sequence": 59,
+    "_preseed_source_index": 19,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "campaign_attribution",
+    "decision_id": "95a25899e820",
+    "event_id": "DOP-019",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.8160092025997594,
+    "scored_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    },
+    "seed_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    }
+  },
+  "96a8a5c8785d": {
+    "_preseed_sequence": 85,
+    "_preseed_source_index": 5,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "product_catalog",
+    "decision_id": "96a8a5c8785d",
+    "event_id": "DOP-005",
+    "is_correct": true,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.5222668826602824,
+    "scored_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    },
+    "seed_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    }
+  },
+  "96e164e83d70": {
+    "_preseed_sequence": 65,
+    "_preseed_source_index": 5,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "product_catalog",
+    "decision_id": "96e164e83d70",
+    "event_id": "DOP-005",
+    "is_correct": true,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.5222668826602824,
+    "scored_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    },
+    "seed_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    }
+  },
+  "9700489c34ad": {
+    "_preseed_sequence": 32,
+    "_preseed_source_index": 12,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "lead_scoring",
+    "decision_id": "9700489c34ad",
+    "event_id": "DOP-012",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9644113363071872,
+    "scored_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    },
+    "seed_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    }
+  },
+  "97f52b85d2a9": {
+    "_preseed_sequence": 195,
+    "_preseed_source_index": 15,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "user_activity",
+    "decision_id": "97f52b85d2a9",
+    "event_id": "DOP-015",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9824096974801976,
+    "scored_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    },
+    "seed_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    }
+  },
+  "9807e51f0958": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "9807e51f0958",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -3851,6 +6973,107 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "9a4a58f9cbc2": {
+    "_preseed_sequence": 192,
+    "_preseed_source_index": 12,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "lead_scoring",
+    "decision_id": "9a4a58f9cbc2",
+    "event_id": "DOP-012",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9644113363071872,
+    "scored_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    },
+    "seed_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    }
+  },
+  "9a6bccf61b19": {
+    "_preseed_sequence": 185,
+    "_preseed_source_index": 5,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "product_catalog",
+    "decision_id": "9a6bccf61b19",
+    "event_id": "DOP-005",
+    "is_correct": true,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.5222668826602824,
+    "scored_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    },
+    "seed_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    }
+  },
+  "9a9c41dbf076": {
+    "_preseed_sequence": 33,
+    "_preseed_source_index": 13,
+    "action_taken": "pause_downstream",
+    "category": "quality_anomaly",
+    "dataset": "policy_scores",
+    "decision_id": "9a9c41dbf076",
+    "event_id": "DOP-013",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.6359456511571303,
+    "scored_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    },
+    "seed_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    }
+  },
+  "9b086d297783": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "9b086d297783",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "9b2d423b62b9": {
     "action_taken": "investigate",
     "category": "pipeline_failure",
@@ -3875,6 +7098,118 @@
       "impact_scope": 0.66,
       "recurrence_frequency": 0.34,
       "source_reliability": 0.54
+    }
+  },
+  "9ba89f9e881b": {
+    "_preseed_sequence": 101,
+    "_preseed_source_index": 1,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "orders_daily",
+    "decision_id": "9ba89f9e881b",
+    "event_id": "DOP-001",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.5396582925500194,
+    "scored_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    },
+    "seed_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    }
+  },
+  "9c07cd2474b3": {
+    "_preseed_sequence": 136,
+    "_preseed_source_index": 16,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "search_index",
+    "decision_id": "9c07cd2474b3",
+    "event_id": "DOP-016",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9063154738484043,
+    "scored_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    },
+    "seed_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    }
+  },
+  "9c27beeff175": {
+    "_preseed_sequence": 189,
+    "_preseed_source_index": 9,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "partner_uploads",
+    "decision_id": "9c27beeff175",
+    "event_id": "DOP-009",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9872430632887595,
+    "scored_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    },
+    "seed_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    }
+  },
+  "9c73a3d9a9c1": {
+    "_preseed_sequence": 58,
+    "_preseed_source_index": 18,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "feature_store",
+    "decision_id": "9c73a3d9a9c1",
+    "event_id": "DOP-018",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7750346016965467,
+    "scored_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    },
+    "seed_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
     }
   },
   "9dd248306267": {
@@ -3982,6 +7317,40 @@
       "source_reliability": 0.33
     }
   },
+  "9fc526fb0f11": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "9fc526fb0f11",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "9fd8fb652ff8": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "9fd8fb652ff8",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "9fde022563c9": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -3998,6 +7367,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "a055f6a43a5f": {
+    "_preseed_sequence": 113,
+    "_preseed_source_index": 13,
+    "action_taken": "pause_downstream",
+    "category": "quality_anomaly",
+    "dataset": "policy_scores",
+    "decision_id": "a055f6a43a5f",
+    "event_id": "DOP-013",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.6359456511571303,
+    "scored_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    },
+    "seed_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    }
   },
   "a22c6372e070": {
     "action_taken": "investigate",
@@ -4049,6 +7446,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "a32048f646ba": {
+    "_preseed_sequence": 135,
+    "_preseed_source_index": 15,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "user_activity",
+    "decision_id": "a32048f646ba",
+    "event_id": "DOP-015",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9824096974801976,
+    "scored_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    },
+    "seed_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    }
+  },
   "a3500b3f8cd9": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4082,6 +7507,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "a3742c141a19": {
+    "_preseed_sequence": 186,
+    "_preseed_source_index": 6,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "revenue_mart",
+    "decision_id": "a3742c141a19",
+    "event_id": "DOP-006",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.7028766246669793,
+    "scored_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    },
+    "seed_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    }
   },
   "a38ec4490882": {
     "_preseed_sequence": 189,
@@ -4145,6 +7598,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "a443f7d00434": {
+    "_preseed_sequence": 51,
+    "_preseed_source_index": 11,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "inventory_snapshots",
+    "decision_id": "a443f7d00434",
+    "event_id": "DOP-011",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9999547159550704,
+    "scored_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    },
+    "seed_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    }
+  },
   "a45ab7972a43": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4161,6 +7642,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "a46e1d9c6c30": {
+    "_preseed_sequence": 112,
+    "_preseed_source_index": 12,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "lead_scoring",
+    "decision_id": "a46e1d9c6c30",
+    "event_id": "DOP-012",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9644113363071872,
+    "scored_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    },
+    "seed_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    }
+  },
+  "a47e51f7e3c9": {
+    "_preseed_sequence": 34,
+    "_preseed_source_index": 14,
+    "action_taken": "refer_to_specialist",
+    "category": "quality_anomaly",
+    "dataset": "supplier_risk",
+    "decision_id": "a47e51f7e3c9",
+    "event_id": "DOP-014",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.579660420272313,
+    "scored_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    },
+    "seed_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    }
   },
   "a59a127fe98c": {
     "action_taken": "investigate",
@@ -4179,6 +7716,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "a644ec1f153c": {
+    "_preseed_sequence": 184,
+    "_preseed_source_index": 4,
+    "action_taken": "pause_downstream",
+    "category": "pipeline_failure",
+    "dataset": "risk_features",
+    "decision_id": "a644ec1f153c",
+    "event_id": "DOP-004",
+    "is_correct": false,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7115676995134805,
+    "scored_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    },
+    "seed_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    }
+  },
   "a6ecb704c595": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4195,6 +7760,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "a704427000bf": {
+    "_preseed_sequence": 166,
+    "_preseed_source_index": 6,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "revenue_mart",
+    "decision_id": "a704427000bf",
+    "event_id": "DOP-006",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.7028766246669793,
+    "scored_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    },
+    "seed_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    }
   },
   "a74a30f6c37d": {
     "action_taken": "investigate",
@@ -4281,6 +7874,23 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "aa9c2ae3a553": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "aa9c2ae3a553",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "aaa66e931f79": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4297,6 +7907,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "ab4c98674d41": {
+    "_preseed_sequence": 22,
+    "_preseed_source_index": 2,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "payments_hourly",
+    "decision_id": "ab4c98674d41",
+    "event_id": "DOP-002",
+    "is_correct": false,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.656163456176566,
+    "scored_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    },
+    "seed_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    }
   },
   "aba317ec511f": {
     "action_taken": "investigate",
@@ -4332,6 +7970,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "ac20ea8ae14b": {
+    "_preseed_sequence": 198,
+    "_preseed_source_index": 18,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "feature_store",
+    "decision_id": "ac20ea8ae14b",
+    "event_id": "DOP-018",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7750346016965467,
+    "scored_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    },
+    "seed_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    }
+  },
   "ad085b762b5e": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4365,6 +8031,23 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "ad50f45ef855": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "ad50f45ef855",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "ad5e3f0c7412": {
     "action_taken": "investigate",
@@ -4400,6 +8083,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "ae782d4f5eea": {
+    "_preseed_sequence": 40,
+    "_preseed_source_index": 20,
+    "action_taken": "investigate",
+    "category": "transform_drift",
+    "dataset": "customer_360",
+    "decision_id": "ae782d4f5eea",
+    "event_id": "DOP-020",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5256198325892076,
+    "scored_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    },
+    "seed_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    }
+  },
+  "ae96a882e1a8": {
+    "_preseed_sequence": 77,
+    "_preseed_source_index": 17,
+    "action_taken": "escalate_to_owner",
+    "category": "freshness_violation",
+    "dataset": "billing_exports",
+    "decision_id": "ae96a882e1a8",
+    "event_id": "DOP-017",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9374730510407764,
+    "scored_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    },
+    "seed_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    }
+  },
   "af80061ce0eb": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4433,6 +8172,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "b06c00e5f289": {
+    "_preseed_sequence": 127,
+    "_preseed_source_index": 7,
+    "action_taken": "escalate_to_owner",
+    "category": "schema_change",
+    "dataset": "identity_dim",
+    "decision_id": "b06c00e5f289",
+    "event_id": "DOP-007",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5677219192677362,
+    "scored_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    },
+    "seed_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    }
   },
   "b07cc3cefc5c": {
     "action_taken": "investigate",
@@ -4468,6 +8235,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "b11acb3de98a": {
+    "_preseed_sequence": 62,
+    "_preseed_source_index": 2,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "payments_hourly",
+    "decision_id": "b11acb3de98a",
+    "event_id": "DOP-002",
+    "is_correct": false,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.656163456176566,
+    "scored_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    },
+    "seed_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    }
+  },
   "b17773a6ca73": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4484,6 +8279,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "b1d4bcc7103d": {
+    "_preseed_sequence": 36,
+    "_preseed_source_index": 16,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "search_index",
+    "decision_id": "b1d4bcc7103d",
+    "event_id": "DOP-016",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9063154738484043,
+    "scored_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    },
+    "seed_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    }
+  },
+  "b1fb5ba5875a": {
+    "_preseed_sequence": 54,
+    "_preseed_source_index": 14,
+    "action_taken": "refer_to_specialist",
+    "category": "quality_anomaly",
+    "dataset": "supplier_risk",
+    "decision_id": "b1fb5ba5875a",
+    "event_id": "DOP-014",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.579660420272313,
+    "scored_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    },
+    "seed_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    }
   },
   "b33be6eb88d0": {
     "action_taken": "investigate",
@@ -4586,6 +8437,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "b4f347bfe0bf": {
+    "_preseed_sequence": 69,
+    "_preseed_source_index": 9,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "partner_uploads",
+    "decision_id": "b4f347bfe0bf",
+    "event_id": "DOP-009",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9872430632887595,
+    "scored_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    },
+    "seed_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    }
+  },
   "b5a03e4ec7c7": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4602,6 +8481,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "b68e68ce2112": {
+    "_preseed_sequence": 35,
+    "_preseed_source_index": 15,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "user_activity",
+    "decision_id": "b68e68ce2112",
+    "event_id": "DOP-015",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9824096974801976,
+    "scored_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    },
+    "seed_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    }
   },
   "b75d9edfb58b": {
     "action_taken": "investigate",
@@ -4637,6 +8544,34 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "b9d16bfedda4": {
+    "_preseed_sequence": 110,
+    "_preseed_source_index": 10,
+    "action_taken": "investigate",
+    "category": "volume_anomaly",
+    "dataset": "settlement_batches",
+    "decision_id": "b9d16bfedda4",
+    "event_id": "DOP-010",
+    "is_correct": false,
+    "score_action": "investigate",
+    "score_confidence": 0.6729660058232095,
+    "scored_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    },
+    "seed_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    }
+  },
   "b9daeb19d975": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4653,6 +8588,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "ba47a3f66dee": {
+    "_preseed_sequence": 194,
+    "_preseed_source_index": 14,
+    "action_taken": "refer_to_specialist",
+    "category": "quality_anomaly",
+    "dataset": "supplier_risk",
+    "decision_id": "ba47a3f66dee",
+    "event_id": "DOP-014",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.579660420272313,
+    "scored_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    },
+    "seed_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    }
+  },
+  "ba8641ad4f67": {
+    "_preseed_sequence": 177,
+    "_preseed_source_index": 17,
+    "action_taken": "escalate_to_owner",
+    "category": "freshness_violation",
+    "dataset": "billing_exports",
+    "decision_id": "ba8641ad4f67",
+    "event_id": "DOP-017",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9374730510407764,
+    "scored_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    },
+    "seed_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    }
   },
   "bafe4c041990": {
     "action_taken": "investigate",
@@ -4755,6 +8746,51 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "bd87f670a0b2": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "bd87f670a0b2",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "bdc864b7ef9c": {
+    "_preseed_sequence": 172,
+    "_preseed_source_index": 12,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "lead_scoring",
+    "decision_id": "bdc864b7ef9c",
+    "event_id": "DOP-012",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9644113363071872,
+    "scored_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    },
+    "seed_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    }
+  },
   "be858e44ae3a": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -4789,6 +8825,225 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "bec44375b4b8": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "bec44375b4b8",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "bf2c65a27df5": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "bf2c65a27df5",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "bfd5ab525bdc": {
+    "_preseed_sequence": 67,
+    "_preseed_source_index": 7,
+    "action_taken": "escalate_to_owner",
+    "category": "schema_change",
+    "dataset": "identity_dim",
+    "decision_id": "bfd5ab525bdc",
+    "event_id": "DOP-007",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5677219192677362,
+    "scored_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    },
+    "seed_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    }
+  },
+  "c02abb18881f": {
+    "_preseed_sequence": 125,
+    "_preseed_source_index": 5,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "product_catalog",
+    "decision_id": "c02abb18881f",
+    "event_id": "DOP-005",
+    "is_correct": true,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.5222668826602824,
+    "scored_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    },
+    "seed_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    }
+  },
+  "c07acbb6de2f": {
+    "_preseed_sequence": 104,
+    "_preseed_source_index": 4,
+    "action_taken": "pause_downstream",
+    "category": "pipeline_failure",
+    "dataset": "risk_features",
+    "decision_id": "c07acbb6de2f",
+    "event_id": "DOP-004",
+    "is_correct": false,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7115676995134805,
+    "scored_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    },
+    "seed_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    }
+  },
+  "c0874f815a61": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "c0874f815a61",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "c0ff63210b7a": {
+    "_preseed_sequence": 118,
+    "_preseed_source_index": 18,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "feature_store",
+    "decision_id": "c0ff63210b7a",
+    "event_id": "DOP-018",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7750346016965467,
+    "scored_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    },
+    "seed_factors": {
+      "business_criticality": 0.33,
+      "data_freshness": 0.8,
+      "downstream_urgency": 0.25,
+      "impact_scope": 0.29,
+      "recurrence_frequency": 0.79,
+      "source_reliability": 0.88
+    }
+  },
+  "c10601fa2b5e": {
+    "_preseed_sequence": 70,
+    "_preseed_source_index": 10,
+    "action_taken": "investigate",
+    "category": "volume_anomaly",
+    "dataset": "settlement_batches",
+    "decision_id": "c10601fa2b5e",
+    "event_id": "DOP-010",
+    "is_correct": false,
+    "score_action": "investigate",
+    "score_confidence": 0.6729660058232095,
+    "scored_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    },
+    "seed_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    }
+  },
+  "c16e42a7b86d": {
+    "_preseed_sequence": 108,
+    "_preseed_source_index": 8,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "traffic_counts",
+    "decision_id": "c16e42a7b86d",
+    "event_id": "DOP-008",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9947719034157692,
+    "scored_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    },
+    "seed_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    }
+  },
   "c1bd1d3a192c": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4805,6 +9060,23 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "c1c16d2ab0ef": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "c1c16d2ab0ef",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "c24973335c7a": {
     "action_taken": "investigate",
@@ -4823,6 +9095,51 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "c2f00ae69653": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "c2f00ae69653",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "c320498c081a": {
+    "_preseed_sequence": 82,
+    "_preseed_source_index": 2,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "payments_hourly",
+    "decision_id": "c320498c081a",
+    "event_id": "DOP-002",
+    "is_correct": false,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.656163456176566,
+    "scored_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    },
+    "seed_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    }
+  },
   "c4224504a868": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4839,6 +9156,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "c45256120c96": {
+    "_preseed_sequence": 66,
+    "_preseed_source_index": 6,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "revenue_mart",
+    "decision_id": "c45256120c96",
+    "event_id": "DOP-006",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.7028766246669793,
+    "scored_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    },
+    "seed_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    }
+  },
+  "c50070f3620f": {
+    "_preseed_sequence": 124,
+    "_preseed_source_index": 4,
+    "action_taken": "pause_downstream",
+    "category": "pipeline_failure",
+    "dataset": "risk_features",
+    "decision_id": "c50070f3620f",
+    "event_id": "DOP-004",
+    "is_correct": false,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7115676995134805,
+    "scored_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    },
+    "seed_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    }
   },
   "c558b52b9fa7": {
     "action_taken": "investigate",
@@ -4978,6 +9351,34 @@
       "source_reliability": 0.76
     }
   },
+  "cacd079a0881": {
+    "_preseed_sequence": 120,
+    "_preseed_source_index": 20,
+    "action_taken": "investigate",
+    "category": "transform_drift",
+    "dataset": "customer_360",
+    "decision_id": "cacd079a0881",
+    "event_id": "DOP-020",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5256198325892076,
+    "scored_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    },
+    "seed_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    }
+  },
   "cb46b9594d39": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5097,6 +9498,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "ce4d09cbbdc1": {
+    "_preseed_sequence": 68,
+    "_preseed_source_index": 8,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "traffic_counts",
+    "decision_id": "ce4d09cbbdc1",
+    "event_id": "DOP-008",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9947719034157692,
+    "scored_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    },
+    "seed_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    }
+  },
   "cecebc8e3773": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5113,6 +9542,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "cf0bb96ddecd": {
+    "_preseed_sequence": 21,
+    "_preseed_source_index": 1,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "orders_daily",
+    "decision_id": "cf0bb96ddecd",
+    "event_id": "DOP-001",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.5396582925500194,
+    "scored_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    },
+    "seed_factors": {
+      "business_criticality": 0.3,
+      "data_freshness": 0.88,
+      "downstream_urgency": 0.22,
+      "impact_scope": 0.28,
+      "recurrence_frequency": 0.82,
+      "source_reliability": 0.42
+    }
   },
   "cfdb0a43a835": {
     "_preseed_sequence": 188,
@@ -5204,6 +9661,90 @@
       "source_reliability": 0.84
     }
   },
+  "d36c997dc11c": {
+    "_preseed_sequence": 76,
+    "_preseed_source_index": 16,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "search_index",
+    "decision_id": "d36c997dc11c",
+    "event_id": "DOP-016",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9063154738484043,
+    "scored_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    },
+    "seed_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    }
+  },
+  "d3a067799dba": {
+    "_preseed_sequence": 52,
+    "_preseed_source_index": 12,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "lead_scoring",
+    "decision_id": "d3a067799dba",
+    "event_id": "DOP-012",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9644113363071872,
+    "scored_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    },
+    "seed_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    }
+  },
+  "d3f550876db5": {
+    "_preseed_sequence": 168,
+    "_preseed_source_index": 8,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "traffic_counts",
+    "decision_id": "d3f550876db5",
+    "event_id": "DOP-008",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9947719034157692,
+    "scored_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    },
+    "seed_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    }
+  },
   "d4e626254ee2": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5220,6 +9761,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "d50fbac07eba": {
+    "_preseed_sequence": 25,
+    "_preseed_source_index": 5,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "product_catalog",
+    "decision_id": "d50fbac07eba",
+    "event_id": "DOP-005",
+    "is_correct": true,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.5222668826602824,
+    "scored_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    },
+    "seed_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    }
   },
   "d64966131ec8": {
     "action_taken": "investigate",
@@ -5283,6 +9852,34 @@
       "source_reliability": 0.36
     }
   },
+  "d73723b4678c": {
+    "_preseed_sequence": 190,
+    "_preseed_source_index": 10,
+    "action_taken": "investigate",
+    "category": "volume_anomaly",
+    "dataset": "settlement_batches",
+    "decision_id": "d73723b4678c",
+    "event_id": "DOP-010",
+    "is_correct": false,
+    "score_action": "investigate",
+    "score_confidence": 0.6729660058232095,
+    "scored_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    },
+    "seed_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    }
+  },
   "d7f3d097765b": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5317,6 +9914,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "d99a9e0810b2": {
+    "_preseed_sequence": 44,
+    "_preseed_source_index": 4,
+    "action_taken": "pause_downstream",
+    "category": "pipeline_failure",
+    "dataset": "risk_features",
+    "decision_id": "d99a9e0810b2",
+    "event_id": "DOP-004",
+    "is_correct": false,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7115676995134805,
+    "scored_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    },
+    "seed_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    }
+  },
   "d9c5cc1c0952": {
     "action_taken": "pause_downstream",
     "category": "quality_anomaly",
@@ -5341,6 +9966,34 @@
       "impact_scope": 0.62,
       "recurrence_frequency": 0.31,
       "source_reliability": 0.4
+    }
+  },
+  "da1f0c0d5439": {
+    "_preseed_sequence": 45,
+    "_preseed_source_index": 5,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "product_catalog",
+    "decision_id": "da1f0c0d5439",
+    "event_id": "DOP-005",
+    "is_correct": true,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.5222668826602824,
+    "scored_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
+    },
+    "seed_factors": {
+      "business_criticality": 0.22,
+      "data_freshness": 0.82,
+      "downstream_urgency": 0.16,
+      "impact_scope": 0.18,
+      "recurrence_frequency": 0.76,
+      "source_reliability": 0.91
     }
   },
   "da597ea897f9": {
@@ -5514,6 +10167,34 @@
       "source_reliability": 0.47
     }
   },
+  "dea5e69111cc": {
+    "_preseed_sequence": 87,
+    "_preseed_source_index": 7,
+    "action_taken": "escalate_to_owner",
+    "category": "schema_change",
+    "dataset": "identity_dim",
+    "decision_id": "dea5e69111cc",
+    "event_id": "DOP-007",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5677219192677362,
+    "scored_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    },
+    "seed_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    }
+  },
   "dea98ab28147": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5529,6 +10210,90 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "dfe27ca43a1c": {
+    "_preseed_sequence": 84,
+    "_preseed_source_index": 4,
+    "action_taken": "pause_downstream",
+    "category": "pipeline_failure",
+    "dataset": "risk_features",
+    "decision_id": "dfe27ca43a1c",
+    "event_id": "DOP-004",
+    "is_correct": false,
+    "score_action": "auto_approve",
+    "score_confidence": 0.7115676995134805,
+    "scored_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    },
+    "seed_factors": {
+      "business_criticality": 0.45,
+      "data_freshness": 0.58,
+      "downstream_urgency": 0.48,
+      "impact_scope": 0.38,
+      "recurrence_frequency": 0.28,
+      "source_reliability": 0.72
+    }
+  },
+  "e04a2724bf09": {
+    "_preseed_sequence": 149,
+    "_preseed_source_index": 9,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "partner_uploads",
+    "decision_id": "e04a2724bf09",
+    "event_id": "DOP-009",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9872430632887595,
+    "scored_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    },
+    "seed_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    }
+  },
+  "e0da182d7a33": {
+    "_preseed_sequence": 188,
+    "_preseed_source_index": 8,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "traffic_counts",
+    "decision_id": "e0da182d7a33",
+    "event_id": "DOP-008",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9947719034157692,
+    "scored_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    },
+    "seed_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    }
   },
   "e113db1ceae9": {
     "action_taken": "investigate",
@@ -5581,6 +10346,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "e1d4e10598b3": {
+    "_preseed_sequence": 174,
+    "_preseed_source_index": 14,
+    "action_taken": "refer_to_specialist",
+    "category": "quality_anomaly",
+    "dataset": "supplier_risk",
+    "decision_id": "e1d4e10598b3",
+    "event_id": "DOP-014",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.579660420272313,
+    "scored_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    },
+    "seed_factors": {
+      "business_criticality": 0.72,
+      "data_freshness": 0.57,
+      "downstream_urgency": 0.69,
+      "impact_scope": 0.64,
+      "recurrence_frequency": 0.24,
+      "source_reliability": 0.36
+    }
+  },
+  "e36c98c3656c": {
+    "_preseed_sequence": 28,
+    "_preseed_source_index": 8,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "traffic_counts",
+    "decision_id": "e36c98c3656c",
+    "event_id": "DOP-008",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9947719034157692,
+    "scored_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    },
+    "seed_factors": {
+      "business_criticality": 0.26,
+      "data_freshness": 0.79,
+      "downstream_urgency": 0.21,
+      "impact_scope": 0.24,
+      "recurrence_frequency": 0.7,
+      "source_reliability": 0.61
+    }
+  },
   "e39c8972e66f": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5598,6 +10419,23 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "e3b279812ced": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "e3b279812ced",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "e3f93da778de": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -5614,6 +10452,34 @@
     },
     "followed_ae": false,
     "system_name": "sap_mm"
+  },
+  "e41561d92dd2": {
+    "_preseed_sequence": 143,
+    "_preseed_source_index": 3,
+    "action_taken": "investigate",
+    "category": "pipeline_failure",
+    "dataset": "customer_events",
+    "decision_id": "e41561d92dd2",
+    "event_id": "DOP-003",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.4902307320451104,
+    "scored_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    },
+    "seed_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    }
   },
   "e486c4fe657b": {
     "action_taken": "investigate",
@@ -5675,6 +10541,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "e79122782541": {
+    "_preseed_sequence": 75,
+    "_preseed_source_index": 15,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "user_activity",
+    "decision_id": "e79122782541",
+    "event_id": "DOP-015",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9824096974801976,
+    "scored_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    },
+    "seed_factors": {
+      "business_criticality": 0.27,
+      "data_freshness": 0.68,
+      "downstream_urgency": 0.19,
+      "impact_scope": 0.2,
+      "recurrence_frequency": 0.74,
+      "source_reliability": 0.78
+    }
+  },
   "e7a325b4df77": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5691,6 +10585,62 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "e7abe2013d1f": {
+    "_preseed_sequence": 156,
+    "_preseed_source_index": 16,
+    "action_taken": "auto_approve",
+    "category": "freshness_violation",
+    "dataset": "search_index",
+    "decision_id": "e7abe2013d1f",
+    "event_id": "DOP-016",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9063154738484043,
+    "scored_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    },
+    "seed_factors": {
+      "business_criticality": 0.35,
+      "data_freshness": 0.63,
+      "downstream_urgency": 0.34,
+      "impact_scope": 0.31,
+      "recurrence_frequency": 0.55,
+      "source_reliability": 0.3
+    }
+  },
+  "e8d84e0ed8ec": {
+    "_preseed_sequence": 160,
+    "_preseed_source_index": 20,
+    "action_taken": "investigate",
+    "category": "transform_drift",
+    "dataset": "customer_360",
+    "decision_id": "e8d84e0ed8ec",
+    "event_id": "DOP-020",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5256198325892076,
+    "scored_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    },
+    "seed_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    }
   },
   "e8e04ff6b7df": {
     "_preseed_sequence": 183,
@@ -5720,6 +10670,90 @@
       "source_reliability": 0.54
     }
   },
+  "e9743a96bfb1": {
+    "_preseed_sequence": 57,
+    "_preseed_source_index": 17,
+    "action_taken": "escalate_to_owner",
+    "category": "freshness_violation",
+    "dataset": "billing_exports",
+    "decision_id": "e9743a96bfb1",
+    "event_id": "DOP-017",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9374730510407764,
+    "scored_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    },
+    "seed_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    }
+  },
+  "e98c584f96b2": {
+    "_preseed_sequence": 102,
+    "_preseed_source_index": 2,
+    "action_taken": "auto_approve",
+    "category": "pipeline_failure",
+    "dataset": "payments_hourly",
+    "decision_id": "e98c584f96b2",
+    "event_id": "DOP-002",
+    "is_correct": false,
+    "score_action": "pause_downstream",
+    "score_confidence": 0.656163456176566,
+    "scored_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    },
+    "seed_factors": {
+      "business_criticality": 0.88,
+      "data_freshness": 0.31,
+      "downstream_urgency": 0.82,
+      "impact_scope": 0.74,
+      "recurrence_frequency": 0.1,
+      "source_reliability": 0.86
+    }
+  },
+  "e9a36b653e73": {
+    "_preseed_sequence": 133,
+    "_preseed_source_index": 13,
+    "action_taken": "pause_downstream",
+    "category": "quality_anomaly",
+    "dataset": "policy_scores",
+    "decision_id": "e9a36b653e73",
+    "event_id": "DOP-013",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.6359456511571303,
+    "scored_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    },
+    "seed_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    }
+  },
   "ea011dfe8c5e": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5736,6 +10770,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "ea4d6e567a60": {
+    "_preseed_sequence": 146,
+    "_preseed_source_index": 6,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "revenue_mart",
+    "decision_id": "ea4d6e567a60",
+    "event_id": "DOP-006",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.7028766246669793,
+    "scored_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    },
+    "seed_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    }
   },
   "eae1278c1104": {
     "action_taken": "investigate",
@@ -5754,6 +10816,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "eb29194540d6": {
+    "_preseed_sequence": 130,
+    "_preseed_source_index": 10,
+    "action_taken": "investigate",
+    "category": "volume_anomaly",
+    "dataset": "settlement_batches",
+    "decision_id": "eb29194540d6",
+    "event_id": "DOP-010",
+    "is_correct": false,
+    "score_action": "investigate",
+    "score_confidence": 0.6729660058232095,
+    "scored_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    },
+    "seed_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    }
+  },
   "ec99655940a0": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5769,6 +10859,90 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "ecb80f6ffe60": {
+    "_preseed_sequence": 183,
+    "_preseed_source_index": 3,
+    "action_taken": "investigate",
+    "category": "pipeline_failure",
+    "dataset": "customer_events",
+    "decision_id": "ecb80f6ffe60",
+    "event_id": "DOP-003",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.4902307320451104,
+    "scored_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    },
+    "seed_factors": {
+      "business_criticality": 0.78,
+      "data_freshness": 0.44,
+      "downstream_urgency": 0.68,
+      "impact_scope": 0.66,
+      "recurrence_frequency": 0.34,
+      "source_reliability": 0.54
+    }
+  },
+  "edc47108cd19": {
+    "_preseed_sequence": 109,
+    "_preseed_source_index": 9,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "partner_uploads",
+    "decision_id": "edc47108cd19",
+    "event_id": "DOP-009",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9872430632887595,
+    "scored_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    },
+    "seed_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    }
+  },
+  "edce307890f5": {
+    "_preseed_sequence": 167,
+    "_preseed_source_index": 7,
+    "action_taken": "escalate_to_owner",
+    "category": "schema_change",
+    "dataset": "identity_dim",
+    "decision_id": "edce307890f5",
+    "event_id": "DOP-007",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5677219192677362,
+    "scored_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    },
+    "seed_factors": {
+      "business_criticality": 0.84,
+      "data_freshness": 0.52,
+      "downstream_urgency": 0.75,
+      "impact_scope": 0.69,
+      "recurrence_frequency": 0.22,
+      "source_reliability": 0.47
+    }
   },
   "ee1c4e3617e0": {
     "action_taken": "investigate",
@@ -5821,6 +10995,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "ef49f1a51cd6": {
+    "_preseed_sequence": 191,
+    "_preseed_source_index": 11,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "inventory_snapshots",
+    "decision_id": "ef49f1a51cd6",
+    "event_id": "DOP-011",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9999547159550704,
+    "scored_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    },
+    "seed_factors": {
+      "business_criticality": 0.29,
+      "data_freshness": 0.86,
+      "downstream_urgency": 0.24,
+      "impact_scope": 0.27,
+      "recurrence_frequency": 0.88,
+      "source_reliability": 0.84
+    }
+  },
   "ef77adfed318": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5871,6 +11073,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "f1b8f9d0bbae": {
+    "_preseed_sequence": 170,
+    "_preseed_source_index": 10,
+    "action_taken": "investigate",
+    "category": "volume_anomaly",
+    "dataset": "settlement_batches",
+    "decision_id": "f1b8f9d0bbae",
+    "event_id": "DOP-010",
+    "is_correct": false,
+    "score_action": "investigate",
+    "score_confidence": 0.6729660058232095,
+    "scored_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    },
+    "seed_factors": {
+      "business_criticality": 0.63,
+      "data_freshness": 0.42,
+      "downstream_urgency": 0.61,
+      "impact_scope": 0.57,
+      "recurrence_frequency": 0.18,
+      "source_reliability": 0.76
+    }
+  },
   "f2111e03d52e": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -5888,6 +11118,34 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "f242d9113928": {
+    "_preseed_sequence": 117,
+    "_preseed_source_index": 17,
+    "action_taken": "escalate_to_owner",
+    "category": "freshness_violation",
+    "dataset": "billing_exports",
+    "decision_id": "f242d9113928",
+    "event_id": "DOP-017",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9374730510407764,
+    "scored_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    },
+    "seed_factors": {
+      "business_criticality": 0.9,
+      "data_freshness": 0.21,
+      "downstream_urgency": 0.84,
+      "impact_scope": 0.76,
+      "recurrence_frequency": 0.27,
+      "source_reliability": 0.58
+    }
+  },
   "f2c796b699d8": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5904,6 +11162,79 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "f2e53606ca6a": {
+    "_preseed_sequence": 179,
+    "_preseed_source_index": 19,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "campaign_attribution",
+    "decision_id": "f2e53606ca6a",
+    "event_id": "DOP-019",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.8160092025997594,
+    "scored_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    },
+    "seed_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    }
+  },
+  "f2e72a08705c": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "f2e72a08705c",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "f3c899f93052": {
+    "_preseed_sequence": 200,
+    "_preseed_source_index": 20,
+    "action_taken": "investigate",
+    "category": "transform_drift",
+    "dataset": "customer_360",
+    "decision_id": "f3c899f93052",
+    "event_id": "DOP-020",
+    "is_correct": true,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.5256198325892076,
+    "scored_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    },
+    "seed_factors": {
+      "business_criticality": 0.62,
+      "data_freshness": 0.49,
+      "downstream_urgency": 0.57,
+      "impact_scope": 0.59,
+      "recurrence_frequency": 0.36,
+      "source_reliability": 0.69
+    }
   },
   "f6640c620c49": {
     "action_taken": "investigate",
@@ -5948,6 +11279,34 @@
       "source_reliability": 0.25
     }
   },
+  "f7cb78fd265a": {
+    "_preseed_sequence": 129,
+    "_preseed_source_index": 9,
+    "action_taken": "auto_approve",
+    "category": "volume_anomaly",
+    "dataset": "partner_uploads",
+    "decision_id": "f7cb78fd265a",
+    "event_id": "DOP-009",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.9872430632887595,
+    "scored_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    },
+    "seed_factors": {
+      "business_criticality": 0.36,
+      "data_freshness": 0.71,
+      "downstream_urgency": 0.33,
+      "impact_scope": 0.35,
+      "recurrence_frequency": 0.58,
+      "source_reliability": 0.28
+    }
+  },
   "f83dae15a7b0": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5982,6 +11341,62 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "f897bb260843": {
+    "_preseed_sequence": 93,
+    "_preseed_source_index": 13,
+    "action_taken": "pause_downstream",
+    "category": "quality_anomaly",
+    "dataset": "policy_scores",
+    "decision_id": "f897bb260843",
+    "event_id": "DOP-013",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.6359456511571303,
+    "scored_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    },
+    "seed_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    }
+  },
+  "faaa7e40203e": {
+    "_preseed_sequence": 106,
+    "_preseed_source_index": 6,
+    "action_taken": "auto_approve",
+    "category": "schema_change",
+    "dataset": "revenue_mart",
+    "decision_id": "faaa7e40203e",
+    "event_id": "DOP-006",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.7028766246669793,
+    "scored_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    },
+    "seed_factors": {
+      "business_criticality": 0.92,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.73,
+      "impact_scope": 0.81,
+      "recurrence_frequency": 0.08,
+      "source_reliability": 0.33
+    }
+  },
   "fba4c14e12dd": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -5998,6 +11413,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "fbf2b0d7ab7d": {
+    "_preseed_sequence": 132,
+    "_preseed_source_index": 12,
+    "action_taken": "auto_approve",
+    "category": "quality_anomaly",
+    "dataset": "lead_scoring",
+    "decision_id": "fbf2b0d7ab7d",
+    "event_id": "DOP-012",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.9644113363071872,
+    "scored_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    },
+    "seed_factors": {
+      "business_criticality": 0.74,
+      "data_freshness": 0.39,
+      "downstream_urgency": 0.67,
+      "impact_scope": 0.72,
+      "recurrence_frequency": 0.12,
+      "source_reliability": 0.66
+    }
   },
   "fc06d16daf80": {
     "action_taken": "investigate",
@@ -6128,6 +11571,34 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "ff23f03fae53": {
+    "_preseed_sequence": 139,
+    "_preseed_source_index": 19,
+    "action_taken": "auto_approve",
+    "category": "transform_drift",
+    "dataset": "campaign_attribution",
+    "decision_id": "ff23f03fae53",
+    "event_id": "DOP-019",
+    "is_correct": true,
+    "score_action": "auto_approve",
+    "score_confidence": 0.8160092025997594,
+    "scored_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    },
+    "seed_factors": {
+      "business_criticality": 0.39,
+      "data_freshness": 0.73,
+      "downstream_urgency": 0.37,
+      "impact_scope": 0.34,
+      "recurrence_frequency": 0.52,
+      "source_reliability": 0.25
+    }
+  },
   "ff30c52fa622": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -6144,6 +11615,34 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "ff3c6ffd9cb2": {
+    "_preseed_sequence": 53,
+    "_preseed_source_index": 13,
+    "action_taken": "pause_downstream",
+    "category": "quality_anomaly",
+    "dataset": "policy_scores",
+    "decision_id": "ff3c6ffd9cb2",
+    "event_id": "DOP-013",
+    "is_correct": false,
+    "score_action": "escalate_to_owner",
+    "score_confidence": 0.6359456511571303,
+    "scored_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    },
+    "seed_factors": {
+      "business_criticality": 0.81,
+      "data_freshness": 0.46,
+      "downstream_urgency": 0.76,
+      "impact_scope": 0.62,
+      "recurrence_frequency": 0.31,
+      "source_reliability": 0.4
+    }
   },
   "ff7bbbbbc75d": {
     "action_taken": "investigate",
