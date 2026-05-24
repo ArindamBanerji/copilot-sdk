@@ -873,6 +873,23 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "10605a8c18a3": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "10605a8c18a3",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "109ec9882dd6": {
     "action_taken": "auto_approve",
     "category": "volume_anomaly",
@@ -1873,6 +1890,23 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "1fa2e94d616a": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "1fa2e94d616a",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "1ff4eb7ad756": {
     "_preseed_sequence": 157,
     "_preseed_source_index": 17,
@@ -2595,6 +2629,23 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "32b09a20b75c": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "32b09a20b75c",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "330f1eaab1c9": {
     "_preseed_sequence": 107,
@@ -6860,6 +6911,23 @@
       "source_reliability": 0.66
     }
   },
+  "97433ab46ab8": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "97433ab46ab8",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "97f52b85d2a9": {
     "_preseed_sequence": 195,
     "_preseed_source_index": 15,
@@ -6973,6 +7041,23 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "997315e1c2b5": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "997315e1c2b5",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "9a4a58f9cbc2": {
     "_preseed_sequence": 192,
     "_preseed_source_index": 12,
@@ -7063,6 +7148,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "9b086d297783",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "9b19d38700e8": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "9b19d38700e8",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -9790,6 +9892,23 @@
       "source_reliability": 0.91
     }
   },
+  "d5d7bdd4ed84": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "d5d7bdd4ed84",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "d64966131ec8": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -10140,6 +10259,23 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "dd627a3687d6": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "dd627a3687d6",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "de1007345bab": {
     "action_taken": "escalate_to_owner",
@@ -11107,6 +11243,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "f2111e03d52e",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "f24078c0ad59": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "f24078c0ad59",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,

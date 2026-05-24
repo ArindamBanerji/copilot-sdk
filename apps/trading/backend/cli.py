@@ -29,11 +29,13 @@ if "app" not in sys.modules:
     sys.modules["app"] = app_package
 
 from app.connectors.csv_connector import CSVConnector  # noqa: E402
+from app.factors.options import OPTIONS_FACTOR_NAMES, compute_options_factors  # noqa: E402
 from app.factors.registry import (  # noqa: E402
     ALL_FACTOR_NAMES,
     TRADING_FACTOR_COMPUTERS,
     compute_factors,
 )
+from app.services.subcategory import get_subcategory  # noqa: E402
 
 
 DEFAULT_CONFIG_DIR = os.path.expanduser("~/.ci-trading")
@@ -90,6 +92,18 @@ def _print_factor_table(factors: dict[str, float]) -> None:
         value = float(factors.get(name, 0.5))
         bar = "#" * int(round(value * 20))
         print(f"{name:20} {value:0.3f} {bar}")
+
+
+def _print_options_factor_table(context: dict[str, Any]) -> bool:
+    if not _is_options_like_trade(context):
+        return False
+    options_factors = compute_options_factors(context)
+    print("Options Factors (analytics-only):")
+    for name in OPTIONS_FACTOR_NAMES:
+        value = float(options_factors.get(name, 0.5))
+        bar = "#" * int(round(value * 20))
+        print(f"{name:20} {value:0.3f} {bar}")
+    return True
 
 
 def _save_imported_trades(
@@ -192,6 +206,7 @@ def cmd_score(args: argparse.Namespace) -> int:
             return 1
         print(f"Trade: {args.trade_id}")
         _print_factor_table(compute_factors(trade))
+        _print_options_factor_table(trade)
         print("Offline factor scoring only; no decision recorded.")
         return 0
 
@@ -204,6 +219,15 @@ def cmd_score(args: argparse.Namespace) -> int:
             f"{name:20} avg={mean(values):0.3f} "
             f"min={min(values):0.3f} max={max(values):0.3f}"
         )
+    option_rows = [compute_options_factors(trade) for trade in trades if _is_options_like_trade(trade)]
+    if option_rows:
+        print("Options Factors (analytics-only):")
+        for name in OPTIONS_FACTOR_NAMES:
+            values = [float(row.get(name, 0.5)) for row in option_rows]
+            print(
+                f"{name:20} avg={mean(values):0.3f} "
+                f"min={min(values):0.3f} max={max(values):0.3f}"
+            )
     print("Offline factor scoring only; no decision recorded.")
     return 0
 
@@ -294,7 +318,34 @@ def cmd_journal(args: argparse.Namespace) -> int:
             f"{str(trade.get('category') or '-')[:18]:18} "
             f"{str(trade.get('strategy_tag') or trade.get('thesis_type') or '-')[:18]:18}"
         )
+    _print_event_subcategory_summary(filtered, args.category)
+    _print_options_journal_summary(filtered)
     return 0
+
+
+def _print_event_subcategory_summary(trades: list[dict[str, Any]], category_filter: str | None) -> None:
+    if category_filter not in {None, "", "event_driven"}:
+        return
+    event_trades = [trade for trade in trades if trade.get("category") == "event_driven"]
+    if not event_trades:
+        return
+    print("Event-Driven Subcategories")
+    for subcategory in ("directional", "volatility"):
+        rows = [trade for trade in event_trades if get_subcategory(trade) == subcategory]
+        wins = sum(1 for trade in rows if (_trade_pnl(trade) or 0.0) > 0)
+        win_rate = wins / len(rows) if rows else 0.0
+        print(f"- {subcategory}: {len(rows)} trades, win rate {win_rate:.1%}")
+
+
+def _print_options_journal_summary(trades: list[dict[str, Any]]) -> None:
+    option_trades = [trade for trade in trades if _is_options_like_trade(trade)]
+    if not option_trades:
+        return
+    rows = [compute_options_factors(trade) for trade in option_trades]
+    print("Options Factors (analytics-only):")
+    for name in OPTIONS_FACTOR_NAMES:
+        values = [float(row.get(name, 0.5)) for row in rows]
+        print(f"- {name}: avg {mean(values):.3f} across {len(values)} trades")
 
 
 def cmd_regime(args: argparse.Namespace) -> int:
@@ -308,11 +359,46 @@ def cmd_regime(args: argparse.Namespace) -> int:
     print(f"Source: {current.get('source', 'default')}")
 
     trades = _load_trades(args.config_dir)
+    accuracy = service.get_regime_accuracy(trades) if trades else {}
+    if args.detail:
+        from app.services.regime_recommender import RegimeRecommender
+
+        detail = RegimeRecommender().recommend(
+            str(current.get("regime") or "ranging"),
+            accuracy,
+            conservation_status=None,
+        )
+        print("Regime Allocation Context")
+        print(str(detail["summary"]))
+        if detail["conservation_safe"] is False:
+            print("Conservation not confirmed; recommendations are informational.")
+        recommendations = detail.get("recommendations") or []
+        if recommendations:
+            print(f"{'Category':20} {'Action':10} {'Shift':>8} {'Neutral':>8}")
+            for item in recommendations:
+                print(
+                    f"{str(item.get('category', '-'))[:20]:20} "
+                    f"{str(item.get('action', '-'))[:10]:10} "
+                    f"{int(item.get('shift_pct', 0)):>7}% "
+                    f"{str(bool(item.get('regime_neutral'))):>8}"
+                )
+        else:
+            print("No regime recommendations available.")
+        transitions = detail.get("regime_transitions") or []
+        if transitions:
+            print("Regime transitions")
+            for transition in transitions:
+                print(
+                    f"{transition['from_regime']} -> {transition['to_regime']}: "
+                    f"{transition['avg_accuracy_delta_pp']:+.1f}pp "
+                    f"({transition['count']} categories)"
+                )
+        return 0
+
     if not trades:
         print("No local trades available for regime accuracy.")
         return 0
 
-    accuracy = service.get_regime_accuracy(trades)
     if not accuracy:
         print("No regime accuracy available.")
         return 0
@@ -324,6 +410,136 @@ def cmd_regime(args: argparse.Namespace) -> int:
             f"{_format_rate(regimes.get('trending')):>10} "
             f"{_format_rate(regimes.get('ranging')):>10} "
             f"{_format_rate(regimes.get('volatile')):>10}"
+        )
+    return 0
+
+
+def cmd_correlation(args: argparse.Namespace) -> int:
+    from app.services.correlation import CorrelationService
+
+    trades = _load_trades(args.config_dir)
+    if not trades:
+        print("No trades. Import trades first.", file=sys.stderr)
+        return 1
+    result = CorrelationService(window_days=args.window).compute(trades)
+    if result.get("source") == "insufficient_data":
+        print(str(result.get("reason") or "Insufficient data for correlation monitoring."))
+        return 0
+
+    print(f"Correlation monitor ({result['window_days']} days)")
+    print(f"Tickers: {', '.join(result.get('tickers') or [])}")
+    print(f"Average correlation: {float(result.get('avg_correlation') or 0.0):.2f}")
+    max_pair = result.get("max_pair")
+    if isinstance(max_pair, dict):
+        print(
+            "Max pair: "
+            f"{max_pair.get('ticker_a')} / {max_pair.get('ticker_b')} "
+            f"({float(max_pair.get('correlation') or 0.0):.2f})"
+        )
+    alerts = result.get("alerts") or []
+    if alerts:
+        print("Alerts:")
+        for alert in alerts:
+            print(f"- {alert.get('level')}: {alert.get('message')}")
+    else:
+        print("Alerts: none")
+    print(f"{'Pair':18} {'Correlation':>12}")
+    for pair in (result.get("pairs") or [])[:10]:
+        print(
+            f"{str(pair.get('ticker_a')) + '/' + str(pair.get('ticker_b')):18} "
+            f"{float(pair.get('correlation') or 0.0):12.2f}"
+        )
+    return 0
+
+
+def cmd_vix_timing(args: argparse.Namespace) -> int:
+    from app.services.regime import RegimeService
+    from app.services.vix_timing import HOLD_BUCKETS, HOLD_DISPLAY, VIX_BUCKETS, VIX_DISPLAY, VIXTimingService
+
+    trades = _load_trades(args.config_dir)
+    if not trades:
+        print("No trades. Import trades first.", file=sys.stderr)
+        return 1
+
+    vix_data = RegimeService().get_historical_vix(trades)
+    result = VIXTimingService().analyze(trades, vix_data)
+    print("VIX timing analysis")
+    print(f"Analyzed: {int(result.get('total_analyzed') or 0)}")
+    print(f"Skipped: {int(result.get('total_skipped') or 0)}")
+    print(f"{'Hold period':16} {'Low VIX':>12} {'Medium VIX':>12} {'High VIX':>12}")
+    matrix = result.get("matrix") if isinstance(result.get("matrix"), dict) else {}
+    for hold_bucket in HOLD_BUCKETS:
+        row = matrix.get(hold_bucket, {}) if isinstance(matrix, dict) else {}
+        values = []
+        for vix_bucket in VIX_BUCKETS:
+            cell = row.get(vix_bucket, {}) if isinstance(row, dict) else {}
+            if cell.get("count"):
+                values.append(f"{float(cell.get('accuracy') or 0.0):.0%}/{int(cell.get('count') or 0)}")
+            else:
+                values.append("-")
+        print(f"{HOLD_DISPLAY[hold_bucket]:16} {values[0]:>12} {values[1]:>12} {values[2]:>12}")
+
+    best = result.get("best_bucket")
+    if isinstance(best, dict):
+        print(
+            "Best: "
+            f"{HOLD_DISPLAY.get(str(best.get('hold_bucket')), str(best.get('hold_bucket')))} / "
+            f"{VIX_DISPLAY.get(str(best.get('vix_bucket')), str(best.get('vix_bucket')))} "
+            f"({float(best.get('accuracy') or 0.0):.0%}, {int(best.get('count') or 0)} trades)"
+        )
+    worst = result.get("worst_bucket")
+    if isinstance(worst, dict):
+        print(
+            "Worst: "
+            f"{HOLD_DISPLAY.get(str(worst.get('hold_bucket')), str(worst.get('hold_bucket')))} / "
+            f"{VIX_DISPLAY.get(str(worst.get('vix_bucket')), str(worst.get('vix_bucket')))} "
+            f"({float(worst.get('accuracy') or 0.0):.0%}, {int(worst.get('count') or 0)} trades)"
+        )
+
+    print("Performance observations")
+    for recommendation in result.get("recommendations") or []:
+        print(f"- {recommendation}")
+    return 0
+
+
+def cmd_promote(args: argparse.Namespace) -> int:
+    from app.services.promotion import PromotionService, _metrics, strategy_key
+
+    trades = _load_trades(args.config_dir)
+    service = PromotionService(config_dir=args.config_dir)
+    if args.evaluate:
+        events = service.evaluate(trades, conservation_status={"phase": "unknown", "source": "cli"})
+        if not events:
+            print("No tier changes. Conservation status is unknown in CLI mode; promotions require GREEN conservation.")
+            return 0
+        print("Promotion events")
+        for event in events:
+            print(
+                f"{event['strategy_key']}: {event['action']} "
+                f"{event['from_tier']} -> {event['to_tier']} "
+                f"({event['reason']})"
+            )
+        return 0
+
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for trade in trades:
+        category = trade.get("category")
+        if not category:
+            continue
+        key = strategy_key(str(category), trade.get("strategy_tag") or trade.get("thesis_type"))
+        groups.setdefault(key, []).append(trade)
+    if not groups:
+        print("No strategies tracked yet. Score trades to begin.")
+        return 0
+
+    print(f"{'Strategy':28} {'Tier':12} {'Verified':>8} {'Win rate':>8}")
+    for key, rows in sorted(groups.items()):
+        metrics = _metrics(rows)
+        print(
+            f"{key[:28]:28} "
+            f"{service.get_tier(key):12} "
+            f"{metrics['verified_count']:8d} "
+            f"{metrics['win_rate']:8.0%}"
         )
     return 0
 
@@ -356,6 +572,42 @@ def _filter_journal_trades(
     if losses_only:
         output = [trade for trade in output if _trade_pnl(trade) is not None and (_trade_pnl(trade) or 0.0) <= 0]
     return output
+
+
+def _is_options_like_trade(trade: dict[str, Any]) -> bool:
+    if str(trade.get("category") or "") == "income_strategy":
+        return True
+    metadata = trade.get("metadata") if isinstance(trade.get("metadata"), dict) else {}
+    text = " ".join(
+        str(value or "")
+        for value in (
+            trade.get("strategy_tag"),
+            trade.get("thesis_type"),
+            trade.get("category"),
+            trade.get("subcategory"),
+            trade.get("notes"),
+            trade.get("direction"),
+            metadata.get("strategy_tag"),
+            metadata.get("notes"),
+        )
+    ).lower().replace("-", "_").replace(" ", "_")
+    return any(
+        token in text
+        for token in (
+            "option",
+            "straddle",
+            "strangle",
+            "iron_condor",
+            "credit",
+            "debit",
+            "covered",
+            "wheel",
+            "calendar",
+            "butterfly",
+            "premium",
+            "iv",
+        )
+    )
 
 
 def _trade_pnl(trade: dict[str, Any]) -> float | None:
@@ -484,7 +736,19 @@ def build_parser() -> argparse.ArgumentParser:
     journal_parser.set_defaults(func=cmd_journal)
 
     regime_parser = subparsers.add_parser("regime", help="Show current market regime and local regime accuracy.")
+    regime_parser.add_argument("--detail", action="store_true")
     regime_parser.set_defaults(func=cmd_regime)
+
+    correlation_parser = subparsers.add_parser("correlation", help="Monitor cross-position correlation concentration.")
+    correlation_parser.add_argument("--window", type=int, default=20)
+    correlation_parser.set_defaults(func=cmd_correlation)
+
+    vix_timing_parser = subparsers.add_parser("vix-timing", help="Analyze hold periods across VIX conditions.")
+    vix_timing_parser.set_defaults(func=cmd_vix_timing)
+
+    promote_parser = subparsers.add_parser("promote", help="Show or evaluate strategy promotion tiers.")
+    promote_parser.add_argument("--evaluate", action="store_true")
+    promote_parser.set_defaults(func=cmd_promote)
 
     export_parser = subparsers.add_parser("export", help="Export local trades.")
     export_parser.add_argument("--format", choices=["json", "csv"], default="json")

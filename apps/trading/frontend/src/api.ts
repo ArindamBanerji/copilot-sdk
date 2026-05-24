@@ -3,6 +3,7 @@ import type {
   AnalyticsResponse,
   ConservationBreakdownResponse,
   ConservationState,
+  CorrelationResponse,
   EvidenceResponse,
   FingerprintResponse,
   LearnResponse,
@@ -10,6 +11,8 @@ import type {
   PatternDetectionResponse,
   PrescoreRequest,
   PrescoreResponse,
+  RegimeDetailResponse,
+  PromotionResponse,
   RegimeResponse,
   ScoreResponse,
   SelfAccuracyByCategoryResponse,
@@ -25,6 +28,7 @@ import type {
   TradesResponse,
   TrajectoryResponse,
   TrustAnalysisResponse,
+  VIXTimingResponse,
 } from "./types";
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8010";
@@ -117,12 +121,16 @@ export function fetchTradeDetail(tradeId: string): Promise<TradeDetailResponse |
 }
 
 export function fetchAnalytics(
-  groupBy: "category" | "ticker" | "strategy_tag" | "regime" | "month" = "category",
+  groupBy: "category" | "ticker" | "strategy_tag" | "regime" | "month" | "subcategory" = "category",
   params: TradeJournalFilters = {},
 ): Promise<AnalyticsResponse | null> {
   const query = new URLSearchParams(journalQuery(params));
   query.set("group_by", groupBy);
   return safeApiGet<AnalyticsResponse>(`/api/trading/analytics?${query.toString()}`);
+}
+
+export function fetchSubcategoryAnalytics(params: TradeJournalFilters = {}): Promise<AnalyticsResponse | null> {
+  return fetchAnalytics("subcategory", params);
 }
 
 export function fetchEvidence(tradeId: string): Promise<EvidenceResponse | null> {
@@ -131,6 +139,23 @@ export function fetchEvidence(tradeId: string): Promise<EvidenceResponse | null>
 
 export function fetchRegime(): Promise<RegimeResponse | null> {
   return safeApiGet<RegimeResponse>("/api/trading/regime");
+}
+
+export function fetchRegimeDetail(): Promise<RegimeDetailResponse | null> {
+  return safeApiGet<RegimeDetailResponse>("/api/trading/regime/detail");
+}
+
+export function fetchPromotion(): Promise<PromotionResponse | null> {
+  return safeApiGet<PromotionResponse>("/api/trading/promotion");
+}
+
+export function fetchCorrelation(window = 20): Promise<CorrelationResponse | null> {
+  const params = new URLSearchParams({ window: String(window) });
+  return safeApiGet<CorrelationResponse>(`/api/trading/correlation?${params.toString()}`);
+}
+
+export function fetchVIXTiming(): Promise<VIXTimingResponse | null> {
+  return safeApiGet<VIXTimingResponse>("/api/trading/vix-timing");
 }
 
 export async function prescoreTrade(payload: PrescoreRequest): Promise<PrescoreResponse | null> {

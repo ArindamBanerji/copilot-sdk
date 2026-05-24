@@ -11,6 +11,7 @@ import {
 } from "../api";
 import EngineAssessment from "../components/EngineAssessment";
 import EvidencePanel from "../components/EvidencePanel";
+import OptionsFactorPanel from "../components/OptionsFactorPanel";
 import PositionSizer, { computePositionSizing } from "../components/PositionSizer";
 import PreScorePanel from "../components/PreScorePanel";
 import ResearchChecklist from "../components/ResearchChecklist";
@@ -110,6 +111,25 @@ function getSimilarAction(trade: SimilarTrade): string | undefined {
     }
   }
   return undefined;
+}
+
+function isOptionsContext(form: TradeFormState): boolean {
+  if (form.category === "income_strategy") return true;
+  const text = `${form.thesisType} ${form.category}`.toLowerCase().replace(/[-\s]/g, "_");
+  return [
+    "option",
+    "straddle",
+    "strangle",
+    "iron_condor",
+    "credit",
+    "debit",
+    "covered",
+    "wheel",
+    "calendar",
+    "butterfly",
+    "premium",
+    "iv",
+  ].some((token) => text.includes(token));
 }
 
 export default function LogTradeScreen() {
@@ -283,6 +303,7 @@ export default function LogTradeScreen() {
       />
 
       <PreScorePanel ticker={form.ticker} category={form.category} sizePct={sizing.exposurePct || 2} />
+      {isOptionsContext(form) ? <OptionsFactorPanel showEmpty analyticsOnly /> : null}
 
       <section className="copilot-card p-4">
         <h2 className="text-base font-semibold">Trade Thesis</h2>

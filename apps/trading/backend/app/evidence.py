@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from app.services.subcategory import get_subcategory
+
 try:
     from app.factors.registry import ALL_FACTOR_NAMES
 except Exception:
@@ -172,11 +174,20 @@ class TradingTemplateEngine:
         confidence: float,
         context: Mapping[str, Any],
     ) -> str:
+        subcategory = get_subcategory({
+            "category": "event_driven",
+            "strategy_tag": trade.get("strategy_tag") or context.get("strategy_tag"),
+            "direction": trade.get("direction") or context.get("direction"),
+            "notes": trade.get("notes") or context.get("notes"),
+            "metadata": trade.get("metadata") if isinstance(trade.get("metadata"), dict) else {},
+            "subcategory": trade.get("subcategory") or context.get("subcategory"),
+        })
+        label = "Volatility play" if subcategory == "volatility" else "Direction play"
         return self._base(
             trade,
             action,
             confidence,
-            f"Event-driven setup has {_quality(factors.get('signal_confidence'))} signal confidence and {_quality(factors.get('risk_reward_actual'))} risk/reward.",
+            f"Event: {label}. Event-driven setup has {_quality(factors.get('signal_confidence'))} signal confidence and {_quality(factors.get('risk_reward_actual'))} risk/reward.",
             context,
             factors,
         )
@@ -189,11 +200,18 @@ class TradingTemplateEngine:
         confidence: float,
         context: Mapping[str, Any],
     ) -> str:
+        options_text = _options_analytics_text(context.get("options_factors"))
+        thesis = (
+            f"Income strategy setup has {_quality(factors.get('risk_reward_actual'))} risk/reward "
+            f"and {_sizing_label(factors.get('position_sizing'))}."
+        )
+        if options_text:
+            thesis = f"{thesis} {options_text}"
         return self._base(
             trade,
             action,
             confidence,
-            f"Income strategy setup has {_quality(factors.get('risk_reward_actual'))} risk/reward and {_sizing_label(factors.get('position_sizing'))}.",
+            thesis,
             context,
             factors,
         )
@@ -273,3 +291,12 @@ def _optional_float(value: Any) -> float | None:
     if number != number or number in (float("inf"), float("-inf")):
         return None
     return number
+
+
+def _options_analytics_text(options_factors: Any) -> str:
+    if not isinstance(options_factors, Mapping):
+        return ""
+    iv_rv = _number(options_factors.get("iv_rv_ratio"), 0.5)
+    greeks = _number(options_factors.get("greeks_exposure"), 0.5)
+    theta = _number(options_factors.get("theta_efficiency"), 0.5)
+    return f"Options analytics-only: IV/RV {iv_rv:.2f}, Greeks {greeks:.2f}, Theta {theta:.2f}."

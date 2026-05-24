@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchAnalytics, fetchTradeDetail, fetchTrades, type TradeJournalFilters } from "../api";
+import { fetchAnalytics, fetchSubcategoryAnalytics, fetchTradeDetail, fetchTrades, type TradeJournalFilters } from "../api";
 import EvidencePanel from "../components/EvidencePanel";
+import OptionsFactorPanel from "../components/OptionsFactorPanel";
 import type { AnalyticsResponse, JournalAggregate, TradeJournalEntry, TradesResponse } from "../types";
 
 const categories = [
@@ -33,6 +34,11 @@ function label(value: unknown): string {
   return typeof value === "string" && value ? value.replace(/_/g, " ") : "-";
 }
 
+function categoryLabel(value: unknown): string {
+  if (value === "event_driven") return "Event Driven";
+  return label(value);
+}
+
 function factorEntries(trade?: TradeJournalEntry | null) {
   return Object.entries(trade?.factors || {}).filter(([, value]) => typeof value === "number");
 }
@@ -41,6 +47,7 @@ export default function JournalScreen() {
   const [filters, setFilters] = useState<TradeJournalFilters>({ limit: 50 });
   const [tradesPayload, setTradesPayload] = useState<TradesResponse | null>(null);
   const [analyticsPayload, setAnalyticsPayload] = useState<AnalyticsResponse | null>(null);
+  const [subcategoryAnalyticsPayload, setSubcategoryAnalyticsPayload] = useState<AnalyticsResponse | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedTrade, setSelectedTrade] = useState<TradeJournalEntry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,13 +59,15 @@ export default function JournalScreen() {
       setLoading(true);
       setError(null);
       try {
-        const [trades, analytics] = await Promise.all([
+        const [trades, analytics, subcategoryAnalytics] = await Promise.all([
           fetchTrades(filters),
           fetchAnalytics("category", filters),
+          fetchSubcategoryAnalytics(filters),
         ]);
         if (cancelled) return;
         setTradesPayload(trades);
         setAnalyticsPayload(analytics);
+        setSubcategoryAnalyticsPayload(subcategoryAnalytics);
         if (!trades || !analytics) {
           setError("Trade journal is unavailable.");
         }
@@ -94,6 +103,7 @@ export default function JournalScreen() {
   const aggregate = tradesPayload?.aggregate;
   const selected = selectedTrade || trades.find((trade) => trade.tradeId === selectedId);
   const categoryGroups = useMemo(() => analyticsPayload?.groups || [], [analyticsPayload]);
+  const subcategoryGroups = useMemo(() => subcategoryAnalyticsPayload?.groups || [], [subcategoryAnalyticsPayload]);
 
   function updateFilter<K extends keyof TradeJournalFilters>(key: K, value: TradeJournalFilters[K]) {
     setSelectedId(null);
@@ -238,10 +248,11 @@ export default function JournalScreen() {
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 {categoryGroups.map((group) => (
                   <div key={group.key} className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
-                    <div className="text-sm font-semibold capitalize">{label(group.key)}</div>
+                    <div className="text-sm font-semibold capitalize">{categoryLabel(group.key)}</div>
                     <div className="mt-2 text-xs trading-muted">{group.count ?? group.totalTrades ?? 0} trades</div>
                     <div className="mt-2 text-sm">Win rate <span className="font-semibold">{pct(group.winRate)}</span></div>
                     <div className="text-sm">Total P&L <span className="font-semibold">{money(group.totalPnl)}</span></div>
+                    {group.key === "event_driven" ? <EventDrivenSubcategorySplit groups={subcategoryGroups} /> : null}
                   </div>
                 ))}
               </div>
@@ -254,6 +265,39 @@ export default function JournalScreen() {
           {selected?.tradeId ? <EvidencePanel tradeId={selected.tradeId} /> : null}
         </>
       ) : null}
+    </div>
+  );
+}
+
+function EventDrivenSubcategorySplit({ groups }: { groups: AnalyticsResponse["groups"] }) {
+  if (!groups?.length) {
+    return (
+      <p className="mt-3 border-t pt-3 text-xs trading-muted" style={{ borderColor: "var(--copilot-border)" }}>
+        No event-driven subcategory split yet.
+      </p>
+    );
+  }
+  const byKey = new Map(groups.map((group) => [group.key, group]));
+  const rows = [
+    { key: "directional", label: "Directional" },
+    { key: "volatility", label: "Volatility" },
+  ];
+  return (
+    <div className="mt-3 border-t pt-3" style={{ borderColor: "var(--copilot-border)" }}>
+      <div className="text-xs font-semibold uppercase trading-muted">Event Driven Split</div>
+      <div className="mt-2 grid gap-2">
+        {rows.map((row) => {
+          const group = byKey.get(row.key);
+          return (
+            <div key={row.key} className="flex items-center justify-between gap-3 rounded-md px-2 py-1 text-xs" style={{ background: "var(--copilot-surface-muted)" }}>
+              <span className="font-medium">{row.label}</span>
+              <span className="trading-muted">
+                {group?.count ?? group?.totalTrades ?? 0} trades, {pct(group?.winRate)} win rate
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -307,6 +351,11 @@ function TradeDetailPanel({ trade }: { trade: TradeJournalEntry }) {
           <p className="mt-2 text-sm trading-muted">No factor details available for this trade.</p>
         )}
       </div>
+      {trade.optionsFactors ? (
+        <div className="mt-4">
+          <OptionsFactorPanel optionsFactors={trade.optionsFactors} analyticsOnly={trade.optionsAnalyticsOnly !== false} />
+        </div>
+      ) : null}
       <div className="mt-4">
         <h4 className="text-sm font-semibold">Metadata</h4>
         <pre className="mt-2 max-h-48 overflow-auto rounded-md p-3 text-xs" style={{ background: "var(--copilot-surface-muted)" }}>

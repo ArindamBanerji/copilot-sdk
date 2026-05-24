@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { prescoreTrade } from "../api";
 import type { PrescoreResponse, TradingCategory } from "../types";
+import OptionsFactorPanel from "./OptionsFactorPanel";
 
 const categories: TradingCategory[] = ["trend_following", "mean_reversion", "event_driven", "income_strategy", "scalp_intraday"];
 
@@ -225,6 +226,13 @@ export default function PreScorePanel({
                 </div>
               ))}
             </div>
+          ) : null}
+
+          {result.optionsFactors ? (
+            <OptionsFactorPanel
+              optionsFactors={result.optionsFactors}
+              analyticsOnly={result.optionsAnalyticsOnly !== false}
+            />
           ) : null}
         </div>
       ) : null}

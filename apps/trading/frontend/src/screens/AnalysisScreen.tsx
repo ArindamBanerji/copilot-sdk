@@ -3,6 +3,7 @@ import { FingerprintPanel, type FactorItem } from "../../../../../copilot_sdk/fr
 import { getAnalytics, getFingerprint } from "../api";
 import AuditTrailViewer from "../components/AuditTrailViewer";
 import ContrastCard from "../components/ContrastCard";
+import CorrelationPanel from "../components/CorrelationPanel";
 import CounterfactualCard from "../components/CounterfactualCard";
 import DayOfWeekChart from "../components/DayOfWeekChart";
 import DecisionExplorerPanel from "../components/DecisionExplorerPanel";
@@ -115,6 +116,7 @@ export default function AnalysisScreen() {
         perCategoryPrecision={fingerprint?.perCategoryPrecision}
         decisionsAnalyzed={fingerprint?.decisionsAnalyzed}
       />
+      <CorrelationPanel />
       <DecisionExplorerPanel />
       <CounterfactualCard analytics={analytics} />
       <DayOfWeekChart analytics={analytics} />

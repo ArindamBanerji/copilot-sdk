@@ -121,6 +121,9 @@ class RegimeService:
             for category, regimes in sorted(buckets.items())
         }
 
+    def get_historical_vix(self, trades: list[dict[str, Any]]) -> dict[str, float]:
+        return self._batch_vix_lookup(trades)
+
     def _batch_vix_lookup(self, trades: list[dict[str, Any]]) -> dict[str, float]:
         dates = sorted({_trade_date(trade) for trade in trades if _trade_date(trade)})
         if not dates or not YFINANCE_AVAILABLE or yf is None:

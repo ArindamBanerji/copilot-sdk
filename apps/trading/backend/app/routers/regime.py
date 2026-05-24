@@ -8,6 +8,8 @@ from fastapi import APIRouter
 
 from app.routers.journal import _journal_records
 from app.services.regime import RegimeService
+from app.services.regime_recommender import RegimeRecommender
+from copilot_sdk.backend.conservation_router import _check_payload, _state_counts
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -33,6 +35,19 @@ def create_regime_router(
             "accuracy_by_category": accuracy,
             "recommendations": _regime_recommendations(str(current.get("regime") or "ranging"), accuracy),
         }
+
+    @router.get("/regime/detail")
+    def regime_detail() -> dict[str, Any]:
+        service = service_factory()
+        trades = _journal_records(graph_store_factory, domain)
+        current = service.get_current_regime()
+        accuracy = service.get_regime_accuracy(trades)
+        conservation = _conservation_status(graph_store_factory)
+        return RegimeRecommender().recommend(
+            str(current.get("regime") or "ranging"),
+            accuracy,
+            conservation_status=conservation,
+        )
 
     return router
 
@@ -64,3 +79,27 @@ def _regime_recommendations(
             }
         )
     return sorted(recommendations, key=lambda item: item["accuracy"], reverse=True)
+
+
+def _conservation_status(graph_store_factory: GraphStoreFactory | None) -> dict[str, Any] | None:
+    if graph_store_factory is None:
+        return None
+    store = None
+    try:
+        store = graph_store_factory()
+        counts = _state_counts(store)
+        from gae.calibration import conservation_status
+
+        check = conservation_status(
+            verified_count=counts["verified_count"],
+            correct_count=counts["correct_count"],
+            total_decisions=counts["total_decisions"],
+            penalty_ratio=counts["penalty_ratio"],
+        )
+        return {**counts, **_check_payload(check)}
+    except Exception:
+        return None
+    finally:
+        close = getattr(store, "close", None)
+        if callable(close):
+            close()

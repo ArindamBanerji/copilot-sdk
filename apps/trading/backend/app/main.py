@@ -22,11 +22,14 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
         sys.path.insert(0, str(path))
 
 from .context_router import router as context_router  # noqa: E402
+from .routers.correlation import create_correlation_router  # noqa: E402
 from .routers.data_import import router as data_import_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from .routers.journal import create_journal_router  # noqa: E402
 from .routers.prescore import create_prescore_router  # noqa: E402
+from .routers.promotion import create_promotion_router  # noqa: E402
 from .routers.regime import create_regime_router  # noqa: E402
+from .routers.vix_timing import create_vix_timing_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
@@ -87,6 +90,12 @@ def _resolve_scoring_db(db_path: str | Path | None) -> str:
     if str(resolved) != ":memory:":
         resolved.parent.mkdir(parents=True, exist_ok=True)
     return str(resolved)
+
+
+def _promotion_config_dir(scoring_db: str) -> Path:
+    if scoring_db == ":memory:":
+        return DATA_DIR
+    return Path(scoring_db).parent
 
 
 def _coerce_factor(value: Any) -> float:
@@ -251,8 +260,17 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     app.include_router(context_router, prefix="/api/context")
     app.include_router(create_evidence_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
     app.include_router(create_journal_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_correlation_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
     app.include_router(create_prescore_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(
+        create_promotion_router(
+            lambda: _graph_store(scoring_db),
+            config_dir=_promotion_config_dir(scoring_db),
+            domain=DOMAIN,
+        )
+    )
     app.include_router(create_regime_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_vix_timing_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
     app.include_router(data_import_router)
 
     def _run_startup_seed_once() -> None:

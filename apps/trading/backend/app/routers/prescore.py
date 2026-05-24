@@ -9,9 +9,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.evidence import TradingTemplateEngine
+from app.factors.options import compute_options_factors
 from app.factors.registry import compute_factors
 from app.routers.journal import _journal_records
 from app.services.regime import RegimeService
+from app.services.subcategory import get_subcategory
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -23,6 +25,7 @@ class PreScoreRequest(BaseModel):
     direction: str = "long"
     strategy_tag: str | None = None
     category: str | None = None
+    notes: str | None = None
     size_pct: float = Field(default=0.0)
 
 
@@ -46,6 +49,12 @@ def create_prescore_router(
         regime = service.get_current_regime()
         current_regime = str(regime.get("regime") or "ranging")
         category = request.category or _auto_classify(request, trades)
+        subcategory = get_subcategory({
+            "category": category,
+            "strategy_tag": request.strategy_tag,
+            "direction": request.direction,
+            "notes": request.notes,
+        })
         accuracy = service.get_regime_accuracy(trades)
         regime_accuracy = float(accuracy.get(category, {}).get(current_regime, 0.5))
         context = _context_for(
@@ -56,7 +65,13 @@ def create_prescore_router(
             regime=regime,
             regime_accuracy=regime_accuracy,
         )
+        if subcategory:
+            context["subcategory"] = subcategory
         factors = compute_factors(context)
+        options_factors = compute_options_factors(context) if _is_options_like(context) else None
+        if options_factors:
+            context["options_factors"] = options_factors
+            context["options_analytics_only"] = True
         action, confidence = _local_action_confidence(factors)
         recommendation = _recommendation(confidence, regime_accuracy, factors)
         warnings = _warnings(
@@ -73,8 +88,10 @@ def create_prescore_router(
             "category": category,
             "strategy_tag": request.strategy_tag,
         }
+        if subcategory:
+            trade_dict["subcategory"] = subcategory
 
-        return {
+        response = {
             "recommendation": recommendation,
             "confidence": confidence,
             "action": action,
@@ -85,6 +102,12 @@ def create_prescore_router(
             "evidence": engine.render(trade_dict, factors, action, confidence, context),
             "category": category,
         }
+        if subcategory:
+            response["subcategory"] = subcategory
+        if options_factors:
+            response["options_factors"] = options_factors
+            response["options_analytics_only"] = True
+        return response
 
     return router
 
@@ -158,6 +181,7 @@ def _context_for(
         "direction": request.direction,
         "category": category,
         "strategy_tag": request.strategy_tag,
+        "notes": request.notes,
         "current_regime": regime.get("regime") or "ranging",
         "regime_accuracy": regime_accuracy,
         "vix_at_entry": _number(regime.get("vix")) or 20.0,
@@ -189,6 +213,32 @@ def _auto_classify(body: PreScoreRequest | dict[str, Any], trades: list[dict[str
     if any(token in text for token in ("scalp", "quick", "intraday")):
         return "scalp_intraday"
     return "trend_following"
+
+
+def _is_options_like(context: dict[str, Any]) -> bool:
+    if str(context.get("category") or "") == "income_strategy":
+        return True
+    text = " ".join(
+        str(context.get(key) or "")
+        for key in ("strategy_tag", "notes", "subcategory", "direction")
+    ).lower().replace("-", "_").replace(" ", "_")
+    return any(
+        token in text
+        for token in (
+            "option",
+            "straddle",
+            "strangle",
+            "iron_condor",
+            "credit",
+            "debit",
+            "covered",
+            "wheel",
+            "calendar",
+            "butterfly",
+            "premium",
+            "iv",
+        )
+    )
 
 
 def _avg_size(trades: list[dict[str, Any]]) -> float:

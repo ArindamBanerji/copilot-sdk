@@ -10,6 +10,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 
 from app.routers.data_import import _trade_store_ref
+from app.services.subcategory import get_subcategory
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -79,7 +80,7 @@ def create_journal_router(
         outcome: str | None = Query(default=None, pattern="^(win|loss)$"),
         date_from: str | None = None,
         date_to: str | None = None,
-        group_by: str = Query(default="category", pattern="^(category|ticker|strategy_tag|regime|month)$"),
+        group_by: str = Query(default="category", pattern="^(category|ticker|strategy_tag|regime|month|subcategory)$"),
     ) -> dict[str, Any]:
         filters = _filters(
             ticker=ticker,
@@ -91,6 +92,8 @@ def create_journal_router(
             date_to=date_to,
         )
         filtered = _apply_filters(_records(), filters)
+        if group_by == "subcategory":
+            filtered = [trade for trade in filtered if trade.get("category") == "event_driven"]
         groups: dict[str, list[dict[str, Any]]] = {}
         for trade in filtered:
             key = _group_key(trade, group_by)
@@ -155,6 +158,7 @@ def _normalize_trade(record: Any) -> dict[str, Any]:
     factors = _as_dict(raw.get("factors"))
     if isinstance(factors.get("metadata"), dict):
         metadata = {**factors["metadata"], **metadata}
+    options_factors = _options_factors(raw, metadata, factors)
 
     trade_id = (
         raw.get("trade_id")
@@ -174,7 +178,7 @@ def _normalize_trade(record: Any) -> dict[str, Any]:
         pnl = _number(metadata.get("pnl_dollars"))
     regime = raw.get("regime") or metadata.get("regime") or raw.get("market_regime") or metadata.get("market_regime")
 
-    return {
+    normalized = {
         "trade_id": str(trade_id) if trade_id is not None else None,
         "ticker": str(ticker).upper() if ticker else None,
         "direction": direction,
@@ -185,6 +189,7 @@ def _normalize_trade(record: Any) -> dict[str, Any]:
         "exit_time": _string_or_none(exit_time),
         "strategy_tag": raw.get("strategy_tag") or metadata.get("strategy_tag") or metadata.get("thesis_type"),
         "category": raw.get("category") or metadata.get("category"),
+        "subcategory": None,
         "regime": regime,
         "pnl": pnl,
         "factors": factors,
@@ -192,6 +197,11 @@ def _normalize_trade(record: Any) -> dict[str, Any]:
         "confidence": _number(raw.get("confidence") if raw.get("confidence") is not None else metadata.get("confidence")),
         "metadata": metadata,
     }
+    if options_factors:
+        normalized["options_factors"] = options_factors
+        normalized["options_analytics_only"] = True
+    normalized["subcategory"] = get_subcategory(normalized)
+    return normalized
 
 
 def _filters(**kwargs: str | None) -> dict[str, str]:
@@ -251,12 +261,29 @@ def _group_key(trade: dict[str, Any], group_by: str) -> str:
     if group_by == "month":
         parsed = _entry_date(trade)
         return parsed.strftime("%Y-%m") if parsed is not None else "unknown"
+    if group_by == "subcategory":
+        return get_subcategory(trade) or "other"
     value = trade.get(group_by)
     return str(value) if value not in {None, ""} else "unknown"
 
 
 def _as_dict(value: Any) -> dict[str, Any]:
     return dict(value) if isinstance(value, dict) else {}
+
+
+def _options_factors(
+    raw: dict[str, Any],
+    metadata: dict[str, Any],
+    factors: dict[str, Any],
+) -> dict[str, Any] | None:
+    for source in (
+        raw.get("options_factors"),
+        metadata.get("options_factors"),
+        factors.get("options_factors"),
+    ):
+        if isinstance(source, dict):
+            return dict(source)
+    return None
 
 
 def _number(value: Any) -> float | None:

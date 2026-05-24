@@ -8,9 +8,11 @@ import {
 import { getAnalytics, getConservationStatus, getTrajectory } from "../api";
 import CategoryPerformance from "../components/CategoryPerformance";
 import CentroidTimelineChart from "../components/CentroidTimelineChart";
+import PromotionPanel from "../components/PromotionPanel";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
 import StrategySafetyBreakdownPanel from "../components/StrategySafetyBreakdownPanel";
+import VIXTimingPanel from "../components/VIXTimingPanel";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
 
 function pct(value: number | null | undefined): string {
@@ -117,6 +119,8 @@ export default function PerformanceScreen() {
       />
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <StrategySafetyBreakdownPanel />
+      <PromotionPanel />
+      <VIXTimingPanel />
       <CentroidTimelineChart />
       <RollingMetrics analytics={analytics} />
       <CategoryPerformance analytics={analytics} />

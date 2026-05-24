@@ -127,6 +127,8 @@ export interface TradeJournalEntry {
   regime?: string | null;
   pnl?: NullableNumber;
   factors?: Record<string, unknown>;
+  optionsFactors?: OptionsFactors;
+  optionsAnalyticsOnly?: boolean;
   action?: string | null;
   confidence?: NullableNumber;
   metadata?: Record<string, unknown>;
@@ -158,6 +160,8 @@ export interface EvidenceResponse {
   evidenceText?: string;
   factorBreakdown?: string[];
   factors?: Record<string, number>;
+  optionsFactors?: OptionsFactors;
+  optionsAnalyticsOnly?: boolean;
   action?: string;
   confidence?: NullableNumber;
 }
@@ -188,6 +192,34 @@ export interface RegimeResponse {
   recommendations?: RegimeRecommendation[];
 }
 
+export interface RegimeDetailRecommendation {
+  category?: string;
+  currentAccuracy?: NullableNumber;
+  baselineAccuracy?: NullableNumber;
+  deltaPp?: NullableNumber;
+  action?: "avoid" | "reduce" | "hold" | "increase" | string;
+  shiftPct?: NullableNumber;
+  rationale?: string;
+  regimeNeutral?: boolean;
+}
+
+export interface RegimeTransition {
+  fromRegime?: string;
+  toRegime?: string;
+  avgAccuracyDeltaPp?: NullableNumber;
+  categoriesAffected?: string[];
+  count?: number;
+}
+
+export interface RegimeDetailResponse {
+  regime?: string;
+  recommendations?: RegimeDetailRecommendation[];
+  regimeTransitions?: RegimeTransition[];
+  conservationSafe?: boolean;
+  conservationStatus?: "safe" | "unsafe" | "unknown" | string;
+  summary?: string;
+}
+
 export interface PrescoreRequest {
   ticker: string;
   direction: "long" | "short" | string;
@@ -196,16 +228,105 @@ export interface PrescoreRequest {
   sizePct?: number;
 }
 
+export interface OptionsFactors {
+  ivRvRatio?: NullableNumber;
+  greeksExposure?: NullableNumber;
+  thetaEfficiency?: NullableNumber;
+}
+
 export interface PrescoreResponse {
   recommendation?: "proceed" | "reduce" | "skip" | string;
   confidence?: NullableNumber;
   action?: string;
   factors?: Record<string, number>;
+  optionsFactors?: OptionsFactors;
+  optionsAnalyticsOnly?: boolean;
   regime?: RegimeCurrent;
   regimeAccuracy?: NullableNumber;
   warnings?: string[];
   evidence?: string;
   category?: string;
+  subcategory?: string;
+}
+
+export interface PromotionStrategy {
+  key?: string;
+  strategyKey?: string;
+  category?: string;
+  strategyTag?: string | null;
+  tier?: "paper" | "small_live" | "full_live" | string;
+  winRate?: NullableNumber;
+  verified?: number;
+}
+
+export interface PromotionEvent {
+  strategyKey?: string;
+  action?: "promote" | "demote" | string;
+  fromTier?: string;
+  toTier?: string;
+  winRate?: NullableNumber;
+  verifiedCount?: number;
+  reason?: string;
+  timestamp?: string;
+}
+
+export interface PromotionResponse {
+  strategies?: PromotionStrategy[];
+  history?: PromotionEvent[];
+}
+
+export interface CorrelationPair {
+  tickerA?: string;
+  tickerB?: string;
+  correlation?: NullableNumber;
+}
+
+export interface CorrelationAlert {
+  level?: "warning" | "critical" | string;
+  message?: string;
+  value?: NullableNumber;
+  tickerA?: string;
+  tickerB?: string;
+  tickers?: string[];
+  correlation?: NullableNumber;
+}
+
+export interface CorrelationResponse {
+  tickers?: string[];
+  matrix?: number[][];
+  pairs?: CorrelationPair[];
+  avgCorrelation?: NullableNumber;
+  maxPair?: CorrelationPair | null;
+  alerts?: CorrelationAlert[];
+  windowDays?: number;
+  source?: string;
+  reason?: string;
+}
+
+export interface VIXTimingCell {
+  count?: number;
+  wins?: number;
+  accuracy?: NullableNumber;
+}
+
+export interface VIXTimingBucket {
+  hold?: string;
+  holdBucket?: string;
+  vix?: string;
+  vixBucket?: string;
+  accuracy?: NullableNumber;
+  count?: number;
+}
+
+export interface VIXTimingResponse {
+  matrix?: Record<string, Record<string, VIXTimingCell>>;
+  bestBucket?: VIXTimingBucket | null;
+  worstBucket?: VIXTimingBucket | null;
+  recommendations?: string[];
+  totalAnalyzed?: number;
+  totalSkipped?: number;
+  holdLabels?: Record<string, string>;
+  vixLabels?: Record<string, string>;
 }
 
 export interface TickerData {

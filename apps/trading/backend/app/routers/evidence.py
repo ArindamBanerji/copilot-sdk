@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from app import context_router
 from app.evidence import TradingTemplateEngine
+from app.factors.options import compute_options_factors
 from app.factors.registry import ALL_FACTOR_NAMES, compute_factors
 from app.routers.journal import _journal_records
 
@@ -33,11 +34,15 @@ def create_evidence_router(
 
         context = _context_for(trade)
         factors = _factors_for(trade, context)
+        options_factors = _options_factors_for(trade, context)
+        if options_factors:
+            context["options_factors"] = options_factors
+            context["options_analytics_only"] = True
         action = _action_for(trade)
         confidence = _confidence_for(trade)
         evidence_text = engine.render(trade, factors, action, confidence, context)
 
-        return {
+        response = {
             "trade_id": str(trade.get("trade_id")),
             "evidence_text": evidence_text,
             "factor_breakdown": engine.render_factor_breakdown(factors),
@@ -45,6 +50,10 @@ def create_evidence_router(
             "action": action,
             "confidence": confidence,
         }
+        if options_factors:
+            response["options_factors"] = options_factors
+            response["options_analytics_only"] = True
+        return response
 
     return router
 
@@ -138,6 +147,47 @@ def _factors_for(trade: dict[str, Any], context: dict[str, Any]) -> dict[str, fl
     for name in ALL_FACTOR_NAMES:
         factors.setdefault(name, 0.5)
     return {name: factors[name] for name in ALL_FACTOR_NAMES}
+
+
+def _options_factors_for(trade: dict[str, Any], context: dict[str, Any]) -> dict[str, float] | None:
+    raw = trade.get("options_factors") if isinstance(trade.get("options_factors"), dict) else None
+    if raw is None and isinstance(context.get("options_factors"), dict):
+        raw = context["options_factors"]
+    if raw is not None:
+        return {
+            "iv_rv_ratio": _coerce_factor(raw.get("iv_rv_ratio")),
+            "greeks_exposure": _coerce_factor(raw.get("greeks_exposure")),
+            "theta_efficiency": _coerce_factor(raw.get("theta_efficiency")),
+        }
+    if not _is_options_like(context):
+        return None
+    return compute_options_factors(context)
+
+
+def _is_options_like(context: dict[str, Any]) -> bool:
+    if str(context.get("category") or "") == "income_strategy":
+        return True
+    text = " ".join(
+        str(context.get(key) or "")
+        for key in ("strategy_tag", "thesis_type", "notes", "subcategory", "direction")
+    ).lower().replace("-", "_").replace(" ", "_")
+    return any(
+        token in text
+        for token in (
+            "option",
+            "straddle",
+            "strangle",
+            "iron_condor",
+            "credit",
+            "debit",
+            "covered",
+            "wheel",
+            "calendar",
+            "butterfly",
+            "premium",
+            "iv",
+        )
+    )
 
 
 def _action_for(trade: dict[str, Any]) -> str:
