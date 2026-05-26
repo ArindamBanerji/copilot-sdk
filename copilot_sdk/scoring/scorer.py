@@ -10,7 +10,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import numpy as np
 
@@ -19,6 +19,7 @@ from copilot_sdk.scoring.conflict import JudgmentConflict, detect_conflict
 from copilot_sdk.scoring.fingerprint import FingerprintResult, compute_fingerprint
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
+from copilot_sdk.evolution.protocol import EvolutionStore
 from copilot_sdk.graph.protocol import GraphStore
 
 
@@ -36,25 +37,27 @@ from gae.profile_scorer import ProfileScorer  # noqa: E402
 logger = logging.getLogger(__name__)
 
 
-def compute_theta_min(alpha: float, verified: int | float) -> float:
+def compute_theta_min(alpha: float, verified: int | float) -> float | None:
     """Return the canonical conservation threshold.
 
     ``alpha`` is analyst override rate: the fraction of verified decisions where
     the analyst disagreed with the system recommendation. It is not the domain
     penalty ratio used for asymmetric loss or reward scaling.
+
+    Returns None when inputs are invalid or alpha is zero (no override baseline).
     """
     try:
         alpha_value = float(alpha)
         verified_value = float(verified)
     except (TypeError, ValueError):
-        return float("inf")
+        return None
     if (
         not np.isfinite(alpha_value)
         or not np.isfinite(verified_value)
         or alpha_value <= 0
         or verified_value <= 0
     ):
-        return float("inf")
+        return None
     return 23.53 / (alpha_value * verified_value)
 
 
@@ -128,6 +131,7 @@ class CompoundingScorer:
         exploration_policy: Any | None = None,
         evolve: bool = False,
         consolidation_enabled: bool = False,
+        enable_rl: bool = True,
     ) -> "CompoundingScorer":
         if domain not in PRESET_REGISTRY:
             available = ", ".join(sorted(PRESET_REGISTRY)) or "(none)"
@@ -153,6 +157,25 @@ class CompoundingScorer:
             actions=list(preset.shape.action_names),
             categories=list(preset.shape.category_names),
         )
+        if enable_rl and (
+            reward_function is None
+            or credit_assigner is None
+            or exploration_policy is None
+        ):
+            try:
+                from copilot_sdk.rl.presets import get_rl_components
+
+                components = get_rl_components(domain, preset, graph_store=graph_store)
+            except Exception as exc:
+                logger.warning("RL setup failed for preset %s; continuing without RL: %s", domain, exc)
+            else:
+                if components is not None:
+                    if reward_function is None:
+                        reward_function = components.get("reward_function")
+                    if credit_assigner is None:
+                        credit_assigner = components.get("credit_assigner")
+                    if exploration_policy is None:
+                        exploration_policy = components.get("exploration_policy")
         return cls(
             preset=preset,
             scorer=scorer,
@@ -579,7 +602,7 @@ class CompoundingScorer:
 
         q = correct / verified
         theta_min = compute_theta_min(override_rate, verified)
-        if q < theta_min:
+        if theta_min is not None and q < theta_min:
             return {
                 "status": "paused",
                 "reason": "conservation_red",
@@ -745,7 +768,8 @@ class CompoundingScorer:
             return
 
         ledger = InMemoryEvolutionLedger(
-            graph_store=_DomainEvolutionGraphStore(self._graph_store, self._domain)
+            evolution_store=cast(EvolutionStore, self._graph_store),
+            domain=self._domain,
         )
         evolver = AgentEvolver(
             ledger=ledger,
@@ -793,7 +817,7 @@ class CompoundingScorer:
         q = correct / verified
         theta_min = compute_theta_min(override_rate, verified)
         return {
-            "status": "GREEN" if q >= theta_min else "RED",
+            "status": "GREEN" if (theta_min is None or q >= theta_min) else "RED",
             "verified_count": verified,
             "correct_count": correct,
             "q": q,
@@ -859,30 +883,6 @@ def _verified_decisions(store: Any) -> list[dict[str, Any]] | None:
 
 def _store_domain(store: Any) -> str:
     return str(getattr(store, "domain", "") or "")
-
-
-class _DomainEvolutionGraphStore:
-    """Adapter for the evolution ledger's pre-domain persistence call shape."""
-
-    def __init__(self, graph_store: GraphStore, domain: str) -> None:
-        self._graph_store = graph_store
-        self._domain = domain
-
-    def save_evolution_event(
-        self,
-        event_type: str,
-        rule_name: str = "",
-        variant_id: str = "",
-        metadata: dict[str, Any] | None = None,
-    ) -> None:
-        self._graph_store.save_evolution_event(
-            self._domain,
-            event_type,
-            rule_name=rule_name,
-            variant_id=variant_id,
-            metadata=metadata,
-        )
-
 
 def _decision_field(decision: dict[str, Any], key: str, default: Any = None) -> Any:
     if key in decision:

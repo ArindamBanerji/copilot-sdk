@@ -3,19 +3,24 @@
 from __future__ import annotations
 
 import random
-from typing import Iterable
+from typing import Any, Iterable
+
+
+_THOMPSON_STATE_KEY = "thompson_posteriors"
 
 
 class ConservationBoundedThompson:
     """Thompson sampler that disables exploration outside GREEN conservation."""
 
-    def __init__(self, n_actions: int) -> None:
+    def __init__(self, n_actions: int, graph_store: Any | None = None) -> None:
         if int(n_actions) <= 0:
             raise ValueError("n_actions must be positive")
         self.n_actions = int(n_actions)
+        self._graph_store = graph_store
         self.alpha = [1.0 for _ in range(self.n_actions)]
         self.beta = [1.0 for _ in range(self.n_actions)]
         self._conservation_status = "GREEN"
+        self._load_from_store()
 
     def select_action(self, probabilities: Iterable[float]) -> int:
         values = [float(value) for value in probabilities]
@@ -45,6 +50,7 @@ class ConservationBoundedThompson:
             self.alpha[action_index] += value
         elif value < 0.0:
             self.beta[action_index] += abs(value)
+        self._persist()
 
     def set_conservation_status(self, status: str) -> None:
         normalized = str(status).strip().upper()
@@ -69,6 +75,44 @@ class ConservationBoundedThompson:
         if not 0 <= action_index < self.n_actions:
             raise IndexError("action out of range")
         return action_index
+
+    def _load_from_store(self) -> None:
+        loader = getattr(self._graph_store, "load_rl_state", None)
+        if not callable(loader):
+            return
+        try:
+            data = loader(_THOMPSON_STATE_KEY)
+            if not isinstance(data, dict):
+                return
+            alpha = _state_vector(data.get("alpha"), self.n_actions)
+            beta = _state_vector(data.get("beta"), self.n_actions)
+            if alpha is None or beta is None:
+                return
+            self.alpha = alpha
+            self.beta = beta
+            status = str(data.get("conservation_status", "GREEN")).strip().upper()
+            if status in {"GREEN", "AMBER", "RED"}:
+                self._conservation_status = status
+        except Exception:
+            return
+
+    def _persist(self) -> None:
+        saver = getattr(self._graph_store, "save_rl_state", None)
+        if not callable(saver):
+            return
+        try:
+            saver(_THOMPSON_STATE_KEY, self.get_priors())
+        except Exception:
+            return
+
+
+def _state_vector(value: Any, expected_length: int) -> list[float] | None:
+    if not isinstance(value, list | tuple) or len(value) != expected_length:
+        return None
+    try:
+        return [float(item) for item in value]
+    except (TypeError, ValueError):
+        return None
 
 
 def _beta_sample(alpha: float, beta: float) -> float:

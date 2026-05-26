@@ -7,7 +7,9 @@ def test_trading_evolution_variants_returns_200(client):
     assert response.status_code == 200
     payload = response.json()
     assert payload["domain"] == "trading"
-    assert payload["variants"] == []
+    assert payload["variants"]
+    assert payload["variants"][0]["variant_id"].startswith("trd-ev-")
+    assert "evidence_ordering" in payload["variants"][0]["dimensions"]
     assert payload["active_rules"] == []
     assert payload["promoted_rules"] == []
 

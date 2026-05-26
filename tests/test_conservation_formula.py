@@ -61,8 +61,8 @@ def test_sdk_theta_min_canonical_examples():
 
 
 def test_sdk_theta_min_zero_verified_conservative():
-    assert compute_theta_min(0.25, 0) == float("inf")
-    assert compute_theta_min(0.0, 200) == float("inf")
+    assert compute_theta_min(0.25, 0) is None
+    assert compute_theta_min(0.0, 200) is None
 
 
 def test_sdk_override_rate_from_decision_history():

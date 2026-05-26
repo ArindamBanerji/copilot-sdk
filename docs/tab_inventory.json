@@ -1,0 +1,770 @@
+{
+  "generated": "2026-05-26T02:36:50.742058+00:00",
+  "mode": "static",
+  "copilots": [
+    {
+      "copilot": "trading",
+      "accent": "red",
+      "frontend_port": 5174,
+      "backend_port": 8010,
+      "screens": [
+        {
+          "file": "AnalysisScreen.tsx",
+          "lines": 132,
+          "components": [
+            "AuditTrailViewer",
+            "ContrastCard",
+            "CorrelationPanel",
+            "CounterfactualCard",
+            "DayOfWeekChart",
+            "DecisionExplorerPanel",
+            "PatternDetectionPanel",
+            "ProfileArchetype",
+            "RegimeChart",
+            "ResearchImpactChart",
+            "RiskManagementCard",
+            "RuleGenealogyTree",
+            "RuleLifecyclePanel",
+            "TrustRadarPanel"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "DashboardScreen.tsx",
+          "lines": 221,
+          "components": [
+            "AccuracyAlertPanel",
+            "CalendarHeatmap",
+            "MarketContext",
+            "PortfolioConcentration",
+            "PortfolioSummary",
+            "RegimePanel",
+            "ThesisBreakdown",
+            "TradeCard"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "JournalScreen.tsx",
+          "lines": 368,
+          "components": [
+            "EvidencePanel",
+            "OptionsFactorPanel"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "LogTradeScreen.tsx",
+          "lines": 434,
+          "components": [
+            "EngineAssessment",
+            "EvidencePanel",
+            "OptionsFactorPanel",
+            "PreScorePanel",
+            "ResearchChecklist",
+            "SimilarTradesPanel",
+            "TickerLookup"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "PerformanceScreen.tsx",
+          "lines": 140,
+          "components": [
+            "CategoryPerformance",
+            "CentroidTimelineChart",
+            "PromotionPanel",
+            "RiskManagementCard",
+            "RollingMetrics",
+            "StrategySafetyBreakdownPanel",
+            "VIXTimingPanel"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "TradeDetailScreen.tsx",
+          "lines": 267,
+          "components": [],
+          "api_calls": []
+        }
+      ],
+      "components": [
+        "components\\AccuracyAlertPanel.tsx",
+        "components\\AuditTrailViewer.tsx",
+        "components\\CalendarHeatmap.tsx",
+        "components\\CategoryPerformance.tsx",
+        "components\\CentroidTimelineChart.tsx",
+        "components\\ContrastCard.tsx",
+        "components\\CorrelationPanel.tsx",
+        "components\\CounterfactualCard.tsx",
+        "components\\DayOfWeekChart.tsx",
+        "components\\DecisionExplorerPanel.tsx",
+        "components\\EngineAssessment.tsx",
+        "components\\EvidencePanel.tsx",
+        "components\\MarketContext.tsx",
+        "components\\OptionsFactorPanel.tsx",
+        "components\\PaperBadge.tsx",
+        "components\\PatternDetectionPanel.tsx",
+        "components\\PortfolioConcentration.tsx",
+        "components\\PortfolioSummary.tsx",
+        "components\\PositionSizer.tsx",
+        "components\\PreScorePanel.tsx",
+        "components\\PriceSparkline.tsx",
+        "components\\ProfileArchetype.tsx",
+        "components\\PromotionPanel.tsx",
+        "components\\RegimeChart.tsx",
+        "components\\RegimePanel.tsx",
+        "components\\ResearchChecklist.tsx",
+        "components\\ResearchImpactChart.tsx",
+        "components\\RiskManagementCard.tsx",
+        "components\\RollingMetrics.tsx",
+        "components\\RuleGenealogyTree.tsx",
+        "components\\RuleLifecyclePanel.tsx",
+        "components\\SimilarTradesPanel.tsx",
+        "components\\StrategySafetyBreakdownPanel.tsx",
+        "components\\ThesisBreakdown.tsx",
+        "components\\TickerLookup.tsx",
+        "components\\TradeCard.tsx",
+        "components\\TrustRadarPanel.tsx",
+        "components\\VIXTimingPanel.tsx"
+      ],
+      "api_calls": [
+        "/api/conservation/status",
+        "/api/context/analytics",
+        "/api/context/conservation-breakdown",
+        "/api/context/market-snapshot",
+        "/api/context/patterns",
+        "/api/context/trade-metadata",
+        "/api/context/trust-analysis",
+        "/api/evolution/history",
+        "/api/evolution/promoted",
+        "/api/evolution/variants",
+        "/api/fingerprint",
+        "/api/history",
+        "/api/learn",
+        "/api/score",
+        "/api/trading/prescore",
+        "/api/trading/promotion",
+        "/api/trading/regime",
+        "/api/trading/regime/detail",
+        "/api/trading/vix-timing",
+        "/api/trajectory"
+      ],
+      "tab_names": [
+        "Dashboard",
+        "Analysis",
+        "Performance",
+        "Journal"
+      ],
+      "tsx_file_count": 46
+    },
+    {
+      "copilot": "purchasing",
+      "accent": "green",
+      "frontend_port": 5175,
+      "backend_port": 8020,
+      "screens": [
+        {
+          "file": "AnalysisScreen.tsx",
+          "lines": 123,
+          "components": [
+            "CategoryAccuracyChart",
+            "ContrastCard",
+            "CounterfactualCard",
+            "DayOfWeekChart",
+            "DecisionExplorerPanel",
+            "EventImpactCard",
+            "ProfileArchetype",
+            "WasteCostCard"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "DashboardScreen.tsx",
+          "lines": 208,
+          "components": [
+            "AccuracyAlertPanel",
+            "AEStatusBar",
+            "EventBadge",
+            "IgnoringCostCard",
+            "OrderCard",
+            "ParLevelMonitor",
+            "WeatherWidget"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "InventoryScreen.tsx",
+          "lines": 219,
+          "components": [
+            "AuditTrailViewer",
+            "CategoryEmoji",
+            "ItemProfile",
+            "RuleGenealogyTree",
+            "RuleLifecyclePanel"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "OrderScreen.tsx",
+          "lines": 593,
+          "components": [
+            "AEManagedBadge",
+            "CostAnalysis",
+            "EngineAssessment",
+            "EventBadge",
+            "OrderContext",
+            "SimilarOrdersPanel",
+            "WeatherWidget"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "PerformanceScreen.tsx",
+          "lines": 137,
+          "components": [
+            "CategoryAccuracyChart",
+            "CentroidTimelineChart",
+            "WasteCostCard"
+          ],
+          "api_calls": []
+        }
+      ],
+      "components": [
+        "components\\AccuracyAlertPanel.tsx",
+        "components\\AEManagedBadge.tsx",
+        "components\\AEStatusBar.tsx",
+        "components\\AuditTrailViewer.tsx",
+        "components\\CategoryAccuracyChart.tsx",
+        "components\\CategoryEmoji.tsx",
+        "components\\CentroidTimelineChart.tsx",
+        "components\\ContrastCard.tsx",
+        "components\\CostAnalysis.tsx",
+        "components\\CounterfactualCard.tsx",
+        "components\\DayOfWeekChart.tsx",
+        "components\\DecisionExplorerPanel.tsx",
+        "components\\EngineAssessment.tsx",
+        "components\\EventBadge.tsx",
+        "components\\EventImpactCard.tsx",
+        "components\\IgnoringCostCard.tsx",
+        "components\\ItemProfile.tsx",
+        "components\\OrderCard.tsx",
+        "components\\OrderContext.tsx",
+        "components\\ParLevelBar.tsx",
+        "components\\ParLevelMonitor.tsx",
+        "components\\ProfileArchetype.tsx",
+        "components\\RuleGenealogyTree.tsx",
+        "components\\RuleLifecyclePanel.tsx",
+        "components\\SimilarOrdersPanel.tsx",
+        "components\\WasteCostCard.tsx",
+        "components\\WasteSparkline.tsx",
+        "components\\WeatherWidget.tsx"
+      ],
+      "api_calls": [
+        "/api/conservation/status",
+        "/api/context/analytics",
+        "/api/context/items",
+        "/api/context/order-metadata",
+        "/api/context/similar",
+        "/api/context/today-summary",
+        "/api/context/weather",
+        "/api/evolution/history",
+        "/api/evolution/promoted",
+        "/api/evolution/variants",
+        "/api/fingerprint",
+        "/api/history",
+        "/api/learn",
+        "/api/score",
+        "/api/self/accuracy-by-category",
+        "/api/self/audit-trail",
+        "/api/self/centroid-history",
+        "/api/self/decisions",
+        "/api/trajectory"
+      ],
+      "tab_names": [
+        "Dashboard",
+        "Order",
+        "Analysis",
+        "Inventory",
+        "Performance"
+      ],
+      "tsx_file_count": 35
+    },
+    {
+      "copilot": "dataops",
+      "accent": "purple",
+      "frontend_port": 5176,
+      "backend_port": 8030,
+      "screens": [
+        {
+          "file": "CurveScreen.tsx",
+          "lines": 84,
+          "components": [
+            "CentroidTimelineChart",
+            "CentroidTimeline",
+            "DisruptionAnnotation"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "DashboardScreen.tsx",
+          "lines": 276,
+          "components": [
+            "AEImpactPanel",
+            "AccuracyAlertPanel",
+            "AlertGroupCard",
+            "AlertQueue",
+            "ConservationProjection",
+            "ConservationTimeline",
+            "EnterpriseHealthBar",
+            "PipelineGrid",
+            "ProcessTimelinePanel"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "EvidenceScreen.tsx",
+          "lines": 75,
+          "components": [
+            "AEImpactPanel",
+            "AuditTrailViewer",
+            "OperationalRulesPanel",
+            "PatternOriginCard",
+            "RuleGenealogyTree",
+            "RuleLifecyclePanel",
+            "SchemaImpactPanel",
+            "TransferStatusPanel"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "InsightScreen.tsx",
+          "lines": 114,
+          "components": [
+            "BottleneckPanel",
+            "CrossGraphInsightCard",
+            "DecisionExplorerPanel",
+            "IncidentReplayCard",
+            "ProcessTimelinePanel",
+            "ProfileArchetype",
+            "WhatIfReordering"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "TriageScreen.tsx",
+          "lines": 546,
+          "components": [
+            "ApplyFixModal",
+            "CrossGraphInsightCard",
+            "DependencyTree",
+            "ProcessSignalsPanel",
+            "RecurrenceBadge",
+            "ResolutionTimeline",
+            "ReasoningPanel",
+            "SimilarAlertsPanel",
+            "SLACountdown"
+          ],
+          "api_calls": []
+        }
+      ],
+      "components": [
+        "components\\AccuracyAlertPanel.tsx",
+        "components\\AccuracyAlerts.tsx",
+        "components\\ActionPicker.tsx",
+        "components\\AEImpactPanel.tsx",
+        "components\\AERecommendationBadge.tsx",
+        "components\\AlertCard.tsx",
+        "components\\AlertGroupCard.tsx",
+        "components\\AlertQueue.tsx",
+        "components\\ApplyFixModal.tsx",
+        "components\\AuditTrailViewer.tsx",
+        "components\\BottleneckPanel.tsx",
+        "components\\CelonisBadge.tsx",
+        "components\\CentroidTimeline.tsx",
+        "components\\CentroidTimelineChart.tsx",
+        "components\\ConservationProjection.tsx",
+        "components\\ConservationTimeline.tsx",
+        "components\\CrossGraphInsightCard.tsx",
+        "components\\DecisionExplorer.tsx",
+        "components\\DecisionExplorerPanel.tsx",
+        "components\\DependencyTree.tsx",
+        "components\\DisruptionAnnotation.tsx",
+        "components\\EnterpriseHealthBar.tsx",
+        "components\\FactorAutoFill.tsx",
+        "components\\IncidentReplayCard.tsx",
+        "components\\OperationalRulesPanel.tsx",
+        "components\\PatternOriginCard.tsx",
+        "components\\PipelineGrid.tsx",
+        "components\\ProcessSignalsPanel.tsx",
+        "components\\ProcessTimelinePanel.tsx",
+        "components\\ProfileArchetype.tsx",
+        "components\\ReasoningPanel.tsx",
+        "components\\RecurrenceBadge.tsx",
+        "components\\ResolutionTimeline.tsx",
+        "components\\RuleGenealogy.tsx",
+        "components\\RuleGenealogyTree.tsx",
+        "components\\RuleLifecycle.tsx",
+        "components\\RuleLifecyclePanel.tsx",
+        "components\\SAPDataBadge.tsx",
+        "components\\SchemaImpactPanel.tsx",
+        "components\\SimilarAlertsPanel.tsx",
+        "components\\SLACountdown.tsx",
+        "components\\TransferStatusPanel.tsx",
+        "components\\WhatIfReordering.tsx"
+      ],
+      "api_calls": [
+        "/api/ae/conservation-history",
+        "/api/ae/impact",
+        "/api/ae/incident",
+        "/api/ae/operational-rules",
+        "/api/ae/pattern-origin",
+        "/api/ae/transfer-status",
+        "/api/conservation/status",
+        "/api/conservation/what-if",
+        "/api/context/accuracy-by-category",
+        "/api/context/alert-groups",
+        "/api/context/alert-metadata",
+        "/api/context/alerts",
+        "/api/context/apply-fix",
+        "/api/context/celonis/process-data",
+        "/api/context/enterprise-health",
+        "/api/context/pipelines",
+        "/api/evolution/variants",
+        "/api/fingerprint",
+        "/api/learn",
+        "/api/score",
+        "/api/trajectory"
+      ],
+      "tab_names": [
+        "Dashboard",
+        "Triage",
+        "Insight",
+        "Evidence",
+        "Curve"
+      ],
+      "tsx_file_count": 50
+    },
+    {
+      "copilot": "s2p",
+      "accent": "amber",
+      "frontend_port": 5177,
+      "backend_port": 8002,
+      "screens": [
+        {
+          "file": "DashboardScreen.tsx",
+          "lines": 153,
+          "components": [
+            "AutoApprovePanel",
+            "ConservationMiniGauge",
+            "ControlTowerPanel",
+            "DisruptionSimPanel",
+            "FinancialImpactCard",
+            "NoveltyStatusPanel",
+            "ProcessContextCard"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "EvidenceScreen.tsx",
+          "lines": 81,
+          "components": [
+            "AuditTrailPanel",
+            "AuditExportPanel",
+            "CompliancePanel",
+            "ComplianceScreeningPanel",
+            "DiscoveryPanel",
+            "DisruptionRecoveryPanel",
+            "EvolutionPanel",
+            "ReceiptChainPanel",
+            "RuleLifecyclePanel"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "InsightScreen.tsx",
+          "lines": 85,
+          "components": [
+            "CentroidExplorerPanel",
+            "CrossGraphInsightCard",
+            "DiscoveryExtendedPanel",
+            "EarlyWarningPanel",
+            "FactorFingerprintPanel",
+            "LeakageDetectionPanel",
+            "ProcessSignalsPanel",
+            "SimilarInvoicesPanel"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "PerformanceScreen.tsx",
+          "lines": 46,
+          "components": [
+            "ConservationMiniGauge",
+            "CycleTimePanel",
+            "OperationalSummary",
+            "TrajectoryChart",
+            "WhatIfSimulator"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "SuppliersScreen.tsx",
+          "lines": 439,
+          "components": [
+            "ClusteringPanel",
+            "PaymentStrategyPanel",
+            "RationalizationPanel",
+            "SupplierHeatmap"
+          ],
+          "api_calls": []
+        },
+        {
+          "file": "TriageScreen.tsx",
+          "lines": 433,
+          "components": [
+            "EvidenceTemplatePanel",
+            "ProcessContextPanel",
+            "S2PConservationProjection",
+            "S2PReasoningPanel"
+          ],
+          "api_calls": []
+        }
+      ],
+      "components": [
+        "components\\AuditExportPanel.tsx",
+        "components\\AuditTrailPanel.tsx",
+        "components\\AutoApprovePanel.tsx",
+        "components\\CentroidExplorerPanel.tsx",
+        "components\\ClusteringPanel.tsx",
+        "components\\CompliancePanel.tsx",
+        "components\\ComplianceScreeningPanel.tsx",
+        "components\\ConservationMiniGauge.tsx",
+        "components\\ControlTowerPanel.tsx",
+        "components\\CrossGraphInsightCard.tsx",
+        "components\\CycleTimePanel.tsx",
+        "components\\DiscoveryExtendedPanel.tsx",
+        "components\\DiscoveryPanel.tsx",
+        "components\\DisruptionRecoveryPanel.tsx",
+        "components\\DisruptionSimPanel.tsx",
+        "components\\EarlyWarningPanel.tsx",
+        "components\\EvidenceTemplatePanel.tsx",
+        "components\\EvolutionPanel.tsx",
+        "components\\FactorFingerprintPanel.tsx",
+        "components\\FinancialImpactCard.tsx",
+        "components\\LeakageDetectionPanel.tsx",
+        "components\\NoveltyStatusPanel.tsx",
+        "components\\OperationalSummary.tsx",
+        "components\\PaymentStrategyPanel.tsx",
+        "components\\ProcessContextCard.tsx",
+        "components\\ProcessContextPanel.tsx",
+        "components\\ProcessSignalsPanel.tsx",
+        "components\\RationalizationPanel.tsx",
+        "components\\ReceiptChainPanel.tsx",
+        "components\\RuleLifecyclePanel.tsx",
+        "components\\S2PConservationProjection.tsx",
+        "components\\S2PEvolutionPanel.tsx",
+        "components\\S2PReasoningPanel.tsx",
+        "components\\SimilarInvoicesPanel.tsx",
+        "components\\SupplierClusteringPanel.tsx",
+        "components\\SupplierHeatmap.tsx",
+        "components\\SupplierProfileCard.tsx",
+        "components\\TrajectoryChart.tsx",
+        "components\\WhatIfSimulator.tsx"
+      ],
+      "api_calls": [
+        "/api/conservation/status",
+        "/api/fingerprint",
+        "/api/learn",
+        "/api/s2p/auto-approve/expansion-proof{id}",
+        "/api/s2p/auto-approve/stats",
+        "/api/s2p/control-tower/classify{id}",
+        "/api/s2p/control-tower/intents",
+        "/api/s2p/discovery/alerts",
+        "/api/s2p/discovery/disruptions",
+        "/api/s2p/discovery/extended",
+        "/api/s2p/evidence/audit-pack",
+        "/api/s2p/evidence/chain-integrity",
+        "/api/s2p/evidence/compliance",
+        "/api/s2p/evidence/rules",
+        "/api/s2p/evolution/promoted",
+        "/api/s2p/evolution/promotion-check",
+        "/api/s2p/evolution/reset",
+        "/api/s2p/evolution/rules",
+        "/api/s2p/evolution/shadow-results",
+        "/api/s2p/evolution/variants",
+        "/api/s2p/explorer/dk-weights",
+        "/api/s2p/governance/compliance-screening",
+        "/api/s2p/governance/rationalization",
+        "/api/s2p/insight/cross-graph",
+        "/api/s2p/insight/process-signals{id}",
+        "/api/s2p/novelty/status",
+        "/api/s2p/outcome",
+        "/api/s2p/performance/summary",
+        "/api/s2p/performance/trajectory",
+        "/api/s2p/preview/conservation",
+        "/api/s2p/preview/queue",
+        "/api/s2p/preview/suppliers",
+        "/api/s2p/pvg/cycle-time",
+        "/api/s2p/pvg/leakage",
+        "/api/s2p/pvg/variants",
+        "/api/s2p/score",
+        "/api/s2p/simulation/impact-summary",
+        "/api/s2p/simulation/scenarios",
+        "/api/s2p/suppliers",
+        "/api/s2p/suppliers/clustering",
+        "/api/s2p/suppliers/clusters",
+        "/api/s2p/suppliers/declining",
+        "/api/s2p/suppliers/early-warnings",
+        "/api/s2p/suppliers/payment-strategy",
+        "/api/trajectory"
+      ],
+      "tab_names": [
+        "Dashboard",
+        "Insight",
+        "Evidence",
+        "Suppliers",
+        "Performance"
+      ],
+      "tsx_file_count": 47
+    },
+    {
+      "copilot": "soc",
+      "accent": "blue",
+      "frontend_port": 5173,
+      "backend_port": 8001,
+      "screens": [
+        {
+          "file": "AlertTriageTab.tsx",
+          "lines": 1670,
+          "components": [],
+          "api_calls": [
+            "/api/soc/campaigns/{id}"
+          ]
+        },
+        {
+          "file": "CompoundingTab.tsx",
+          "lines": 2818,
+          "components": [],
+          "api_calls": [
+            "/api/eval/templates/{id}.csv",
+            "/api/metrics/decision-economics",
+            "/api/soc/board-export",
+            "/api/soc/economics",
+            "/api/soc/evidence-room",
+            "/api/soc/evidence-room/export",
+            "/api/soc/operational-metrics"
+          ]
+        },
+        {
+          "file": "ExecutiveNarrativeTab.tsx",
+          "lines": 808,
+          "components": [],
+          "api_calls": [
+            "/api/platform/domain-applicability",
+            "/api/soc/executive-narrative",
+            "/api/soc/executive-narrative/pdf"
+          ]
+        },
+        {
+          "file": "GovernanceTab.tsx",
+          "lines": 899,
+          "components": [],
+          "api_calls": [
+            "/api/governance/summary",
+            "/api/platform/rl-exploration-demo",
+            "/api/platform/rl-reward-demo",
+            "/api/soc/compliance",
+            "/api/soc/evidence-room",
+            "/api/soc/evidence-room/export"
+          ]
+        },
+        {
+          "file": "RuntimeEvolutionTab.tsx",
+          "lines": 3596,
+          "components": [],
+          "api_calls": [
+            "/api/soc/centroid-evolution?n=200",
+            "/api/soc/centroid-heatmap",
+            "/api/soc/centroid-support",
+            "/api/soc/enrichment-status",
+            "/api/soc/graph-stats",
+            "/api/soc/learning-state"
+          ]
+        },
+        {
+          "file": "S2PPreviewTab.tsx",
+          "lines": 354,
+          "components": [],
+          "api_calls": [
+            "/api/s2p/preview/conservation",
+            "/api/s2p/preview/queue",
+            "/api/s2p/preview/suppliers"
+          ]
+        },
+        {
+          "file": "SOCAnalyticsTab.tsx",
+          "lines": 1293,
+          "components": [],
+          "api_calls": [
+            "/api/soc/detection-engineering"
+          ]
+        }
+      ],
+      "components": [
+        "components\\CampaignIntelligencePanel.tsx",
+        "components\\ClusterHistoryPanel.tsx",
+        "components\\discovery\\DiscoveryBanner.tsx",
+        "components\\FactorContributionPanel.tsx",
+        "components\\LearningStatePanel.tsx",
+        "components\\OutcomeFeedback.tsx",
+        "components\\PolicyConflict.tsx",
+        "components\\ROICalculator.tsx",
+        "components\\SimulationPanel.tsx",
+        "components\\tabs\\AlertTriageTab.tsx",
+        "components\\tabs\\CompoundingTab.tsx",
+        "components\\tabs\\ExecutiveNarrativeTab.tsx",
+        "components\\tabs\\GovernanceTab.tsx",
+        "components\\tabs\\RuntimeEvolutionTab.tsx",
+        "components\\tabs\\S2PPreviewTab.tsx",
+        "components\\tabs\\SOCAnalyticsTab.tsx",
+        "components\\ThreeChannelPanel.tsx"
+      ],
+      "api_calls": [
+        "/api/compounding/channel-decomposition",
+        "/api/eval/templates/{id}.csv",
+        "/api/governance/summary",
+        "/api/metrics/decision-economics",
+        "/api/platform/domain-applicability",
+        "/api/platform/rl-exploration-demo",
+        "/api/platform/rl-reward-demo",
+        "/api/s2p/preview/conservation",
+        "/api/s2p/preview/queue",
+        "/api/s2p/preview/suppliers",
+        "/api/soc/board-export",
+        "/api/soc/campaigns",
+        "/api/soc/campaigns/{id}",
+        "/api/soc/centroid-evolution?n=200",
+        "/api/soc/centroid-heatmap",
+        "/api/soc/centroid-support",
+        "/api/soc/compliance",
+        "/api/soc/detection-engineering",
+        "/api/soc/economics",
+        "/api/soc/enrichment-status",
+        "/api/soc/evidence-room",
+        "/api/soc/evidence-room/export",
+        "/api/soc/executive-narrative",
+        "/api/soc/executive-narrative/pdf",
+        "/api/soc/factor-contribution",
+        "/api/soc/graph-stats",
+        "/api/soc/learning-state",
+        "/api/soc/operational-metrics",
+        "/api/triage/learning-state?category={id}"
+      ],
+      "tab_names": [
+        "Compounding"
+      ],
+      "tsx_file_count": 19
+    }
+  ]
+}

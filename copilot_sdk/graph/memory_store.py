@@ -24,6 +24,7 @@ class InMemoryGraphStore:
         self._edges: list[dict[str, Any]] = []
         self._centroid_checkpoints: list[dict[str, Any]] = []
         self._evolution_events: list[dict[str, Any]] = []
+        self._rl_state: dict[tuple[str, str], dict[str, Any]] = {}
         self._archive: list[dict[str, Any]] = []
         self._sequence = 0
 
@@ -182,6 +183,13 @@ class InMemoryGraphStore:
             return None
         return deepcopy(checkpoints[-1]["centroids"])
 
+    def save_rl_state(self, key: str, data: dict) -> None:
+        self._rl_state[(self.domain, str(key))] = deepcopy(dict(data))
+
+    def load_rl_state(self, key: str) -> dict | None:
+        data = self._rl_state.get((self.domain, str(key)))
+        return deepcopy(data) if data is not None else None
+
     def get_centroid_checkpoints(
         self,
         domain: str,
@@ -308,6 +316,7 @@ class InMemoryGraphStore:
         self._edges.clear()
         self._centroid_checkpoints.clear()
         self._evolution_events.clear()
+        self._rl_state.clear()
         self._archive.clear()
         self._sequence = 0
 

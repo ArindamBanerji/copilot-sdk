@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import inspect
 from typing import Any, Callable
 
 from fastapi import APIRouter, Query
@@ -16,45 +15,35 @@ from copilot_sdk.evolution import (
 
 
 def create_evolution_router(
-    graph_store_factory: Callable[[], Any] | str | None = None,
+    graph_store_factory: Callable[[], Any] | None = None,
     domain: str = "unknown",
-    ledger_provider: Callable[[], Any] | Any | None = None,
+    evolver_factory: Callable[[], AgentEvolver] | None = None,
     variant_provider: Callable[[], list[dict[str, Any]]] | None = None,
 ) -> APIRouter:
-    legacy_mount = isinstance(graph_store_factory, str) or ledger_provider is not None
-    if isinstance(graph_store_factory, str):
-        domain = graph_store_factory
-        graph_store_factory = None
-    if graph_store_factory is None and ledger_provider is not None:
-        graph_store_factory = ledger_provider if callable(ledger_provider) else lambda: ledger_provider
+    if graph_store_factory is not None and not callable(graph_store_factory):
+        raise TypeError("graph_store_factory must be callable or None")
+    if evolver_factory is not None and not callable(evolver_factory):
+        raise TypeError("evolver_factory must be callable or None")
 
-    router = APIRouter(prefix="/evolution" if legacy_mount else "/api/evolution", tags=["evolution"])
+    router = APIRouter(prefix="/api/evolution", tags=["evolution"])
     evolver_cache: dict[str, AgentEvolver | None] = {"evolver": None}
 
     def _get_evolver() -> AgentEvolver:
         if evolver_cache["evolver"] is None:
-            graph_store = graph_store_factory() if graph_store_factory is not None else None
-            ledger = InMemoryEvolutionLedger(graph_store=graph_store)
-            evolver_cache["evolver"] = AgentEvolver(
-                ledger=ledger,
-                shadow_runner=DefaultShadowRunner(),
-                promotion_gate=DefaultPromotionGate(),
-            )
+            if evolver_factory is not None:
+                evolver_cache["evolver"] = evolver_factory()
+            else:
+                graph_store = graph_store_factory() if graph_store_factory is not None else None
+                ledger = InMemoryEvolutionLedger(evolution_store=graph_store, domain=domain)
+                evolver_cache["evolver"] = AgentEvolver(
+                    ledger=ledger,
+                    shadow_runner=DefaultShadowRunner(),
+                    promotion_gate=DefaultPromotionGate(),
+                )
         return evolver_cache["evolver"]
 
     @router.get("/variants")
-    async def variants() -> dict[str, Any]:
-        if legacy_mount:
-            legacy_variants = await _legacy_variants(graph_store_factory)
-            return {
-                "domain": domain,
-                "engine": {"gae": "gae.evolution", "component": "get_recent_events"},
-                "variants": legacy_variants,
-                "active_rules": [],
-                "promoted_rules": [],
-                "total_active": 0,
-                "total_promoted": 0,
-            }
+    def variants() -> dict[str, Any]:
         evolver = _get_evolver()
         active_rules = sorted(evolver.get_active_rules())
         promoted_rules = evolver.get_promoted_rules()
@@ -97,23 +86,5 @@ def _provided_variants(provider: Callable[[], list[dict[str, Any]]] | None) -> l
         return []
     try:
         return list(provider() or [])
-    except Exception:
-        return []
-
-
-async def _legacy_variants(provider: Callable[[], Any] | None) -> list[dict[str, Any]]:
-    if provider is None:
-        return []
-    try:
-        value = provider()
-        if inspect.isawaitable(value):
-            value = await value
-        run_query = getattr(value, "run_query", None)
-        if not callable(run_query):
-            return []
-        result = run_query("")
-        if inspect.isawaitable(result):
-            result = await result
-        return list(result or [])
     except Exception:
         return []

@@ -25,6 +25,7 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH, CI_PLATFORM_PATH):
 from .ae_router import router as ae_router  # noqa: E402
 from .context_router import router as context_router  # noqa: E402
 from .graph_queries import DataOpsGraphClient  # noqa: E402
+from .routers.dataops_status import router as dataops_status_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
@@ -68,7 +69,7 @@ def _cors_origins() -> list[str]:
 
 
 def _graph_store(db_path: str | Path):
-    store = SQLiteGraphStore(str(db_path), domain=DOMAIN)
+    store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="DOPS-")
     store.penalty_ratio = 10.0
     return store
 
@@ -242,7 +243,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         create_scoring_router(
             DOMAIN,
             db_path=scoring_db,
-            scorer_factory=lambda: FreshScorerProxy(DOMAIN, scoring_db, _graph_store),
+            scorer_factory=lambda: scorer_proxy,
         ),
         prefix="/api",
     )
@@ -250,7 +251,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     app.include_router(
         create_conservation_router(
             DOMAIN,
-            state_provider=lambda: _graph_store(scoring_db),
+            state_provider=scorer_proxy,
         ),
         prefix="/api",
     )
@@ -264,6 +265,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     mount_self_computation_router(app, _graph_store(scoring_db))
     app.include_router(context_router, prefix="/api/context")
     app.include_router(ae_router, prefix="/api/ae")
+    app.include_router(dataops_status_router)
 
     def _run_startup_seed_once() -> None:
         if startup_state["seeded"]:

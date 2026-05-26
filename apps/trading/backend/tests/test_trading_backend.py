@@ -394,6 +394,7 @@ def test_score_via_sdk_router(client):
 
     assert payload["category"] == "trend_following"
     assert payload["action"] in {"strong_execution", "partial_execution", "poor_execution", "skip_recommended"}
+    assert payload["decision_id"].startswith("TRD-")
     assert 0.0 <= payload["confidence"] <= 1.0
     assert len(payload["probabilities"]) == 4
     assert payload["engine"]["scoring"] == "copilot_sdk.scoring.CompoundingScorer"
@@ -431,6 +432,19 @@ def test_conservation_status_returns_live_counts(client):
     assert payload["verified_count"] == 1
     assert payload["correct_count"] == 1
     assert payload["penalty_ratio"] == TradingPreset().penalty_ratio
+
+
+def test_in_memory_scoring_and_conservation_share_proxy_store():
+    from app.main import create_app
+
+    with TestClient(create_app(db_path=":memory:")) as memory_client:
+        score = _score(memory_client)
+        payload = memory_client.get("/api/conservation/status").json()
+
+    assert score["decision_id"].startswith("TRD-")
+    assert payload["domain"] == "trading"
+    assert payload["total_decisions"] == 1
+    assert payload["verified_count"] == 0
 
 
 def test_self_computation_centroid_history_available(client):

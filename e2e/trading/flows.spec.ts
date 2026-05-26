@@ -1,6 +1,6 @@
 import { type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
+import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
 
 async function fillTrade(page: Page) {
   await page.getByPlaceholder("MSFT").fill("MSFT");
@@ -20,7 +20,9 @@ async function fillTrade(page: Page) {
 test("full trade lifecycle: log, score, confirm, dashboard", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
 
   await fillTrade(page);
@@ -39,7 +41,9 @@ test("full trade lifecycle: log, score, confirm, dashboard", async ({ page }) =>
 test("score confirm then Performance shows IKS", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
 
   await fillTrade(page);
@@ -57,6 +61,7 @@ test("score confirm then Performance shows IKS", async ({ page }) => {
   await expectAnyText(page, [/Trade confirmed/i, /system learned/i, /Reward/i]);
 
   await clickTab(page, "Performance");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Performance Summary/i, /Current IKS/i, /IKS/i, /Trajectory/i]);
   await page.waitForFunction(
     () => !document.querySelector("main")?.textContent?.includes("Loading"),
@@ -69,7 +74,9 @@ test("score confirm then Performance shows IKS", async ({ page }) => {
 test("score confirm learn cycle preserves conservation after RL", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
 
   await fillTrade(page);
@@ -87,33 +94,41 @@ test("score confirm learn cycle preserves conservation after RL", async ({ page 
   await expectAnyText(page, [/Trade confirmed/i, /confirmed/i, /system learned/i, /Reward/i]);
 
   await clickTab(page, "Performance");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Performance Summary/i, /Conservation/i, /Trajectory/i]);
   await expectAnyText(page, [/55%/, /75%/, /90%/, /verified/i, /trajectory/i]);
 });
 
 test("full round trip visits dashboard, log trade, analysis, performance, and dashboard", async ({ page }) => {
   await page.goto("/");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i, /portfolio/i]);
 
   await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Ticker/i, /Trade Thesis/i, /Score This Trade/i]);
 
   await clickTab(page, "Analysis");
+  await waitForAppShell(page);
   await expectAnyText(page, [/YOUR TWO SELVES/i, /Fingerprint/i, /edge/i]);
 
   await clickTab(page, "Performance");
+  await waitForAppShell(page);
   await expectAnyText(page, [/IKS/i, /Trajectory/i, /Performance Summary/i]);
 
   await clickTab(page, "Dashboard");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i, /portfolio/i]);
 });
 
 test("tab navigation cycle all tabs accessible without console errors", async ({ page }) => {
   const errors = collectConsoleErrors(page);
   await page.goto("/");
+  await waitForAppShell(page);
 
   for (const tab of ["Dashboard", "Log Trade", "Analysis", "Performance", "Trade Detail"]) {
     await clickTab(page, tab);
+    await waitForAppShell(page);
     await expectAnyText(page, [new RegExp(tab, "i"), /Loading/i, /Select a trade/i]);
   }
 
@@ -122,7 +137,9 @@ test("tab navigation cycle all tabs accessible without console errors", async ({
 
 test("analysis reflects pre-seeded data", async ({ page }) => {
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Analysis");
+  await waitForAppShell(page);
 
   await expect(page.getByText("YOUR TWO SELVES")).toBeVisible();
   await expect(page.getByText("Counterfactual")).toBeVisible();
@@ -131,6 +148,7 @@ test("analysis reflects pre-seeded data", async ({ page }) => {
 
 test("dashboard shows decision history entries", async ({ page }) => {
   await page.goto("/");
+  await waitForAppShell(page);
 
   await expectAnyText(page, [/Decision History/i]);
   await expectAnyText(page, [/strong execution/i, /partial execution/i, /poor execution/i, /trade/i, /open/i]);
@@ -138,7 +156,9 @@ test("dashboard shows decision history entries", async ({ page }) => {
 
 test("analysis contrast card reflects pre-seeded alignment", async ({ page }) => {
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Analysis");
+  await waitForAppShell(page);
 
   await expectAnyText(page, [/YOUR TWO SELVES/i, /Aligned trades compound/i]);
   await expectAnyText(page, [/Aligned/i, /Misaligned/i, /Neutral/i]);
@@ -148,7 +168,9 @@ test("analysis contrast card reflects pre-seeded alignment", async ({ page }) =>
 test("score then confirm then Performance and Analysis reflect it", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Log Trade/i, /Ticker/i, /Score This Trade/i]);
 
   await fillTrade(page);
@@ -166,30 +188,38 @@ test("score then confirm then Performance and Analysis reflect it", async ({ pag
   await expectAnyText(page, [/Trade confirmed/i, /system learned/i, /Reward/i]);
 
   await clickTab(page, "Performance");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Current IKS/i, /\bIKS\b/i, /Trajectory/i]);
 
   await clickTab(page, "Analysis");
+  await waitForAppShell(page);
   await expectAnyText(page, [/YOUR TWO SELVES/i, /Aligned/i, /Misaligned/i, /Neutral/i]);
 });
 
 test("Dashboard to Log Trade to Analysis to Performance content at each stop", async ({ page }) => {
   await page.goto("/");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Portfolio Summary/i, /Decision History/i, /portfolio/i]);
 
   await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Ticker/i, /Research Checklist/i, /Score This Trade/i]);
 
   await clickTab(page, "Analysis");
+  await waitForAppShell(page);
   await expectAnyText(page, [/YOUR TWO SELVES/i, /Fingerprint/i, /Counterfactual/i]);
 
   await clickTab(page, "Performance");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Current IKS/i, /\bIKS\b/i, /Trajectory/i, /Rolling/i]);
 });
 
 test("score to reasoning to Performance projection round trip", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Log Trade/i, /Score This Trade/i]);
 
   await fillTrade(page);
@@ -199,14 +229,17 @@ test("score to reasoning to Performance projection round trip", async ({ page })
   await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /Confidence Breakdown/i]);
 
   await clickTab(page, "Performance");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Performance Summary/i, /Trajectory/i]);
   await expectAnyText(page, [/Automation Projection/i, /55%/, /75%/, /90%/, /verified decisions/i]);
 });
 
 test("all main tabs load after shared reasoning and projection port", async ({ page }) => {
   await page.goto("/");
+  await waitForAppShell(page);
   for (const tab of ["Dashboard", "Log Trade", "Analysis", "Performance"]) {
     await clickTab(page, tab);
+    await waitForAppShell(page);
     await expect(page.locator("main")).not.toBeEmpty();
     await expectAnyText(page, [new RegExp(tab, "i"), /Portfolio Summary/i, /Score This Trade/i, /YOUR TWO SELVES/i, /Performance Summary/i]);
   }
@@ -214,22 +247,27 @@ test("all main tabs load after shared reasoning and projection port", async ({ p
 
 test("SC round trip: accuracy to decisions to audit trail", async ({ page }) => {
   await page.goto("/");
+  await waitForAppShell(page);
   await expectAnyText(page, [/SC-12/i, /Accuracy Alerts/i, /accuracy/i, /category/i, /threshold/i, /No verified decisions yet/i, /No verified trading decisions yet/i]);
 
   await clickTab(page, "Analysis");
+  await waitForAppShell(page);
   await expectAnyText(page, [/SC-14/i, /Decision Explorer/i, /Category/i, /Action/i]);
   await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /SC-15/i, /Rule Lifecycle/i]);
   await expectAnyText(page, [/SC-16/i, /Audit Trail/i, /decision/i, /outcome/i, /No audit trail available yet/i]);
 
   await clickTab(page, "Performance");
+  await waitForAppShell(page);
   await expectAnyText(page, [/SC-11/i, /Centroid History/i, /centroid/i, /No centroid history yet/i]);
 });
 
 test("api self features render populated or empty states", async ({ page }) => {
   await page.goto("/");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Accuracy Alerts/i, /No verified decisions yet/i, /threshold/i]);
 
   await clickTab(page, "Analysis");
+  await waitForAppShell(page);
   await expectAnyText(page, [/Decision Explorer/i, /No decisions match these filters/i, /Confidence/i]);
   await expectAnyText(page, [/Audit Trail/i, /No audit trail available yet/i, /decision/i]);
 });

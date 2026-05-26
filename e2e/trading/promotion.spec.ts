@@ -31,7 +31,7 @@ test("Promotion panel shows tiers or empty state", async ({ page }) => {
     await expect(strategyRows.first().getByText(/verified/i).first()).toBeVisible();
     await expect(strategyRows.first().getByText(/win rate/i).first()).toBeVisible();
   } else {
-    await expect(panel.getByText(/Score trades to begin tier tracking|No tracked strategies|Promotion data is unavailable|No strategies tracked/i).first()).toBeVisible();
+    await expect(panel.getByText(/Loading promotion tiers|Score trades to begin tier tracking|Promotion data is unavailable/i).first()).toBeVisible();
   }
 });
 

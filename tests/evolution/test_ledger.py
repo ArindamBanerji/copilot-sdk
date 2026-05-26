@@ -22,7 +22,7 @@ class RecordingGraphStore:
 
 
 class FailingGraphStore:
-    def save_evolution_event(self, domain, event_type=None, rule_name="", variant_id="", metadata=None):
+    def save_evolution_event(self, **kwargs):
         raise RuntimeError("write failed")
 
 
@@ -81,7 +81,7 @@ def test_ledger_reset_clears_events():
 
 def test_ledger_persists_to_graph_store():
     graph_store = RecordingGraphStore()
-    ledger = InMemoryEvolutionLedger(graph_store=graph_store)
+    ledger = InMemoryEvolutionLedger(evolution_store=graph_store, domain="test")
 
     ledger.append(EvolutionEvent("shadow_started", "rule", "variant", metadata={"x": 1}))
 
@@ -91,7 +91,7 @@ def test_ledger_persists_to_graph_store():
 
 
 def test_ledger_graph_store_failure_logs_warning(caplog):
-    ledger = InMemoryEvolutionLedger(graph_store=FailingGraphStore())
+    ledger = InMemoryEvolutionLedger(evolution_store=FailingGraphStore(), domain="test")
 
     with caplog.at_level(logging.WARNING):
         ledger.append(EvolutionEvent("shadow_started", "rule", "variant"))

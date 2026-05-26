@@ -1095,7 +1095,7 @@ def test_score_via_sdk(client: TestClient) -> None:
         "pause_downstream",
         "refer_to_specialist",
     }
-    assert payload["decision_id"]
+    assert payload["decision_id"].startswith("DOPS-")
     assert payload["engine"]["scoring"] == "copilot_sdk.scoring.CompoundingScorer"
 
 
@@ -1128,6 +1128,19 @@ def test_conservation_status_returns_live_counts(client: TestClient) -> None:
     assert payload["correct_count"] == 1
     assert payload["penalty_ratio"] == 10.0
     assert payload["engine"]["gae"] == "gae.calibration"
+
+
+def test_in_memory_scoring_and_conservation_share_proxy_store(dataops_data_dir: Path) -> None:
+    from app.main import create_app
+
+    with TestClient(create_app(db_path=":memory:")) as memory_client:
+        score = _score(memory_client)
+        payload = memory_client.get("/api/conservation/status").json()
+
+    assert score["decision_id"].startswith("DOPS-")
+    assert payload["domain"] == "dataops"
+    assert payload["total_decisions"] == 1
+    assert payload["verified_count"] == 0
 
 
 def test_conservation_what_if(client: TestClient) -> None:

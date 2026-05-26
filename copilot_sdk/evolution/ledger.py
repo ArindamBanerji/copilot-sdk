@@ -6,17 +6,22 @@ import logging
 from dataclasses import asdict
 from typing import Any
 
-from copilot_sdk.evolution.protocol import EvolutionEvent
+from copilot_sdk.evolution.protocol import EvolutionEvent, EvolutionStore
 
 logger = logging.getLogger(__name__)
 
 
 class InMemoryEvolutionLedger:
-    """Append-only event ledger with optional GraphStore persistence."""
+    """Append-only event ledger with optional evolution-store persistence."""
 
-    def __init__(self, graph_store: Any | None = None) -> None:
+    def __init__(
+        self,
+        evolution_store: EvolutionStore | None = None,
+        domain: str = "unknown",
+    ) -> None:
         self._events: list[EvolutionEvent] = []
-        self._graph_store = graph_store
+        self.domain = str(domain or "unknown")
+        self._evolution_store = evolution_store
 
     @property
     def event_count(self) -> int:
@@ -24,13 +29,14 @@ class InMemoryEvolutionLedger:
 
     def append(self, event: EvolutionEvent) -> None:
         self._events.append(event)
-        if self._graph_store is None:
+        if self._evolution_store is None:
             return
         try:
-            self._graph_store.save_evolution_event(
-                event.event_type,
-                event.rule_name,
-                event.variant_id,
+            self._evolution_store.save_evolution_event(
+                domain=self.domain,
+                event_type=event.event_type,
+                rule_name=event.rule_name,
+                variant_id=event.variant_id,
                 metadata={
                     **event.metadata,
                     "timestamp": event.timestamp,

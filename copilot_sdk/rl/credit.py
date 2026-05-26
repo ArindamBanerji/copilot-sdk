@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+from typing import Any
 from typing import Mapping
 
 
 class CreditAssigner:
     """Distribute temporally discounted reward across contributing factors."""
 
-    def __init__(self, temporal_discount: float = 0.95) -> None:
+    def __init__(self, temporal_discount: float = 0.95, graph_store: Any | None = None) -> None:
         self.temporal_discount = float(temporal_discount)
+        self._graph_store = graph_store
 
     def assign(
         self,

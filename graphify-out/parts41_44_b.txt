@@ -1,0 +1,664 @@
+
+=== CORS actual origins values ===
+DEFAULT_CORS_ORIGINS = (
+    "http://localhost:5173,"
+    "http://localhost:5174,"
+    "http://localhost:5175,"
+    "http://localhost:5176,"
+    "http://localhost:5177"
+)
+
+
+def _cors_origins() -> list[str]:
+    return [
+        origin.strip()
+        for origin in os.environ.get("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
+        if origin.strip()
+    ]
+
+=== scorer_proxy.py current ===
+"""Cached scorer proxy for app backends.
+
+Each proxy lazily constructs one scorer against its shared graph store and
+serializes access through a reentrant lock.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+import threading
+from typing import Any, Callable
+
+from copilot_sdk.scoring import CompoundingScorer
+
+
+class FreshScorerProxy:
+    def __init__(
+        self,
+        preset_name: str,
+        db_path: str | Path,
+        graph_store_factory: Callable[[str | Path], Any],
+    ) -> None:
+        self._preset_name = preset_name
+        self._db_path = str(db_path)
+        self.graph_store = graph_store_factory(db_path)
+        self._lock = threading.RLock()
+        self._scorer_instance: CompoundingScorer | None = None
+
+    def _scorer(self) -> CompoundingScorer:
+        with self._lock:
+            if self._scorer_instance is None:
+                self._scorer_instance = CompoundingScorer.from_preset(
+                    self._preset_name,
+                    graph_store=self.graph_store,
+                )
+            return self._scorer_instance
+
+    def score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, Any] | None = None,
+    ):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.score(factors, category, metadata=metadata)
+            finally:
+                self._close_scorer_store(scorer)
+
+    def learn(self, decision_id: str, actual_action: str, outcome: str = "confirmed"):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.learn(decision_id, actual_action, outcome)
+            finally:
+                self._close_scorer_store(scorer)
+
+    def fingerprint(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.fingerprint()
+            finally:
+                self._close_scorer_store(scorer)
+
+    def trajectory(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.trajectory()
+            finally:
+                self._close_scorer_store(scorer)
+
+    def get_phase(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.get_phase()
+            finally:
+                self._close_scorer_store(scorer)
+
+    def get_alpha(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.get_alpha()
+            finally:
+                self._close_scorer_store(scorer)
+
+    @staticmethod
+    def _close_scorer_store(scorer: CompoundingScorer) -> None:
+        # Scorers borrow the proxy-owned graph store; the proxy controls its lifecycle.
+        return None
+
+=== RL persistence methods ===
+L117: self._last_checkpoint_decision_id: str | None = None
+L118: self._last_checkpoint_category: str | None = None
+L119: self._last_checkpoint_iks: float | None = None
+L166: from copilot_sdk.rl.presets import get_rl_components
+L168: components = get_rl_components(domain, preset, graph_store=graph_store)
+L326: self._last_checkpoint_decision_id = decision_id
+L327: self._last_checkpoint_category = category
+L328: self._last_checkpoint_iks = iks_after
+L334: self._save_centroids_checkpoint(
+L348: self._save_centroids_checkpoint(
+L355: reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome, context)
+L400: if self._last_checkpoint_decision_id is None or self._last_checkpoint_category is None:
+L403: self._save_centroids_checkpoint(
+L404: decision_id=self._last_checkpoint_decision_id,
+L405: category=self._last_checkpoint_category,
+L406: iks=self._last_checkpoint_iks if self._last_checkpoint_iks is not None else self._compute_iks(),
+L421: checkpoint_time_start: str | None = None,
+L422: checkpoint_time_end: str | None = None,
+L428: self._graph_store.get_centroid_checkpoints(
+L430: checkpoint_time_start=checkpoint_time_start,
+L431: checkpoint_time_end=checkpoint_time_end,
+L525: logger.warning("Failed to save warm-start centroid checkpoint: %s", exc)
+L617: def _compute_rl_reward(
+L683: def _save_centroids_checkpoint(
+
+=== S2P legacy ProfileScorer ===
+s2p\config.py: 168: from gae import CalibrationProfile
+s2p\scorer.py: 2: S2P scorer - wires canonical S2PDomainConfig + GAE ProfileScorer.
+s2p\scorer.py: 7: from gae import ProfileScorer
+s2p\scorer.py: 16: _scorer: ProfileScorer | None = None
+s2p\scorer.py: 20: def get_scorer() -> ProfileScorer:
+s2p\scorer.py: 21: """Return the module-level S2P ProfileScorer. Auto-initializes."""
+s2p\scorer.py: 36: def _build_scorer() -> ProfileScorer:
+s2p\scorer.py: 37: """Build a fresh S2P ProfileScorer from canonical S2PDomainConfig."""
+s2p\scorer.py: 38: return ProfileScorer(
+s2p\scorer.py: 54: Update ProfileScorer centroids from analyst outcome.
+framework\checkpoint.py: 4: Creates immutable snapshots of the ProfileScorer centroid tensor (mu) in Neo4j.
+framework\checkpoint.py: 36: scorer : ProfileScorer — source of mu, counts, decision_count
+framework\checkpoint.py: 109: scorer : ProfileScorer — will have mu (and counts) mutated in-place
+framework\composite_gate.py: 4: Uses 13 features derived from ProfileScorer output and graph context to decide
+framework\composite_gate.py: 74: score_result      : ProfileScorer.score() result
+framework\composite_gate.py: 173: # Fallback: ProfileScorer result may carry action_name directly
+framework\iks_base.py: 68: Current centroid tensor from ProfileScorer.
+framework\learning_state.py: 31: from gae.learning import LearningState, WeightUpdate, CalibrationProfile
+framework\learning_state.py: 32: from gae import BootstrapResult  # noqa: F401 — re-exported for callers
+framework\ols_status.py: 12: from gae import OLSMonitor
+routers\framework_router.py: 477: """Freeze the ProfileScorer — stops centroid updates."""
+routers\framework_router.py: 489: """Unfreeze the ProfileScorer — re-enables centroid updates."""
+routers\s2p_preview.py: 185: from gae import ProfileScorer
+routers\s2p_preview.py: 194: return ProfileScorer(
+routers\s2p.py: 153: from gae.calibration import conservation_status
+
+=== Spec files at e2e\trading\ ===
+  analysis.spec.ts: 0 tests
+  conservation-breakdown.spec.ts: 0 tests
+  correlation.spec.ts: 0 tests
+  dashboard.spec.ts: 0 tests
+  earnings-subcat.spec.ts: 0 tests
+  evidence.spec.ts: 0 tests
+  evolution.spec.ts: 0 tests
+  flows.spec.ts: 0 tests
+  journal.spec.ts: 0 tests
+  log-trade.spec.ts: 0 tests
+  options-factors.spec.ts: 0 tests
+  pattern-detection.spec.ts: 0 tests
+  performance.spec.ts: 0 tests
+  prescore.spec.ts: 0 tests
+  promotion.spec.ts: 0 tests
+  regime-recommend.spec.ts: 0 tests
+  regime.spec.ts: 0 tests
+  sc-data.spec.ts: 0 tests
+  transfer-badge.spec.ts: 0 tests
+  trust-radar.spec.ts: 0 tests
+  vix-timing.spec.ts: 0 tests
+=== regime.spec.ts ===
+import type { Page } from "@playwright/test";
+import { test, expect } from "../fixtures/copilot-fixture";
+import { collectConsoleErrors, expectNoConsoleErrors } from "../helpers/ui";
+
+function regimePanel(page: Page) {
+  return page.locator("section", { has: page.getByRole("heading", { name: "Market Regime" }) }).first();
+}
+
+test("Regime badge is visible on Dashboard", async ({ page }) => {
+  await page.goto("/");
+
+  const panel = regimePanel(page);
+  await expect(panel).toBeVisible({ timeout: 15_000 });
+  await expect(panel.getByText(/TRENDING|RANGING|VOLATILE/i).first()).toBeVisible();
+});
+
+test("Regime panel shows VIX and source context", async ({ page }) => {
+  await page.goto("/");
+
+  const panel = regimePanel(page);
+  await expect(panel).toBeVisible({ timeout: 15_000 });
+  await expect(panel.getByText("VIX", { exact: true })).toBeVisible();
+  await expect(panel.getByText("ADX", { exact: true })).toBeVisible();
+  await expect(panel.getByText("Source", { exact: true })).toBeVisible();
+  await expect(panel.getByText(/Default regime context|default|cached|yfinance/i).first()).toBeVisible({ timeout: 15_000 });
+});
+
+test("Regime panel handles recommendation or empty accuracy state", async ({ page }) => {
+  await page.goto("/");
+
+  const panel = regimePanel(page);
+  await expect(panel).toBeVisible({ timeout: 15_000 });
+  await expect(
+    panel
+      .getByText(/Score more trades to build regime accuracy|increase|reduce|hold|accuracy/i)
+      .first(),
+  ).toBeVisible();
+});
+
+test("Regime panel has no console errors", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  await page.goto("/");
+  await expect(regimePanel(page)).toBeVisible({ timeout: 15_000 });
+
+  expectNoConsoleErrors(errors);
+});
+
+=== dashboard.spec.ts ===
+import { test, expect } from "../fixtures/copilot-fixture";
+import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
+
+test("dashboard loads without blank screen", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+
+  await expect(page.getByRole("heading", { name: "Trading Copilot" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.locator("main")).not.toBeEmpty();
+});
+
+test("shows portfolio summary", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+
+  await expect(page.getByText("Portfolio Summary")).toBeVisible();
+  await expect(page.getByText(/open positions/i).first()).toBeVisible();
+  await expect(page.getByText("Win Rate", { exact: true }).first()).toBeVisible();
+  await expectAnyText(page, [/\$\d[\d,]*/, /\d+(\.\d+)?%/, /-/]);
+});
+
+test("IKS is visible with numeric value", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+
+  await expect(page.getByText("IKS").first()).toBeVisible();
+  await expect(page.getByLabel(/^IKS \d+$/).first()).toBeVisible();
+});
+
+test("shows thesis breakdown", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+
+  await expect(page.getByText("Thesis Breakdown")).toBeVisible();
+  await expectAnyText(page, [/momentum/i, /technical/i, /fundamental/i, /event/i, /mean/i]);
+});
+
+test("shows calendar heatmap day names", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+
+  await expect(page.getByText("Calendar Heatmap")).toBeVisible();
+  for (const day of ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]) {
+    await expect(page.getByText(day)).toBeVisible();
+  }
+});
+
+test("paper badge is visible", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+
+  await expectAnyText(page, [/paper/i, /with fingerprint/i, /without/i]);
+  await clickTab(page, "Dashboard");
+  await waitForAppShell(page);
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+});
+
+=== flows.spec.ts ===
+import { type Page } from "@playwright/test";
+import { test, expect } from "../fixtures/copilot-fixture";
+import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
+
+async function fillTrade(page: Page) {
+  await page.getByPlaceholder("MSFT").fill("MSFT");
+  await page.getByRole("button", { name: "Lookup" }).click();
+  await expectAnyText(page, [/MSFT/, /Source/i]);
+  await page.getByLabel("Entry Price").fill("420");
+  await page.getByLabel("Shares").fill("5");
+  await page.getByLabel("Portfolio Value").fill("100000");
+  await page.getByLabel("Stop Loss").fill("400");
+  await page.getByLabel("Target").fill("455");
+  const checklist = page.locator("section", { hasText: "Research Checklist" }).getByRole("checkbox");
+  if ((await checklist.count()) > 0) {
+    await checklist.first().check();
+  }
+}
+
+test("full trade lifecycle: log, score, confirm, dashboard", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
+  await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
+
+  await fillTrade(page);
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+
+  await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await expectAnyText(page, [/Trade confirmed/i, /system learned/i, /Reward/i]);
+
+  await clickTab(page, "Dashboard");
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+});
+
+test("score confirm then Performance shows IKS", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
+  await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
+
+  await fillTrade(page);
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+  await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
+
+  const learnResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok(),
+    { timeout: 15_000 },
+  ).catch(() => null);
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/Trade confirmed/i, /system learned/i, /Reward/i]);
+
+  await clickTab(page, "Performance");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Performance Summary/i, /Current IKS/i, /IKS/i, /Trajectory/i]);
+  await page.waitForFunction(
+    () => !document.querySelector("main")?.textContent?.includes("Loading"),
+    { timeout: 15000 },
+  );
+  const mainText = await page.locator("main").innerText();
+  expect(mainText).toMatch(/IKS[\s\S]{0,80}\d+(\.\d+)?/i);
+});
+
+test("score confirm learn cycle preserves conservation after RL", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
+  await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
+
+  await fillTrade(page);
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+  await expect(page.getByRole("button", { name: "Confirm" }).first()).toBeVisible();
+
+  const learnResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok(),
+    { timeout: 15_000 },
+  );
+  await page.getByRole("button", { name: "Confirm" }).first().click();
+  await learnResponse;
+  await expectAnyText(page, [/Trade confirmed/i, /confirmed/i, /system learned/i, /Reward/i]);
+
+  await clickTab(page, "Performance");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Performance Summary/i, /Conservation/i, /Trajectory/i]);
+  await expectAnyText(page, [/55%/, /75%/, /90%/, /verified/i, /trajectory/i]);
+});
+
+test("full round trip visits dashboard, log trade, analysis, performance, and dashboard", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i, /portfolio/i]);
+
+  await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Ticker/i, /Trade Thesis/i, /Score This Trade/i]);
+
+  await clickTab(page, "Analysis");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/YOUR TWO SELVES/i, /Fingerprint/i, /edge/i]);
+
+  await clickTab(page, "Performance");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/IKS/i, /Trajectory/i, /Performance Summary/i]);
+
+  await clickTab(page, "Dashboard");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i, /portfolio/i]);
+});
+
+test("tab navigation cycle all tabs accessible without console errors", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  await page.goto("/");
+  await waitForAppShell(page);
+
+  for (const tab of ["Dashboard", "Log Trade", "Analysis", "Performance", "Trade Detail"]) {
+    await clickTab(page, tab);
+    await waitForAppShell(page);
+    await expectAnyText(page, [new RegExp(tab, "i"), /Loading/i, /Select a trade/i]);
+  }
+
+  expectNoConsoleErrors(errors);
+});
+
+test("analysis reflects pre-seeded data", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Analysis");
+  await waitForAppShell(page);
+
+  await expect(page.getByText("YOUR TWO SELVES")).toBeVisible();
+  await expect(page.getByText("Counterfactual")).toBeVisible();
+  await expectAnyText(page, [/Fingerprint/i, /Research Impact/i, /Risk Management/i, /\d+(\.\d+)?%/]);
+});
+
+test("dashboard shows decision history entries", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+
+  await expectAnyText(page, [/Decision History/i]);
+  await expectAnyText(page, [/strong execution/i, /partial execution/i, /poor execution/i, /trade/i, /open/i]);
+});
+
+test("analysis contrast card reflects pre-seeded alignment", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Analysis");
+  await waitForAppShell(page);
+
+  await expectAnyText(page, [/YOUR TWO SELVES/i, /Aligned trades compound/i]);
+  await expectAnyText(page, [/Aligned/i, /Misaligned/i, /Neutral/i]);
+  await expectAnyText(page, [/Win rate/i, /Trades/i, /\d+/]);
+});
+
+test("score then confirm then Performance and Analysis reflect it", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Log Trade/i, /Ticker/i, /Score This Trade/i]);
+
+  await fillTrade(page);
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+  await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
+
+  const learnResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok(),
+    { timeout: 15_000 },
+  ).catch(() => null);
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await learnResponse;
+  await expectAnyText(page, [/Trade confirmed/i, /system learned/i, /Reward/i]);
+
+  await clickTab(page, "Performance");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Current IKS/i, /\bIKS\b/i, /Trajectory/i]);
+
+  await clickTab(page, "Analysis");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/YOUR TWO SELVES/i, /Aligned/i, /Misaligned/i, /Neutral/i]);
+});
+
+test("Dashboard to Log Trade to Analysis to Performance content at each stop", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Portfolio Summary/i, /Decision History/i, /portfolio/i]);
+
+  await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Ticker/i, /Research Checklist/i, /Score This Trade/i]);
+
+  await clickTab(page, "Analysis");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/YOUR TWO SELVES/i, /Fingerprint/i, /Counterfactual/i]);
+
+  await clickTab(page, "Performance");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Current IKS/i, /\bIKS\b/i, /Trajectory/i, /Rolling/i]);
+});
+
+test("score to reasoning to Performance projection round trip", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Log Trade");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Log Trade/i, /Score This Trade/i]);
+
+  await fillTrade(page);
+  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Score This Trade" }).click();
+  await scoreResponse;
+  await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i, /Confidence Breakdown/i]);
+
+  await clickTab(page, "Performance");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Performance Summary/i, /Trajectory/i]);
+  await expectAnyText(page, [/Automation Projection/i, /55%/, /75%/, /90%/, /verified decisions/i]);
+});
+
+test("all main tabs load after shared reasoning and projection port", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  for (const tab of ["Dashboard", "Log Trade", "Analysis", "Performance"]) {
+    await clickTab(page, tab);
+    await waitForAppShell(page);
+    await expect(page.locator("main")).not.toBeEmpty();
+    await expectAnyText(page, [new RegExp(tab, "i"), /Portfolio Summary/i, /Score This Trade/i, /YOUR TWO SELVES/i, /Performance Summary/i]);
+  }
+});
+
+test("SC round trip: accuracy to decisions to audit trail", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/SC-12/i, /Accuracy Alerts/i, /accuracy/i, /category/i, /threshold/i, /No verified decisions yet/i, /No verified trading decisions yet/i]);
+
+  await clickTab(page, "Analysis");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/SC-14/i, /Decision Explorer/i, /Category/i, /Action/i]);
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /SC-15/i, /Rule Lifecycle/i]);
+  await expectAnyText(page, [/SC-16/i, /Audit Trail/i, /decision/i, /outcome/i, /No audit trail available yet/i]);
+
+  await clickTab(page, "Performance");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/SC-11/i, /Centroid History/i, /centroid/i, /No centroid history yet/i]);
+});
+
+test("api self features render populated or empty states", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Accuracy Alerts/i, /No verified decisions yet/i, /threshold/i]);
+
+  await clickTab(page, "Analysis");
+  await waitForAppShell(page);
+  await expectAnyText(page, [/Decision Explorer/i, /No decisions match these filters/i, /Confidence/i]);
+  await expectAnyText(page, [/Audit Trail/i, /No audit trail available yet/i, /decision/i]);
+});
+
+=== analysis.spec.ts ===
+import { test, expect } from "../fixtures/copilot-fixture";
+import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
+
+async function gotoAnalysis(page: import("@playwright/test").Page) {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Analysis");
+  await waitForAppShell(page);
+  await expect(page.getByText("YOUR TWO SELVES")).toBeVisible();
+}
+
+test("contrast card is first and visible", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  const contrastCard = page.locator("main .copilot-card").filter({
+    has: page.getByText("YOUR TWO SELVES"),
+  }).first();
+  await expect(contrastCard).toBeVisible();
+  await expectAnyText(page, [/Aligned/i, /Misaligned/i, /\d+(\.\d+)?%/]);
+});
+
+test("profile archetype shows Researcher or profile", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/The Researcher/i, /The Sizer/i, /The Technician/i, /The Timer/i, /The Gut Trader/i, /Profile pending/i]);
+});
+
+test("fingerprint renders factor names", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expect(page.getByText("Fingerprint")).toBeVisible();
+  await expectAnyText(page, [/Conviction/i, /Research Depth/i, /Technical Signal/i, /Position Size/i, /Time Horizon/i, /Market Regime/i]);
+});
+
+test("counterfactual card shows dollar or saved text", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expect(page.getByText("Counterfactual")).toBeVisible();
+  await expectAnyText(page, [/\$\d[\d,]*/, /saved/i, /scenario/i, /No counterfactual/i]);
+});
+
+test("analysis shows edge and noise sections", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/YOUR EDGE/i, /YOUR NOISE/i, /clean/i, /noisy/i, /moderate/i]);
+});
+
+test("analysis shows behavioral subsections", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/Day of Week/i, /Research Impact/i, /Regime Analysis/i, /Risk Management/i]);
+});
+
+test("SC-14 decision explorer renders on analysis", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/SC-14/i, /Decision Explorer/i]);
+  await expectAnyText(page, [/Category/i, /Action/i, /Confidence/i, /verified only/i]);
+});
+
+test("SC-13 and SC-16 analysis evidence panels render", async ({ page }) => {
+  await gotoAnalysis(page);
+
+  await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i, /No evolution data yet/i, /Evolution variant/i, /Lifecycle event/i]);
+  await expectAnyText(page, [/SC-15/i, /Rule Lifecycle/i, /No evolution data yet/i, /promoted/i, /rejected/i, /shadow/i]);
+  await expectAnyText(page, [/SC-16/i, /Audit Trail/i, /decision/i, /outcome/i, /No audit trail available yet/i]);
+});
+
+
+=== preseed_all_copilots.py Trading actions ===
+"""Pre-seed Trading, Purchasing, and DataOps copilots from repo seed files.
+TRADING_FACTORS = [
+    # Existing Trading seeds omit this seventh factor; extract_factors defaults it to neutral 0.50.
+    actions: List[str]
+    skipped: bool
+        name="trading",
+        env_var="TRADING_URL",
+        seed_path=REPO_ROOT / "apps" / "trading" / "backend" / "data" / "trading_seed_v2.json",
+        factors=TRADING_FACTORS,
+        actions=["strong_execution", "partial_execution", "poor_execution"],
+        actions=["order_as_planned", "order_more", "order_less", "skip"],
+        actions=[
+def load_trading_seed() -> List[Dict[str, Any]]:
+    if args.trading_only:
+def actual_action(entry: Dict[str, Any], score: Dict[str, Any]) -> str:
+    return str(entry.get("action_taken") or entry.get("direction") or score.get("action") or "")
+def alternate_action(config: DomainConfig, recommended_action: str) -> str:
+    for action in config.actions:
+        if action != recommended_action:
+            return action
+
+Done: graphify-out\parts41_44_b.txt (663 lines)

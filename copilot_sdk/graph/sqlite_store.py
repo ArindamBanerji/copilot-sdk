@@ -39,9 +39,10 @@ def _utc_iso_now() -> str:
 class SQLiteGraphStore:
     """SQLite-backed GraphStore that owns decisions, outcomes, and graph tables."""
 
-    def __init__(self, db_path: str | Path, domain: str = "graph") -> None:
+    def __init__(self, db_path: str | Path, domain: str = "graph", decision_id_prefix: str = "") -> None:
         self.db_path = str(db_path)
         self.domain = str(domain)
+        self._decision_id_prefix = str(decision_id_prefix or "")
         self._lock = threading.RLock()
         self._conn: sqlite3.Connection | None = sqlite3.connect(
             self.db_path,
@@ -111,6 +112,14 @@ class SQLiteGraphStore:
                 timestamp TEXT DEFAULT CURRENT_TIMESTAMP
             );
 
+            CREATE TABLE IF NOT EXISTS rl_state (
+                domain TEXT NOT NULL,
+                key TEXT NOT NULL,
+                data_json TEXT NOT NULL,
+                updated_at REAL NOT NULL,
+                PRIMARY KEY (domain, key)
+            );
+
             CREATE TABLE IF NOT EXISTS decision_entity_edges (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 domain TEXT NOT NULL DEFAULT '',
@@ -173,6 +182,7 @@ class SQLiteGraphStore:
             CREATE INDEX IF NOT EXISTS idx_cc_decision_time ON centroid_checkpoints(decision_time_start, decision_time_end);
             CREATE INDEX IF NOT EXISTS idx_cc_category ON centroid_checkpoints(category);
             CREATE INDEX IF NOT EXISTS idx_evolution_events_domain ON evolution_events(domain);
+            CREATE INDEX IF NOT EXISTS idx_rl_state_domain ON rl_state(domain);
             CREATE INDEX IF NOT EXISTS idx_decision_entity_edges_domain ON decision_entity_edges(domain);
             CREATE INDEX IF NOT EXISTS idx_decisions_archive_domain ON decisions_archive(domain);
             """
@@ -249,6 +259,8 @@ class SQLiteGraphStore:
     ) -> str:
         meta = dict(metadata or {})
         decision_id = str(meta.get("decision_id") or uuid.uuid4().hex[:12])
+        if self._decision_id_prefix and not decision_id.startswith(self._decision_id_prefix):
+            decision_id = f"{self._decision_id_prefix}{decision_id}"
         entity_id = str(meta.get("entity_id") or decision_id)
         if "entity_id" not in meta:
             meta["entity_id"] = entity_id
@@ -468,6 +480,37 @@ class SQLiteGraphStore:
         if row is None:
             return None
         return np.asarray(_from_json(row["centroids_json"]), dtype=np.float64)
+
+    def save_rl_state(self, key: str, data: dict) -> None:
+        with self._lock:
+            self.connection.execute(
+                """
+                INSERT INTO rl_state (domain, key, data_json, updated_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(domain, key) DO UPDATE SET
+                    data_json = excluded.data_json,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    self.domain,
+                    str(key),
+                    _to_json(dict(data)),
+                    time.time(),
+                ),
+            )
+            self.connection.commit()
+
+    def load_rl_state(self, key: str) -> dict | None:
+        row = self.connection.execute(
+            """
+            SELECT data_json FROM rl_state
+            WHERE domain = ? AND key = ?
+            """,
+            (self.domain, str(key)),
+        ).fetchone()
+        if row is None:
+            return None
+        return dict(_from_json(row["data_json"]))
 
     def get_centroid_checkpoints(
         self,
@@ -704,13 +747,15 @@ class SQLiteGraphStore:
 
     def _verified_from_row(self, row: sqlite3.Row) -> dict[str, Any]:
         data = self._decision_from_row(row)
+        context_val = _from_json(row["context_json"]) if row["context_json"] else {}
         data.update(
             {
                 "actual_action": row["actual_action"],
                 "actual_index": int(row["actual_index"]),
                 "is_correct": bool(row["is_correct"]),
                 "verified_at": float(row["verified_at"]),
-                "context": _from_json(row["context_json"]) if row["context_json"] else {},
+                "context": context_val,
+                "outcome_metadata": {"context": context_val},
             }
         )
         return data

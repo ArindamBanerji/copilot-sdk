@@ -75,23 +75,6 @@ class GraphStore(Protocol):
     ) -> list[dict[str, Any]]:
         ...
 
-    def save_evolution_event(
-        self,
-        domain: str,
-        event_type: str,
-        rule_name: str = "",
-        variant_id: str = "",
-        metadata: dict[str, Any] | None = None,
-    ) -> None:
-        ...
-
-    def get_evolution_events(
-        self,
-        domain: str,
-        **kwargs: Any,
-    ) -> list[dict[str, Any]]:
-        ...
-
     def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
         ...
 

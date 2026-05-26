@@ -1,0 +1,480 @@
+
+=== BATCH 1: PW Regression Root Cause ===
+
+-- 1A: Recent commits (last 30) --
+29931dc Batch H+I+J: 6 Lane A prompts (promotion, regime-recommend, correlation, earnings-subcat, vix-timing, options-factors). Trading 574 BE + 395 PW. 19/20 scenarios.
+d0c0a90 Batch TRD: 7 prompts + 3 fixers + E2E fixer + flaky fix
+2891fff feat: storage architecture + E2E sweep ΓÇö 0 failures
+474835d Batch C: S2P-COMPLETE-FE-1 (4 panels + 16 E2E), TRD-CLI-CORE (offline CLI, 23 tests), TRD-TRUST-RADAR (hero screen, 9 BE + 7 PW), PUR-P2 SYNTH-DATA (50 suppliers + 500 orders, 32 tests). Trading 163, PUR 93, SDK 654 unchanged.
+d8b96f1 Batch B: TRD-DATA-CONNECTORS (NormalizedTrade+CSV+Alpaca+yfinance) +33 tests, TRD-SIGNAL-FACTORS (conviction+technical_signal+market_regime+registry) +41 tests. Trading 131 total. SDK 654, PUR 61, DataOps 156 unchanged.
+e98da24 Batch A: TRD-DOMAIN-CONFIG (5,4,7), PUR-P1 (5,4,7), STORY-PW+ACT5 transfer panel. Trading 57, Purchasing 61, DataOps 156, SDK 654. All migrations complete, preseed aligned, warm-start restored.
+e1cb52b S2P 16/16: ClusteringPanel, EarlyWarningPanel, PaymentStrategyPanel, DiscoveryPanel, DisruptionRecoveryPanel. +28 E2E (107 total). expect timeout 10s. learn variant_id fix.
+a7c2993 F13 frontend: live supplier profiles, trends, seasonal charts. Auto-approve panel. E2E specs. S2P Phase 1 complete.
+e717c5f S2P frontend: evidence panel, reason codes, evolution panel, Phase 1 E2E specs.
+1177f16 GS-BITEMPORAL: Bi-temporal centroid checkpoints. Protocol+InMemory+SQLite+scorer+endpoint. AE-SDK plan. 586 SDK.
+6bf974e Session May 15-19: BLOCK-1.2 archetype generator, tire fixtures, ProcessTimelinePanel, CrossGraphInsightCard dual-mode, SAP write-back UI, GS-CONFLICT judgment detection, GS-CONSOLIDATE boundaries. 546 SDK, 149 DataOps, 36 Trading, 40 Purchasing.
+fc9f39d TIRE-FIXTURES + PROCESS-TIMELINE + CROSS-GRAPH-CARD: Continental Tire story. ProcessTimelinePanel on Dashboard. CrossGraphInsightCard dual-mode. 142 DataOps BE, 521 SDK root.
+a6d8521 SDK-EVOLUTION-TUNING: tensor-derived PlateauConfig (C├ùA formula). PW-FIX: fixture warm-up + shared purchasing helper. 503 tests, 242 PW 0 flaky.
+f562198 MYPY-TIGHTEN: 4 SDK modules unsuppressed, type guard tests. 501 tests.
+9e7f66f GRAPHSTORE-CONSOLIDATION: 3 canonical stores, SupportsDecisionEntityLinks deleted, prefix support, fixture cache. 500+133 tests.
+f07e211 GAP-H1-FE + SDK-DEMO-DATA: S2P evolution panel, preseed 200, warm-start demo, plateau preset config. 489+242 tests.
+16d6476 AE-PLATEAU + PW-FLAKY-FIX: plateau detection with cooldown, S2P 60s timeout, exact selectors. 479 tests. 0 flaky.
+df41993 CONSERVATION-FIXER + CA-PROTO-4: 50/30 override seed, mypy guard. 460+36+40+129 tests.
+2abfda8 GAP-H2-FE: transfer badges + router + Playwright. 452 tests.
+727f4d1 AE-EVOLUTION-ADV (446 tests, +30) + F17-DISCOVERY (+21). Win-rate fixer. Discovery demo.
+c2ab043 SDK: transfer (+26), CORS (+4), Pydantic guard (+4). 226 E2E 0 fail.
+036402a E2E hardened: health retry, IKS loading race, Evidence strict, hidden option, audit trail (226 passed, 0 failed, 0 flaky)
+b61dd07 E2E fixes: Evidence heading strict, IKS loading race, hidden option, audit trail assertion (224 passed, 2 flaky, 1 skip)
+aea36e3 SDK-APP-QUALITY + S2P-TECH-DEBT(SDK): S2P preset, score metadata, shared proxy, Trading evolution mount, SC data-backed (361 tests)
+7afa9b2 S2P frontend URL alignment: 3 dead URLs fixed
+513bb81 OSS-EVOLVE: CompoundingScorer evolve=True + toy rules + demo (346 tests)
+0ec115f AE-SDK + GRAPH-TPC + S2P frontend: evolution + graph contracts + CT+PVG+SUP
+023b254 Fix flaky test: verified decisions order non-deterministic. Use set comparison. 249 passed.
+4ae2e1a GS-PROMOTE + SC-11ΓåÆSC-16: GraphStore single source of truth + self-computation
+cb28e7d D-CEL: SAP+Celonis connectors + 5 components + enterprise endpoints. 119 DataOps BE. GPT-5.5 PASS.
+
+-- 1B: CORS config per app --
+  === trading ===
+  L12: from fastapi.middleware.cors import CORSMiddleware
+  L64: DEFAULT_CORS_ORIGINS = (
+  L73: def _cors_origins() -> list[str]:
+  L76: for origin in os.environ.get("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
+  L227: CORSMiddleware,
+  L228: allow_origins=_cors_origins(),
+  L229: allow_credentials=True,
+  L230: allow_methods=["*"],
+  L231: allow_headers=["*"],
+  === purchasing ===
+  L12: from fastapi.middleware.cors import CORSMiddleware
+  L53: DEFAULT_CORS_ORIGINS = (
+  L62: def _cors_origins() -> list[str]:
+  L65: for origin in os.environ.get("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
+  L262: CORSMiddleware,
+  L263: allow_origins=_cors_origins(),
+  L264: allow_credentials=True,
+  L265: allow_methods=["*"],
+  L266: allow_headers=["*"],
+  === dataops ===
+  L12: from fastapi.middleware.cors import CORSMiddleware
+  L54: DEFAULT_CORS_ORIGINS = (
+  L63: def _cors_origins() -> list[str]:
+  L66: for origin in os.environ.get("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
+  L231: CORSMiddleware,
+  L232: allow_origins=_cors_origins(),
+  L233: allow_credentials=True,
+  L234: allow_methods=["*"],
+  L235: allow_headers=["*"],
+  === s2p ===
+  L5: from fastapi.middleware.cors import CORSMiddleware
+  L36: DEFAULT_CORS_ORIGINS = (
+  L46: def _cors_origins() -> list[str]:
+  L49: for origin in os.environ.get("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
+  L68: CORSMiddleware,
+  L69: allow_origins=_cors_origins(),
+  L70: allow_credentials=False,
+  L71: allow_methods=["*"],
+  L72: allow_headers=["*"],
+
+-- 1C: trade-metadata endpoint in Trading --
+  context_router.py:409: @router.post("/trade-metadata", status_code=status.HTTP_201_CREATED)
+  context_router.py:410: def save_trade_metadata(payload: dict[str, Any]) -> dict[str, Any]:
+  context_router.py:415: metadata = _load_json_optional("trade_metadata.json") or {}
+  context_router.py:418: _write_json("trade_metadata.json", metadata)
+  context_router.py:422: @router.get("/trade-metadata")
+  context_router.py:423: def get_trade_metadata() -> dict[str, Any]:
+  context_router.py:424: return _load_json_optional("trade_metadata.json") or {}
+  evidence.py:77: metadata_cache = context_router._load_json_optional("trade_metadata.json") or {}
+
+-- 1D: trade-metadata router mounting --
+  L24: from .context_router import router as context_router  # noqa: E402
+  L264: app.include_router(context_router, prefix="/api/context")
+
+-- 1E: MarketRegime component presence --
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\trading\frontend\src\components\RegimeChart.tsx
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\trading\frontend\src\components\RegimePanel.tsx
+  components\EngineAssessment.tsx: 5: market_regime: "Research",
+  components\EngineAssessment.tsx: 9: emotional_indicator: "Market Regime",
+  components\EvidencePanel.tsx: 7: market_regime: "Regime fit",
+  components\PreScorePanel.tsx: 10: market_regime: "Regime fit",
+  components\PreScorePanel.tsx: 32: function regimeClass(regime: string): string {
+  components\PreScorePanel.tsx: 33: if (regime === "trending") return "bg-emerald-100 text-emerald-800";
+  components\PreScorePanel.tsx: 34: if (regime === "volatile") return "bg-red-100 text-red-800";
+  components\PreScorePanel.tsx: 85: const regime = String(result?.regime?.regime || "ranging").toLowerCase();
+  components\PreScorePanel.tsx: 180: <div className="text-xs trading-muted">Regime</div>
+  components\PreScorePanel.tsx: 181: <span className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-semibold ${regimeClass(regime)}`}>{regime.toUpperCase()}</span>
+  components\ProfileArchetype.tsx: 4: market_regime: {
+  components\RegimeChart.tsx: 13: export default function RegimeChart({ analytics }: { analytics?: Analytics }) {
+  components\RegimeChart.tsx: 14: const regimes = analytics?.regimeAnalysis || {};
+  components\RegimeChart.tsx: 15: const rows = ["low_vix", "mid_vix", "high_vix"].map((key) => [key, regimes[key]] as const).filter(([, value]) => value);
+  components\RegimeChart.tsx: 19: <h2 className="text-base font-semibold">Regime Analysis</h2>
+  components\RegimeChart.tsx: 24: No regime data available.
+  components\RegimePanel.tsx: 2: import { fetchRegime, fetchRegimeDetail } from "../api";
+  components\RegimePanel.tsx: 3: import type { RegimeDetailRecommendation, RegimeDetailResponse, RegimeRecommendation, RegimeResponse } from "../types";
+  components\RegimePanel.tsx: 13: function regimeClass(regime: string): string {
+  components\RegimePanel.tsx: 14: if (regime === "trending") return "bg-emerald-100 text-emerald-800";
+
+-- 1F: PW spec files list + flows.spec.ts first 60 lines --
+
+-- 1G: Frontend .tsx/.ts changes in recent git history --
+apps/trading/frontend/src/api.ts
+apps/trading/frontend/src/components/CorrelationPanel.tsx
+apps/trading/frontend/src/components/OptionsFactorPanel.tsx
+apps/trading/frontend/src/components/PreScorePanel.tsx
+apps/trading/frontend/src/components/PromotionPanel.tsx
+apps/trading/frontend/src/components/RegimePanel.tsx
+apps/trading/frontend/src/components/VIXTimingPanel.tsx
+apps/trading/frontend/src/screens/AnalysisScreen.tsx
+apps/trading/frontend/src/screens/JournalScreen.tsx
+apps/trading/frontend/src/screens/LogTradeScreen.tsx
+apps/trading/frontend/src/screens/PerformanceScreen.tsx
+apps/trading/frontend/src/types.ts
+e2e/trading/correlation.spec.ts
+e2e/trading/earnings-subcat.spec.ts
+e2e/trading/options-factors.spec.ts
+e2e/trading/promotion.spec.ts
+e2e/trading/regime-recommend.spec.ts
+e2e/trading/vix-timing.spec.ts
+apps/trading/frontend/src/App.tsx
+apps/trading/frontend/src/api.ts
+apps/trading/frontend/src/components/EngineAssessment.tsx
+apps/trading/frontend/src/components/EvidencePanel.tsx
+apps/trading/frontend/src/components/PreScorePanel.tsx
+apps/trading/frontend/src/components/ProfileArchetype.tsx
+apps/trading/frontend/src/components/RegimePanel.tsx
+apps/trading/frontend/src/components/TradeCard.tsx
+apps/trading/frontend/src/screens/AnalysisScreen.tsx
+apps/trading/frontend/src/screens/DashboardScreen.tsx
+apps/trading/frontend/src/screens/JournalScreen.tsx
+apps/trading/frontend/src/screens/LogTradeScreen.tsx
+
+-- 1H: Trading main.py full middleware/startup section --
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[4]
+WORKSPACE_ROOT = REPO_ROOT.parent
+GAE_PATH = WORKSPACE_ROOT / "graph-attention-engine-v50"
+
+for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
+    if path.exists() and str(path) not in sys.path:
+        sys.path.insert(0, str(path))
+
+from .context_router import router as context_router  # noqa: E402
+from .routers.analytics import create_analytics_router  # noqa: E402
+from .routers.correlation import create_correlation_router  # noqa: E402
+from .routers.data_import import router as data_import_router  # noqa: E402
+from .routers.evidence import create_evidence_router  # noqa: E402
+from .evolution import get_trading_variants  # noqa: E402
+from .routers.journal import create_journal_router  # noqa: E402
+from .routers.prescore import create_prescore_router  # noqa: E402
+from .routers.promotion import create_promotion_router  # noqa: E402
+from .routers.regime import create_regime_router  # noqa: E402
+from .routers.social import create_social_router  # noqa: E402
+
+=== BATCH 2: Post-Implementation Verification ===
+
+-- 2A: scorer_proxy.py full file --
+"""Cached scorer proxy for app backends.
+
+Each proxy lazily constructs one scorer against its shared graph store and
+serializes access through a reentrant lock.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+import threading
+from typing import Any, Callable
+
+from copilot_sdk.scoring import CompoundingScorer
+
+
+class FreshScorerProxy:
+    def __init__(
+        self,
+        preset_name: str,
+        db_path: str | Path,
+        graph_store_factory: Callable[[str | Path], Any],
+    ) -> None:
+        self._preset_name = preset_name
+        self._db_path = str(db_path)
+        self.graph_store = graph_store_factory(db_path)
+        self._lock = threading.RLock()
+        self._scorer_instance: CompoundingScorer | None = None
+
+    def _scorer(self) -> CompoundingScorer:
+        with self._lock:
+            if self._scorer_instance is None:
+                self._scorer_instance = CompoundingScorer.from_preset(
+                    self._preset_name,
+                    graph_store=self.graph_store,
+                )
+            return self._scorer_instance
+
+    def score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, Any] | None = None,
+    ):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.score(factors, category, metadata=metadata)
+            finally:
+                self._close_scorer_store(scorer)
+
+    def learn(self, decision_id: str, actual_action: str, outcome: str = "confirmed"):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.learn(decision_id, actual_action, outcome)
+            finally:
+                self._close_scorer_store(scorer)
+
+    def fingerprint(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.fingerprint()
+            finally:
+                self._close_scorer_store(scorer)
+
+    def trajectory(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.trajectory()
+            finally:
+                self._close_scorer_store(scorer)
+
+    def get_phase(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.get_phase()
+            finally:
+                self._close_scorer_store(scorer)
+
+    def get_alpha(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.get_alpha()
+            finally:
+                self._close_scorer_store(scorer)
+
+    @staticmethod
+    def _close_scorer_store(scorer: CompoundingScorer) -> None:
+        # Scorers borrow the proxy-owned graph store; the proxy controls its lifecycle.
+        return None
+
+-- 2B: RL persistence methods in scorer.py --
+
+-- 2C: Legacy ProfileScorer in S2P --
+  s2p\config.py: 168: from gae import CalibrationProfile
+  s2p\scorer.py: 2: S2P scorer - wires canonical S2PDomainConfig + GAE ProfileScorer.
+  s2p\scorer.py: 7: from gae import ProfileScorer
+  s2p\scorer.py: 16: _scorer: ProfileScorer | None = None
+  s2p\scorer.py: 20: def get_scorer() -> ProfileScorer:
+  s2p\scorer.py: 21: """Return the module-level S2P ProfileScorer. Auto-initializes."""
+  s2p\scorer.py: 36: def _build_scorer() -> ProfileScorer:
+  s2p\scorer.py: 37: """Build a fresh S2P ProfileScorer from canonical S2PDomainConfig."""
+  s2p\scorer.py: 38: return ProfileScorer(
+  s2p\scorer.py: 54: Update ProfileScorer centroids from analyst outcome.
+  framework\checkpoint.py: 4: Creates immutable snapshots of the ProfileScorer centroid tensor (mu) in Neo4j.
+  framework\checkpoint.py: 36: scorer : ProfileScorer — source of mu, counts, decision_count
+  framework\checkpoint.py: 109: scorer : ProfileScorer — will have mu (and counts) mutated in-place
+  framework\composite_gate.py: 4: Uses 13 features derived from ProfileScorer output and graph context to decide
+  framework\composite_gate.py: 74: score_result      : ProfileScorer.score() result
+  framework\composite_gate.py: 173: # Fallback: ProfileScorer result may carry action_name directly
+  framework\iks_base.py: 68: Current centroid tensor from ProfileScorer.
+  framework\learning_state.py: 31: from gae.learning import LearningState, WeightUpdate, CalibrationProfile
+  framework\learning_state.py: 32: from gae import BootstrapResult  # noqa: F401 — re-exported for callers
+  framework\ols_status.py: 12: from gae import OLSMonitor
+  routers\framework_router.py: 477: """Freeze the ProfileScorer — stops centroid updates."""
+  routers\framework_router.py: 489: """Unfreeze the ProfileScorer — re-enables centroid updates."""
+  routers\s2p_preview.py: 185: from gae import ProfileScorer
+  routers\s2p_preview.py: 194: return ProfileScorer(
+  routers\s2p.py: 153: from gae.calibration import conservation_status
+
+-- 2D: decision_id_prefix per app --
+  trading: store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="TRD-")
+  purchasing: store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="PUR-")
+  dataops: store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="DOPS-")
+
+-- 2E: New router mounts in Trading main.py --
+  L25: from .routers.analytics import create_analytics_router  # noqa: E402
+  L26: from .routers.correlation import create_correlation_router  # noqa: E402
+  L28: from .routers.evidence import create_evidence_router  # noqa: E402
+  L30: from .routers.journal import create_journal_router  # noqa: E402
+  L31: from .routers.prescore import create_prescore_router  # noqa: E402
+  L32: from .routers.promotion import create_promotion_router  # noqa: E402
+  L33: from .routers.regime import create_regime_router  # noqa: E402
+  L34: from .routers.social import create_social_router  # noqa: E402
+  L35: from .routers.vix_timing import create_vix_timing_router  # noqa: E402
+  L36: from .routers.webhook import create_webhook_router  # noqa: E402
+  L37: from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
+  L39: create_conservation_router,
+  L40: create_evolution_router,
+  L41: create_scoring_router,
+  L42: mount_self_computation_router,
+  L238: app.include_router(
+  L239: create_scoring_router(
+  L246: app.include_router(create_transfer_router(scorer_proxy))
+  L247: app.include_router(
+  L248: create_evolution_router(
+  L256: app.include_router(
+  L257: create_conservation_router(
+  L263: mount_self_computation_router(app, _graph_store(scoring_db))
+  L264: app.include_router(context_router, prefix="/api/context")
+  L265: app.include_router(create_evidence_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+  L266: app.include_router(create_journal_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+  L267: app.include_router(create_analytics_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+  L268: app.include_router(create_correlation_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+  L269: app.include_router(create_prescore_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+  L270: app.include_router(
+  L271: create_promotion_router(
+  L277: app.include_router(create_regime_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+  L278: app.include_router(create_social_router(scorer_proxy))
+  L279: app.include_router(create_vix_timing_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+  L280: app.include_router(create_webhook_router(scorer_proxy))
+  L281: app.include_router(data_import_router)
+
+=== BATCH 3: Architecture Health ===
+
+-- 3A: compute_theta_min usage across all apps --
+  copilot_sdk\backend\conservation_router.py: 23: from gae.calibration import check_conservation, compute_theta_min, conservation_status
+  copilot_sdk\backend\conservation_router.py: 68: else compute_theta_min(request.alpha, request.V)
+  copilot_sdk\scoring\scorer.py: 40: def compute_theta_min(alpha: float, verified: int | float) -> float | None:
+  copilot_sdk\scoring\scorer.py: 61: return 23.53 / (alpha_value * verified_value)
+  copilot_sdk\scoring\scorer.py: 604: theta_min = compute_theta_min(override_rate, verified)
+  copilot_sdk\scoring\scorer.py: 818: theta_min = compute_theta_min(override_rate, verified)
+  backend\app\context_router.py: 220: theta_min_proxy = 23.53 / (effective_alpha * v_cat) if v_cat > 0 else 1.0
+  backend\app\context_router.py: 351: "23.53 / (penalty * accuracy * V_cat). "
+  app\routers\s2p_performance.py: 101: theta_min = round(23.53 / (PENALTY_RATIO * new_verified), 4) if new_verified else 1.0
+
+-- 3B: _PreDomainEvolutionStoreAdapter presence --
+
+-- 3C: S2P evolution compatibility --
+  app\main.py: 58: graph_store=SQLiteGraphStore(effective, domain="s2p", decision_id_prefix="S2P-"),
+
+-- 3D: Current backend test counts --
+  trading: 641 tests
+  purchasing: 141 tests
+  dataops: 152 tests
+
+-- 3E: S2P router test coverage gap --
+  __init__.py: 0 routes, tests: NO TESTS
+  framework_router.py: 28 routes, tests: NO TESTS
+  s2p_clustering.py: 2 routes, tests: NO TESTS
+  s2p_control_tower.py: 3 routes, tests: 14
+  s2p_data_helpers.py: 0 routes, tests: 8
+  s2p_discovery.py: 5 routes, tests: NO TESTS
+  s2p_early_warning.py: 3 routes, tests: NO TESTS
+  s2p_evidence.py: 8 routes, tests: 16
+  s2p_evolution.py: 6 routes, tests: NO TESTS
+  s2p_explorer.py: 6 routes, tests: NO TESTS
+  s2p_governance.py: 6 routes, tests: NO TESTS
+  s2p_insight.py: 4 routes, tests: 11
+  s2p_novelty.py: 4 routes, tests: NO TESTS
+  s2p_payment.py: 2 routes, tests: NO TESTS
+  s2p_performance.py: 3 routes, tests: 8
+  s2p_preview.py: 5 routes, tests: 30
+  s2p_pvg.py: 5 routes, tests: 12
+  s2p_simulation.py: 4 routes, tests: NO TESTS
+  s2p_suppliers.py: 9 routes, tests: 19
+  s2p.py: 6 routes, tests: NO TESTS
+
+=== BATCH 4: New Questions ===
+
+-- 4A: API calls in Trading frontend screens --
+  src\App.tsx: 28: useEffect(() => {
+  components\AccuracyAlertPanel.tsx: 9: useEffect(() => {
+  components\AuditTrailViewer.tsx: 9: useEffect(() => {
+  components\CentroidTimelineChart.tsx: 9: useEffect(() => {
+  components\CorrelationPanel.tsx: 83: useEffect(() => {
+  components\DecisionExplorerPanel.tsx: 11: useEffect(() => {
+  components\EvidencePanel.tsx: 33: useEffect(() => {
+  components\PatternDetectionPanel.tsx: 100: useEffect(() => {
+  components\PreScorePanel.tsx: 58: useEffect(() => {
+  components\PromotionPanel.tsx: 59: useEffect(() => {
+  components\RegimePanel.tsx: 78: useEffect(() => {
+  components\RegimePanel.tsx: 95: useEffect(() => {
+  components\RuleGenealogyTree.tsx: 12: useEffect(() => {
+  components\RuleLifecyclePanel.tsx: 14: useEffect(() => {
+  components\StrategySafetyBreakdownPanel.tsx: 86: useEffect(() => {
+  components\TrustRadarPanel.tsx: 33: useEffect(() => {
+  components\VIXTimingPanel.tsx: 50: useEffect(() => {
+  screens\AnalysisScreen.tsx: 62: useEffect(() => {
+  screens\DashboardScreen.tsx: 90: useEffect(() => {
+  screens\JournalScreen.tsx: 56: useEffect(() => {
+  screens\JournalScreen.tsx: 84: useEffect(() => {
+  screens\LogTradeScreen.tsx: 150: useEffect(() => {
+  screens\LogTradeScreen.tsx: 170: useEffect(() => {
+  screens\PerformanceScreen.tsx: 39: useEffect(() => {
+  screens\TradeDetailScreen.tsx: 90: useEffect(() => {
+
+-- 4B: Trading vs Purchasing router/middleware lists --
+  Trading:
+    L226: app.add_middleware(
+    L238: app.include_router(
+    L246: app.include_router(create_transfer_router(scorer_proxy))
+    L247: app.include_router(
+    L256: app.include_router(
+    L264: app.include_router(context_router, prefix="/api/context")
+    L265: app.include_router(create_evidence_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    L266: app.include_router(create_journal_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    L267: app.include_router(create_analytics_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    L268: app.include_router(create_correlation_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    L269: app.include_router(create_prescore_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    L270: app.include_router(
+    L277: app.include_router(create_regime_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    L278: app.include_router(create_social_router(scorer_proxy))
+    L279: app.include_router(create_vix_timing_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    L280: app.include_router(create_webhook_router(scorer_proxy))
+    L281: app.include_router(data_import_router)
+  Purchasing:
+    L261: app.add_middleware(
+    L273: app.include_router(
+    L281: app.include_router(create_transfer_router(scorer_proxy))
+    L282: app.include_router(
+    L291: app.include_router(
+    L299: app.include_router(context_router, prefix="/api/context")
+    L300: app.include_router(create_evidence_router(scorer_proxy))
+
+-- 4C: Preseed data fixture shapes --
+  """Pre-seed Trading, Purchasing, and DataOps copilots from repo seed files.
+  TRADING_FACTORS = [
+  # Existing Trading seeds omit this seventh factor; extract_factors defaults it to neutral 0.50.
+  actions: List[str]
+  name="trading",
+  env_var="TRADING_URL",
+  seed_path=REPO_ROOT / "apps" / "trading" / "backend" / "data" / "trading_seed_v2.json",
+  factors=TRADING_FACTORS,
+  actions=["strong_execution", "partial_execution", "poor_execution"],
+  actions=["order_as_planned", "order_more", "order_less", "skip"],
+  actions=[
+  def load_trading_seed() -> List[Dict[str, Any]]:
+  if args.trading_only:
+  def actual_action(entry: Dict[str, Any], score: Dict[str, Any]) -> str:
+  return str(entry.get("action_taken") or entry.get("direction") or score.get("action") or "")
+  def alternate_action(config: DomainConfig, recommended_action: str) -> str:
+  for action in config.actions:
+  if action != recommended_action:
+  return action
+  raise ValueError("no alternate action available for %s" % config.name)
+
+-- 4D: PW spec files with test counts --
+
+-- 4E: Full content of all failing spec files --
+  flows.spec.ts NOT FOUND
+  dashboard.spec.ts NOT FOUND
+  regime.spec.ts NOT FOUND
+
+=== ALL BATCHES COMPLETE ===
+Output: graphify-out\parts41_44.txt (478 lines)
+Upload this file for analysis.

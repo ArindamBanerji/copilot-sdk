@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
+import pytest
 
 from copilot_sdk.backend.evolution_router import create_evolution_router
 
@@ -10,16 +11,11 @@ class RecordingGraphStore:
     def __init__(self) -> None:
         self.events = []
 
-    def save_evolution_event(self, domain, event_type=None, rule_name="", variant_id="", metadata=None):
-        if event_type is None or (variant_id == "" and rule_name):
-            old_event_type = domain
-            old_rule_name = event_type or ""
-            old_variant_id = rule_name
-            domain = "dataops"
-            event_type = old_event_type
-            rule_name = old_rule_name
-            variant_id = old_variant_id
+    def save_evolution_event(self, domain, event_type, rule_name="", variant_id="", metadata=None):
         self.events.append((domain, event_type, rule_name, variant_id, metadata or {}))
+
+    def get_evolution_events(self, domain, rule_name=None, limit=100):
+        return []
 
 
 def build_client(graph_store_factory=None, domain="dataops") -> TestClient:
@@ -160,3 +156,8 @@ def test_no_forbidden_modules_loaded():
     assert not any("domains.soc" in module for module in sys.modules)
     assert not any("domains.s2p" in module for module in sys.modules)
     assert not any("gen-ai-roi-demo" in module for module in sys.modules)
+
+
+def test_legacy_string_domain_mount_is_removed():
+    with pytest.raises(TypeError):
+        create_evolution_router("dataops")

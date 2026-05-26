@@ -64,6 +64,50 @@ class EvolutionLedger(Protocol):
 
 
 @runtime_checkable
+class EvolutionStore(Protocol):
+    """Persistence for evolution events. Separate from GraphStore."""
+
+    def save_evolution_event(
+        self,
+        domain: str,
+        event_type: str,
+        rule_name: str,
+        variant_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        ...
+
+    def get_evolution_events(
+        self,
+        domain: str,
+        rule_name: str | None = None,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        ...
+
+
+@runtime_checkable
+class VariantSelector(Protocol):
+    """Selects which variant to use."""
+
+    def select(
+        self,
+        category: str,
+        variants: list[str],
+        context: dict[str, Any] | None = None,
+    ) -> str:
+        ...
+
+    def update(
+        self,
+        variant_id: str,
+        category: str,
+        reward: float,
+    ) -> None:
+        ...
+
+
+@runtime_checkable
 class ShadowRunner(Protocol):
     def run_shadow(
         self,

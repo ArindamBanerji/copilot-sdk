@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 
+from copilot_sdk.evolution import EvolutionStore
 from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
 
 
@@ -22,9 +23,12 @@ def _sqlite_events(db_path):
         connection.close()
 
 
-def test_graph_store_protocol_includes_save_evolution_event():
-    assert hasattr(GraphStore, "save_evolution_event")
+def test_graph_store_protocol_excludes_evolution_methods():
+    assert not hasattr(GraphStore, "save_evolution_event")
+    assert not hasattr(GraphStore, "get_evolution_events")
+    assert hasattr(EvolutionStore, "save_evolution_event")
     assert isinstance(InMemoryGraphStore(), GraphStore)
+    assert isinstance(InMemoryGraphStore(), EvolutionStore)
 
 
 def test_in_memory_graph_store_save_evolution_event():
@@ -115,5 +119,8 @@ def test_sqlite_save_evolution_event_without_metadata(tmp_path):
     assert json.loads(events[0]["metadata"]) == {}
 
 
-def test_sqlite_graph_store_satisfies_protocol_after_evolution_extension(tmp_path):
-    assert isinstance(SQLiteGraphStore(tmp_path / "graph.sqlite"), GraphStore)
+def test_sqlite_graph_store_satisfies_evolution_store_protocol(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+
+    assert isinstance(store, GraphStore)
+    assert isinstance(store, EvolutionStore)

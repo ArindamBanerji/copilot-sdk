@@ -214,12 +214,46 @@ def test_memory_get_evolution_events():
     assert events[0]["metadata"] == {"seed": 7}
 
 
+def test_memory_rl_state_roundtrip_and_upsert():
+    store = InMemoryGraphStore(domain="mock")
+
+    store.save_rl_state("thompson", {"alpha": [1.0]})
+    store.save_rl_state("thompson", {"alpha": [2.0], "beta": [3.0]})
+
+    assert store.load_rl_state("thompson") == {"alpha": [2.0], "beta": [3.0]}
+    assert store.load_rl_state("missing") is None
+
+
+def test_memory_rl_state_domain_isolated():
+    alpha = InMemoryGraphStore(domain="alpha")
+    beta = InMemoryGraphStore(domain="beta")
+
+    alpha.save_rl_state("thompson", {"alpha": [1.0]})
+    beta.save_rl_state("thompson", {"alpha": [2.0]})
+
+    assert alpha.load_rl_state("thompson") == {"alpha": [1.0]}
+    assert beta.load_rl_state("thompson") == {"alpha": [2.0]}
+
+
+def test_memory_rl_state_uses_copies():
+    store = InMemoryGraphStore(domain="mock")
+    data = {"alpha": [1.0]}
+
+    store.save_rl_state("thompson", data)
+    data["alpha"].append(2.0)
+    loaded = store.load_rl_state("thompson")
+    loaded["alpha"].append(3.0)
+
+    assert store.load_rl_state("thompson") == {"alpha": [1.0]}
+
+
 def test_memory_reset_clears_and_close_noop():
     store = InMemoryGraphStore()
     decision_id = _write(store, "mock", 1)
     store.write_outcome(decision_id, "approve", True)
     store.save_centroids("mock", "alpha", [[1.0]], decision_id=decision_id)
     store.save_evolution_event("mock", "event")
+    store.save_rl_state("thompson", {"alpha": [1.0]})
 
     store.reset()
     store.close()
@@ -228,3 +262,4 @@ def test_memory_reset_clears_and_close_noop():
     assert store.count_verified("mock") == 0
     assert store.get_centroid_checkpoints("mock") == []
     assert store.get_evolution_events("mock") == []
+    assert store.load_rl_state("thompson") is None

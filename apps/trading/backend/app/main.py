@@ -22,14 +22,18 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
         sys.path.insert(0, str(path))
 
 from .context_router import router as context_router  # noqa: E402
+from .routers.analytics import create_analytics_router  # noqa: E402
 from .routers.correlation import create_correlation_router  # noqa: E402
 from .routers.data_import import router as data_import_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
+from .evolution import get_trading_variants  # noqa: E402
 from .routers.journal import create_journal_router  # noqa: E402
 from .routers.prescore import create_prescore_router  # noqa: E402
 from .routers.promotion import create_promotion_router  # noqa: E402
 from .routers.regime import create_regime_router  # noqa: E402
+from .routers.social import create_social_router  # noqa: E402
 from .routers.vix_timing import create_vix_timing_router  # noqa: E402
+from .routers.webhook import create_webhook_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
@@ -75,7 +79,7 @@ def _cors_origins() -> list[str]:
 
 
 def _graph_store(db_path: str | Path):
-    store = SQLiteGraphStore(str(db_path), domain=DOMAIN)
+    store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="TRD-")
     store.penalty_ratio = TradingPreset().penalty_ratio
     return store
 
@@ -235,7 +239,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         create_scoring_router(
             DOMAIN,
             db_path=scoring_db,
-            scorer_factory=lambda: FreshScorerProxy(DOMAIN, scoring_db, _graph_store),
+            scorer_factory=lambda: scorer_proxy,
         ),
         prefix="/api",
     )
@@ -244,7 +248,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         create_evolution_router(
             graph_store_factory=lambda: _graph_store(scoring_db),
             domain=DOMAIN,
-            variant_provider=lambda: [],
+            variant_provider=get_trading_variants,
         )
     )
 
@@ -252,7 +256,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     app.include_router(
         create_conservation_router(
             DOMAIN,
-            state_provider=lambda: _graph_store(scoring_db),
+            state_provider=scorer_proxy,
         ),
         prefix="/api",
     )
@@ -260,6 +264,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     app.include_router(context_router, prefix="/api/context")
     app.include_router(create_evidence_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
     app.include_router(create_journal_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_analytics_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
     app.include_router(create_correlation_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
     app.include_router(create_prescore_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
     app.include_router(
@@ -270,7 +275,9 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         )
     )
     app.include_router(create_regime_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_social_router(scorer_proxy))
     app.include_router(create_vix_timing_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_webhook_router(scorer_proxy))
     app.include_router(data_import_router)
 
     def _run_startup_seed_once() -> None:

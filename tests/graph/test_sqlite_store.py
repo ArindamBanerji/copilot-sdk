@@ -6,6 +6,7 @@ import threading
 import numpy as np
 
 from copilot_sdk.graph import SQLiteGraphStore
+from copilot_sdk.graph.protocol import GraphStore
 
 
 def _write(store: SQLiteGraphStore, domain: str, index: int, category: str = "alpha") -> str:
@@ -279,6 +280,47 @@ def test_get_evolution_events(tmp_path):
     assert len(events) == 1
     assert events[0]["domain"] == "mock"
     assert events[0]["metadata"] == {"x": 1}
+
+
+def test_sqlite_rl_state_roundtrip(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite", domain="mock")
+
+    store.save_rl_state("thompson", {"alpha": [1.0, 2.0], "status": "GREEN"})
+
+    assert store.load_rl_state("thompson") == {"alpha": [1.0, 2.0], "status": "GREEN"}
+
+
+def test_sqlite_rl_state_missing_returns_none(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite", domain="mock")
+
+    assert store.load_rl_state("missing") is None
+
+
+def test_sqlite_rl_state_upsert_overwrites_same_key(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite", domain="mock")
+
+    store.save_rl_state("thompson", {"alpha": [1.0]})
+    store.save_rl_state("thompson", {"alpha": [3.0], "beta": [4.0]})
+
+    assert store.load_rl_state("thompson") == {"alpha": [3.0], "beta": [4.0]}
+
+
+def test_sqlite_rl_state_domain_isolated_same_file(tmp_path):
+    db_path = tmp_path / "graph.sqlite"
+    alpha = SQLiteGraphStore(db_path, domain="alpha")
+    beta = SQLiteGraphStore(db_path, domain="beta")
+
+    alpha.save_rl_state("thompson", {"alpha": [1.0]})
+    beta.save_rl_state("thompson", {"alpha": [2.0]})
+
+    assert alpha.load_rl_state("thompson") == {"alpha": [1.0]}
+    assert beta.load_rl_state("thompson") == {"alpha": [2.0]}
+
+
+def test_graphstore_protocol_has_no_rl_methods():
+    members = [member for member in dir(GraphStore) if "rl" in member.lower()]
+
+    assert members == []
 
 
 def test_domain_migration_true_legacy_decisions_without_domain(tmp_path):

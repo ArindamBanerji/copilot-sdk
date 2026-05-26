@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import json
 from collections import Counter
 from pathlib import Path
@@ -538,6 +537,7 @@ def test_score_via_sdk_router(client):
 
     assert payload["category"] == "protein"
     assert payload["action"] in {"order_as_planned", "order_more", "order_less", "skip"}
+    assert payload["decision_id"].startswith("PUR-")
     assert 0.0 <= payload["confidence"] <= 1.0
     assert len(payload["probabilities"]) == 4
     assert payload["engine"]["scoring"] == "copilot_sdk.scoring.CompoundingScorer"
@@ -574,6 +574,19 @@ def test_conservation_status_returns_live_counts(client):
     assert payload["verified_count"] == 1
     assert payload["correct_count"] == 1
     assert payload["penalty_ratio"] == 3.0
+
+
+def test_in_memory_scoring_and_conservation_share_proxy_store(temp_data_dir):
+    from app.main import create_app
+
+    with TestClient(create_app(db_path=":memory:")) as memory_client:
+        score = _score(memory_client)
+        payload = memory_client.get("/api/conservation/status").json()
+
+    assert score["decision_id"].startswith("PUR-")
+    assert payload["domain"] == "purchasing"
+    assert payload["total_decisions"] == 1
+    assert payload["verified_count"] == 0
 
 
 def test_self_computation_centroid_history_available(client):
@@ -673,7 +686,8 @@ def test_evolution_variants(client):
     assert response.status_code == 200
     payload = response.json()
     assert payload["domain"] == "purchasing"
-    assert payload["engine"]["gae"] == "gae.evolution"
+    assert payload["active_rules"] == []
+    assert payload["promoted_rules"] == []
     assert len(payload["variants"]) == 3
     assert {variant["event_type"] for variant in payload["variants"]} == {
         "promotion_approved",
@@ -682,20 +696,20 @@ def test_evolution_variants(client):
 
 
 def test_evolution_ledger_filters_promoted(temp_data_dir: Path):
-    from app.main import _FixtureEvolutionLedger
+    from app.main import _filter_variants_by_query
 
-    ledger = _FixtureEvolutionLedger(temp_data_dir / "evolution_fixtures.json")
-    variants = asyncio.run(ledger.run_query("MATCH promoted variants"))
+    payload = json.loads((temp_data_dir / "evolution_fixtures.json").read_text(encoding="utf-8"))
+    variants = _filter_variants_by_query(payload["variants"], "MATCH promoted variants")
 
     assert variants
     assert {variant["event_type"] for variant in variants} == {"promotion_approved"}
 
 
 def test_evolution_ledger_filters_rejected(temp_data_dir: Path):
-    from app.main import _FixtureEvolutionLedger
+    from app.main import _filter_variants_by_query
 
-    ledger = _FixtureEvolutionLedger(temp_data_dir / "evolution_fixtures.json")
-    variants = asyncio.run(ledger.run_query("MATCH rejected variants"))
+    payload = json.loads((temp_data_dir / "evolution_fixtures.json").read_text(encoding="utf-8"))
+    variants = _filter_variants_by_query(payload["variants"], "MATCH rejected variants")
 
     assert variants
     assert {variant["event_type"] for variant in variants} == {"promotion_rejected"}

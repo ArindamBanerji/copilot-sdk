@@ -12,8 +12,10 @@ from copilot_sdk.evolution.protocol import (
     EvolutionEvent,
     EvolutionLedger,
     EvolutionRule,
+    EvolutionStore,
     PromotionGate,
     ShadowRunner,
+    VariantSelector,
 )
 from copilot_sdk.evolution.shadow import DefaultShadowRunner
 from copilot_sdk.evolution.variant_store import (
@@ -33,6 +35,7 @@ __all__ = [
     "EvolutionEvent",
     "EvolutionLedger",
     "EvolutionRule",
+    "EvolutionStore",
     "InMemoryEvolutionLedger",
     "InMemoryVariantStore",
     "PromotionGate",
@@ -42,6 +45,7 @@ __all__ = [
     "PromptVariantEvolver",
     "SelectionContext",
     "ShadowRunner",
+    "VariantSelector",
     "StepCredit",
     "StepCreditAssigner",
     "StepRecord",

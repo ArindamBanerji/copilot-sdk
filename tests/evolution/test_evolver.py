@@ -110,7 +110,7 @@ def test_evolve_records_event_sequence_on_promotion():
     evolver = AgentEvolver(ledger=ledger)
     evolver.register_rule(Rule())
 
-    evolver.evolve("rule-a", _decisions())
+    evolver.evolve("rule-a", _decisions(), conservation_state={"status": "GREEN"})
 
     assert [event["event_type"] for event in ledger.get_events()] == [
         "variant_generated",
@@ -133,7 +133,7 @@ def test_evolve_records_rejection_event():
 def test_evolution_history_filters_by_rule():
     evolver = AgentEvolver()
     evolver.register_rule(Rule())
-    evolver.evolve("rule-a", _decisions())
+    evolver.evolve("rule-a", _decisions(), conservation_state={"status": "GREEN"})
 
     assert all(event["rule_name"] == "rule-a" for event in evolver.get_evolution_history("rule-a"))
 
@@ -141,7 +141,7 @@ def test_evolution_history_filters_by_rule():
 def test_get_promoted_rules_delegates_to_ledger():
     evolver = AgentEvolver()
     evolver.register_rule(Rule())
-    evolver.evolve("rule-a", _decisions())
+    evolver.evolve("rule-a", _decisions(), conservation_state={"status": "GREEN"})
 
     assert evolver.get_promoted_rules() == ["rule-a"]
 
@@ -149,7 +149,7 @@ def test_get_promoted_rules_delegates_to_ledger():
 def test_reset_clears_ledger_but_keeps_active_rules():
     evolver = AgentEvolver()
     evolver.register_rule(Rule())
-    evolver.evolve("rule-a", _decisions())
+    evolver.evolve("rule-a", _decisions(), conservation_state={"status": "GREEN"})
 
     evolver.reset()
 
@@ -161,7 +161,12 @@ def test_evolve_uses_seed_as_variant_id():
     evolver = AgentEvolver()
     evolver.register_rule(Rule())
 
-    result = evolver.evolve("rule-a", _decisions(), seed="variant-seeded")
+    result = evolver.evolve(
+        "rule-a",
+        _decisions(),
+        seed="variant-seeded",
+        conservation_state={"status": "GREEN"},
+    )
 
     assert result["variant_id"] == "variant-seeded"
 
@@ -170,7 +175,7 @@ def test_evolve_returns_shadow_and_gate_results():
     evolver = AgentEvolver()
     evolver.register_rule(Rule())
 
-    result = evolver.evolve("rule-a", _decisions())
+    result = evolver.evolve("rule-a", _decisions(), conservation_state={"status": "GREEN"})
 
     assert result["shadow_results"]["accuracy"] == 1.0
     assert result["gate_result"]["promoted"] is True

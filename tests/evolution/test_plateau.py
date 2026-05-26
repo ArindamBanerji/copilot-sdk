@@ -81,7 +81,7 @@ def test_plateau_detected_when_no_recent_gains():
     _record_gain_events(ledger, positives=0)
     evolver, rule = _evolver(ledger)
 
-    result = evolver.evolve("plateau-rule", _decisions())
+    result = evolver.evolve("plateau-rule", _decisions(), conservation_state={"status": "GREEN"})
 
     assert result["promoted"] is False
     assert result["reason"] == "plateau_cooldown"
@@ -95,7 +95,7 @@ def test_plateau_not_detected_with_recent_gains():
     _record_gain_events(ledger, positives=5)
     evolver, rule = _evolver(ledger)
 
-    result = evolver.evolve("plateau-rule", _decisions())
+    result = evolver.evolve("plateau-rule", _decisions(), conservation_state={"status": "GREEN"})
 
     assert result["promoted"] is True
     assert result["reason"] == "promoted"
@@ -122,9 +122,9 @@ def test_plateau_resumes_after_cooldown():
     _record_gain_events(ledger, positives=0)
     evolver, rule = _evolver(ledger, cooldown=1)
 
-    evolver.evolve("plateau-rule", _decisions())
-    skipped = evolver.evolve("plateau-rule", _decisions())
-    resumed = evolver.evolve("plateau-rule", _decisions())
+    evolver.evolve("plateau-rule", _decisions(), conservation_state={"status": "GREEN"})
+    skipped = evolver.evolve("plateau-rule", _decisions(), conservation_state={"status": "GREEN"})
+    resumed = evolver.evolve("plateau-rule", _decisions(), conservation_state={"status": "GREEN"})
 
     assert skipped["reason"] == "plateau_cooldown"
     assert resumed["promoted"] is True

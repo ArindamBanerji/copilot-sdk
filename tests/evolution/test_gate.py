@@ -23,21 +23,30 @@ def test_gate_promotes_when_checks_pass():
 
 
 def test_gate_rejects_insufficient_data():
-    result = DefaultPromotionGate().evaluate(_shadow(sufficient=False, total=4))
+    result = DefaultPromotionGate().evaluate(
+        _shadow(sufficient=False, total=4),
+        conservation_state={"status": "GREEN"},
+    )
 
     assert result["promoted"] is False
     assert result["reason"] == "sufficient_data"
 
 
 def test_gate_rejects_low_superiority():
-    result = DefaultPromotionGate().evaluate(_shadow(accuracy=0.73, baseline_accuracy=0.70))
+    result = DefaultPromotionGate().evaluate(
+        _shadow(accuracy=0.73, baseline_accuracy=0.70),
+        conservation_state={"status": "GREEN"},
+    )
 
     assert result["promoted"] is False
     assert result["reason"] == "superiority"
 
 
 def test_gate_rejects_below_accuracy_floor():
-    result = DefaultPromotionGate().evaluate(_shadow(accuracy=0.69, baseline_accuracy=0.50))
+    result = DefaultPromotionGate().evaluate(
+        _shadow(accuracy=0.69, baseline_accuracy=0.50),
+        conservation_state={"status": "GREEN"},
+    )
 
     assert result["promoted"] is False
     assert result["reason"] == "accuracy_floor"
@@ -50,16 +59,18 @@ def test_gate_red_conservation_blocks():
     assert result["reason"] == "conservation"
 
 
-def test_gate_amber_conservation_passes():
+def test_gate_amber_conservation_blocks():
     result = DefaultPromotionGate().evaluate(_shadow(), conservation_state={"status": "AMBER"})
 
-    assert result["checks"]["conservation"] is True
-    assert result["promoted"] is True
+    assert result["checks"]["conservation"] is False
+    assert result["promoted"] is False
+    assert result["reason"] == "conservation"
 
 
 def test_gate_variance_blocks_when_high():
     result = DefaultPromotionGate().evaluate(
-        _shadow(batch_accuracies=[0.95, 0.50, 0.95, 0.50])
+        _shadow(batch_accuracies=[0.95, 0.50, 0.95, 0.50]),
+        conservation_state={"status": "GREEN"},
     )
 
     assert result["promoted"] is False
@@ -67,7 +78,7 @@ def test_gate_variance_blocks_when_high():
 
 
 def test_gate_reports_metrics():
-    result = DefaultPromotionGate().evaluate(_shadow())
+    result = DefaultPromotionGate().evaluate(_shadow(), conservation_state={"status": "GREEN"})
 
     assert result["accuracy"] == 0.82
     assert result["baseline_accuracy"] == 0.7
@@ -78,7 +89,7 @@ def test_gate_reports_metrics():
 def test_gate_custom_thresholds():
     gate = DefaultPromotionGate(superiority_threshold_pp=15.0, accuracy_floor=0.80)
 
-    result = gate.evaluate(_shadow())
+    result = gate.evaluate(_shadow(), conservation_state={"status": "GREEN"})
 
     assert result["promoted"] is False
     assert result["reason"] == "superiority"

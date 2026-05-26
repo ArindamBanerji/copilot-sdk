@@ -16,6 +16,18 @@ export async function clickTab(page: Page, name: string | RegExp) {
   await page.getByText(name).first().click();
 }
 
+export async function waitForAppShell(page: Page, timeout = 15_000) {
+  await page.waitForLoadState("domcontentloaded", { timeout });
+  await expect(page.locator("main")).not.toBeEmpty({ timeout });
+}
+
+export async function gotoTab(page: Page, tabName: string, timeout = 15_000) {
+  await page.goto("/");
+  await waitForAppShell(page, timeout);
+  await clickTab(page, tabName);
+  await waitForAppShell(page, timeout);
+}
+
 export async function expectAnyText(
   page: Page,
   patterns: Array<RegExp | string>,

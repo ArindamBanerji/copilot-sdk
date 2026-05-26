@@ -1,5 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
+import { waitForAppShell } from "../helpers/ui";
 
 async function clickPerformanceTab(page: Page) {
   const tab = page.getByRole("tab", { name: /Performance/i });
@@ -21,7 +22,9 @@ function safetyPanel(page: Page): Locator {
 
 async function gotoSafetyPanel(page: Page): Promise<Locator> {
   await page.goto("/");
+  await waitForAppShell(page);
   await clickPerformanceTab(page);
+  await waitForAppShell(page);
 
   const panel = safetyPanel(page);
   await expect(panel).toBeVisible({ timeout: 15_000 });

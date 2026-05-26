@@ -1,9 +1,11 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
 
 async function gotoAnalysis(page: import("@playwright/test").Page) {
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Analysis");
+  await waitForAppShell(page);
   await expect(page.getByText("YOUR TWO SELVES")).toBeVisible();
 }
 

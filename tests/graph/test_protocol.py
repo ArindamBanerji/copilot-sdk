@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import get_type_hints
 
+from copilot_sdk.evolution.protocol import EvolutionStore
 from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
 
 
@@ -25,8 +26,6 @@ def test_graph_store_protocol_required_methods_exist():
         "save_centroids",
         "load_latest_centroids",
         "get_centroid_checkpoints",
-        "save_evolution_event",
-        "get_evolution_events",
         "archive_old_decisions",
         "count_archived",
         "close",
@@ -71,7 +70,6 @@ def test_protocol_queries_are_domain_scoped():
         "count_correct",
         "count_decisions",
         "get_centroid_checkpoints",
-        "get_evolution_events",
         "archive_old_decisions",
         "count_archived",
     ):
@@ -101,8 +99,16 @@ def test_protocol_load_latest_centroids_returns_raw_object_type():
     assert str(hints["return"]) in {"typing.Any | None", "typing.Optional[typing.Any]"} or hints["return"] is object | None
 
 
-def test_protocol_save_evolution_event_domain_first():
-    signature = inspect.signature(GraphStore.save_evolution_event)
+def test_graph_store_protocol_does_not_require_evolution_methods():
+    assert not hasattr(GraphStore, "save_evolution_event")
+    assert not hasattr(GraphStore, "get_evolution_events")
+
+
+def test_evolution_store_protocol_owns_evolution_methods():
+    assert hasattr(EvolutionStore, "save_evolution_event")
+    assert hasattr(EvolutionStore, "get_evolution_events")
+
+    signature = inspect.signature(EvolutionStore.save_evolution_event)
 
     assert list(signature.parameters)[:6] == [
         "self",
@@ -112,8 +118,12 @@ def test_protocol_save_evolution_event_domain_first():
         "variant_id",
         "metadata",
     ]
-    assert signature.parameters["rule_name"].default == ""
-    assert signature.parameters["variant_id"].default == ""
+    assert signature.parameters["variant_id"].default is None
+
+
+def test_concrete_graph_stores_structurally_satisfy_evolution_store(tmp_path):
+    assert isinstance(InMemoryGraphStore(), EvolutionStore)
+    assert isinstance(SQLiteGraphStore(tmp_path / "graph.sqlite"), EvolutionStore)
 
 
 def test_entity_link_helpers_are_not_protocol_required():

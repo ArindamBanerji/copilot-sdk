@@ -5,3 +5,8 @@ __pycache__/
 dist/
 build/
 .env
+
+graphify-out/cache/
+e2e/test-results/
+*.db
+*.pid

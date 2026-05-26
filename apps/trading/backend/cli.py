@@ -128,6 +128,81 @@ def _save_imported_trades(
     return len(imported), duplicates, len(all_trades)
 
 
+def _get_broker(broker_name: str):
+    from app.brokers import get_broker
+
+    return get_broker(broker_name)
+
+
+def _broker_error_types() -> tuple[type[BaseException], ...]:
+    from app.brokers import BrokerError
+
+    return (BrokerError, EnvironmentError, ValueError)
+
+
+def _broker_name(args: argparse.Namespace) -> str:
+    return str(getattr(args, "broker", None) or "alpaca").lower()
+
+
+def _format_money(value: Any) -> str:
+    try:
+        return f"{float(value):.2f}"
+    except (TypeError, ValueError):
+        return "-"
+
+
+def _format_order_row(order: Any) -> str:
+    status = getattr(order, "status", "")
+    status_text = getattr(status, "value", status)
+    side = getattr(order, "side", "")
+    side_text = getattr(side, "value", side)
+    price = getattr(order, "avg_fill_price", None) or getattr(order, "limit_price", None)
+    return (
+        f"{str(getattr(order, 'order_id', '-'))[:18]:18} "
+        f"{str(getattr(order, 'ticker', '-'))[:8]:8} "
+        f"{str(side_text)[:5]:5} "
+        f"{float(getattr(order, 'qty', 0.0) or 0.0):10.4g} "
+        f"{str(status_text)[:10]:10} "
+        f"{_format_money(price):>10}"
+    )
+
+
+def _synced_trade_id(broker_name: str, order_id: str) -> str:
+    source = broker_name.lower().strip() or "broker"
+    return f"{source}_{order_id}"
+
+
+def _trade_from_order(order: Any, broker_name: str, synced_at: str) -> dict[str, Any]:
+    side = getattr(order, "side", "")
+    side_text = str(getattr(side, "value", side)).lower()
+    qty = float(getattr(order, "filled_qty", None) or getattr(order, "qty", 0.0) or 0.0)
+    order_id = str(getattr(order, "order_id", ""))
+    metadata = dict(getattr(order, "metadata", {}) or {})
+    metadata.update(
+        {
+            "source": broker_name,
+            "broker_order_id": order_id,
+            "qty": qty,
+            "order_type": getattr(order, "order_type", None),
+            "synced_at": synced_at,
+        }
+    )
+    return {
+        "trade_id": _synced_trade_id(broker_name, order_id),
+        "ticker": str(getattr(order, "ticker", "")).upper(),
+        "direction": "short" if side_text == "sell" else "long",
+        "entry_price": getattr(order, "avg_fill_price", None) or getattr(order, "limit_price", None),
+        "entry_time": getattr(order, "filled_at", None) or getattr(order, "submitted_at", None),
+        "exit_price": None,
+        "exit_time": None,
+        "pnl": None,
+        "category": "uncategorized",
+        "strategy_tag": None,
+        "regime": None,
+        "metadata": metadata,
+    }
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     config_dir = _ensure_config_dir(args.config_dir)
     config_path = _config_path(config_dir)
@@ -697,6 +772,176 @@ def cmd_retag(args: argparse.Namespace) -> int:
     return 1
 
 
+def cmd_order(args: argparse.Namespace) -> int:
+    from app.brokers import OrderRequest, OrderSide
+
+    try:
+        qty = float(args.qty)
+        if qty <= 0:
+            raise ValueError("quantity must be positive")
+        order_type = str(args.type).lower()
+        limit_price = float(args.limit_price) if args.limit_price is not None else None
+        if order_type == "limit" and limit_price is None:
+            print("Limit orders require --limit-price.", file=sys.stderr)
+            return 1
+        broker = _get_broker(_broker_name(args))
+        result = broker.place_order(
+            OrderRequest(
+                ticker=args.ticker,
+                side=OrderSide(str(args.side).lower()),
+                qty=qty,
+                order_type=order_type,
+                limit_price=limit_price,
+            )
+        )
+    except _broker_error_types() as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    print("Order submitted")
+    print(_format_order_row(result))
+    return 0
+
+
+def cmd_orders(args: argparse.Namespace) -> int:
+    try:
+        orders = _get_broker(_broker_name(args)).get_orders(status=args.status, limit=int(args.limit))
+    except _broker_error_types() as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    if not orders:
+        print("No orders.")
+        return 0
+    print(f"{'Order ID':18} {'Ticker':8} {'Side':5} {'Qty':>10} {'Status':10} {'Price':>10}")
+    for order in orders:
+        print(_format_order_row(order))
+    return 0
+
+
+def cmd_positions(args: argparse.Namespace) -> int:
+    try:
+        positions = _get_broker(_broker_name(args)).get_positions()
+    except _broker_error_types() as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    if not positions:
+        print("No positions.")
+        return 0
+    print(f"{'Ticker':8} {'Qty':>10} {'Avg Entry':>12} {'Current':>12} {'Unreal P&L':>12}")
+    for position in positions:
+        print(
+            f"{str(position.ticker)[:8]:8} "
+            f"{float(position.qty):10.4g} "
+            f"{float(position.avg_entry_price):12.2f} "
+            f"{float(position.current_price):12.2f} "
+            f"{float(position.unrealized_pnl):12.2f}"
+        )
+    return 0
+
+
+def cmd_account(args: argparse.Namespace) -> int:
+    try:
+        account = _get_broker(_broker_name(args)).get_account()
+    except _broker_error_types() as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"Cash: {_format_money(account.get('cash'))}")
+    print(f"Equity: {_format_money(account.get('equity'))}")
+    print(f"Buying power: {_format_money(account.get('buying_power'))}")
+    return 0
+
+
+def cmd_sync(args: argparse.Namespace) -> int:
+    if not _initialized(args.config_dir):
+        print("Trading CLI is not initialized. Run init first.", file=sys.stderr)
+        return 1
+    broker_name = _broker_name(args)
+    try:
+        orders = _get_broker(broker_name).get_orders(status="filled", limit=int(args.limit))
+    except _broker_error_types() as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    trades = _load_trades(args.config_dir)
+    existing_ids = {str(trade.get("trade_id")) for trade in trades}
+    synced_at = datetime.now(timezone.utc).isoformat()
+    new_trades: list[dict[str, Any]] = []
+    for order in orders:
+        order_id = str(getattr(order, "order_id", ""))
+        if not order_id:
+            continue
+        trade_id = _synced_trade_id(broker_name, order_id)
+        if trade_id in existing_ids:
+            continue
+        new_trades.append(_trade_from_order(order, broker_name, synced_at))
+        existing_ids.add(trade_id)
+
+    if args.dry_run:
+        print(f"Would sync: {len(new_trades)}")
+        for trade in new_trades:
+            print(f"- {trade['trade_id']} {trade['ticker']} {trade['direction']} {trade['entry_price']}")
+        return 0
+
+    if new_trades:
+        _save_trades([*trades, *new_trades], args.config_dir)
+    print(f"Synced: {len(new_trades)}")
+    print(f"Total trades: {len(trades) + len(new_trades)}")
+    return 0
+
+
+def cmd_evolution_variants(args: argparse.Namespace) -> int:
+    from app.evolution import get_trading_variants
+
+    variants = get_trading_variants()
+    if not variants:
+        print("No Trading evolution variants configured.")
+        return 0
+    print(f"{'Variant ID':12} {'Status':10} {'Name':28} Dimensions")
+    for variant in variants:
+        dimensions = variant.get("dimensions") if isinstance(variant.get("dimensions"), dict) else {}
+        dim_text = ", ".join(f"{key}={value}" for key, value in sorted(dimensions.items()))
+        print(
+            f"{str(variant.get('variant_id', '-'))[:12]:12} "
+            f"{str(variant.get('status', '-'))[:10]:10} "
+            f"{str(variant.get('name', '-'))[:28]:28} "
+            f"{dim_text}"
+        )
+    return 0
+
+
+def cmd_evolution_status(args: argparse.Namespace) -> int:
+    from app.evolution import get_trading_variants
+
+    counts: dict[str, int] = {}
+    variants = get_trading_variants()
+    for variant in variants:
+        status = str(variant.get("status") or "unknown")
+        counts[status] = counts.get(status, 0) + 1
+    print("Trading evolution status")
+    print(f"variants: {len(variants)}")
+    for status in sorted(counts):
+        print(f"{status}: {counts[status]}")
+    print("last promotion: unavailable")
+    print("manual promotion requires verified GREEN conservation from /api/conservation/status")
+    return 0
+
+
+def cmd_evolution_promote(args: argparse.Namespace) -> int:
+    from app.evolution import get_trading_variant
+
+    variant = get_trading_variant(args.variant_id)
+    if variant is None:
+        print(f"Unknown Trading evolution variant: {args.variant_id}", file=sys.stderr)
+        return 1
+    print(f"Variant found: {variant['variant_id']} ({variant['name']})")
+    print(
+        "Promotion blocked: offline CLI cannot verify GREEN conservation from "
+        "/api/conservation/status, and no backend promotion endpoint is available.",
+        file=sys.stderr,
+    )
+    return 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ci-trading")
     parser.add_argument("--config-dir", default=DEFAULT_CONFIG_DIR)
@@ -766,6 +1011,48 @@ def build_parser() -> argparse.ArgumentParser:
     retag_parser.add_argument("--trade-id", required=True)
     retag_parser.add_argument("--category", required=True)
     retag_parser.set_defaults(func=cmd_retag)
+
+    order_parser = subparsers.add_parser("order", help="Place a broker order.")
+    order_parser.add_argument("ticker")
+    order_parser.add_argument("side", choices=["buy", "sell"])
+    order_parser.add_argument("qty", type=float)
+    order_parser.add_argument("--type", choices=["market", "limit"], default="market")
+    order_parser.add_argument("--limit-price", type=float)
+    order_parser.add_argument("--broker", choices=["alpaca", "mock"], default="alpaca")
+    order_parser.set_defaults(func=cmd_order)
+
+    orders_parser = subparsers.add_parser("orders", help="List broker orders.")
+    orders_parser.add_argument("--status", choices=["filled", "pending", "all"], default="all")
+    orders_parser.add_argument("--limit", type=int, default=50)
+    orders_parser.add_argument("--broker", choices=["alpaca", "mock"], default="alpaca")
+    orders_parser.set_defaults(func=cmd_orders)
+
+    positions_parser = subparsers.add_parser("positions", help="List broker positions.")
+    positions_parser.add_argument("--broker", choices=["alpaca", "mock"], default="alpaca")
+    positions_parser.set_defaults(func=cmd_positions)
+
+    account_parser = subparsers.add_parser("account", help="Show broker account summary.")
+    account_parser.add_argument("--broker", choices=["alpaca", "mock"], default="alpaca")
+    account_parser.set_defaults(func=cmd_account)
+
+    sync_parser = subparsers.add_parser("sync", help="Sync filled broker orders to the local journal.")
+    sync_parser.add_argument("--dry-run", action="store_true")
+    sync_parser.add_argument("--limit", type=int, default=50)
+    sync_parser.add_argument("--broker", choices=["alpaca", "mock"], default="alpaca")
+    sync_parser.set_defaults(func=cmd_sync)
+
+    evolution_parser = subparsers.add_parser("evolution", help="Inspect Trading evolution variants.")
+    evolution_subparsers = evolution_parser.add_subparsers(dest="evolution_command")
+
+    evolution_variants = evolution_subparsers.add_parser("variants", help="List Trading evolution variants.")
+    evolution_variants.set_defaults(func=cmd_evolution_variants)
+
+    evolution_status = evolution_subparsers.add_parser("status", help="Summarize Trading evolution status.")
+    evolution_status.set_defaults(func=cmd_evolution_status)
+
+    evolution_promote = evolution_subparsers.add_parser("promote", help="Validate a Trading variant promotion request.")
+    evolution_promote.add_argument("variant_id")
+    evolution_promote.set_defaults(func=cmd_evolution_promote)
 
     return parser
 

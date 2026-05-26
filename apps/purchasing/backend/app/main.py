@@ -22,6 +22,7 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
         sys.path.insert(0, str(path))
 
 from .context_router import router as context_router  # noqa: E402
+from .routers.evidence import create_evidence_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
@@ -67,7 +68,7 @@ def _cors_origins() -> list[str]:
 
 
 def _graph_store(db_path: str | Path):
-    store = SQLiteGraphStore(str(db_path), domain=DOMAIN)
+    store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="PUR-")
     store.penalty_ratio = 3.0
     return store
 
@@ -203,18 +204,18 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     return seeded["decisions_seeded"]
 
 
-class _FixtureEvolutionLedger:
-    def __init__(self, fixture_path: Path):
-        self._fixture_path = fixture_path
-
-    async def run_query(self, query: str) -> list[dict[str, Any]]:
-        payload = json.loads(self._fixture_path.read_text(encoding="utf-8"))
-        variants = payload["variants"]
-        return _filter_variants_by_query(variants, query)
-
-
-def _ledger_provider() -> _FixtureEvolutionLedger:
-    return _FixtureEvolutionLedger(DATA_DIR / "evolution_fixtures.json")
+def _evolution_variants() -> list[dict[str, Any]]:
+    fixture_path = DATA_DIR / "evolution_fixtures.json"
+    if not fixture_path.exists():
+        return []
+    try:
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    variants = payload.get("variants")
+    if not isinstance(variants, list):
+        return []
+    return _filter_variants_by_query(variants, None)
 
 
 def _filter_variants_by_query(
@@ -273,26 +274,30 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         create_scoring_router(
             DOMAIN,
             db_path=scoring_db,
-            scorer_factory=lambda: FreshScorerProxy(DOMAIN, scoring_db, _graph_store),
+            scorer_factory=lambda: scorer_proxy,
         ),
         prefix="/api",
     )
     app.include_router(create_transfer_router(scorer_proxy))
     app.include_router(
-        create_evolution_router(DOMAIN, ledger_provider=_ledger_provider),
-        prefix="/api",
+        create_evolution_router(
+            graph_store_factory=lambda: _graph_store(scoring_db),
+            domain=DOMAIN,
+            variant_provider=_evolution_variants,
+        )
     )
 
     # Conservation router
     app.include_router(
         create_conservation_router(
             DOMAIN,
-            state_provider=lambda: _graph_store(scoring_db),
+            state_provider=scorer_proxy,
         ),
         prefix="/api",
     )
     mount_self_computation_router(app, _graph_store(scoring_db))
     app.include_router(context_router, prefix="/api/context")
+    app.include_router(create_evidence_router(scorer_proxy))
 
     def _run_startup_seed_once() -> None:
         if startup_state["seeded"]:

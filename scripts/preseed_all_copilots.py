@@ -91,7 +91,7 @@ DOMAINS = [
         default_url="http://localhost:8010",
         seed_path=REPO_ROOT / "apps" / "trading" / "backend" / "data" / "trading_seed_v2.json",
         factors=TRADING_FACTORS,
-        actions=["strong_execution", "partial_execution", "poor_execution"],
+        actions=["strong_execution", "partial_execution", "poor_execution", "skip_recommended"],
         metadata_path="/api/context/trade-metadata",
         field_map={},
     ),
@@ -269,6 +269,8 @@ def learn_action(entry: Dict[str, Any], score: Dict[str, Any], config: DomainCon
     if not recommended_action:
         raise ValueError("missing recommended action")
     if is_override_sequence(index):
+        if config.name == "trading" and recommended_action != "skip_recommended":
+            return "skip_recommended", True
         return alternate_action(config, recommended_action), True
     return recommended_action, False
 

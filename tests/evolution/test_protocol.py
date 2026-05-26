@@ -9,8 +9,10 @@ from copilot_sdk.evolution import (
     EvolutionEvent,
     EvolutionLedger,
     EvolutionRule,
+    EvolutionStore,
     PromotionGate,
     ShadowRunner,
+    VariantSelector,
 )
 
 
@@ -45,6 +47,29 @@ class SampleGate:
         return {}
 
 
+class SampleEvolutionStore:
+    def save_evolution_event(
+        self,
+        domain,
+        event_type,
+        rule_name,
+        variant_id=None,
+        metadata=None,
+    ):
+        return None
+
+    def get_evolution_events(self, domain, rule_name=None, limit=100):
+        return []
+
+
+class SampleVariantSelector:
+    def select(self, category, variants, context=None):
+        return variants[0]
+
+    def update(self, variant_id, category, reward):
+        return None
+
+
 def test_event_types_are_expected():
     assert EVOLUTION_EVENT_TYPES == frozenset(
         {
@@ -74,6 +99,8 @@ def test_evolution_event_defaults_metadata_and_timestamp():
 def test_protocols_are_runtime_checkable():
     assert isinstance(SampleRule(), EvolutionRule)
     assert isinstance(SampleLedger(), EvolutionLedger)
+    assert isinstance(SampleEvolutionStore(), EvolutionStore)
+    assert isinstance(SampleVariantSelector(), VariantSelector)
     assert isinstance(SampleShadow(), ShadowRunner)
     assert isinstance(SampleGate(), PromotionGate)
 

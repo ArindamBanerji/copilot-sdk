@@ -1,0 +1,600 @@
+Ground Truth Baseline — 05/26/2026 09:07:34
+
+=== Q2: Evolution Gate ===
+Q2a !=RED: ABSENT (fixed)
+Q2b _is_conservation_safe: FOUND
+Q2c EvolutionStore: YES
+Q2d VariantSelector: YES
+Q2e GraphStore evolution methods:
+Q2f evolver_factory: YES
+Q2g purchasing evolution:
+  create_evolution_router,
+  def _evolution_variants() -> list[dict[str, Any]]:
+  fixture_path = DATA_DIR / "evolution_fixtures.json"
+  create_evolution_router(
+  variant_provider=_evolution_variants,
+  "engine": "copilot_sdk.scoring + gae.profile_scorer + gae.evolution",
+
+=== Q3: S2P-GAPS (grep) ===
+financial-impact endpoint: 
+suppliers/trends: 
+suppliers/heatmap: 
+suppliers/correlations: 
+novelty/rate: EXISTS
+novelty/auto-pause: EXISTS
+novelty_score in score handler: YES
+
+=== Q4: C3-BROKER ===
+brokers/ dir: True
+connectors/:
+  __pycache__
+  __init__.py
+  alpaca_connector.py
+  csv_connector.py
+  ibkr_connector.py
+  yfinance_provider.py
+CLI broker cmds:
+  def _format_order_row(order: Any) -> str:
+  status = getattr(order, "status", "")
+  side = getattr(order, "side", "")
+  price = getattr(order, "avg_fill_price", None) or getattr(order, "limit_price", None)
+  f"{str(getattr(order, 'order_id', '-'))[:18]:18} "
+  f"{str(getattr(order, 'ticker', '-'))[:8]:8} "
+  f"{float(getattr(order, 'qty', 0.0) or 0.0):10.4g} "
+  def _synced_trade_id(broker_name: str, order_id: str) -> str:
+
+=== Q5: S2P-PERSIST ===
+  L9: from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+  L58: graph_store=SQLiteGraphStore(effective, domain="s2p", decision_id_prefix="S2P-"),
+
+=== Q6: Preseed Trading actions ===
+  actions=["strong_execution", "partial_execution", "poor_execution"],
+
+=== Q7: S2P Legacy Scorer ===
+Q7a scorer.py exists: True
+Q7b s2p_preview.py:
+  from gae import ProfileScorer
+  return ProfileScorer(
+Q7c demo:
+  not found
+
+=== Q8: S2P Conservation Formula ===
+  L11: PENALTY_RATIO = 5.0
+  L101: theta_min = round(23.53 / (PENALTY_RATIO * new_verified), 4) if new_verified else 1.0
+  L116: "theta_min": theta_min,
+  L117: "status": "GREEN" if projected_q >= theta_min else "RED",
+  L119: "penalty_ratio": PENALTY_RATIO,
+  L148: "penalty_ratio": PENALTY_RATIO,
+
+=== Q9: SCORER-INF ===
+FIXED: no float(inf)
+
+=== Q10: Trading Factor Fallback ===
+Q10a fallback names:
+  from app.factors.market_regime import MarketRegimeFactor
+  from app.factors.signal_confidence import SignalConfidenceFactor
+  "signal_alignment",
+  "market_regime",
+  "position_sizing",
+  "timing_quality",
+  "risk_reward_actual",
+  "emotional_indicator",
+  "signal_confidence",
+  "signal_alignment": ConvictionFactor(),
+  "market_regime": ResearchDepthFactor(),
+  "position_sizing": TechnicalSignalFactor(),
+  "timing_quality": PositionSizeFactor(),
+  "risk_reward_actual": TimeHorizonFactor(),
+  "emotional_indicator": MarketRegimeFactor(),
+  "signal_confidence": SignalConfidenceFactor(),
+Q10b preset factor+action names:
+            action_names=("strong_execution", "partial_execution", "poor_execution", "skip_recommended"),
+            factor_names=(
+                "signal_alignment",
+                "market_regime",
+                "position_sizing",
+                "timing_quality",
+                "risk_reward_actual",
+                "emotional_indicator",
+                "signal_confidence",
+            factor_names=(
+                "signal_alignment",
+                "market_regime",
+                "position_sizing",
+                "timing_quality",
+                "risk_reward_actual",
+                "emotional_indicator",
+                "signal_confidence",
+            ),
+
+=== Q11: RL Wiring ===
+Q11a del graph_store: GONE (fixed)
+Q11b S2P in registry: YES
+Q11c rl imports outside package:
+  scoring\scorer.py: from copilot_sdk.rl.presets import get_rl_components
+
+=== Q12: _PreDomainEvolutionStoreAdapter ===
+GONE
+
+=== Q13: Bootstrap Shapes ===
+trading_bootstrap.json: (5, 4, 7)
+purchasing_bootstrap.json: (5, 4, 7)
+
+=== Q14: Git Status ===
+-- SDK --
+29931dc Batch H+I+J: 6 Lane A prompts (promotion, regime-recommend, correlation, earnings-subcat, vix-timing, options-factors). Trading 574 BE + 395 PW. 19/20 scenarios.
+d0c0a90 Batch TRD: 7 prompts + 3 fixers + E2E fixer + flaky fix
+2891fff feat: storage architecture + E2E sweep ΓÇö 0 failures
+474835d Batch C: S2P-COMPLETE-FE-1 (4 panels + 16 E2E), TRD-CLI-CORE (offline CLI, 23 tests), TRD-TRUST-RADAR (hero screen, 9 BE + 7 PW), PUR-P2 SYNTH-DATA (50 suppliers + 500 orders, 32 tests). Trading 163, PUR 93, SDK 654 unchanged.
+d8b96f1 Batch B: TRD-DATA-CONNECTORS (NormalizedTrade+CSV+Alpaca+yfinance) +33 tests, TRD-SIGNAL-FACTORS (conviction+technical_signal+market_regime+registry) +41 tests. Trading 131 total. SDK 654, PUR 61, DataOps 156 unchanged.
+ M .wsl_keepalive.pid
+ M apps/dataops/backend/app/main.py
+ M apps/dataops/backend/data/alert_metadata.json
+ M apps/dataops/backend/data/dataops.db
+ M apps/dataops/backend/tests/test_dataops_backend.py
+ M apps/purchasing/backend/app/main.py
+ M apps/purchasing/backend/data/order_metadata.json
+ M apps/purchasing/backend/data/purchasing.db
+ M apps/purchasing/backend/tests/test_purchasing_backend.py
+ M apps/trading/backend/app/main.py
+ M apps/trading/backend/cli.py
+ M apps/trading/backend/data/trade_metadata.json
+ M apps/trading/backend/data/trading.db
+ M apps/trading/backend/tests/test_evolution_mount.py
+ M apps/trading/backend/tests/test_trading_backend.py
+ M copilot_sdk/backend/evolution_router.py
+ M copilot_sdk/backend/scorer_proxy.py
+ M copilot_sdk/backend/self_computation_router.py
+ M copilot_sdk/evolution/__init__.py
+ M copilot_sdk/evolution/gate.py
+ M copilot_sdk/evolution/ledger.py
+ M copilot_sdk/evolution/protocol.py
+ M copilot_sdk/graph/memory_store.py
+ M copilot_sdk/graph/protocol.py
+ M copilot_sdk/graph/sqlite_store.py
+ M copilot_sdk/rl/credit.py
+ M copilot_sdk/rl/exploration.py
+ M copilot_sdk/scoring/presets/purchasing_bootstrap.json
+ M copilot_sdk/scoring/presets/trading_bootstrap.json
+ M copilot_sdk/scoring/scorer.py
+ M e2e/helpers/ui.ts
+ M e2e/playwright.config.ts
+ M e2e/purchasing/analysis.spec.ts
+ M e2e/s2p/flows.spec.ts
+ M e2e/test-results/.last-run.json
+ D e2e/test-results/flows-triage-select-score-confirm-reward-round-trip-s2p/error-context.md
+ D e2e/test-results/flows-triage-select-score-confirm-reward-round-trip-s2p/test-failed-1.png
+ D e2e/test-results/flows-triage-select-score-confirm-reward-round-trip-s2p/trace.zip
+ M e2e/test-results/regime-recommend-Regime-detail-shows-conservation-status-trading/error-context.md
+ M e2e/test-results/regime-recommend-Regime-detail-shows-conservation-status-trading/test-failed-1.png
+ M e2e/test-results/regime-recommend-Regime-detail-shows-conservation-status-trading/trace.zip
+ M e2e/trading/analysis.spec.ts
+ M e2e/trading/conservation-breakdown.spec.ts
+ M e2e/trading/correlation.spec.ts
+ M e2e/trading/dashboard.spec.ts
+ M e2e/trading/flows.spec.ts
+ M e2e/trading/promotion.spec.ts
+ M e2e/trading/regime-recommend.spec.ts
+ M graphify-out/GRAPH_REPORT.md
+ D graphify-out/graph.html
+ M graphify-out/graph.json
+ M graphify-out/manifest.json
+ M pyproject.toml
+ M tests/backend/test_evolution_router.py
+ M tests/backend/test_scorer_proxy.py
+ M tests/evolution/test_evolver.py
+ M tests/evolution/test_gate.py
+ M tests/evolution/test_ledger.py
+ M tests/evolution/test_plateau.py
+ M tests/evolution/test_protocol.py
+ M tests/graph/test_graph_store_evolution.py
+ M tests/graph/test_memory_store.py
+ M tests/graph/test_protocol.py
+ M tests/graph/test_sqlite_store.py
+ M tests/test_conservation_formula.py
+?? apps/dataops/backend/app/routers/
+?? apps/dataops/backend/tests/test_dataops_status.py
+?? apps/purchasing/backend/app/routers/
+?? apps/purchasing/backend/cli.py
+?? apps/purchasing/backend/tests/test_cli.py
+?? apps/purchasing/backend/tests/test_evidence.py
+?? apps/trading/backend/app/brokers/
+?? apps/trading/backend/app/evolution/
+?? apps/trading/backend/app/routers/analytics.py
+?? apps/trading/backend/app/routers/social.py
+?? apps/trading/backend/app/routers/webhook.py
+?? apps/trading/backend/app/services/trader_profiles.py
+?? apps/trading/backend/docs/
+?? apps/trading/backend/tests/test_analytics.py
+?? apps/trading/backend/tests/test_broker.py
+?? apps/trading/backend/tests/test_broker_cli.py
+?? apps/trading/backend/tests/test_evolution_trading.py
+?? apps/trading/backend/tests/test_social.py
+?? apps/trading/backend/tests/test_webhook.py
+?? copilot_sdk/rl/presets.py
+?? docs/b1_ae_sdk_plan.md
+?? docs/b1_implementation_notes.md
+?? docs/bootstrap_shape_diagnostic.md
+?? docs/di1_profiler_scan.md
+?? docs/plan_sdk_apps_state.md
+?? docs/rl_persistence_notes.md
+?? docs/rl_wiring_notes.md
+?? docs/scorer_cache_plan.md
+?? docs/tab_inventory.json
+?? docs/tab_inventory.md
+?? docs/test_inventory.json
+?? docs/test_inventory.md
+?? e2e/global-setup.ts
+?? e2e/test-results/correlation-Correlation-panel-has-no-console-errors-trading/
+?? e2e/test-results/flows-Dashboard-to-Log-Tra-ce471-rmance-content-at-each-stop-trading/
+?? e2e/test-results/flows-SC-round-trip-accuracy-to-decisions-to-audit-trail-trading/
+?? e2e/test-results/flows-api-self-features-render-populated-or-empty-states-trading/
+?? e2e/test-results/flows-dashboard-shows-decision-history-entries-trading/
+?? e2e/test-results/flows-score-confirm-learn--635bb-erves-conservation-after-RL-trading/
+?? e2e/test-results/flows-tab-navigation-cycle-83361-ible-without-console-errors-trading/
+?? e2e/test-results/journal-Journal-renders-after-reload-without-console-errors-trading/
+?? e2e/test-results/phase1-test-s2p-triage-select-invoice-shows-factors-s2p/
+?? e2e/test-results/prescore-Pre-score-interactions-have-no-console-errors-trading/
+?? e2e/test-results/regime-Regime-badge-is-visible-on-Dashboard-trading/
+?? e2e/test-results/regime-Regime-panel-handle-edc9e-ion-or-empty-accuracy-state-trading/
+?? e2e/test-results/regime-Regime-panel-has-no-console-errors-trading/
+?? e2e/test-results/regime-Regime-panel-shows-VIX-and-source-context-trading/
+?? e2e/test-results/regime-recommend-Regime-de-34b64-ations-or-unavailable-state-trading/
+?? e2e/test-results/regime-recommend-Regime-de-8adc6-s-investment-advice-wording-trading/
+?? e2e/test-results/regime-recommend-Regime-de-fbfc1--neutral-context-or-summary-trading/
+?? e2e/test-results/regime-recommend-Regime-detail-has-no-console-errors-trading/
+?? e2e/test-results/sc-data-SC-screens-do-not-emit-console-errors-trading/
+?? e2e/test-results/vix-timing-VIX-timing-panel-has-no-console-errors-trading/
+?? e2e/trading/evolution.spec.ts
+?? exp1_rl_persistence.py
+?? exp2_scorer_proxy.py
+?? exp3_evolution_adapter.py
+?? graphify-out/cache/ast/002e92b993153725910e1663e8819c9e1c72d1e2295c77af304ec715be4d1b69.json
+?? graphify-out/cache/ast/013d239b6adce7174f79bab710bfa05001b7e2420d35bf8a5d09de7e53a19613.json
+?? graphify-out/cache/ast/01bd2bca77c756c639cec7cec53e64fbc280ad3142ddd78b1a597cdb049709e9.json
+?? graphify-out/cache/ast/02baf8092abb96e793304a310b67940ad38a822878db903d31f28a17c98380d9.json
+?? graphify-out/cache/ast/0336bb058c2d320c8c259a583834ff6c05af2d4ca8af80235a7d35738ceb627a.json
+?? graphify-out/cache/ast/05940dccd18d2c22daf2316712807c739b8f44f50e09b22fced72237b0956306.json
+?? graphify-out/cache/ast/0647b8ad84444d09d62b1f402e3d7dfc27c956cebb1b89fe27e65e7334986f11.json
+?? graphify-out/cache/ast/070bb14a9c472244a23995d28f04d5214251c3f68d0cfead954296d99edd6f63.json
+?? graphify-out/cache/ast/07d07516691882e0d32afce7f3590b42ce82c4b9fede376eee1937c0509cab05.json
+?? graphify-out/cache/ast/07d65e28cc260e4ce696e2aa4c8cc2c297fc695c303c3dbf2b7a76efd30de506.json
+?? graphify-out/cache/ast/08ae09631cbb8cd68fdc06d84a554b31df098a674f7a0a0e541228e851860943.json
+?? graphify-out/cache/ast/08ef672e04fbb83d432e57e1fe4be3073af3f7e09884d2527fb948008dc68e7f.json
+?? graphify-out/cache/ast/090b498c417f3e0c83e21690d5eef9811006d61cf9d1d994bd60f8d44e7bb8a7.json
+?? graphify-out/cache/ast/0a0d847d95b8bc12991f627e978d413fd46b8f571f6a8ce23b45343bfaf279c3.json
+?? graphify-out/cache/ast/0a7bbdeb5aaee6113539742e5696f0c350924b62787a5cd4dc9d1ff6488931f7.json
+?? graphify-out/cache/ast/0ac4d9809c7628e09a61978089abcadfda9332073d6b34bd81374b4a2684e37d.json
+?? graphify-out/cache/ast/0ad5d744040a96abaacc4e278c2dc746d17cceffd874c474f7e5b3bd4be35c13.json
+?? graphify-out/cache/ast/0ad62171ca391ddfbd11821cec6fa03ff357152b07476363ed51aa39ce2e6a17.json
+?? graphify-out/cache/ast/0c397e268b04e4a3d8e0414f4c6ca89d448cc866ebf122333b9da9a4b73472ca.json
+?? graphify-out/cache/ast/0d1ca77ded8d377bbf58dc20120ace0d8ad3cbba74af6f99f9c8b9eb60811646.json
+?? graphify-out/cache/ast/0df3366551dc5ee5330452e93cf3b67fd9a53b45be5b2ae3ee8a385cedd6be39.json
+?? graphify-out/cache/ast/0e06dd95a06082689945f1b0aa566192b4ea9dd99730d96e67fe0e852a60f027.json
+?? graphify-out/cache/ast/0eafaded9e09c9cfc9e3864a8d614632dbf8ec3919e9d39beb80970d45a09904.json
+?? graphify-out/cache/ast/0ecd2b5fa14a39a6cdc1b420d187ed8859695a4a2ac34fe1b3ada5b3f1d60928.json
+?? graphify-out/cache/ast/0f1fbae061fd58673e0e310a07be5c4b9a3ba0fec60a5afc461713e757ee66a9.json
+?? graphify-out/cache/ast/0f85f461ffb1e992bf8830147d462066ed96f7f2e295f1262eb9c8dc228a9284.json
+?? graphify-out/cache/ast/0ff34a68b1c939c4ce6054c17bbcf2f8b0f22bb317e0a9aaa873fafbaa3fefb8.json
+?? graphify-out/cache/ast/113d0bfd2740daa0ce147f023379ef1bfcb5b77dfd96596c3502e02f71ea5d96.json
+?? graphify-out/cache/ast/1244ca7b4ec2bef9ba50e3ec3832d9cb5d521d7ea694359ed977b93f448a262d.json
+?? graphify-out/cache/ast/14afcb47035990cd9a292922e7b7d52f651f7498e857a6fc065cd0848e2343ae.json
+?? graphify-out/cache/ast/14c458f044acbb243cad790c3b9b05e797988553c238ee6b7809fd1568231c43.json
+?? graphify-out/cache/ast/161afaca886c47b3317e402d1ddc0d57a8ed3247c63a7c7b4d8754f3ea8daa61.json
+?? graphify-out/cache/ast/179498d424b3ad1508bb095f7c97d42d98098115079c6e4838fcde8ad3919580.json
+?? graphify-out/cache/ast/1800f60d57740ddb797439387260aeecd5abace08f9d0a5ca7fab6b912b9370f.json
+?? graphify-out/cache/ast/181f8ebba994d6146b6bc3671ac139cae1a8f0669d1ab32779f480e9298790e2.json
+?? graphify-out/cache/ast/18a899d14713cb7af06817327ee1e75d22e8fd39e3ecd592799239aed67173c9.json
+?? graphify-out/cache/ast/18c4d72af45c66d7487a2a0355279a807e9dce1653268b2b6382942ac8ebfa3d.json
+?? graphify-out/cache/ast/18c9cdae06a176e5743e40532a215f0779b942a6637fa49adb865d2fec540999.json
+?? graphify-out/cache/ast/195bc3aaaadd9b9c46c73cd49523c8a0c9869149b51b0f2000ef86b8452354ee.json
+?? graphify-out/cache/ast/19736ed207fc3c21454056b7d94d2a07f91d956f9ee997f5d1d83cfc0cbfed43.json
+?? graphify-out/cache/ast/1a3ff7cad7eae53fdc03eacea8952c06c53e6a50cb0d1f92e098a669ec481bb1.json
+?? graphify-out/cache/ast/1bf0685c153025b74e2eadc52dea1d25f33745176f286d4761d91f1d3f3d09fa.json
+?? graphify-out/cache/ast/1d90ba6233ce5a469e107279b3a49f322e8ff41fe32bbb721d61012dd537c22c.json
+?? graphify-out/cache/ast/1ebc329abc10dfa18de9cdb5cbfb1bdead8018361cb09c26c71f863259f6d456.json
+?? graphify-out/cache/ast/1faf0371c9db548bd646fc3eb0e1ed7458d7f0fe47964641928ea43e18c7152c.json
+?? graphify-out/cache/ast/2226a30649f81c14fd2c89d66c1f2a5c50b6e4552fa0d3f3cddf8595b4b857ac.json
+?? graphify-out/cache/ast/225232009d6c5c1d9e685a78ac3424e597b2873dc943240ba39acdd5f11b7109.json
+?? graphify-out/cache/ast/2427bd15df32bec0ef9e57efdf0fd3210156070ba55960aef3658700b0799cc7.json
+?? graphify-out/cache/ast/256995c5ff9e1d8e1ff2a4f19617367f9b9afc4e32874edcc1e876890808da51.json
+?? graphify-out/cache/ast/26aa03576e441a1928c83a5eb984ed60f4a45d225328d40ed43c715296bc0215.json
+?? graphify-out/cache/ast/278223317331477240c1e6b4d5cb3266414030c1f82e82649f9f257e4c91c738.json
+?? graphify-out/cache/ast/284d5d6d238cd8cfba0577d787fd76d43032de8879a67e0548db99e69669f8a0.json
+?? graphify-out/cache/ast/28c5401b1b7bd3bc36b0743de01c40788ba31abb9dfb307ca23f9177c44fd27b.json
+?? graphify-out/cache/ast/2a09e7c27d74f1339ad230d398360e5d210af3a9da26f62eee4b68f8d6c431c4.json
+?? graphify-out/cache/ast/2b27fbfc6727f94c0eac28ccf36b090b83ba71843491cdf62176b1b155edae88.json
+?? graphify-out/cache/ast/2b4f5234d27fc43c8c30e8049fbe2d3f1e330e15239d4c5d45f5a808e28e1ea7.json
+?? graphify-out/cache/ast/2c201e72ae10448e438aa5f1467b34da8151339e9d1aa9365b6bdcdef60948d8.json
+?? graphify-out/cache/ast/2c4ab95a303ed2e672ed9c8ca7a0c64e5797b091059f99c0d6e39b083153a928.json
+?? graphify-out/cache/ast/2d57d10320283540344cef17523609e61c969728c03ab41fed7c645dadfdffe0.json
+?? graphify-out/cache/ast/2dd9c817a9b42cea3dda2f4dfc3b2f45c0f5ae43da41d373c5a63fbd448a84f7.json
+?? graphify-out/cache/ast/2df1de8068cf67e6bd07fb4aa6c74c7553b39e3b7ae79136b85d630e05404045.json
+?? graphify-out/cache/ast/2e17d0739aadd454fb079a2db5e11b9bc7b115e2622bb1175b71e90d667f1e33.json
+?? graphify-out/cache/ast/3215495a8b5e2fc5aeb2393e0691f2852e578af7aa48526bcf9de4275b5fcffb.json
+?? graphify-out/cache/ast/330e5d86f41e6f65e3d723b52b3350d98a58916969cdf6a3537e75e382860239.json
+?? graphify-out/cache/ast/33435e7fa41a9370f548c655be3a172a587786f751651cc3b1fa775f19a4532f.json
+?? graphify-out/cache/ast/33496134d5d7029c4e6de27d841968b1bae3e161ecfe6060b9cfbd217c5f4c19.json
+?? graphify-out/cache/ast/33d8d1d86ae3cddc12d2b09cf0d62b9ccef9b32bf591874f2e332407f16647e6.json
+?? graphify-out/cache/ast/346c4c4bb4d23ee4ecb353e668f2cfc9d3e9e532c14ab1628fee78ebd737f6ff.json
+?? graphify-out/cache/ast/351576eb878956b1aeab59cf0d97a15d63e1b67a1714fbbd44c3ce221e9f64ed.json
+?? graphify-out/cache/ast/352942aa324fdbd35c1c0787f0acadd48fdf9c9196990f3398215d2a141d6014.json
+?? graphify-out/cache/ast/36012bd8816970aab19cd073a450bb2f4041a942455347ae3589beec0f36145b.json
+?? graphify-out/cache/ast/361a2e3df4b4b71ef31505a0c069e28fa5858caaa3f89ea2a110a28fdb413eeb.json
+?? graphify-out/cache/ast/366e98e5cb5802fd335ad0ba0f380c38c1a4c3e4a66a903121c888ff9c534f7f.json
+?? graphify-out/cache/ast/39362c7717ee985a5f0cc8713a257dad0ace1dad851c2ab0605a084ea937575a.json
+?? graphify-out/cache/ast/3cc4a6eee94facd73f663c04bd7cfddb17b9133933e7b0e0330ed5d2fb433419.json
+?? graphify-out/cache/ast/3e6cf01147cc7dd9be934e663786cefe2568a8cbf3685f7f71a056785720d66b.json
+?? graphify-out/cache/ast/3ede9109c750b97d1f51067240339f49fd49cbc953436351ebdc55cc992f0bb9.json
+?? graphify-out/cache/ast/3f9d62fef55313bc82bd0f8e9c41a5d10b21d9f831177169135add6004fa350b.json
+?? graphify-out/cache/ast/3fc3265c98d7db0480d4134cd8f4268789999f451abd22853ea5fe212858da5d.json
+?? graphify-out/cache/ast/4275738e487ef0fe0f605c89f9a4c5cd44adcf2201519080abed4f3f0ec2832a.json
+?? graphify-out/cache/ast/43c2e7bcddc402baa8fecc4af3c25c6d7c76672c4e01aa6fbf129ffbdb88086c.json
+?? graphify-out/cache/ast/4480d6d6a151337eba3131218ef5ac95eceaac691191549048bf9ba5aeefe701.json
+?? graphify-out/cache/ast/452da6275dd6f1b187a04613dee5111b888ee5cd1318217dac7d39c8532b1fb5.json
+?? graphify-out/cache/ast/45815c1062e17d2bb7d4d48f1921050e37cd6b9d0145835479dbec94d8cb62d2.json
+?? graphify-out/cache/ast/458a26582bb47b3b4150b4f15e551496ef2f60bb42239e14e1c46a790cd21122.json
+?? graphify-out/cache/ast/469d76b87461370a0da5556d7960414c8edaeef96d7a2e96632d83f68bf74cda.json
+?? graphify-out/cache/ast/481fbe46a14af198eb8b9b5c948fc1b22b9dd6cfe5182a117d1db926e2ec3ca5.json
+?? graphify-out/cache/ast/48a5d70d6c2b3a279637f56652d98cb74e16dea6b562642b8bb905f2cb3c570d.json
+?? graphify-out/cache/ast/498766650a85436cd369af3ff322fc52ee900880e83b1d944fca6f8c92d2e13b.json
+?? graphify-out/cache/ast/498d25c5d46ab08a6cceb688a7ad434c57548ec93a580d00c48eb0c940e03304.json
+?? graphify-out/cache/ast/499a106a73ebcc3837df16df2dd78057ad7871a621fa459abb41617f6feca86b.json
+?? graphify-out/cache/ast/4afed30dd7c35bda1a9fc37af96cf7ed6db5f3d6e7014b698ce95c36455b88d5.json
+?? graphify-out/cache/ast/4d687b2041502c21b5c57bb9710a7ad1f48797763c070485a5299ac705bded26.json
+?? graphify-out/cache/ast/50fe31eec33f025b98d5536ede41b2474fca3ec0b8395286a4304cedf886fb7e.json
+?? graphify-out/cache/ast/52af97c6ba7fc225687df4b722d2b2d3670eaaa6c41cd7b457580835a4971644.json
+?? graphify-out/cache/ast/52cf51377a5b4c9cca02d6dadc7a646d1b353df2b040f720c830f9f05ffe9a89.json
+?? graphify-out/cache/ast/541236c5506613749950dba50ae3f818a1cfd9115c9a0fa53e7cb3d16358ecf7.json
+?? graphify-out/cache/ast/5483455f99760490679f36fab45f53c51809f271a6cb5e3a30e3552c4cfd708d.json
+?? graphify-out/cache/ast/549401690f921f4d9a731e21a8f1d746676a082b690539daa95d9b8525ce4550.json
+?? graphify-out/cache/ast/549e6ee3140c7a0b464d9cec5d1a5e6be909ea076dcd875f0f81b1fea497a49d.json
+?? graphify-out/cache/ast/5874b1dd07431b0059d406de9d2444b08a983ae48c1842b0d8854a861c046835.json
+?? graphify-out/cache/ast/58d95d7367c06c2db5686a6dab916e1d9abbccddb96551649ac341f48ef81489.json
+?? graphify-out/cache/ast/593daee62217742b95f1498a8e6c6d8c39e72e1f22719644169b28dbff0084f2.json
+?? graphify-out/cache/ast/59c927d98c0fec61d2c59adfcb26167145527db99db611cd69b714783b01aa24.json
+?? graphify-out/cache/ast/5a8e2d054ad59e8ea75376f44303443a70579a1992d1d9f4f4d60da389016272.json
+?? graphify-out/cache/ast/5ad0117fa557465ea127aea6e16c4198caf1a1eb84a8e8d5cd0332e62aa7f4c9.json
+?? graphify-out/cache/ast/5b6c2f48e06bc4ba3bc8d4a70559f37700a73ee820679b6be8d6c577e1001865.json
+?? graphify-out/cache/ast/5e69bd51f201b30274dc18ec0ee54da164c7568b904cd9db2cf92061d4671430.json
+?? graphify-out/cache/ast/5f6230f4340df7be04465cc48cbe6a2a81a84b1908e67a8894a2f9338fe15c0b.json
+?? graphify-out/cache/ast/63a1655525cdb31dd4fe8343b058392c3837ad4e1f25c4faeb81264266d09d31.json
+?? graphify-out/cache/ast/668d4cadbb7d950bf87740f61cdded75699382d2e764bbb2a5535c0ec46ed890.json
+?? graphify-out/cache/ast/67ed2d0caf93fdffb7245deec4b80b83f762eb416fbbc22628fdf4674703acc5.json
+?? graphify-out/cache/ast/684c9a62d2bd7b42fd55a36aea28f9471c9f642deb07d22e32d42f30f3c8c159.json
+?? graphify-out/cache/ast/6977ef43c601802f20ed203148b2c02c675e80e872f1ded4fbfd8379745f5797.json
+?? graphify-out/cache/ast/69f7a1dfe41adaf120a2ad56d4b56c29f52628b7ec699b0db3d938d062154b1b.json
+?? graphify-out/cache/ast/6a9480b5a6a0e1ea379c5bcf96b55c74349481d6dfef74d462354fafc4791e85.json
+?? graphify-out/cache/ast/6b5bbc8eb7f6522041e5f922dfbf71ffab12491317a4a61d9f5d45fd1b66835a.json
+?? graphify-out/cache/ast/6b9f534c61e94aecc56e552f22b68901e84ee18185618cb8550af5f88d2b7fc4.json
+?? graphify-out/cache/ast/6c84ebe45062e0553cb9c0acda6ebe7037874bade329e554107ed9cf99e75c96.json
+?? graphify-out/cache/ast/6cb7674a0164d81ed8a9653389f318fc74098006fdfba6f50d7814acb7e59413.json
+?? graphify-out/cache/ast/6d1ae06236196c9c7757f503f3c92a7e8b5fbf7634581c23190db383d25c893d.json
+?? graphify-out/cache/ast/6e1c569ea049c8c716ada578e8811a5b9626141c05512b071db10f774d27c3c3.json
+?? graphify-out/cache/ast/6e92b191b004377dab70ef40d65b04d1e58d1ee5ab0d627bbe1cb4e27c8a9e34.json
+?? graphify-out/cache/ast/731d918c75159487a11d3ddb4d05c5f2e4152832b6ad403d47324ca1b7798fa0.json
+?? graphify-out/cache/ast/7831e4bdfec9e5dab968732c671566fe08ea1cbebf275a1fd7027fc07b19b2e6.json
+?? graphify-out/cache/ast/7928041a60c46d2b4405d0ee73747b8b8ed46baf4c5f7532befe727a0e0bede9.json
+?? graphify-out/cache/ast/79aa3cf323f5c82635a97b4bbafaca2b79e89de4500bac720eb9f0f1c34f0c1b.json
+?? graphify-out/cache/ast/7c0ac4afe5773f3b8d77995628ecd1709d2d61f3e36e8a76de5b634cc9681522.json
+?? graphify-out/cache/ast/7c0b0eb886603ee97a97c32f32c8a33e748f60b7aa90b476b2b4abb56688abd7.json
+?? graphify-out/cache/ast/7cbeab2f87e819eb7c45022c54ed0edbdc7412a5064fde9befd6c6cb4353424d.json
+?? graphify-out/cache/ast/7d324850d0b3f75e57f5981f81f95c16311e72b5354831e48ce2e8f7c1c17ce6.json
+?? graphify-out/cache/ast/7dc1480609a6e5ddfc780a970914a116f5fb0428ae46f905d2e9321e705a7b33.json
+?? graphify-out/cache/ast/7e12da30cd47b68d7b338695959e7318770df925c9509dce4df3a4e4143f5d40.json
+?? graphify-out/cache/ast/7edaa0311109502e643777769dab3af032ac1209f7ece4267b21a07512bc4096.json
+?? graphify-out/cache/ast/7f1e36a25a70b016757116ea90d168e0ca0d53c607557ad72698105350af3597.json
+?? graphify-out/cache/ast/807f7d39e2161942c5ac741fcb98d753652ed77bb043862347a0147df1b566a2.json
+?? graphify-out/cache/ast/80975a235ea5470695d7a096b4a8259c8f21ef6b32504c6c18b2e1100d2b0efb.json
+?? graphify-out/cache/ast/80b253b2f8c9ad4923418f8bbb17cc5392a3e014c6dc01a39caaff7ca30886d4.json
+?? graphify-out/cache/ast/81f9ffa6821b869c99bbc937552e2233f3bd1d1d66ac1c5e7cae86902424a4b6.json
+?? graphify-out/cache/ast/82c7dc2fcd17308dd0842d5fe912c3cbd45d7300af2c891c393256d46f0d8ab8.json
+?? graphify-out/cache/ast/82fee742ee5fcba34be289b686e82e31dbfa462eb3b6b18bf6802b81346589dd.json
+?? graphify-out/cache/ast/832edb93193f73be90298e45a23aaf22aecfc2fd661807d2d71e99140172b5c0.json
+?? graphify-out/cache/ast/8406612d58853242fdd19dea5e9bc0f376c72993f63f60b0d65afe0d8bf9c776.json
+?? graphify-out/cache/ast/85027df2fe52bc08645f0ffe5bf243e4deccb52174b84f29bb7ffa06ada8c4d0.json
+?? graphify-out/cache/ast/85ebb465c0cf0c1114dae6170c8d00b4cef70e1a8f34fe4e2e1026b1e7e81d51.json
+?? graphify-out/cache/ast/897f245bba35f39804af9013f113e7050eb9a14eaf0052d2b83f008403a48dce.json
+?? graphify-out/cache/ast/89f352bf651cba8841ed41788688e2c9516cb313e6402f9fb49be75165a966df.json
+?? graphify-out/cache/ast/8a7b3332fbeda31de89ce6c0f5cfb190abe27927d7ad102f69adde9b0aaa8279.json
+?? graphify-out/cache/ast/8cadbbde5bd096d91636a10a8e4edc7f5f902245c0d1ca079717444161d3580f.json
+?? graphify-out/cache/ast/8cbe1a3c09517795cadf0dd66457ffcea8a12c3e207696e3d8341a6743ecf4e9.json
+?? graphify-out/cache/ast/8d10209c4076a639496de23c20c0a69439ae90711ef7db16aada59a4d9134c98.json
+?? graphify-out/cache/ast/8d10a002e683afa0e907036fb6b34d0e7cfe7af3cdbe0104dc2bca1674f18cf1.json
+?? graphify-out/cache/ast/906c361d454e83c8985ddf8194694daf04fc74f3d7f278b21bd946820f8a4a6a.json
+?? graphify-out/cache/ast/9119cb59e61265f0f0a56bf38bca8502f739c72676f01057a28de77fbdee05d1.json
+?? graphify-out/cache/ast/9460c25a7bb51067bf9ba5a3f8eaf5d80b0d973cc4ee9fbf33406ceeeb7fa6a3.json
+?? graphify-out/cache/ast/9536c0e32f7f0cc39fb7c8a6d6af20875731f9650a6a07f4eef57bc9a47de5f8.json
+?? graphify-out/cache/ast/95985dc8b60e7c8449e2d70f976acd623db20bafae26f835518ad77059c677e4.json
+?? graphify-out/cache/ast/95fcfd1fbf4cb5b329ab83c4fa5810018995c0e99e52019aa80207ce883d4a7b.json
+?? graphify-out/cache/ast/96b6aad0ef139d53b8489ed05b30ef4c1d7af31026507be464c437223fe8ab78.json
+?? graphify-out/cache/ast/9858dc39b17f5cc0eef3d13b325dea39ae79cdfc3be8f2d796606fe2ebaa3683.json
+?? graphify-out/cache/ast/9943b9d46b2ccc7c7f3ac65d5aa32f1ffc99d65f5dc4a6d5b9f9f63bf3a256ff.json
+?? graphify-out/cache/ast/99f32992275d04e38336982ff09809171efd54fbf4011fc2bb5501e56ea92aa1.json
+?? graphify-out/cache/ast/9b4df16f82f5b41db50e77bfb84c94d36eab6d0d75fd2247059df0e94afe1472.json
+?? graphify-out/cache/ast/9d8be74ded5b954e349f2385927e5c46e87febabced71e7ef2ac51577f583868.json
+?? graphify-out/cache/ast/9dcf339e9aee888170950153185c2f9a32bb12733bf1c138b33e4360bdddd4ea.json
+?? graphify-out/cache/ast/9e60f4f75e85b52d37c85a661351099bba9417010ebe8fa65a3b07c719cf1505.json
+?? graphify-out/cache/ast/9e820f9d52392e0313535a889718a857a04fe62fdf016af688d9134011e97975.json
+?? graphify-out/cache/ast/9e8d471bbfa2c62cc5100323523376bdb836b6a9a448fad85042730338bf0534.json
+?? graphify-out/cache/ast/9fc7a3b50ebb9e4200407bed701a6d6cbc80bfed1a8b0d4c525df171aa7cd035.json
+?? graphify-out/cache/ast/9fe872c6b2838e7a5cab2bee442638d5b18b55dd1bb5b44edda83926bd09c226.json
+?? graphify-out/cache/ast/a13722581a3956adf9ce82cd9d48a8518d3b968bee5e19bb9c85ac5536ceac0c.json
+?? graphify-out/cache/ast/a1e37a56eecf042220c41dc99ac7867294b386e5a01e7e1d7a10af98b2e8e1f6.json
+?? graphify-out/cache/ast/a1ea289db9e18bf3f17c65ff760869101cce7e610c0a2fa9e2bf1d1db8c08ada.json
+?? graphify-out/cache/ast/a233b4fdf017883bd98d5a3bbdd599c694f25e3d50fde7af662e7e837c33da00.json
+?? graphify-out/cache/ast/a2be323582fa52464c76819a49de67c46bfe1a58aea825426326c82254d0811a.json
+?? graphify-out/cache/ast/a303b62e86fbb51419ca33b16c895d04c868ea6ec3f15bb080e04ce2530e5e0f.json
+?? graphify-out/cache/ast/a4f095a01248dc30eaf0ac1a841a1fc381694240386d0a60cee11bd04a12560a.json
+?? graphify-out/cache/ast/a55e687b31ce793354ea73f98cdbc071cbb0a6c954d65b9c03edfaff21092e20.json
+?? graphify-out/cache/ast/a736978e5e9f9f5229f8a10eb26555f3a3518b36fdfe4f9cd8445361ea7f2608.json
+?? graphify-out/cache/ast/a904dd2b3191978ed724c2539ba617cd9092f12e58e9ad1fdd166fbbf9198aac.json
+?? graphify-out/cache/ast/a9e6c8e659e9e8707fddf9eb0e31e8118ee978dcd17337a3c14b9e5e8f1a3f70.json
+?? graphify-out/cache/ast/ab9381c20008cdcd2a384d2e2beade125f8e1906b50e93966c1a8d7b25eb2419.json
+?? graphify-out/cache/ast/abbb1f126fe022e077bde00a95fd6af1dae6ee28be5eccc37b82092ac04b3592.json
+?? graphify-out/cache/ast/af7c153a4066ab16135c39f035b718d00330fb5adbf8bda0440246620f460272.json
+?? graphify-out/cache/ast/af81c0a624cb718adfe418ab16b51ca6a8a7792b714369f8638c0fec34336805.json
+?? graphify-out/cache/ast/afa964717909e85479f59a9b9f0960c73f4997b9502acbe05f9d5d8952c0f7d3.json
+?? graphify-out/cache/ast/afbf0fe0facd2dcc04af50de7918cc8b17e941a1d171185a616372928d55d753.json
+?? graphify-out/cache/ast/b09a7dd9a8b8f97db4ad0b5ed9c93acdd85dd9a9a8a55af91d74647829b06fe8.json
+?? graphify-out/cache/ast/b3274d5ef6414a87a7df7a6468c5b916c459d309980e068807a23c676932176a.json
+?? graphify-out/cache/ast/b3f18abc0b473372b6730d33576bf7b42e5914b1ec3953c7a06afaa2762bd14e.json
+?? graphify-out/cache/ast/b5399403c66cea067dd857bb7d7e21ddb1e331a27d0140973213b75ceb5004eb.json
+?? graphify-out/cache/ast/b540aa3f90f99f17724f5703da12da1b9358c8c5f1c050e65329223df7c85253.json
+?? graphify-out/cache/ast/b5632cd658d0a274b03a2b72835bd3d15865cbc7b09e0abf9ad566a4289857b0.json
+?? graphify-out/cache/ast/b6df7227b02c59a82e7cd72e7e3ff9e638df5ffb5e1c49244024c13f5bd2ebee.json
+?? graphify-out/cache/ast/b7074e9139bd601c93b4eac2a8362ce64445b443fb393152e4942da95618a7b6.json
+?? graphify-out/cache/ast/b8b15c89b0c881d38fbfbfd5ac3568af7ad5d372719d99def4534245408cf4f9.json
+?? graphify-out/cache/ast/b8ec227728f8a0929ea321e409e509b2c9d49c4d3c8e39f2223673e7db8b7923.json
+?? graphify-out/cache/ast/b94e9c5ecfb738874c819c468aa31c2df884e5e0fa9285e0dbc8b23a7731d74a.json
+?? graphify-out/cache/ast/b98e2f7f577a4eaa95be511fe5a0f7cf3f631b20c7772e126a58940e49fbaff2.json
+?? graphify-out/cache/ast/b9ea8d01afb13a286421c3dd38bfb9fec2a6afb79c8b9243705ba25fc35b7031.json
+?? graphify-out/cache/ast/ba8455e1ff9653b5561b33ed92404bcb599cce60593c80de97ff267d8580cd37.json
+?? graphify-out/cache/ast/baf3816608fc586d1494a382fc81765b7f97a51f064175ee7f986345c1848c4d.json
+?? graphify-out/cache/ast/bafe743a0bcdeb03acdab40ea0616952f549c537aaf76b1ebb8c951b2e2ed81d.json
+?? graphify-out/cache/ast/bbdbdde560ca22fd28bc41ca4d7d532e55ffc4c760de5aa4c934d82810405881.json
+?? graphify-out/cache/ast/bc71c0e0f0f68aed3b184f2d97e042828d32143da4a073feb834da255c138233.json
+?? graphify-out/cache/ast/bd1a5786b6822dd5e090c148b99d07283da4a1581a13e0a44884b8c1a0f27084.json
+?? graphify-out/cache/ast/bd8b03938ca2ac41f6080baf90a2c3fcd8af80df6db6e8ae3cc91f992c50804f.json
+?? graphify-out/cache/ast/c03748d95b9d4a62bd6f0321ffff0c637c68c2f8165a727da7d6a97440ccebaf.json
+?? graphify-out/cache/ast/c1081ecfa29e3f29fca0fc89fa68ac8d5044cd500765be94d19598dbe2e35f69.json
+?? graphify-out/cache/ast/c2c06ac228450f8d778e86df4d5f26cd95c449d820318e21d76b6c8492bf17e9.json
+?? graphify-out/cache/ast/c30d47ca1829d745219c677542fe84ecc66849abec10af9e784aad84a574a6bb.json
+?? graphify-out/cache/ast/c5fc480d49867b2c9cd88c921e3492b9edfc33a0f827611e2d8d9a87302b9732.json
+?? graphify-out/cache/ast/c6661d22f20b72ad4d36bd2bfdf54ac818e8594b854013a0b57f78bf6cd442d0.json
+?? graphify-out/cache/ast/c66874f35142c89e3d0d2abc793b2563fba8b4a0533f79088ee6066e4d625105.json
+?? graphify-out/cache/ast/c810f64a0b184ddd266b32baae12e3942a065b8e09a6fb8742e9314d3e490ae6.json
+?? graphify-out/cache/ast/c937cc60a7c1ed534425eabcc746b4bf929fb83e6549a705aa55123cb305215f.json
+?? graphify-out/cache/ast/cabcec566454f86c4454ef89f4ad374cc773fef0be94adc45f9c869d0fee29d1.json
+?? graphify-out/cache/ast/cb37edbb4a5241dacad271ae32ace9c36f4b055288fda0758f9af5eebe60de43.json
+?? graphify-out/cache/ast/cba1b9c201a630f4d32fd17a69db22d900407a2d7bdd0741b064f3bd1e391f61.json
+?? graphify-out/cache/ast/cd0307ba5ee0d92ecbdca9f6dc3b1c4ce2f7508bfea9f0f18724aa69b3b271c7.json
+?? graphify-out/cache/ast/cd2193b706708a134495ab519df88b755e3df328bde35cfd04b0c17d86e6473f.json
+?? graphify-out/cache/ast/ce6211b365805f3a9b9840fb443f25eac657499fb10d6e354bb8b644875dc2ee.json
+?? graphify-out/cache/ast/ce885607b6f2fd4986d44d027b95e45d7ffb9635e9d1324321ba8443404dd342.json
+?? graphify-out/cache/ast/cebb792d21e2a57b33d6985557735b085f5e9937fbc8f9688f06bb128167cc1d.json
+?? graphify-out/cache/ast/cebc34e0ee06ca67b2e91516d6acc566e2207aefc504996eeb363ecd69842dce.json
+?? graphify-out/cache/ast/cf0b2836346f2112ec0037cbeaa1467a9b0d6c45e9740063b20d18b7d21c3eff.json
+?? graphify-out/cache/ast/cf1139e2af18fe727274347cf94f4476fa0810067a78a781bf252544cdee2190.json
+?? graphify-out/cache/ast/d04fcdf0e17e8dd4a375ac85ff1aa42821919343505e77fc7eadacf85810f11b.json
+?? graphify-out/cache/ast/d0834d914ffd176d0546ec8c71ce4db98e03f789224da268157602a599c80b89.json
+?? graphify-out/cache/ast/d18d6463aee76d1a78a9ab8c7f7bdc322d9d0dfef85cb183c73d381b4f13d5a8.json
+?? graphify-out/cache/ast/d2b2d7599796f7f63a7fc0de5adc768841c59864989275a759dc44b40ae095a7.json
+?? graphify-out/cache/ast/d307e315f4c9b641ca8edbff9551c5ca02cd4b15bb29d7a14a67e30d970116b0.json
+?? graphify-out/cache/ast/d3ea3c764ac9a30b561ee770f97a705506299801ad2259ec5ab5af436bca5c86.json
+?? graphify-out/cache/ast/d572c3d9f5ddfae2d419e5e0d3c14e47ad2ca00dddebc142f7cfd9251d085ca6.json
+?? graphify-out/cache/ast/d6d78cbfbe27f4b5ec1055a9f9ba7be67976646bcf3deb706440101e34721ca8.json
+?? graphify-out/cache/ast/d814f2cca8870ea915dc2ea6934fd7d33e3af4631fd8e65b93d3ec82b7bab269.json
+?? graphify-out/cache/ast/d93a5255a980d18a363d972f9cdefae20604d0b0661c848dcc52354b5a20137a.json
+?? graphify-out/cache/ast/d9a783f6d6cbb4b645bc900be417d75e3c619c665426663478aabc277482a17e.json
+?? graphify-out/cache/ast/db4db59998ab4e5e22d34b9849ded098ab003b9d2481c75b2accdc2b4cfa55c0.json
+?? graphify-out/cache/ast/dbbcbd7c3d3bfeedbea05f8aca107585b757653a177c3eeba242ad085e3ccfff.json
+?? graphify-out/cache/ast/dc78d7c4692f6f44702a3ee2e40680f0911338f834dc5d01811c3cf5f2771cdd.json
+?? graphify-out/cache/ast/dd0720632e4320ab2a2d74c197bc6a0be76d810a97d44920584b7c895f6a050d.json
+?? graphify-out/cache/ast/dd7ecc89c35c2a028321b491094424da62ed10fef2b23723f3b032eabbd9fed2.json
+?? graphify-out/cache/ast/de83c3f9a1c05bd9ca4b0b226410f5d5ca2e8a6ffd7d46bcf970989038e0812a.json
+?? graphify-out/cache/ast/deeb576b26c10e2c24490436c2e57b194d6ebcfc8db0625b4072abb9ced05c11.json
+?? graphify-out/cache/ast/e0a9a06a05724340c185e13b304c0cfd7b933a9916cf64e75e2fed4204876bde.json
+?? graphify-out/cache/ast/e0bb0cb8d06ce778c37c11c3abba7b83003fcc9a80ec2b8186d2d022504263c1.json
+?? graphify-out/cache/ast/e0e78f06ed4ebc892f183d98b79f9621066ebc6d8bb037973b5fc8e89ac5b414.json
+?? graphify-out/cache/ast/e1a67c73768f38373f5f9d25bf8d0a18b78ecd1889daf6ee2b23264eaef6b9e7.json
+?? graphify-out/cache/ast/e3b3ed423ea3234d4fbb2d4232cc0028e0f93355856bc4e2057bf77b5179d98f.json
+?? graphify-out/cache/ast/e3cbe2ca1db8ed45001051a50c6f8c8cfc4e527954d7ac81012d0eb79080bfd3.json
+?? graphify-out/cache/ast/e409a7f4d6dc220d735dc526da4315b49629c95c02c3ff440ed10ba5156a5e38.json
+?? graphify-out/cache/ast/e6f10e08c3c8eece1e3bc2daf8f7b0d09b07194279b97b53b1fdbb41c6552641.json
+?? graphify-out/cache/ast/eb6b4349dba0cc5d5ed2a5056d598be50c6ea8832b7dc4166e89aad61fd613b9.json
+?? graphify-out/cache/ast/ed1e71140addec3980ba93780aad718b79c448f864d6ba493bb99b6a65b439f4.json
+?? graphify-out/cache/ast/ee2d4e24e45dda5d75c216b40a82ca02f393ffb0662a50932f7c903175aada1f.json
+?? graphify-out/cache/ast/eed82d5b6091cea7b4cebb24aca302b0bdd40f94c9d9a6b95d49cd9797c57d1b.json
+?? graphify-out/cache/ast/f025b81d857f10c4279d3abebc82236e913e7792e4b59f9e303153bee1d19249.json
+?? graphify-out/cache/ast/f170f444c7a37481f87369c09bc84cbec10d9b87305acb4d7add1574a63d44a2.json
+?? graphify-out/cache/ast/f3e4cb7e91d7d32517f9706a7dff76c7993550617f4a830a32ad52e6815f84f2.json
+?? graphify-out/cache/ast/f5dc63b23858cf9c3787c385f743c8c516e6fc830fe821739b9ed98809546273.json
+?? graphify-out/cache/ast/f6a2482bbf70714f87bdc9682ca7f5cf5b0b7d7c58cf0638f9e0cdbe8c8c729e.json
+?? graphify-out/cache/ast/f733c800ec8c98ed10fde6485ffbc7dd72a1a2c90b55ea46ff9876fbd64843a0.json
+?? graphify-out/cache/ast/f91041d7b5fb037dac4ca3c0f871d1d1862b2a4427adcc105320f028211d5fc6.json
+?? graphify-out/cache/ast/fa6ab1a91eeaa822e0a296ad9de134fd3df36b28f3c5bbf052ccc88528c0553f.json
+?? graphify-out/cache/ast/fb1e7616cdca1c3224700dd05fed69708022400e0c8dd5fb275040670a2e9d41.json
+?? graphify-out/cache/ast/fbe5bf4e567d653180148eede654337fcbae1df7cd0d242912f0fca23b37c237.json
+?? graphify-out/cache/ast/fc41d72398aac11d407ac064de62f62cbb3c4be9297cf6ab2178247ff2b8337f.json
+?? graphify-out/cache/ast/fd32dfb2c9e6c6a8db63c06d26fec223fdd777a01b93185366a5f3bdbdae277e.json
+?? graphify-out/cache/ast/fd42eec4d531d265ca3d0e1cf7daa413a157c14451aaa9965f38b80f9b32ddbc.json
+?? graphify-out/cache/ast/fe6edbc9d4064f6057b62c7722c3f7aeb5cc053040fadf4b67db86c6ecaf12b6.json
+?? graphify-out/cache/ast/fec12c14b78c57430c9c7082a0b3ddb925881f1757d4e5beb954c28a787251d0.json
+?? graphify-out/cache/ast/ff2a1f28c46ab9da978be76ef23fe8b099c21c274e90dab561ddd109449be84c.json
+?? graphify-out/cache/ast/ff2c58513c03d0f4702d76bfa15d7d80297b2c9ddaf4f1815764b28514276831.json
+?? graphify-out/cache/ast/ff5940776017c689c13761a43bb4ea751a53053fddcffc8715a15233659ecec4.json
+?? graphify-out/ground_truth.txt
+?? graphify-out/parts41_44.txt
+?? graphify-out/parts41_44_b.txt
+?? graphify-out/pre_codex_q1q6.txt
+?? scripts/tab_inventory.py
+?? "t (\357\200\242  {0}\357\200\272 {1} tests\357\200\242 -f $app, $cnt)"
+?? "t \357\200\242`n-- 4A\357\200\272 API calls in Trading frontend screens --\357\200\242"
+?? "t \357\200\242`n-- 4B\357\200\272 Trading main.py router list (full) --\357\200\242"
+?? "t \357\200\242`n-- 4C\357\200\272 preseed_all_copilots.py and trading fixture shapes --\357\200\242"
+?? "t \357\200\242`n-- 4D\357\200\272 All PW spec files with test counts --\357\200\242"
+?? "t \357\200\242`n=== BATCH 4\357\200\272 New Questions ===\357\200\242"
+?? tests/backend/test_evolution_router_extended.py
+?? tests/backend/test_self_computation.py
+?? tests/evolution/test_evolution_store.py
+?? tests/evolution/test_gate_fail_closed.py
+?? tests/evolution/test_ledger_domain.py
+?? tests/rl/test_presets.py
+?? tests/rl/test_rl_persistence.py
+?? tests/rl/test_rl_wiring.py
+?? "tradingfrontendsrc\357\200\242 -Filter \357\200\242\357\200\252.tsx\357\200\242 -Recurse \357\201\274 Select-String -Pattern \357\200\242fetch(\357\201\274apiGet(\357\201\274useEffect(\357\201\274axios.\357\200\242 \357\201\274 ForEach-Object { \357\200\242  $($_.Path.Split('')[-2..-1] -join '')\357\200\272 $($_.LineNumber)\357\200\272 $($_.Line.Trim())\357\200\242 } \357\201\274 Select-Object -First 30"
+-- S2P --
+-- CI --
+
+=== Q15: Frontend Screens ===
+-- trading --
+  AnalysisScreen.tsx
+  DashboardScreen.tsx
+  JournalScreen.tsx
+  LogTradeScreen.tsx
+  PerformanceScreen.tsx
+  TradeDetailScreen.tsx
+-- purchasing --
+  AnalysisScreen.tsx
+  DashboardScreen.tsx
+  InventoryScreen.tsx
+  OrderScreen.tsx
+  PerformanceScreen.tsx
+-- dataops --
+  CurveScreen.tsx
+  DashboardScreen.tsx
+  EvidenceScreen.tsx
+  InsightScreen.tsx
+  TriageScreen.tsx
+-- s2p --
+  DashboardScreen.tsx
+  EvidenceScreen.tsx
+  InsightScreen.tsx
+  PerformanceScreen.tsx
+  SuppliersScreen.tsx
+  TriageScreen.tsx
+
+=== Q16: S2P Route Counts ===
+__init__.py: 0
+framework_router.py: 28
+s2p_clustering.py: 2
+s2p_control_tower.py: 3
+s2p_data_helpers.py: 0
+s2p_discovery.py: 5
+s2p_early_warning.py: 3
+s2p_evidence.py: 8
+s2p_evolution.py: 6
+s2p_explorer.py: 6
+s2p_governance.py: 6
+s2p_insight.py: 4
+s2p_novelty.py: 4
+s2p_payment.py: 2
+s2p_performance.py: 3
+s2p_preview.py: 5
+s2p_pvg.py: 5
+s2p_simulation.py: 4
+s2p_suppliers.py: 9
+s2p.py: 6
+
+Done — graphify-out\ground_truth.txt (598 lines). Upload for analysis.
