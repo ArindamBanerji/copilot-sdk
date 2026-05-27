@@ -1,0 +1,304 @@
+Assessment A — 05/26/2026 16:51:34
+
+=== BATCH 1: Test Counts (grep) ===
+S2P: 775 tests
+
+=== BATCH 2: New File Inventory ===
+EXISTS (94 lines): social.py
+EXISTS (291 lines): webhook.py
+EXISTS (300 lines): analytics.py
+EXISTS (dir, 4 .py): brokers
+EXISTS (dir, 3 .py): evolution
+EXISTS (431 lines): cli.py
+EXISTS (280 lines): evidence.py
+EXISTS (126 lines): dataops_status.py
+EXISTS (63 lines): presets.py
+
+=== BATCH 2: Route Counts via Grep ===
+  -- Trading routers --
+    analytics.py: 2 routes
+    correlation.py: 1 routes
+    data_import.py: 5 routes
+    evidence.py: 1 routes
+    journal.py: 3 routes
+    prescore.py: 1 routes
+    promotion.py: 2 routes
+    regime.py: 2 routes
+    social.py: 9 routes
+    vix_timing.py: 1 routes
+    webhook.py: 4 routes
+  -- Purchasing routers --
+    evidence.py: 6 routes
+  -- DataOps routers --
+    dataops_status.py: 4 routes
+
+=== BATCH 2: Trading Evolution Dir ===
+  __init__.py: 10 lines
+  dimensions.py: 58 lines
+  variant_provider.py: 11 lines
+
+=== BATCH 2: New Router Route Details ===
+  social.py routes:
+    @router.get("/traders")
+    @router.get("/traders/compare")
+    @router.get("/traders/{trader_id}/profile")
+    @router.get("/traders/{trader_id}/edge")
+    @router.get("/social/leaderboard")
+    @router.get("/social")
+    @router.get("/profiles")
+    @router.get("/trader/{trader_id}")
+    @router.post("/score-as")
+  webhook.py routes:
+    @router.post("/tradingview")
+    @router.get("/history")
+    @router.get("/config")
+    @router.post("/test")
+  analytics.py routes:
+    @router.get("/execution-analysis")
+    @router.get("/cross-insights")
+  purchasing/evidence.py routes:
+    @router.get("/evidence/summary")
+    @router.get("/evidence/decisions")
+    @router.get("/evidence/audit-trail")
+    @router.get("/evidence/conservation-proof")
+    @router.get("/health")
+    @router.get("/status")
+  dataops_status.py routes:
+    @router.get("/health")
+    @router.get("/celonis/status")
+    @router.get("/sap/status")
+    @router.get("/enterprise-health")
+
+=== BATCH 3: Full Router Inventory ===
+  -- trading --
+    analytics.py: 300 lines
+    correlation.py: 18 lines
+    data_import.py: 50 lines
+    evidence.py: 188 lines
+    journal.py: 269 lines
+    prescore.py: 296 lines
+    promotion.py: 86 lines
+    regime.py: 89 lines
+    social.py: 94 lines
+    vix_timing.py: 20 lines
+    webhook.py: 291 lines
+    services/__init__.py: 1 lines
+    services/correlation.py: 179 lines
+    services/pattern_detector.py: 219 lines
+    services/promotion.py: 200 lines
+    services/regime_recommender.py: 153 lines
+    services/regime.py: 170 lines
+    services/subcategory.py: 75 lines
+    services/trader_profiles.py: 231 lines
+    services/vix_timing.py: 191 lines
+  -- purchasing --
+    evidence.py: 280 lines
+  -- dataops --
+    dataops_status.py: 126 lines
+
+=== BATCH 3: Test File Inventory ===
+  -- trading tests --
+    test_analytics.py: 7 tests
+    test_broker_cli.py: 11 tests
+    test_broker.py: 14 tests
+    test_cli_complete.py: 34 tests
+    test_cli.py: 30 tests
+    test_conservation_breakdown.py: 15 tests
+    test_conviction.py: 11 tests
+    test_correlation.py: 26 tests
+    test_csv_connector.py: 16 tests
+    test_data_endpoints.py: 10 tests
+    test_evidence.py: 26 tests
+    test_evolution_mount.py: 3 tests
+    test_evolution_trading.py: 13 tests
+    test_journal.py: 20 tests
+    test_market_regime.py: 19 tests
+    test_options_factors.py: 36 tests
+    test_pattern_detector.py: 23 tests
+    test_position_size.py: 13 tests
+    test_prescore.py: 23 tests
+    test_promotion.py: 32 tests
+    test_regime_recommender.py: 25 tests
+    test_regime.py: 27 tests
+    test_research_depth.py: 13 tests
+    test_signal_confidence.py: 19 tests
+    test_social.py: 11 tests
+    test_subcategory.py: 24 tests
+    test_technical_signal.py: 11 tests
+    test_time_horizon.py: 15 tests
+    test_trade_model.py: 7 tests
+    test_trading_backend.py: 32 tests
+    test_trading_config_migration.py: 21 tests
+    test_trading_graph.py: 7 tests
+    test_trust_analysis.py: 9 tests
+    test_vix_timing.py: 28 tests
+    test_webhook.py: 10 tests
+  -- purchasing tests --
+    test_cli.py: 34 tests
+    test_evidence.py: 8 tests
+    test_purchasing_backend.py: 41 tests
+    test_purchasing_config_migration.py: 19 tests
+    test_purchasing_fixtures.py: 32 tests
+    test_purchasing_graph.py: 7 tests
+  -- dataops tests --
+    test_dataops_backend.py: 104 tests
+    test_dataops_graph.py: 9 tests
+    test_dataops_status.py: 5 tests
+    test_enterprise_connectors.py: 26 tests
+    test_graph_queries.py: 16 tests
+    test_transfer_status.py: 7 tests
+  -- SDK root tests --
+
+=== BATCH 3: Frontend Inventory ===
+  -- trading --
+    AnalysisScreen.tsx: 120 lines, 1 API hooks
+    DashboardScreen.tsx: 202 lines, 1 API hooks
+    JournalScreen.tsx: 345 lines, 2 API hooks
+    LogTradeScreen.tsx: 408 lines, 2 API hooks
+    PerformanceScreen.tsx: 128 lines, 1 API hooks
+    TradeDetailScreen.tsx: 241 lines, 1 API hooks
+    api.ts: 32 endpoint refs
+  -- purchasing --
+    AnalysisScreen.tsx: 113 lines, 1 API hooks
+    DashboardScreen.tsx: 189 lines, 1 API hooks
+    InventoryScreen.tsx: 202 lines, 1 API hooks
+    OrderScreen.tsx: 557 lines, 3 API hooks
+    PerformanceScreen.tsx: 125 lines, 1 API hooks
+    api.ts: 22 endpoint refs
+  -- dataops --
+    CurveScreen.tsx: 77 lines, 1 API hooks
+    DashboardScreen.tsx: 257 lines, 1 API hooks
+    EvidenceScreen.tsx: 69 lines, 1 API hooks
+    InsightScreen.tsx: 106 lines, 1 API hooks
+    TriageScreen.tsx: 510 lines, 1 API hooks
+    api.ts: 41 endpoint refs
+  -- s2p --
+    DashboardScreen.tsx: 136 lines, 1 API hooks
+    EvidenceScreen.tsx: 73 lines, 1 API hooks
+    InsightScreen.tsx: 76 lines, 1 API hooks
+    PerformanceScreen.tsx: 41 lines, 1 API hooks
+    SuppliersScreen.tsx: 407 lines, 2 API hooks
+    TriageScreen.tsx: 403 lines, 2 API hooks
+    api.ts: 64 endpoint refs
+
+=== BATCH 3: PW Spec Inventory ===
+  -- trading --
+    analysis.spec.ts: 8 tests
+    conservation-breakdown.spec.ts: 6 tests
+    correlation.spec.ts: 5 tests
+    dashboard.spec.ts: 6 tests
+    earnings-subcat.spec.ts: 4 tests
+    evidence.spec.ts: 4 tests
+    evolution.spec.ts: 3 tests
+    flows.spec.ts: 14 tests
+    journal.spec.ts: 5 tests
+    log-trade.spec.ts: 6 tests
+    options-factors.spec.ts: 4 tests
+    pattern-detection.spec.ts: 5 tests
+    performance.spec.ts: 7 tests
+    prescore.spec.ts: 4 tests
+    promotion.spec.ts: 5 tests
+    regime-recommend.spec.ts: 5 tests
+    regime.spec.ts: 4 tests
+    sc-data.spec.ts: 3 tests
+    transfer-badge.spec.ts: 1 tests
+    trust-radar.spec.ts: 7 tests
+    vix-timing.spec.ts: 5 tests
+  -- purchasing --
+    analysis.spec.ts: 6 tests
+    dashboard.spec.ts: 6 tests
+    flows.spec.ts: 14 tests
+    inventory.spec.ts: 3 tests
+    order.spec.ts: 9 tests
+    performance.spec.ts: 5 tests
+    sc-data.spec.ts: 3 tests
+    transfer-badge.spec.ts: 1 tests
+  -- dataops --
+    curve.spec.ts: 5 tests
+    dashboard.spec.ts: 18 tests
+    evidence.spec.ts: 14 tests
+    flows.spec.ts: 22 tests
+    insight.spec.ts: 15 tests
+    story-flow.spec.ts: 8 tests
+    transfer-badge.spec.ts: 1 tests
+    triage.spec.ts: 16 tests
+  -- s2p --
+    auto-approve.spec.ts: 5 tests
+    clustering.spec.ts: 6 tests
+    control_tower.spec.ts: 3 tests
+    dashboard.spec.ts: 6 tests
+    discovery.spec.ts: 8 tests
+    early-warning.spec.ts: 7 tests
+    evidence-chain.spec.ts: 9 tests
+    evidence.spec.ts: 3 tests
+    evolution.spec.ts: 4 tests
+    flows.spec.ts: 16 tests
+    governance-panels.spec.ts: 8 tests
+    insight.spec.ts: 4 tests
+    observability.spec.ts: 8 tests
+    payment.spec.ts: 7 tests
+    performance.spec.ts: 5 tests
+    phase1.spec.ts: 9 tests
+    pvg.spec.ts: 4 tests
+    simulation-panels.spec.ts: 8 tests
+    suppliers.spec.ts: 9 tests
+    transfer-badge.spec.ts: 3 tests
+    triage.spec.ts: 8 tests
+
+=== BATCH 5: Architecture Health ===
+Q5.1 TRD-FACTOR-FALLBACK (registry mapping):
+  from app.factors.conviction import ConvictionFactor
+  from app.factors.market_regime import MarketRegimeFactor
+  from app.factors.position_size import PositionSizeFactor
+  from app.factors.research_depth import ResearchDepthFactor
+  from app.factors.signal_confidence import SignalConfidenceFactor
+  from app.factors.technical_signal import TechnicalSignalFactor
+  from app.factors.time_horizon import TimeHorizonFactor
+  "signal_alignment": ConvictionFactor(),
+  "market_regime": ResearchDepthFactor(),
+  "position_sizing": TechnicalSignalFactor(),
+  "timing_quality": PositionSizeFactor(),
+  "risk_reward_actual": TimeHorizonFactor(),
+  "emotional_indicator": MarketRegimeFactor(),
+  "signal_confidence": SignalConfidenceFactor(),
+Q5.2 Conservation formula locations:
+  copilot_sdk\backend\conservation_router.py: 23: from gae.calibration import check_conservation, compute_theta_min, conservation_status
+  copilot_sdk\backend\conservation_router.py: 68: else compute_theta_min(request.alpha, request.V)
+  copilot_sdk\scoring\scorer.py: 40: def compute_theta_min(alpha: float, verified: int | float) -> float | None:
+  copilot_sdk\scoring\scorer.py: 61: return 23.53 / (alpha_value * verified_value)
+  copilot_sdk\scoring\scorer.py: 604: theta_min = compute_theta_min(override_rate, verified)
+  copilot_sdk\scoring\scorer.py: 818: theta_min = compute_theta_min(override_rate, verified)
+  backend\app\context_router.py: 220: theta_min_proxy = 23.53 / (effective_alpha * v_cat) if v_cat > 0 else 1.0
+  backend\app\context_router.py: 351: "23.53 / (penalty * accuracy * V_cat). "
+  app\routers\s2p_performance.py: 8: from gae.calibration import compute_theta_min
+  app\routers\s2p_performance.py: 95: return round(float(compute_theta_min(projected_override_rate, new_verified)), 4)
+Q5.3 RL wiring status:
+  del graph_store: GONE
+  registry entry: "trading": {
+  registry entry: "purchasing": {
+  registry entry: "dataops": {
+  registry entry: "s2p": {
+
+=== BATCH 5: Git Status ===
+-- SDK --
+4f26215 Post-Batch-HIJ: B1-FIX + C3-BROKER + RL-WIRE + SCORER-INF + bootstrap fixes + PW specs (partial) + social/webhook/analytics stubs + Purchasing CLI/evidence
+29931dc Batch H+I+J: 6 Lane A prompts (promotion, regime-recommend, correlation, earnings-subcat, vix-timing, options-factors). Trading 574 BE + 395 PW. 19/20 scenarios.
+d0c0a90 Batch TRD: 7 prompts + 3 fixers + E2E fixer + flaky fix
+1 changed files
+-- S2P --
+-- CI --
+
+=== BATCH 6: Confirmed Absent Features ===
+DI-1 SOURCE-PROFILER:
+  profiler.py: False
+  source_profiler.py: False
+  no profiler code found
+ENT-01 CI/CD:
+  SDK .github/workflows: True
+  S2P .github/workflows: True
+Docker:
+  SDK Dockerfile: False
+  SDK docker-compose.yml: False
+  S2P Dockerfile: False
+
+Script A done — graphify-out\assessment_a.txt (302 lines)

@@ -1,0 +1,48 @@
+Assessment B — 05/26/2026 16:53:26
+=== PRESET_REGISTRY ===
+Scoring: ['dataops', 'purchasing', 's2p', 'trading']
+RL: ['dataops', 'purchasing', 's2p', 'trading']
+=== TradingPreset shape ===
+factor_names: ('signal_alignment', 'market_regime', 'position_sizing', 'timing_quality', 'risk_reward_actual', 'emotional_indicator', 'signal_confidence')
+action_names: ('strong_execution', 'partial_execution', 'poor_execution', 'skip_recommended')
+shape: (5,4,7)
+=== Trading Factor Registry ===
+=== Trading Smoke Test ===
+[trading] auto-seeded 40 decisions and 40 outcomes
+200 /api/health
+405 /api/score
+200 /api/conservation/status
+200 /api/evolution/variants
+404 /api/regime/current
+404 /api/regime/recommend
+404 /api/correlation/matrix
+404 /api/analytics/execution-summary
+404 /api/social/profiles
+404 /api/broker/orders
+404 /api/broker/positions
+404 /api/transfer/patterns
+404 /api/vix-timing/analysis
+200 /api/self/decisions
+200 /api/context/analytics
+=== Purchasing Smoke Test ===
+[purchasing] auto-seeded 20 decisions and 20 outcomes
+200 /api/health
+200 /api/conservation/status
+200 /api/evolution/variants
+404 /api/evidence/factors
+200 /api/context/analytics
+200 /api/context/items
+404 /api/transfer/patterns
+200 /api/purchasing/health
+=== DataOps Smoke Test ===
+[dataops] resuming with 316 persisted decisions
+200 /api/health
+200 /api/conservation/status
+200 /api/evolution/variants
+200 /api/context/pipelines
+200 /api/ae/impact
+200 /api/dataops/health
+200 /api/dataops/celonis/status
+404 /api/transfer/patterns
+200 /api/self/decisions
+=== S2P Smoke Test ===
