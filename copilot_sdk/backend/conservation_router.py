@@ -10,6 +10,11 @@ from typing import Any, Callable
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from copilot_sdk.backend.models import (
+    ConservationStatusResponse,
+    ConservationWhatIfResponse,
+)
+
 
 def _ensure_gae_path() -> None:
     workspace = Path(__file__).resolve().parents[3]
@@ -42,7 +47,7 @@ def create_conservation_router(
 
     router = APIRouter()
 
-    @router.get("/conservation/status")
+    @router.get("/conservation/status", response_model=ConservationStatusResponse)
     def status() -> dict[str, Any]:
         state = _resolve_state(state_provider)
         counts = _state_counts(state)
@@ -59,7 +64,7 @@ def create_conservation_router(
             **_check_payload(check),
         }
 
-    @router.post("/conservation/what-if")
+    @router.post("/conservation/what-if", response_model=ConservationWhatIfResponse)
     def what_if(request: ConservationWhatIfRequest) -> dict[str, Any]:
         try:
             theta_min = (

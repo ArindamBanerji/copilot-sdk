@@ -2,21 +2,54 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter
+
+from copilot_sdk.backend.models import TransferActiveResponse, TransferInactiveResponse
+from copilot_sdk.backend.transfer import (
+    TransferDetector,
+    load_fingerprints_with_warnings,
+)
 
 
 def create_transfer_router(
     scorer: Any,
     warm_start_info: dict[str, Any] | None = None,
+    fingerprint_base_path: Path | str | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/transfer", tags=["Transfer"])
 
-    @router.get("/status")
+    @router.get("/status", response_model=TransferActiveResponse | TransferInactiveResponse)
     def transfer_status() -> dict[str, Any]:
         info = _find_warm_start_info(scorer, warm_start_info)
         return _normalize_transfer_status(info)
+
+    @router.get("/opportunities")
+    def transfer_opportunities() -> dict[str, Any]:
+        own_domain = _own_domain(scorer)
+        fingerprints, warnings = load_fingerprints_with_warnings(fingerprint_base_path)
+        own_fingerprint = fingerprints.get(own_domain)
+        other_fingerprints = {
+            domain: payload
+            for domain, payload in fingerprints.items()
+            if domain != own_domain
+        }
+        opportunities = (
+            TransferDetector().detect(own_fingerprint, other_fingerprints)
+            if own_fingerprint is not None
+            else []
+        )
+        return {
+            "status": _opportunity_status(own_domain, fingerprints, opportunities),
+            "domain": own_domain,
+            "own_fingerprint_present": own_fingerprint is not None,
+            "available_domains": sorted(fingerprints),
+            "opportunity_count": len(opportunities),
+            "opportunities": opportunities,
+            "warnings": warnings,
+        }
 
     return router
 
@@ -98,6 +131,29 @@ def _patterns_transferred(info: dict[str, Any]) -> int:
         except (TypeError, ValueError):
             continue
     return 0
+
+
+def _own_domain(scorer: Any) -> str:
+    store = getattr(scorer, "graph_store", None) or getattr(scorer, "_graph_store", None)
+    domain = getattr(store, "domain", None) or getattr(scorer, "_domain", None)
+    if domain is None:
+        domain = getattr(scorer, "domain", None)
+    value = str(domain or "unknown").strip().lower()
+    return value or "unknown"
+
+
+def _opportunity_status(
+    own_domain: str,
+    fingerprints: dict[str, Any],
+    opportunities: list[dict[str, Any]],
+) -> str:
+    if not fingerprints:
+        return "missing_fingerprints"
+    if own_domain not in fingerprints:
+        return "missing_own_fingerprint"
+    if opportunities:
+        return "opportunities_available"
+    return "no_opportunities"
 
 
 def _string_or_none(value: Any) -> str | None:

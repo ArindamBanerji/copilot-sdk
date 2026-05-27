@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Tuple
 from urllib import error, request
 
+from copilot_sdk.backend.transfer import save_fingerprint
+
 
 TIMEOUT_SECONDS = 10
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -437,6 +439,12 @@ def verify_domain(
     except ApiError as exc:
         print("verify fingerprint failed: %s" % exc)
         fingerprint = {}
+    if fingerprint:
+        try:
+            path = save_fingerprint(config.name, fingerprint, source_url=base_url.rstrip("/") + "/api/fingerprint")
+            print("fingerprint exported: %s" % path.relative_to(REPO_ROOT))
+        except Exception as exc:
+            print("warning: fingerprint export failed: %s" % exc)
 
     factors = fingerprint.get("factors") or []
     active = any(float(factor.get("weight") or 0.0) > 0.0 for factor in factors if isinstance(factor, dict))

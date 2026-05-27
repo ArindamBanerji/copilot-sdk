@@ -1,10 +1,12 @@
 import type { Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, collectConsoleErrors, expectNoConsoleErrors } from "../helpers/ui";
+import { clickTab, collectConsoleErrors, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
 
 async function openJournal(page: Page) {
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Journal");
+  await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Trade Journal" })).toBeVisible();
 }
 

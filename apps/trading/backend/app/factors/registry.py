@@ -17,6 +17,7 @@ try:
     from copilot_sdk.scoring.presets.trading import TradingPreset
 
     ALL_FACTOR_NAMES = tuple(TradingPreset().shape.factor_names)
+    _USING_FALLBACK_FACTOR_NAMES = False
 except Exception:
     ALL_FACTOR_NAMES = (
         "signal_alignment",
@@ -27,9 +28,10 @@ except Exception:
         "emotional_indicator",
         "signal_confidence",
     )
+    _USING_FALLBACK_FACTOR_NAMES = True
 
 
-TRADING_FACTOR_COMPUTERS = {
+_PRESET_FACTOR_COMPUTERS = {
     "signal_alignment": ConvictionFactor(),
     "market_regime": ResearchDepthFactor(),
     "position_sizing": TechnicalSignalFactor(),
@@ -38,6 +40,24 @@ TRADING_FACTOR_COMPUTERS = {
     "emotional_indicator": MarketRegimeFactor(),
     "signal_confidence": SignalConfidenceFactor(),
 }
+
+_FALLBACK_FACTOR_COMPUTERS = {
+    "signal_alignment": ConvictionFactor(),
+    "market_regime": MarketRegimeFactor(),
+    "position_sizing": PositionSizeFactor(),
+    "timing_quality": TechnicalSignalFactor(),
+    "risk_reward_actual": TimeHorizonFactor(),
+    "emotional_indicator": ResearchDepthFactor(),
+    "signal_confidence": SignalConfidenceFactor(),
+}
+
+TRADING_FACTOR_COMPUTERS = (
+    _FALLBACK_FACTOR_COMPUTERS if _USING_FALLBACK_FACTOR_NAMES else _PRESET_FACTOR_COMPUTERS
+)
+
+
+def get_factor_registry() -> dict[str, Any]:
+    return dict(_FALLBACK_FACTOR_COMPUTERS)
 
 
 def compute_factors(context: dict[str, Any]) -> dict[str, float]:

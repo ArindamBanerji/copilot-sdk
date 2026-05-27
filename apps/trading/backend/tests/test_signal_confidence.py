@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import builtins
+import importlib
+import sys
+
 from app.factors.registry import (
     ALL_FACTOR_NAMES,
     TRADING_FACTOR_COMPUTERS,
@@ -92,6 +96,37 @@ def test_output_bounded():
 
 def test_no_more_default_missing_computers():
     assert set(TRADING_FACTOR_COMPUTERS.keys()) == set(ALL_FACTOR_NAMES)
+
+
+def test_fallback_registry_uses_semantic_factor_mapping(monkeypatch):
+    expected = {
+        "signal_alignment": "ConvictionFactor",
+        "market_regime": "MarketRegimeFactor",
+        "position_sizing": "PositionSizeFactor",
+        "timing_quality": "TechnicalSignalFactor",
+        "risk_reward_actual": "TimeHorizonFactor",
+        "emotional_indicator": "ResearchDepthFactor",
+        "signal_confidence": "SignalConfidenceFactor",
+    }
+    original_module = sys.modules.pop("app.factors.registry")
+    real_import = builtins.__import__
+
+    def force_preset_import_failure(name, globals=None, locals=None, fromlist=(), level=0):
+        if name == "copilot_sdk.scoring.presets.trading":
+            raise ImportError("forced fallback")
+        return real_import(name, globals, locals, fromlist, level)
+
+    monkeypatch.setattr(builtins, "__import__", force_preset_import_failure)
+    try:
+        fallback_registry = importlib.import_module("app.factors.registry")
+
+        assert fallback_registry.ALL_FACTOR_NAMES == tuple(expected)
+        assert {
+            name: type(computer).__name__
+            for name, computer in fallback_registry.get_factor_registry().items()
+        } == expected
+    finally:
+        sys.modules["app.factors.registry"] = original_module
 
 
 def test_compute_factors_returns_all_7_keys():

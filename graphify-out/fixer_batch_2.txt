@@ -1,0 +1,2281 @@
+Fixer_btch_2 :
+
+• gpt-5.3
+
+  READY_FOR_IMPLEMENTATION: YES
+
+  BASELINE:
+
+  - SDK tests: 749 passed, 1 failed; failure is unrelated S2P/SOC framework drift in tests/
+    test_framework_drift.py::test_s2p_no_unknown_drift for iks_base.py.
+  - spec count: 21 Trading specs under e2e/trading.
+
+  ROUTE_MAP:
+
+  - /api/score, /api/learn, /api/history, /api/fingerprint, /api/trajectory, /api/health: SDK scoring router mounted with prefix="/
+    api" at apps/trading/backend/app/main.py:238-245; SDK route decorators are in copilot_sdk/backend/
+    scoring_router.py:61, :74, :108, :115, :122, :131.
+  - /api/conservation/status: conservation router mounted with prefix="/api" at apps/trading/backend/app/main.py:256-262.
+  - /api/context/*: context router mounted with prefix="/api/context" at apps/trading/backend/app/main.py:264.
+  - /api/trading/promotion, /api/trading/regime, /api/trading/regime/detail, /api/trading/correlation, /api/trading/prescore, /api/
+    trading/vix-timing, /api/trading/trades, /api/trading/analytics: app routers mounted at apps/trading/backend/app/main.py:266-279;
+    router prefixes are /api/trading in evidence/journal/analytics/correlation/prescore/promotion/regime/social/vix routers.
+
+  HELPER_MAP:
+
+  - clickTab: tries role tab, then role button, then text click; e2e/helpers/ui.ts:3-17.
+  - waitForAppShell: waits domcontentloaded and non-empty main; e2e/helpers/ui.ts:19-22.
+  - gotoTab: page.goto("/"), waits shell, clicks tab, waits shell; e2e/helpers/ui.ts:24-29.
+  - expectAnyText: polls visible text patterns; e2e/helpers/ui.ts:31-58.
+  - collectConsoleErrors / expectNoConsoleErrors: collect console/page errors and assert empty; e2e/helpers/ui.ts:70-85.
+  - openFirstAlert: not present in current helpers/ui.ts.
+
+  PARTIALLY_UPDATED_SPEC_FINDINGS:
+
+  - file: e2e/trading/analysis.spec.ts
+      - current expectations: Analysis tab, YOUR TWO SELVES, Fingerprint, Counterfactual, SC panels at lines 4-66.
+      - referenced screen/component: AnalysisScreen.tsx, ContrastCard, self-computation panels.
+      - mismatches: no obvious text/path mismatch; already uses waitForAppShell after goto and tab click at lines 5-8.
+      - proposed fix: none.
+  - file: e2e/trading/dashboard.spec.ts
+      - current expectations: Dashboard, Portfolio Summary, IKS, Thesis Breakdown, Calendar Heatmap at lines 4-57.
+      - referenced screen/component: DashboardScreen.tsx; Dashboard heading exists at DashboardScreen.tsx:163.
+      - mismatches: no obvious text mismatch; already waits after goto at lines 5-6, 14-15, 24-25, 32-33, 40-41, 50-51.
+      - proposed fix: none.
+  - file: e2e/trading/flows.spec.ts
+      - current expectations: /api/score, /api/learn, Log Trade, Performance, Analysis, SC panels at lines 20-272.
+      - referenced screen/component: App.tsx tabs at App.tsx:14-20, API paths at api.ts:297-313.
+      - mismatches: no API path mismatch; waits are already present after goto/tab clicks in the main flows.
+      - proposed fix: none except optional action regex can include skip recommended where execution actions are accepted.
+  - file: e2e/trading/promotion.spec.ts
+      - current expectations: Strategy Promotion, Tier readiness, Promotion History, empty state at lines 5-62.
+      - referenced component: PromotionPanel.tsx.
+      - mismatches: text matches source: Tier readiness/Strategy Promotion at PromotionPanel.tsx:82-83, empty states
+        at :88, :92, :98, history at :139, :145. Missing app-shell wait after page.goto("/") before clickTab at spec lines 6-8.
+      - proposed fix: import/use waitForAppShell in gotoPerformance.
+  - file: e2e/trading/regime-recommend.spec.ts
+      - current expectations: Detailed Recommendations, Allocation context, conservation status at lines 13-60.
+      - referenced component: RegimePanel.tsx.
+      - mismatches: no current locator mismatch; component renders Detailed Recommendations, Allocation context..., Conservation
+        confirmed, Conservation not confirmed, loading/unavailable states at RegimePanel.tsx:169-188.
+      - proposed fix: none, or keep scoped detail-panel regex as-is.
+  - file: e2e/trading/conservation-breakdown.spec.ts
+      - current expectations: Strategy Safety Breakdown, category names, badges, overall safety, methodology at lines 23-75.
+      - referenced component: StrategySafetyBreakdownPanel.tsx.
+      - mismatches: no text mismatch; source has matching heading/empty/unavailable/methodology at
+        StrategySafetyBreakdownPanel.tsx:111-154.
+      - proposed fix: none.
+  - file: e2e/trading/correlation.spec.ts
+      - current expectations: Cross-Position Correlation, Correlation monitoring, insufficient states at lines 5-63.
+      - referenced component: CorrelationPanel.tsx.
+      - mismatches: no text mismatch; source has Correlation monitoring, heading, unavailable, insufficient reason, Top correlated
+        pairs, Alerts, and no-alert text at CorrelationPanel.tsx:109-185.
+      - proposed fix: none.
+
+  OTHER_SPEC_FINDINGS:
+
+  - earnings-subcat.spec.ts: text matches JournalScreen.tsx:246, :260, :287; missing app-shell wait in openJournal lines 5-8.
+  - options-factors.spec.ts: text matches OptionsFactorPanel.tsx:57-74; missing app-shell wait in openLogTrade lines 5-8.
+  - vix-timing.spec.ts: text matches VIXTimingPanel.tsx:74-96, :106, :144-154; missing app-shell wait in gotoPerformance lines 5-8.
+  - regime.spec.ts: text matches RegimePanel.tsx:123, :150-162; missing app-shell wait after page.goto("/") at lines 10, 18, 29, 42.
+  - journal.spec.ts, log-trade.spec.ts, evidence.spec.ts, performance.spec.ts, prescore.spec.ts, pattern-detection.spec.ts, trust-
+    radar.spec.ts, sc-data.spec.ts, transfer-badge.spec.ts: no obvious route/text mismatch, but several local open/goto helpers do
+    not wait for app shell after page.goto("/").
+  - evolution.spec.ts: API-only backend checks; no obvious UI mismatch.
+
+  SCREEN_COMPONENT_EVIDENCE:
+
+  - PromotionPanel.tsx: actual text Tier readiness, Strategy Promotion, Loading promotion tiers..., Promotion data is unavailable.,
+    Score trades to begin tier tracking., Promotion History, No promotion events yet. at lines 82-98 and 139-145.
+  - RegimePanel.tsx: actual detail text and conservation text at lines 169-188; action labels come from actionLabel() at lines 23-26.
+  - CorrelationPanel.tsx: actual section text and empty states at lines 109-130, 155, 175, 185.
+  - OptionsFactorPanel.tsx: actual heading/empty-state labels at lines 57-74.
+  - VIXTimingPanel.tsx: actual heading/empty-state/observation labels at lines 74-96 and 144-154.
+  - App.tsx: tab labels are Dashboard, Log Trade, Analysis, Performance, Journal, Trade Detail at lines 14-20.
+
+  API_PATH_MISMATCHES:
+
+  - none found.
+  - /api/score and /api/learn waits are correct because scoring router is mounted under /api at main.py:238-245.
+  - /api/trading/prescore waits are correct: frontend posts at api.ts:161-164, backend route is prescore.py:38-41.
+  - /api/trading/trades and /api/trading/analytics route mocks are correct: frontend calls at api.ts:114-129, backend routes at
+    journal.py:24, :29, :74.
+
+  IMPLEMENTATION_PLAN:
+
+  - files to edit: only Trading specs with missing waits or stale action alternations.
+  - change summary per file: add waitForAppShell import/use after page.goto("/") and after tab clicks in local helpers for promotion,
+    earnings-subcat, options-factors, vix-timing, regime, plus any other Trading spec local helper selected for cold-start hardening.
+    Do not touch already-correct component text unless runtime Playwright proves a locator stale.
+  - files explicitly not edited: frontend source, backend source, SDK, e2e/helpers/ui.ts, Playwright config, non-Trading specs.
+  - validation commands: npx tsc --noEmit; then targeted Trading Playwright specs for edited files only.
+
+  ALLOWED_FILES:
+
+  - e2e/trading/promotion.spec.ts
+  - e2e/trading/earnings-subcat.spec.ts
+  - e2e/trading/options-factors.spec.ts
+  - e2e/trading/vix-timing.spec.ts
+  - e2e/trading/regime.spec.ts
+  - any other e2e/trading/*.spec.ts only if the implementation pass applies the same app-shell wait pattern and does not change
+    content assertions.
+
+  FORBIDDEN_FILES:
+
+  - apps/trading/frontend/src/**
+  - apps/trading/backend/**
+  - copilot_sdk/**
+  - e2e/helpers/ui.ts
+  - e2e/playwright.config.ts
+  - non-Trading E2E specs
+  - package/lock files
+
+  RISKS:
+
+  - item: The source no longer shows the earlier regime conservation locator mismatch; changing that spec now may be unnecessary.
+  - item: Several specs are still cold-start sensitive because they click tabs immediately after page.goto("/").
+  - item: TradingPreset includes skip_recommended at copilot_sdk/scoring/presets/trading.py:36, while some UI/spec action lists only
+    cover three execution actions; only adjust specs if the rendered UI can expose that action.
+
+ gpt-5.3
+
+  READY: YES
+
+  FILES_CHANGED:
+
+  - e2e/trading/promotion.spec.ts
+      - Added waitForAppShell after page.goto("/") and after clicking Performance.
+  - e2e/trading/earnings-subcat.spec.ts
+      - Added waitForAppShell after page.goto("/") and after clicking Journal.
+  - e2e/trading/options-factors.spec.ts
+      - Added waitForAppShell after page.goto("/") and after clicking Log Trade.
+  - e2e/trading/vix-timing.spec.ts
+      - Added waitForAppShell after page.goto("/") and after clicking Performance.
+  - e2e/trading/regime.spec.ts
+      - Added waitForAppShell after each page.goto("/").
+
+  VALIDATION_REPORT:
+
+  - file: promotion.spec.ts
+      - mismatches found: structural/cold-start navigation wait
+      - screen/component referenced: PromotionPanel.tsx
+      - changes made: imported existing helper and waited for app shell around Performance navigation.
+  - file: earnings-subcat.spec.ts
+      - mismatches found: structural/cold-start navigation wait
+      - screen/component referenced: JournalScreen.tsx
+      - changes made: imported existing helper and waited for app shell around Journal navigation.
+  - file: options-factors.spec.ts
+      - mismatches found: structural/cold-start navigation wait
+      - screen/component referenced: OptionsFactorPanel.tsx
+      - changes made: imported existing helper and waited for app shell around Log Trade navigation.
+  - file: vix-timing.spec.ts
+      - mismatches found: structural/cold-start navigation wait
+      - screen/component referenced: VIXTimingPanel.tsx
+      - changes made: imported existing helper and waited for app shell around Performance navigation.
+  - file: regime.spec.ts
+      - mismatches found: structural/cold-start navigation wait
+      - screen/component referenced: RegimePanel.tsx
+      - changes made: imported existing helper and waited after page load in all four tests.
+
+  TESTS_RUN:
+
+  - command: python -m pytest tests/ -q --timeout=120
+  - result: 1 failed, 749 passed; failure is pre-existing/unrelated tests/test_framework_drift.py::test_s2p_no_unknown_drift for S2P/
+    SOC iks_base.py drift.
+  - command: npx tsc --noEmit from e2e
+  - result: passed with no output.
+
+  SCOPE_AUDIT:
+
+  - only e2e/trading specs changed: YES
+  - helpers unchanged: YES
+  - playwright config unchanged: YES
+  - frontend source unchanged: YES
+  - backend unchanged: YES
+  - SDK unchanged: YES
+  - non-trading specs unchanged: YES
+
+  RESIDUAL_RISKS:
+
+  - item: Playwright was not run per instruction, so runtime flake reduction is validated by TypeScript only.
+  - item: Backend test suite still has the unrelated S2P/SOC drift failure.
+
+  NEXT_STEP:
+
+  - GPT-5.5 line-by-line review should be run before closing.
+
+
+  REVIEW_VERDICT:
+
+  - PASS_WITH_P3
+
+  SUMMARY:
+
+  - The fix is test-only and limited to five Trading specs.
+  - The changed lines only add existing waitForAppShell() calls around navigation; no text locators or API waits were changed.
+  - Helper usage is correct: waitForAppShell(page) exists and waits for domcontentloaded plus non-empty main.
+  - Referenced UI assertions still match current TSX text for Promotion, Journal, Options Factors, VIX Timing, and Regime panels.
+  - No evidence of route-prefix changes or stale API wait paths in the modified files.
+  - TypeScript validation passed.
+  - Backend validation still has one unrelated S2P/SOC drift failure, so this is PASS_WITH_P3 rather than clean PASS.
+
+  P1_BUGS:
+
+  - finding: none
+  - evidence: reviewed changed specs e2e/trading/promotion.spec.ts:1-64, earnings-subcat.spec.ts:1-100, options-factors.spec.ts:1-60,
+    vix-timing.spec.ts:1-60, regime.spec.ts:1-50.
+  - why P1: n/a
+
+  P2_BUGS:
+
+  - finding: none
+  - evidence: changed waits use existing helper from e2e/helpers/ui.ts:19-22; no changed API paths found in modified specs.
+  - why P2: n/a
+
+  P3_ISSUES:
+
+  - finding: backend validation did not fully pass due an unrelated framework drift test.
+  - evidence: reported validation failed tests/test_framework_drift.py::test_s2p_no_unknown_drift for iks_base.py byte drift;
+    implementation output reports 1 failed, 749 passed.
+  - why P3: unrelated to Trading Playwright spec repair, but full backend validation is not green.
+
+  FEATURE_STATUS:
+
+  - route/spec mapping: PASS
+  - text/locator fixes: NOT APPLICABLE
+  - API path fixes: NOT APPLICABLE
+  - partial spec completion: PASS
+  - TypeScript validation: PASS
+  - scope discipline: PASS
+
+  LINE_BY_LINE_REVIEW_NOTES:
+
+  - file: e2e/trading/promotion.spec.ts
+  - line ranges reviewed: 1-64
+  - notes: waitForAppShell imported at line 3 and used after goto/tab click at lines 7 and 9. Existing assertions remain scoped to
+    Strategy Promotion panel at lines 13-14.
+  - file: e2e/trading/earnings-subcat.spec.ts
+  - line ranges reviewed: 1-100
+  - notes: waitForAppShell imported at line 3 and used in openJournal at lines 7 and 9. Existing route mocks and Category Analytics
+    assertions remain intact.
+  - file: e2e/trading/options-factors.spec.ts
+  - line ranges reviewed: 1-60
+  - notes: waitForAppShell imported at line 3 and used in openLogTrade at lines 7 and 9. Options panel assertions remain scoped.
+  - file: e2e/trading/vix-timing.spec.ts
+  - line ranges reviewed: 1-60
+  - notes: waitForAppShell imported at line 3 and used in gotoPerformance at lines 7 and 9. Existing VIX text assertions unchanged.
+  - file: e2e/trading/regime.spec.ts
+  - line ranges reviewed: 1-50
+  - notes: waitForAppShell imported at line 3 and used after each page.goto("/") at lines 11, 20, 32, and 46.
+
+  SCOPE_AUDIT:
+
+  - expected files:
+      - e2e/trading/promotion.spec.ts
+      - e2e/trading/earnings-subcat.spec.ts
+      - e2e/trading/options-factors.spec.ts
+      - e2e/trading/vix-timing.spec.ts
+      - e2e/trading/regime.spec.ts
+  - actual changed files: same five files per implementation output and review target.
+  - forbidden files touched: none reported.
+  - helpers/ui.ts changed?: NO; helper only read, API at e2e/helpers/ui.ts:19-22.
+  - playwright.config.ts changed?: NO
+  - frontend source changed?: NO
+  - backend changed?: NO
+  - SDK changed?: NO
+  - non-Trading e2e changed?: NO
+  - scope verdict: PASS
+
+  LOCATOR_AUDIT:
+
+  - file: promotion.spec.ts
+      - changed locator: none
+      - source TSX evidence: PromotionPanel.tsx:82-98, :139-145
+      - too broad?: NO
+      - intent preserved?: YES
+  - file: earnings-subcat.spec.ts
+      - changed locator: none
+      - source TSX evidence: JournalScreen.tsx:117, :246, :260, :287
+      - too broad?: NO
+      - intent preserved?: YES
+  - file: options-factors.spec.ts
+      - changed locator: none
+      - source TSX evidence: OptionsFactorPanel.tsx:57-74
+      - too broad?: NO
+      - intent preserved?: YES
+  - file: vix-timing.spec.ts
+      - changed locator: none
+      - source TSX evidence: VIXTimingPanel.tsx:74-96, :144-154
+      - too broad?: NO
+      - intent preserved?: YES
+  - file: regime.spec.ts
+      - changed locator: none
+      - source TSX evidence: RegimePanel.tsx:123-142, :162
+      - too broad?: NO
+      - intent preserved?: YES
+
+  API_PATH_AUDIT:
+
+  - file: modified specs
+      - changed path: none
+      - backend route evidence: /api scoring/conservation mounted at apps/trading/backend/app/main.py:238-245 and :256-262; app
+        routers mounted at :264-281.
+      - correct?: YES
+
+  PARTIAL_FIX_AUDIT:
+
+  - analysis.spec.ts: unchanged; already used waitForAppShell at lines 5-8.
+  - dashboard.spec.ts: unchanged; already used waitForAppShell after gotos, e.g. lines 5-6 and 14-15.
+  - flows.spec.ts: unchanged; existing waits preserved, e.g. lines 22-25 and 43-46.
+  - promotion.spec.ts: completed safely with waits at lines 7 and 9.
+  - regime-recommend.spec.ts: unchanged; existing waits after gotos at lines 14-15, 27-28, 36-37, 45-46, 55-56.
+  - conservation-breakdown.spec.ts: unchanged; existing waits at lines 24-27.
+  - correlation.spec.ts: unchanged; existing waits at lines 6-9.
+
+  TEST_INTENT_AUDIT:
+
+  - assertions removed: none
+  - equivalent replacements: none needed
+  - new assertions added: none
+  - over-broad matches: none introduced
+  - intent verdict: PASS
+
+  VALIDATION_AUDIT:
+
+  - commands run:
+      - python -m pytest tests/ -q --timeout=120
+      - cd e2e; npx tsc --noEmit
+  - pass/fail:
+      - backend tests: FAIL, unrelated S2P/SOC drift
+      - TypeScript: PASS
+  - unrun important commands: Playwright, intentionally not run per user instruction.
+  - Playwright run?: NO
+  - manual command provided?: NO in implementation output; acceptable because user explicitly said do not run Playwright.
+  - validation verdict: PASS_WITH_P3
+
+  ARCHITECTURE_AUDIT:
+
+  - test-only discipline: PASS
+  - contract alignment: PASS
+  - resilience: PASS; existing helper waits reduce cold-start sensitivity without arbitrary sleeps.
+  - intent preservation: PASS
+  - maintainability: PASS; changes are localized and use the existing shared helper.
+  - architecture/test-quality verdict: PASS_WITH_P3
+
+  FIXER_NEEDED:
+
+  - NO
+  - If YES, smallest targeted fixer scope: n/a
+
+
+• gpt-5.3
+
+  READY: YES
+  COVERAGE_STATUS: PARTIALLY_COVERED
+
+  FILES VERIFIED:
+
+  - app/main.py: present; target routers mounted at app/main.py:83-85 and app/main.py:91.
+  - router files: all present: s2p.py, s2p_evolution.py, s2p_governance.py, s2p_explorer.py.
+  - test files: all four requested files already exist.
+  - fixture/conftest pattern: no tests/conftest.py; existing tests use module-level TestClient(app), e.g. tests/
+    test_s2p_core_router.py:12, tests/test_s2p_explorer_router.py:12.
+
+  ROUTER_ENDPOINT_TABLE:
+
+  - router: s2p.py
+  - method: POST
+  - effective path: /api/s2p/score
+  - body/query/path params: ScoreRequest fields at app/routers/s2p.py:649-668
+  - expected response type: ScoreResponse, app/routers/s2p.py:670-683
+  - covered by: test_s2p_core_router.py:73, :82, :91
+  - coverage status: COVERED
+  - router: s2p.py
+  - method: GET
+  - effective path: /api/s2p/auto-approve/stats
+  - body/query/path params: none
+  - expected response type: dict
+  - covered by: test_s2p_core_router.py:182-188
+  - coverage status: COVERED
+  - router: s2p.py
+  - method: GET
+  - effective path: /api/s2p/auto-approve/expansion-proof
+  - body/query/path params: optional category, app/routers/s2p.py:791-805
+  - expected response type: dict
+  - covered by: test_s2p_core_router.py:182-189
+  - coverage status: WEAK, no unknown-category 404 test for app/routers/s2p.py:797-798.
+  - router: s2p.py
+  - method: POST
+  - effective path: /api/learn
+  - body/query/path params: LearnRequest, app/routers/s2p.py:831-837
+  - expected response type: dict
+  - covered by: test_s2p_core_router.py:157-179
+  - coverage status: WEAK, invalid actual_action branch at app/routers/s2p.py:843-847 is untested.
+  - router: s2p.py
+  - method: POST
+  - effective path: /api/s2p/outcome
+  - body/query/path params: OutcomeRequest, app/routers/s2p.py:808-820
+  - expected response type: dict
+  - covered by: test_s2p_core_router.py:98-154
+  - coverage status: WEAK, confirm flow and 404/reason-code covered, but invalid outcome, invalid analyst_action, and bad
+    factor_vector branches at app/routers/s2p.py:896-907 are untested.
+  - router: s2p.py
+  - method: GET
+  - effective path: /api/s2p/iks
+  - body/query/path params: none
+  - expected response type: dict
+  - covered by: test_s2p_core_router.py:192-200
+  - coverage status: COVERED
+  - router: s2p.py
+  - method: GET
+  - effective path: /api/s2p/learning-gate
+  - body/query/path params: none
+  - expected response type: dict
+  - covered by: test_s2p_core_router.py:192-201
+  - coverage status: COVERED
+  - router: s2p_evolution.py
+  - method: GET
+  - effective path: /api/s2p/evolution/rules
+  - params: none
+  - expected response type: {"rules": ...}, app/routers/s2p_evolution.py:25-27
+  - covered by: test_s2p_evolution_router.py:27-34
+  - coverage status: COVERED
+  - router: s2p_evolution.py
+  - method: GET
+  - effective path: /api/s2p/evolution/variants
+  - params: optional template_name, app/routers/s2p_evolution.py:29-32
+  - expected response type: dict with total, variants, sdk_summary
+  - covered by: test_s2p_evolution_router.py:37-60
+  - coverage status: WEAK, unfiltered path covered but template_name filtering is not.
+  - router: s2p_evolution.py
+  - method: GET
+  - effective path: /api/s2p/evolution/promotion-check
+  - params: none
+  - expected response type: {"promotion": ...}, app/routers/s2p_evolution.py:34-36
+  - covered by: test_s2p_evolution_router.py:63-74
+  - coverage status: COVERED
+  - router: s2p_evolution.py
+  - method: POST
+  - effective path: /api/s2p/evolution/reset
+  - params: none
+  - expected response type: {"status": "reset"}, app/routers/s2p_evolution.py:38-41
+  - covered by: test_s2p_evolution_router.py:77-100
+  - coverage status: COVERED
+  - router: s2p_evolution.py
+  - method: GET
+  - effective path: /api/s2p/evolution/shadow-results
+  - params: optional variant_id, app/routers/s2p_evolution.py:43-45
+  - expected response type: service dict
+  - covered by: test_s2p_evolution_router.py:103-113
+  - coverage status: WEAK, only filtered variant_id path covered.
+  - router: s2p_evolution.py
+  - method: GET
+  - effective path: /api/s2p/evolution/promoted
+  - params: none
+  - expected response type: {"promoted": ...}, app/routers/s2p_evolution.py:47-49
+  - covered by: test_s2p_evolution_router.py:116-124
+  - coverage status: COVERED
+  - router: s2p_governance.py
+  - method: GET
+  - effective paths: /api/s2p/governance/compliance-screening, /compliance-gaps, /conservation-proof, /rationalization, /
+    rationalization/overlap, /rationalization/supplier/{supplier_id}
+  - params: supplier path param for supplier detail
+  - expected response type: dict
+  - covered by: test_s2p_governance_router.py:37-83
+  - coverage status: COVERED
+  - router: s2p_explorer.py
+  - method: GET
+  - effective paths: /api/s2p/explorer/export/centroids, /export/csv, /centroid/{category}/{action}, /drift/{category}, /dk-
+    weights, /contribution
+  - params: category/action path params; invoice_id query for contribution
+  - expected response type: dict
+  - covered by: test_s2p_explorer_router.py:56-132
+  - coverage status: WEAK, most paths covered, but unknown action for /centroid/{category}/{action} at app/routers/
+    s2p_explorer.py:40-42 and missing invoice_id validation are not explicitly covered.
+
+  GAPS_TO_FIX:
+
+  - Add /api/s2p/auto-approve/expansion-proof?category=unknown returns 404.
+  - Add /api/learn invalid actual_action returns 422.
+  - Add /api/s2p/outcome invalid outcome, invalid analyst_action, and bad factor vector length return 422.
+  - Add /api/s2p/evolution/variants?template_name=... coverage.
+  - Add /api/s2p/evolution/shadow-results without variant_id coverage.
+  - Add /api/s2p/explorer/centroid/price_variance/not_an_action returns 404.
+  - Add /api/s2p/explorer/contribution missing invoice_id returns validation error, likely 422.
+
+  IMPLEMENTATION_INPUTS:
+
+  - existing fixture/client pattern: module-level client = TestClient(app) and local JSON-safe helpers in each target file.
+  - files allowed:
+      - tests/test_s2p_core_router.py
+      - tests/test_s2p_evolution_router.py
+      - tests/test_s2p_governance_router.py
+      - tests/test_s2p_explorer_router.py
+  - exact tests to add/update:
+      - extend only the three files with WEAK endpoints: core, evolution, explorer.
+      - no governance additions required unless stronger shape assertions are desired.
+  - baseline result: 787 passed, 1576 warnings; pytest cache write warnings only.
+
+  STOP CONDITIONS:
+
+  - Target routers are present, so READY is not blocked.
+  - Baseline passes, so implementation can proceed.
+  - Coverage is not absent; do not duplicate existing tests.
+  
+ gpt-5.3
+
+  READY: YES
+
+  COVERAGE_STATUS_AFTER:
+
+  - COVERAGE_ADDED
+
+  FILES CHANGED:
+
+  - tests/test_s2p_core_router.py
+  - tests/test_s2p_evolution_router.py
+  - tests/test_s2p_explorer_router.py
+
+  TESTS ADDED_OR_UPDATED:
+
+  - tests/test_s2p_core_router.py
+      - Added tests for GET /api/s2p/score 405, invalid outcome, invalid analyst_action, bad factor_vector length, invalid /api/learn
+        actual_action, and unknown auto-approve expansion category.
+      - Closed core router validation/error-path gaps.
+  - tests/test_s2p_evolution_router.py
+      - Added template_name filter coverage for /api/s2p/evolution/variants.
+      - Added unfiltered /api/s2p/evolution/shadow-results coverage.
+  - tests/test_s2p_explorer_router.py
+      - Added invalid action coverage for /api/s2p/explorer/centroid/{category}/{action}.
+      - Added missing invoice_id validation coverage for /api/s2p/explorer/contribution.
+
+  VALIDATION RESULTS:
+
+  - python -m pytest tests/test_s2p_core_router.py tests/test_s2p_evolution_router.py tests/test_s2p_governance_router.py tests/
+    test_s2p_explorer_router.py -v --timeout=120
+      - 44 passed, 90 warnings
+  - python -m pytest tests/ -q --timeout=120
+      - 797 passed, 1596 warnings
+
+  SCOPE AUDIT:
+
+  - only allowed files changed? YES
+  - app/source files changed? NO
+  - unrelated tests changed? NO
+  - forbidden repos touched? NO
+
+  RESIDUAL RISKS:
+
+  - Pytest still reports cache write permission warnings under .pytest_cache, but tests pass and this is unrelated to router
+    coverage.
+
+• gpt-5.5
+
+  REVIEW_VERDICT:
+
+  - PASS_WITH_P3
+
+  P1_BUGS:
+
+  - finding: None.
+    evidence: Changed tests import and use the mounted FastAPI app through TestClient(app) in tests/test_s2p_core_router.py:7-12,
+    tests/test_s2p_evolution_router.py:3-9, and tests/test_s2p_explorer_router.py:7-12.
+    why P1: No P1 issue found.
+
+  P2_BUGS:
+
+  - finding: None.
+    evidence: New status expectations match source validation branches: core 422/404 branches at app/routers/s2p.py:791-798, app/
+    routers/s2p.py:840-847, app/routers/s2p.py:890-907; evolution routes at app/routers/s2p_evolution.py:29-45; explorer 404/query
+    behavior at app/routers/s2p_explorer.py:37-42, app/routers/s2p_explorer.py:211-212.
+    why P2: No P2 issue found.
+
+  P3_ISSUES:
+
+  - finding: Exact repository-wide diff cannot be independently proven because review rules prohibit git.
+    evidence: I verified the reviewed allowed files and source behavior directly, but without git/diff metadata exact untouched-file
+    proof is UNKNOWN.
+    why P3: Scope risk is informational only; implementation report and reviewed files align with the allowed test-only scope.
+
+  LINE_BY_LINE_REVIEW:
+
+  - tests/test_s2p_core_router.py:
+      - lines reviewed: 1-282
+      - new/changed tests: test_core_score_get_method_not_allowed 98-101; outcome validation tests 163-217; invalid learn action 245-
+        253; unknown expansion category 266-270.
+      - source-backed behavior: /api/s2p prefix is declared at app/routers/s2p.py:36 and mounted at app/main.py:83; score is POST-
+        only at app/routers/s2p.py:686; expansion-proof rejects unknown categories with 404 at app/routers/s2p.py:791-798; learn
+        rejects invalid actual_action with 422 at app/routers/s2p.py:840-847; outcome rejects invalid outcome/action/vector with 422
+        at app/routers/s2p.py:890-907.
+      - concerns: None.
+  - tests/test_s2p_evolution_router.py:
+      - lines reviewed: 1-149
+      - new/changed tests: test_router_variants_filters_by_template_name 50-62;
+        test_router_shadow_results_without_variant_returns_all_results_mapping 131-138.
+      - source-backed behavior: router prefix is /api/s2p/evolution at app/routers/s2p_evolution.py:14 and is mounted at app/
+        main.py:84; /variants accepts template_name and passes it to service at app/routers/s2p_evolution.py:29-32; service filters
+        by template_name at app/domains/s2p/evolution/service.py:57-61; unfiltered shadow results return total_variants and results
+        at app/domains/s2p/evolution/service.py:101-110.
+      - concerns: None.
+  - tests/test_s2p_explorer_router.py:
+      - lines reviewed: 1-154
+      - new/changed tests: test_explorer_centroid_unknown_action_returns_404 90-98;
+        test_explorer_contribution_requires_invoice_id_query_param 146-154.
+      - source-backed behavior: explorer prefix is /api/s2p/explorer at app/routers/s2p_explorer.py:13 and mounted at app/main.py:85;
+        unknown action raises 404 at app/routers/s2p_explorer.py:37-42; contribution requires invoice_id: str query parameter at app/
+        routers/s2p_explorer.py:211-212, so missing query validation is FastAPI-backed 422.
+      - concerns: None.
+
+  GOVERNANCE_NO_CHANGE_AUDIT:
+
+  - governance coverage adequate? YES
+  - evidence: Governance router prefix is /api/s2p/governance at app/routers/s2p_governance.py:15 and mounted at app/main.py:91.
+    Existing tests cover compliance screening tests/test_s2p_governance_router.py:37-41, compliance gaps 44-48, conservation proof
+    51-55, rationalization 58-62, overlap 65-69, known supplier path 72-76, and unknown supplier 404 79-83. Source endpoints match at
+    app/routers/s2p_governance.py:123-137, 279-334.
+  - remaining gaps, if any: None identified for the Prompt 0 gap list.
+
+  ENDPOINT_BEHAVIOR_AUDIT:
+  | Router | Endpoint / Behavior | Test Function | Source Evidence | Verdict |
+  |---|---|---|---|---|
+  | s2p.py | GET /api/s2p/score returns 405 for POST-only route | test_core_score_get_method_not_allowed | router =
+  APIRouter(prefix="/api/s2p") at app/routers/s2p.py:36; only @router.post("/score") at 686 | PASS |
+  | s2p.py | Invalid outcome returns 422 | test_core_outcome_rejects_invalid_outcome_value | app/routers/s2p.py:896-898 | PASS |
+  | s2p.py | Invalid analyst action returns 422 | test_core_outcome_rejects_invalid_analyst_action | app/routers/s2p.py:901-903 |
+  PASS |
+  | s2p.py | Bad factor vector length returns 422 | test_core_outcome_rejects_wrong_factor_vector_length | app/routers/s2p.py:905-
+  907; 7 factors at app/domains/s2p/config.py:38-47 | PASS |
+  | s2p.py | Invalid learn actual_action returns 422 | test_core_learn_rejects_invalid_actual_action | app/routers/s2p.py:840-847;
+  actions at app/domains/s2p/config.py:29-36 | PASS |
+  | s2p.py | Unknown expansion category returns 404 | test_core_auto_approve_expansion_proof_unknown_category_returns_404 | app/
+  routers/s2p.py:791-798 | PASS |
+  | s2p_evolution.py | Variants filter by template_name | test_router_variants_filters_by_template_name | app/routers/
+  s2p_evolution.py:29-32; app/domains/s2p/evolution/service.py:57-61 | PASS |
+  | s2p_evolution.py | Shadow results without variant_id returns aggregate mapping |
+  test_router_shadow_results_without_variant_returns_all_results_mapping | app/routers/s2p_evolution.py:43-45; app/domains/s2p/
+  evolution/service.py:101-110 | PASS |
+  | s2p_explorer.py | Unknown centroid action returns 404 | test_explorer_centroid_unknown_action_returns_404 | app/routers/
+  s2p_explorer.py:37-42 | PASS |
+  | s2p_explorer.py | Missing contribution invoice_id returns validation error |
+  test_explorer_contribution_requires_invoice_id_query_param | Required query param at app/routers/s2p_explorer.py:211-212 | PASS |
+
+  SCOPE_AUDIT:
+
+  - only allowed test files changed? UNKNOWN
+  - app/source files changed? UNKNOWN
+  - unrelated tests changed? UNKNOWN
+  - forbidden repos touched? UNKNOWN
+  - evidence: No git/diff use allowed. Reviewed implementation-reported changed files are allowed test files; source files read only
+    for behavior verification.
+
+  VALIDATION_AUDIT:
+
+  - targeted tests: Reported 44 passed, 90 warnings for the four router test files.
+  - full regression: Reported 797 passed, 1596 warnings.
+  - warnings: Reported warnings were pytest-freezegun deprecation and pytest cache permission warnings; not material to endpoint
+    behavior.
+  - validation gaps: No required test command missing.
+
+  TEST_ARCHITECTURE_AUDIT:
+
+  - mounted app/client path: PASS. Tests use TestClient(app) from app.main in the changed files.
+  - negative/error-path quality: PASS. New negative tests hit explicit source validation branches or FastAPI method/query validation.
+  - order independence: PASS_WITH_P3. Core/explorer reset scorer state before stateful score paths; evolution tests use
+    reset_s2p_evolver() for variant-state-sensitive tests, though some existing evolution tests still rely on fixture state.
+  - shared state risk: Low. No new persistent external service use found.
+  - duplicate/shallow coverage risk: Low. Added tests target specific Prompt 0 gaps and assert status plus stable detail/shape keys.
+  - architecture verdict: PASS_WITH_P3
+
+  FIXER_NEEDED:
+
+  - NO
+  - If YES, smallest targeted fixer scope: N/A
+  - exact files to allow: N/A
+  - exact tests to rerun: N/A	
+  
+ gpt-5.3
+
+  READY: YES
+
+  FILES VERIFIED:
+
+  - broker modules: apps/trading/backend/app/brokers/__init__.py, alpaca.py, mock.py, protocol.py
+  - cli.py: apps/trading/backend/cli.py
+  - main.py: apps/trading/backend/app/main.py
+  - routers dir: exists; no broker_router.py
+  - tests fixture: apps/trading/backend/tests/conftest.py
+  - existing broker router: absent
+  - existing broker router tests: absent
+
+  BROKER_PROTOCOL_TABLE:
+  | Connector/Protocol | File | Methods | Env/config requirements | Notes |
+  |---|---|---|---|---|
+  | BrokerProtocol | app/brokers/protocol.py:64-75 | place_order, get_order, get_orders, get_positions, get_account, cancel_order |
+  None | HTTP should expose only read methods; no order placement/cancel. |
+  | MockBroker | app/brokers/mock.py:11-80 | Implements all protocol methods | None | Deterministic local broker; good for tests. |
+  | AlpacaBroker | app/brokers/alpaca.py:16-83 | Implements all protocol methods via Alpaca HTTP | APCA_API_KEY_ID,
+  APCA_API_SECRET_KEY, optional APCA_API_BASE_URL at alpaca.py:25-29 | Missing credentials raise EnvironmentError; network errors
+  become BrokerError. |
+  | get_broker | app/brokers/__init__.py:10-16 | Resolves "mock" or "alpaca" | Alpaca needs env credentials | Unsupported broker
+  raises ValueError. |
+
+  CLI_RESOLUTION_SUMMARY:
+
+  - env vars: Alpaca uses APCA_API_KEY_ID, APCA_API_SECRET_KEY, APCA_API_BASE_URL (alpaca.py:25-29).
+  - default behavior: CLI broker commands default to "alpaca" (cli.py:143-144, parser defaults at cli.py:1021, 1027, 1031, 1035,
+    1041).
+  - connector selection: CLI _get_broker() imports app.brokers.get_broker and calls it (cli.py:131-134).
+  - error handling: CLI treats BrokerError, EnvironmentError, and ValueError as broker failures (cli.py:137-140) and returns command
+    error codes around broker commands (cli.py:806-847, 854-863).
+  - safe reuse/mirror plan: mirror _broker_name, _get_broker, and _broker_error_types locally in the router. Do not import cli.py fr
+    om the router because cli.py imports many offline CLI modules at import time (cli.py:31-38) and contains CLI-specific
+    sys.path/package bootstrapping (cli.py:17-29).
+
+  APP_MOUNT_PLAN:
+
+  - router file: apps/trading/backend/app/routers/broker_router.py
+  - mount path: router should use APIRouter(prefix="/api/broker", tags=["broker"])
+  - main.py change: import create_broker_router, then add exactly one app.include_router(create_broker_router()) near other app-local
+    routers after existing imports/mounts (main.py:24-36, 224-281).
+  - tags: ["broker"]
+  - compatibility risks: avoid /api/trading/...; prompt requests /api/broker. Existing app router mounts are direct factory calls
+    with full prefixes (main.py:265-281).
+
+  ENDPOINT_PLAN:
+  | Method | Path | Connector Method | Success Shape | Disconnected/Error Shape | Notes |
+  |---|---|---|---|---|---|
+  | GET | /api/broker/status?broker=alpaca | resolution only, optional lightweight config state | {broker, configured, connected,
+  status, source} | 200 with {configured:false, connected:false, status:"unconfigured", error} | Must not require credentials. |
+  | GET | /api/broker/account?broker=... | get_account() | {broker, connected:true, account:{...}} | 200 with {broker,
+  connected:false, account:null, error} | MockBroker.get_account() shape at mock.py:63-70; Alpaca shape at alpaca.py:69-79. |
+  | GET | /api/broker/positions?broker=... | get_positions() | {broker, connected:true, positions:[...], count} | 200 with
+  {connected:false, positions:[], count:0, error} | Serialize Position dataclass fields from protocol.py:54-61. |
+  | GET | /api/broker/orders?broker=...&status=all&limit=50 | get_orders(status, limit) | {broker, connected:true, orders:[...],
+  count} | 200 with {connected:false, orders:[], count:0, error} | Clamp limit; serialize OrderResult fields from protocol.py:38-51.
+  |
+  | GET | /api/broker/orders/{order_id}?broker=... | get_order(order_id) | {broker, connected:true, order:{...}} | 404 for broker not
+  found/order not found, or 200 disconnected for no config | Read-only single order lookup; no placement. |
+  | GET | /api/broker/sync?broker=...&limit=50&dry_run=true | get_orders(status="filled", limit) plus CLI mapping semantics |
+  {broker, dry_run:true, synced:[...], count} | 200 disconnected with empty list/error | No protocol sync method exists; only expose
+  dry-run/preview unless Prompt 1 explicitly wants persistence. CLI mapping functions are at cli.py:170-203, sync uses filled orders
+  at cli.py:854-888. |
+
+  TEST_PLAN:
+
+  - tests to create: apps/trading/backend/tests/test_broker_router.py
+  - env isolation: use monkeypatch.delenv("APCA_API_KEY_ID"), monkeypatch.delenv("APCA_API_SECRET_KEY"); use broker=mock for
+    configured success.
+  - no-config fallback: assert default Alpaca status/account/positions/orders degrade to 200 JSON payload, not 500.
+  - mock/disconnected tests: with broker=mock, assert /status, /account, /positions, /orders all return JSON-safe expected keys.
+  - connector failure tests: monkeypatch router resolver to raise BrokerError and assert graceful payload.
+  - route mount tests: assert /api/broker/status, /api/broker/account, /api/broker/positions, /api/broker/orders route paths exist on
+    client.app.routes.
+  - no order-placement test: assert no POST route under /api/broker/orders and no /api/broker/order placement path exists.
+
+  IMPLEMENTATION_INPUTS:
+
+  - allowed files:
+      - apps/trading/backend/app/routers/broker_router.py
+      - apps/trading/backend/app/main.py
+      - apps/trading/backend/tests/test_broker_router.py
+  - exact helper/resolution logic to implement:
+      - local _broker_name(value) -> str defaulting to "alpaca" like cli.py:143-144
+      - local _get_broker(name) using app.brokers.get_broker, matching cli.py:131-134
+      - local handled exceptions: BrokerError, EnvironmentError, ValueError, matching cli.py:137-140
+      - serializers for dataclass/enums/dicts to JSON-safe values
+  - exact endpoint list:
+      - GET /api/broker/status
+      - GET /api/broker/account
+      - GET /api/broker/positions
+      - GET /api/broker/orders
+      - GET /api/broker/orders/{order_id}
+      - optional GET /api/broker/sync as dry-run preview only
+  - exact test fixture pattern:
+      - use existing client fixture from apps/trading/backend/tests/conftest.py:22-46
+  - baseline result:
+      - python -m pytest apps/trading/backend/tests/ -q --timeout=120
+      - 641 passed, 1624 warnings
+
+  STOP CONDITIONS:
+
+  - Broker protocol identified: OK.
+  - CLI connector resolution understood: OK.
+  - main.py/create_app pattern clear: OK.
+  - existing broker router absent: OK.
+  - baseline passed: OK.
+
+
+• gpt-5.3
+
+  READY: YES
+
+  IMPLEMENTATION SUMMARY:
+
+  - router: Added apps/trading/backend/app/routers/broker_router.py with read-only broker endpoints.
+  - connector resolution: Mirrored CLI semantics: default broker is alpaca, explicit broker=mock uses MockBroker, unsupported brokers
+    degrade to JSON.
+  - graceful degradation: Missing Alpaca env/config and connector method failures return 200 JSON with connected: false, not 500.
+  - mount: Mounted at /api/broker in Trading create_app.
+  - tests: Added mounted FastAPI route tests with no real broker credentials or network calls.
+
+  FILES CHANGED:
+
+  - apps/trading/backend/app/routers/broker_router.py
+  - apps/trading/backend/app/main.py
+  - apps/trading/backend/tests/test_broker_router.py
+
+  ENDPOINTS ADDED:
+  | Method | Path | Behavior | Disconnected Behavior |
+  |---|---|---|---|
+  | GET | /api/broker/status | Reports broker connector status | connected:false, status:"disconnected" |
+  | GET | /api/broker/account | Returns account data | account:null, safe error |
+  | GET | /api/broker/positions | Returns positions list | positions:[], safe error |
+  | GET | /api/broker/orders | Returns recent orders | orders:[], safe error |
+  | GET | /api/broker/orders/{order_id} | Read-only order lookup | order:null, safe error |
+  | POST | /api/broker/sync | No-op unsupported response | status:"unsupported" |
+
+  TESTS ADDED:
+
+  - no-env status/account/positions/orders/sync return 200 JSON
+  - unsupported broker instantiation is handled
+  - account/positions/orders method failures return JSON, not 500
+  - mock connector status and happy-path shapes
+  - router mounted under /api/broker
+  - order placement endpoints are absent
+
+  VALIDATION RESULTS:
+
+  - python -m pytest apps/trading/backend/tests/test_broker_router.py -v --timeout=120
+      - 13 passed, 54 warnings
+  - python -m pytest apps/trading/backend/tests/ -q --timeout=120
+      - 654 passed, 1676 warnings
+  - endpoint smoke:
+      - 200 /api/broker/account
+      - 200 /api/broker/positions
+      - 200 /api/broker/orders
+      - 200 /api/broker/status
+      - 200 POST /api/broker/sync
+
+  SCOPE AUDIT:
+
+  - broker connector files changed? NO
+  - cli.py changed? NO
+  - SDK core changed? NO
+  - app files changed only as allowed? YES
+  - order placement endpoint added? NO
+
+  RESIDUAL RISKS:
+
+  - /api/broker/sync is intentionally unsupported because the broker protocol has no safe sync method; it returns a documented no-op
+    JSON response.
+
+
+
+• gpt-5.5
+
+  REVIEW_VERDICT:
+
+  - PASS_WITH_P3
+
+  P1_BUGS:
+
+  - finding: None.
+    evidence: App imports the router at apps/trading/backend/app/main.py:25, mounts it in create_app at apps/trading/backend/app/
+    main.py:282, and the implementation does not instantiate Alpaca at module import in apps/trading/backend/app/routers/
+    broker_router.py:12-75.
+    why P1: No startup/import failure, live broker import-time call, or HTTP order placement endpoint found.
+
+  P2_BUGS:
+
+  - finding: None.
+    evidence: No-env and connector/method failure cases are converted to JSON through _resolve_broker and endpoint catches at
+    broker_router.py:68-72, 96-122, 132-145; tests exercise mounted HTTP routes at test_broker_router.py:27-86, 89-145.
+    why P2: No material mismatch found against the requested behavior.
+
+  P3_ISSUES:
+
+  - finding: Unused helper _safe_float.
+    evidence: _safe_float is defined at broker_router.py:18-23 and is not used elsewhere in the reviewed file.
+    why P3: Minor dead code only; it does not affect behavior.
+  - finding: Exact full diff cannot be proven without git.
+    evidence: Review rules forbid git; reviewed changed files and reference files directly.
+    why P3: Scope audit is necessarily UNKNOWN beyond file-content inspection.
+
+  ROUTER_LINE_BY_LINE_REVIEW:
+
+  - file: apps/trading/backend/app/routers/broker_router.py
+  - lines reviewed: 1-186
+  - connector resolution: Mirrors CLI default to Alpaca at broker_router.py:42-44; resolves via get_broker and catches BrokerError,
+    EnvironmentError, ValueError at 68-72.
+  - endpoints: GET /status 78-94, /account 96-111, /positions 113-130, /orders 132-153, /orders/{order_id} 155-170, POST /sync 172-
+    181.
+  - graceful degradation: Missing/failed connector returns disconnected JSON at 82-88, 100-105, 117-122, 140-145, 159-164; sync is
+    explicit unsupported JSON at 175-181.
+  - security/no order placement: Router never calls place_order or cancel_order; protocol has those write methods at app/brokers/
+    protocol.py:64-75, but router only calls get_account, get_positions, get_orders, get_order.
+  - concerns: Minor unused _safe_float.
+
+  MAIN_MOUNT_REVIEW:
+
+  - file: apps/trading/backend/app/main.py
+  - lines reviewed: 20-45, 224-310
+  - mount prefix: import at main.py:25; mounted once with prefix="/api/broker" and tags=["broker"] at main.py:282.
+  - duplicate/circular import risk: Low. broker_router.py imports only FastAPI and app.brokers at broker_router.py:10-12; it does not
+    import main.py or cli.py.
+  - concerns: None.
+
+  TEST_LINE_BY_LINE_REVIEW:
+
+  - file: apps/trading/backend/tests/test_broker_router.py
+  - lines reviewed: 1-194
+  - no-env tests: Env clearing helper at 8-11; no-env status/account/positions/orders/sync tested at 27-86.
+  - failure-path tests: Unsupported broker at 89-97; account, positions, orders method failures via monkeypatch at 100-145.
+  - mounted HTTP tests: Tests use client.get/post against /api/broker/... paths throughout; shared fixture creates app from create_a
+    pp at apps/trading/backend/tests/conftest.py:22-46.
+  - no-order endpoint test: test_broker_order_placement_endpoints_are_absent checks POST /api/broker/order and /api/broker/orders/
+    place at test_broker_router.py:170-172.
+  - concerns: Could also assert POST /api/broker/orders is 405, but current test covers the likely placement paths.
+
+  CONNECTOR_PROTOCOL_AUDIT:
+  | Connector/File | Methods Found | Router Uses Correctly? | Graceful Missing Handling | Evidence |
+  |---|---|---|---|---|
+  | BrokerProtocol / protocol.py | place_order, get_order, get_orders, get_positions, get_account, cancel_order | YES, read methods
+  only | YES | protocol.py:64-75; router calls only read methods at broker_router.py:103, 120, 143, 162 |
+  | MockBroker / mock.py | Full protocol implementation | YES | YES | mock.py:47-70; tests use broker=mock at
+  test_broker_router.py:148-194 |
+  | AlpacaBroker / alpaca.py | Full protocol implementation through HTTP | YES, no import-time network | YES for configured/missing
+  credential path | env checked in constructor at alpaca.py:25-29; router instantiates only per request via _resolve_broker at
+  broker_router.py:68-72 |
+  | get_broker / __init__.py | Resolves mock, alpaca | YES | YES | __init__.py:10-16; router default factory at broker_router.py:75 |
+
+  CLI_RESOLUTION_AUDIT:
+
+  - CLI env/config semantics: CLI defaults broker to Alpaca via _broker_name at cli.py:143-144; broker commands default --broker
+    alpaca at cli.py:1021, 1027, 1031, 1035, 1041; handled errors are BrokerError, EnvironmentError, ValueError at cli.py:137-140.
+  - router semantics: Same default to Alpaca at broker_router.py:42-44; same resolver family via app.brokers.get_broker at
+    broker_router.py:12, 68-75; same handled exception classes at broker_router.py:71.
+  - match/mismatch: PASS. Router intentionally avoids importing CLI, which would carry CLI path/package bootstrapping and command
+    code.
+  - side-effect risk: Low. Router does not import cli.py; Alpaca connector is constructed only inside request handlers.
+  - evidence: CLI _get_broker at cli.py:131-134; router _resolve_broker at broker_router.py:68-72.
+
+  ENDPOINT_AUDIT:
+  | Method | Path | Expected Behavior | No-Config Behavior | Test Evidence | Verdict |
+  |---|---|---|---|---|---|
+  | GET | /api/broker/status | Reports connector status | 200 disconnected | test_broker_router.py:27-37 | PASS |
+  | GET | /api/broker/account | Returns account | 200 account:null | test_broker_router.py:40-50 | PASS |
+  | GET | /api/broker/positions | Returns positions list | 200 positions:[] | test_broker_router.py:53-62 | PASS |
+  | GET | /api/broker/orders | Returns orders list | 200 orders:[] | test_broker_router.py:65-74 | PASS |
+  | GET | /api/broker/orders/{order_id} | Read-only lookup | 200 disconnected/error JSON | Router evidence broker_router.py:155-170;
+  not directly tested | PASS_WITH_P3 |
+  | POST | /api/broker/sync | Unsupported/no-op | 200 unsupported | test_broker_router.py:77-86 | PASS |
+
+  SECURITY_AUDIT:
+
+  - order placement exposed? NO
+  - secrets redacted? YES
+  - raw tracebacks avoided? YES
+  - live network at import/startup? NO
+  - concerns: Error strings are truncated at broker_router.py:47-48; no raw tracebacks are returned. Alpaca missing-credential error
+    names env vars but not values at alpaca.py:25-29.
+
+  SCOPE_AUDIT:
+
+  - only allowed files changed? UNKNOWN
+  - broker connector files changed? UNKNOWN
+  - cli.py changed? UNKNOWN
+  - SDK core changed? UNKNOWN
+  - frontend/unrelated files changed? UNKNOWN
+  - evidence: Git is forbidden, so exact diff proof is unavailable. Reviewed implementation touches are consistent with allowed
+    files: broker_router.py, main.py, test_broker_router.py.
+
+  VALIDATION_AUDIT:
+
+  - targeted broker tests: Reported 13 passed, 54 warnings.
+  - Trading regression: Reported 654 passed, 1676 warnings.
+  - endpoint smoke: Reported 200 for account, positions, orders, status, sync.
+  - warnings/skips: Warnings are existing FastAPI on_event, pytest-freezegun deprecation, and numpy warning in unrelated correlation
+    test; no material broker failure.
+  - gaps: No direct test for GET /api/broker/orders/{order_id} no-config path or POST /api/broker/orders 405, but core requirements
+    are covered.
+
+  ARCHITECTURE_AUDIT:
+
+  - Abstraction consistency: PASS. Router wraps BrokerProtocol read methods and uses get_broker.
+  - State/reset integrity: PASS. No global connector instance; each request resolves a connector.
+  - Graph/store/data integrity: PASS. No GraphStore or local journal writes; sync is unsupported no-op.
+  - Formula/gate consistency: NOT APPLICABLE.
+  - Framework drift: PASS. Main mount follows existing include_router style.
+  - Fixture/live-data: PASS. Tests use no-env and mock paths; no live broker dependency.
+  - Duplication: PASS_WITH_P3. Small local CLI-resolution mirror is acceptable; _safe_float is unused.
+  - Preset/factory alignment: NOT APPLICABLE.
+  - Test architecture: PASS. Tests exercise mounted FastAPI endpoints and failure modes.
+  - Architecture verdict: PASS_WITH_P3
+
+  FIXER_NEEDED:
+
+  - NO
+  - If YES, smallest targeted fixer scope: N/A
+  - Exact files to allow: N/A
+  - Exact tests to rerun: N/A
+
+ gpt-5.3
+
+  READY: YES
+
+  FIXES APPLIED:
+
+  - fallback mapping changes: added a corrected fallback registry mapping:
+      - market_regime -> MarketRegimeFactor
+      - position_sizing -> PositionSizeFactor
+      - timing_quality -> TechnicalSignalFactor
+      - emotional_indicator -> ResearchDepthFactor
+  - semantic basis: matches Prompt 0 factor compute semantics. The primary TradingPreset import path is unchanged.
+
+  FILES CHANGED:
+
+  - apps/trading/backend/app/factors/registry.py
+  - apps/trading/backend/tests/test_signal_confidence.py
+
+  TESTS ADDED_OR_UPDATED:
+
+  - test_fallback_registry_uses_semantic_factor_mapping
+  - how it exercises fallback: temporarily blocks copilot_sdk.scoring.presets.trading import, reloads app.factors.registry, and
+    asserts all seven fallback factor-name to class mappings.
+  - why it would fail old scrambled mapping: old fallback would map market_regime to ResearchDepthFactor, position_sizing to
+    TechnicalSignalFactor, timing_quality to PositionSizeFactor, and emotional_indicator to MarketRegimeFactor.
+
+  VALIDATION RESULTS:
+
+  - python -m pytest apps/trading/backend/tests/test_signal_confidence.py -v --timeout=120
+      - 20 passed, 42 warnings
+  - python -m pytest apps/trading/backend/tests/ -q --timeout=120
+      - 655 passed, 1678 warnings
+  - fallback smoke:
+      - printed corrected mapping for all seven factors.
+
+  SCOPE AUDIT:
+
+  - registry.py changed? YES
+  - test_signal_confidence.py changed? YES
+  - factor class files changed? NO
+  - primary TradingPreset path changed? NO
+  - forbidden files touched? NO, based on my edit set
+
+  RESIDUAL RISKS:
+
+  - compute_factors keeps the preset-backed primary mapping behavior while TradingPreset imports successfully, to avoid changing
+    normal runtime behavior outside the fallback scope.
+  
+• gpt-5.5
+
+  REVIEW_VERDICT:
+
+  - PASS_WITH_P3
+
+  P1_BUGS:
+
+  - finding: None.
+    evidence: registry.py imports successfully by structure, primary import remains at apps/trading/backend/app/factors/
+    registry.py:16-19, and fallback map exists at registry.py:44-52.
+    why P1: Not applicable.
+
+  P2_BUGS:
+
+  - finding: None.
+    evidence: The fallback map matches all seven expected semantic mappings at registry.py:44-52, and the test forces the preset
+    import failure at apps/trading/backend/tests/test_signal_confidence.py:114-121.
+    why P2: Not applicable.
+
+  P3_ISSUES:
+
+  - finding: get_factor_registry() always returns the fallback table, even when normal runtime is using _PRESET_FACTOR_COMPUTERS.
+    evidence: active runtime table is selected at registry.py:54-56, while get_factor_registry() returns _FALLBACK_FACTOR_COMPUTERS
+    unconditionally at registry.py:59-60.
+    why P3: Acceptable for this fallback-focused task and requested smoke path, but the function name is slightly ambiguous if reused
+    later as “active registry.”
+
+  REGISTRY_LINE_BY_LINE_REVIEW:
+
+  - lines reviewed: apps/trading/backend/app/factors/registry.py:1-71
+  - primary TradingPreset path: unchanged at registry.py:16-19.
+  - fallback path: still catches import failure and sets fallback factor names at registry.py:21-31.
+  - mapping changes: corrected fallback map is explicit at registry.py:44-52.
+  - concerns: normal primary path intentionally preserves prior preset-backed mapping at registry.py:34-42; this is consistent with
+    the prompt’s “fallback mapping is the target, not normal primary preset path.”
+
+  SEMANTIC_MAPPING_AUDIT:
+  | Factor Name | Mapped Class | Class Semantics | Verdict | Evidence |
+  |---|---|---|---|---|
+  | signal_alignment | ConvictionFactor | trade plan, confirmed tagged signals, conviction, size-vs-average | PASS | registry.py:45,
+  conviction.py:14-37 |
+  | market_regime | MarketRegimeFactor | regime from current regime or VIX/trend, then regime accuracy | PASS | registry.py:46,
+  market_regime.py:24-42 |
+  | position_sizing | PositionSizeFactor | position percent, concentration, correlated exposure, Kelly ratio | PASS | registry.py:47,
+  position_size.py:14-33 |
+  | timing_quality | TechnicalSignalFactor | entry direction, RSI, MACD, price-vs-SMA technical timing | PASS | registry.py:48,
+  technical_signal.py:14-39 |
+  | risk_reward_actual | TimeHorizonFactor | hold-plan adherence, exit reason, session alignment | PASS | registry.py:49,
+  time_horizon.py:23-49 |
+  | emotional_indicator | ResearchDepthFactor | sources, analysis minutes, thesis, checklist discipline | PASS | registry.py:50,
+  research_depth.py:14-35 |
+  | signal_confidence | SignalConfidenceFactor | data coverage, category accuracy, sample size, novelty distance | PASS |
+  registry.py:51, signal_confidence.py:14-33 |
+
+  FALLBACK_TEST_AUDIT:
+
+  - changed test file: apps/trading/backend/tests/test_signal_confidence.py
+  - test name(s): test_fallback_registry_uses_semantic_factor_mapping
+  - fallback path exercised? YES: removes app.factors.registry from sys.modules, blocks copilot_sdk.scoring.presets.trading, and re-
+    imports registry at test_signal_confidence.py:111-121.
+  - would fail old scrambled mapping? YES: expected all seven semantic class names at test_signal_confidence.py:102-110, which
+    contradicts the old scrambled mappings.
+  - all seven mappings asserted? YES: test_signal_confidence.py:102-127.
+  - concerns: test could additionally assert fallback_registry.TRADING_FACTOR_COMPUTERS directly; current assertion uses
+    get_factor_registry(), which is acceptable but indirect.
+
+  SCOPE_AUDIT:
+
+  - registry.py changed? YES, based on Prompt 1 report and reviewed contents.
+  - test_signal_confidence.py changed? YES, based on Prompt 1 report and reviewed contents.
+  - factor class files changed? UNKNOWN exact diff due no git; reviewed class files show no scope-relevant changes and still contain
+    existing stale factor_name metadata such as market_regime.py:21 and position_size.py:11.
+  - primary TradingPreset path changed? NO: still from copilot_sdk.scoring.presets.trading import TradingPreset at registry.py:17.
+  - forbidden files touched? UNKNOWN exact diff due no git; no evidence from reviewed files.
+
+  VALIDATION_AUDIT:
+
+  - targeted test: Prompt 1 reported python -m pytest apps/trading/backend/tests/test_signal_confidence.py -v --timeout=120 passed,
+    20 passed, 42 warnings.
+  - Trading regression: Prompt 1 reported python -m pytest apps/trading/backend/tests/ -q --timeout=120 passed, 655 passed, 1678
+    warnings.
+  - fallback smoke: Prompt 1 reported all seven corrected mappings printed.
+  - warnings/skips: warnings are existing FastAPI/freezegun/numpy deprecation/runtime noise, not specific to this fallback change.
+  - gaps: no material validation gap.
+
+  ARCHITECTURE_AUDIT:
+
+  - Abstraction consistency: PASS. Fallback map is separated from preset-backed map without changing the primary TradingPreset
+    import.
+  - State/reset integrity: PASS. Test restores sys.modules["app.factors.registry"] in finally at test_signal_confidence.py:128-129.
+  - Graph/store/data integrity: Not applicable.
+  - Formula/gate consistency: Not applicable.
+  - Framework drift: PASS. No router/app/SDK path involved.
+  - Fixture/live-data: PASS. Test is local import simulation only.
+  - Duplication: PASS_WITH_P3. Two maps now exist; acceptable because fallback and primary behavior are intentionally distinct, but
+    it should not spread further.
+  - Preset/factory alignment: PASS. Primary preset path remains intact.
+  - Test architecture: PASS_WITH_P3. It exercises fallback import behavior and all mappings, with the minor indirectness noted above.
+  - Architecture verdict: PASS_WITH_P3
+
+  FIXER_NEEDED:
+
+  - NO
+  - If YES, smallest targeted fixer scope: Not applicable.
+  - exact files to allow: Not applicable.
+  - exact tests to rerun: Not applicable.  
+  
+  
+  
+
+• gpt-5.3
+
+  READY: YES
+
+  PYDANTIC_VERSION:
+
+  - version: 2.12.5
+  - v1/v2 compatibility notes: use normal BaseModel field syntax and built-in dict[str, Any], list[...], | None; avoid v2-only config
+    unless needed. For union route models, Python 3.11 A | B is compatible with this environment.
+
+  SHARED_ROUTER_INVENTORY:
+  | Router File | Endpoint | Method | Function | Return Shape | Conditional Returns | Model Decision |
+  |---|---|---|---|---|---|---|
+  | scoring_router.py | /score | POST | score | score result dict + engine | 400 on assertion/value errors; 404/500 scorer init |
+  MODEL_SAFE_WITH_OPTIONALS/extra allowance. Evidence: scoring_router.py:61-72, scorer.py:64-72 |
+  | scoring_router.py | /learn | POST | learn | learn result dict + reward, previous_reward, reward_multiplier, engine | 404 unknown
+  decision; 400 assertion/value errors | MODEL_SAFE_WITH_OPTIONALS. Evidence: scoring_router.py:74-106, scorer.py:75-84 |
+  | scoring_router.py | /fingerprint | GET | fingerprint | fingerprint result dict + engine | scorer init errors only | MODEL_SAFE.
+  Evidence: scoring_router.py:108-113, fingerprint.py:10-23 |
+  | scoring_router.py | /trajectory | GET | trajectory | trajectory result dict + engine | scorer init errors only | MODEL_SAFE.
+  Evidence: scoring_router.py:115-120, trajectory.py:9-23 |
+  | scoring_router.py | /health | GET | health | phase, alpha, engine | scorer init errors only | MODEL_SAFE. Evidence:
+  scoring_router.py:122-129 |
+  | scoring_router.py | /history | GET | history | engine, decisions: list | store method fallback | MODEL_SAFE. Evidence:
+  scoring_router.py:131-142 |
+  | conservation_router.py | /conservation/status | GET | status | engine, domain, counts, check payload | state absent/default
+  counts | MODEL_SAFE. Evidence: conservation_router.py:45-60, 165-172 |
+  | conservation_router.py | /conservation/what-if | POST | what_if | engine, domain, inputs, check payload | 400 on calibration
+  ValueError; 422 schema | MODEL_SAFE. Evidence: conservation_router.py:62-89 |
+  | discovery_router.py | /api/discovery/sweep | POST | sweep | new_alerts, alerts | none in router | MODEL_SAFE. Evidence:
+  discovery_router.py:16-22, alerts.py:11-24 |
+  | discovery_router.py | /api/discovery/digest | GET | digest | alerts | query bounds | MODEL_SAFE. Evidence:
+  discovery_router.py:24-31 |
+  | discovery_router.py | /api/discovery/alerts | GET | alerts | total, alerts | none | MODEL_SAFE. Evidence: discovery_router.py:33-
+  39 |
+  | evolution_router.py | /api/evolution/variants | GET | variants | domain, variants/rules/counts | variant provider errors -> [] |
+  MODEL_SAFE_WITH_OPTIONALS/Any lists. Evidence: evolution_router.py:45-58, 84-90 |
+  | evolution_router.py | /api/evolution/history | GET | history | domain, events, count | query bounds | MODEL_SAFE. Evidence:
+  evolution_router.py:60-71 |
+  | evolution_router.py | /api/evolution/promoted | GET | promoted | domain, promoted | none | MODEL_SAFE. Evidence:
+  evolution_router.py:73-79 |
+  | self_computation_router.py | /api/self/centroid-history | GET | centroid_history | checkpoints, total | query filters |
+  MODEL_SAFE. Evidence: self_computation_router.py:23-42 |
+  | self_computation_router.py | /api/self/accuracy-by-category | GET | accuracy_by_category | categories, threshold,
+  overall_verified | empty list | MODEL_SAFE. Evidence: self_computation_router.py:44-76 |
+  | self_computation_router.py | /api/self/decisions | GET | decisions | decisions, total | verified/all source branch | MODEL_SAFE.
+  Evidence: self_computation_router.py:78-99 |
+  | self_computation_router.py | /api/self/audit-trail | GET | audit_trail | one of error, single decision/outcome, or trails/total |
+  multiple incompatible shapes | SKIP_VARIABLE_SHAPE. Evidence: self_computation_router.py:101-126 |
+  | self_computation_router.py | /api/self/decision-flow | GET | decision-flow contract dict | empty/populated safe | MODEL_SAFE.
+  Evidence: self_computation_router.py:128-163 |
+  | transfer_router.py | /api/transfer/status | GET | inactive {warm_started:false} or active warm-start fields | two shapes |
+  MODEL_SAFE_WITH_UNION. Evidence: transfer_router.py:16-19, 62-75 |
+
+  MODEL_PLAN:
+  For each model:
+
+  - model name: EngineInfo
+      - fields: scoring: str | None, gae: str | None, component: str | None
+      - required fields: none if shared across engine dicts
+      - optional fields: all
+      - dict/list usage: no
+      - endpoints using it: scoring and conservation responses
+  - model name: ScoreResponse
+      - fields: decision_id: str, action: str, action_index: int, confidence: float, probabilities: list[float], category: str,
+        factors: dict[str, float], engine: dict[str, str]
+      - required fields: all above
+      - optional fields: allow extra keys to avoid breaking custom scorer factories
+      - endpoints using it: POST /score
+  - model name: LearnResponse
+      - fields: decision_id, iks_before, iks_after, centroid_delta, decisions_total, outcome, reward, previous_reward,
+        reward_multiplier, engine
+      - required fields: core fields plus router-added reward fields
+      - optional fields: previous_reward, possible scorer extras
+      - endpoints using it: POST /learn
+  - model name: FingerprintFactorResponse, FingerprintResponse
+      - fields: name, sigma, weight, interpretation; response has factors, overall_win_rate, per_category_precision,
+        decisions_analyzed, engine
+      - endpoints using it: GET /fingerprint
+  - model name: TrajectoryPointResponse, TrajectoryResponse
+      - fields: decisions, iks, win_rate, timestamp; response has points, current_iks, current_win_rate, decisions_total,
+        days_active, engine
+      - endpoints using it: GET /trajectory
+  - model name: ScoringHealthResponse, ScoringHistoryResponse
+      - fields: phase, alpha, engine; engine, decisions: list[dict[str, Any]]
+      - endpoints using it: GET /health, GET /history
+  - model name: ConservationStatusResponse, ConservationWhatIfResponse, ConservationInputs
+      - fields: engine/domain/counts/check payload; inputs alpha/q/V/theta_min
+      - endpoints using it: conservation status/what-if
+  - model name: DiscoveryAlertResponse, DiscoverySweepResponse, DiscoveryDigestResponse, DiscoveryAlertsResponse
+      - fields from DiscoveryAlert: alert_id, pattern_type, source_copilots, title, description, confidence, evidence, status,
+        created_at, metadata
+      - endpoints using it: discovery router
+  - model name: EvolutionVariantsResponse, EvolutionHistoryResponse, EvolutionPromotedResponse
+      - fields: domain, variants/events/promoted lists, rule lists/counts
+      - dict/list usage: list[dict[str, Any]] or list[Any] where evolver values are not constrained
+      - endpoints using it: evolution router
+  - model name: self-computation response models
+      - fields: CentroidHistoryResponse, AccuracyByCategoryResponse, SelfDecisionsResponse, DecisionFlowResponse with nested
+        decision/checkpoint/flow stats models
+      - dict/list usage: checkpoint/decision payloads should use dict[str, Any] for raw store data
+      - endpoints using it: safe self-computation endpoints except audit-trail
+  - model name: TransferInactiveResponse, TransferActiveResponse
+      - fields: inactive only warm_started: Literal[False]; active warm_started: Literal[True], source_copilot, patterns_transferred,
+        transferred_at
+      - endpoints using it: GET /api/transfer/status as union
+
+  SKIPPED_ENDPOINTS:
+
+  - endpoint: GET /api/self/audit-trail
+  - reason: it returns three incompatible top-level shapes: {"error": ...} for missing decision, {"decision", "outcome",
+    "chain_complete"} for a specific decision, or {"trails", "total"} for list mode.
+  - risk if modeled: a single optional-field model would either change response shape by emitting nulls or obscure the intentional
+    union; a precise union can be deferred.
+
+  TEST_PLAN:
+
+  - test file to create/update: create tests/backend/test_response_models.py
+  - endpoints to call:
+      - scoring: /score, /learn, /fingerprint, /trajectory, /health, /history
+      - conservation: /conservation/status, /conservation/what-if
+      - discovery: /api/discovery/sweep, /api/discovery/digest, /api/discovery/alerts
+      - evolution: /api/evolution/variants, /api/evolution/history, /api/evolution/promoted
+      - self: /api/self/centroid-history, /api/self/accuracy-by-category, /api/self/decisions, /api/self/decision-flow
+      - transfer: /api/transfer/status active and inactive if easy
+  - models to parse responses with: import response models from copilot_sdk.backend.models and call
+    Model.model_validate(response.json()); for transfer union use TypeAdapter.
+  - OpenAPI assertions:
+      - instantiate FastAPI apps with routers and assert /openapi.json contains component schemas such as ScoreResponse,
+        ConservationStatusResponse, DiscoveryAlertResponse, EvolutionVariantsResponse, DecisionFlowResponse.
+  - app regressions to run:
+      - python -m pytest tests/backend/test_response_models.py -v --timeout=120
+      - python -m pytest tests/backend/test_scoring_router.py tests/backend/test_conservation_router.py tests/backend/
+        test_evolution_router.py tests/backend/test_evolution_router_extended.py tests/backend/test_self_computation_router.py tests/
+        backend/test_self_computation.py tests/discovery/test_router.py -q --timeout=120
+      - python -m pytest tests/ -q --timeout=120 will still have the existing unrelated drift failure unless resolved.
+
+  IMPLEMENTATION_INPUTS:
+
+  - allowed files:
+      - copilot_sdk/backend/models.py
+      - copilot_sdk/backend/scoring_router.py
+      - copilot_sdk/backend/conservation_router.py
+      - copilot_sdk/backend/discovery_router.py
+      - copilot_sdk/backend/evolution_router.py
+      - copilot_sdk/backend/self_computation_router.py
+      - copilot_sdk/backend/transfer_router.py
+      - tests/backend/test_response_models.py
+  - exact imports to add:
+      - routers import their matching response models from copilot_sdk.backend.models
+      - tests import the same models plus TypeAdapter for union validation if needed
+  - exact response_model additions:
+      - add response_model=... to all MODEL_SAFE endpoints listed above
+      - skip self_computation_router.audit_trail
+  - exact tests:
+      - parse actual endpoint JSON into models
+      - assert OpenAPI component schemas exist
+      - assert skipped audit-trail remains unmodeled or at least is not part of the model test scope
+  - baseline result:
+      - python -m pytest tests/ -q --timeout=120
+      - result: 1 failed, 749 passed, 1500 warnings
+      - failure: tests/test_framework_drift.py::test_s2p_no_unknown_drift due iks_base.py byte drift between S2P and SOC; this is
+        unrelated to SDK backend router response models.
+
+  STOP CONDITIONS:
+
+  - Return shapes were determined from source.
+  - Pydantic version is compatible.
+  - Safe models do not require endpoint behavior changes if extra/dynamic fields use Any or optional/union models.
+  - Baseline failed, but the failure is unrelated to this response-model scope; implementation can proceed with the residual known
+    failure reported.
+
+• gpt-5.3
+
+  READY: YES
+
+  IMPLEMENTATION SUMMARY:
+
+  - models added: shared response models in copilot_sdk/backend/models.py for scoring, conservation, discovery, evolution, self-
+    computation, and transfer endpoints.
+  - endpoints modeled: all Prompt 0 MODEL_SAFE / optional / union endpoints.
+  - endpoints skipped: GET /api/self/audit-trail, because it has incompatible success/error/list shapes.
+  - OpenAPI impact: modeled routes now emit named component schemas and route response $refs.
+
+  FILES CHANGED:
+
+  - copilot_sdk/backend/models.py
+  - copilot_sdk/backend/scoring_router.py
+  - copilot_sdk/backend/conservation_router.py
+  - copilot_sdk/backend/discovery_router.py
+  - copilot_sdk/backend/evolution_router.py
+  - copilot_sdk/backend/self_computation_router.py
+  - copilot_sdk/backend/transfer_router.py
+  - tests/test_response_models.py
+
+  TESTS ADDED_OR_UPDATED:
+
+  - test_scoring_responses_validate_against_models: validates actual scoring endpoint responses with Pydantic models.
+  - test_conservation_responses_validate_against_models: validates conservation status and what-if responses.
+  - test_discovery_evolution_self_and_transfer_responses_validate_against_models: validates the other shared SDK router responses.
+  - test_openapi_references_response_models: checks OpenAPI component schemas and route response $refs, and confirms audit-trail is
+    not model-referenced.
+
+  VALIDATION RESULTS:
+
+  - python -m pytest tests/test_response_models.py -v --timeout=120
+      - 4 passed, 8 warnings
+  - python -m pytest tests/ -q --timeout=120
+      - 1 failed, 753 passed, 1508 warnings
+      - failure is the pre-existing unrelated tests/test_framework_drift.py::test_s2p_no_unknown_drift for iks_base.py S2P/SOC byte
+        drift.
+  - python -m pytest apps/trading/backend/tests/ -q --timeout=120
+      - 655 passed, 1678 warnings
+  - python -m pytest apps/purchasing/backend/tests/ -q --timeout=120
+      - 141 passed, 368 warnings
+  - python -m pytest apps/dataops/backend/tests/ -q --timeout=120
+      - 167 passed, 570 warnings
+  - OpenAPI smoke command:
+      - passed; Trading app schema contained 34 models, including the new shared response models.
+
+  SCOPE AUDIT:
+
+  - shared SDK routers only? YES
+  - app-specific code changed? NO
+  - S2P-specific code changed? NO
+  - endpoint return shapes changed? NO return dicts were changed
+  - unsafe endpoints skipped? YES, self_computation_router.audit_trail
+
+  RESIDUAL RISKS:
+
+  - SDK root regression remains blocked by the unrelated pre-existing S2P/SOC framework drift check.
+  - Some dynamic payload fields intentionally use dict[str, Any] / list[Any] to avoid over-modeling store- or provider-specific data.
+
+• gpt-5.5
+
+  REVIEW_VERDICT:
+
+  - PASS_WITH_P3
+
+  P1_BUGS:
+
+  - finding: None.
+    evidence: Modeled endpoint tests passed per Prompt 1, and reviewed route return paths match required model fields for normal
+    success paths.
+    why P1: Not applicable.
+
+  P2_BUGS:
+
+  - finding: None.
+    evidence: Variable-shape /api/self/audit-trail remains unmodeled at copilot_sdk/backend/self_computation_router.py:107-132;
+    modeled endpoints have stable return dicts.
+    why P2: Not applicable.
+
+  P3_ISSUES:
+
+  - finding: models.py uses Pydantic v2-only ConfigDict.
+    evidence: copilot_sdk/backend/models.py:7-11; detected installed Pydantic is 2.12.5, while pyproject.toml:16 only declares
+    fastapi>=0.100.0 for dev extras and does not pin Pydantic.
+    why P3: Compatible with the current environment, but a small portability risk for users running FastAPI with Pydantic v1.
+  - finding: OpenAPI route $ref tests cover representative modeled routes, not every modeled route.
+    evidence: tests/test_response_models.py:303-318 checks ScoreResponse, LearnResponse, ConservationStatusResponse,
+    EvolutionVariantsResponse, and DecisionFlowResponse, but not discovery, transfer, fingerprint, trajectory, health, history route
+    refs.
+    why P3: Endpoint validation tests cover those responses, so this is a coverage-strength issue rather than a functional failure.
+
+  MODELS_LINE_BY_LINE_REVIEW:
+
+  - file: copilot_sdk/backend/models.py
+  - lines reviewed: 1-244
+  - model summary: scoring models at 14-77, conservation at 80-109, discovery at 112-136, evolution at 139-156, self-computation at
+    159-233, transfer at 236-244.
+  - required/optional correctness: PASS. Required fields match stable router success returns; nullable fields such as
+    previous_reward, conservation floats, decision-flow nullable values, and transfer timestamp are optional/null-typed at 33, 87-89,
+    98, 105-107, 190-221, 244.
+  - dynamic fields: PASS. Dynamic/store payloads use dict[str, Any], list[Any], or flexible models at 10-11, 75-77, 139-156, 159-180,
+    196-207.
+  - Pydantic compatibility: PASS_WITH_P3. Current Pydantic is v2.12.5, and ConfigDict/model_validate are compatible; v1 portability
+    is the residual issue.
+  - concerns: No app-specific/S2P-specific model leakage found.
+
+  ROUTER_RESPONSE_MODEL_AUDIT:
+  | Router | Endpoint | Model | Return Paths Checked | Match Verdict | Evidence |
+  |---|---|---|---|---|---|
+  | scoring | POST /score | ScoreResponse | success dict + HTTP error exceptions | PASS | decorator scoring_router.py:69, return 78-
+  80, model models.py:14-22 |
+  | scoring | POST /learn | LearnResponse | success dict + 400/404 exceptions | PASS | decorator scoring_router.py:82, return 109-
+  114, model models.py:25-35 |
+  | scoring | GET /fingerprint | FingerprintResponse | success only | PASS | scoring_router.py:116-121, model models.py:38-50, source
+  dataclass fingerprint.py:10-23 |
+  | scoring | GET /trajectory | TrajectoryResponse | success only | PASS | scoring_router.py:123-128, model models.py:53-66, source
+  dataclass trajectory.py:9-23 |
+  | scoring | GET /health | ScoringHealthResponse | success only | PASS | scoring_router.py:130-137, model models.py:69-72 |
+  | scoring | GET /history | ScoringHistoryResponse | get_decisions, get_all_decisions, empty fallback | PASS |
+  scoring_router.py:139-150, model models.py:75-77 |
+  | conservation | GET /conservation/status | ConservationStatusResponse | state absent, dict state, store state | PASS |
+  conservation_router.py:50-65, counts 105-148, model models.py:80-91 |
+  | conservation | POST /conservation/what-if | ConservationWhatIfResponse | computed/provided theta, 400 on ValueError | PASS |
+  conservation_router.py:67-94, model models.py:94-109 |
+  | discovery | POST /api/discovery/sweep | DiscoverySweepResponse | success | PASS | discovery_router.py:22-28, alert model
+  models.py:112-127, alert dataclass alerts.py:11-24 |
+  | discovery | GET /api/discovery/digest | DiscoveryDigestResponse | success, empty possible | PASS | discovery_router.py:30-37,
+  model models.py:130-131 |
+  | discovery | GET /api/discovery/alerts | DiscoveryAlertsResponse | success | PASS | discovery_router.py:39-45, model
+  models.py:134-136 |
+  | evolution | GET /api/evolution/variants | EvolutionVariantsResponse | provider absent/provider error/provider data | PASS |
+  evolution_router.py:50-63, provider fallback 89-95, model models.py:139-145 |
+  | evolution | GET /api/evolution/history | EvolutionHistoryResponse | history list | PASS | evolution_router.py:65-76, ledger
+  returns dicts at ledger.py:48-63, model models.py:148-151 |
+  | evolution | GET /api/evolution/promoted | EvolutionPromotedResponse | promoted list | PASS | evolution_router.py:78-84, model
+  models.py:154-156 |
+  | self | GET /api/self/centroid-history | CentroidHistoryResponse | filtered/unfiltered, empty | PASS |
+  self_computation_router.py:29-48, model models.py:159-161 |
+  | self | GET /api/self/accuracy-by-category | AccuracyByCategoryResponse | populated/empty | PASS | self_computation_router.py:50-
+  82, model models.py:164-175 |
+  | self | GET /api/self/decisions | SelfDecisionsResponse | verified/all/filter/limit | PASS | self_computation_router.py:84-105,
+  model models.py:178-180 |
+  | self | GET /api/self/decision-flow | DecisionFlowResponse | empty/populated | PASS | self_computation_router.py:134-169, model
+  models.py:183-233 |
+  | transfer | GET /api/transfer/status | TransferActiveResponse \| TransferInactiveResponse | active/inactive | PASS |
+  transfer_router.py:18-21, branches 64-77, models models.py:236-244 |
+
+  SKIPPED_ENDPOINTS_AUDIT:
+
+  - endpoint: GET /api/self/audit-trail
+  - reason skipped: incompatible success shapes: missing decision returns {"error": ...} at self_computation_router.py:113-116;
+    specific decision returns decision/outcome/chain_complete at 125-129; list mode returns trails/total at 131-132.
+  - reviewer verdict: PASS. Skipping avoids an unsafe optional-everything model.
+
+  TEST_LINE_BY_LINE_REVIEW:
+
+  - file: tests/test_response_models.py
+  - lines reviewed: 1-322
+  - endpoint validation tests: PASS. Tests call real FastAPI endpoints through TestClient at 237-253, 256-264, 267-291.
+  - model parsing tests: PASS. Tests validate actual JSON with response model classes via .model_validate() and transfer TypeAdapter
+    at 244-253, 261-264, 279-291.
+  - OpenAPI tests: PASS_WITH_P3. Specific model schemas and route $refs checked at 303-318; representative but not exhaustive.
+  - cross-app tests: PARTIAL. Prompt 1 reports Trading/Purchasing/DataOps app regressions passed, but tests/test_response_models.py
+    itself uses small mounted test apps, not full app factories.
+  - concerns: No S2P app routes or external services are used.
+
+  PYDANTIC_VERSION_AUDIT:
+
+  - installed/detected version: 2.12.5
+  - syntax compatibility: PASS for current environment. ConfigDict at models.py:7, | unions, Literal, and model_validate in tests are
+    v2-compatible.
+  - v1/v2 risks: P3 portability risk because package metadata reviewed only shows fastapi>=0.100.0 in pyproject.toml:16, not an
+    explicit Pydantic v2 requirement.
+
+  CROSS_APP_AUDIT:
+
+  - Trading: PASS. Prompt 1 reported 655 passed, 1678 warnings.
+  - Purchasing: PASS. Prompt 1 reported 141 passed, 368 warnings.
+  - DataOps: PASS. Prompt 1 reported 167 passed, 570 warnings.
+  - app regression validation: PASS. No app-specific code was needed; app OpenAPI smoke returned 34 schema models including new
+    shared models.
+  - concerns: None beyond existing warning noise.
+
+  SCOPE_AUDIT:
+
+  - only allowed SDK/shared files changed? UNKNOWN exact diff due no git; reviewed changed set is shared SDK routers/models plus one
+    test file, matching Prompt 1 report.
+  - app-specific code changed? UNKNOWN exact diff due no git; Prompt 1 reported NO and app regressions passed.
+  - S2P-specific code changed? UNKNOWN exact diff due no git; Prompt 1 reported NO.
+  - endpoint returns changed? NO in reviewed routers; decorators/imports changed, but return dicts remain the same. Evidence: return
+    bodies in scoring_router.py:78-80, 109-114, 119-150; conservation_router.py:60-94; self_computation_router.py:154-169.
+  - frontend changed? UNKNOWN exact diff due no git; no evidence of frontend changes.
+  - evidence: Prompt 1 file list plus reviewed files.
+
+  VALIDATION_AUDIT:
+
+  - targeted response model tests: PASS, 4 passed, 8 warnings.
+  - SDK root regression: FAIL, but unrelated pre-existing tests/test_framework_drift.py::test_s2p_no_unknown_drift; Prompt 1 reported
+    1 failed, 753 passed, 1508 warnings.
+  - Trading regression: PASS, 655 passed, 1678 warnings.
+  - Purchasing regression: PASS, 141 passed, 368 warnings.
+  - DataOps regression: PASS, 167 passed, 570 warnings.
+  - OpenAPI smoke: PASS; Prompt 1 reported Schema models: 34.
+  - warnings/skips: warning noise from FastAPI deprecation, pytest_freezegun, numpy constant series, and duplicate operation IDs; no
+    response-model-specific failure.
+  - gaps: SDK root remains blocked by unrelated drift.
+
+  ARCHITECTURE_AUDIT:
+
+  - Abstraction consistency: PASS. Models live in copilot_sdk/backend/models.py; routers import shared models.
+  - State/reset integrity: PASS. Response models do not mutate state; tests use local app instances and local stores.
+  - Graph/store/data integrity: PASS. No scoring/graph/RL internals changed in reviewed files.
+  - Formula/gate consistency: PASS. Conservation/scoring return semantics are preserved; models reflect existing fields.
+  - Framework drift: PASS_WITH_P3. Shared OpenAPI improved; Pydantic v2-only constructs are a minor packaging portability concern.
+  - Fixture/live-data: PASS. Tests use fake scorer/store/discovery/evolver objects, no external services.
+  - Duplication: PASS. Models are centralized; dynamic data is not over-modeled.
+  - Preset/factory alignment: PASS. Tests use router factories directly and do not require app-specific presets.
+  - Test architecture: PASS_WITH_P3. Endpoint validation catches response validation 500s; OpenAPI $ref coverage is representative
+    rather than exhaustive.
+  - Architecture verdict: PASS_WITH_P3
+
+  FIXER_NEEDED:
+
+  - NO
+  - If YES, smallest targeted fixer scope: Not applicable.
+  - Exact files to allow: Not applicable.
+  - Exact tests to rerun: Not applicable.
+  
+  
+• gpt-5.5
+
+  REVIEW_VERDICT:
+
+  - PASS_WITH_P3
+
+  P1_BUGS:
+
+  - finding: None.
+    evidence: Modeled router return paths reviewed in scoring_router.py, conservation_router.py, discovery_router.py,
+    evolution_router.py, self_computation_router.py, and transfer_router.py.
+    why P1: No normal modeled return path was found that should trigger FastAPI response validation failure.
+
+  P2_BUGS:
+
+  - finding: None.
+    evidence: Required model fields match reviewed return dicts, and variable-shape /api/self/audit-trail remains unmodeled at
+    copilot_sdk/backend/self_computation_router.py:107.
+    why P2: No unsafe response_model application or endpoint behavior change found.
+
+  P3_ISSUES:
+
+  - finding: The new model/test code is Pydantic v2-specific.
+    evidence: copilot_sdk/backend/models.py:7-11 uses ConfigDict; tests/test_response_models.py:8 uses TypeAdapter.
+    why P3: Current environment is Pydantic 2.12.5, so this is compatible now, but the repo dependency appears not tightly pinned to
+    v2.
+  - finding: OpenAPI route-reference assertions are representative, not exhaustive.
+    evidence: tests/test_response_models.py:312-316 checks selected route refs only.
+    why P3: Endpoint response validation covers the rest, but OpenAPI regression coverage could be broader.
+
+  MODELS_LINE_BY_LINE_REVIEW:
+
+  - file: copilot_sdk/backend/models.py
+  - lines reviewed: 1-244
+  - model summary: Adds shared response models for scoring, conservation, discovery, evolution, self-computation, and transfer
+    endpoints.
+  - required/optional correctness: Required fields match reviewed modeled return paths; FlexibleResponse allows extra fields for
+    scoring responses at models.py:10-11.
+  - dynamic fields: Dynamic payloads use dict[str, Any] / list[dict[str, Any]], e.g. probabilities/factors/history.
+  - Pydantic compatibility: Compatible with installed Pydantic 2.12.5.
+  - concerns: Pydantic v2 syntax is a portability risk if this repo is ever run with v1.
+
+  ROUTER_RESPONSE_MODEL_AUDIT:
+  | Router | Endpoint | Model | Return Paths Checked | Match Verdict | Evidence |
+  |---|---|---|---|---|---|
+  | scoring | POST /score | ScoreResponse | success dict | PASS | scoring_router.py:69-80, models.py:14-22 |
+  | scoring | POST /learn | LearnResponse | success dict | PASS | scoring_router.py:82-114, models.py:25-35 |
+  | scoring | GET /fingerprint | FingerprintResponse | success dict | PASS | scoring_router.py:116-121, models.py:38-50 |
+  | scoring | GET /trajectory | TrajectoryResponse | success dict | PASS | scoring_router.py:123-128, models.py:53-66 |
+  | scoring | GET /health | ScoringHealthResponse | success dict | PASS | scoring_router.py:130-137, models.py:69-72 |
+  | scoring | GET /history | ScoringHistoryResponse | store/proxy fallback | PASS | scoring_router.py:139-150, models.py:75-77 |
+  | conservation | GET /conservation/status | ConservationStatusResponse | state/store/default | PASS | conservation_router.py:50-65,
+  models.py:80-91 |
+  | conservation | POST /conservation/what-if | ConservationWhatIfResponse | success dict | PASS | conservation_router.py:67-94,
+  models.py:101-109 |
+  | discovery | /api/discovery/* | discovery models | sweep/digest/alerts | PASS | discovery_router.py:22-45, models.py:112-136 |
+  | evolution | /api/evolution/* | evolution models | variants/history/promoted | PASS | evolution_router.py:50-84, models.py:139-156
+  |
+  | self | /api/self/* modeled | self models | centroid/accuracy/decisions/flow | PASS | self_computation_router.py:29-169,
+  models.py:159-233 |
+  | transfer | GET /api/transfer/status | transfer union | active/inactive | PASS | transfer_router.py:18-77, models.py:236-244 |
+
+  SKIPPED_ENDPOINTS_AUDIT:
+
+  - endpoint: GET /api/self/audit-trail
+  - reason skipped: It has incompatible shapes: error, specific-decision audit object, and list-mode trail response.
+  - reviewer verdict: PASS to skip. Evidence: self_computation_router.py:107-132.
+
+  TEST_LINE_BY_LINE_REVIEW:
+
+  - file: tests/test_response_models.py
+  - lines reviewed: 1-322
+  - endpoint validation tests: Calls real FastAPI endpoints for scoring, conservation, discovery, evolution, self, and transfer at
+    237-291.
+  - model parsing tests: Parses endpoint JSON with the corresponding response models at 244-253, 261-264, and 272-291.
+  - OpenAPI tests: Checks component schemas and selected route $refs at 294-318.
+  - cross-app tests: Covered by reported app regressions rather than direct cross-app OpenAPI assertions.
+  - concerns: OpenAPI route-ref coverage is not exhaustive.
+
+  PYDANTIC_VERSION_AUDIT:
+
+  - installed/detected version: 2.12.5.
+  - syntax compatibility: Current syntax is compatible.
+  - v1/v2 risks: ConfigDict, TypeAdapter, and model_validate are v2 APIs.
+
+  CROSS_APP_AUDIT:
+
+  - Trading: Reported 655 passed.
+  - Purchasing: Reported 141 passed.
+  - DataOps: Reported 167 passed.
+  - app regression validation: PASS, with warnings only.
+  - concerns: None tied to ENT-03.
+
+  SCOPE_AUDIT:
+
+  - only allowed SDK/shared files changed? UNKNOWN without git; inspected files are in intended scope.
+  - app-specific code changed? UNKNOWN, but no app-specific changes were needed or observed in reviewed files.
+  - S2P-specific code changed? UNKNOWN.
+  - endpoint returns changed? NO in reviewed routers; decorators/imports/models added while return dicts remain intact.
+  - frontend changed? UNKNOWN.
+  - evidence: Reviewed router returns remain at cited lines; tests target shared SDK routes.
+
+  VALIDATION_AUDIT:
+
+  - targeted response model tests: 4 passed, 8 warnings.
+  - SDK root regression: 1 failed, 753 passed; failure reported as pre-existing framework drift in iks_base.py, unrelated.
+  - Trading regression: 655 passed.
+  - Purchasing regression: 141 passed.
+  - DataOps regression: 167 passed.
+  - OpenAPI smoke: passed; schema models found.
+  - warnings/skips: Duplicate operation ID/deprecation warning noise, not tied to response models.
+  - gaps: Full SDK root still has an unrelated failure, so repo-wide green is not achieved.
+
+  ARCHITECTURE_AUDIT:
+
+  - Abstraction consistency: PASS, models live in shared SDK backend.
+  - State/reset integrity: PASS, response models do not mutate state.
+  - Graph/store/data integrity: PASS, no graph/scoring internals changed in reviewed files.
+  - Formula/gate consistency: PASS, scoring and conservation field semantics preserved.
+  - Framework drift: PASS_WITH_P3 due v2-specific Pydantic syntax.
+  - Fixture/live-data: PASS, tests use local TestClient fixtures.
+  - Duplication: PASS, models are concise and not over-nested.
+  - Preset/factory alignment: PASS.
+  - Test architecture: PASS_WITH_P3 due non-exhaustive OpenAPI route-ref assertions.
+  - Architecture verdict: PASS_WITH_P3
+
+  FIXER_NEEDED:
+
+  - NO
+  - If YES, smallest targeted fixer scope: N/A
+  - Exact files to allow: N/A
+  - Exact tests to rerun: N/A
+
+ gpt-5.3
+
+  READY: YES
+
+  FILES VERIFIED:
+
+  - transfer_router.py: Present and read. Existing router only exposes /api/transfer/status via create_transfer_router(scorer,
+    warm_start_info=None) at copilot_sdk/backend/transfer_router.py:12-21.
+  - scoring_router.py: Present and read. /fingerprint exists at copilot_sdk/backend/scoring_router.py:116-121.
+  - preseed_all_copilots.py: Present and read. It already calls /api/fingerprint during verification but does not persist it at
+    scripts/preseed_all_copilots.py:423-453.
+  - app mounts: Trading, Purchasing, DataOps all mount create_transfer_router(scorer_proxy) with its internal /api/transfer prefix.
+  - existing transfer logic: Warm-start mutation primitives exist; read-only fingerprint transfer detector is absent.
+  - baseline: python -m pytest tests/ -q --timeout=120 -> 1 failed, 753 passed, 1508 warnings. Failure is unrelated existing S2P/SOC
+    drift in tests/test_framework_drift.py::test_s2p_no_unknown_drift.
+
+  TRANSFER_ROUTER_INVENTORY:
+  | Method | Path | Function | Current Behavior | Response Shape | Fixture/Live |
+  |---|---|---|---|---|---|
+  | GET | /api/transfer/status | transfer_status | Finds _warm_start_info, explicit warm_start_info, or recent centroid checkpoint
+  metadata | inactive: {"warm_started": false}; active: warm_started, source_copilot, patterns_transferred, transferred_at | Live-ish
+  status from scorer/checkpoints, not fingerprint transfer detection |
+
+  Evidence:
+
+  - Router prefix and endpoint: copilot_sdk/backend/transfer_router.py:16-21.
+  - Warm-start info sources: copilot_sdk/backend/transfer_router.py:26-35.
+  - Checkpoint metadata scan: copilot_sdk/backend/transfer_router.py:38-61.
+  - Active/inactive response shapes: copilot_sdk/backend/transfer_router.py:64-77.
+
+  FINGERPRINT_SHAPE:
+
+  - endpoint: GET /api/fingerprint, mounted under /api by app mains, so app path is /api/fingerprint.
+  - return keys: factors, overall_win_rate, per_category_precision, decisions_analyzed, plus router-added engine.
+  - sigma/factor structure: each factor has name, sigma, weight, interpretation.
+  - domain included?: NO. The scorer uses domain internally, but the endpoint response does not add a domain key.
+  - evidence: endpoint return at copilot_sdk/backend/scoring_router.py:116-121; dataclasses at copilot_sdk/scoring/fingerprint.py:10-
+    23; factor computation and rounded sigma at copilot_sdk/scoring/fingerprint.py:63-78; scorer uses verified decisions and preset
+    factor names at copilot_sdk/scoring/scorer.py:387-390.
+
+  MOUNT_AUDIT:
+  | App | Transfer Router Mounted? | Prefix | Domain/Preset Passed | Evidence |
+  |---|---|---|---|---|
+  | Trading | YES | /api/transfer from router | FreshScorerProxy(DOMAIN, ...), DOMAIN="trading" | apps/trading/backend/app/
+  main.py:51, apps/trading/backend/app/main.py:238-247 |
+  | Purchasing | YES | /api/transfer from router | FreshScorerProxy(DOMAIN, ...), DOMAIN="purchasing" | apps/purchasing/backend/app/
+  main.py:38, apps/purchasing/backend/app/main.py:272-281 |
+  | DataOps | YES | /api/transfer from router | FreshScorerProxy(DOMAIN, ...), DOMAIN="dataops" | apps/dataops/backend/app/
+  main.py:41, apps/dataops/backend/app/main.py:241-250 |
+
+  IMPLEMENTATION_PLAN:
+
+  - detector/storage helper:
+      - Add copilot_sdk/backend/transfer.py.
+      - Implement read-only helpers:
+          - fingerprint_dir(root: Path | None = None) -> Path
+          - load_fingerprints(directory: Path) -> dict[str, dict]
+          - save_fingerprint(domain: str, payload: dict, directory: Path) -> Path
+          - detect_transfer_opportunities(fingerprints, source_sigma_max=0.15, target_sigma_min=0.30) -> list[dict]
+      - Detector logic: for each ordered source/target pair, compare factor names; if source factor sigma < 0.15 and target factor
+        sigma > 0.30, emit read-only opportunity with source_domain, target_domain, factor, source_sigma, target_sigma, reason/
+        status.
+      - This must not call warm_start() or mutate centroids.
+  - router changes:
+      - Extend existing copilot_sdk/backend/transfer_router.py, do not duplicate router.
+      - Keep existing /status.
+      - Add GET /api/transfer/opportunities reading copilot_sdk/data/fingerprints/*.json.
+      - Add optional GET /api/transfer/fingerprints for debugging/listing stored fingerprint summaries if tests and UI need it.
+      - Avoid scoring router changes.
+  - preseed changes:
+      - In scripts/preseed_all_copilots.py, after verify_domain() fetches /api/fingerprint, export the payload to REPO_ROOT /
+        "copilot_sdk" / "data" / "fingerprints" / f"{config.name}.json".
+      - Add domain, exported_at, and source_url around the endpoint payload because /api/fingerprint itself lacks domain.
+      - Reuse existing standard-library JSON and error-handling style.
+  - tests:
+      - Add detector unit tests for no files, invalid files, shared factor learned/not-learned thresholds, and ordered source-target
+        opportunities.
+      - Extend tests/test_transfer_router.py for /api/transfer/opportunities endpoint behavior with temp fingerprint directory
+        injection or monkeypatch.
+      - Add/extend preseed script tests only if an existing script-test pattern exists; otherwise unit-test export helper directly.
+      - Keep existing /status tests intact.
+  - endpoints to add/extend:
+      - Extend GET /api/transfer/status only if needed to include opportunities_available safely; otherwise leave response stable.
+      - Add GET /api/transfer/opportunities.
+      - Optional: GET /api/transfer/fingerprints.
+  - endpoints not to duplicate:
+      - Do not create a second /api/transfer/status.
+      - Do not create a second /api/fingerprint.
+      - Do not add mutation endpoints like /apply, /warm-start, or /transfer.
+
+  SCOPE_REPAIR_CHECK:
+
+  - scoring_router.py change needed? NO.
+  - forbidden router changes needed? NO.
+  - if YES, explain before implementation: N/A. Automatic “after learn” export would require scoring-router or scorer changes, but
+    the requested preseed export can satisfy live demo setup without modifying scoring.
+
+  IMPLEMENTATION_INPUTS:
+
+  - allowed files:
+      - copilot_sdk/backend/transfer.py
+      - copilot_sdk/backend/transfer_router.py
+      - scripts/preseed_all_copilots.py
+      - tests/test_transfer_router.py
+      - optionally tests/test_transfer.py if keeping detector tests separate
+  - exact detector API:
+      - detect_transfer_opportunities(fingerprints: Mapping[str, Mapping[str, Any]], source_sigma_max: float = 0.15,
+        target_sigma_min: float = 0.30) -> list[dict[str, Any]]
+      - load_fingerprint_files(directory: Path) -> dict[str, dict[str, Any]]
+      - export_fingerprint(domain: str, payload: dict[str, Any], directory: Path, source_url: str | None = None) -> Path
+  - exact fingerprint JSON schema:
+      - top-level: domain, exported_at, source_url, fingerprint
+      - fingerprint.factors[]: name, sigma, weight, interpretation
+      - preserve original endpoint keys: overall_win_rate, per_category_precision, decisions_analyzed, engine
+  - exact router endpoint list:
+      - existing: GET /api/transfer/status
+      - new: GET /api/transfer/opportunities
+      - optional: GET /api/transfer/fingerprints
+  - exact test plan:
+      - threshold unit tests for source learned / target unlearned.
+      - no mutation: detector only reads payload dicts/files.
+      - endpoint returns empty list when fingerprint directory is missing.
+      - endpoint returns deterministic opportunities from temp JSON files.
+      - existing status tests still pass.
+      - preseed export writes {domain}.json after fingerprint fetch.
+  - baseline result:
+      - 1 failed, 753 passed, 1508 warnings; unrelated S2P drift failure: iks_base.py byte delta in test_s2p_no_unknown_drift.
+
+  Current classification:
+
+  - existing transfer router behavior: PARTIAL
+  - detector logic: ABSENT for requested fingerprint sigma detector
+  - fingerprint storage: ABSENT
+  - preseed export: ABSENT
+  - existing discovery transfer logic: PARTIAL but not sufficient; TransferOpportunityPattern needs category mappings and alpha gaps,
+    not per-factor sigma comparison (copilot_sdk/discovery/patterns.py:94-148).
+
+
+• gpt-5.3
+
+  READY: YES
+
+  IMPLEMENTATION SUMMARY:
+
+  - detector: Added TransferDetector and detect_transfer_opportunities() in copilot_sdk/backend/transfer.py using strict thresholds:
+    source sigma < 0.15, target sigma > 0.30.
+  - storage: Added fingerprint save/load helpers with default copilot_sdk/data/fingerprints, injectable paths, malformed JSON
+    skipping, and JSON-safe export.
+  - transfer router: Extended existing router with GET /api/transfer/opportunities; kept existing GET /api/transfer/status shape
+    unchanged for compatibility.
+  - preseed export: scripts/preseed_all_copilots.py now best-effort exports /api/fingerprint after verification.
+  - tests: Added tests/test_transfer.py with detector, storage, malformed file, router no-file, router opportunity, and JSON-safety
+    coverage.
+
+  FILES CHANGED:
+
+  - copilot_sdk/backend/transfer.py
+  - copilot_sdk/backend/transfer_router.py
+  - scripts/preseed_all_copilots.py
+  - tests/test_transfer.py
+
+  ENDPOINTS ADDED_OR_UPDATED:
+  | Method | Path | Behavior | No-File Behavior |
+  |---|---|---|---|
+  | GET | /api/transfer/status | Existing warm-start status unchanged | {"warm_started": false} |
+  | GET | /api/transfer/opportunities | Reads fingerprint files and returns read-only transfer opportunities | 200 with status:
+  "missing_fingerprints" and empty opportunities |
+
+  TESTS ADDED:
+
+  - test_detector_finds_source_low_target_high_shared_factor
+  - test_detector_detects_reverse_direction_from_other_to_own
+  - test_no_overlap_returns_no_opportunities
+  - test_both_learned_returns_no_transfer_needed
+  - test_both_unlearned_returns_no_transfer_source
+  - test_threshold_boundaries_are_strict
+  - test_multiple_domains_aggregate_opportunities
+  - test_malformed_or_missing_factors_are_ignored_safely
+  - test_save_and_load_fingerprint_roundtrip
+  - test_load_fingerprints_skips_malformed_json
+  - test_transfer_router_opportunities_returns_200_with_no_fingerprint_files
+  - test_transfer_router_status_returns_200_with_no_fingerprint_files
+  - test_transfer_router_returns_opportunities_from_temp_fingerprints
+  - test_endpoint_response_is_json_safe_with_malformed_file
+
+  VALIDATION RESULTS:
+
+  - python -m pytest tests/test_transfer.py -v --timeout=60
+      - 14 passed, 28 warnings
+  - python -m pytest tests/ -q --timeout=120
+      - 1 failed, 767 passed, 1536 warnings
+      - Failure is the pre-existing unrelated tests/test_framework_drift.py::test_s2p_no_unknown_drift for iks_base.py byte drift.
+  - python -m pytest apps/trading/backend/tests/ -q --timeout=120
+      - 655 passed, 1678 warnings
+  - Trading transfer endpoint smoke:
+      - Routes: [('/api/transfer/status', ['GET']), ('/api/transfer/opportunities', ['GET'])]
+      - Both returned 200.
+  - python -m py_compile scripts/preseed_all_copilots.py copilot_sdk/backend/transfer.py copilot_sdk/backend/transfer_router.py
+      - Passed.
+
+  SCOPE AUDIT:
+
+  - scoring/conservation/evolution routers changed? NO
+  - app main files changed? NO
+  - scorer/graph/RL internals changed? NO
+  - SOC/S2P touched? NO
+  - real fingerprint data dir polluted by tests? NO. Current copilot_sdk/data still only shows dataops.db; tests use tmp_path.
+
+  RESIDUAL RISKS:
+
+  - /api/transfer/status remains the legacy warm-start status shape to avoid breaking existing exact-response tests; fingerprint
+    readiness/status is exposed on /api/transfer/opportunities instead.
+  - SDK root is not green due to the pre-existing S2P/SOC framework drift failure.
+
+
+• gpt-5.5
+
+  REVIEW_VERDICT:
+
+  - FAIL_NEEDS_FIXER
+
+  P1_BUGS:
+
+  - finding: None found.
+    evidence: Transfer detection code reads fingerprint mappings and files only; no scorer/centroid/graph mutation calls appear in
+    copilot_sdk/backend/transfer.py:101-138 or router opportunity handling at copilot_sdk/backend/transfer_router.py:29-48.
+    why P1: No app-startup break, mutation path, or no-file 500 was found.
+
+  P2_BUGS:
+
+  - finding: /api/transfer/opportunities can return opportunities even when the current app’s own fingerprint is missing.
+    evidence: Router passes all non-own files into the detector even when own_fingerprint is None at copilot_sdk/backend/
+    transfer_router.py:31-39; _opportunity_status() reports missing_own_fingerprint but does not clear opportunities at copilot_sdk/
+    backend/transfer_router.py:141-152. TransferDetector.detect() still loads all other_fingerprints without requiring own
+    fingerprint at copilot_sdk/backend/transfer.py:82-98, and detect_transfer_opportunities() compares every domain pair at
+    copilot_sdk/backend/transfer.py:113-122. A local smoke with only dataops and purchasing files for a trading app returned status:
+    missing_own_fingerprint with one dataops->purchasing opportunity.
+    why P2: Prompt required missing own fingerprint to return empty opportunities; this can mislead an app into showing transfer
+    opportunities unrelated to itself.
+
+  P3_ISSUES:
+
+  - finding: Preseed script documentation says standard-library only, but implementation now imports SDK code.
+    evidence: Docstring says it “uses only the Python standard library” at scripts/preseed_all_copilots.py:4-5; new import is from
+    copilot_sdk.backend.transfer import save_fingerprint at scripts/preseed_all_copilots.py:19.
+    why P3: Invocation from repo root still works, but the script contract/comment is now stale.
+  - finding: Exact diff cannot be proven without git.
+    evidence: Git use was forbidden; scope is based on Prompt 1 report and file inspection.
+    why P3: Low operational risk, but exact touched-file audit is unknown.
+
+  DETECTOR_STORAGE_REVIEW:
+
+  - file: copilot_sdk/backend/transfer.py
+  - lines reviewed: 1-187
+  - fingerprint normalization: Supports saved wrapper shape via fingerprint["fingerprint"] and raw /api/fingerprint shape fallback at
+    transfer.py:150-155.
+  - thresholds: Constants are 0.15 and 0.30 at transfer.py:12-13; strict comparisons are implemented at transfer.py:122.
+  - bidirectionality: All ordered source/target pairs are checked at transfer.py:113-122.
+  - malformed handling: Invalid/missing factors and non-finite sigma are ignored at transfer.py:150-175; malformed JSON files become
+    warnings at transfer.py:58-69.
+  - storage path: Default is copilot_sdk/data/fingerprints via transfer.py:16-19; injectable base path is supported.
+  - JSON safety: _json_safe() converts non-finite floats to None at transfer.py:178-187.
+  - concerns: Detector does not constrain results to own domain when called with own_fingerprint=None.
+
+  TRANSFER_ROUTER_REVIEW:
+
+  - file: copilot_sdk/backend/transfer_router.py
+  - lines reviewed: 1-158
+  - existing endpoints preserved: Existing /status remains at transfer_router.py:24-27 and still returns legacy warm-start shapes at
+    transfer_router.py:91-104.
+  - opportunities/status behavior: New /opportunities reads files and returns status/domain/domains/opportunities/warnings at
+    transfer_router.py:29-48.
+  - no-file behavior: Missing directory returns no fingerprints in storage helper at transfer.py:52-54; router status maps that to
+    missing_fingerprints at transfer_router.py:146-147.
+  - malformed-file behavior: Warnings from loader are returned at transfer_router.py:32 and transfer_router.py:47.
+  - response shape: Stable dict with status, domain, own_fingerprint_present, available_domains, opportunity_count, opportunities,
+    warnings.
+  - concerns: Missing-own status can still include opportunities between other domains.
+
+  FINGERPRINT_SHAPE_AUDIT:
+
+  - /api/fingerprint source shape: Router returns _json_safe(scorer.fingerprint()) plus engine at copilot_sdk/backend/
+    scoring_router.py:116-121. Model shape is factors, overall_win_rate, per_category_precision, decisions_analyzed, engine at
+    copilot_sdk/backend/models.py:38-50.
+  - detector expected shape: Reads factors[].name and factors[].sigma, either raw or nested under fingerprint, at copilot_sdk/
+    backend/transfer.py:150-164.
+  - preseed saved shape: save_fingerprint() wraps endpoint payload under fingerprint with top-level domain and exported_at at
+    copilot_sdk/backend/transfer.py:22-40; preseed passes the raw endpoint payload at scripts/preseed_all_copilots.py:437-444.
+  - tests cover shape: Tests use nested saved shape at tests/test_transfer.py:17-29 and raw payload save/load at tests/
+    test_transfer.py:143-149.
+  - verdict: PASS for shape compatibility.
+
+  PRESEED_AUDIT:
+
+  - file: scripts/preseed_all_copilots.py
+  - lines reviewed: 1-514
+  - export timing: Export happens in verify_domain() after seed loop calls verification at scripts/preseed_all_copilots.py:419-421
+    and after /api/fingerprint fetch at scripts/preseed_all_copilots.py:437-444.
+  - URL/domain/port handling: Uses existing base_url and /api/fingerprint; domain comes from config.name at scripts/
+    preseed_all_copilots.py:444.
+  - save path: Default save path is SDK-root-relative from helper, copilot_sdk/data/fingerprints, at copilot_sdk/backend/
+    transfer.py:16-19.
+  - failure behavior: Export failures are caught and printed as warnings at scripts/preseed_all_copilots.py:442-447.
+  - concerns: Standard-library-only docstring is now stale.
+
+  APP_MOUNT_AUDIT:
+  | App | Transfer Mount Evidence | Signature Compatible? | Concerns |
+  |---|---|---|---|
+  | Trading | imports router at apps/trading/backend/app/main.py:38; mounts create_transfer_router(scorer_proxy) at apps/trading/
+  backend/app/main.py:247 | YES, new arg has default at transfer_router.py:17-21 | None |
+  | Purchasing | imports at apps/purchasing/backend/app/main.py:26; mounts at apps/purchasing/backend/app/main.py:281 | YES | None |
+  | DataOps | imports at apps/dataops/backend/app/main.py:29; mounts at apps/dataops/backend/app/main.py:250 | YES | None |
+
+  TEST_REVIEW:
+
+  - file: tests/test_transfer.py
+  - lines reviewed: 1-205
+  - detector unit tests: Covers low/high match, reverse direction, no overlap, both learned, both unlearned, strict boundaries,
+    multiple domains, malformed factors at tests/test_transfer.py:32-140.
+  - storage tests: Roundtrip and malformed JSON skip covered at tests/test_transfer.py:143-159.
+  - endpoint tests: Mounted FastAPI router no-file/status/opportunities/malformed JSON covered at tests/test_transfer.py:166-205.
+  - tmp_path isolation: Router client injects fingerprint_base_path=tmp_path at tests/test_transfer.py:166-169.
+  - real data dir pollution risk: Current file listing under copilot_sdk/data showed only dataops.db; no test writes to default dir.
+  - concerns: Missing test for “own fingerprint missing but other domains exist,” which is the P2 bug.
+
+  SCOPE_AUDIT:
+
+  - allowed files only? UNKNOWN
+  - scoring/conservation/evolution routers changed? UNKNOWN by exact diff; inspected scoring reference still only read for
+    fingerprint shape.
+  - app main files changed? UNKNOWN by exact diff; app mounts remain compatible and unchanged in behavior.
+  - scorer/graph/RL internals changed? UNKNOWN by exact diff; implementation code does not call mutation internals.
+  - SOC/S2P touched? UNKNOWN
+  - evidence: Prompt 1 reported changed files only within allowed set; git was forbidden, so exact diff proof is unavailable.
+
+  VALIDATION_AUDIT:
+
+  - transfer tests: Reported 14 passed, 28 warnings.
+  - SDK root regression: Reported 1 failed, 767 passed, 1536 warnings; failure is pre-existing tests/
+    test_framework_drift.py::test_s2p_no_unknown_drift.
+  - Trading regression: Reported 655 passed, 1678 warnings.
+  - endpoint smoke: Reported routes ('/api/transfer/status', ['GET']) and ('/api/transfer/opportunities', ['GET']), both 200.
+  - warnings/skips: Deprecation/runtime warning noise; no transfer-specific warning.
+  - gaps: Tests missed the own-missing-with-other-files case.
+
+  ARCHITECTURE_AUDIT:
+
+  - Abstraction consistency: PASS, detector/storage is reusable and router delegates to it.
+  - State/reset integrity: PASS_WITH_P3, only explicit fingerprint file writes; tests isolate with tmp_path.
+  - Graph/store/data integrity: PASS, no centroid/scorer/graph mutation found.
+  - Formula/gate consistency: PASS for thresholds and boundaries; PARTIAL for endpoint own-domain semantics.
+  - Framework drift: PASS, existing /status endpoint preserved.
+  - Fixture/live-data: PASS, endpoint degrades without files and tests require no live services.
+  - Duplication: PASS, no duplicate transfer endpoint found.
+  - Preset/factory alignment: PASS, no preset assumptions in detector.
+  - Test architecture: PARTIAL, misses a meaningful endpoint edge case.
+  - Architecture verdict: FAIL_NEEDS_FIXER
+
+  FIXER_NEEDED:
+
+  - YES
+  - If YES, smallest targeted fixer scope: ensure /api/transfer/opportunities returns empty opportunities when own fingerprint is
+    missing, and add a regression test.
+  - Exact files to allow:
+      - copilot_sdk/backend/transfer_router.py
+      - tests/test_transfer.py
+      - optionally copilot_sdk/backend/transfer.py only if the fix is placed in TransferDetector.detect()
+  - Exact tests to rerun:
+      - python -m pytest tests/test_transfer.py -v --timeout=60
+      - python -m pytest apps/trading/backend/tests/ -q --timeout=120
+      - transfer endpoint smoke via Trading app.
+
+
+ gpt-5.3
+
+  READY: YES
+
+  FIXES APPLIED:
+
+  - router behavior: /api/transfer/opportunities now returns an empty opportunity list when the current app/domain has no own
+    fingerprint file, while preserving status: "missing_own_fingerprint" and the existing response shape.
+  - test added: test_transfer_router_hides_other_domain_opportunities_when_own_fingerprint_missing, which writes only dataops and
+    purchasing fingerprints and verifies a trading router does not show their cross-domain opportunity.
+  - files changed:
+      - copilot_sdk/backend/transfer_router.py
+      - tests/test_transfer.py
+
+  VALIDATION RESULTS:
+
+  - python -m pytest tests/test_transfer.py -v --timeout=60
+      - 15 passed, 30 warnings
+  - python -m pytest apps/trading/backend/tests/ -q --timeout=120
+      - 655 passed, 1678 warnings
+  - Trading transfer endpoint smoke:
+      - routes: [('/api/transfer/status', ['GET']), ('/api/transfer/opportunities', ['GET'])]
+      - both GET endpoints returned 200
+
+  SCOPE AUDIT:
+
+  - transfer_router.py changed? YES
+  - tests/test_transfer.py changed? YES
+  - transfer.py changed? NO
+  - scoring/conservation/evolution routers changed? NO
+  - app main files changed? NO
+  - real data dir polluted? NO. copilot_sdk/data still only lists dataops.db.
+  - forbidden repos touched? NO
+
+  REQUIREMENTS STILL SATISFIED:
+
+  - read-only transfer: YES
+  - missing own fingerprint empty opportunities: YES
+  - no-file behavior: YES
+  - malformed-file behavior: YES
+  - own-present detection still works: YES
+  - tmp_path test isolation: YES
+  - endpoint smoke: YES
+
+  RESIDUAL RISKS:
+
+  - The stale P3 docstring in scripts/preseed_all_copilots.py still says the script uses only the standard library, but that file was
+    intentionally left untouched because this fixer scope did not authorize P3 cleanup.
+
+ REVIEW_VERDICT:
+
+  - PASS_WITH_P3
+
+  PRIOR_P2_FIX_VERIFICATION:
+
+  - missing-own returns empty opportunities:
+      - status: PASS
+      - evidence: Router now sets opportunities = [] when own_fingerprint is None at copilot_sdk/backend/transfer_router.py:39-43;
+        response still reports own_fingerprint_present from that same value and counts len(opportunities) at copilot_sdk/backend/
+        transfer_router.py:44-51.
+  - regression test covers other-domain files present:
+      - status: PASS
+      - evidence: Test writes dataops and purchasing fingerprints only at tests/test_transfer.py:198-202, calls /api/transfer/
+        opportunities at tests/test_transfer.py:204, then asserts missing_own_fingerprint, false own presence, count 0, and [] at
+        tests/test_transfer.py:207-211.
+  - own-present behavior preserved:
+      - status: PASS
+      - evidence: Own-present endpoint test writes trading and dataops files and still expects opportunities_available with
+        dataops->trading at tests/test_transfer.py:187-195.
+
+  P1_BUGS:
+
+  - finding: None.
+    evidence: Existing /status route remains at copilot_sdk/backend/transfer_router.py:24-27; opportunity route still returns a dict
+    for no/missing files at copilot_sdk/backend/transfer_router.py:44-51.
+    why P1: No startup break, route removal, mutation, or no-file 500 found.
+
+  P2_BUGS:
+
+  - finding: None.
+    evidence: The prior missing-own bug is fixed at copilot_sdk/backend/transfer_router.py:39-43 and covered at tests/
+    test_transfer.py:198-211.
+    why P2: No remaining high-impact endpoint semantics issue found.
+
+  P3_ISSUES:
+
+  - finding: Preseed docstring remains stale.
+    evidence: It says the script uses only the standard library at scripts/preseed_all_copilots.py:4-5, but imports
+    copilot_sdk.backend.transfer.save_fingerprint at scripts/preseed_all_copilots.py:19.
+    why P3: Documentation drift only; export still appears best-effort.
+  - finding: Exact diff cannot be proven without git.
+    evidence: Git use is forbidden; scope assessment is from file inspection and Prompt output.
+    why P3: Low risk, but exact touched-file audit is unknown.
+
+  TRANSFER_ROUTER_LINE_BY_LINE_REVIEW:
+
+  - file: copilot_sdk/backend/transfer_router.py
+  - lines reviewed: 1-162
+  - own fingerprint lookup: Current domain is derived by _own_domain() at transfer_router.py:136-142; fingerprint map lookup uses
+    that domain at transfer_router.py:31-33.
+  - missing-own behavior: Detector is skipped and opportunities are set to [] when own fingerprint is absent at
+    transfer_router.py:39-43.
+  - detector invocation: Still calls TransferDetector().detect() only when own fingerprint exists at transfer_router.py:39-41.
+  - response shape: Preserved fields status, domain, own_fingerprint_present, available_domains, opportunity_count, opportunities,
+    warnings at transfer_router.py:44-51.
+  - concerns: None beyond P3 doc drift outside this file.
+
+  DETECTOR_STORAGE_AUDIT:
+
+  - file: copilot_sdk/backend/transfer.py
+  - lines reviewed: 1-187
+  - bidirectionality: All ordered source/target pairs are still compared at transfer.py:113-122.
+  - thresholds: Strict source < 0.15 and target > 0.30 remain at transfer.py:12-13 and transfer.py:122.
+  - fingerprint normalization: Supports nested saved shape or raw /api/fingerprint shape at transfer.py:150-155.
+  - storage isolation: Default path helper is injectable at transfer.py:16-19; tests inject tmp_path.
+  - mutation safety: Detector builds dict/list outputs only at transfer.py:101-138; no scorer/graph calls.
+  - concerns: None.
+
+  TEST_LINE_BY_LINE_REVIEW:
+
+  - file: tests/test_transfer.py
+  - lines reviewed: 1-221
+  - missing-own regression test: PASS, tests/test_transfer.py:198-211.
+  - own-present tests: PASS, detector reverse direction at tests/test_transfer.py:54-60, router own-present at tests/
+    test_transfer.py:187-195.
+  - tmp_path isolation: Router client injects fingerprint_base_path=tmp_path at tests/test_transfer.py:166-169; save/load tests use
+    tmp_path at tests/test_transfer.py:143-159.
+  - would fail prior bug? YES. Prior behavior would produce a dataops->purchasing opportunity for the new test.
+  - concerns: None.
+
+  FINGERPRINT_SHAPE_AUDIT:
+
+  - /api/fingerprint source shape: Router returns scorer.fingerprint() plus engine at copilot_sdk/backend/scoring_router.py:116-121;
+    model requires factors, overall_win_rate, per_category_precision, decisions_analyzed, engine at copilot_sdk/backend/models.py:45-
+    50.
+  - saved file shape: save_fingerprint() wraps endpoint payload under top-level fingerprint at copilot_sdk/backend/transfer.py:32-40.
+  - router expected shape: Detector reads nested fingerprint.factors or raw factors at copilot_sdk/backend/transfer.py:150-164.
+  - verdict: PASS.
+
+  APP_MOUNT_DOMAIN_AUDIT:
+  | App | Transfer Mount Evidence | Domain/Filename Alignment | Signature Compatible? | Concerns |
+  |---|---|---|---|---|
+  | Trading | apps/trading/backend/app/main.py:238-247 | DOMAIN scorer proxy maps to trading; file helper normalizes lowercase | YES,
+  optional fingerprint_base_path has default | None |
+  | Purchasing | apps/purchasing/backend/app/main.py:272-281 | maps to purchasing | YES | None |
+  | DataOps | apps/dataops/backend/app/main.py:241-250 | maps to dataops | YES | None |
+
+  PRESEED_AUDIT:
+
+  - changed? Not in fixer scope; existing implementation still present.
+  - best-effort behavior: Export is inside try/except and only warns on failure at scripts/preseed_all_copilots.py:442-447.
+  - docstring status: Stale, see P3.
+  - concerns: P3 only.
+
+  SCOPE_AUDIT:
+
+  - only intended files changed? UNKNOWN
+  - scoring/conservation/evolution routers changed? UNKNOWN exact diff; reviewed fingerprint source only, no change evidence.
+  - app main files changed? UNKNOWN exact diff; mounts remain compatible at cited lines.
+  - scorer/graph/RL internals changed? UNKNOWN exact diff; no evidence in reviewed implementation.
+  - real fingerprint data dir polluted? NO evidence. Listing shows only copilot_sdk\data\dataops.db.
+  - forbidden repos touched? UNKNOWN
+  - evidence: Prompt output reported only transfer_router.py and tests/test_transfer.py changed in fixer.
+
+  VALIDATION_AUDIT:
+
+  - transfer tests: Reported 15 passed, 30 warnings.
+  - Trading regression: Reported 655 passed, 1678 warnings.
+  - endpoint smoke: Reported /api/transfer/status and /api/transfer/opportunities, both 200.
+  - SDK root regression: Not run in fixer; previous known unrelated framework drift failure remains a residual repo status issue.
+  - warnings/skips: Deprecation/noise warnings; no transfer-specific failure.
+  - gaps: None for requested fixer.
+
+  ARCHITECTURE_AUDIT:
+
+  - Abstraction consistency: PASS; endpoint-domain semantics fixed in router, detector remains reusable.
+  - State/reset integrity: PASS; tests isolate files with tmp_path.
+  - Graph/store/data integrity: PASS; no mutation path found.
+  - Formula/gate consistency: PASS; thresholds and directionality preserved.
+  - Framework drift: PASS; /status preserved.
+  - Fixture/live-data: PASS; no live copilot requirement.
+  - Duplication: PASS; no duplicate endpoint.
+  - Preset/factory alignment: PASS; app domains align with filename normalization.
+  - Test architecture: PASS; regression test catches prior P2.
+  - Architecture verdict: PASS_WITH_P3
+
+  FIXER_NEEDED:
+
+  - NO
+  - If YES, smallest targeted fixer scope: N/A
+  - Exact files to allow: N/A
+  - Exact tests to rerun: N/A	

@@ -1,0 +1,186 @@
+"""Read-only broker HTTP endpoints for the Trading backend."""
+
+from __future__ import annotations
+
+from dataclasses import asdict, is_dataclass
+from enum import Enum
+from math import isfinite
+from typing import Any, Callable
+
+from fastapi import APIRouter, Query
+
+from app.brokers import BrokerError, BrokerProtocol, get_broker
+
+
+BrokerFactory = Callable[[str], BrokerProtocol]
+
+
+def _safe_float(value: Any) -> float | None:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if isfinite(parsed) else None
+
+
+def _json_safe(value: Any) -> Any:
+    if is_dataclass(value):
+        return _json_safe(asdict(value))
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, float):
+        return value if isfinite(value) else None
+    if value is None or isinstance(value, (str, int, bool)):
+        return value
+    return str(value)
+
+
+def _broker_name(value: str | None) -> str:
+    # Mirrors apps/trading/backend/cli.py _broker_name: default broker is Alpaca.
+    return str(value or "alpaca").lower().strip()
+
+
+def _safe_error(exc: BaseException) -> str:
+    return str(exc)[:300] or exc.__class__.__name__
+
+
+def _disconnected_payload(
+    broker: str,
+    *,
+    field: str,
+    empty_value: Any,
+    error: str,
+    status: str = "disconnected",
+) -> dict[str, Any]:
+    return {
+        "broker": broker,
+        "connected": False,
+        "status": status,
+        field: empty_value,
+        "error": error,
+    }
+
+
+def _resolve_broker(broker: str, broker_factory: BrokerFactory) -> tuple[BrokerProtocol | None, str | None]:
+    try:
+        return broker_factory(broker), None
+    except (BrokerError, EnvironmentError, ValueError) as exc:
+        return None, _safe_error(exc)
+
+
+def create_broker_router(broker_factory: BrokerFactory = get_broker) -> APIRouter:
+    router = APIRouter()
+
+    @router.get("/status")
+    def broker_status(broker: str | None = None) -> dict[str, Any]:
+        broker_name = _broker_name(broker)
+        resolved, error = _resolve_broker(broker_name, broker_factory)
+        if resolved is None:
+            return {
+                "broker": broker_name,
+                "connected": False,
+                "status": "disconnected",
+                "error": error,
+            }
+        return {
+            "broker": broker_name,
+            "connected": True,
+            "status": "connected",
+            "connector": resolved.__class__.__name__,
+        }
+
+    @router.get("/account")
+    def broker_account(broker: str | None = None) -> dict[str, Any]:
+        broker_name = _broker_name(broker)
+        resolved, error = _resolve_broker(broker_name, broker_factory)
+        if resolved is None:
+            return _disconnected_payload(broker_name, field="account", empty_value=None, error=error or "")
+        try:
+            account = resolved.get_account()
+        except (BrokerError, EnvironmentError, ValueError) as exc:
+            return _disconnected_payload(broker_name, field="account", empty_value=None, error=_safe_error(exc), status="error")
+        return {
+            "broker": broker_name,
+            "connected": True,
+            "status": "connected",
+            "account": _json_safe(account),
+        }
+
+    @router.get("/positions")
+    def broker_positions(broker: str | None = None) -> dict[str, Any]:
+        broker_name = _broker_name(broker)
+        resolved, error = _resolve_broker(broker_name, broker_factory)
+        if resolved is None:
+            return _disconnected_payload(broker_name, field="positions", empty_value=[], error=error or "")
+        try:
+            positions = resolved.get_positions()
+        except (BrokerError, EnvironmentError, ValueError) as exc:
+            return _disconnected_payload(broker_name, field="positions", empty_value=[], error=_safe_error(exc), status="error")
+        safe_positions = _json_safe(positions)
+        return {
+            "broker": broker_name,
+            "connected": True,
+            "status": "connected",
+            "positions": safe_positions,
+            "count": len(safe_positions),
+        }
+
+    @router.get("/orders")
+    def broker_orders(
+        broker: str | None = None,
+        status: str | None = None,
+        limit: int = Query(default=50, ge=1, le=200),
+    ) -> dict[str, Any]:
+        broker_name = _broker_name(broker)
+        resolved, error = _resolve_broker(broker_name, broker_factory)
+        if resolved is None:
+            return _disconnected_payload(broker_name, field="orders", empty_value=[], error=error or "")
+        try:
+            orders = resolved.get_orders(status=status, limit=limit)
+        except (BrokerError, EnvironmentError, ValueError) as exc:
+            return _disconnected_payload(broker_name, field="orders", empty_value=[], error=_safe_error(exc), status="error")
+        safe_orders = _json_safe(orders)
+        return {
+            "broker": broker_name,
+            "connected": True,
+            "status": "connected",
+            "orders": safe_orders,
+            "count": len(safe_orders),
+        }
+
+    @router.get("/orders/{order_id}")
+    def broker_order(order_id: str, broker: str | None = None) -> dict[str, Any]:
+        broker_name = _broker_name(broker)
+        resolved, error = _resolve_broker(broker_name, broker_factory)
+        if resolved is None:
+            return _disconnected_payload(broker_name, field="order", empty_value=None, error=error or "")
+        try:
+            order = resolved.get_order(order_id)
+        except (BrokerError, EnvironmentError, ValueError) as exc:
+            return _disconnected_payload(broker_name, field="order", empty_value=None, error=_safe_error(exc), status="error")
+        return {
+            "broker": broker_name,
+            "connected": True,
+            "status": "connected",
+            "order": _json_safe(order),
+        }
+
+    @router.post("/sync")
+    def broker_sync(broker: str | None = None) -> dict[str, Any]:
+        broker_name = _broker_name(broker)
+        return {
+            "broker": broker_name,
+            "connected": False,
+            "status": "unsupported",
+            "sync": {"supported": False, "synced": 0},
+            "error": "Broker sync is not exposed by the connector protocol.",
+        }
+
+    return router
+
+
+router = create_broker_router()

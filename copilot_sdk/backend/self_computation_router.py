@@ -7,6 +7,12 @@ from typing import Any
 
 from fastapi import APIRouter, Query
 
+from copilot_sdk.backend.models import (
+    AccuracyByCategoryResponse,
+    CentroidHistoryResponse,
+    DecisionFlowResponse,
+    SelfDecisionsResponse,
+)
 from copilot_sdk.graph import GraphStore
 
 
@@ -20,7 +26,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
     def _domain() -> str:
         return str(getattr(graph_store, "domain", "") or "")
 
-    @router.get("/centroid-history")
+    @router.get("/centroid-history", response_model=CentroidHistoryResponse)
     def centroid_history(
         limit: int = Query(50, ge=1, le=500),
         checkpoint_time_start: str | None = None,
@@ -41,7 +47,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
         normalized = [_json_safe(checkpoint) for checkpoint in checkpoints]
         return {"checkpoints": normalized, "total": len(normalized)}
 
-    @router.get("/accuracy-by-category")
+    @router.get("/accuracy-by-category", response_model=AccuracyByCategoryResponse)
     def accuracy_by_category(
         threshold: float = Query(0.70, ge=0.0, le=1.0),
     ) -> dict[str, Any]:
@@ -75,7 +81,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
             "overall_verified": len(verified),
         }
 
-    @router.get("/decisions")
+    @router.get("/decisions", response_model=SelfDecisionsResponse)
     def decisions(
         category: str | None = None,
         action: str | None = None,
@@ -125,7 +131,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
         verified = store.get_verified_decisions(_domain())[:limit]
         return {"trails": verified, "total": len(verified)}
 
-    @router.get("/decision-flow")
+    @router.get("/decision-flow", response_model=DecisionFlowResponse)
     def decision_flow(limit: int = Query(50, ge=1, le=200)) -> dict[str, Any]:
         store = _gs()
         domain = _domain()

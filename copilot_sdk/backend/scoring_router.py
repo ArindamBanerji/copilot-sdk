@@ -9,6 +9,14 @@ import numpy as np
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from copilot_sdk.backend.models import (
+    FingerprintResponse,
+    LearnResponse,
+    ScoreResponse,
+    ScoringHealthResponse,
+    ScoringHistoryResponse,
+    TrajectoryResponse,
+)
 from copilot_sdk.scoring import CompoundingScorer
 
 
@@ -58,7 +66,7 @@ def create_scoring_router(
                 ) from exc
         return scorer_cache["scorer"]
 
-    @router.post("/score")
+    @router.post("/score", response_model=ScoreResponse)
     def score(request: ScoreRequest) -> dict[str, Any]:
         scorer = get_scorer()
         try:
@@ -71,7 +79,7 @@ def create_scoring_router(
         payload["engine"] = ENGINE
         return payload
 
-    @router.post("/learn")
+    @router.post("/learn", response_model=LearnResponse)
     def learn(request: LearnRequest) -> dict[str, Any]:
         scorer = get_scorer()
         try:
@@ -105,21 +113,21 @@ def create_scoring_router(
         payload["engine"] = ENGINE
         return payload
 
-    @router.get("/fingerprint")
+    @router.get("/fingerprint", response_model=FingerprintResponse)
     def fingerprint() -> dict[str, Any]:
         scorer = get_scorer()
         payload = _json_safe(scorer.fingerprint())
         payload["engine"] = ENGINE
         return payload
 
-    @router.get("/trajectory")
+    @router.get("/trajectory", response_model=TrajectoryResponse)
     def trajectory() -> dict[str, Any]:
         scorer = get_scorer()
         payload = _json_safe(scorer.trajectory())
         payload["engine"] = ENGINE
         return payload
 
-    @router.get("/health")
+    @router.get("/health", response_model=ScoringHealthResponse)
     def health() -> dict[str, Any]:
         scorer = get_scorer()
         return {
@@ -128,7 +136,7 @@ def create_scoring_router(
             "engine": ENGINE,
         }
 
-    @router.get("/history")
+    @router.get("/history", response_model=ScoringHistoryResponse)
     def history() -> dict[str, Any]:
         scorer = get_scorer()
         store = _scorer_data_store(scorer)

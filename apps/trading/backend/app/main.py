@@ -22,6 +22,7 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
         sys.path.insert(0, str(path))
 
 from .context_router import router as context_router  # noqa: E402
+from .routers.broker_router import create_broker_router  # noqa: E402
 from .routers.analytics import create_analytics_router  # noqa: E402
 from .routers.correlation import create_correlation_router  # noqa: E402
 from .routers.data_import import router as data_import_router  # noqa: E402
@@ -278,6 +279,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     app.include_router(create_social_router(scorer_proxy))
     app.include_router(create_vix_timing_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
     app.include_router(create_webhook_router(scorer_proxy))
+    app.include_router(create_broker_router(), prefix="/api/broker", tags=["broker"])
     app.include_router(data_import_router)
 
     def _run_startup_seed_once() -> None:

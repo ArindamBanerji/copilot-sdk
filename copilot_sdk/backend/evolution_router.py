@@ -12,6 +12,11 @@ from copilot_sdk.evolution import (
     DefaultShadowRunner,
     InMemoryEvolutionLedger,
 )
+from copilot_sdk.backend.models import (
+    EvolutionHistoryResponse,
+    EvolutionPromotedResponse,
+    EvolutionVariantsResponse,
+)
 
 
 def create_evolution_router(
@@ -42,7 +47,7 @@ def create_evolution_router(
                 )
         return evolver_cache["evolver"]
 
-    @router.get("/variants")
+    @router.get("/variants", response_model=EvolutionVariantsResponse)
     def variants() -> dict[str, Any]:
         evolver = _get_evolver()
         active_rules = sorted(evolver.get_active_rules())
@@ -57,7 +62,7 @@ def create_evolution_router(
             "total_promoted": len(promoted_rules),
         }
 
-    @router.get("/history")
+    @router.get("/history", response_model=EvolutionHistoryResponse)
     def history(
         rule_name: str | None = None,
         limit: int = Query(50, ge=0, le=500),
@@ -70,7 +75,7 @@ def create_evolution_router(
             "count": len(events),
         }
 
-    @router.get("/promoted")
+    @router.get("/promoted", response_model=EvolutionPromotedResponse)
     def promoted() -> dict[str, Any]:
         evolver = _get_evolver()
         return {
