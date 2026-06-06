@@ -22,8 +22,14 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH, CI_PLATFORM_PATH):
     if path.exists() and str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from .ae_router import router as ae_router  # noqa: E402
-from .context_router import router as context_router  # noqa: E402
+from . import context_router as context_router_module  # noqa: E402
+from .ae_router import create_ae_router  # noqa: E402
+from .evolution import get_dataops_variants  # noqa: E402
+from .graph_status import (  # noqa: E402
+    DataOpsActiveGraphConfig,
+    create_dataops_active_graph_store,
+    router as dataops_graph_status_router,
+)
 from .graph_queries import DataOpsGraphClient  # noqa: E402
 from .routers.dataops_status import router as dataops_status_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
@@ -34,6 +40,7 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 
@@ -72,6 +79,21 @@ def _graph_store(db_path: str | Path):
     store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="DOPS-")
     store.penalty_ratio = 10.0
     return store
+
+
+def _selected_graph_store_factory(
+    db_path: str | Path,
+    *,
+    active_config: DataOpsActiveGraphConfig,
+    active_store_factory: Any | None = None,
+):
+    active_store = create_dataops_active_graph_store(
+        active_config,
+        store_factory=active_store_factory,
+    )
+    if active_store is not None:
+        return active_store
+    return _graph_store(db_path)
 
 
 def _resolve_scoring_db(db_path: str | Path | None) -> str:
@@ -204,7 +226,12 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     if count > 0:
         print(f"[{DOMAIN}] resuming with {count} persisted decisions")
         return 0
-    scorer = CompoundingScorer.from_preset(DOMAIN, graph_store=graph_store)
+    scorer = CompoundingScorer.from_preset(
+        DOMAIN,
+        graph_store=graph_store,
+        evolve=True,
+        consolidation_enabled=True,
+    )
     seeded = _seed_from_fixtures(scorer, graph_store)
     print(
         f"[{DOMAIN}] auto-seeded {seeded['decisions_seeded']} decisions "
@@ -213,19 +240,92 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     return seeded["decisions_seeded"]
 
 
-def _evolution_variants() -> list[dict[str, Any]]:
-    fixture_path = DATA_DIR / "evolution_fixtures.json"
-    if not fixture_path.exists():
-        return []
+def _seed_demo_evolution_events_if_needed(graph_store: SQLiteGraphStore) -> None:
     try:
-        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        existing = graph_store.get_evolution_events(domain=DOMAIN, rule_name="resource_quality_scheduling_signal", limit=1)
+    except Exception as exc:
+        print(f"[{DOMAIN}] demo evolution seed check failed: {exc}")
+        return
+    if existing:
+        return
+    try:
+        graph_store.save_evolution_event(
+            domain=DOMAIN,
+            event_type="shadow_started",
+            rule_name="resource_quality_scheduling_signal",
+            variant_id="dataops-off-peak-scheduling-v1",
+            metadata={
+                "id": "V-DO-SCHED-001",
+                "artifact_type": "scheduling_rule",
+                "description": "Schedule resource-intensive quality checks during off-peak windows.",
+                "impact": "quality_scheduling",
+                "magnitude": 0.17,
+                "timestamp": "2026-05-08T11:15:00Z",
+                "system": "celonis_transform",
+                "trigger": "resource contention during quality validation",
+                "recommendation": "Move data quality checks to off-peak scheduling windows when resource pressure is high.",
+                "expected_impact": "Reduce resource contention while preserving data quality checks.",
+                "source_copilot": "S2P",
+                "source_rule": "s2p_invoice_quality_scheduling_signal",
+                "match": {
+                    "categories": ["quality_anomaly", "transform_drift"],
+                    "min_downstream_urgency": 0.4,
+                },
+            },
+        )
+    except Exception as exc:
+        print(f"[{DOMAIN}] demo evolution seed failed: {exc}")
+
+
+def _variant_from_event(event: dict[str, Any]) -> dict[str, Any]:
+    metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+    variant = dict(metadata)
+    event_type = str(variant.get("event_type") or event.get("event_type") or "")
+    rule_name = str(event.get("rule_name") or variant.get("rule_name") or "")
+    variant_id = str(
+        event.get("variant_id")
+        or variant.get("variant_id")
+        or variant.get("variantId")
+        or rule_name
+    )
+    variant["event_type"] = event_type
+    variant.setdefault("rule_name", rule_name)
+    variant.setdefault("variant_id", variant_id)
+    variant.setdefault("id", variant_id or rule_name)
+    variant.setdefault("description", rule_name or variant_id)
+    variant.setdefault("timestamp", event.get("timestamp"))
+    return variant
+
+
+def _evolution_variants(store: Any) -> list[dict[str, Any]]:
+    try:
+        events = store.get_evolution_events(domain=DOMAIN, limit=500)
+    except Exception:
         return []
-    variants = payload.get("variants")
-    return list(variants) if isinstance(variants, list) else []
+    return [_variant_from_event(event) for event in events if isinstance(event, dict)]
 
 
-def create_app(db_path: str | Path | None = None) -> FastAPI:
+def _dataops_variants_with_config(store: Any) -> list[dict[str, Any]]:
+    configured = get_dataops_variants()
+    persisted = _evolution_variants(store)
+    seen: set[str] = set()
+    merged: list[dict[str, Any]] = []
+    for variant in configured + persisted:
+        variant_id = variant.get("id") or variant.get("variant_id")
+        if variant_id:
+            normalized_id = str(variant_id)
+            if normalized_id in seen:
+                continue
+            seen.add(normalized_id)
+        merged.append(dict(variant))
+    return merged
+
+
+def create_app(
+    db_path: str | Path | None = None,
+    demo_bundle_path: str | Path | bool | None = None,
+    active_store_factory: Any | None = None,
+) -> FastAPI:
     app = FastAPI(title="DataOps Copilot", version="0.1.0")
     app.add_middleware(
         CORSMiddleware,
@@ -236,9 +336,25 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     )
 
     scoring_db = _resolve_scoring_db(db_path)
-    seed_graph_store = _graph_store(scoring_db)
+    if demo_bundle_path is None:
+        _bundle_path = REPO_ROOT / "demo" / f"{DOMAIN}_demo_bundle.json"
+    elif demo_bundle_path is False:
+        _bundle_path = False
+    else:
+        _bundle_path = Path(demo_bundle_path)
+    active_config = DataOpsActiveGraphConfig.from_env()
+    selected_graph_store = _selected_graph_store_factory(
+        scoring_db,
+        active_config=active_config,
+        active_store_factory=active_store_factory,
+    )
+    graph_store_factory = lambda _db_path=scoring_db: selected_graph_store
+    seed_graph_store = selected_graph_store
     startup_state = {"seeded": False}
-    scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, _graph_store)
+    app.state.dataops_active_graph_config = active_config
+    app.state.dataops_selected_graph_store = selected_graph_store
+    app.state.graph_store = selected_graph_store
+    scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, graph_store_factory)
     app.include_router(
         create_scoring_router(
             DOMAIN,
@@ -257,21 +373,34 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     )
     app.include_router(
         create_evolution_router(
-            graph_store_factory=lambda: _graph_store(scoring_db),
+            graph_store_factory=lambda: selected_graph_store,
             domain=DOMAIN,
-            variant_provider=_evolution_variants,
+            variant_provider=lambda: _dataops_variants_with_config(selected_graph_store),
         )
     )
-    mount_self_computation_router(app, _graph_store(scoring_db))
-    app.include_router(context_router, prefix="/api/context")
-    app.include_router(ae_router, prefix="/api/ae")
+    mount_self_computation_router(app, selected_graph_store)
+    context_router_module.set_evolution_store_factory(lambda: selected_graph_store)
+    app.include_router(context_router_module.router, prefix="/api/context")
+    app.include_router(
+        create_ae_router(
+            evolution_store_factory=lambda: selected_graph_store,
+            domain=DOMAIN,
+        ),
+        prefix="/api/ae",
+    )
+    app.include_router(dataops_graph_status_router)
     app.include_router(dataops_status_router)
 
     def _run_startup_seed_once() -> None:
         if startup_state["seeded"]:
             return
         startup_state["seeded"] = True
+        if scoring_db == ":memory:":
+            return
+        if _bundle_path is not False:
+            _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
         _auto_seed_if_needed(seed_graph_store)
+        _seed_demo_evolution_events_if_needed(seed_graph_store)
 
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:

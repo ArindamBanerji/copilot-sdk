@@ -53,27 +53,80 @@ def sap_status() -> dict[str, Any]:
 
 @router.get("/enterprise-health")
 def enterprise_health_alias() -> dict[str, Any]:
-    sap = _sap_status()
-    celonis = _celonis_status()
-    pipeline_count = _pipeline_count()
+    sap = _enterprise_sap_health()
+    celonis = _enterprise_celonis_health()
+    graph = _enterprise_graph_health()
+    connected = [sap["connected"], celonis["connected"], graph["connected"]]
+    if all(connected):
+        overall = "healthy"
+    elif any(connected):
+        overall = "degraded"
+    else:
+        overall = "disconnected"
     return {
-        "status": "healthy" if pipeline_count > 0 else "degraded",
-        "domain": DOMAIN,
-        "connectors": {
-            "sap": sap,
-            "celonis": celonis,
-        },
-        "enterprise": {
-            "sap": sap,
-            "celonis": celonis,
-            "graph": {
-                "status": "ok" if pipeline_count > 0 else "empty",
-                "source": "fixture",
-                "pipeline_count": pipeline_count,
-            },
-            "engine_version": "v0.7.23",
-        },
+        "sap": sap,
+        "celonis": celonis,
+        "graph": graph,
+        "overall": overall,
     }
+
+
+def _enterprise_sap_health() -> dict[str, Any]:
+    try:
+        status = _sap_status()
+    except Exception:
+        status = {}
+    return {
+        "connected": _is_status_connected(status),
+        "record_count": _safe_int(status.get("cached_records")),
+        "last_sync": _safe_timestamp(status),
+    }
+
+
+def _enterprise_celonis_health() -> dict[str, Any]:
+    try:
+        status = _celonis_status()
+    except Exception:
+        status = {}
+    return {
+        "connected": _is_status_connected(status),
+        "kpi_count": _safe_int(status.get("cached_models")),
+        "last_sync": _safe_timestamp(status),
+    }
+
+
+def _enterprise_graph_health() -> dict[str, Any]:
+    try:
+        node_count = _pipeline_count()
+    except Exception:
+        node_count = 0
+    return {
+        "connected": node_count > 0,
+        "node_count": node_count,
+    }
+
+
+def _is_status_connected(status: dict[str, Any]) -> bool:
+    if status.get("connected") is not None:
+        return bool(status.get("connected"))
+    if status.get("live") is True:
+        return True
+    return str(status.get("status") or "").lower() in {"available", "configured", "fixture", "cache", "ok"}
+
+
+def _safe_int(value: Any) -> int:
+    try:
+        return max(int(value or 0), 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _safe_timestamp(status: dict[str, Any]) -> str | None:
+    for key in ("last_sync", "lastSync", "updated_at", "updatedAt", "timestamp"):
+        value = status.get(key)
+        if isinstance(value, str):
+            return value
+    return None
 
 
 def _celonis_status() -> dict[str, Any]:

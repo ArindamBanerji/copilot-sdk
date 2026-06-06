@@ -1,0 +1,63 @@
+{
+  "domain": "trading",
+  "exported_at": "2026-05-28T08:03:23Z",
+  "fingerprint": {
+    "decisions_analyzed": 40,
+    "engine": {
+      "gae": "gae.profile_scorer.ProfileScorer",
+      "scoring": "copilot_sdk.scoring.CompoundingScorer"
+    },
+    "factors": [
+      {
+        "interpretation": "moderate",
+        "name": "signal_alignment",
+        "sigma": 0.172,
+        "weight": 0.003
+      },
+      {
+        "interpretation": "moderate",
+        "name": "market_regime",
+        "sigma": 0.176,
+        "weight": 0.003
+      },
+      {
+        "interpretation": "moderate",
+        "name": "position_sizing",
+        "sigma": 0.109,
+        "weight": 0.008
+      },
+      {
+        "interpretation": "clean",
+        "name": "timing_quality",
+        "sigma": 0.034,
+        "weight": 0.089
+      },
+      {
+        "interpretation": "moderate",
+        "name": "risk_reward_actual",
+        "sigma": 0.15,
+        "weight": 0.004
+      },
+      {
+        "interpretation": "moderate",
+        "name": "emotional_indicator",
+        "sigma": 0.106,
+        "weight": 0.009
+      },
+      {
+        "interpretation": "clean",
+        "name": "signal_confidence",
+        "sigma": 0.01,
+        "weight": 1.0
+      }
+    ],
+    "overall_win_rate": 0.625,
+    "per_category_precision": {
+      "crypto_spot": 0.333,
+      "equity_long": 0.667,
+      "etf": 0.833,
+      "options": 0.5
+    }
+  },
+  "source_url": "http://localhost:8010/api/fingerprint"
+}

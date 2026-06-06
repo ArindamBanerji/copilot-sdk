@@ -28,7 +28,7 @@ def build_transfer_registry() -> SharedPatternRegistry:
             category="freshness_violation",
             action="strong_execution",
             win_rate=0.78,
-            centroid_delta=[0.05, 0.03, 0.04, 0.02, 0.01, 0.03, 0.0],
+            centroid_delta=[0.05, 0.03, 0.04, 0.02, 0.01, 0.03, 0.0, 0.0, 0.0, 0.0],
             confidence=0.86,
             metadata={
                 "source_rule": "freshness_violation_signal",
@@ -45,7 +45,7 @@ def build_transfer_registry() -> SharedPatternRegistry:
             category="pipeline_failure",
             action="partial_execution",
             win_rate=0.72,
-            centroid_delta=[0.02, 0.04, 0.01, 0.03, 0.05, 0.02, 0.0],
+            centroid_delta=[0.02, 0.04, 0.01, 0.03, 0.05, 0.02, 0.0, 0.0, 0.0, 0.0],
             confidence=0.81,
             metadata={
                 "source_rule": "pipeline_failure_risk",

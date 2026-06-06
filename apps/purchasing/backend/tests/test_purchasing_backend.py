@@ -244,7 +244,7 @@ def test_auto_seed_empty_db(tmp_path):
     from app.main import create_app
 
     db_path = tmp_path / "purchasing_seeded.db"
-    with TestClient(create_app(db_path=db_path)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     expected_verified, expected_correct = _fixture_outcome_counts(DATA_DIR / "purchasing_seed_v2.json")
@@ -264,7 +264,7 @@ def test_auto_seed_skips_populated(tmp_path):
     finally:
         store.close()
 
-    with TestClient(create_app(db_path=db_path)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     assert _count_decisions(db_path, "purchasing") == 1
@@ -275,7 +275,7 @@ def test_ci_data_dir_creates_db(tmp_path, monkeypatch):
 
     data_dir = tmp_path / "ci-data"
     monkeypatch.setenv("CI_DATA_DIR", str(data_dir))
-    with TestClient(create_app()) as startup_client:
+    with TestClient(create_app(demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     db_path = data_dir / "purchasing.db"
@@ -291,7 +291,7 @@ def test_explicit_db_path_wins(tmp_path, monkeypatch):
     explicit_db = tmp_path / "explicit.db"
     monkeypatch.setenv("CI_DATA_DIR", str(ci_dir))
 
-    with TestClient(create_app(db_path=explicit_db)) as startup_client:
+    with TestClient(create_app(db_path=explicit_db, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     assert explicit_db.exists()
@@ -304,7 +304,7 @@ def test_no_env_uses_explicit_fallback(tmp_path, monkeypatch):
 
     monkeypatch.delenv("CI_DATA_DIR", raising=False)
     db_path = tmp_path / "fallback.db"
-    with TestClient(create_app(db_path=db_path)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     assert db_path.exists()
@@ -532,6 +532,18 @@ def test_item_profile_ae_rule_matching(client):
     assert "V-PUR-DAIRY-001" not in dairy_rules
 
 
+def test_item_profile_fresh_store_has_no_ae_rules(tmp_path: Path, temp_data_dir: Path):
+    from app.main import create_app
+
+    client = TestClient(create_app(db_path=tmp_path / "fresh_purchasing.db", demo_bundle_path=False))
+    response = client.get("/api/context/item/chicken_breast/profile")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ae_rules"] == []
+    assert payload["ae_managed"] is False
+
+
 def test_score_via_sdk_router(client):
     payload = _score(client)
 
@@ -563,7 +575,9 @@ def test_conservation_status_returns_live_counts(client):
 
     score = _score(client)
     after_score = client.get("/api/conservation/status").json()
-    assert after_score["total_decisions"] == 1
+    # Conservation V is verified-only; pending score writes are audit/store
+    # activity but do not increase total_decisions.
+    assert after_score["total_decisions"] == 0
     assert after_score["verified_count"] == 0
     assert after_score["correct_count"] == 0
 
@@ -579,14 +593,15 @@ def test_conservation_status_returns_live_counts(client):
 def test_in_memory_scoring_and_conservation_share_proxy_store(temp_data_dir):
     from app.main import create_app
 
-    with TestClient(create_app(db_path=":memory:")) as memory_client:
+    with TestClient(create_app(db_path=":memory:", demo_bundle_path=False)) as memory_client:
         score = _score(memory_client)
+        _learn(memory_client, score["decision_id"], score["action"])
         payload = memory_client.get("/api/conservation/status").json()
 
     assert score["decision_id"].startswith("PUR-")
     assert payload["domain"] == "purchasing"
     assert payload["total_decisions"] == 1
-    assert payload["verified_count"] == 0
+    assert payload["verified_count"] == 1
 
 
 def test_self_computation_centroid_history_available(client):
@@ -688,27 +703,58 @@ def test_evolution_variants(client):
     assert payload["domain"] == "purchasing"
     assert payload["active_rules"] == []
     assert payload["promoted_rules"] == []
-    assert len(payload["variants"]) == 3
-    assert {variant["event_type"] for variant in payload["variants"]} == {
+    assert len(payload["variants"]) == 7
+    event_variants = [variant for variant in payload["variants"] if "event_type" in variant]
+    configured_variants = [variant for variant in payload["variants"] if "family" in variant]
+    assert {variant["event_type"] for variant in event_variants} == {
         "promotion_approved",
         "promotion_rejected",
     }
+    assert {variant["id"] for variant in payload["variants"]} >= {
+        "WASTE_THRESHOLD_v1",
+        "WASTE_THRESHOLD_v2",
+        "LEAD_TIME_BUFFER_v1",
+        "LEAD_TIME_BUFFER_v2",
+        "V-PUR-FRIDAY-001",
+        "V-PUR-EVENT-001",
+        "V-PUR-DAIRY-001",
+    }
+    assert {variant["family"] for variant in configured_variants} == {
+        "waste_threshold",
+        "lead_time_buffer",
+    }
+    assert all(variant.get("triggered_by") != "fixture" for variant in payload["variants"])
 
 
-def test_evolution_ledger_filters_promoted(temp_data_dir: Path):
+def test_evolution_variants_fresh_store_is_empty(tmp_path: Path, temp_data_dir: Path):
+    from app.main import create_app
+
+    client = TestClient(create_app(db_path=tmp_path / "fresh_variants_purchasing.db", demo_bundle_path=False))
+    payload = client.get("/api/evolution/variants").json()
+
+    assert payload["domain"] == "purchasing"
+    assert [variant["id"] for variant in payload["variants"]] == [
+        "WASTE_THRESHOLD_v1",
+        "WASTE_THRESHOLD_v2",
+        "LEAD_TIME_BUFFER_v1",
+        "LEAD_TIME_BUFFER_v2",
+    ]
+
+
+def test_evolution_ledger_filters_promoted(client):
     from app.main import _filter_variants_by_query
 
-    payload = json.loads((temp_data_dir / "evolution_fixtures.json").read_text(encoding="utf-8"))
+    payload = client.get("/api/evolution/variants").json()
     variants = _filter_variants_by_query(payload["variants"], "MATCH promoted variants")
 
     assert variants
     assert {variant["event_type"] for variant in variants} == {"promotion_approved"}
 
 
-def test_evolution_ledger_filters_rejected(temp_data_dir: Path):
+def test_evolution_ledger_filters_rejected(client):
     from app.main import _filter_variants_by_query
 
-    payload = json.loads((temp_data_dir / "evolution_fixtures.json").read_text(encoding="utf-8"))
+    payload = client.get("/api/evolution/variants").json()
     variants = _filter_variants_by_query(payload["variants"], "MATCH rejected variants")
 
     assert variants

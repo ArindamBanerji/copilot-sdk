@@ -6,9 +6,11 @@ import json
 import math
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException, status
+
+from copilot_sdk.scoring.scorer import compute_theta_min
 
 from .celonis_connector import CelonisConnector
 from .graph_queries import DataOpsGraphClient
@@ -50,6 +52,8 @@ APPLY_FIX_ALLOWED_PAYLOAD_FIELDS = {
     "hold_status",
 }
 APPLY_FIX_TIMESTAMP = "2026-05-19T10:00:00Z"
+APPLY_FIX_OVERRIDE_RATE = 0.35
+APPLY_FIX_VERIFIED_COUNT = 100
 SEVERITY_AGE_MINUTES = {
     "critical": 5,
     "high": 15,
@@ -59,6 +63,12 @@ SEVERITY_AGE_MINUTES = {
 AGE_JITTER_MINUTES = (-2, -1, 0, 1, 2)
 
 router = APIRouter()
+_evolution_store_factory: Callable[[], Any] | None = None
+
+
+def set_evolution_store_factory(factory: Callable[[], Any] | None) -> None:
+    global _evolution_store_factory
+    _evolution_store_factory = factory
 
 
 def _graph_client() -> DataOpsGraphClient:
@@ -82,6 +92,37 @@ def _load_json(path: Path, default: Any) -> Any:
 def _write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _variant_from_evolution_event(event: dict[str, Any]) -> dict[str, Any]:
+    metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+    variant = dict(metadata)
+    event_type = str(variant.get("event_type") or event.get("event_type") or "")
+    rule_name = str(event.get("rule_name") or variant.get("rule_name") or "")
+    variant_id = str(
+        event.get("variant_id")
+        or variant.get("variant_id")
+        or variant.get("variantId")
+        or rule_name
+    )
+    variant["event_type"] = event_type
+    variant.setdefault("rule_name", rule_name)
+    variant.setdefault("variant_id", variant_id)
+    variant.setdefault("id", variant_id or rule_name)
+    variant.setdefault("description", rule_name or variant_id)
+    variant.setdefault("timestamp", event.get("timestamp"))
+    return variant
+
+
+def _evolution_variants() -> list[dict[str, Any]]:
+    if _evolution_store_factory is None:
+        return []
+    try:
+        store = _evolution_store_factory()
+        events = store.get_evolution_events(domain="dataops", limit=500)
+    except Exception:
+        return []
+    return [_variant_from_evolution_event(event) for event in events if isinstance(event, dict)]
 
 
 def _load_dataops_seed() -> list[dict[str, Any]]:
@@ -458,9 +499,7 @@ def _audit_variant_matches(alert: dict[str, Any], variant: dict[str, Any]) -> bo
 
 
 def _audit_recommendation_for_alert(alert: dict[str, Any]) -> dict[str, Any] | None:
-    payload = _load_json(DATA_DIR / "evolution_fixtures.json", {"variants": []})
-    variants = payload.get("variants", []) if isinstance(payload, dict) else []
-    for variant in variants:
+    for variant in _evolution_variants():
         if not isinstance(variant, dict) or variant.get("event_type") != "promotion_approved":
             continue
         if _audit_variant_matches(alert, variant):
@@ -1271,7 +1310,10 @@ def apply_fix(payload: dict[str, Any]) -> dict[str, Any]:
         "status": "GREEN",
         "current_automation": 0.35,
         "projected_automation": 0.38,
-        "theta_min": 0.67,
+        "theta_min": round(
+            compute_theta_min(APPLY_FIX_OVERRIDE_RATE, APPLY_FIX_VERIFIED_COUNT) or 0.0,
+            2,
+        ),
         "safe": True,
     }
 

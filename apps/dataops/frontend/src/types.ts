@@ -669,10 +669,15 @@ export interface ProcessTimelineResponse {
 }
 
 export interface EnterpriseSystemHealth {
+  connected?: boolean;
   status?: string;
   source?: string;
   live?: boolean;
   cached?: boolean;
+  recordCount?: number;
+  kpiCount?: number;
+  nodeCount?: number;
+  lastSync?: string | null;
   total?: number;
   count?: number;
   detail?: string;
@@ -683,6 +688,7 @@ export interface EnterpriseHealth {
   sap?: EnterpriseSystemHealth;
   celonis?: EnterpriseSystemHealth;
   graph?: EnterpriseSystemHealth;
+  overall?: "healthy" | "degraded" | "disconnected" | string;
   engineVersion?: string;
 }
 

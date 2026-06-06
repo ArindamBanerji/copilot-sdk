@@ -4,7 +4,12 @@ import inspect
 from typing import get_type_hints
 
 from copilot_sdk.evolution.protocol import EvolutionStore
-from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.graph import (
+    GraphStore,
+    InMemoryGraphStore,
+    ProtocolV2GraphStore,
+    SQLiteGraphStore,
+)
 
 
 def test_graph_store_protocol_is_runtime_checkable(tmp_path):
@@ -33,6 +38,25 @@ def test_graph_store_protocol_required_methods_exist():
 
     for method in required:
         assert hasattr(GraphStore, method)
+
+
+def test_protocol_v2_graph_store_required_methods_exist():
+    required = [
+        "write_governed_decision",
+        "write_observation",
+        "append_evidence_receipt",
+        "write_conservation_status",
+        "write_fingerprint",
+        "write_centroid_checkpoint",
+        "write_evolution_event",
+        "link_entity",
+        "archive_decisions",
+        "domain_scoped_reset",
+        "count_verified_decisions",
+    ]
+
+    for method in required:
+        assert hasattr(ProtocolV2GraphStore, method)
 
 
 def test_protocol_write_decision_is_domain_first():
@@ -75,6 +99,12 @@ def test_protocol_queries_are_domain_scoped():
     ):
         signature = inspect.signature(getattr(GraphStore, method_name))
         assert list(signature.parameters)[1] == "domain"
+
+
+def test_protocol_v2_count_verified_decisions_is_domain_scoped():
+    signature = inspect.signature(ProtocolV2GraphStore.count_verified_decisions)
+
+    assert list(signature.parameters)[1] == "domain"
 
 
 def test_protocol_save_centroids_is_domain_first_and_flexible():

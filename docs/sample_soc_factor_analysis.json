@@ -1,0 +1,334 @@
+{
+  "current": {
+    "overall_snr": 1.997271,
+    "overall_ceiling": 84.09,
+    "weakest_category": "lateral_movement",
+    "strongest_category": "data_exfiltration",
+    "categories": [
+      {
+        "category": "credential_access",
+        "mean_sep": 0.795219,
+        "min_sep": 0.364005,
+        "weighted_noise": 0.412553,
+        "snr_effective": 1.927556,
+        "ceiling_estimate": 83.24,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.173333,
+          "asset_criticality": 0.173333,
+          "threat_intel_enrichment": 0.2,
+          "pattern_history": 0.124444,
+          "time_anomaly": 0.12,
+          "device_trust": 0.208889
+        }
+      },
+      {
+        "category": "malware_execution",
+        "mean_sep": 0.811592,
+        "min_sep": 0.4,
+        "weighted_noise": 0.412553,
+        "snr_effective": 1.967244,
+        "ceiling_estimate": 83.73,
+        "weakest_pair_names": [
+          "escalate",
+          "investigate"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.170306,
+          "asset_criticality": 0.170306,
+          "threat_intel_enrichment": 0.209607,
+          "pattern_history": 0.122271,
+          "time_anomaly": 0.117904,
+          "device_trust": 0.209607
+        }
+      },
+      {
+        "category": "lateral_movement",
+        "mean_sep": 0.790812,
+        "min_sep": 0.357071,
+        "weighted_noise": 0.412553,
+        "snr_effective": 1.916874,
+        "ceiling_estimate": 83.11,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.170306,
+          "asset_criticality": 0.161572,
+          "threat_intel_enrichment": 0.161572,
+          "pattern_history": 0.19214,
+          "time_anomaly": 0.135371,
+          "device_trust": 0.179039
+        }
+      },
+      {
+        "category": "data_exfiltration",
+        "mean_sep": 0.880355,
+        "min_sep": 0.357071,
+        "weighted_noise": 0.412553,
+        "snr_effective": 2.13392,
+        "ceiling_estimate": 85.7,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.152941,
+          "asset_criticality": 0.168627,
+          "threat_intel_enrichment": 0.172549,
+          "pattern_history": 0.14902,
+          "time_anomaly": 0.160784,
+          "device_trust": 0.196078
+        }
+      },
+      {
+        "category": "insider_threat",
+        "mean_sep": 0.828771,
+        "min_sep": 0.424264,
+        "weighted_noise": 0.412553,
+        "snr_effective": 2.008882,
+        "ceiling_estimate": 84.24,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.16318,
+          "asset_criticality": 0.142259,
+          "threat_intel_enrichment": 0.142259,
+          "pattern_history": 0.1841,
+          "time_anomaly": 0.171548,
+          "device_trust": 0.196653
+        }
+      },
+      {
+        "category": "cloud_infrastructure",
+        "mean_sep": 0.837132,
+        "min_sep": 0.41833,
+        "weighted_noise": 0.412553,
+        "snr_effective": 2.029151,
+        "ceiling_estimate": 84.48,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.161826,
+          "asset_criticality": 0.165975,
+          "threat_intel_enrichment": 0.195021,
+          "pattern_history": 0.128631,
+          "time_anomaly": 0.153527,
+          "device_trust": 0.195021
+        }
+      }
+    ],
+    "factor_importance": {
+      "privileged_identity_context": 0.712312,
+      "asset_criticality": 0.705276,
+      "threat_intel_enrichment": 0.893405,
+      "pattern_history": 0.664761,
+      "time_anomaly": 0.553769,
+      "device_trust": 1.0
+    },
+    "proposed_improvement": {
+      "target_category": "lateral_movement",
+      "weakest_pair_names": [
+        "suppress",
+        "monitor"
+      ],
+      "weakest_factor": "time_anomaly",
+      "recommendation": "Target lateral_movement: increase separation between suppress and monitor (distance=0.3571, ceiling=0.831). Review low-leverage factor time_anomaly for clearer signal."
+    },
+    "sigma_profile": {
+      "privileged_identity_context": 0.1,
+      "asset_criticality": 0.12,
+      "threat_intel_enrichment": 0.07,
+      "pattern_history": 0.15,
+      "time_anomaly": 0.2,
+      "device_trust": 0.28
+    },
+    "kernel_weights": null,
+    "status_counts": {
+      "healthy": 0,
+      "near_ceiling": 6,
+      "at_ceiling": 0
+    }
+  },
+  "bootstrap": {
+    "overall_snr": 1.997271,
+    "overall_ceiling": 84.09,
+    "weakest_category": "lateral_movement",
+    "strongest_category": "data_exfiltration",
+    "categories": [
+      {
+        "category": "credential_access",
+        "mean_sep": 0.795219,
+        "min_sep": 0.364005,
+        "weighted_noise": 0.412553,
+        "snr_effective": 1.927556,
+        "ceiling_estimate": 83.24,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.173333,
+          "asset_criticality": 0.173333,
+          "threat_intel_enrichment": 0.2,
+          "pattern_history": 0.124444,
+          "time_anomaly": 0.12,
+          "device_trust": 0.208889
+        }
+      },
+      {
+        "category": "malware_execution",
+        "mean_sep": 0.811592,
+        "min_sep": 0.4,
+        "weighted_noise": 0.412553,
+        "snr_effective": 1.967244,
+        "ceiling_estimate": 83.73,
+        "weakest_pair_names": [
+          "escalate",
+          "investigate"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.170306,
+          "asset_criticality": 0.170306,
+          "threat_intel_enrichment": 0.209607,
+          "pattern_history": 0.122271,
+          "time_anomaly": 0.117904,
+          "device_trust": 0.209607
+        }
+      },
+      {
+        "category": "lateral_movement",
+        "mean_sep": 0.790812,
+        "min_sep": 0.357071,
+        "weighted_noise": 0.412553,
+        "snr_effective": 1.916874,
+        "ceiling_estimate": 83.11,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.170306,
+          "asset_criticality": 0.161572,
+          "threat_intel_enrichment": 0.161572,
+          "pattern_history": 0.19214,
+          "time_anomaly": 0.135371,
+          "device_trust": 0.179039
+        }
+      },
+      {
+        "category": "data_exfiltration",
+        "mean_sep": 0.880355,
+        "min_sep": 0.357071,
+        "weighted_noise": 0.412553,
+        "snr_effective": 2.13392,
+        "ceiling_estimate": 85.7,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.152941,
+          "asset_criticality": 0.168627,
+          "threat_intel_enrichment": 0.172549,
+          "pattern_history": 0.14902,
+          "time_anomaly": 0.160784,
+          "device_trust": 0.196078
+        }
+      },
+      {
+        "category": "insider_threat",
+        "mean_sep": 0.828771,
+        "min_sep": 0.424264,
+        "weighted_noise": 0.412553,
+        "snr_effective": 2.008882,
+        "ceiling_estimate": 84.24,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.16318,
+          "asset_criticality": 0.142259,
+          "threat_intel_enrichment": 0.142259,
+          "pattern_history": 0.1841,
+          "time_anomaly": 0.171548,
+          "device_trust": 0.196653
+        }
+      },
+      {
+        "category": "cloud_infrastructure",
+        "mean_sep": 0.837132,
+        "min_sep": 0.41833,
+        "weighted_noise": 0.412553,
+        "snr_effective": 2.029151,
+        "ceiling_estimate": 84.48,
+        "weakest_pair_names": [
+          "suppress",
+          "monitor"
+        ],
+        "status": "near_ceiling",
+        "per_factor_contribution": {
+          "privileged_identity_context": 0.161826,
+          "asset_criticality": 0.165975,
+          "threat_intel_enrichment": 0.195021,
+          "pattern_history": 0.128631,
+          "time_anomaly": 0.153527,
+          "device_trust": 0.195021
+        }
+      }
+    ],
+    "factor_importance": {
+      "privileged_identity_context": 0.712312,
+      "asset_criticality": 0.705276,
+      "threat_intel_enrichment": 0.893405,
+      "pattern_history": 0.664761,
+      "time_anomaly": 0.553769,
+      "device_trust": 1.0
+    },
+    "proposed_improvement": {
+      "target_category": "lateral_movement",
+      "weakest_pair_names": [
+        "suppress",
+        "monitor"
+      ],
+      "weakest_factor": "time_anomaly",
+      "recommendation": "Target lateral_movement: increase separation between suppress and monitor (distance=0.3571, ceiling=0.831). Review low-leverage factor time_anomaly for clearer signal."
+    },
+    "sigma_profile": {
+      "privileged_identity_context": 0.1,
+      "asset_criticality": 0.12,
+      "threat_intel_enrichment": 0.07,
+      "pattern_history": 0.15,
+      "time_anomaly": 0.2,
+      "device_trust": 0.28
+    },
+    "kernel_weights": null,
+    "status_counts": {
+      "healthy": 0,
+      "near_ceiling": 6,
+      "at_ceiling": 0
+    }
+  },
+  "snr_improved": false,
+  "generated_at": "2026-06-04T20:52:25.892129Z"
+}

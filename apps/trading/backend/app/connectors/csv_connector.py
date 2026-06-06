@@ -59,6 +59,7 @@ class CSVConnector:
         "exit_time": ("exit_time", "closed_at"),
         "strategy_tag": ("strategy_tag", "strategy", "tag"),
         "asset_type": ("asset_type", "asset_class"),
+        "trader_id": ("trader_id", "trader", "user_id", "account", "account_id"),
         "fees": ("fees", "commission", "fee"),
         "pnl": ("pnl", "profit_loss", "realized_pnl"),
         "notes": ("notes", "note", "comment"),
@@ -123,10 +124,11 @@ class CSVConnector:
                     exit_price=_parse_optional_float(self._value(row, normalized_headers, "exit_price")),
                     size=_parse_optional_float(self._value(row, normalized_headers, "size")) or 0.0,
                     entry_time=_parse_datetime(self._value(row, normalized_headers, "entry_time")),
-                    exit_time=_parse_optional_datetime(self._value(row, normalized_headers, "exit_time")),
-                    strategy_tag=_optional_str(self._value(row, normalized_headers, "strategy_tag")),
-                    asset_type=_optional_str(self._value(row, normalized_headers, "asset_type")) or "equity",
-                    fees=_parse_optional_float(self._value(row, normalized_headers, "fees")) or 0.0,
+                      exit_time=_parse_optional_datetime(self._value(row, normalized_headers, "exit_time")),
+                      strategy_tag=_optional_str(self._value(row, normalized_headers, "strategy_tag")),
+                      asset_type=_optional_str(self._value(row, normalized_headers, "asset_type")) or "equity",
+                      trader_id=_trader_id(self._value(row, normalized_headers, "trader_id")),
+                      fees=_parse_optional_float(self._value(row, normalized_headers, "fees")) or 0.0,
                     pnl=_parse_optional_float(self._value(row, normalized_headers, "pnl")),
                     notes=_optional_str(self._value(row, normalized_headers, "notes")),
                 )
@@ -169,10 +171,11 @@ class CSVConnector:
                 exit_price=_parse_optional_float(_mapped(row, mapping, "exit_price")),
                 size=_parse_optional_float(_mapped(row, mapping, "size")) or 0.0,
                 entry_time=self._parse_date(_mapped(row, mapping, "entry_time")),
-                exit_time=_parse_optional_datetime(_mapped(row, mapping, "exit_time")),
-                strategy_tag=_optional_str(_mapped(row, mapping, "strategy_tag")),
-                asset_type=_optional_str(_mapped(row, mapping, "asset_type")) or "equity",
-                fees=_parse_optional_float(_mapped(row, mapping, "fees")) or 0.0,
+                  exit_time=_parse_optional_datetime(_mapped(row, mapping, "exit_time")),
+                  strategy_tag=_optional_str(_mapped(row, mapping, "strategy_tag")),
+                  asset_type=_optional_str(_mapped(row, mapping, "asset_type")) or "equity",
+                  trader_id=_trader_id(_mapped(row, mapping, "trader_id")),
+                  fees=_parse_optional_float(_mapped(row, mapping, "fees")) or 0.0,
                 pnl=_parse_optional_float(_mapped(row, mapping, "pnl")),
                 notes=_optional_str(_mapped(row, mapping, "notes")),
             )
@@ -270,6 +273,10 @@ def _strptime(value: str, date_format: str) -> datetime | None:
 def _optional_str(value: object) -> str | None:
     text = str(value).strip() if value is not None else ""
     return text or None
+
+
+def _trader_id(value: object) -> str:
+    return _optional_str(value) or "default"
 
 
 def _mapped(row: dict[str, str], mapping: dict[str, str], field: str) -> str | None:

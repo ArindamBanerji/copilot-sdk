@@ -28,9 +28,11 @@ import AlertGroupCard from "../components/AlertGroupCard";
 import AlertQueue from "../components/AlertQueue";
 import ConservationProjection from "../components/ConservationProjection";
 import ConservationTimeline from "../components/ConservationTimeline";
+import { CelonisBadge } from "../components/CelonisBadge";
 import { EnterpriseHealthBar } from "../components/EnterpriseHealthBar";
 import PipelineGrid from "../components/PipelineGrid";
 import ProcessTimelinePanel from "../components/ProcessTimelinePanel";
+import { SAPDataBadge } from "../components/SAPDataBadge";
 
 interface DashboardScreenProps {
   onSelectAlert: (alertId: string) => void;
@@ -150,7 +152,11 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="dataops-section-title">Pipeline Status</h2>
-            <span className="text-sm dataops-muted">{state.pipelines.length} systems</span>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <SAPDataBadge />
+              <CelonisBadge />
+              <span className="text-sm dataops-muted">{state.pipelines.length} systems</span>
+            </div>
           </div>
           <PipelineGrid pipelines={state.pipelines} />
         </div>

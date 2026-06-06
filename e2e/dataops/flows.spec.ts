@@ -95,7 +95,7 @@ test("insight exploration: fingerprint, incident, evidence, curve", async ({ pag
   await page.goto("/");
 
   await clickTab(page, "Insight");
-  await expect(page.getByText("Fingerprint")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Fingerprint" })).toBeVisible();
   await expectAnyText(page, [/Decision Explorer/i, /\d+\s+GraphStore decisions?/i, /No decisions match these filters/i]);
   await expect(page.getByText("Incident Replay")).toBeVisible();
 
@@ -107,8 +107,9 @@ test("insight exploration: fingerprint, incident, evidence, curve", async ({ pag
   await expectAnyText(page, [/decision/i, /factors/i, /recommendation/i, /outcome/i, /No audit trail available yet/i]);
   const genealogy = page.locator("section", { hasText: "Rule Genealogy" }).first();
   await expect(genealogy).toBeVisible();
-  await expect(genealogy.getByText(/SOC|S2P|DataOps|seeded evolution data/i).first()).toBeVisible();
-  await expect(page.getByText("Pattern Origin")).toBeVisible();
+  await expect(page.getByText(/Based on seeded|Seeded procurement/i)).toHaveCount(0);
+  await expect(genealogy.getByText(/No evolution data yet|evolution|variant|rule/i).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pattern Origin" })).toBeVisible();
 
   await clickTab(page, "Curve");
   await expect(page.getByText("Trajectory")).toBeVisible();
@@ -127,9 +128,9 @@ test("evidence deep exploration shows impact lifecycle audit trail and genealogy
   expect(auditText.length).toBeGreaterThan(20);
   const genealogy = page.locator("section", { hasText: "Rule Genealogy" }).first();
   await expect(genealogy).toBeVisible();
-  await expect(genealogy.getByText(/SOC|S2P|DataOps/i).first()).toBeVisible();
-  await expect(genealogy.getByText(/seeded evolution data|warm start|transfer/i).first()).toBeVisible();
-  await expect(page.getByText("Pattern Origin")).toBeVisible();
+  await expect(page.getByText(/Based on seeded|Seeded procurement/i)).toHaveCount(0);
+  await expect(genealogy.getByText(/No evolution data yet|evolution|variant|rule/i).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pattern Origin" })).toBeVisible();
 });
 
 test("tab navigation all 5 tabs and no blank screens", async ({ page }) => {
@@ -257,7 +258,8 @@ test("full round trip visits Dashboard, Triage, Insight, Evidence, and Curve", a
   await clickTab(page, "Evidence");
   await expectAnyText(page, [/AgentEvolver Impact/i, /Rule Lifecycle/i]);
   await expectAnyText(page, [/Audit Trail/i, /decision/i, /outcome/i, /No audit trail available yet/i]);
-  await expectAnyText(page, [/Rule Genealogy/i, /seeded evolution data/i, /warm start/i, /transfer/i]);
+  await expect(page.getByText(/Based on seeded|Seeded procurement/i)).toHaveCount(0);
+  await expectAnyText(page, [/Rule Genealogy/i, /No evolution data yet/i, /evolution/i, /variant/i, /rule/i]);
 
   await clickTab(page, "Curve");
   await expectAnyText(page, [/Trajectory/i, /Current IKS/i, /Centroid Evolution/i]);
@@ -324,9 +326,18 @@ test("full Level 3 story shows bottleneck schema rules genealogy and curve", asy
   await expect(schema.getByText(/proposed fix|downstream|No schema changes detected/i).first()).toBeVisible();
   const rules = dataopsPanel(page, "Operational Rules");
   await expect(rules.getByText(/scheduling|quality/i).first()).toBeVisible();
-  await expect(dataopsPanel(page, "Rule Lifecycle").getByText(/promoted|rejected/i).first()).toBeVisible();
-  await expect(dataopsPanel(page, "Rule Genealogy").getByText(/SOC|S2P|DataOps/i).first()).toBeVisible();
-  await expect(dataopsPanel(page, "Pattern Origin").getByText(/SOC|S2P/i).first()).toBeVisible();
+  await expect(page.getByText(/Based on seeded|Seeded procurement/i)).toHaveCount(0);
+  await expect(dataopsPanel(page, "Rule Lifecycle").getByText(/No promoted variants yet|promoted|rejected|variant/i).first()).toBeVisible();
+  await expect(dataopsPanel(page, "Rule Genealogy").getByText(/No evolution data yet|evolution|variant|rule/i).first()).toBeVisible();
+  const origin = dataopsPanel(page, "Pattern Origin");
+  await expect(origin).toBeVisible();
+  await expect(
+    origin
+      .getByText(
+        /SOC|S2P|DataOps|resource_quality_scheduling_signal|s2p_invoice_quality_scheduling_signal|No cross-copilot chain available/i,
+      )
+      .first(),
+  ).toBeVisible();
 
   await clickTab(page, "Curve");
   await expectAnyText(page, [/Trajectory/i, /Current IKS/i, /Centroid Evolution/i]);

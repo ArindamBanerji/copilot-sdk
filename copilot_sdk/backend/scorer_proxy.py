@@ -32,6 +32,8 @@ class FreshScorerProxy:
                 self._scorer_instance = CompoundingScorer.from_preset(
                     self._preset_name,
                     graph_store=self.graph_store,
+                    evolve=True,
+                    consolidation_enabled=True,
                 )
             return self._scorer_instance
 

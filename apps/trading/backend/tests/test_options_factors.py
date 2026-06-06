@@ -196,17 +196,17 @@ def test_options_computers_all_have_compute():
     assert all(hasattr(computer, "compute") for computer in OPTIONS_FACTOR_COMPUTERS.values())
 
 
-def test_trading_preset_shape_still_5_4_7():
+def test_trading_preset_shape_is_5_4_10():
     shape = TradingPreset().shape
-    assert (shape.n_categories, shape.n_actions, shape.n_factors) == (5, 4, 7)
+    assert (shape.n_categories, shape.n_actions, shape.n_factors) == (5, 4, 10)
 
 
-def test_core_factor_registry_still_7_keys():
-    assert len(ALL_FACTOR_NAMES) == 7
+def test_core_factor_registry_has_10_scored_keys():
+    assert len(ALL_FACTOR_NAMES) == 10
     assert set(OPTIONS_FACTOR_NAMES).isdisjoint(set(ALL_FACTOR_NAMES))
 
 
-def test_compute_factors_still_returns_only_core_7():
+def test_compute_factors_still_returns_only_scored_keys():
     values = compute_factors(_context())
     assert set(values) == set(ALL_FACTOR_NAMES)
 

@@ -1,0 +1,49 @@
+{
+  "factors": [
+    {
+      "name": "privileged_identity_context",
+      "index": 0,
+      "contribution_pct": 16.67,
+      "signal_strength": "high",
+      "rank": 1
+    },
+    {
+      "name": "asset_criticality",
+      "index": 1,
+      "contribution_pct": 16.67,
+      "signal_strength": "high",
+      "rank": 2
+    },
+    {
+      "name": "threat_intel_enrichment",
+      "index": 2,
+      "contribution_pct": 16.67,
+      "signal_strength": "medium",
+      "rank": 3
+    },
+    {
+      "name": "pattern_history",
+      "index": 3,
+      "contribution_pct": 16.67,
+      "signal_strength": "medium",
+      "rank": 4
+    },
+    {
+      "name": "time_anomaly",
+      "index": 4,
+      "contribution_pct": 16.67,
+      "signal_strength": "low",
+      "rank": 5
+    },
+    {
+      "name": "device_trust",
+      "index": 5,
+      "contribution_pct": 16.65,
+      "signal_strength": "low",
+      "rank": 6
+    }
+  ],
+  "method": "uniform",
+  "top_factor": "privileged_identity_context",
+  "weakest_factor": "device_trust"
+}

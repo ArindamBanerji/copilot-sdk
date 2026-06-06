@@ -43,6 +43,8 @@ test("score confirm then Performance shows IKS", async ({ page }) => {
       const secondValue = await itemSelect.locator("option").nth(1).getAttribute("value");
       if (secondValue) {
         await itemSelect.selectOption(secondValue);
+        await expect(page.getByRole("button", { name: "Score This Order" })).toBeEnabled();
+        await page.waitForLoadState("networkidle");
       }
     }
   }
@@ -160,6 +162,8 @@ test("Dashboard to Order score to confirm to Performance IKS", async ({ page }) 
       const secondValue = await itemSelect.locator("option").nth(1).getAttribute("value");
       if (secondValue) {
         await itemSelect.selectOption(secondValue);
+        await expect(page.getByRole("button", { name: "Score This Order" })).toBeEnabled();
+        await page.waitForLoadState("networkidle");
       }
     }
   }

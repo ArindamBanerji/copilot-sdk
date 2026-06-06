@@ -33,6 +33,11 @@ class LearnResponse(FlexibleResponse):
     previous_reward: float | None
     reward_multiplier: float
     engine: dict[str, str]
+    paused: bool | None = None
+    pause_reason: str | None = None
+    centroid_updated: bool | None = None
+    action: str | None = None
+    confidence: float | None = None
 
 
 class FingerprintFactorResponse(BaseModel):

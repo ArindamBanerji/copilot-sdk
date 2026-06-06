@@ -1,8 +1,13 @@
+import { useEffect, useState } from "react";
+import { fetchEnterpriseHealth } from "../api";
+import type { EnterpriseSystemHealth } from "../types";
+
 interface SAPDataBadgeProps {
   po_count?: number;
   poCount?: number;
   variant_text?: string;
   variantText?: string;
+  sap?: EnterpriseSystemHealth;
 }
 
 export function SAPDataBadge({
@@ -10,14 +15,37 @@ export function SAPDataBadge({
   poCount,
   variant_text,
   variantText,
+  sap,
 }: SAPDataBadgeProps) {
-  const count = poCount ?? po_count;
+  const [remoteSap, setRemoteSap] = useState<EnterpriseSystemHealth | null>(sap ?? null);
+
+  useEffect(() => {
+    if (sap) {
+      setRemoteSap(sap);
+      return;
+    }
+    let cancelled = false;
+    fetchEnterpriseHealth().then((health) => {
+      if (!cancelled) {
+        setRemoteSap(health?.sap ?? null);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sap]);
+
+  const count = poCount ?? po_count ?? remoteSap?.recordCount;
   const variant = variantText ?? variant_text;
+  const connected = remoteSap?.connected === true;
+  const tone = connected
+    ? "border-emerald-300/40 bg-emerald-500/10 text-emerald-100"
+    : "border-slate-500/40 bg-slate-500/10 text-slate-200";
 
   return (
-    <span className="inline-flex items-center rounded-md border border-purple-300/40 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-100">
-      SAP S/4HANA
-      {typeof count === "number" ? ` · ${count} POs` : ""}
+    <span className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold ${tone}`}>
+      {connected ? "SAP S/4HANA" : "SAP Offline"}
+      {typeof count === "number" ? ` · ${count} records` : ""}
       {variant ? ` · ${variant}` : ""}
     </span>
   );

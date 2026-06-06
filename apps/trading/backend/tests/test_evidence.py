@@ -118,9 +118,9 @@ def test_emotional_detail_no_flags():
     assert _emotional_detail(0.5, {}) == "no flags detected"
 
 
-def test_factor_breakdown_all_7_factors():
+def test_factor_breakdown_all_10_factors():
     lines = TradingTemplateEngine().render_factor_breakdown(_factors())
-    assert len(lines) == 7
+    assert len(lines) == 10
     assert any(line.startswith("Decision context:") for line in lines)
 
 

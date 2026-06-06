@@ -172,6 +172,8 @@ def test_fresh_scorer_proxy_constructs_scorer_once_per_proxy(tmp_path, monkeypat
     assert len(calls) == 1
     assert calls[0][0] == ("trading",)
     assert calls[0][1]["graph_store"] is proxy.graph_store
+    assert calls[0][1]["evolve"] is True
+    assert calls[0][1]["consolidation_enabled"] is True
     assert fake.calls == [
         "score",
         "learn",

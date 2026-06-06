@@ -20,9 +20,17 @@ class NormalizedTrade:
     exit_time: Optional[datetime] = None
     strategy_tag: Optional[str] = None
     asset_type: str = "equity"
+    trader_id: str = "default"
     fees: float = 0.0
     pnl: Optional[float] = None
     notes: Optional[str] = None
+    stop_loss: Optional[float] = None
+    expected_entry_price: Optional[float] = None
+    expected_exit_price: Optional[float] = None
+    fill_rate: float = 1.0
+    r_multiple: Optional[float] = None
+    execution_quality: Optional[float] = None
+    verification_score: Optional[float] = None
 
     def __post_init__(self) -> None:
         self.trade_id = str(self.trade_id)
@@ -32,8 +40,32 @@ class NormalizedTrade:
         self.entry_price = float(self.entry_price)
         self.exit_price = float(self.exit_price) if self.exit_price is not None else None
         self.size = float(self.size)
+        self.trader_id = _normalize_trader_id(self.trader_id)
         self.fees = float(self.fees)
         self.pnl = float(self.pnl) if self.pnl is not None else None
+        self.stop_loss = float(self.stop_loss) if self.stop_loss is not None else None
+        self.expected_entry_price = (
+            float(self.expected_entry_price)
+            if self.expected_entry_price is not None
+            else None
+        )
+        self.expected_exit_price = (
+            float(self.expected_exit_price)
+            if self.expected_exit_price is not None
+            else None
+        )
+        self.fill_rate = float(self.fill_rate)
+        self.r_multiple = float(self.r_multiple) if self.r_multiple is not None else None
+        self.execution_quality = (
+            float(self.execution_quality)
+            if self.execution_quality is not None
+            else None
+        )
+        self.verification_score = (
+            float(self.verification_score)
+            if self.verification_score is not None
+            else None
+        )
 
     @property
     def is_closed(self) -> bool:
@@ -66,9 +98,22 @@ class NormalizedTrade:
             "exit_time": self.exit_time.isoformat() if self.exit_time else None,
             "strategy_tag": self.strategy_tag,
             "asset_type": self.asset_type,
+            "trader_id": self.trader_id,
             "fees": self.fees,
             "pnl": self.pnl if self.pnl is not None else self.computed_pnl,
             "notes": self.notes,
+            "stop_loss": self.stop_loss,
+            "expected_entry_price": self.expected_entry_price,
+            "expected_exit_price": self.expected_exit_price,
+            "fill_rate": self.fill_rate,
+            "r_multiple": self.r_multiple,
+            "execution_quality": self.execution_quality,
+            "verification_score": self.verification_score,
             "is_closed": self.is_closed,
             "hold_minutes": self.hold_minutes,
         }
+
+
+def _normalize_trader_id(value: object) -> str:
+    text = str(value or "").strip()
+    return text or "default"

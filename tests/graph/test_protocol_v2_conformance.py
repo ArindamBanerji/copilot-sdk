@@ -17,13 +17,15 @@ from copilot_sdk.scoring import CompoundingScorer
 
 PENDING = pytest.mark.skip(reason="Protocol v2 implementation pending")
 AGE_PENDING = pytest.mark.skip(reason="Protocol v2 AGE adapter implementation pending")
+AGE_CROSS_DOMAIN_CONCURRENCY_PENDING = pytest.mark.skip(
+    reason="AGE cross-domain concurrency/isolation stress coverage pending"
+)
 GENERIC_AGE_ROLLBACK_PENDING = pytest.mark.skip(
     reason=(
         "Generic AGE transaction rollback coverage pending; EvidenceReceipt rollback is active, "
         "reset mid-failure needs safe live failure injection"
     )
 )
-OUTBOX_PENDING = pytest.mark.skip(reason="Protocol v2 outbox/service-layer implementation pending")
 MIGRATION_PENDING = pytest.mark.skip(reason="SQLite-to-AGE migration replay implementation pending")
 DEFAULT_AGE_DSN = "postgresql://localhost:5432/soc_copilot"
 
@@ -204,6 +206,17 @@ def _age_node_count(age_store, label: str, key: str, value: str) -> int:
         f"""
         MATCH (n:{label} {{{key}: {age_store._store._S(value)}}})
         RETURN count(n) AS cnt
+        """
+    )
+    return int(rows[0]["cnt"]) if rows else 0
+
+
+def _age_decision_node_count(age_store, decision_id: str, domain: str) -> int:
+    rows = age_store._store._run_query(
+        f"""
+        MATCH (d:Decision {{decision_id: {age_store._store._S(decision_id)}}})
+        WHERE d.domain = {age_store._store._S(domain)}
+        RETURN count(d) AS cnt
         """
     )
     return int(rows[0]["cnt"]) if rows else 0
@@ -432,6 +445,49 @@ def test_age_v2_governed_decision_caller_id(age_store):
     assert decision["status"] == "pending"
     assert age_store.count_decisions(domain) == 1
     assert age_store.count_verified_decisions(domain) == 0
+
+
+@pytest.mark.age
+def test_age_governed_decision_identical_replay_skips(age_store):
+    """AGE write_governed_decision is idempotent for identical Class A replay."""
+    # Protocol v2 invariant: caller-supplied governed Decision IDs are Class A keys.
+    domain = age_store.protocol_v2_test_domain
+    decision_id = f"AGE-GOV-IDEMP-{uuid.uuid4().hex[:8]}"
+    _write_governed_decision(age_store, decision_id, domain=domain, created_at=100.0)
+    before = age_store.get_decision(decision_id)
+
+    _write_governed_decision(age_store, decision_id, domain=domain, created_at=200.0)
+
+    after = age_store.get_decision(decision_id)
+    assert after == before
+    assert age_store.count_decisions(domain) == 1
+    assert age_store.count_verified_decisions(domain) == 0
+    assert _age_decision_node_count(age_store, decision_id, domain) == 1
+
+
+@pytest.mark.age
+def test_age_governed_decision_conflict_raises(age_store):
+    """AGE write_governed_decision rejects conflicting Class A replay."""
+    # Protocol v2 invariant: same governed Decision ID cannot be reused for a different payload.
+    domain = age_store.protocol_v2_test_domain
+    decision_id = f"AGE-GOV-CONFLICT-{uuid.uuid4().hex[:8]}"
+    _write_governed_decision(age_store, decision_id, domain=domain, created_at=100.0)
+    before = age_store.get_decision(decision_id)
+
+    with pytest.raises(ValueError, match="conflicting governed decision_id"):
+        _write_governed_decision(
+            age_store,
+            decision_id,
+            domain=domain,
+            action="manual_review",
+            created_at=200.0,
+        )
+
+    after = age_store.get_decision(decision_id)
+    assert after == before
+    assert age_store.count_decisions(domain) == 1
+    assert age_store.count_verified_decisions(domain) == 0
+    assert _age_decision_node_count(age_store, decision_id, domain) == 1
 
 
 def test_write_outcome_confirmed(sqlite_store):
@@ -2378,6 +2434,28 @@ def _populate_age_reset_domain(age_store, domain: str, prefix: str) -> dict[str,
     }
 
 
+def _age_reset_domain_snapshot(age_store, domain: str, ids: dict[str, str]) -> dict[str, object]:
+    labels = (
+        "Decision",
+        "Outcome",
+        "Observation",
+        "EvidenceReceipt",
+        "ConservationStatus",
+        "Fingerprint",
+        "CentroidCheckpoint",
+        "EvolutionEvent",
+        "DomainContext",
+    )
+    return {
+        "labels": {label: _age_domain_label_count(age_store, label, domain) for label in labels},
+        "about_edges": _age_domain_about_edge_count(age_store, domain),
+        "receipt_edges": _age_receipt_edge_count(age_store, ids["decision_id"], ids["receipt_id"], domain),
+        "decision_exists": age_store.get_decision(ids["decision_id"]) is not None,
+        "count_decisions": age_store.count_decisions(domain),
+        "count_verified_decisions": age_store.count_verified_decisions(domain),
+    }
+
+
 @pytest.mark.age
 def test_age_domain_scoped_reset(age_store):
     """AGE domain_scoped_reset clears one guarded test domain and preserves another."""
@@ -2830,7 +2908,7 @@ def test_local_idempotent_replay_does_not_duplicate_class_a_records(sqlite_store
     assert sqlite_store.count_verified_decisions("test") == 1
 
 
-@AGE_PENDING
+@AGE_CROSS_DOMAIN_CONCURRENCY_PENDING
 def test_concurrent_cross_domain():
     """Concurrent writes to different domains do not cross-contaminate."""
     # Protocol v2 invariant: domain partitioning is enforced under concurrency.
@@ -2927,12 +3005,42 @@ def test_outcome_replay_conflicting_errors(sqlite_store):
     assert decision["status"] == "confirmed"
 
 
-@GENERIC_AGE_ROLLBACK_PENDING
-def test_age_transaction_rollback_preserves_domain_on_mid_reset_failure():
+@pytest.mark.age
+def test_age_transaction_rollback_preserves_domain_on_mid_reset_failure(age_store, monkeypatch):
     """Failed AGE reset transaction leaves the target domain unchanged."""
-    # Protocol v2 future invariant: reset failure injection should exercise the real
-    # transaction helper without corrupting a live AGE test graph.
-    pass
+    # Protocol v2 AGE invariant: failure inside the real transaction helper rolls
+    # back relationship and node deletes. This is live-only because SQLite/Memory
+    # cannot exercise PostgreSQL+AGE transaction rollback.
+    domain = age_store.protocol_v2_test_domain
+    other_domain = f"pytest_protocol_v2_other_rollback_{uuid.uuid4().hex[:8]}"
+    target = _populate_age_reset_domain(age_store, domain, "AGE-RB-TARGET")
+    other = _populate_age_reset_domain(age_store, other_domain, "AGE-RB-OTHER")
+
+    original_delete_domain_label = age_store._store._delete_domain_label
+    delete_calls: list[tuple[str, str]] = []
+
+    def fail_after_first_target_delete(tx, label: str, delete_domain: str) -> None:
+        original_delete_domain_label(tx, label, delete_domain)
+        delete_calls.append((label, delete_domain))
+        if label == "EvidenceReceipt" and delete_domain == domain:
+            raise RuntimeError("injected reset rollback failure")
+
+    try:
+        target_before = _age_reset_domain_snapshot(age_store, domain, target)
+        other_before = _age_reset_domain_snapshot(age_store, other_domain, other)
+        monkeypatch.setattr(age_store._store, "_delete_domain_label", fail_after_first_target_delete)
+
+        with pytest.raises(RuntimeError, match="injected reset rollback failure"):
+            age_store.domain_scoped_reset(domain)
+
+        monkeypatch.undo()
+        assert delete_calls == [("EvidenceReceipt", domain)]
+        assert _age_reset_domain_snapshot(age_store, domain, target) == target_before
+        assert _age_reset_domain_snapshot(age_store, other_domain, other) == other_before
+    finally:
+        monkeypatch.undo()
+        age_store.domain_scoped_reset(domain)
+        age_store.domain_scoped_reset(other_domain)
 
 
 def test_preview_no_decision_write(sqlite_store):
@@ -2958,11 +3066,51 @@ def test_age_preview_no_decision_write(age_store):
     assert age_store.get_decision(observation_id) is None
 
 
-@OUTBOX_PENDING
-def test_outbox_replay_ordering():
+def test_outbox_replay_ordering(sqlite_store):
     """Outbox replay applies Decisions before dependent Outcomes and receipts."""
     # Protocol v2 invariant: replay ordering preserves referential integrity.
-    pass
+    decision_id = sqlite_store.enqueue_to_outbox(
+        "test",
+        "write_governed_decision",
+        "GOV-OUTBOX-1",
+        {"decision_id": "GOV-OUTBOX-1"},
+    )
+    outcome_id = sqlite_store.enqueue_to_outbox(
+        "test",
+        "write_outcome",
+        "GOV-OUTBOX-1",
+        {"decision_id": "GOV-OUTBOX-1", "actual_action": "approve"},
+        causal_decision_id="GOV-OUTBOX-1",
+    )
+    receipt_id = sqlite_store.enqueue_to_outbox(
+        "test",
+        "append_evidence_receipt",
+        "RCP-OUTBOX-1",
+        {"decision_id": "GOV-OUTBOX-1", "receipt_intent_id": "RCP-OUTBOX-1"},
+        causal_decision_id="GOV-OUTBOX-1",
+    )
+
+    rows = sqlite_store.connection.execute(
+        """
+        SELECT outbox_id, operation_type, causal_decision_id, status, schema_version
+        FROM outbox
+        WHERE domain = ?
+        ORDER BY outbox_id
+        """,
+        ("test",),
+    ).fetchall()
+
+    assert [int(row["outbox_id"]) for row in rows] == [decision_id, outcome_id, receipt_id]
+    assert [row["operation_type"] for row in rows] == [
+        "write_governed_decision",
+        "write_outcome",
+        "append_evidence_receipt",
+    ]
+    assert rows[0]["causal_decision_id"] is None
+    assert rows[1]["causal_decision_id"] == "GOV-OUTBOX-1"
+    assert rows[2]["causal_decision_id"] == "GOV-OUTBOX-1"
+    assert {row["status"] for row in rows} == {"pending"}
+    assert {int(row["schema_version"]) for row in rows} == {1}
 
 
 def test_evidence_replay_same_intent_skips(sqlite_store):
@@ -3004,22 +3152,112 @@ def test_evidence_replay_conflict_quarantines(sqlite_store):
     assert rows[0]["payload_hash"] == first[1]
 
 
-@OUTBOX_PENDING
-def test_governed_decision_conflict_quarantines():
+def test_governed_decision_conflict_quarantines(sqlite_store):
     """Same governed decision_id with different payload quarantines or errors."""
     # Protocol v2 method/invariant: write_governed_decision is Class A.
-    pass
+    original_id = sqlite_store.enqueue_to_outbox(
+        "test",
+        "write_governed_decision",
+        "GOV-1",
+        {"decision_id": "GOV-1", "recommended_action": "approve"},
+    )
+
+    with pytest.raises(ValueError, match="payload_hash_conflict"):
+        sqlite_store.enqueue_to_outbox(
+            "test",
+            "write_governed_decision",
+            "GOV-1",
+            {"decision_id": "GOV-1", "recommended_action": "manual_review"},
+        )
+
+    outbox_rows = sqlite_store.connection.execute(
+        "SELECT outbox_id, payload_json FROM outbox WHERE domain = ? AND target_key = ?",
+        ("test", "GOV-1"),
+    ).fetchall()
+    quarantine_rows = sqlite_store.connection.execute(
+        "SELECT outbox_id, new_payload_json, reason FROM outbox_quarantine WHERE domain = ? AND target_key = ?",
+        ("test", "GOV-1"),
+    ).fetchall()
+    assert len(outbox_rows) == 1
+    assert int(outbox_rows[0]["outbox_id"]) == original_id
+    assert json.loads(outbox_rows[0]["payload_json"])["recommended_action"] == "approve"
+    assert len(quarantine_rows) == 1
+    assert int(quarantine_rows[0]["outbox_id"]) == original_id
+    assert json.loads(quarantine_rows[0]["new_payload_json"])["recommended_action"] == "manual_review"
+    assert quarantine_rows[0]["reason"] == "payload_hash_conflict"
 
 
-@OUTBOX_PENDING
-def test_evolution_event_conflict_quarantines():
+def test_evolution_event_conflict_quarantines(sqlite_store):
     """Same event_id with different evolution payload quarantines or errors."""
     # Protocol v2 method/invariant: write_evolution_event conflict policy is strict.
-    pass
+    original_id = sqlite_store.enqueue_to_outbox(
+        "test",
+        "write_evolution_event",
+        "EVT-1",
+        {"event_id": "EVT-1", "variant_id": "variant-a"},
+    )
+
+    with pytest.raises(ValueError, match="payload_hash_conflict"):
+        sqlite_store.enqueue_to_outbox(
+            "test",
+            "write_evolution_event",
+            "EVT-1",
+            {"event_id": "EVT-1", "variant_id": "variant-b"},
+        )
+
+    outbox_rows = sqlite_store.connection.execute(
+        "SELECT outbox_id, payload_json FROM outbox WHERE domain = ? AND target_key = ?",
+        ("test", "EVT-1"),
+    ).fetchall()
+    quarantine_rows = sqlite_store.connection.execute(
+        "SELECT outbox_id, new_payload_json, reason FROM outbox_quarantine WHERE domain = ? AND target_key = ?",
+        ("test", "EVT-1"),
+    ).fetchall()
+    assert len(outbox_rows) == 1
+    assert int(outbox_rows[0]["outbox_id"]) == original_id
+    assert json.loads(outbox_rows[0]["payload_json"])["variant_id"] == "variant-a"
+    assert len(quarantine_rows) == 1
+    assert int(quarantine_rows[0]["outbox_id"]) == original_id
+    assert json.loads(quarantine_rows[0]["new_payload_json"])["variant_id"] == "variant-b"
+    assert quarantine_rows[0]["reason"] == "payload_hash_conflict"
 
 
-@OUTBOX_PENDING
-def test_outbox_quarantine_recorded():
+def test_outbox_quarantine_recorded(sqlite_store):
     """Conflicting outbox replay records a quarantine trail."""
     # Protocol v2 invariant: conflicts are auditable, not silently dropped.
-    pass
+    original_id = sqlite_store.enqueue_to_outbox(
+        "test",
+        "operation",
+        "TARGET-1",
+        {"value": "original"},
+    )
+    with pytest.raises(ValueError, match="payload_hash_conflict"):
+        sqlite_store.enqueue_to_outbox(
+            "test",
+            "operation",
+            "TARGET-1",
+            {"value": "conflict"},
+        )
+
+    quarantine = sqlite_store.connection.execute(
+        """
+        SELECT *
+        FROM outbox_quarantine
+        WHERE domain = ? AND operation_type = ? AND target_key = ?
+        """,
+        ("test", "operation", "TARGET-1"),
+    ).fetchone()
+    original = sqlite_store.connection.execute(
+        "SELECT payload_hash, payload_json FROM outbox WHERE outbox_id = ?",
+        (original_id,),
+    ).fetchone()
+
+    assert quarantine is not None
+    assert int(quarantine["outbox_id"]) == original_id
+    assert quarantine["existing_payload_hash"] == original["payload_hash"]
+    assert quarantine["new_payload_hash"] != original["payload_hash"]
+    assert json.loads(original["payload_json"]) == {"value": "original"}
+    assert json.loads(quarantine["new_payload_json"]) == {"value": "conflict"}
+    assert quarantine["reason"] == "payload_hash_conflict"
+    assert quarantine["resolved_at"] is None
+    assert quarantine["resolution"] is None

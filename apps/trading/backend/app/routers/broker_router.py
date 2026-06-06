@@ -1,18 +1,49 @@
-"""Read-only broker HTTP endpoints for the Trading backend."""
+"""Broker HTTP endpoints for the Trading backend."""
 
 from __future__ import annotations
 
 from dataclasses import asdict, is_dataclass
 from enum import Enum
 from math import isfinite
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field, field_validator, model_validator
 
-from app.brokers import BrokerError, BrokerProtocol, get_broker
+from app.brokers import BrokerError, BrokerProtocol, OrderRequest, OrderSide, get_broker
 
 
 BrokerFactory = Callable[[str], BrokerProtocol]
+
+
+class BrokerOrderRequest(BaseModel):
+    ticker: str = Field(..., min_length=1)
+    side: Literal["buy", "sell"]
+    qty: float = Field(..., gt=0)
+    order_type: Literal["market", "limit"] = "market"
+    time_in_force: str = Field(default="day", min_length=1)
+    limit_price: float | None = Field(default=None, gt=0)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("ticker")
+    def normalize_ticker(cls, value: str) -> str:
+        ticker = str(value or "").strip().upper()
+        if not ticker:
+            raise ValueError("ticker is required")
+        return ticker
+
+    @field_validator("time_in_force")
+    def normalize_time_in_force(cls, value: str) -> str:
+        time_in_force = str(value or "").strip().lower()
+        if not time_in_force:
+            raise ValueError("time_in_force is required")
+        return time_in_force
+
+    @model_validator(mode="after")
+    def validate_limit_order(self) -> "BrokerOrderRequest":
+        if self.order_type == "limit" and self.limit_price is None:
+            raise ValueError("limit_price is required for limit orders")
+        return self
 
 
 def _safe_float(value: Any) -> float | None:
@@ -70,6 +101,25 @@ def _resolve_broker(broker: str, broker_factory: BrokerFactory) -> tuple[BrokerP
         return broker_factory(broker), None
     except (BrokerError, EnvironmentError, ValueError) as exc:
         return None, _safe_error(exc)
+
+
+def _broker_http_error(
+    status_code: int,
+    broker: str,
+    *,
+    status: str,
+    error: str,
+) -> HTTPException:
+    return HTTPException(
+        status_code=status_code,
+        detail={
+            "broker": broker,
+            "connected": False,
+            "status": status,
+            "order": None,
+            "error": error,
+        },
+    )
 
 
 def create_broker_router(broker_factory: BrokerFactory = get_broker) -> APIRouter:
@@ -150,6 +200,43 @@ def create_broker_router(broker_factory: BrokerFactory = get_broker) -> APIRoute
             "status": "connected",
             "orders": safe_orders,
             "count": len(safe_orders),
+        }
+
+    @router.post("/orders")
+    def broker_place_order(request: BrokerOrderRequest, broker: str | None = None) -> dict[str, Any]:
+        broker_name = _broker_name(broker)
+        resolved, error = _resolve_broker(broker_name, broker_factory)
+        if resolved is None:
+            raise _broker_http_error(503, broker_name, status="disconnected", error=error or "")
+
+        place_order = getattr(resolved, "place_order", None)
+        if not callable(place_order):
+            raise _broker_http_error(
+                501,
+                broker_name,
+                status="unsupported",
+                error="Broker connector does not support order placement.",
+            )
+
+        order_request = OrderRequest(
+            ticker=request.ticker,
+            side=OrderSide(request.side),
+            qty=request.qty,
+            order_type=request.order_type,
+            time_in_force=request.time_in_force,
+            limit_price=request.limit_price,
+            metadata=dict(request.metadata),
+        )
+        try:
+            order = place_order(order_request)
+        except (BrokerError, EnvironmentError, ValueError) as exc:
+            raise _broker_http_error(503, broker_name, status="error", error=_safe_error(exc)) from exc
+
+        return {
+            "broker": broker_name,
+            "connected": True,
+            "status": "submitted",
+            "order": _json_safe(order),
         }
 
     @router.get("/orders/{order_id}")

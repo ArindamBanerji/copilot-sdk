@@ -22,6 +22,11 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
         sys.path.insert(0, str(path))
 
 from .context_router import router as context_router  # noqa: E402
+from .graph_status import (  # noqa: E402
+    create_trading_active_graph_store,
+    initialize_trading_active_graph_config,
+    router as trading_graph_status_router,
+)
 from .routers.broker_router import create_broker_router  # noqa: E402
 from .routers.analytics import create_analytics_router  # noqa: E402
 from .routers.correlation import create_correlation_router  # noqa: E402
@@ -43,6 +48,7 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
@@ -53,15 +59,7 @@ DB_FILENAME = "trading.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / DB_FILENAME
 SEED_FIXTURE_PATH = DATA_DIR / "trading_seed_v2.json"
-FACTOR_NAMES = (
-    "signal_alignment",
-    "market_regime",
-    "position_sizing",
-    "timing_quality",
-    "risk_reward_actual",
-    "emotional_indicator",
-    "signal_confidence",
-)
+FACTOR_NAMES = tuple(TradingPreset().shape.factor_names)
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173,"
     "http://localhost:5174,"
@@ -213,7 +211,12 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     if count > 0:
         print(f"[{DOMAIN}] resuming with {count} persisted decisions")
         return 0
-    scorer = CompoundingScorer.from_preset(DOMAIN, graph_store=graph_store)
+    scorer = CompoundingScorer.from_preset(
+        DOMAIN,
+        graph_store=graph_store,
+        evolve=True,
+        consolidation_enabled=True,
+    )
     seeded = _seed_from_fixtures(scorer, graph_store)
     print(
         f"[{DOMAIN}] auto-seeded {seeded['decisions_seeded']} decisions "
@@ -222,7 +225,11 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     return seeded["decisions_seeded"]
 
 
-def create_app(db_path: str | Path | None = None) -> FastAPI:
+def create_app(
+    db_path: str | Path | None = None,
+    demo_bundle_path: str | Path | bool | None = None,
+    active_store_factory: Any | None = None,
+) -> FastAPI:
     app = FastAPI(title="Trading Copilot", version="0.1.0")
     app.add_middleware(
         CORSMiddleware,
@@ -233,9 +240,28 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     )
 
     scoring_db = _resolve_scoring_db(db_path)
+    active_graph_config = initialize_trading_active_graph_config()
+    active_graph_store = create_trading_active_graph_store(
+        active_graph_config,
+        store_factory=active_store_factory,
+    )
+
+    def selected_graph_store_factory(path: str | Path):
+        if active_graph_store is not None:
+            return active_graph_store
+        return _graph_store(path)
+
+    if demo_bundle_path is None:
+        _bundle_path = REPO_ROOT / "demo" / f"{DOMAIN}_demo_bundle.json"
+    elif demo_bundle_path is False:
+        _bundle_path = False
+    else:
+        _bundle_path = Path(demo_bundle_path)
     seed_graph_store = _graph_store(scoring_db)
     startup_state = {"seeded": False}
-    scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, _graph_store)
+    scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, selected_graph_store_factory)
+    app.state.trading_active_graph_config = active_graph_config
+    app.state.trading_selected_graph_store = scorer_proxy.graph_store
     app.include_router(
         create_scoring_router(
             DOMAIN,
@@ -247,7 +273,7 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     app.include_router(create_transfer_router(scorer_proxy))
     app.include_router(
         create_evolution_router(
-            graph_store_factory=lambda: _graph_store(scoring_db),
+            graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
             domain=DOMAIN,
             variant_provider=get_trading_variants,
         )
@@ -261,31 +287,37 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         ),
         prefix="/api",
     )
-    mount_self_computation_router(app, _graph_store(scoring_db))
+    mount_self_computation_router(app, selected_graph_store_factory(scoring_db))
     app.include_router(context_router, prefix="/api/context")
-    app.include_router(create_evidence_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
-    app.include_router(create_journal_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
-    app.include_router(create_analytics_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
-    app.include_router(create_correlation_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
-    app.include_router(create_prescore_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_evidence_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(create_journal_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(create_analytics_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(create_correlation_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(create_prescore_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(
         create_promotion_router(
-            lambda: _graph_store(scoring_db),
+            lambda: selected_graph_store_factory(scoring_db),
             config_dir=_promotion_config_dir(scoring_db),
             domain=DOMAIN,
         )
     )
-    app.include_router(create_regime_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_regime_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_social_router(scorer_proxy))
-    app.include_router(create_vix_timing_router(lambda: _graph_store(scoring_db), domain=DOMAIN))
+    app.include_router(create_vix_timing_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_webhook_router(scorer_proxy))
     app.include_router(create_broker_router(), prefix="/api/broker", tags=["broker"])
     app.include_router(data_import_router)
+    app.include_router(trading_graph_status_router)
 
     def _run_startup_seed_once() -> None:
         if startup_state["seeded"]:
             return
         startup_state["seeded"] = True
+        if active_graph_store is not None:
+            print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
+            return
+        if _bundle_path is not False:
+            _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
         _auto_seed_if_needed(seed_graph_store)
 
     @app.on_event("startup")

@@ -72,6 +72,31 @@
         "min_impact_scope": 0.7,
         "max_source_reliability": 0.5
       }
+    },
+    {
+      "id": "V-DO-SCHED-001",
+      "event_type": "promotion_approved",
+      "variant_id": "dataops-off-peak-scheduling-v1",
+      "artifact_type": "scheduling_rule",
+      "description": "Schedule resource-heavy quality checks during off-peak windows.",
+      "impact": "resource_quality_optimization",
+      "magnitude": 0.17,
+      "timestamp": "2026-05-08T11:15:00Z",
+      "timestamp_epoch": 1778254500,
+      "metadata": {
+        "wins": 11,
+        "total": 15
+      },
+      "source_copilot": "dataops",
+      "source_rule": "resource_quality_scheduling_signal",
+      "match": {
+        "categories": [
+          "quality_anomaly",
+          "transform_drift"
+        ],
+        "preferred_window": "off_peak",
+        "min_resource_pressure": 0.6
+      }
     }
   ]
 }

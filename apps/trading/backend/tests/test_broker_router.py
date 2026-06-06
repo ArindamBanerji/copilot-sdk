@@ -172,6 +172,97 @@ def test_broker_order_placement_endpoints_are_absent(client):
     assert client.post("/api/broker/orders/place").status_code in {404, 405}
 
 
+def test_broker_post_order_uses_mock_connector_without_live_credentials(client, monkeypatch):
+    _clear_alpaca_env(monkeypatch)
+
+    response = client.post(
+        "/api/broker/orders",
+        params={"broker": "mock"},
+        json={"ticker": "msft", "side": "buy", "qty": 2},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    _assert_json_safe(payload)
+    assert payload["broker"] == "mock"
+    assert payload["connected"] is True
+    assert payload["status"] == "submitted"
+    assert payload["order"]["order_id"] == "mock-1"
+    assert payload["order"]["ticker"] == "MSFT"
+    assert payload["order"]["side"] == "buy"
+    assert payload["order"]["qty"] == 2.0
+    assert payload["order"]["status"] == "filled"
+
+
+def test_broker_post_order_limit_requires_price(client):
+    response = client.post(
+        "/api/broker/orders",
+        params={"broker": "mock"},
+        json={"ticker": "MSFT", "side": "buy", "qty": 2, "order_type": "limit"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_broker_post_order_rejects_invalid_side_and_quantity(client):
+    invalid_side = client.post(
+        "/api/broker/orders",
+        params={"broker": "mock"},
+        json={"ticker": "MSFT", "side": "hold", "qty": 2},
+    )
+    negative_qty = client.post(
+        "/api/broker/orders",
+        params={"broker": "mock"},
+        json={"ticker": "MSFT", "side": "buy", "qty": -1},
+    )
+    missing_fields = client.post("/api/broker/orders", params={"broker": "mock"}, json={})
+
+    assert invalid_side.status_code == 422
+    assert negative_qty.status_code == 422
+    assert missing_fields.status_code == 422
+
+
+def test_broker_post_order_without_alpaca_credentials_returns_safe_error(client, monkeypatch):
+    _clear_alpaca_env(monkeypatch)
+
+    response = client.post(
+        "/api/broker/orders",
+        json={"ticker": "MSFT", "side": "buy", "qty": 1},
+    )
+
+    assert response.status_code == 503
+    payload = response.json()
+    _assert_json_safe(payload)
+    assert payload["detail"]["broker"] == "alpaca"
+    assert payload["detail"]["connected"] is False
+    assert payload["detail"]["status"] == "disconnected"
+    assert payload["detail"]["order"] is None
+    assert "Traceback" not in response.text
+
+
+def test_broker_post_order_connector_failure_returns_safe_error(client, monkeypatch):
+    def fail_place_order(self, request):
+        raise BrokerError("simulated broker failure")
+
+    monkeypatch.setattr(MockBroker, "place_order", fail_place_order)
+
+    response = client.post(
+        "/api/broker/orders",
+        params={"broker": "mock"},
+        json={"ticker": "MSFT", "side": "buy", "qty": 1},
+    )
+
+    assert response.status_code == 503
+    payload = response.json()
+    _assert_json_safe(payload)
+    assert payload["detail"]["broker"] == "mock"
+    assert payload["detail"]["connected"] is False
+    assert payload["detail"]["status"] == "error"
+    assert payload["detail"]["order"] is None
+    assert "simulated broker failure" in payload["detail"]["error"]
+    assert "Traceback" not in response.text
+
+
 def test_broker_mock_happy_path_returns_account_positions_orders_shapes(client):
     account = client.get("/api/broker/account", params={"broker": "mock"})
     positions = client.get("/api/broker/positions", params={"broker": "mock"})

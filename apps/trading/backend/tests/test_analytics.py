@@ -43,7 +43,7 @@ VALID_FACTORS = set(TradingPreset().shape.factor_names)
 
 
 def _client(tmp_path: Path) -> TestClient:
-    return TestClient(create_app(db_path=tmp_path / "trading_analytics.db"))
+    return TestClient(create_app(db_path=tmp_path / "trading_analytics.db", demo_bundle_path=False))
 
 
 def _score(client: TestClient, category: str, factors: dict[str, float] | None = None) -> dict[str, Any]:

@@ -24,7 +24,7 @@ test("evolution panel shows variants", async ({ page }) => {
 test("pattern origin chain visible", async ({ page }) => {
   await gotoEvidence(page);
 
-  await expect(page.getByText("Pattern Origin")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pattern Origin" })).toBeVisible();
   await expectAnyText(page, [/SOC/i, /S2P/i, /DataOps/i, /warm/i, /No cross-copilot chain available/i]);
 });
 

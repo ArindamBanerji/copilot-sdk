@@ -24,9 +24,16 @@ test("disruption annotation visible", async ({ page }) => {
 test("centroid evolution shows top shifts", async ({ page }) => {
   await gotoCurve(page);
 
-  await expectAnyText(page, [/Centroid Evolution/i, /centroid/i, /evolution/i, /shift/i]);
-  await expectAnyText(page, [/data freshness/i, /recurrence/i, /impact/i]);
-  await expectAnyText(page, [/0\.\d+/, /verified decisions/i, /Current \(\d+ decisions\)/i]);
+  const centroidPanel = page.locator("section", { has: page.getByRole("heading", { name: "Centroid Evolution" }) }).first();
+  await expect(centroidPanel).toBeVisible();
+  await expect(
+    centroidPanel
+      .getByText(
+        /impact scope|source reliability|recurrence frequency|downstream urgency|data freshness|business criticality/i,
+      )
+      .first(),
+  ).toBeVisible();
+  await expect(centroidPanel.getByText(/0\.\d+|Current \(\d+ decisions\)/i).first()).toBeVisible();
 });
 
 test("SC-11 centroid timeline chart renders", async ({ page }) => {

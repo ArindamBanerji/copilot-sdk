@@ -1,0 +1,62 @@
+{
+  "domain": "purchasing",
+  "exported_at": "2026-05-28T08:24:20Z",
+  "fingerprint": {
+    "decisions_analyzed": 20,
+    "engine": {
+      "gae": "gae.profile_scorer.ProfileScorer",
+      "scoring": "copilot_sdk.scoring.CompoundingScorer"
+    },
+    "factors": [
+      {
+        "interpretation": "moderate",
+        "name": "expected_demand",
+        "sigma": 0.114,
+        "weight": 0.008
+      },
+      {
+        "interpretation": "moderate",
+        "name": "day_of_week",
+        "sigma": 0.154,
+        "weight": 0.004
+      },
+      {
+        "interpretation": "moderate",
+        "name": "weather_forecast",
+        "sigma": 0.179,
+        "weight": 0.003
+      },
+      {
+        "interpretation": "noisy",
+        "name": "event_flag",
+        "sigma": 0.222,
+        "weight": 0.002
+      },
+      {
+        "interpretation": "clean",
+        "name": "historical_waste",
+        "sigma": 0.088,
+        "weight": 0.013
+      },
+      {
+        "interpretation": "moderate",
+        "name": "supplier_lead_time",
+        "sigma": 0.152,
+        "weight": 0.004
+      },
+      {
+        "interpretation": "clean",
+        "name": "price_memory_index",
+        "sigma": 0.01,
+        "weight": 1.0
+      }
+    ],
+    "overall_win_rate": 0.7,
+    "per_category_precision": {
+      "dairy": 0.75,
+      "produce": 0.5,
+      "protein": 0.667
+    }
+  },
+  "source_url": "http://localhost:8020/api/fingerprint"
+}

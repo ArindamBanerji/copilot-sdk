@@ -7,6 +7,11 @@ from typing import Any
 from app.factors.base import clamp
 from app.factors.conviction import ConvictionFactor
 from app.factors.market_regime import MarketRegimeFactor
+from app.factors.options_scored import (
+    OptionsDeltaExposureFactor,
+    OptionsGammaRiskFactor,
+    OptionsIVPercentileFactor,
+)
 from app.factors.position_size import PositionSizeFactor
 from app.factors.research_depth import ResearchDepthFactor
 from app.factors.signal_confidence import SignalConfidenceFactor
@@ -27,18 +32,24 @@ except Exception:
         "risk_reward_actual",
         "emotional_indicator",
         "signal_confidence",
+        "options_delta_exposure",
+        "options_iv_percentile",
+        "options_gamma_risk",
     )
     _USING_FALLBACK_FACTOR_NAMES = True
 
 
 _PRESET_FACTOR_COMPUTERS = {
     "signal_alignment": ConvictionFactor(),
-    "market_regime": ResearchDepthFactor(),
-    "position_sizing": TechnicalSignalFactor(),
-    "timing_quality": PositionSizeFactor(),
+    "market_regime": MarketRegimeFactor(),
+    "position_sizing": PositionSizeFactor(),
+    "timing_quality": TechnicalSignalFactor(),
     "risk_reward_actual": TimeHorizonFactor(),
-    "emotional_indicator": MarketRegimeFactor(),
+    "emotional_indicator": ResearchDepthFactor(),
     "signal_confidence": SignalConfidenceFactor(),
+    "options_delta_exposure": OptionsDeltaExposureFactor(),
+    "options_iv_percentile": OptionsIVPercentileFactor(),
+    "options_gamma_risk": OptionsGammaRiskFactor(),
 }
 
 _FALLBACK_FACTOR_COMPUTERS = {
@@ -49,6 +60,9 @@ _FALLBACK_FACTOR_COMPUTERS = {
     "risk_reward_actual": TimeHorizonFactor(),
     "emotional_indicator": ResearchDepthFactor(),
     "signal_confidence": SignalConfidenceFactor(),
+    "options_delta_exposure": OptionsDeltaExposureFactor(),
+    "options_iv_percentile": OptionsIVPercentileFactor(),
+    "options_gamma_risk": OptionsGammaRiskFactor(),
 }
 
 TRADING_FACTOR_COMPUTERS = (

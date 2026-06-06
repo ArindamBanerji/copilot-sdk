@@ -44,6 +44,14 @@ export function ProcessTimelinePanel() {
 
   const activities = data?.activities || [];
   const slowdown = useMemo(() => resolveSlowdown(data), [data]);
+  const totalDuration = useMemo(
+    () => activities.reduce((total, activity) => total + activityDuration(activity), 0),
+    [activities],
+  );
+  const longestDuration = useMemo(
+    () => activities.reduce((max, activity) => Math.max(max, activityDuration(activity)), 0),
+    [activities],
+  );
   const bottleneck = activities.find((activity) => activity.isBottleneck);
 
   return (
@@ -79,6 +87,8 @@ export function ProcessTimelinePanel() {
               key={activity.id || activity.name || `activity-${index}`}
               activity={activity}
               index={index}
+              totalDuration={totalDuration}
+              isLongest={activityDuration(activity) === longestDuration && longestDuration > 0}
             />
           ))}
         </div>
@@ -92,23 +102,30 @@ export default ProcessTimelinePanel;
 function TimelineActivityCard({
   activity,
   index,
+  totalDuration,
+  isLongest,
 }: {
   activity: ProcessTimelineActivity;
   index: number;
+  totalDuration: number;
+  isLongest: boolean;
 }) {
-  const highlighted = Boolean(activity.isBottleneck);
+  const highlighted = Boolean(activity.isBottleneck || isLongest);
+  const duration = activityDuration(activity);
+  const percent = totalDuration > 0 ? Math.round((duration / totalDuration) * 100) : 0;
+  const accent = highlighted ? "var(--copilot-danger)" : "var(--copilot-primary)";
   return (
     <article
       className="relative rounded-md border p-4"
       style={{
-        borderColor: highlighted ? "var(--copilot-primary)" : "var(--copilot-border)",
-        background: highlighted ? "var(--copilot-primary-light)" : "var(--copilot-surface)",
+        borderColor: highlighted ? accent : "var(--copilot-border)",
+        background: highlighted ? "rgba(239, 68, 68, 0.08)" : "var(--copilot-surface)",
       }}
     >
       <div
         className="mb-3 flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold"
         style={{
-          background: highlighted ? "var(--copilot-primary)" : "var(--copilot-surface-muted)",
+          background: highlighted ? accent : "var(--copilot-surface-muted)",
           color: highlighted ? "white" : "var(--copilot-text)",
         }}
       >
@@ -119,12 +136,16 @@ function TimelineActivityCard({
       </h3>
       <div className="mt-3 grid gap-2 text-sm">
         <Metric label="Duration" value={formatDuration(activity.avgDuration ?? activity.currentDuration)} strong={highlighted} />
+        <Metric label="Share of flow" value={`${percent}%`} />
         <Metric label="Automation" value={formatPercent(activity.automationRate)} />
         <Metric label="Rework" value={formatPercent(activity.reworkRate)} />
       </div>
+      <div className="mt-3 h-2 overflow-hidden rounded-full" style={{ background: "rgba(148, 163, 184, 0.18)" }}>
+        <div className="h-full rounded-full" style={{ width: `${Math.max(percent, 4)}%`, background: accent }} />
+      </div>
       {highlighted ? (
-        <div className="mt-3 rounded-md px-3 py-2 text-xs font-semibold" style={{ background: "var(--copilot-surface)", color: "var(--copilot-primary)" }}>
-          Active bottleneck
+        <div className="mt-3 rounded-md px-3 py-2 text-xs font-semibold" style={{ background: "var(--copilot-surface)", color: accent }}>
+          {activity.isBottleneck ? "Active bottleneck" : "Longest duration"}
         </div>
       ) : null}
     </article>
@@ -166,6 +187,11 @@ function resolveSlowdown(data: ProcessTimelineResponse | null): number | null {
   }
 
   return null;
+}
+
+function activityDuration(activity: ProcessTimelineActivity): number {
+  const duration = Number(activity.currentDuration ?? activity.avgDuration ?? activity.normalDuration);
+  return Number.isFinite(duration) && duration > 0 ? duration : 0;
 }
 
 function normalizeTimeline(raw: Record<string, unknown>): ProcessTimelineResponse {

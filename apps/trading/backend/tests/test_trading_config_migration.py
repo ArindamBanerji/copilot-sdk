@@ -22,10 +22,15 @@ EXISTING_FACTORS = (
     "risk_reward_actual",
     "emotional_indicator",
 )
+SCORED_OPTIONS_FACTORS = (
+    "options_delta_exposure",
+    "options_iv_percentile",
+    "options_gamma_risk",
+)
 
 
 def test_tensor_shape():
-    assert TradingPreset().shape.tensor_shape == (5, 4, 7)
+    assert TradingPreset().shape.tensor_shape == (5, 4, 10)
 
 
 def test_category_count():
@@ -37,7 +42,7 @@ def test_action_count():
 
 
 def test_factor_count():
-    assert TradingPreset().shape.n_factors == 7
+    assert TradingPreset().shape.n_factors == 10
 
 
 def test_skip_recommended_is_action_3():
@@ -46,6 +51,10 @@ def test_skip_recommended_is_action_3():
 
 def test_signal_confidence_is_factor_6():
     assert TradingPreset().shape.factor_names[6] == "signal_confidence"
+
+
+def test_scored_options_factors_are_7_8_9():
+    assert TradingPreset().shape.factor_names[7:10] == SCORED_OPTIONS_FACTORS
 
 
 def test_existing_categories_preserved():
@@ -87,8 +96,8 @@ def test_centroids_have_20_cells():
     assert centroids.shape[0] * centroids.shape[1] == 20
 
 
-def test_all_centroids_are_7_dimensional():
-    assert TradingPreset().bootstrap_centroids.shape[2] == 7
+def test_all_centroids_are_10_dimensional():
+    assert TradingPreset().bootstrap_centroids.shape[2] == 10
 
 
 def test_all_centroid_values_bounded():
@@ -114,11 +123,15 @@ def test_new_factor_initialized_in_existing_cells():
     np.testing.assert_allclose(centroids[:, 2, 6], 0.50)
 
 
+def test_options_factors_initialized_neutral():
+    np.testing.assert_allclose(TradingPreset().bootstrap_centroids[:, :, 7:], 0.5)
+
+
 def test_scorer_can_initialize_with_trading_config(tmp_path):
     scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"))
 
     try:
-        assert scorer.gae_scorer.centroids.shape == (5, 4, 7)
+        assert scorer.gae_scorer.centroids.shape == (5, 4, 10)
     finally:
         scorer.graph_store.close()
 

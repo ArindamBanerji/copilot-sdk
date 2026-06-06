@@ -21,12 +21,15 @@ class FingerprintResult:
     overall_win_rate: float
     per_category_precision: dict[str, float]
     decisions_analyzed: int
+    skipped_decisions: int = 0
 
 
 def compute_fingerprint(decisions: list[dict], factor_names: list[str]) -> FingerprintResult:
     """Compute factor precision fingerprints from verified decisions."""
 
-    if len(decisions) < 5:
+    compatible_decisions, skipped_decisions = _compatible_decisions(decisions, len(factor_names))
+
+    if len(compatible_decisions) < 5:
         return FingerprintResult(
             factors=[
                 FactorFingerprint(
@@ -39,14 +42,15 @@ def compute_fingerprint(decisions: list[dict], factor_names: list[str]) -> Finge
             ],
             overall_win_rate=0.0,
             per_category_precision={},
-            decisions_analyzed=len(decisions),
+            decisions_analyzed=len(compatible_decisions),
+            skipped_decisions=skipped_decisions,
         )
 
-    vectors = np.asarray([d["factor_vector"] for d in decisions], dtype=np.float64)
+    vectors = np.asarray([d["factor_vector"] for d in compatible_decisions], dtype=np.float64)
     if vectors.ndim != 2 or vectors.shape[1] != len(factor_names):
         raise ValueError("decision factor vectors must match factor_names length")
 
-    correct_mask = np.asarray([bool(d.get("is_correct", False)) for d in decisions])
+    correct_mask = np.asarray([bool(d.get("is_correct", False)) for d in compatible_decisions])
     correct_vectors = vectors[correct_mask]
     incorrect_vectors = vectors[~correct_mask]
 
@@ -73,9 +77,22 @@ def compute_fingerprint(decisions: list[dict], factor_names: list[str]) -> Finge
     return FingerprintResult(
         factors=fingerprints,
         overall_win_rate=round(float(correct_mask.mean()), 3),
-        per_category_precision=_per_category_precision(decisions),
-        decisions_analyzed=len(decisions),
+        per_category_precision=_per_category_precision(compatible_decisions),
+        decisions_analyzed=len(compatible_decisions),
+        skipped_decisions=skipped_decisions,
     )
+
+
+def _compatible_decisions(decisions: list[dict], expected_width: int) -> tuple[list[dict], int]:
+    compatible: list[dict] = []
+    skipped = 0
+    for decision in decisions:
+        vector = decision.get("factor_vector")
+        if not isinstance(vector, (list, tuple)) or len(vector) != expected_width:
+            skipped += 1
+            continue
+        compatible.append(decision)
+    return compatible, skipped
 
 
 def _group_sigma(values: np.ndarray) -> float:

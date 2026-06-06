@@ -71,28 +71,13 @@ export function CrossGraphInsightCard({ alertId }: CrossGraphInsightCardProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!alertId) {
-      setState("idle");
-      setData(null);
-      setError(null);
-      return;
-    }
-
     let cancelled = false;
     setState("loading");
     setData(null);
     setError(null);
 
-    fetch(`${BASE}/api/context/cross-graph-insight/${encodeURIComponent(alertId)}`)
-      .then(async (response) => {
-        if (response.status === 404) {
-          return null;
-        }
-        if (!response.ok) {
-          throw new Error(`${response.status} ${response.statusText}`);
-        }
-        return normalize<CrossGraphInsightResponse>(await response.json());
-      })
+    const request = alertId ? loadInsight(alertId) : loadDefaultInsight();
+    request
       .then((payload) => {
         if (cancelled) {
           return;
@@ -107,9 +92,14 @@ export function CrossGraphInsightCard({ alertId }: CrossGraphInsightCardProps) {
       })
       .catch((caught) => {
         if (!cancelled) {
-          setError(caught instanceof Error ? caught.message : "Could not load cross-graph insight.");
-          setData(null);
-          setState("error");
+          if (alertId) {
+            setError(caught instanceof Error ? caught.message : "Could not load cross-graph insight.");
+            setData(null);
+            setState("error");
+          } else {
+            setData(DEFAULT_INSIGHT);
+            setState("ready");
+          }
         }
       });
 
@@ -117,10 +107,6 @@ export function CrossGraphInsightCard({ alertId }: CrossGraphInsightCardProps) {
       cancelled = true;
     };
   }, [alertId]);
-
-  if (!alertId) {
-    return <InsightCard data={DEFAULT_INSIGHT} alertId={null} defaultMode />;
-  }
 
   if (state === "idle" || state === "hidden") {
     return null;
@@ -154,7 +140,36 @@ export function CrossGraphInsightCard({ alertId }: CrossGraphInsightCardProps) {
     return null;
   }
 
-  return <InsightCard data={data} alertId={alertId} />;
+  return <InsightCard data={data} alertId={alertId ?? data.alertId ?? null} defaultMode={!alertId && data === DEFAULT_INSIGHT} />;
+}
+
+async function loadInsight(alertId: string): Promise<CrossGraphInsightResponse | null> {
+  const response = await fetch(`${BASE}/api/context/cross-graph-insight/${encodeURIComponent(alertId)}`);
+  if (response.status === 404) {
+    return null;
+  }
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`);
+  }
+  return normalize<CrossGraphInsightResponse>(await response.json());
+}
+
+async function loadDefaultInsight(): Promise<CrossGraphInsightResponse> {
+  const groupsResponse = await fetch(`${BASE}/api/context/alert-groups`);
+  if (!groupsResponse.ok) {
+    return DEFAULT_INSIGHT;
+  }
+  const groups = normalize<{
+    groups?: Array<{ alerts?: Array<{ alertId?: string; alert_id?: string }> }>;
+    ungrouped?: Array<{ alertId?: string; alert_id?: string }>;
+  }>(await groupsResponse.json());
+  const groupedAlert = groups.groups?.flatMap((group) => group.alerts || []).find((alert) => alert.alertId || alert.alert_id);
+  const fallbackAlert = groups.ungrouped?.find((alert) => alert.alertId || alert.alert_id);
+  const defaultAlertId = groupedAlert?.alertId || groupedAlert?.alert_id || fallbackAlert?.alertId || fallbackAlert?.alert_id;
+  if (!defaultAlertId) {
+    return DEFAULT_INSIGHT;
+  }
+  return (await loadInsight(defaultAlertId)) ?? DEFAULT_INSIGHT;
 }
 
 function InsightCard({

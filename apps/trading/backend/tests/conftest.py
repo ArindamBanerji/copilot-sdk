@@ -41,6 +41,6 @@ def client(tmp_path, monkeypatch) -> TestClient:
     )
 
     monkeypatch.setattr(context_router, "_DATA_DIR", temp_data)
-    app = create_app(db_path=tmp_path / "trading_test.db")
+    app = create_app(db_path=tmp_path / "trading_test.db", demo_bundle_path=False)
     app.state.trading_data_dir = temp_data
     return TestClient(app)

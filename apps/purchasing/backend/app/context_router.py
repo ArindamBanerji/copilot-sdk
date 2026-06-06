@@ -7,7 +7,7 @@ import math
 from dataclasses import asdict
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException, status
 
@@ -15,6 +15,7 @@ from copilot_sdk.scoring.verification.weather import get_weather_factor
 
 
 router = APIRouter(tags=["context"])
+_evolution_store_factory: Callable[[], Any] | None = None
 _APP_DIR = Path(__file__).resolve().parent
 _DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 _DEFAULT_DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -42,6 +43,42 @@ def _load_data_json(filename: str, default: Any) -> Any:
     if fallback_path.exists():
         return _load_json(fallback_path)
     return default
+
+
+def set_evolution_store_factory(factory: Callable[[], Any] | None) -> None:
+    global _evolution_store_factory
+    _evolution_store_factory = factory
+
+
+def _variant_from_evolution_event(event: dict[str, Any]) -> dict[str, Any]:
+    metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+    variant = dict(metadata)
+    event_type = str(variant.get("event_type") or event.get("event_type") or "")
+    rule_name = str(event.get("rule_name") or variant.get("rule_name") or "")
+    variant_id = str(
+        event.get("variant_id")
+        or variant.get("variant_id")
+        or variant.get("variantId")
+        or rule_name
+    )
+    variant["event_type"] = event_type
+    variant.setdefault("rule_name", rule_name)
+    variant.setdefault("variant_id", variant_id)
+    variant.setdefault("id", variant_id or rule_name)
+    variant.setdefault("description", rule_name or variant_id)
+    variant.setdefault("timestamp", event.get("timestamp"))
+    return variant
+
+
+def _evolution_variants() -> list[dict[str, Any]]:
+    if _evolution_store_factory is None:
+        return []
+    try:
+        store = _evolution_store_factory()
+        events = store.get_evolution_events(domain="purchasing", limit=500)
+    except Exception:
+        return []
+    return [_variant_from_evolution_event(event) for event in events if isinstance(event, dict)]
 
 
 def _write_json(path: Path, payload: Any) -> None:
@@ -253,9 +290,7 @@ def item_profile(name: str) -> dict[str, Any]:
     waste_payload = _load_data_json("waste_history.json", {})
     waste_values = waste_payload.get(item["name"], [])
     waste_avg = round(sum(waste_values) / len(waste_values), 4) if waste_values else None
-    evolution_payload = _load_data_json("evolution_fixtures.json", {"variants": []})
-    variants = evolution_payload.get("variants", [])
-    ae_rules = [rule for rule in variants if _rule_matches_item(rule, item)]
+    ae_rules = [rule for rule in _evolution_variants() if _rule_matches_item(rule, item)]
     return {
         "item": item,
         "waste_history": waste_values,

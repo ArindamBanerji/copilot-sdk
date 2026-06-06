@@ -265,19 +265,21 @@ export function fetchDecisions(filters: {
   action?: string;
   verifiedOnly?: boolean;
   limit?: number;
-} = {}): Promise<SelfDecisionExplorerResponse | null> {
+} | number = {}): Promise<SelfDecisionExplorerResponse | null> {
+  const resolvedFilters = typeof filters === "number" ? { limit: filters } : filters;
   const params = new URLSearchParams();
-  if (filters.category) params.set("category", filters.category);
-  if (filters.action) params.set("action", filters.action);
-  if (typeof filters.verifiedOnly === "boolean") params.set("verified_only", filters.verifiedOnly ? "true" : "false");
-  if (typeof filters.limit === "number") params.set("limit", String(filters.limit));
+  if (resolvedFilters.category) params.set("category", resolvedFilters.category);
+  if (resolvedFilters.action) params.set("action", resolvedFilters.action);
+  if (typeof resolvedFilters.verifiedOnly === "boolean") params.set("verified_only", resolvedFilters.verifiedOnly ? "true" : "false");
+  if (typeof resolvedFilters.limit === "number") params.set("limit", String(resolvedFilters.limit));
   const query = params.toString();
   return safeApiGet<SelfDecisionExplorerResponse>(`/api/self/decisions${query ? `?${query}` : ""}`);
 }
 
-export function fetchAuditTrail(decisionId?: string): Promise<SelfAuditTrailResponse | null> {
+export function fetchAuditTrail(decisionId?: string, limit = 50): Promise<SelfAuditTrailResponse | null> {
   const params = new URLSearchParams();
   if (decisionId) params.set("decision_id", decisionId);
+  if (typeof limit === "number") params.set("limit", String(limit));
   const query = params.toString();
   return safeApiGet<SelfAuditTrailResponse>(`/api/self/audit-trail${query ? `?${query}` : ""}`);
 }

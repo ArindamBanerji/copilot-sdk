@@ -155,3 +155,24 @@ changed.
   replay placeholder, and four outbox/service-layer placeholders.
 - `tests/graph/test_protocol_v2_conformance.py` still must be tracked before merge if it remains
   untracked in `git status`.
+
+## Slice 11 rollback failure-injection
+
+Slice 11 converted the generic AGE reset rollback placeholder into an active live AGE test. No
+production code was changed.
+
+- Decision: active test added in `test_age_transaction_rollback_preserves_domain_on_mid_reset_failure`.
+- Reason: the reset implementation already has a narrow private helper seam,
+  `_delete_domain_label`, that can be monkeypatched inside the test after the real
+  `AGEClient.run_transaction` path has started. This avoids adding a production test hook.
+- Files changed: `tests/graph/test_protocol_v2_conformance.py` and this triage report.
+- Rollback invariant covered: a controlled exception after reset relationship deletes and the
+  first target-domain node delete must roll back the transaction, preserving the target domain
+  and an unrelated same-graph domain.
+- Local fixture limitation: SQLite and Memory fixtures cannot exercise PostgreSQL+AGE
+  transaction rollback or AGE relationship delete behavior, so this remains AGE-live-only.
+- Live AGE requirement: the test still requires `AGE_INTEGRATION=1`, explicit `AGE_TEST_DSN`,
+  explicit `AGE_TEST_GRAPH`, a guarded `protocol_v2_test*` graph, and a
+  `pytest_protocol_v2_*` domain.
+- Remaining risk: future Protocol v2 relationship types must extend reset coverage in the same
+  implementation slice that introduces the new relationship.

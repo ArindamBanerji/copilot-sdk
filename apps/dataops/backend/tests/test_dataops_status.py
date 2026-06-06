@@ -53,10 +53,36 @@ def test_enterprise_health_alias_returns_combined_payload(client: TestClient) ->
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["domain"] == "dataops"
-    assert {"sap", "celonis"} <= set(payload["connectors"])
-    assert {"sap", "celonis", "graph", "engine_version"} <= set(payload["enterprise"])
-    assert payload["enterprise"]["graph"]["pipeline_count"] >= 0
+    assert {"sap", "celonis", "graph", "overall"} <= set(payload)
+    assert payload["overall"] in {"healthy", "degraded", "disconnected"}
+    assert isinstance(payload["sap"]["connected"], bool)
+    assert isinstance(payload["sap"]["record_count"], int)
+    assert "last_sync" in payload["sap"]
+    assert payload["sap"]["last_sync"] is None or isinstance(payload["sap"]["last_sync"], str)
+    assert isinstance(payload["celonis"]["connected"], bool)
+    assert isinstance(payload["celonis"]["kpi_count"], int)
+    assert "last_sync" in payload["celonis"]
+    assert payload["celonis"]["last_sync"] is None or isinstance(payload["celonis"]["last_sync"], str)
+    assert isinstance(payload["graph"]["connected"], bool)
+    assert isinstance(payload["graph"]["node_count"], int)
+    assert_json_safe(payload)
+
+
+def test_enterprise_health_alias_handles_subsystem_failure(client: TestClient, monkeypatch) -> None:
+    from app.routers import dataops_status
+
+    def fail_sap_status() -> dict[str, Any]:
+        raise RuntimeError("secret-token traceback should not leak")
+
+    monkeypatch.setattr(dataops_status, "_sap_status", fail_sap_status)
+
+    response = client.get("/api/dataops/enterprise-health")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["sap"] == {"connected": False, "record_count": 0, "last_sync": None}
+    assert "secret-token" not in response.text
+    assert payload["overall"] in {"degraded", "disconnected"}
     assert_json_safe(payload)
 
 

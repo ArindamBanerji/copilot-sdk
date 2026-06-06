@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app import context_router
+from app.main import _build_seed_context
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
@@ -17,8 +18,21 @@ TRADING_FACTORS = {
     "risk_reward_actual": 0.67,
     "emotional_indicator": 0.71,
     "signal_confidence": 0.50,
+    "options_delta_exposure": 0.50,
+    "options_iv_percentile": 0.50,
+    "options_gamma_risk": 0.50,
 }
-TRADING_SEED_FACTORS = tuple(name for name in TRADING_FACTORS if name != "signal_confidence")
+TRADING_SEED_FACTORS = tuple(
+    name
+    for name in TRADING_FACTORS
+    if name
+    not in {
+        "signal_confidence",
+        "options_delta_exposure",
+        "options_iv_percentile",
+        "options_gamma_risk",
+    }
+)
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 REQUIRED_SEED_FIELDS = {
     "trade_id",
@@ -97,6 +111,28 @@ def test_api_health_returns_phase_alpha_and_engine(client):
     assert payload["engine"]["gae"] == "gae.profile_scorer.ProfileScorer"
 
 
+def test_seed_context_uses_current_trading_factor_width():
+    preset = TradingPreset()
+    context = _build_seed_context(
+        {
+            "factors": {
+                "signal_alignment": 0.7,
+                "market_regime": 0.8,
+                "position_sizing": 0.6,
+                "timing_quality": 0.5,
+                "risk_reward_actual": 0.9,
+                "emotional_indicator": 0.4,
+            }
+        }
+    )
+
+    assert tuple(context) == tuple(preset.shape.factor_names)
+    assert len(context) == preset.shape.n_factors
+    assert context["options_delta_exposure"] == 0.5
+    assert context["options_iv_percentile"] == 0.5
+    assert context["options_gamma_risk"] == 0.5
+
+
 def test_market_snapshot(client):
     response = client.get("/api/context/market-snapshot")
 
@@ -106,6 +142,23 @@ def test_market_snapshot(client):
     assert "spy" in payload
     assert "vix" in payload
     assert "sector" in payload
+
+
+def test_market_snapshot_missing_file_returns_default(client, monkeypatch, tmp_path):
+    from app import context_router
+
+    monkeypatch.setattr(context_router, "_DATA_DIR", tmp_path / "missing-data")
+    monkeypatch.setattr(context_router, "_DEFAULT_DATA_DIR", tmp_path / "missing-default-data")
+
+    response = client.get("/api/context/market-snapshot")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "regime": "ranging",
+        "vix": 20.0,
+        "adx": 25.0,
+        "source": "default",
+    }
 
 
 def test_ticker_known(client):
@@ -161,6 +214,19 @@ def test_trade_metadata_store_and_retrieve(client):
     metadata = response.json()
     assert metadata["decision-1"]["ticker"] == "NVDA"
     assert metadata["decision-1"]["horizon"] == "swing"
+
+
+def test_trade_metadata_malformed_file_returns_empty(client, monkeypatch, tmp_path):
+    malformed_dir = tmp_path / "malformed-data"
+    malformed_dir.mkdir()
+    (malformed_dir / "trade_metadata.json").write_text('{"broken": true}}', encoding="utf-8")
+    monkeypatch.setattr(context_router, "_DATA_DIR", malformed_dir)
+    monkeypatch.setattr(context_router, "_DEFAULT_DATA_DIR", tmp_path / "missing-default-data")
+
+    response = client.get("/api/context/trade-metadata")
+
+    assert response.status_code == 200
+    assert response.json() == {}
 
 
 def test_trade_metadata_requires_decision_id(client):
@@ -223,7 +289,7 @@ def test_auto_seed_empty_db(tmp_path):
     from app.main import create_app
 
     db_path = tmp_path / "trading_seeded.db"
-    with TestClient(create_app(db_path=db_path)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     expected_verified, expected_correct = _fixture_outcome_counts(DATA_DIR / "trading_seed_v2.json")
@@ -243,7 +309,7 @@ def test_auto_seed_skips_populated(tmp_path):
     finally:
         store.close()
 
-    with TestClient(create_app(db_path=db_path)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     assert _count_decisions(db_path, "trading") == 1
@@ -254,7 +320,7 @@ def test_ci_data_dir_creates_db(tmp_path, monkeypatch):
 
     data_dir = tmp_path / "ci-data"
     monkeypatch.setenv("CI_DATA_DIR", str(data_dir))
-    with TestClient(create_app()) as startup_client:
+    with TestClient(create_app(demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     db_path = data_dir / "trading.db"
@@ -270,7 +336,7 @@ def test_explicit_db_path_wins(tmp_path, monkeypatch):
     explicit_db = tmp_path / "explicit.db"
     monkeypatch.setenv("CI_DATA_DIR", str(ci_dir))
 
-    with TestClient(create_app(db_path=explicit_db)) as startup_client:
+    with TestClient(create_app(db_path=explicit_db, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     assert explicit_db.exists()
@@ -283,7 +349,7 @@ def test_no_env_uses_explicit_fallback(tmp_path, monkeypatch):
 
     monkeypatch.delenv("CI_DATA_DIR", raising=False)
     db_path = tmp_path / "fallback.db"
-    with TestClient(create_app(db_path=db_path)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     assert db_path.exists()
@@ -421,7 +487,9 @@ def test_conservation_status_returns_live_counts(client):
 
     score = _score(client)
     after_score = client.get("/api/conservation/status").json()
-    assert after_score["total_decisions"] == 1
+    # Conservation V is verified-only; pending score writes are audit/store
+    # activity but do not increase total_decisions.
+    assert after_score["total_decisions"] == 0
     assert after_score["verified_count"] == 0
     assert after_score["correct_count"] == 0
 
@@ -437,14 +505,19 @@ def test_conservation_status_returns_live_counts(client):
 def test_in_memory_scoring_and_conservation_share_proxy_store():
     from app.main import create_app
 
-    with TestClient(create_app(db_path=":memory:")) as memory_client:
+    with TestClient(create_app(db_path=":memory:", demo_bundle_path=False)) as memory_client:
         score = _score(memory_client)
         payload = memory_client.get("/api/conservation/status").json()
+        learn = _learn(memory_client, score["decision_id"], score["action"])
+        after_learn = memory_client.get("/api/conservation/status").json()
 
     assert score["decision_id"].startswith("TRD-")
+    assert learn["decision_id"] == score["decision_id"]
     assert payload["domain"] == "trading"
-    assert payload["total_decisions"] == 1
+    assert payload["total_decisions"] == 0
     assert payload["verified_count"] == 0
+    assert after_learn["total_decisions"] == 1
+    assert after_learn["verified_count"] == 1
 
 
 def test_self_computation_centroid_history_available(client):

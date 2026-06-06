@@ -13,7 +13,7 @@ Usage:
     python demo.py --status         # Show what's running + persistent data
     python demo.py --reset          # Wipe ALL persistent data, fresh start
     python demo.py --reset trading  # Wipe one copilot's data only
-    python demo.py --reset --sdk    # Wipe + restart SDK copilots
+    python demo.py --reset --sdk    # Wipe SDK copilot data; run --sdk separately to restart
     python demo.py --preseed        # Pre-seed after start (deprecated)
     python demo.py --graph          # AGE graph mode for DataOps
     python demo.py --no-browser     # Don't open browser tabs
@@ -21,8 +21,10 @@ Usage:
 """
 
 import argparse
+import importlib
 import json
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -123,6 +125,26 @@ COPILOTS = [
 SDK_NAMES = {"trading", "purchasing", "dataops"}
 PLAYWRIGHT_NAMES = {"soc", "s2p"}
 
+ACTIVE_GRAPH_APPS = {
+    "trading": {
+        "prefix": "TRADING_ACTIVE_",
+        "domain": "trading",
+    },
+    "purchasing": {
+        "prefix": "PURCHASING_ACTIVE_",
+        "domain": "purchasing",
+    },
+    "dataops": {
+        "prefix": "DATAOPS_ACTIVE_",
+        "domain": "dataops",
+    },
+    "s2p": {
+        "prefix": "S2P_ACTIVE_",
+        "domain": "s2p",
+    },
+}
+DEFAULT_ACTIVE_AGE_GRAPH = "governed_copilot_graph"
+
 
 # --- Persistent Data Helpers ---
 
@@ -138,6 +160,81 @@ def _copilot_db_path(copilot: dict, data_root: Path = DEFAULT_DATA_DIR) -> Path 
     if not copilot.get("persistent") or not copilot.get("db_filename"):
         return None
     return _copilot_data_dir(copilot["name"], data_root) / copilot["db_filename"]
+
+
+def _decision_count(db_path: Path) -> int | None:
+    try:
+        conn = sqlite3.connect(str(db_path))
+        try:
+            return conn.execute("SELECT COUNT(*) FROM decisions").fetchone()[0]
+        finally:
+            conn.close()
+    except Exception:
+        return None
+
+
+def _backup_db_path(db_path: Path) -> Path:
+    backup = db_path.with_suffix(db_path.suffix + ".bak")
+    if not backup.exists():
+        return backup
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    counter = 1
+    while True:
+        candidate = db_path.with_suffix(db_path.suffix + f".{stamp}.{counter}.bak")
+        if not candidate.exists():
+            return candidate
+        counter += 1
+
+
+def _maybe_migrate_dev_db(copilot: dict, copilot_dir: Path, data_root: Path) -> None:
+    """Copy a richer repo-local dev DB into empty/tiny persistent storage."""
+    if not copilot.get("persistent"):
+        return
+    db_filename = copilot.get("db_filename") or f"{copilot['name'].lower()}.db"
+    persistent_db = copilot_dir / db_filename
+    persistent_size = persistent_db.stat().st_size if persistent_db.exists() else 0
+    persistent_decisions = _decision_count(persistent_db) if persistent_db.exists() else None
+    if persistent_db.exists() and persistent_size >= 1024:
+        if persistent_decisions is None:
+            print(
+                f"  Skipping {copilot['name']} dev DB migration: "
+                "persistent DB exists but decision count is unreadable"
+            )
+            return
+        if persistent_decisions > 1:
+            return
+
+    be_path = copilot.get("be_path")
+    if not be_path:
+        return
+    dev_candidates = []
+    if copilot.get("dev_db_path"):
+        dev_candidates.append(Path(copilot["dev_db_path"]))
+    dev_candidates.extend([
+        Path(be_path) / "app" / "data" / db_filename,
+        Path(be_path) / "data" / db_filename,
+    ])
+
+    for dev_db in dev_candidates:
+        if not dev_db.exists() or dev_db.stat().st_size <= 1024:
+            continue
+        dev_decisions = _decision_count(dev_db)
+        if dev_decisions is None:
+            continue
+        if persistent_decisions is not None and dev_decisions <= max(persistent_decisions, 1):
+            continue
+        copilot_dir.mkdir(parents=True, exist_ok=True)
+        if persistent_db.exists():
+            backup = _backup_db_path(persistent_db)
+            shutil.copy2(persistent_db, backup)
+            print(f"  Backed up {copilot['name']} persistent DB to {backup}")
+        shutil.copy2(dev_db, persistent_db)
+        size_kb = persistent_db.stat().st_size // 1024
+        print(
+            f"  Migrated {copilot['name']} data from dev location "
+            f"({size_kb}KB, {dev_decisions} decisions)"
+        )
+        return
 
 
 def _read_copilot_data_stats(copilot: dict, data_root: Path = DEFAULT_DATA_DIR) -> dict:
@@ -165,6 +262,140 @@ def _read_copilot_data_stats(copilot: dict, data_root: Path = DEFAULT_DATA_DIR) 
     except Exception:
         pass
     return result
+
+
+def _redact_dsn(value: str | None) -> str:
+    """Redact credentials while preserving the useful host/db shape."""
+    if not value:
+        return ""
+    text = str(value)
+    text = re.sub(r"://([^:/?#@]+):([^@/?#]+)@", r"://***:***@", text)
+    text = re.sub(
+        r"(?i)(^|\s|[?&;])(user|username|password|passwd|pwd|token|secret)=([^&;\s]+)",
+        lambda match: f"{match.group(1)}{match.group(2)}=***",
+        text,
+    )
+    return text
+
+
+def _active_graph_arg_name(app_name: str) -> str:
+    return f"{app_name.lower()}_graph_backend"
+
+
+def _requested_graph_backend(app_name: str, args=None, env: dict[str, str] | None = None) -> str:
+    app_key = app_name.lower()
+    if app_key not in ACTIVE_GRAPH_APPS:
+        return "soc-age" if app_key == "soc" else "sqlite"
+    if args is not None:
+        requested = getattr(args, _active_graph_arg_name(app_key), None)
+        if requested:
+            return str(requested).lower()
+    source = os.environ if env is None else env
+    prefix = ACTIVE_GRAPH_APPS[app_key]["prefix"]
+    return (source.get(f"{prefix}GRAPH_BACKEND") or "sqlite").strip().lower()
+
+
+def _active_graph_status_label(app_name: str, args=None, env: dict[str, str] | None = None) -> str:
+    app_key = app_name.lower()
+    if app_key == "soc":
+        return "AGE"
+    backend = _requested_graph_backend(app_key, args=args, env=env)
+    if backend == "age":
+        return "AGE new-writes + SQLite history"
+    return "SQLite"
+
+
+def _inject_active_graph_env(copilot_env: dict[str, str], app_name: str, args) -> dict[str, str]:
+    app_key = app_name.lower()
+    if app_key not in ACTIVE_GRAPH_APPS:
+        return copilot_env
+    requested = getattr(args, _active_graph_arg_name(app_key), None)
+    if requested in (None, "", "sqlite"):
+        return copilot_env
+    if requested != "age":
+        raise RuntimeError(f"Unsupported graph backend for {app_name}: {requested}")
+
+    config = ACTIVE_GRAPH_APPS[app_key]
+    prefix = config["prefix"]
+    dsn_key = f"{prefix}AGE_DSN"
+    graph_key = f"{prefix}AGE_GRAPH"
+    domain_key = f"{prefix}AGE_DOMAIN"
+    dsn = os.environ.get(dsn_key, "").strip()
+    if not dsn:
+        raise RuntimeError(f"{dsn_key} is required when --{app_key}-graph-backend=age")
+    graph = (os.environ.get(graph_key) or DEFAULT_ACTIVE_AGE_GRAPH).strip()
+    if not graph:
+        raise RuntimeError(f"{graph_key} must not be blank")
+    if graph == "soc_graph":
+        raise RuntimeError(f"{graph_key}=soc_graph is forbidden for {app_name}")
+
+    copilot_env[f"{prefix}GRAPH_BACKEND"] = "age"
+    copilot_env[dsn_key] = dsn
+    copilot_env[graph_key] = graph
+    copilot_env[domain_key] = config["domain"]
+    test_mode_key = f"{prefix}AGE_TEST_MODE"
+    live_test_key = f"{prefix}LIVE_AGE_TEST"
+    if test_mode_key in os.environ:
+        copilot_env[test_mode_key] = os.environ[test_mode_key]
+    if live_test_key in os.environ:
+        copilot_env[live_test_key] = os.environ[live_test_key]
+    return copilot_env
+
+
+def _prepare_copilot_env(copilot: dict, args, base_env: dict[str, str] | None = None) -> dict[str, str]:
+    env = dict(os.environ if base_env is None else base_env)
+    if copilot.get("env"):
+        env.update(copilot["env"])
+    return _inject_active_graph_env(env, copilot["name"], args)
+
+
+def _active_age_dsn_from_env(copilot: dict, env: dict[str, str], args) -> str | None:
+    app_key = copilot["name"].lower()
+    if app_key not in ACTIVE_GRAPH_APPS:
+        return None
+    if _requested_graph_backend(app_key, args=args, env=env) != "age":
+        return None
+    prefix = ACTIVE_GRAPH_APPS[app_key]["prefix"]
+    return env.get(f"{prefix}AGE_DSN")
+
+
+def _age_precheck_dsns(prepared: list[dict], args) -> list[str]:
+    dsns: list[str] = []
+    for item in prepared:
+        copilot = item["copilot"]
+        env = item["env"]
+        if copilot.get("requires_age"):
+            dsn = copilot.get("graph_dsn") or env.get("GRAPH_DSN")
+            if dsn:
+                dsns.append(dsn)
+        active_dsn = _active_age_dsn_from_env(copilot, env, args)
+        if active_dsn:
+            dsns.append(active_dsn)
+
+    unique: list[str] = []
+    seen: set[str] = set()
+    for dsn in dsns:
+        if dsn not in seen:
+            unique.append(dsn)
+            seen.add(dsn)
+    return unique
+
+
+def _run_replay_outbox_if_requested(enabled: bool) -> bool:
+    if not enabled:
+        return False
+    try:
+        module = importlib.import_module("copilot_sdk.outbox.replay")
+    except ModuleNotFoundError:
+        print("Outbox replay requested but copilot_sdk.outbox replay is not available yet; not run.")
+        return False
+    replay = getattr(module, "replay_outbox", None)
+    if not callable(replay):
+        print("Outbox replay requested but replay_outbox() is not available; not run.")
+        return False
+    replay()
+    print("Outbox replay completed.")
+    return True
 
 
 # --- Helpers ---
@@ -458,7 +689,7 @@ def cmd_reset(target: str, selected: list[dict], data_root: Path = DEFAULT_DATA_
     print()
 
 
-def cmd_status(selected: list[dict], data_root: Path = DEFAULT_DATA_DIR):
+def cmd_status(selected: list[dict], data_root: Path = DEFAULT_DATA_DIR, args=None):
     print()
     print("╔══════════════════════════════════════════════════════╗")
     print("║  Copilot Platform Status                             ║")
@@ -480,11 +711,11 @@ def cmd_status(selected: list[dict], data_root: Path = DEFAULT_DATA_DIR):
         fe_status = "UP ✓" if fe_up else ("N/A" if fe_port is None else "DOWN")
         fe_label = f":{fe_port}" if fe_port is not None else "N/A"
         domain = h.get("domain", "") if h else ""
-        age_flag = " [AGE]" if c.get("requires_age") else ""
+        graph_label = _active_graph_status_label(c["name"], args=args)
 
         print(f"  {c['name']:12s}  backend :{c['be_port']} {be_status:8s}"
               f"  frontend {fe_label:>5s} {fe_status:8s}"
-              f"  {domain}{age_flag}")
+              f"  {domain} [{graph_label}]")
 
     # Persistent data
     print()
@@ -520,19 +751,33 @@ def cmd_start(selected: list[dict], args, data_root: Path = DEFAULT_DATA_DIR):
     print("╚══════════════════════════════════════════════════════╝")
     print()
 
+    prepared: list[dict] = []
+    for c in selected:
+        try:
+            prepared.append({"copilot": c, "env": _prepare_copilot_env(c, args)})
+        except RuntimeError as exc:
+            print(f"  ✗ {c['name']} AGE startup aborted: {_redact_dsn(str(exc))}")
+            return
+
     # AGE pre-check
-    age_needed = [c for c in selected if c.get("requires_age")]
-    if age_needed or args.graph:
-        dsn = age_needed[0]["graph_dsn"] if age_needed else AGE_DSN_DATAOPS
+    age_dsns = _age_precheck_dsns(prepared, args)
+    if age_dsns or args.graph:
+        dsns_to_check = age_dsns or [AGE_DSN_DATAOPS]
         print("Checking AGE/PostgreSQL...")
-        if not ensure_age_available(dsn):
-            print()
-            print("Cannot start AGE-dependent copilots. Exiting.")
-            non_age = [c for c in selected if not c.get("requires_age")]
-            if non_age:
-                print(f"Starting {len(non_age)} non-AGE copilot(s) instead...")
-                selected = non_age
-            else:
+        for dsn in dsns_to_check:
+            if not ensure_age_available(dsn):
+                print()
+                print("Cannot start AGE-dependent copilots. Exiting.")
+                if any(item["copilot"].get("requires_age") for item in prepared) and not any(
+                    _active_age_dsn_from_env(item["copilot"], item["env"], args)
+                    for item in prepared
+                ):
+                    non_age = [item for item in prepared if not item["copilot"].get("requires_age")]
+                    if non_age:
+                        print(f"Starting {len(non_age)} non-AGE copilot(s) instead...")
+                        prepared = non_age
+                        break
+                    return
                 return
         print()
 
@@ -541,11 +786,15 @@ def cmd_start(selected: list[dict], args, data_root: Path = DEFAULT_DATA_DIR):
 
     # Start backends
     print("Starting backends...")
-    for c in selected:
+    started: list[dict] = []
+    for item in prepared:
+        c = item["copilot"]
+        env = item["env"]
         port = c["be_port"]
         kill_port(port, f"{c['name']} backend")
         if check_port(port):
             print(f"  {c['name']} backend already on :{port}")
+            started.append(item)
             continue
 
         be_path = c["be_path"]
@@ -553,30 +802,29 @@ def cmd_start(selected: list[dict], args, data_root: Path = DEFAULT_DATA_DIR):
             print(f"  ✗ {c['name']}: main.py not found at {be_path}")
             continue
 
-        env = os.environ.copy()
-        if c.get("env"):
-            env.update(c["env"])
-
         # Persistent storage: pass data DIRECTORY to backend.
         # Backend constructs its own db filename (e.g. trading.db).
         if c.get("persistent"):
             copilot_dir = _copilot_data_dir(c["name"], data_root)
+            _maybe_migrate_dev_db(c, copilot_dir, data_root)
             env["CI_DATA_DIR"] = str(copilot_dir)
 
         proc = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "app.main:app",
-             "--host", "127.0.0.1", "--port", str(port)],
-            cwd=str(be_path),
-            env=env,
-            creationflags=CREATE_FLAGS,
+              "--host", "127.0.0.1", "--port", str(port)],
+              cwd=str(be_path),
+              env=env,
+              creationflags=CREATE_FLAGS,
         )
         print(f"  {c['name']} backend starting on :{port} (PID {proc.pid})")
+        started.append(item)
 
     # Wait for health
     print()
     print("Waiting for backends...")
     all_healthy = True
-    for c in selected:
+    for item in started:
+        c = item["copilot"]
         timeout = 60 if c.get("requires_age") else 30
         if not wait_for_health(c["name"], c["be_port"], timeout=timeout):
             all_healthy = False
@@ -591,12 +839,13 @@ def cmd_start(selected: list[dict], args, data_root: Path = DEFAULT_DATA_DIR):
         print("  NOTE: --preseed is deprecated. Backends auto-seed on first start.")
         print("  Use --reset to wipe and re-seed on next start.")
         print("  Running legacy preseed for backward compatibility...")
-        run_preseed(selected)
+        run_preseed([item["copilot"] for item in started])
 
     # Start frontends
     print()
     print("Starting frontends...")
-    for c in selected:
+    for item in started:
+        c = item["copilot"]
         fe_port = c.get("fe_port")
         if fe_port is None:
             print(f"  {c['name']} has no frontend; skipping")
@@ -620,7 +869,8 @@ def cmd_start(selected: list[dict], args, data_root: Path = DEFAULT_DATA_DIR):
     # Wait for frontends
     print()
     print("Waiting for frontends...")
-    for c in selected:
+    for item in started:
+        c = item["copilot"]
         fe_port = c.get("fe_port")
         if fe_port is not None:
             wait_for_frontend(c["name"], fe_port, timeout=15)
@@ -628,7 +878,8 @@ def cmd_start(selected: list[dict], args, data_root: Path = DEFAULT_DATA_DIR):
     # Open browsers
     if not args.no_browser:
         urls = []
-        for c in selected:
+        for item in started:
+            c = item["copilot"]
             fe_port = c.get("fe_port")
             if fe_port is not None:
                 urls.append((c["name"], f"http://localhost:{fe_port}"))
@@ -657,15 +908,16 @@ def cmd_start(selected: list[dict], args, data_root: Path = DEFAULT_DATA_DIR):
     print("╔══════════════════════════════════════════════════════╗")
     print("║  Platform Ready                                      ║")
     print("╚══════════════════════════════════════════════════════╝")
-    for c in selected:
+    for item in started:
+        c = item["copilot"]
         fe_port = c.get("fe_port")
-        age_flag = " [AGE]" if c.get("requires_age") else ""
+        graph_label = _active_graph_status_label(c["name"], args=args)
         persist_flag = " [persistent]" if c.get("persistent") else ""
         if fe_port is None:
-            print(f"  {c['name']:12s}  backend http://localhost:{c['be_port']}{age_flag}")
+            print(f"  {c['name']:12s}  backend http://localhost:{c['be_port']} [{graph_label}]")
         else:
             print(f"  {c['name']:12s}  http://localhost:{fe_port}"
-                  f"  (backend :{c['be_port']}){age_flag}{persist_flag}")
+                  f"  (backend :{c['be_port']}) [{graph_label}]{persist_flag}")
     print()
     print("  Stop:       python demo.py --stop")
     print("  Status:     python demo.py --status")
@@ -720,7 +972,7 @@ def run_preseed(selected: list[dict]):
 
 # --- Main ---
 
-def main():
+def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Compounding Intelligence Platform Launcher",
     )
@@ -742,13 +994,27 @@ def main():
     parser.add_argument("--playwright", action="store_true",
                         help="Playwright prereqs only (SOC + S2P)")
 
+    for app_name in ("trading", "purchasing", "dataops", "s2p"):
+        parser.add_argument(
+            f"--{app_name}-graph-backend",
+            choices=("sqlite", "age"),
+            default=None,
+            help=f"{app_name.title()} scorer graph backend override",
+        )
+
     parser.add_argument("--graph", action="store_true", help="AGE graph mode for DataOps")
+    parser.add_argument("--replay-outbox", action="store_true", default=False,
+                        help="Attempt outbox replay if a replay worker is available")
     parser.add_argument("--preseed", action="store_true",
                         help="Pre-seed after start (deprecated: backends auto-seed)")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")
     parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR,
                         help=f"Override data directory (default: {DEFAULT_DATA_DIR})")
+    return parser
 
+
+def main():
+    parser = create_parser()
     args = parser.parse_args()
     data_root = args.data_dir
 
@@ -779,13 +1045,15 @@ def main():
     if args.reset is not None:
         cmd_reset(args.reset, selected, data_root)
 
+    _run_replay_outbox_if_requested(args.replay_outbox)
+
     # Dispatch
     if args.kill_all:
         cmd_kill_all()
     elif args.stop:
         cmd_stop(selected)
     elif args.status:
-        cmd_status(selected, data_root)
+        cmd_status(selected, data_root, args=args)
     elif args.reset is not None:
         # Reset already done above, no other action → exit
         pass

@@ -159,6 +159,21 @@ def test_scorer_score_writes_to_graph_store(mock_preset, store):
     assert store.get_decision(result.decision_id) is None
 
 
+def test_score_read_only_returns_prediction_without_decision_write(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    result = scorer.score_read_only(sample_factors(), "alpha")
+
+    assert result.decision_id.startswith("preview-")
+    assert result.action in mock_preset.shape.action_names
+    assert 0 <= result.action_index < mock_preset.shape.n_actions
+    assert 0.0 <= result.confidence <= 1.0
+    assert len(result.probabilities) == mock_preset.shape.n_actions
+    assert graph_store.count_decisions("mock") == 0
+    assert graph_store.get_decision(result.decision_id) is None
+
+
 def test_score_probabilities_sum_to_1(mock_preset, store):
     scorer = build_compounding_scorer(mock_preset, store)
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
@@ -22,6 +23,7 @@ def detect_patterns(trades: list[dict]) -> list[dict]:
         _detect_fomo,
         _detect_tilt,
         _detect_drawdown_chase,
+        _detect_tod_degradation,
     )
     patterns = [pattern for detector in detectors if (pattern := detector(ordered))]
     patterns.sort(key=lambda pattern: pattern["severity"], reverse=True)
@@ -83,6 +85,13 @@ def _pnl(trade: dict[str, Any]) -> float | None:
     if value is not None:
         return value
     return _number(trade.get("computed_pnl"))
+
+
+def _accuracy(trades: list[dict[str, Any]]) -> float | None:
+    verified = [trade for trade in trades if trade.get("is_correct") is not None]
+    if not verified:
+        return None
+    return sum(1 for trade in verified if bool(trade.get("is_correct"))) / len(verified)
 
 
 def _is_loss(trade: dict[str, Any]) -> bool:
@@ -261,5 +270,67 @@ def _detect_drawdown_chase(trades: list[dict[str, Any]]) -> dict[str, Any] | Non
         affected=affected,
         severity=min(1.0, 0.35 + len(affected) / 5),
         recommendation="Use fixed or reduced size during drawdowns until the equity curve stabilizes.",
+        total=len(trades),
+    )
+
+
+def _detect_tod_degradation(trades: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if len(trades) < 10:
+        return None
+
+    baseline_acc = _accuracy(trades)
+    if baseline_acc is None:
+        return None
+
+    buckets: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for trade in trades:
+        if trade.get("is_correct") is None:
+            continue
+        parsed = _parse_time(trade.get("entry_time"))
+        if parsed is None:
+            continue
+        key = f"{parsed.strftime('%A')}_{parsed.hour:02d}"
+        buckets[key].append(trade)
+
+    worst_key: str | None = None
+    worst_trades: list[dict[str, Any]] = []
+    worst_gap = 0.0
+    worst_acc = 0.0
+
+    for key, bucket_trades in buckets.items():
+        if len(bucket_trades) < 8:
+            continue
+        bucket_acc = _accuracy(bucket_trades)
+        if bucket_acc is None:
+            continue
+        gap = baseline_acc - bucket_acc
+        if gap > worst_gap:
+            worst_key = key
+            worst_trades = bucket_trades
+            worst_gap = gap
+            worst_acc = bucket_acc
+
+    if worst_key is None or worst_gap < 0.12:
+        return None
+
+    day_name, hour_text = worst_key.rsplit("_", 1)
+    hour = int(hour_text)
+    next_hour = (hour + 1) % 24
+    window = f"{hour:02d}:00-{next_hour:02d}:00"
+    gap_text = f"{worst_gap:.0%}"
+
+    return _pattern(
+        name="tod_degradation",
+        display_name="Time-of-Day Degradation",
+        description=(
+            f"{day_name} {window} accuracy is {worst_acc:.0%}, below the "
+            f"{baseline_acc:.0%} verified baseline by {gap_text}."
+        ),
+        affected=worst_trades,
+        severity=min(1.0, 0.3 + worst_gap * 2),
+        recommendation=(
+            f"Review {day_name} {window} setups and reduce size or skip that window "
+            "until accuracy recovers."
+        ),
         total=len(trades),
     )

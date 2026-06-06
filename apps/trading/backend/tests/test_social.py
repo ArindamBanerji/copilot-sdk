@@ -12,6 +12,9 @@ TRADING_FACTORS = {
     "risk_reward_actual": 0.67,
     "emotional_indicator": 0.71,
     "signal_confidence": 0.50,
+    "options_delta_exposure": 0.50,
+    "options_iv_percentile": 0.50,
+    "options_gamma_risk": 0.50,
 }
 VALID_CATEGORIES = {"trend_following", "mean_reversion", "event_driven", "income_strategy", "scalp_intraday"}
 VALID_ACTIONS = {"strong_execution", "partial_execution", "poor_execution", "skip_recommended"}

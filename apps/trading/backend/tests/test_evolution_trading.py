@@ -12,22 +12,30 @@ for path in (BACKEND_ROOT, REPO_ROOT):
         sys.path.insert(0, str(path))
 
 import cli  # noqa: E402
-from app.evolution import DEFAULT_VARIANTS, TRADING_VARIANT_DIMENSIONS, get_trading_variants  # noqa: E402
+from app.evolution import (  # noqa: E402
+    DEFAULT_VARIANTS,
+    TRADING_EVOLVER_CONFIG,
+    TRADING_VARIANT_DIMENSIONS,
+    TRADING_VARIANTS,
+    get_trading_variant_specs,
+    get_trading_variants,
+)
+from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
 
 
 FORBIDDEN_SEMANTICS = {
     "buy",
     "sell",
-    "hold",
-    "strong_execution",
     "partial_execution",
     "poor_execution",
-    "skip_recommended",
 }
 
 
-def test_trading_variant_dimensions_have_exactly_three_entries():
-    assert len(TRADING_VARIANT_DIMENSIONS) == 3
+def test_trading_variant_dimensions_have_expected_entries():
+    assert {dimension["name"] for dimension in TRADING_VARIANT_DIMENSIONS} == {
+        "execution_threshold",
+        "revenge_cooldown",
+    }
 
 
 def test_each_dimension_has_required_shape_and_default_value():
@@ -40,9 +48,11 @@ def test_each_dimension_has_required_shape_and_default_value():
 def test_get_trading_variants_returns_non_empty_defensive_copy():
     variants = get_trading_variants()
     variants[0]["status"] = "mutated"
+    variants[0]["metadata"]["strong_execution_confidence"] = -1
 
     assert variants
     assert get_trading_variants()[0]["status"] == DEFAULT_VARIANTS[0]["status"]
+    assert get_trading_variants()[0]["metadata"]["strong_execution_confidence"] == 0.75
 
 
 def test_variants_have_required_shape_and_unique_ids():
@@ -50,22 +60,84 @@ def test_variants_have_required_shape_and_unique_ids():
     ids = [variant["variant_id"] for variant in variants]
 
     assert len(ids) == len(set(ids))
+    assert len(variants) >= 4
     for variant in variants:
-        assert set(variant) == {"variant_id", "name", "dimensions", "status"}
+        assert set(variant) == {
+            "id",
+            "variant_id",
+            "family",
+            "version",
+            "name",
+            "description",
+            "dimensions",
+            "status",
+            "metadata",
+        }
+        assert variant["id"] == variant["variant_id"]
         assert variant["status"] in {"active", "shadow"}
 
 
 def test_variant_dimensions_are_valid():
-    valid_dimensions = {dimension["name"]: set(dimension["values"]) for dimension in TRADING_VARIANT_DIMENSIONS}
-
+    valid_families = {dimension["name"] for dimension in TRADING_VARIANT_DIMENSIONS}
     for variant in get_trading_variants():
-        assert set(variant["dimensions"]) == set(valid_dimensions)
-        for name, value in variant["dimensions"].items():
-            assert value in valid_dimensions[name]
+        assert variant["family"] in valid_families
+        assert variant["dimensions"]["family"] == variant["family"]
+        assert variant["dimensions"]["version"] == variant["version"]
+
+
+def test_variant_specs_define_expected_families_and_statuses():
+    specs = get_trading_variant_specs()
+    families = {spec.family for spec in specs}
+
+    assert len(specs) == 4
+    assert families == {"execution_threshold", "revenge_cooldown"}
+    for family in families:
+        statuses = {spec.status for spec in specs if spec.family == family}
+        assert statuses == {"active", "shadow"}
+
+
+def test_execution_threshold_metadata_values_are_ordered():
+    by_id = {variant["id"]: variant for variant in get_trading_variants()}
+    v1 = by_id["EXECUTION_THRESHOLD_v1"]["metadata"]
+    v2 = by_id["EXECUTION_THRESHOLD_v2"]["metadata"]
+
+    assert v1["strong_execution_confidence"] == 0.75
+    assert v1["skip_threshold"] == 0.40
+    assert v2["strong_execution_confidence"] == 0.82
+    assert v2["skip_threshold"] == 0.35
+    assert v2["strong_execution_confidence"] > v1["strong_execution_confidence"]
+    assert v2["skip_threshold"] < v1["skip_threshold"]
+
+
+def test_revenge_cooldown_metadata_values_are_ordered():
+    by_id = {variant["id"]: variant for variant in get_trading_variants()}
+    v1 = by_id["REVENGE_COOLDOWN_v1"]["metadata"]
+    v2 = by_id["REVENGE_COOLDOWN_v2"]["metadata"]
+
+    assert v1["cooldown_minutes"] == 30
+    assert v1["max_size_ratio"] == 1.3
+    assert v2["cooldown_minutes"] == 45
+    assert v2["max_size_ratio"] == 1.2
+    assert v2["cooldown_minutes"] > v1["cooldown_minutes"]
+    assert v2["max_size_ratio"] < v1["max_size_ratio"]
+
+
+def test_trading_evolver_config_matches_map_105_requirements():
+    assert TRADING_EVOLVER_CONFIG.promotion_min_samples == 50
+    assert TRADING_EVOLVER_CONFIG.exploration_constant == 1.414
+    assert TRADING_EVOLVER_CONFIG.promotion_improvement_threshold == 0.05
+    assert TRADING_EVOLVER_CONFIG.categories == list(TradingPreset().shape.category_names)
+    assert {spec.id for spec in TRADING_VARIANTS} == {variant["id"] for variant in get_trading_variants()}
 
 
 def test_variants_do_not_include_directional_or_action_semantics():
-    payload = str(get_trading_variants()).lower()
+    payload = str(
+        [
+            value
+            for variant in get_trading_variants()
+            for value in (variant["id"], variant["family"], variant["name"], variant["description"])
+        ]
+    ).lower()
 
     for token in FORBIDDEN_SEMANTICS:
         assert token not in payload
@@ -78,8 +150,9 @@ def test_evolution_variants_route_returns_trading_variants(client):
     payload = response.json()
     assert payload["domain"] == "trading"
     assert payload["variants"]
-    assert payload["variants"][0]["variant_id"].startswith("trd-ev-")
-    assert "evidence_ordering" in payload["variants"][0]["dimensions"]
+    families = {variant["family"] for variant in payload["variants"]}
+    assert families == {"execution_threshold", "revenge_cooldown"}
+    assert {variant["status"] for variant in payload["variants"]} == {"active", "shadow"}
 
 
 def test_cli_evolution_variants_prints_variant_info(tmp_path, capsys):
@@ -87,8 +160,8 @@ def test_cli_evolution_variants_prints_variant_info(tmp_path, capsys):
 
     assert result == 0
     output = capsys.readouterr().out
-    assert "trd-ev-001" in output
-    assert "Regime-first evidence" in output
+    assert "EXECUTION_TH" in output
+    assert "Execution threshold baseline" in output
 
 
 def test_cli_evolution_status_prints_summary(tmp_path, capsys):
@@ -110,11 +183,11 @@ def test_cli_evolution_promote_invalid_variant_fails(tmp_path, capsys):
 
 
 def test_cli_evolution_promote_known_variant_fails_closed(tmp_path, capsys):
-    result = cli.main(["--config-dir", str(tmp_path / "ci-trading"), "evolution", "promote", "trd-ev-001"])
+    result = cli.main(["--config-dir", str(tmp_path / "ci-trading"), "evolution", "promote", "EXECUTION_THRESHOLD_v1"])
 
     captured = capsys.readouterr()
     assert result == 1
-    assert "Variant found: trd-ev-001" in captured.out
+    assert "Variant found: EXECUTION_THRESHOLD_v1" in captured.out
     assert "Promotion blocked" in captured.err
     assert "/api/conservation/status" in captured.err
 
@@ -122,7 +195,6 @@ def test_cli_evolution_promote_known_variant_fails_closed(tmp_path, capsys):
 def test_trading_evolution_package_has_no_forbidden_imports():
     root = BACKEND_ROOT / "app" / "evolution"
     forbidden = [
-        "copilot_sdk.scoring",
         "copilot_sdk.rl",
         "apps.purchasing",
         "apps.dataops",

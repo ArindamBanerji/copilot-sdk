@@ -137,13 +137,14 @@ def test_sdk_has_no_extra_files():
 # ---------------------------------------------------------------------------
 
 S2P_KNOWN_DRIFT = {
-    "agent.py": "Minor diff. 1 byte. Backport pending.",
-    "audit.py": "SOC canonical — async, OutcomeEntry, epoch archive. -5118 bytes in S2P. Backport pending.",
+    "agent.py": "Minor diff. -47 bytes in S2P. Backport pending.",
+    "audit.py": "SOC canonical — async, OutcomeEntry, epoch archive. 2096 bytes in S2P. Backport pending.",
     "checkpoint.py": "SOC extended with PITR backup integration. -747 bytes in S2P. Backport pending.",
     "composite_gate.py": "Same size, different content (category threshold names differ). Backport pending.",
     "decision_history.py": "Minor diff. 6 bytes. Backport pending.",
-    "feedback_base.py": "Minor diff. 3 bytes. Backport pending.",
-    "intervention_controls.py": "SOC extended with conservation wiring. -114 bytes in S2P. Backport pending.",
+    "feedback_base.py": "Minor diff. 475 bytes in S2P. Backport pending.",
+    "intervention_controls.py": "SOC extended with conservation wiring. -5513 bytes in S2P. Backport pending.",
+    "iks_base.py": "Minor diff. -3 bytes in S2P. Backport pending.",
     "provenance.py": "SOC extended with W2 provenance fields. -131 bytes in S2P. Backport pending.",
     "shadow_mode.py": "SOC minor extension. -18 bytes in S2P. Backport pending.",
     "similar_cases_base.py": "Minor diff. 13 bytes. Backport pending.",

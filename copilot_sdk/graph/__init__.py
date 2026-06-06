@@ -2,7 +2,7 @@
 
 from copilot_sdk.graph.contract import EdgeType, GraphContract, NodeType
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.protocol import GraphStore
+from copilot_sdk.graph.protocol import GraphStore, L5LearningStore, ProtocolV2GraphStore
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
 __all__ = [
@@ -10,6 +10,8 @@ __all__ = [
     "GraphContract",
     "GraphStore",
     "InMemoryGraphStore",
+    "L5LearningStore",
     "NodeType",
+    "ProtocolV2GraphStore",
     "SQLiteGraphStore",
 ]

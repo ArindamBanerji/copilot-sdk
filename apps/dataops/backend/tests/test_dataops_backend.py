@@ -84,7 +84,7 @@ def test_auto_seed_empty_db(tmp_path: Path) -> None:
     from app.main import create_app
 
     db_path = tmp_path / "dataops_seeded.db"
-    with TestClient(create_app(db_path=db_path)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     expected_verified, expected_correct = _fixture_outcome_counts(DATAOPS_SEED_PATH)
@@ -104,7 +104,7 @@ def test_auto_seed_skips_populated(tmp_path: Path) -> None:
     finally:
         store.close()
 
-    with TestClient(create_app(db_path=db_path)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     assert _count_decisions(db_path, "dataops") == 1
@@ -115,7 +115,7 @@ def test_ci_data_dir_creates_db(tmp_path: Path, monkeypatch) -> None:
 
     data_dir = tmp_path / "ci-data"
     monkeypatch.setenv("CI_DATA_DIR", str(data_dir))
-    with TestClient(create_app()) as startup_client:
+    with TestClient(create_app(demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     db_path = data_dir / "dataops.db"
@@ -131,7 +131,7 @@ def test_explicit_db_path_wins(tmp_path: Path, monkeypatch) -> None:
     explicit_db = tmp_path / "explicit.db"
     monkeypatch.setenv("CI_DATA_DIR", str(ci_dir))
 
-    with TestClient(create_app(db_path=explicit_db)) as startup_client:
+    with TestClient(create_app(db_path=explicit_db, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     assert explicit_db.exists()
@@ -144,7 +144,7 @@ def test_no_env_uses_explicit_fallback(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.delenv("CI_DATA_DIR", raising=False)
     db_path = tmp_path / "fallback.db"
-    with TestClient(create_app(db_path=db_path)) as startup_client:
+    with TestClient(create_app(db_path=db_path, demo_bundle_path=False)) as startup_client:
         assert startup_client.get("/health").status_code == 200
 
     assert db_path.exists()
@@ -330,89 +330,76 @@ def test_ae_recommendation_no_match(client: TestClient) -> None:
     assert payload["count"] == 0
 
 
-def _write_ae_fixtures(data_dir: Path) -> None:
-    data_dir.mkdir(exist_ok=True)
-    (data_dir / "evolution_fixtures.json").write_text(json.dumps({"variants": []}), encoding="utf-8")
-    (data_dir / "ae_impact.json").write_text(json.dumps({"auto_resolved_count": 1}), encoding="utf-8")
-    (data_dir / "incident.json").write_text(json.dumps({"estimated_cost": 1}), encoding="utf-8")
-    (data_dir / "conservation_history.json").write_text(json.dumps({"events": []}), encoding="utf-8")
-
-
-def test_ae_fixtures_cached(monkeypatch, tmp_path: Path) -> None:
-    from app import ae_router
-
-    _write_ae_fixtures(tmp_path)
-    reads = 0
-    original_read_text = Path.read_text
-
-    def counted_read_text(self: Path, *args, **kwargs) -> str:
-        nonlocal reads
-        if self.name == "evolution_fixtures.json":
-            reads += 1
-        return original_read_text(self, *args, **kwargs)
-
-    monkeypatch.setattr(ae_router, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(Path, "read_text", counted_read_text)
-    ae_router.reset_ae_fixtures()
-
-    ae_router._get_fixtures()
-    ae_router._get_fixtures()
-
-    assert reads == 1
-    ae_router.reset_ae_fixtures()
-
-
-def test_ae_fixtures_resettable(monkeypatch, tmp_path: Path) -> None:
-    from app import ae_router
-
-    _write_ae_fixtures(tmp_path)
-    reads = 0
-    original_read_text = Path.read_text
-
-    def counted_read_text(self: Path, *args, **kwargs) -> str:
-        nonlocal reads
-        if self.name == "evolution_fixtures.json":
-            reads += 1
-        return original_read_text(self, *args, **kwargs)
-
-    monkeypatch.setattr(ae_router, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(Path, "read_text", counted_read_text)
-    ae_router.reset_ae_fixtures()
-
-    ae_router._get_fixtures()
-    ae_router.reset_ae_fixtures()
-    ae_router._get_fixtures()
-
-    assert reads == 2
-    ae_router.reset_ae_fixtures()
-
-
-def test_ae_endpoints_still_return_fixture_source(client: TestClient) -> None:
+def test_ae_endpoints_return_evolution_store_source(client: TestClient) -> None:
     recommendation = client.get("/api/ae/recommendation/DQ-001").json()
     pattern_origin = client.get("/api/ae/pattern-origin").json()
     lifecycle = client.get("/api/ae/rule-lifecycle").json()
     operational_rules = client.get("/api/ae/operational-rules").json()
 
-    assert recommendation["source"] == "fixture"
-    assert pattern_origin["source"] == "fixture"
-    assert lifecycle["source"] == "fixture"
-    assert operational_rules["source"] == "fixture"
+    assert recommendation["source"] == "evolution_store"
+    assert pattern_origin["source"] == "evolution_store"
+    assert lifecycle["source"] == "evolution_store"
+    assert operational_rules["source"] == "evolution_store"
 
 
-def test_fixture_read_site_single() -> None:
-    from app import ae_router
-
-    source = Path(ae_router.__file__).read_text(encoding="utf-8")
-    read_site_lines = [
-        line for line in source.splitlines()
-        if "json.loads(" in line or "json.load(" in line or "read_text" in line
+def test_ae_router_has_no_production_fixture_read_site() -> None:
+    repo_root = Path(__file__).resolve().parents[4]
+    production_files = [
+        repo_root / "apps" / "dataops" / "backend" / "app" / "ae_router.py",
+        repo_root / "apps" / "dataops" / "backend" / "app" / "main.py",
+        repo_root / "apps" / "dataops" / "backend" / "app" / "context_router.py",
+        repo_root / "apps" / "purchasing" / "backend" / "app" / "main.py",
+        repo_root / "apps" / "purchasing" / "backend" / "app" / "context_router.py",
     ]
-    get_fixtures_start = source.index("def _get_fixtures()")
-    reset_start = source.index("def reset_ae_fixtures()")
 
-    assert len(read_site_lines) == 1
-    assert source.index(read_site_lines[0]) > get_fixtures_start
-    assert source.index(read_site_lines[0]) < reset_start
+    for path in production_files:
+        source = path.read_text(encoding="utf-8")
+        assert "evolution_fixtures" not in source, str(path)
+        assert "load_fixtures" not in source, str(path)
+
+
+def test_ae_fresh_store_returns_empty_responses(tmp_path: Path) -> None:
+    from app.main import create_app
+
+    client = TestClient(create_app(db_path=tmp_path / "fresh_dataops.db", demo_bundle_path=False))
+
+    recommendation = client.get("/api/ae/recommendation/ALERT-TIRE-018").json()
+    impact = client.get("/api/ae/impact").json()
+    pattern_origin = client.get("/api/ae/pattern-origin").json()
+    lifecycle = client.get("/api/ae/rule-lifecycle").json()
+    operational_rules = client.get("/api/ae/operational-rules").json()
+
+    assert recommendation["recommendations"] == []
+    assert recommendation["count"] == 0
+    assert impact["active_rules"] == []
+    assert impact["rejected_rules"] == []
+    assert pattern_origin["patterns"] == []
+    assert pattern_origin["rejected"] == []
+    assert lifecycle["rules"] == []
+    assert lifecycle["total"] == 0
+    assert operational_rules["rules"] == []
+    assert operational_rules["total"] == 0
+
+
+def test_dataops_audit_trail_uses_store_backed_recommendation(client: TestClient) -> None:
+    payload = client.get("/api/context/audit-trail/ALERT-TIRE-018").json()
+
+    ae_steps = [step for step in payload["chain"] if step.get("label") == "AE Recommendation"]
+    assert ae_steps
+    assert ae_steps[0]["variant_id"] == "dataops-recurring-impact-v1"
+    assert ae_steps[0]["data"]["variant_id"] == "dataops-recurring-impact-v1"
+
+
+def test_dataops_audit_trail_fresh_store_has_clean_empty_recommendation(tmp_path: Path) -> None:
+    from app.main import create_app
+
+    client = TestClient(create_app(db_path=tmp_path / "fresh_audit_dataops.db", demo_bundle_path=False))
+    payload = client.get("/api/context/audit-trail/ALERT-TIRE-018").json()
+
+    ae_steps = [step for step in payload["chain"] if step.get("label") == "AE Recommendation"]
+    assert ae_steps
+    assert ae_steps[0]["detail"] == "No AE recommendation"
+    assert ae_steps[0]["data"] == {}
 
 
 def test_ae_impact(client: TestClient) -> None:
@@ -428,12 +415,12 @@ def test_ae_pattern_origin(client: TestClient) -> None:
     payload = client.get("/api/ae/pattern-origin").json()
 
     assert payload["engine"]["gae"] == "gae.evolution"
-    assert len(payload["chain"]) == 3
-    assert [step["copilot"] for step in payload["chain"]] == ["soc", "s2p", "dataops"]
-    assert payload["chain"][2]["warm_start_prior"] == 0.757
+    assert len(payload["chain"]) == 2
+    assert [step["copilot"] for step in payload["chain"]] == ["dataops", "dataops"]
     assert payload["narrative"]
     assert len(payload["patterns"]) == 2
     assert payload["patterns"][0]["source_copilot"] == "dataops"
+    assert all(pattern["source_copilot"] != "S2P" for pattern in payload["patterns"])
     assert payload["rejected"][0]["id"] == "V-DO-AUTO-001"
 
 
@@ -441,11 +428,24 @@ def test_pattern_origin_includes_genealogy(client: TestClient) -> None:
     payload = client.get("/api/ae/pattern-origin").json()
 
     assert "genealogy" in payload
-    assert len(payload["genealogy"]["stages"]) >= 3
+    assert len(payload["genealogy"]["stages"]) >= 2
     assert all("win_rate" in stage for stage in payload["genealogy"]["stages"])
-    assert payload["genealogy"]["stages"][0]["copilot"] == "soc"
+    assert payload["genealogy"]["stages"][0]["copilot"] == "dataops"
     assert payload["genealogy"]["stages"][-1]["copilot"] == "dataops"
-    assert payload["genealogy"]["improvement"]
+    assert "improvement" in payload["genealogy"]
+
+
+def test_pattern_origin_exposes_seeded_shadow_rule_source(tmp_path: Path) -> None:
+    from app.main import create_app
+
+    client = TestClient(create_app(db_path=tmp_path / "seeded_pattern_origin.db", demo_bundle_path=False))
+    client.get("/api/health")
+
+    payload = client.get("/api/ae/pattern-origin").json()
+
+    assert payload["chain"]
+    assert any(step["copilot"] == "S2P" for step in payload["chain"])
+    assert payload["patterns"][0]["source_copilot"] == "S2P"
 
 
 def test_rule_lifecycle_returns_all(client: TestClient) -> None:
@@ -453,8 +453,8 @@ def test_rule_lifecycle_returns_all(client: TestClient) -> None:
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["total"] == 3
-    assert len(payload["rules"]) == 3
+    assert payload["total"] == 4
+    assert len(payload["rules"]) == 4
     assert payload["engine"]["gae"] == "gae.evolution"
 
 
@@ -487,7 +487,7 @@ def test_rule_lifecycle_summary_counts(client: TestClient) -> None:
     assert payload["summary"] == {
         "promoted": 2,
         "rejected": 1,
-        "shadow": 0,
+        "shadow": 1,
         "proposed": 0,
     }
 
@@ -503,9 +503,9 @@ def test_rule_lifecycle_filter_variant_id(client: TestClient) -> None:
 def test_ae_incident(client: TestClient) -> None:
     payload = client.get("/api/ae/incident").json()
 
-    assert payload["estimated_cost"] == 50000
-    assert "source_reliability" in payload["fingerprint_insight"]
-    assert "recurrence_frequency" in payload["fingerprint_insight"]
+    assert payload["estimated_cost"] == 0
+    assert payload["affected_systems"] == []
+    assert payload["fingerprint_insight"] == {}
     assert payload["engine"]["gae"] == "gae.evolution"
 
 
@@ -513,7 +513,7 @@ def test_ae_conservation_history(client: TestClient) -> None:
     payload = client.get("/api/ae/conservation-history").json()
 
     assert payload["engine"]["gae"] == "gae.calibration"
-    assert [event["status"] for event in payload["events"]] == ["denied", "denied", "approved"]
+    assert payload["events"] == []
 
 
 def test_process_signals_known_system(client: TestClient) -> None:
@@ -1016,6 +1016,16 @@ def test_apply_fix_includes_conservation_check(client: TestClient) -> None:
     assert conservation["safe"] is True
 
 
+def test_context_router_uses_canonical_theta_min() -> None:
+    from apps.dataops.backend.app import context_router
+
+    source = Path(context_router.__file__).read_text(encoding="utf-8")
+
+    assert "from copilot_sdk.scoring.scorer import compute_theta_min" in source
+    assert "compute_theta_min(APPLY_FIX_OVERRIDE_RATE, APPLY_FIX_VERIFIED_COUNT)" in source
+    assert "23.53" not in source
+
+
 def test_apply_fix_includes_sap_response(client: TestClient) -> None:
     payload = client.post("/api/context/apply-fix", json=_valid_apply_fix_request()).json()
 
@@ -1075,15 +1085,20 @@ def test_operational_rules_returns_all(client: TestClient) -> None:
     assert payload["total"] == len(payload["rules"])
     assert payload["summary"]
     assert payload["engine"]["gae"] == "gae.evolution"
+    scheduling = [rule for rule in payload["rules"] if rule["id"] == "V-DO-SCHED-001"]
+    assert scheduling
+    assert scheduling[0]["type"] == "scheduling_rule"
+    assert "off-peak" in scheduling[0]["recommendation"]
+    assert "quality" in scheduling[0]["recommendation"]
 
 
 def test_operational_rules_summary_counts(client: TestClient) -> None:
     payload = client.get("/api/ae/operational-rules").json()
 
     assert sum(payload["summary"].values()) == len(payload["rules"])
-    assert payload["summary"]["proposed"] >= 1
-    assert payload["summary"]["shadow"] >= 1
-    assert payload["summary"]["promoted"] >= 1
+    assert payload["summary"]["promoted"] == 2
+    assert payload["summary"]["rejected"] == 1
+    assert payload["summary"]["shadow"] == 1
 
 
 def test_score_via_sdk(client: TestClient) -> None:
@@ -1115,7 +1130,8 @@ def test_conservation_status_returns_live_counts(client: TestClient) -> None:
 
     score = _score(client)
     after_score = client.get("/api/conservation/status").json()
-    assert after_score["total_decisions"] == 1
+    # Conservation V is verified-only; pending score writes do not increase total_decisions.
+    assert after_score["total_decisions"] == 0
     assert after_score["verified_count"] == 0
     assert after_score["correct_count"] == 0
 
@@ -1133,14 +1149,19 @@ def test_conservation_status_returns_live_counts(client: TestClient) -> None:
 def test_in_memory_scoring_and_conservation_share_proxy_store(dataops_data_dir: Path) -> None:
     from app.main import create_app
 
-    with TestClient(create_app(db_path=":memory:")) as memory_client:
+    with TestClient(create_app(db_path=":memory:", demo_bundle_path=False)) as memory_client:
         score = _score(memory_client)
         payload = memory_client.get("/api/conservation/status").json()
+        learn = _learn(memory_client, score["decision_id"], score["action"])
+        after_learn = memory_client.get("/api/conservation/status").json()
 
     assert score["decision_id"].startswith("DOPS-")
     assert payload["domain"] == "dataops"
-    assert payload["total_decisions"] == 1
+    assert learn["decision_id"] == score["decision_id"]
+    assert payload["total_decisions"] == 0
     assert payload["verified_count"] == 0
+    assert after_learn["total_decisions"] == 1
+    assert after_learn["verified_count"] == 1
 
 
 def test_conservation_what_if(client: TestClient) -> None:
@@ -1161,12 +1182,37 @@ def test_evolution_variants(client: TestClient) -> None:
     assert payload["domain"] == "dataops"
     assert "variants" in payload
     assert isinstance(payload["variants"], list)
-    assert len(payload["variants"]) > 0
-    assert {"id", "variant_id", "event_type", "description"}.issubset(payload["variants"][0])
+    assert {variant["id"] for variant in payload["variants"]} >= {
+        "AUTO_APPROVE_THRESHOLD_v1",
+        "AUTO_APPROVE_THRESHOLD_v2",
+        "SCHEDULING_CRITERIA_v1",
+        "SCHEDULING_CRITERIA_v2",
+        "V-DO-RECUR-001",
+        "V-DO-FRESH-001",
+        "V-DO-AUTO-001",
+    }
+    persisted = next(variant for variant in payload["variants"] if variant["id"] == "V-DO-RECUR-001")
+    assert {"id", "variant_id", "event_type", "description"}.issubset(persisted)
+    assert all(variant.get("triggered_by") != "fixture" for variant in payload["variants"])
     assert payload["active_rules"] == []
     assert payload["promoted_rules"] == []
     assert payload["total_active"] == 0
     assert payload["total_promoted"] == 0
+
+
+def test_evolution_variants_fresh_store_is_empty(tmp_path: Path) -> None:
+    from app.main import create_app
+
+    client = TestClient(create_app(db_path=tmp_path / "fresh_variants_dataops.db", demo_bundle_path=False))
+    payload = client.get("/api/evolution/variants").json()
+
+    assert payload["domain"] == "dataops"
+    assert {variant["id"] for variant in payload["variants"]} == {
+        "AUTO_APPROVE_THRESHOLD_v1",
+        "AUTO_APPROVE_THRESHOLD_v2",
+        "SCHEDULING_CRITERIA_v1",
+        "SCHEDULING_CRITERIA_v2",
+    }
 
 
 def test_evolution_history(client: TestClient) -> None:

@@ -77,6 +77,24 @@ def test_memory_counts_empty_and_after_outcomes():
     assert store.count_verified("other") == 0
 
 
+def test_memory_count_verified_decisions_excludes_pending_and_preserves_all_count():
+    store = InMemoryGraphStore()
+    pending = [_write(store, "mock", index) for index in range(1, 4)]
+    confirmed = _write(store, "mock", 4)
+    overridden = _write(store, "mock", 5)
+    other = _write(store, "other", 6)
+
+    store.write_outcome(confirmed, "approve", True)
+    store.write_outcome(overridden, "review", False)
+    store.write_outcome(other, "approve", True)
+
+    assert len(pending) == 3
+    assert store.count_decisions("mock") == 5
+    assert store.count_verified_decisions("mock") == 2
+    assert store.count_verified_decisions("other") == 1
+    assert store.count_verified_decisions("all-pending") == 0
+
+
 def test_memory_get_decision_missing_returns_none():
     assert InMemoryGraphStore().get_decision("missing") is None
 

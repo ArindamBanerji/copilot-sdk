@@ -1,6 +1,6 @@
 {
-  "generated": "2026-05-26T02:36:50.742058+00:00",
-  "mode": "static",
+  "generated": "2026-06-04T22:31:20.543681+00:00",
+  "mode": "static+api",
   "copilots": [
     {
       "copilot": "trading",
@@ -10,14 +10,13 @@
       "screens": [
         {
           "file": "AnalysisScreen.tsx",
-          "lines": 132,
+          "lines": 130,
           "components": [
-            "AuditTrailViewer",
             "ContrastCard",
             "CorrelationPanel",
             "CounterfactualCard",
             "DayOfWeekChart",
-            "DecisionExplorerPanel",
+            "DecisionExplorer",
             "PatternDetectionPanel",
             "ProfileArchetype",
             "RegimeChart",
@@ -33,7 +32,7 @@
           "file": "DashboardScreen.tsx",
           "lines": 221,
           "components": [
-            "AccuracyAlertPanel",
+            "AccuracyByCategory",
             "CalendarHeatmap",
             "MarketContext",
             "PortfolioConcentration",
@@ -69,10 +68,11 @@
         },
         {
           "file": "PerformanceScreen.tsx",
-          "lines": 140,
+          "lines": 142,
           "components": [
+            "AuditTrail",
             "CategoryPerformance",
-            "CentroidTimelineChart",
+            "CentroidTimeline",
             "PromotionPanel",
             "RiskManagementCard",
             "RollingMetrics",
@@ -90,14 +90,18 @@
       ],
       "components": [
         "components\\AccuracyAlertPanel.tsx",
+        "components\\AccuracyByCategory.tsx",
+        "components\\AuditTrail.tsx",
         "components\\AuditTrailViewer.tsx",
         "components\\CalendarHeatmap.tsx",
         "components\\CategoryPerformance.tsx",
+        "components\\CentroidTimeline.tsx",
         "components\\CentroidTimelineChart.tsx",
         "components\\ContrastCard.tsx",
         "components\\CorrelationPanel.tsx",
         "components\\CounterfactualCard.tsx",
         "components\\DayOfWeekChart.tsx",
+        "components\\DecisionExplorer.tsx",
         "components\\DecisionExplorerPanel.tsx",
         "components\\EngineAssessment.tsx",
         "components\\EvidencePanel.tsx",
@@ -152,11 +156,36 @@
       ],
       "tab_names": [
         "Dashboard",
+        "Log Trade",
         "Analysis",
         "Performance",
-        "Journal"
+        "Journal",
+        "Trade Detail"
       ],
-      "tsx_file_count": 46
+      "tsx_file_count": 50,
+      "warnings": [],
+      "smoke_results": {
+        "/api/conservation/status": 200,
+        "/api/context/analytics": 200,
+        "/api/context/conservation-breakdown": 200,
+        "/api/context/market-snapshot": 200,
+        "/api/context/patterns": 200,
+        "/api/context/trade-metadata": 200,
+        "/api/context/trust-analysis": 200,
+        "/api/evolution/history": 200,
+        "/api/evolution/promoted": 200,
+        "/api/evolution/variants": 200,
+        "/api/fingerprint": 200,
+        "/api/history": 200,
+        "/api/learn": 405,
+        "/api/score": 405,
+        "/api/trading/prescore": 405,
+        "/api/trading/promotion": 200,
+        "/api/trading/regime": 200,
+        "/api/trading/regime/detail": 200,
+        "/api/trading/vix-timing": 200,
+        "/api/trajectory": 200
+      }
     },
     {
       "copilot": "purchasing",
@@ -288,7 +317,29 @@
         "Inventory",
         "Performance"
       ],
-      "tsx_file_count": 35
+      "tsx_file_count": 35,
+      "warnings": [],
+      "smoke_results": {
+        "/api/conservation/status": 200,
+        "/api/context/analytics": 200,
+        "/api/context/items": 200,
+        "/api/context/order-metadata": 200,
+        "/api/context/similar": 422,
+        "/api/context/today-summary": 200,
+        "/api/context/weather": 200,
+        "/api/evolution/history": 200,
+        "/api/evolution/promoted": 200,
+        "/api/evolution/variants": 200,
+        "/api/fingerprint": 200,
+        "/api/history": 200,
+        "/api/learn": 405,
+        "/api/score": 405,
+        "/api/self/accuracy-by-category": 200,
+        "/api/self/audit-trail": 200,
+        "/api/self/centroid-history": 200,
+        "/api/self/decisions": 200,
+        "/api/trajectory": 200
+      }
     },
     {
       "copilot": "dataops",
@@ -308,7 +359,7 @@
         },
         {
           "file": "DashboardScreen.tsx",
-          "lines": 276,
+          "lines": 282,
           "components": [
             "AEImpactPanel",
             "AccuracyAlertPanel",
@@ -316,9 +367,11 @@
             "AlertQueue",
             "ConservationProjection",
             "ConservationTimeline",
+            "CelonisBadge",
             "EnterpriseHealthBar",
             "PipelineGrid",
-            "ProcessTimelinePanel"
+            "ProcessTimelinePanel",
+            "SAPDataBadge"
           ],
           "api_calls": []
         },
@@ -428,8 +481,10 @@
         "/api/context/alerts",
         "/api/context/apply-fix",
         "/api/context/celonis/process-data",
-        "/api/context/enterprise-health",
         "/api/context/pipelines",
+        "/api/dataops/enterprise-health",
+        "/api/evolution/history",
+        "/api/evolution/promoted",
         "/api/evolution/variants",
         "/api/fingerprint",
         "/api/learn",
@@ -443,7 +498,33 @@
         "Evidence",
         "Curve"
       ],
-      "tsx_file_count": 50
+      "tsx_file_count": 50,
+      "warnings": [],
+      "smoke_results": {
+        "/api/ae/conservation-history": 200,
+        "/api/ae/impact": 200,
+        "/api/ae/incident": 200,
+        "/api/ae/operational-rules": 200,
+        "/api/ae/pattern-origin": 200,
+        "/api/ae/transfer-status": 200,
+        "/api/conservation/status": 200,
+        "/api/conservation/what-if": 405,
+        "/api/context/accuracy-by-category": 200,
+        "/api/context/alert-groups": 200,
+        "/api/context/alert-metadata": 200,
+        "/api/context/alerts": 200,
+        "/api/context/apply-fix": 405,
+        "/api/context/celonis/process-data": 200,
+        "/api/context/pipelines": 200,
+        "/api/dataops/enterprise-health": 200,
+        "/api/evolution/history": 200,
+        "/api/evolution/promoted": 200,
+        "/api/evolution/variants": 200,
+        "/api/fingerprint": 200,
+        "/api/learn": 405,
+        "/api/score": 405,
+        "/api/trajectory": 200
+      }
     },
     {
       "copilot": "s2p",
@@ -621,12 +702,61 @@
       ],
       "tab_names": [
         "Dashboard",
+        "Exception Triage",
         "Insight",
         "Evidence",
         "Suppliers",
         "Performance"
       ],
-      "tsx_file_count": 47
+      "tsx_file_count": 47,
+      "warnings": [],
+      "smoke_results": {
+        "/api/conservation/status": 200,
+        "/api/fingerprint": 404,
+        "/api/learn": 405,
+        "/api/s2p/auto-approve/expansion-proof{id}": 404,
+        "/api/s2p/auto-approve/stats": 200,
+        "/api/s2p/control-tower/classify{id}": 404,
+        "/api/s2p/control-tower/intents": 200,
+        "/api/s2p/discovery/alerts": 200,
+        "/api/s2p/discovery/disruptions": 200,
+        "/api/s2p/discovery/extended": 200,
+        "/api/s2p/evidence/audit-pack": 200,
+        "/api/s2p/evidence/chain-integrity": 200,
+        "/api/s2p/evidence/compliance": 200,
+        "/api/s2p/evidence/rules": 200,
+        "/api/s2p/evolution/promoted": 200,
+        "/api/s2p/evolution/promotion-check": 200,
+        "/api/s2p/evolution/reset": 405,
+        "/api/s2p/evolution/rules": 200,
+        "/api/s2p/evolution/shadow-results": 200,
+        "/api/s2p/evolution/variants": 200,
+        "/api/s2p/explorer/dk-weights": 200,
+        "/api/s2p/governance/compliance-screening": 200,
+        "/api/s2p/governance/rationalization": 200,
+        "/api/s2p/insight/cross-graph": 200,
+        "/api/s2p/insight/process-signals{id}": 404,
+        "/api/s2p/novelty/status": 200,
+        "/api/s2p/outcome": 405,
+        "/api/s2p/performance/summary": 200,
+        "/api/s2p/performance/trajectory": 200,
+        "/api/s2p/preview/conservation": 200,
+        "/api/s2p/preview/queue": 200,
+        "/api/s2p/preview/suppliers": 200,
+        "/api/s2p/pvg/cycle-time": 200,
+        "/api/s2p/pvg/leakage": 200,
+        "/api/s2p/pvg/variants": 200,
+        "/api/s2p/score": 405,
+        "/api/s2p/simulation/impact-summary": 200,
+        "/api/s2p/simulation/scenarios": 200,
+        "/api/s2p/suppliers": 200,
+        "/api/s2p/suppliers/clustering": 200,
+        "/api/s2p/suppliers/clusters": 200,
+        "/api/s2p/suppliers/declining": 200,
+        "/api/s2p/suppliers/early-warnings": 200,
+        "/api/s2p/suppliers/payment-strategy": 200,
+        "/api/trajectory": 404
+      }
     },
     {
       "copilot": "soc",
@@ -638,16 +768,13 @@
           "file": "AlertTriageTab.tsx",
           "lines": 1670,
           "components": [],
-          "api_calls": [
-            "/api/soc/campaigns/{id}"
-          ]
+          "api_calls": []
         },
         {
           "file": "CompoundingTab.tsx",
-          "lines": 2818,
+          "lines": 2846,
           "components": [],
           "api_calls": [
-            "/api/eval/templates/{id}.csv",
             "/api/metrics/decision-economics",
             "/api/soc/board-export",
             "/api/soc/economics",
@@ -662,8 +789,7 @@
           "components": [],
           "api_calls": [
             "/api/platform/domain-applicability",
-            "/api/soc/executive-narrative",
-            "/api/soc/executive-narrative/pdf"
+            "/api/soc/executive-narrative"
           ]
         },
         {
@@ -732,7 +858,6 @@
       ],
       "api_calls": [
         "/api/compounding/channel-decomposition",
-        "/api/eval/templates/{id}.csv",
         "/api/governance/summary",
         "/api/metrics/decision-economics",
         "/api/platform/domain-applicability",
@@ -743,7 +868,6 @@
         "/api/s2p/preview/suppliers",
         "/api/soc/board-export",
         "/api/soc/campaigns",
-        "/api/soc/campaigns/{id}",
         "/api/soc/centroid-evolution?n=200",
         "/api/soc/centroid-heatmap",
         "/api/soc/centroid-support",
@@ -754,7 +878,6 @@
         "/api/soc/evidence-room",
         "/api/soc/evidence-room/export",
         "/api/soc/executive-narrative",
-        "/api/soc/executive-narrative/pdf",
         "/api/soc/factor-contribution",
         "/api/soc/graph-stats",
         "/api/soc/learning-state",
@@ -762,9 +885,49 @@
         "/api/triage/learning-state?category={id}"
       ],
       "tab_names": [
-        "Compounding"
+        "SOC Analytics",
+        "Runtime Evolution",
+        "Alert Triage",
+        "Compounding",
+        "Executive Narrative",
+        "S2P Preview",
+        "Evidence Room"
       ],
-      "tsx_file_count": 19
+      "tsx_file_count": 19,
+      "warnings": [
+        {
+          "level": "INFO",
+          "message": "Detected tab not in expected list: 'Evidence Room'"
+        }
+      ],
+      "smoke_results": {
+        "/api/compounding/channel-decomposition": 200,
+        "/api/governance/summary": 200,
+        "/api/metrics/decision-economics": 200,
+        "/api/platform/domain-applicability": 200,
+        "/api/platform/rl-exploration-demo": 200,
+        "/api/platform/rl-reward-demo": 200,
+        "/api/s2p/preview/conservation": 404,
+        "/api/s2p/preview/queue": 404,
+        "/api/s2p/preview/suppliers": 404,
+        "/api/soc/board-export": 200,
+        "/api/soc/campaigns": 200,
+        "/api/soc/centroid-evolution?n=200": 200,
+        "/api/soc/centroid-heatmap": 200,
+        "/api/soc/centroid-support": 200,
+        "/api/soc/compliance": 200,
+        "/api/soc/detection-engineering": 200,
+        "/api/soc/economics": 200,
+        "/api/soc/enrichment-status": 200,
+        "/api/soc/evidence-room": 200,
+        "/api/soc/evidence-room/export": 200,
+        "/api/soc/executive-narrative": 200,
+        "/api/soc/factor-contribution": 200,
+        "/api/soc/graph-stats": 200,
+        "/api/soc/learning-state": 200,
+        "/api/soc/operational-metrics": 200,
+        "/api/triage/learning-state?category={id}": 200
+      }
     }
   ]
 }

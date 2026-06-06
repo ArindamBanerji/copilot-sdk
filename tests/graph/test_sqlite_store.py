@@ -120,6 +120,24 @@ def test_count_decisions(tmp_path):
     assert store.count_decisions("other") == 1
 
 
+def test_sqlite_count_verified_decisions_excludes_pending_and_preserves_all_count(tmp_path):
+    store = SQLiteGraphStore(tmp_path / "graph.sqlite")
+    for index in range(1, 4):
+        _write(store, "mock", index)
+    confirmed = _write(store, "mock", 4)
+    overridden = _write(store, "mock", 5)
+    other = _write(store, "other", 6)
+
+    store.write_outcome(confirmed, "approve", True)
+    store.write_outcome(overridden, "review", False)
+    store.write_outcome(other, "approve", True)
+
+    assert store.count_decisions("mock") == 5
+    assert store.count_verified_decisions("mock") == 2
+    assert store.count_verified_decisions("other") == 1
+    assert store.count_verified_decisions("all-pending") == 0
+
+
 def test_sqlite_save_centroids_persists(tmp_path):
     store = SQLiteGraphStore(tmp_path / "graph.sqlite")
 
@@ -399,6 +417,31 @@ def test_sqlite_concurrent_writes(tmp_path):
 
     assert store.count_verified("mock") == 5
     assert store.count_correct("mock") == 5
+
+
+def test_sqlite_concurrent_store_instances_share_write_lock(tmp_path):
+    db_path = tmp_path / "graph.sqlite"
+    stores = [SQLiteGraphStore(db_path) for _ in range(3)]
+    errors: list[BaseException] = []
+
+    def write(store: SQLiteGraphStore, index: int) -> None:
+        try:
+            decision_id = _write(store, "mock", index)
+            store.write_outcome(decision_id, "approve", index % 2 == 0)
+        except BaseException as error:  # pragma: no cover - surfaced by assertion below
+            errors.append(error)
+
+    threads = [
+        threading.Thread(target=write, args=(stores[index % len(stores)], index))
+        for index in range(18)
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert errors == []
+    assert stores[0].count_verified("mock") == 18
 
 
 def test_sqlite_close_safe(tmp_path):

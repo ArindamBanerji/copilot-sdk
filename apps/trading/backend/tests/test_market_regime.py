@@ -1,11 +1,23 @@
 from __future__ import annotations
 
+from app.factors import registry as registry_module
+from app.factors.conviction import ConvictionFactor
 from app.factors.market_regime import MarketRegimeFactor, classify_regime
+from app.factors.options_scored import (
+    OptionsDeltaExposureFactor,
+    OptionsGammaRiskFactor,
+    OptionsIVPercentileFactor,
+)
+from app.factors.position_size import PositionSizeFactor
 from app.factors.registry import (
     ALL_FACTOR_NAMES,
     TRADING_FACTOR_COMPUTERS,
     compute_factors,
 )
+from app.factors.research_depth import ResearchDepthFactor
+from app.factors.signal_confidence import SignalConfidenceFactor
+from app.factors.technical_signal import TechnicalSignalFactor
+from app.factors.time_horizon import TimeHorizonFactor
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
@@ -75,8 +87,8 @@ def test_clamping():
     assert value == 1.0
 
 
-def test_registry_compute_factors_returns_7_keys():
-    assert len(compute_factors({})) == 7
+def test_registry_compute_factors_returns_10_keys():
+    assert len(compute_factors({})) == 10
 
 
 def test_registry_all_preset_names_present():
@@ -85,6 +97,26 @@ def test_registry_all_preset_names_present():
 
 def test_registry_factor_names_sourced_from_preset():
     assert ALL_FACTOR_NAMES == tuple(TradingPreset().shape.factor_names)
+
+
+def test_fallback_factor_registry_mapping_is_semantic():
+    expected = {
+        "signal_alignment": ConvictionFactor,
+        "market_regime": MarketRegimeFactor,
+        "position_sizing": PositionSizeFactor,
+        "timing_quality": TechnicalSignalFactor,
+        "risk_reward_actual": TimeHorizonFactor,
+        "emotional_indicator": ResearchDepthFactor,
+        "signal_confidence": SignalConfidenceFactor,
+        "options_delta_exposure": OptionsDeltaExposureFactor,
+        "options_iv_percentile": OptionsIVPercentileFactor,
+        "options_gamma_risk": OptionsGammaRiskFactor,
+    }
+
+    assert {
+        name: type(computer)
+        for name, computer in registry_module._FALLBACK_FACTOR_COMPUTERS.items()
+    } == expected
 
 
 def test_registry_unimplemented_factors_neutral():
@@ -102,6 +134,11 @@ def test_registry_implemented_factors_respond_to_context():
             "tagged_signals": [{"confirmed": True}, {"confirmed": True}],
             "has_trade_plan": True,
             "position_conviction": 0.9,
+            "position_pct_of_max": 0.6,
+            "portfolio_concentration": 0.04,
+            "sources_consulted": 5,
+            "analysis_minutes": 30,
+            "has_thesis": True,
             "entry_direction": "long",
             "rsi_at_entry": 25,
             "macd_signal": "bullish",
@@ -113,8 +150,10 @@ def test_registry_implemented_factors_respond_to_context():
     )
 
     assert values["signal_alignment"] > 0.8
+    assert values["market_regime"] == 0.9
     assert values["position_sizing"] > 0.8
-    assert values["emotional_indicator"] == 0.9
+    assert values["timing_quality"] > 0.8
+    assert values["emotional_indicator"] > 0.8
 
 
 def test_registry_all_values_bounded():

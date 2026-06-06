@@ -64,6 +64,45 @@ const ACTION_LABELS: Record<string, string> = {
 
 type JsonObject = Record<string, unknown>;
 
+type RawPatternTransfer = JsonObject & {
+  transferId?: unknown;
+  transfer_id?: unknown;
+  sourceSystem?: unknown;
+  source_system?: unknown;
+  sourcePattern?: unknown;
+  source_pattern?: unknown;
+  targetSystem?: unknown;
+  target_system?: unknown;
+  targetAction?: unknown;
+  target_action?: unknown;
+  transferDate?: unknown;
+  transfer_date?: unknown;
+  decisionsSinceTransfer?: unknown;
+  decisions_since_transfer?: unknown;
+  accuracyAtTarget?: unknown;
+  accuracy_at_target?: unknown;
+  savingsEstimate?: unknown;
+  savings_estimate?: unknown;
+  status?: unknown;
+  confidence?: unknown;
+  description?: unknown;
+};
+
+type RawTransferSummary = JsonObject & {
+  totalTransfers?: unknown;
+  total_transfers?: unknown;
+  active?: unknown;
+  monitoring?: unknown;
+  pending?: unknown;
+  cumulativeSavings?: unknown;
+  cumulative_savings?: unknown;
+};
+
+type RawTransferStatusResponse = JsonObject & {
+  transfers?: RawPatternTransfer[];
+  summary?: RawTransferSummary;
+};
+
 function isObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -98,6 +137,18 @@ async function apiGet<T>(path: string): Promise<T> {
 async function safeApiGet<T>(path: string): Promise<T | null> {
   try {
     return await apiGet<T>(path);
+  } catch {
+    return null;
+  }
+}
+
+async function safeRawApiGet<T>(path: string): Promise<T | null> {
+  try {
+    const response = await fetch(`${BASE}${path}`);
+    if (!response.ok) {
+      return null;
+    }
+    return (await response.json()) as T;
   } catch {
     return null;
   }
@@ -161,7 +212,37 @@ export async function getConservationHistory(): Promise<ConservationHistory> {
 }
 
 export async function getTransferStatus(): Promise<TransferStatusResponse | null> {
-  return safeApiGet<TransferStatusResponse>("/api/ae/transfer-status");
+  const payload = await safeRawApiGet<RawTransferStatusResponse>("/api/ae/transfer-status");
+  if (!payload) {
+    return null;
+  }
+  const summary = payload.summary || {};
+  return {
+    ...payload,
+    transfers: (payload.transfers || []).map((transfer) => ({
+      ...transfer,
+      transferId: textOr(transfer.transferId ?? transfer.transfer_id),
+      sourceSystem: textOr(transfer.sourceSystem ?? transfer.source_system),
+      sourcePattern: textOr(transfer.sourcePattern ?? transfer.source_pattern),
+      targetSystem: textOr(transfer.targetSystem ?? transfer.target_system),
+      targetAction: textOr(transfer.targetAction ?? transfer.target_action),
+      transferDate: optionalText(transfer.transferDate ?? transfer.transfer_date),
+      decisionsSinceTransfer: numberOr(transfer.decisionsSinceTransfer ?? transfer.decisions_since_transfer, 0),
+      accuracyAtTarget: optionalNumber(transfer.accuracyAtTarget ?? transfer.accuracy_at_target),
+      savingsEstimate: optionalNumber(transfer.savingsEstimate ?? transfer.savings_estimate),
+      status: textOr(transfer.status, "pending"),
+      confidence: numberOr(transfer.confidence, 0),
+      description: textOr(transfer.description),
+    })),
+    summary: {
+      ...summary,
+      totalTransfers: numberOr(summary.totalTransfers ?? summary.total_transfers, 0),
+      active: numberOr(summary.active, 0),
+      monitoring: numberOr(summary.monitoring, 0),
+      pending: numberOr(summary.pending, 0),
+      cumulativeSavings: numberOr(summary.cumulativeSavings ?? summary.cumulative_savings, 0),
+    },
+  };
 }
 
 export async function getConservationStatus(): Promise<ConservationState> {
@@ -274,7 +355,7 @@ export async function getProcessSignals(system: string): Promise<ProcessSignalsR
 
 export async function fetchEnterpriseHealth(): Promise<EnterpriseHealth | null> {
   try {
-    return await apiGet<EnterpriseHealth>("/api/context/enterprise-health");
+    return await apiGet<EnterpriseHealth>("/api/dataops/enterprise-health");
   } catch {
     return null;
   }
@@ -383,6 +464,63 @@ export async function getEvolutionVariants(): Promise<EvolutionVariant[]> {
   return (payload.variants || []).map(toEvolutionVariant);
 }
 
+export interface EvolutionHistoryItem {
+  timestamp?: string;
+  category?: string;
+  eventType?: string;
+  event_type?: string;
+  type?: string;
+  ruleName?: string;
+  rule_name?: string;
+  variantId?: string;
+  variant_id?: string;
+  outcome?: string;
+  status?: string;
+  domain?: string;
+  metadata?: Record<string, unknown> | string;
+  [key: string]: unknown;
+}
+
+export interface EvolutionHistoryResponse {
+  domain?: string;
+  events?: EvolutionHistoryItem[];
+  count?: number;
+}
+
+export interface PromotedEvolutionVariant {
+  id?: string;
+  name?: string;
+  description?: string;
+  variantId?: string;
+  variant_id?: string;
+  ruleName?: string;
+  rule_name?: string;
+  category?: string;
+  status?: "promoted" | "rejected" | string;
+  accuracy?: number;
+  promotedAt?: string;
+  promoted_at?: string;
+  timestamp?: string;
+  eventType?: string;
+  event_type?: string;
+  [key: string]: unknown;
+}
+
+export interface PromotedEvolutionResponse {
+  domain?: string;
+  promoted?: Array<PromotedEvolutionVariant | string>;
+}
+
+export async function getEvolutionHistory(): Promise<EvolutionHistoryResponse> {
+  return (await safeApiGet<EvolutionHistoryResponse>("/api/evolution/history")) ?? { events: [], count: 0 };
+}
+
+export async function getPromotedEvolutionRules(): Promise<PromotedEvolutionVariant[]> {
+  const payload = await safeApiGet<PromotedEvolutionResponse | Array<PromotedEvolutionVariant | string>>("/api/evolution/promoted");
+  const promoted = Array.isArray(payload) ? payload : payload?.promoted;
+  return Array.isArray(promoted) ? promoted.map(toPromotedEvolutionVariant) : [];
+}
+
 export async function getRuleLifecycle(filters: {
   variantId?: string;
   status?: string;
@@ -424,6 +562,18 @@ export function numberOr(value: unknown, fallback: number): number {
   return Number.isFinite(number) ? number : fallback;
 }
 
+function optionalNumber(value: unknown): number | null {
+  return value === null || value === undefined ? null : numberOr(value, 0);
+}
+
+function textOr(value: unknown, fallback = ""): string {
+  return value === null || value === undefined ? fallback : String(value);
+}
+
+function optionalText(value: unknown): string | undefined {
+  return value === null || value === undefined ? undefined : String(value);
+}
+
 function toEvolutionVariant(raw: Record<string, unknown>): EvolutionVariant {
   const metadata = isObject(raw.metadata) ? raw.metadata : {};
   const wins = Number(metadata.wins);
@@ -454,4 +604,19 @@ function toEvolutionStatus(eventType: unknown, status: unknown): EvolutionVarian
     return "shadow";
   }
   return "created";
+}
+
+function toPromotedEvolutionVariant(value: PromotedEvolutionVariant | string): PromotedEvolutionVariant {
+  if (typeof value === "string") {
+    return {
+      variantId: value,
+      ruleName: value,
+      status: "promoted",
+      description: "Promoted DataOps rule.",
+    };
+  }
+  return {
+    ...value,
+    status: value.status || "promoted",
+  };
 }

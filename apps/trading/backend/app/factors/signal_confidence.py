@@ -19,7 +19,7 @@ class SignalConfidenceFactor:
         components: list[float] = []
 
         if "factors_with_data" in ctx:
-            components.append(_scaled_score(ctx.get("factors_with_data"), 7.0))
+            components.append(_scaled_score(ctx.get("factors_with_data"), 10.0))
 
         if "category_accuracy" in ctx:
             components.append(clamp(ctx.get("category_accuracy")))

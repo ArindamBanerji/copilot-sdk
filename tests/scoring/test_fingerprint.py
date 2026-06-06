@@ -73,3 +73,48 @@ def test_category_with_less_than_three_is_omitted():
     result = compute_fingerprint(decisions, FACTOR_NAMES)
 
     assert "gamma" not in result.per_category_precision
+
+
+def test_legacy_width_decisions_do_not_raise_with_current_factor_names():
+    current_factor_names = [f"factor_{index}" for index in range(10)]
+    legacy_decisions = [
+        decision("legacy", [0.5 for _ in range(7)], True)
+        for _ in range(6)
+    ]
+
+    result = compute_fingerprint(legacy_decisions, current_factor_names)
+
+    assert result.decisions_analyzed == 0
+    assert result.skipped_decisions == 6
+    assert result.overall_win_rate == 0.0
+    assert result.per_category_precision == {}
+    assert [factor.name for factor in result.factors] == current_factor_names
+    assert all(factor.interpretation == "insufficient data" for factor in result.factors)
+
+
+def test_mixed_legacy_and_current_width_decisions_use_current_rows():
+    current_factor_names = [f"factor_{index}" for index in range(10)]
+    current_decisions = [
+        decision("current", [0.10 + index * 0.01 for _ in range(10)], index % 2 == 0)
+        for index in range(6)
+    ]
+    legacy_decisions = [
+        decision("legacy", [0.5 for _ in range(7)], True)
+        for _ in range(3)
+    ]
+
+    result = compute_fingerprint(legacy_decisions + current_decisions, current_factor_names)
+
+    assert result.decisions_analyzed == 6
+    assert result.skipped_decisions == 3
+    assert result.overall_win_rate == 0.5
+    assert result.per_category_precision == {"current": 0.5}
+    assert [factor.name for factor in result.factors] == current_factor_names
+
+
+def test_current_width_decisions_still_produce_fingerprint_output():
+    result = compute_fingerprint(varied_decisions(), FACTOR_NAMES)
+
+    assert result.decisions_analyzed == 6
+    assert result.skipped_decisions == 0
+    assert [factor.name for factor in result.factors] == FACTOR_NAMES

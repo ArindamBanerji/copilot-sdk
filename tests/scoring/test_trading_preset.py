@@ -40,6 +40,11 @@ EXISTING_FACTORS = (
     "risk_reward_actual",
     "emotional_indicator",
 )
+SCORED_OPTIONS_FACTORS = (
+    "options_delta_exposure",
+    "options_iv_percentile",
+    "options_gamma_risk",
+)
 
 
 def load_seed_trades() -> list[dict]:
@@ -72,15 +77,16 @@ def test_preset_loads():
     assert preset.name == "trading"
     assert preset.shape.n_categories == 5
     assert preset.shape.n_actions == 4
-    assert preset.shape.n_factors == 7
+    assert preset.shape.n_factors == 10
     assert len(preset.shape.category_names) == 5
     assert len(preset.shape.action_names) == 4
-    assert len(preset.shape.factor_names) == 7
+    assert len(preset.shape.factor_names) == 10
     assert preset.shape.category_names == EXISTING_CATEGORIES
     assert preset.shape.action_names[:3] == EXISTING_ACTIONS
     assert preset.shape.action_names[3] == "skip_recommended"
     assert preset.shape.factor_names[:6] == EXISTING_FACTORS
     assert preset.shape.factor_names[6] == "signal_confidence"
+    assert preset.shape.factor_names[7:10] == SCORED_OPTIONS_FACTORS
     assert preset.penalty_ratio == 3.0
     assert preset.eta_confirm == 0.05
     assert preset.eta_override == 0.01
@@ -138,12 +144,12 @@ def test_seed_factors_match_preset():
     for trade in trades:
         assert trade["category"] in preset.shape.category_names
         assert trade["direction"] in preset.shape.action_names
-        assert set(trade["factors"]) == factor_names - {"signal_confidence"}
+        assert set(trade["factors"]) == factor_names - {"signal_confidence", *SCORED_OPTIONS_FACTORS}
         assert all(0.0 <= float(value) <= 1.0 for value in trade["factors"].values())
 
 
 def test_bootstrap_centroids_shape():
-    assert TradingPreset().bootstrap_centroids.shape == (5, 4, 7)
+    assert TradingPreset().bootstrap_centroids.shape == (5, 4, 10)
 
 
 def test_bootstrap_produces_target_correct_action_probability():

@@ -41,11 +41,11 @@ def test_trust_endpoint_200_empty(client):
     assert response.status_code == 200
 
 
-def test_trust_empty_has_all_7_factors(client):
+def test_trust_empty_has_all_10_factors(client):
     payload = client.get("/api/context/trust-analysis").json()
 
     assert payload["factors"] == list(ALL_FACTOR_NAMES)
-    assert len(payload["factors"]) == 7
+    assert len(payload["factors"]) == 10
     assert set(payload["trust_scores"]) == set(ALL_FACTOR_NAMES)
 
 

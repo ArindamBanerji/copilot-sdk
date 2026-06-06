@@ -1,56 +1,25 @@
 # Frontend Tab Inventory
-**Generated:** 2026-05-26T02:36:50.742058+00:00
-**Mode:** static
+**Generated:** 2026-06-04T22:31:20.543681+00:00
+**Mode:** static+api
 
 ---
 
 ## TRADING (port 5174/8010)
-**Accent:** red | **TSX files:** 46
+**Accent:** red | **TSX files:** 50
 
-**Tabs (4):** Dashboard, Analysis, Performance, Journal
+**Tabs (6):** Dashboard, Log Trade, Analysis, Performance, Journal, Trade Detail
 
 ### Screens
 | File | Lines | Components | API Calls |
 |---|---:|---|---|
-| `AnalysisScreen.tsx` | 132 | AuditTrailViewer, ContrastCard, CorrelationPanel, CounterfactualCard, DayOfWeekChart +9 |  |
-| `DashboardScreen.tsx` | 221 | AccuracyAlertPanel, CalendarHeatmap, MarketContext, PortfolioConcentration, PortfolioSummary +3 |  |
+| `AnalysisScreen.tsx` | 130 | ContrastCard, CorrelationPanel, CounterfactualCard, DayOfWeekChart, DecisionExplorer +8 |  |
+| `DashboardScreen.tsx` | 221 | AccuracyByCategory, CalendarHeatmap, MarketContext, PortfolioConcentration, PortfolioSummary +3 |  |
 | `JournalScreen.tsx` | 368 | EvidencePanel, OptionsFactorPanel |  |
 | `LogTradeScreen.tsx` | 434 | EngineAssessment, EvidencePanel, OptionsFactorPanel, PreScorePanel, ResearchChecklist +2 |  |
-| `PerformanceScreen.tsx` | 140 | CategoryPerformance, CentroidTimelineChart, PromotionPanel, RiskManagementCard, RollingMetrics +2 |  |
+| `PerformanceScreen.tsx` | 142 | AuditTrail, CategoryPerformance, CentroidTimeline, PromotionPanel, RiskManagementCard +3 |  |
 | `TradeDetailScreen.tsx` | 267 |  |  |
 
-### Component Files (38)
-- `components\AccuracyAlertPanel.tsx`
-- `components\AuditTrailViewer.tsx`
-- `components\CalendarHeatmap.tsx`
-- `components\CategoryPerformance.tsx`
-- `components\CentroidTimelineChart.tsx`
-- `components\ContrastCard.tsx`
-- `components\CorrelationPanel.tsx`
-- `components\CounterfactualCard.tsx`
-- `components\DayOfWeekChart.tsx`
-- `components\DecisionExplorerPanel.tsx`
-- `components\EngineAssessment.tsx`
-- `components\EvidencePanel.tsx`
-- `components\MarketContext.tsx`
-- `components\OptionsFactorPanel.tsx`
-- `components\PaperBadge.tsx`
-- `components\PatternDetectionPanel.tsx`
-- `components\PortfolioConcentration.tsx`
-- `components\PortfolioSummary.tsx`
-- `components\PositionSizer.tsx`
-- `components\PreScorePanel.tsx`
-- `components\PriceSparkline.tsx`
-- `components\ProfileArchetype.tsx`
-- `components\PromotionPanel.tsx`
-- `components\RegimeChart.tsx`
-- `components\RegimePanel.tsx`
-- `components\ResearchChecklist.tsx`
-- `components\ResearchImpactChart.tsx`
-- `components\RiskManagementCard.tsx`
-- `components\RollingMetrics.tsx`
-- `components\RuleGenealogyTree.tsx`
-- ... +8 more
+**Components:** 42 files
 
 ### API Calls Referenced (20)
 - `/api/conservation/status`
@@ -74,6 +43,32 @@
 - `/api/trading/vix-timing`
 - `/api/trajectory`
 
+### Endpoint Smoke
+**17/20 returned 200**
+
+| Path | Status |
+|---|---|
+| `/api/conservation/status` | pass 200 |
+| `/api/context/analytics` | pass 200 |
+| `/api/context/conservation-breakdown` | pass 200 |
+| `/api/context/market-snapshot` | pass 200 |
+| `/api/context/patterns` | pass 200 |
+| `/api/context/trade-metadata` | pass 200 |
+| `/api/context/trust-analysis` | pass 200 |
+| `/api/evolution/history` | pass 200 |
+| `/api/evolution/promoted` | pass 200 |
+| `/api/evolution/variants` | pass 200 |
+| `/api/fingerprint` | pass 200 |
+| `/api/history` | pass 200 |
+| `/api/learn` | FAIL 405 |
+| `/api/score` | FAIL 405 |
+| `/api/trading/prescore` | FAIL 405 |
+| `/api/trading/promotion` | pass 200 |
+| `/api/trading/regime` | pass 200 |
+| `/api/trading/regime/detail` | pass 200 |
+| `/api/trading/vix-timing` | pass 200 |
+| `/api/trajectory` | pass 200 |
+
 ---
 
 ## PURCHASING (port 5175/8020)
@@ -90,35 +85,7 @@
 | `OrderScreen.tsx` | 593 | AEManagedBadge, CostAnalysis, EngineAssessment, EventBadge, OrderContext +2 |  |
 | `PerformanceScreen.tsx` | 137 | CategoryAccuracyChart, CentroidTimelineChart, WasteCostCard |  |
 
-### Component Files (28)
-- `components\AccuracyAlertPanel.tsx`
-- `components\AEManagedBadge.tsx`
-- `components\AEStatusBar.tsx`
-- `components\AuditTrailViewer.tsx`
-- `components\CategoryAccuracyChart.tsx`
-- `components\CategoryEmoji.tsx`
-- `components\CentroidTimelineChart.tsx`
-- `components\ContrastCard.tsx`
-- `components\CostAnalysis.tsx`
-- `components\CounterfactualCard.tsx`
-- `components\DayOfWeekChart.tsx`
-- `components\DecisionExplorerPanel.tsx`
-- `components\EngineAssessment.tsx`
-- `components\EventBadge.tsx`
-- `components\EventImpactCard.tsx`
-- `components\IgnoringCostCard.tsx`
-- `components\ItemProfile.tsx`
-- `components\OrderCard.tsx`
-- `components\OrderContext.tsx`
-- `components\ParLevelBar.tsx`
-- `components\ParLevelMonitor.tsx`
-- `components\ProfileArchetype.tsx`
-- `components\RuleGenealogyTree.tsx`
-- `components\RuleLifecyclePanel.tsx`
-- `components\SimilarOrdersPanel.tsx`
-- `components\WasteCostCard.tsx`
-- `components\WasteSparkline.tsx`
-- `components\WeatherWidget.tsx`
+**Components:** 28 files
 
 ### API Calls Referenced (19)
 - `/api/conservation/status`
@@ -141,6 +108,31 @@
 - `/api/self/decisions`
 - `/api/trajectory`
 
+### Endpoint Smoke
+**16/19 returned 200**
+
+| Path | Status |
+|---|---|
+| `/api/conservation/status` | pass 200 |
+| `/api/context/analytics` | pass 200 |
+| `/api/context/items` | pass 200 |
+| `/api/context/order-metadata` | pass 200 |
+| `/api/context/similar` | FAIL 422 |
+| `/api/context/today-summary` | pass 200 |
+| `/api/context/weather` | pass 200 |
+| `/api/evolution/history` | pass 200 |
+| `/api/evolution/promoted` | pass 200 |
+| `/api/evolution/variants` | pass 200 |
+| `/api/fingerprint` | pass 200 |
+| `/api/history` | pass 200 |
+| `/api/learn` | FAIL 405 |
+| `/api/score` | FAIL 405 |
+| `/api/self/accuracy-by-category` | pass 200 |
+| `/api/self/audit-trail` | pass 200 |
+| `/api/self/centroid-history` | pass 200 |
+| `/api/self/decisions` | pass 200 |
+| `/api/trajectory` | pass 200 |
+
 ---
 
 ## DATAOPS (port 5176/8030)
@@ -152,45 +144,14 @@
 | File | Lines | Components | API Calls |
 |---|---:|---|---|
 | `CurveScreen.tsx` | 84 | CentroidTimelineChart, CentroidTimeline, DisruptionAnnotation |  |
-| `DashboardScreen.tsx` | 276 | AEImpactPanel, AccuracyAlertPanel, AlertGroupCard, AlertQueue, ConservationProjection +4 |  |
+| `DashboardScreen.tsx` | 282 | AEImpactPanel, AccuracyAlertPanel, AlertGroupCard, AlertQueue, ConservationProjection +6 |  |
 | `EvidenceScreen.tsx` | 75 | AEImpactPanel, AuditTrailViewer, OperationalRulesPanel, PatternOriginCard, RuleGenealogyTree +3 |  |
 | `InsightScreen.tsx` | 114 | BottleneckPanel, CrossGraphInsightCard, DecisionExplorerPanel, IncidentReplayCard, ProcessTimelinePanel +2 |  |
 | `TriageScreen.tsx` | 546 | ApplyFixModal, CrossGraphInsightCard, DependencyTree, ProcessSignalsPanel, RecurrenceBadge +4 |  |
 
-### Component Files (43)
-- `components\AccuracyAlertPanel.tsx`
-- `components\AccuracyAlerts.tsx`
-- `components\ActionPicker.tsx`
-- `components\AEImpactPanel.tsx`
-- `components\AERecommendationBadge.tsx`
-- `components\AlertCard.tsx`
-- `components\AlertGroupCard.tsx`
-- `components\AlertQueue.tsx`
-- `components\ApplyFixModal.tsx`
-- `components\AuditTrailViewer.tsx`
-- `components\BottleneckPanel.tsx`
-- `components\CelonisBadge.tsx`
-- `components\CentroidTimeline.tsx`
-- `components\CentroidTimelineChart.tsx`
-- `components\ConservationProjection.tsx`
-- `components\ConservationTimeline.tsx`
-- `components\CrossGraphInsightCard.tsx`
-- `components\DecisionExplorer.tsx`
-- `components\DecisionExplorerPanel.tsx`
-- `components\DependencyTree.tsx`
-- `components\DisruptionAnnotation.tsx`
-- `components\EnterpriseHealthBar.tsx`
-- `components\FactorAutoFill.tsx`
-- `components\IncidentReplayCard.tsx`
-- `components\OperationalRulesPanel.tsx`
-- `components\PatternOriginCard.tsx`
-- `components\PipelineGrid.tsx`
-- `components\ProcessSignalsPanel.tsx`
-- `components\ProcessTimelinePanel.tsx`
-- `components\ProfileArchetype.tsx`
-- ... +13 more
+**Components:** 43 files
 
-### API Calls Referenced (21)
+### API Calls Referenced (23)
 - `/api/ae/conservation-history`
 - `/api/ae/impact`
 - `/api/ae/incident`
@@ -205,20 +166,51 @@
 - `/api/context/alerts`
 - `/api/context/apply-fix`
 - `/api/context/celonis/process-data`
-- `/api/context/enterprise-health`
 - `/api/context/pipelines`
+- `/api/dataops/enterprise-health`
+- `/api/evolution/history`
+- `/api/evolution/promoted`
 - `/api/evolution/variants`
 - `/api/fingerprint`
 - `/api/learn`
 - `/api/score`
 - `/api/trajectory`
 
+### Endpoint Smoke
+**19/23 returned 200**
+
+| Path | Status |
+|---|---|
+| `/api/ae/conservation-history` | pass 200 |
+| `/api/ae/impact` | pass 200 |
+| `/api/ae/incident` | pass 200 |
+| `/api/ae/operational-rules` | pass 200 |
+| `/api/ae/pattern-origin` | pass 200 |
+| `/api/ae/transfer-status` | pass 200 |
+| `/api/conservation/status` | pass 200 |
+| `/api/conservation/what-if` | FAIL 405 |
+| `/api/context/accuracy-by-category` | pass 200 |
+| `/api/context/alert-groups` | pass 200 |
+| `/api/context/alert-metadata` | pass 200 |
+| `/api/context/alerts` | pass 200 |
+| `/api/context/apply-fix` | FAIL 405 |
+| `/api/context/celonis/process-data` | pass 200 |
+| `/api/context/pipelines` | pass 200 |
+| `/api/dataops/enterprise-health` | pass 200 |
+| `/api/evolution/history` | pass 200 |
+| `/api/evolution/promoted` | pass 200 |
+| `/api/evolution/variants` | pass 200 |
+| `/api/fingerprint` | pass 200 |
+| `/api/learn` | FAIL 405 |
+| `/api/score` | FAIL 405 |
+| `/api/trajectory` | pass 200 |
+
 ---
 
 ## S2P (port 5177/8002)
 **Accent:** amber | **TSX files:** 47
 
-**Tabs (5):** Dashboard, Insight, Evidence, Suppliers, Performance
+**Tabs (6):** Dashboard, Exception Triage, Insight, Evidence, Suppliers, Performance
 
 ### Screens
 | File | Lines | Components | API Calls |
@@ -230,38 +222,7 @@
 | `SuppliersScreen.tsx` | 439 | ClusteringPanel, PaymentStrategyPanel, RationalizationPanel, SupplierHeatmap |  |
 | `TriageScreen.tsx` | 433 | EvidenceTemplatePanel, ProcessContextPanel, S2PConservationProjection, S2PReasoningPanel |  |
 
-### Component Files (39)
-- `components\AuditExportPanel.tsx`
-- `components\AuditTrailPanel.tsx`
-- `components\AutoApprovePanel.tsx`
-- `components\CentroidExplorerPanel.tsx`
-- `components\ClusteringPanel.tsx`
-- `components\CompliancePanel.tsx`
-- `components\ComplianceScreeningPanel.tsx`
-- `components\ConservationMiniGauge.tsx`
-- `components\ControlTowerPanel.tsx`
-- `components\CrossGraphInsightCard.tsx`
-- `components\CycleTimePanel.tsx`
-- `components\DiscoveryExtendedPanel.tsx`
-- `components\DiscoveryPanel.tsx`
-- `components\DisruptionRecoveryPanel.tsx`
-- `components\DisruptionSimPanel.tsx`
-- `components\EarlyWarningPanel.tsx`
-- `components\EvidenceTemplatePanel.tsx`
-- `components\EvolutionPanel.tsx`
-- `components\FactorFingerprintPanel.tsx`
-- `components\FinancialImpactCard.tsx`
-- `components\LeakageDetectionPanel.tsx`
-- `components\NoveltyStatusPanel.tsx`
-- `components\OperationalSummary.tsx`
-- `components\PaymentStrategyPanel.tsx`
-- `components\ProcessContextCard.tsx`
-- `components\ProcessContextPanel.tsx`
-- `components\ProcessSignalsPanel.tsx`
-- `components\RationalizationPanel.tsx`
-- `components\ReceiptChainPanel.tsx`
-- `components\RuleLifecyclePanel.tsx`
-- ... +9 more
+**Components:** 39 files
 
 ### API Calls Referenced (45)
 - `/api/conservation/status`
@@ -310,46 +271,82 @@
 - `/api/s2p/suppliers/payment-strategy`
 - `/api/trajectory`
 
+### Endpoint Smoke
+**36/45 returned 200**
+
+| Path | Status |
+|---|---|
+| `/api/conservation/status` | pass 200 |
+| `/api/fingerprint` | FAIL 404 |
+| `/api/learn` | FAIL 405 |
+| `/api/s2p/auto-approve/expansion-proof{id}` | FAIL 404 |
+| `/api/s2p/auto-approve/stats` | pass 200 |
+| `/api/s2p/control-tower/classify{id}` | FAIL 404 |
+| `/api/s2p/control-tower/intents` | pass 200 |
+| `/api/s2p/discovery/alerts` | pass 200 |
+| `/api/s2p/discovery/disruptions` | pass 200 |
+| `/api/s2p/discovery/extended` | pass 200 |
+| `/api/s2p/evidence/audit-pack` | pass 200 |
+| `/api/s2p/evidence/chain-integrity` | pass 200 |
+| `/api/s2p/evidence/compliance` | pass 200 |
+| `/api/s2p/evidence/rules` | pass 200 |
+| `/api/s2p/evolution/promoted` | pass 200 |
+| `/api/s2p/evolution/promotion-check` | pass 200 |
+| `/api/s2p/evolution/reset` | FAIL 405 |
+| `/api/s2p/evolution/rules` | pass 200 |
+| `/api/s2p/evolution/shadow-results` | pass 200 |
+| `/api/s2p/evolution/variants` | pass 200 |
+| `/api/s2p/explorer/dk-weights` | pass 200 |
+| `/api/s2p/governance/compliance-screening` | pass 200 |
+| `/api/s2p/governance/rationalization` | pass 200 |
+| `/api/s2p/insight/cross-graph` | pass 200 |
+| `/api/s2p/insight/process-signals{id}` | FAIL 404 |
+| `/api/s2p/novelty/status` | pass 200 |
+| `/api/s2p/outcome` | FAIL 405 |
+| `/api/s2p/performance/summary` | pass 200 |
+| `/api/s2p/performance/trajectory` | pass 200 |
+| `/api/s2p/preview/conservation` | pass 200 |
+| `/api/s2p/preview/queue` | pass 200 |
+| `/api/s2p/preview/suppliers` | pass 200 |
+| `/api/s2p/pvg/cycle-time` | pass 200 |
+| `/api/s2p/pvg/leakage` | pass 200 |
+| `/api/s2p/pvg/variants` | pass 200 |
+| `/api/s2p/score` | FAIL 405 |
+| `/api/s2p/simulation/impact-summary` | pass 200 |
+| `/api/s2p/simulation/scenarios` | pass 200 |
+| `/api/s2p/suppliers` | pass 200 |
+| `/api/s2p/suppliers/clustering` | pass 200 |
+| `/api/s2p/suppliers/clusters` | pass 200 |
+| `/api/s2p/suppliers/declining` | pass 200 |
+| `/api/s2p/suppliers/early-warnings` | pass 200 |
+| `/api/s2p/suppliers/payment-strategy` | pass 200 |
+| `/api/trajectory` | FAIL 404 |
+
 ---
 
 ## SOC (port 5173/8001)
 **Accent:** blue | **TSX files:** 19
 
-**Tabs (1):** Compounding
+**Tabs (7):** SOC Analytics, Runtime Evolution, Alert Triage, Compounding, Executive Narrative, S2P Preview, Evidence Room
+
+### Tab Validation
+- ℹ️ Detected tab not in expected list: 'Evidence Room'
 
 ### Screens
 | File | Lines | Components | API Calls |
 |---|---:|---|---|
-| `AlertTriageTab.tsx` | 1670 |  | /api/soc/campaigns/{id} |
-| `CompoundingTab.tsx` | 2818 |  | /api/eval/templates/{id}.csv, /api/metrics/decision-economics, /api/soc/board-export +4 |
-| `ExecutiveNarrativeTab.tsx` | 808 |  | /api/platform/domain-applicability, /api/soc/executive-narrative, /api/soc/executive-narrative/pdf |
+| `AlertTriageTab.tsx` | 1670 |  |  |
+| `CompoundingTab.tsx` | 2846 |  | /api/metrics/decision-economics, /api/soc/board-export, /api/soc/economics +3 |
+| `ExecutiveNarrativeTab.tsx` | 808 |  | /api/platform/domain-applicability, /api/soc/executive-narrative |
 | `GovernanceTab.tsx` | 899 |  | /api/governance/summary, /api/platform/rl-exploration-demo, /api/platform/rl-reward-demo +3 |
 | `RuntimeEvolutionTab.tsx` | 3596 |  | /api/soc/centroid-evolution?n=200, /api/soc/centroid-heatmap, /api/soc/centroid-support +3 |
 | `S2PPreviewTab.tsx` | 354 |  | /api/s2p/preview/conservation, /api/s2p/preview/queue, /api/s2p/preview/suppliers |
 | `SOCAnalyticsTab.tsx` | 1293 |  | /api/soc/detection-engineering |
 
-### Component Files (17)
-- `components\CampaignIntelligencePanel.tsx`
-- `components\ClusterHistoryPanel.tsx`
-- `components\discovery\DiscoveryBanner.tsx`
-- `components\FactorContributionPanel.tsx`
-- `components\LearningStatePanel.tsx`
-- `components\OutcomeFeedback.tsx`
-- `components\PolicyConflict.tsx`
-- `components\ROICalculator.tsx`
-- `components\SimulationPanel.tsx`
-- `components\tabs\AlertTriageTab.tsx`
-- `components\tabs\CompoundingTab.tsx`
-- `components\tabs\ExecutiveNarrativeTab.tsx`
-- `components\tabs\GovernanceTab.tsx`
-- `components\tabs\RuntimeEvolutionTab.tsx`
-- `components\tabs\S2PPreviewTab.tsx`
-- `components\tabs\SOCAnalyticsTab.tsx`
-- `components\ThreeChannelPanel.tsx`
+**Components:** 17 files
 
-### API Calls Referenced (29)
+### API Calls Referenced (26)
 - `/api/compounding/channel-decomposition`
-- `/api/eval/templates/{id}.csv`
 - `/api/governance/summary`
 - `/api/metrics/decision-economics`
 - `/api/platform/domain-applicability`
@@ -360,7 +357,6 @@
 - `/api/s2p/preview/suppliers`
 - `/api/soc/board-export`
 - `/api/soc/campaigns`
-- `/api/soc/campaigns/{id}`
 - `/api/soc/centroid-evolution?n=200`
 - `/api/soc/centroid-heatmap`
 - `/api/soc/centroid-support`
@@ -371,11 +367,42 @@
 - `/api/soc/evidence-room`
 - `/api/soc/evidence-room/export`
 - `/api/soc/executive-narrative`
-- `/api/soc/executive-narrative/pdf`
 - `/api/soc/factor-contribution`
 - `/api/soc/graph-stats`
 - `/api/soc/learning-state`
 - `/api/soc/operational-metrics`
 - `/api/triage/learning-state?category={id}`
+
+### Endpoint Smoke
+**23/26 returned 200**
+
+| Path | Status |
+|---|---|
+| `/api/compounding/channel-decomposition` | pass 200 |
+| `/api/governance/summary` | pass 200 |
+| `/api/metrics/decision-economics` | pass 200 |
+| `/api/platform/domain-applicability` | pass 200 |
+| `/api/platform/rl-exploration-demo` | pass 200 |
+| `/api/platform/rl-reward-demo` | pass 200 |
+| `/api/s2p/preview/conservation` | FAIL 404 |
+| `/api/s2p/preview/queue` | FAIL 404 |
+| `/api/s2p/preview/suppliers` | FAIL 404 |
+| `/api/soc/board-export` | pass 200 |
+| `/api/soc/campaigns` | pass 200 |
+| `/api/soc/centroid-evolution?n=200` | pass 200 |
+| `/api/soc/centroid-heatmap` | pass 200 |
+| `/api/soc/centroid-support` | pass 200 |
+| `/api/soc/compliance` | pass 200 |
+| `/api/soc/detection-engineering` | pass 200 |
+| `/api/soc/economics` | pass 200 |
+| `/api/soc/enrichment-status` | pass 200 |
+| `/api/soc/evidence-room` | pass 200 |
+| `/api/soc/evidence-room/export` | pass 200 |
+| `/api/soc/executive-narrative` | pass 200 |
+| `/api/soc/factor-contribution` | pass 200 |
+| `/api/soc/graph-stats` | pass 200 |
+| `/api/soc/learning-state` | pass 200 |
+| `/api/soc/operational-metrics` | pass 200 |
+| `/api/triage/learning-state?category={id}` | pass 200 |
 
 ---

@@ -21,7 +21,13 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
     if path.exists() and str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from .context_router import router as context_router  # noqa: E402
+from . import context_router as context_router_module  # noqa: E402
+from .graph_status import (  # noqa: E402
+    create_purchasing_active_graph_store,
+    initialize_purchasing_active_graph_config,
+    router as purchasing_graph_status_router,
+)
+from .evolution import get_purchasing_variants  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
@@ -31,6 +37,7 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 
@@ -195,7 +202,12 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     if count > 0:
         print(f"[{DOMAIN}] resuming with {count} persisted decisions")
         return 0
-    scorer = CompoundingScorer.from_preset(DOMAIN, graph_store=graph_store)
+    scorer = CompoundingScorer.from_preset(
+        DOMAIN,
+        graph_store=graph_store,
+        evolve=True,
+        consolidation_enabled=True,
+    )
     seeded = _seed_from_fixtures(scorer, graph_store)
     print(
         f"[{DOMAIN}] auto-seeded {seeded['decisions_seeded']} decisions "
@@ -204,18 +216,49 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     return seeded["decisions_seeded"]
 
 
-def _evolution_variants() -> list[dict[str, Any]]:
-    fixture_path = DATA_DIR / "evolution_fixtures.json"
-    if not fixture_path.exists():
-        return []
+def _variant_from_event(event: dict[str, Any]) -> dict[str, Any]:
+    metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+    variant = dict(metadata)
+    event_type = str(variant.get("event_type") or event.get("event_type") or "")
+    rule_name = str(event.get("rule_name") or variant.get("rule_name") or "")
+    variant_id = str(
+        event.get("variant_id")
+        or variant.get("variant_id")
+        or variant.get("variantId")
+        or rule_name
+    )
+    variant["event_type"] = event_type
+    variant.setdefault("rule_name", rule_name)
+    variant.setdefault("variant_id", variant_id)
+    variant.setdefault("id", variant_id or rule_name)
+    variant.setdefault("description", rule_name or variant_id)
+    variant.setdefault("timestamp", event.get("timestamp"))
+    return variant
+
+
+def _evolution_variants(store: Any) -> list[dict[str, Any]]:
     try:
-        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        events = store.get_evolution_events(domain=DOMAIN, limit=500)
+    except Exception:
         return []
-    variants = payload.get("variants")
-    if not isinstance(variants, list):
-        return []
+    variants = [_variant_from_event(event) for event in events if isinstance(event, dict)]
     return _filter_variants_by_query(variants, None)
+
+
+def _purchasing_variants_with_config(store: Any) -> list[dict[str, Any]]:
+    configured = get_purchasing_variants()
+    persisted = _evolution_variants(store)
+    seen: set[str] = set()
+    merged: list[dict[str, Any]] = []
+    for variant in configured + persisted:
+        variant_id = variant.get("id") or variant.get("variant_id")
+        if variant_id:
+            variant_key = str(variant_id)
+            if variant_key in seen:
+                continue
+            seen.add(variant_key)
+        merged.append(dict(variant))
+    return merged
 
 
 def _filter_variants_by_query(
@@ -256,7 +299,11 @@ def _variant_status(variant: dict[str, Any]) -> str:
     ).lower()
 
 
-def create_app(db_path: str | Path | None = None) -> FastAPI:
+def create_app(
+    db_path: str | Path | None = None,
+    demo_bundle_path: str | Path | bool | None = None,
+    active_store_factory: Any | None = None,
+) -> FastAPI:
     app = FastAPI(title="Purchasing Copilot", version="0.1.0")
     app.add_middleware(
         CORSMiddleware,
@@ -267,9 +314,28 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     )
 
     scoring_db = _resolve_scoring_db(db_path)
+    active_graph_config = initialize_purchasing_active_graph_config()
+    active_graph_store = create_purchasing_active_graph_store(
+        active_graph_config,
+        store_factory=active_store_factory,
+    )
+
+    def selected_graph_store_factory(path: str | Path):
+        if active_graph_store is not None:
+            return active_graph_store
+        return _graph_store(path)
+
+    if demo_bundle_path is None:
+        _bundle_path = REPO_ROOT / "demo" / f"{DOMAIN}_demo_bundle.json"
+    elif demo_bundle_path is False:
+        _bundle_path = False
+    else:
+        _bundle_path = Path(demo_bundle_path)
     seed_graph_store = _graph_store(scoring_db)
     startup_state = {"seeded": False}
-    scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, _graph_store)
+    scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, selected_graph_store_factory)
+    app.state.purchasing_active_graph_config = active_graph_config
+    app.state.purchasing_selected_graph_store = scorer_proxy.graph_store
     app.include_router(
         create_scoring_router(
             DOMAIN,
@@ -280,12 +346,14 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
     )
     app.include_router(create_transfer_router(scorer_proxy))
     app.include_router(
-        create_evolution_router(
-            graph_store_factory=lambda: _graph_store(scoring_db),
-            domain=DOMAIN,
-            variant_provider=_evolution_variants,
-        )
-    )
+          create_evolution_router(
+              graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
+              domain=DOMAIN,
+              variant_provider=lambda: _purchasing_variants_with_config(
+                  selected_graph_store_factory(scoring_db)
+              ),
+          )
+      )
 
     # Conservation router
     app.include_router(
@@ -295,14 +363,21 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         ),
         prefix="/api",
     )
-    mount_self_computation_router(app, _graph_store(scoring_db))
-    app.include_router(context_router, prefix="/api/context")
+    mount_self_computation_router(app, selected_graph_store_factory(scoring_db))
+    context_router_module.set_evolution_store_factory(lambda: selected_graph_store_factory(scoring_db))
+    app.include_router(context_router_module.router, prefix="/api/context")
     app.include_router(create_evidence_router(scorer_proxy))
+    app.include_router(purchasing_graph_status_router)
 
     def _run_startup_seed_once() -> None:
         if startup_state["seeded"]:
             return
         startup_state["seeded"] = True
+        if active_graph_store is not None:
+            print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
+            return
+        if _bundle_path is not False:
+            _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
         _auto_seed_if_needed(seed_graph_store)
 
     @app.on_event("startup")

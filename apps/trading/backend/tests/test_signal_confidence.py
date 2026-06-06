@@ -21,7 +21,7 @@ def test_non_dict_neutral():
 
 
 def test_factor_coverage():
-    assert round(SignalConfidenceFactor().compute({"factors_with_data": 4}), 4) == 0.5714
+    assert round(SignalConfidenceFactor().compute({"factors_with_data": 4}), 4) == 0.4
 
 
 def test_factor_coverage_clamped():
@@ -63,7 +63,7 @@ def test_novelty_distance_very_high():
 def test_combined_high():
     value = SignalConfidenceFactor().compute(
         {
-            "factors_with_data": 7,
+            "factors_with_data": 10,
             "category_accuracy": 0.95,
             "similar_trade_count": 100,
             "novelty_distance": 0.2,
@@ -83,7 +83,7 @@ def test_combined_low():
         }
     )
 
-    assert round(value, 4) == 0.1232
+    assert round(value, 4) == 0.1125
 
 
 def test_output_bounded():
@@ -107,6 +107,9 @@ def test_fallback_registry_uses_semantic_factor_mapping(monkeypatch):
         "risk_reward_actual": "TimeHorizonFactor",
         "emotional_indicator": "ResearchDepthFactor",
         "signal_confidence": "SignalConfidenceFactor",
+        "options_delta_exposure": "OptionsDeltaExposureFactor",
+        "options_iv_percentile": "OptionsIVPercentileFactor",
+        "options_gamma_risk": "OptionsGammaRiskFactor",
     }
     original_module = sys.modules.pop("app.factors.registry")
     real_import = builtins.__import__
@@ -129,12 +132,12 @@ def test_fallback_registry_uses_semantic_factor_mapping(monkeypatch):
         sys.modules["app.factors.registry"] = original_module
 
 
-def test_compute_factors_returns_all_7_keys():
+def test_compute_factors_returns_all_10_keys():
     assert set(compute_factors({})) == set(ALL_FACTOR_NAMES)
-    assert len(compute_factors({})) == 7
+    assert len(compute_factors({})) == 10
 
 
-def test_compute_all_7_responds():
+def test_compute_all_10_responds():
     values = compute_factors(
         {
             "tagged_signals": [{"confirmed": True}, {"confirmed": True}],
@@ -161,10 +164,13 @@ def test_compute_all_7_responds():
             "vix_at_entry": 18,
             "trend_strength": 30,
             "regime_accuracy": {"trending": 0.9},
-            "factors_with_data": 7,
+            "factors_with_data": 10,
             "category_accuracy": 0.95,
             "similar_trade_count": 100,
             "novelty_distance": 0.2,
+            "delta": 0.65,
+            "iv_percentile": 72,
+            "gamma": 0.04,
         }
     )
 
@@ -178,7 +184,7 @@ def test_unrelated_exception_still_defaults_factor_neutral(monkeypatch):
 
     monkeypatch.setitem(TRADING_FACTOR_COMPUTERS, "signal_confidence", FailingFactor())
 
-    values = compute_factors({"factors_with_data": 7})
+    values = compute_factors({"factors_with_data": 10})
 
     assert values["signal_confidence"] == 0.5
     assert all(0.0 <= value <= 1.0 for value in values.values())

@@ -3,33 +3,24 @@
 from __future__ import annotations
 
 import math
-import sys
-from pathlib import Path
 from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from copilot_sdk.backend.conservation_utils import (
+    ENGINE_WHAT_IF,
+    check_payload,
+    compute_conservation_status_payload,
+    state_counts,
+)
 from copilot_sdk.backend.models import (
     ConservationStatusResponse,
     ConservationWhatIfResponse,
 )
 
 
-def _ensure_gae_path() -> None:
-    workspace = Path(__file__).resolve().parents[3]
-    gae_path = workspace / "graph-attention-engine-v50"
-    if gae_path.exists() and str(gae_path) not in sys.path:
-        sys.path.insert(0, str(gae_path))
-
-
-_ensure_gae_path()
-
-from gae.calibration import check_conservation, compute_theta_min, conservation_status
-
-
-ENGINE_STATUS = {"gae": "gae.calibration", "component": "conservation_status"}
-ENGINE_WHAT_IF = {"gae": "gae.calibration", "component": "check_conservation"}
+from gae.calibration import check_conservation, compute_theta_min
 
 
 class ConservationWhatIfRequest(BaseModel):
@@ -50,19 +41,7 @@ def create_conservation_router(
     @router.get("/conservation/status", response_model=ConservationStatusResponse)
     def status() -> dict[str, Any]:
         state = _resolve_state(state_provider)
-        counts = _state_counts(state)
-        check = conservation_status(
-            verified_count=counts["verified_count"],
-            correct_count=counts["correct_count"],
-            total_decisions=counts["total_decisions"],
-            penalty_ratio=counts["penalty_ratio"],
-        )
-        return {
-            "engine": ENGINE_STATUS,
-            "domain": domain,
-            **counts,
-            **_check_payload(check),
-        }
+        return compute_conservation_status_payload(domain, state)
 
     @router.post("/conservation/what-if", response_model=ConservationWhatIfResponse)
     def what_if(request: ConservationWhatIfRequest) -> dict[str, Any]:
@@ -90,7 +69,7 @@ def create_conservation_router(
                 "V": request.V,
                 "theta_min": _finite_or_none(theta_min),
             },
-            **_check_payload(check),
+            **check_payload(check),
         }
 
     return router
@@ -105,57 +84,11 @@ def _resolve_state(state_provider: Callable[[], Any] | Any | None) -> Any:
 def _state_counts(state: Any) -> dict[str, float | int]:
     if state is None:
         return _default_counts()
-    if isinstance(state, dict):
-        return {
-            "verified_count": max(int(state.get("verified_count") or 0), 0),
-            "correct_count": max(int(state.get("correct_count") or 0), 0),
-            "total_decisions": max(int(state.get("total_decisions") or 0), 0),
-            "penalty_ratio": _positive_float(state.get("penalty_ratio"), default=1.0),
-        }
-
-    direct_count_verified = getattr(state, "count_verified", None)
-    direct_count_correct = getattr(state, "count_correct", None)
-    if callable(direct_count_verified) and callable(direct_count_correct):
-        store = state
-    else:
-        store = (
-            getattr(state, "graph_store", None)
-            or getattr(state, "_graph_store", None)
-            or state
-        )
-    store_domain = _store_domain(store, state)
-    count_verified = getattr(store, "count_verified", None)
-    count_correct = getattr(store, "count_correct", None)
-    get_all_decisions = getattr(store, "get_all_decisions", None)
-    preset = getattr(state, "_preset", None)
-
-    verified_count = int(count_verified(store_domain)) if callable(count_verified) else 0
-    correct_count = int(count_correct(store_domain)) if callable(count_correct) else 0
-    total_decisions = (
-        len(get_all_decisions(store_domain)) if callable(get_all_decisions) else verified_count
-    )
-    penalty_ratio = _positive_float(
-        getattr(store, "penalty_ratio", None)
-        or getattr(state, "penalty_ratio", None)
-        or getattr(preset, "penalty_ratio", None),
-        default=1.0,
-    )
-    return {
-        "verified_count": max(verified_count, 0),
-        "correct_count": max(correct_count, 0),
-        "total_decisions": max(total_decisions, 0),
-        "penalty_ratio": penalty_ratio,
-    }
+    return state_counts(state)
 
 
-def _store_domain(store: Any, state: Any) -> str:
-    preset = getattr(state, "_preset", None)
-    return str(
-        getattr(store, "domain", "")
-        or getattr(state, "_domain", "")
-        or getattr(preset, "name", "")
-        or ""
-    )
+def _check_payload(check: Any) -> dict[str, Any]:
+    return check_payload(check)
 
 
 def _default_counts() -> dict[str, float | int]:
@@ -165,26 +98,6 @@ def _default_counts() -> dict[str, float | int]:
         "total_decisions": 0,
         "penalty_ratio": 1.0,
     }
-
-
-def _check_payload(check: Any) -> dict[str, Any]:
-    return {
-        "signal": _finite_or_none(check.signal),
-        "theta_min": _finite_or_none(check.theta_min),
-        "headroom": _finite_or_none(check.headroom),
-        "status": check.status,
-        "passed": bool(check.passed),
-    }
-
-
-def _positive_float(value: Any, default: float) -> float:
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return default
-    if not math.isfinite(number) or number <= 0:
-        return default
-    return number
 
 
 def _finite_or_none(value: Any) -> float | None:

@@ -22,7 +22,7 @@ test("profile archetype shows Pattern Matcher or profile", async ({ page }) => {
 test("fingerprint renders DataOps factors", async ({ page }) => {
   await gotoInsight(page);
 
-  await expect(page.getByText("Fingerprint")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Fingerprint" })).toBeVisible();
   await expectAnyText(page, [/Recurrence/i, /Business criticality/i, /Impact scope/i, /Downstream urgency/i, /Source reliability/i, /Data freshness/i]);
 });
 

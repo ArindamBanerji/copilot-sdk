@@ -37,11 +37,17 @@ def _load_json(filename: str) -> Any:
 def _load_json_optional(filename: str) -> Any | None:
     path = _DATA_DIR / filename
     if path.exists():
-        return json.loads(path.read_text(encoding="utf-8"))
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return None
 
     fallback = _DEFAULT_DATA_DIR / filename
     if fallback.exists():
-        return json.loads(fallback.read_text(encoding="utf-8"))
+        try:
+            return json.loads(fallback.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return None
     return None
 
 
@@ -65,6 +71,10 @@ def _empty_analytics() -> dict[str, Any]:
         "risk_management": {},
         "portfolio_summary": {},
     }
+
+
+def _default_market_snapshot() -> dict[str, Any]:
+    return {"regime": "ranging", "vix": 20.0, "adx": 25.0, "source": "default"}
 
 
 def _cosine_similarity(left: list[float], right: list[float]) -> float:
@@ -247,7 +257,8 @@ def _conservation_category_row(
 
 @router.get("/market-snapshot")
 def market_snapshot() -> dict[str, Any]:
-    return _load_json("market_snapshot.json")
+    payload = _load_json_optional("market_snapshot.json")
+    return payload if isinstance(payload, dict) else _default_market_snapshot()
 
 
 @router.get("/ticker/{ticker}")

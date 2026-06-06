@@ -120,6 +120,42 @@ class CompoundingScorer:
         if self._evolve:
             self._setup_evolution()
 
+    def _predict(
+        self,
+        factors: dict[str, float],
+        category: str,
+    ) -> tuple[int, dict[str, float], np.ndarray, Any, int, str, list[float]]:
+        assert category in self._preset.shape.category_names, f"unknown category: {category}"
+        unknown = set(factors) - set(self._preset.shape.factor_names)
+        assert not unknown, f"unknown factors: {sorted(unknown)}"
+
+        category_index = self._preset.shape.category_names.index(category)
+        factor_values = {
+            name: float(factors.get(name, 0.5))
+            for name in self._preset.shape.factor_names
+        }
+        factor_vector = np.asarray(
+            [factor_values[name] for name in self._preset.shape.factor_names],
+            dtype=np.float64,
+        )
+
+        gae_result = self._scorer.score(factor_vector, category_index)
+        action_index = int(gae_result.action_index)
+        action = str(gae_result.action_name)
+        if action != self._preset.shape.action_names[action_index]:
+            action = self._preset.shape.action_names[action_index]
+
+        probabilities = [float(value) for value in gae_result.probabilities]
+        return (
+            category_index,
+            factor_values,
+            factor_vector,
+            gae_result,
+            action_index,
+            action,
+            probabilities,
+        )
+
     @classmethod
     def from_preset(
         cls,
@@ -193,27 +229,15 @@ class CompoundingScorer:
         category: str,
         metadata: dict[str, Any] | None = None,
     ) -> ScoreResult:
-        assert category in self._preset.shape.category_names, f"unknown category: {category}"
-        unknown = set(factors) - set(self._preset.shape.factor_names)
-        assert not unknown, f"unknown factors: {sorted(unknown)}"
-
-        category_index = self._preset.shape.category_names.index(category)
-        factor_values = {
-            name: float(factors.get(name, 0.5))
-            for name in self._preset.shape.factor_names
-        }
-        factor_vector = np.asarray(
-            [factor_values[name] for name in self._preset.shape.factor_names],
-            dtype=np.float64,
-        )
-
-        gae_result = self._scorer.score(factor_vector, category_index)
-        action_index = int(gae_result.action_index)
-        action = str(gae_result.action_name)
-        if action != self._preset.shape.action_names[action_index]:
-            action = self._preset.shape.action_names[action_index]
-
-        probabilities = [float(value) for value in gae_result.probabilities]
+        (
+            category_index,
+            factor_values,
+            factor_vector,
+            gae_result,
+            action_index,
+            action,
+            probabilities,
+        ) = self._predict(factors, category)
         decision_id = uuid.uuid4().hex[:12]
         decision_metadata = dict(metadata or {})
         decision_metadata.update({
@@ -238,6 +262,31 @@ class CompoundingScorer:
 
         return ScoreResult(
             decision_id=decision_id,
+            action=action,
+            action_index=action_index,
+            confidence=float(gae_result.confidence),
+            probabilities=probabilities,
+            category=category,
+            factors=factor_values,
+        )
+
+    def score_read_only(
+        self,
+        factors: dict[str, float],
+        category: str,
+    ) -> ScoreResult:
+        """Return a live scorer prediction without persisting a Decision."""
+        (
+            _category_index,
+            factor_values,
+            _factor_vector,
+            gae_result,
+            action_index,
+            action,
+            probabilities,
+        ) = self._predict(factors, category)
+        return ScoreResult(
+            decision_id=f"preview-{uuid.uuid4().hex[:12]}",
             action=action,
             action_index=action_index,
             confidence=float(gae_result.confidence),

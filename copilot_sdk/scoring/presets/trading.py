@@ -12,7 +12,7 @@ from copilot_sdk.scoring.config import DomainShape
 
 
 _LEGACY_ACTION_CONFIDENCE = (0.65, 0.55, 0.50)
-_NEUTRAL_SKIP_CENTROID = (0.30, 0.35, 0.50, 0.50, 0.50, 0.25, 0.40)
+_NEUTRAL_SKIP_CENTROID = (0.30, 0.35, 0.50, 0.50, 0.50, 0.25, 0.40, 0.50, 0.50, 0.50)
 
 
 class TradingPreset:
@@ -25,7 +25,7 @@ class TradingPreset:
         return DomainShape(
             n_categories=5,
             n_actions=4,
-            n_factors=7,
+            n_factors=10,
             category_names=(
                 "trend_following",
                 "mean_reversion",
@@ -42,6 +42,9 @@ class TradingPreset:
                 "risk_reward_actual",
                 "emotional_indicator",
                 "signal_confidence",
+                "options_delta_exposure",
+                "options_iv_percentile",
+                "options_gamma_risk",
             ),
         )
 
@@ -88,7 +91,7 @@ def _load_bootstrap(preset: TradingPreset) -> np.ndarray:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
         centroids = np.asarray(data["centroids"], dtype=np.float64)
-        if centroids.shape == (5, 3, 6) and expected_shape == (5, 4, 7):
+        if centroids.shape == (5, 3, 6) and expected_shape == (5, 4, 10):
             return _migrate_legacy_centroids(centroids)
         if centroids.shape != expected_shape:
             raise ValueError(f"trading bootstrap shape {centroids.shape} != {expected_shape}")
@@ -98,7 +101,7 @@ def _load_bootstrap(preset: TradingPreset) -> np.ndarray:
 
 
 def _migrate_legacy_centroids(centroids: np.ndarray) -> np.ndarray:
-    migrated = np.full((5, 4, 7), 0.5, dtype=np.float64)
+    migrated = np.full((5, 4, 10), 0.5, dtype=np.float64)
     migrated[:, :3, :6] = centroids
     for action_index, signal_confidence in enumerate(_LEGACY_ACTION_CONFIDENCE):
         migrated[:, action_index, 6] = signal_confidence

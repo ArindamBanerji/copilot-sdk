@@ -10,3 +10,23 @@ graphify-out/cache/
 e2e/test-results/
 *.db
 *.pid
+# Scan artifacts
+*.ps1
+graphify-out/*.txt
+graphify-out/*.json
+graphify-out/*.md
+e2e/pw_*.txt
+e2e/debug.log
+e2e/playwright-report/
+# Database files
+# Temp files
+.tmp/
+# WSL keepalive
+.wsl_keepalive.pid
+# PW health logs
+pw_*.txt
+pw_*.json
+# Misc
+soc_projection_gate_*.txt
+age_protocol_v2_*.txt
+pw_protocol_v2_*.txt
