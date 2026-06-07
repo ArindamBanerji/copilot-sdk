@@ -100,7 +100,7 @@ class GraphMissAGEClient:
 
 
 @pytest.mark.asyncio
-async def test_fixture_fallback():
+async def test_fixture_fallback(no_graph):
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
 
     assert client.is_graph_connected is False
@@ -109,7 +109,7 @@ async def test_fixture_fallback():
 
 
 @pytest.mark.asyncio
-async def test_get_pipelines_fixture():
+async def test_get_pipelines_fixture(no_graph):
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
     payload = await client.get_pipelines()
 
@@ -121,7 +121,7 @@ async def test_get_pipelines_fixture():
 
 
 @pytest.mark.asyncio
-async def test_get_alerts_fixture():
+async def test_get_alerts_fixture(no_graph):
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
     payload = await client.get_alerts()
 
@@ -237,7 +237,7 @@ async def test_graph_miss_factors_fall_back_pure_fixture():
 
 
 @pytest.mark.asyncio
-async def test_fixture_blast_radius_matches_graph_shape():
+async def test_fixture_blast_radius_matches_graph_shape(no_graph):
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
     payload = await client.get_blast_radius("ALERT-TIRE-001")
 
@@ -253,7 +253,7 @@ async def test_fixture_blast_radius_matches_graph_shape():
 
 
 @pytest.mark.asyncio
-async def test_blast_radius_tree_building():
+async def test_blast_radius_tree_building(no_graph):
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
     payload = await client.get_blast_radius("ALERT-TIRE-015")
 
@@ -264,7 +264,7 @@ async def test_blast_radius_tree_building():
 
 
 @pytest.mark.asyncio
-async def test_get_factors_has_all_six():
+async def test_get_factors_has_all_six(no_graph):
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
     payload = await client.get_factors("ALERT-TIRE-001")
 
@@ -283,8 +283,7 @@ async def test_get_factors_has_all_six():
 
 
 @pytest.mark.asyncio
-async def test_no_live_graph_required(monkeypatch):
-    monkeypatch.delenv("GRAPH_DSN", raising=False)
+async def test_no_live_graph_required(no_graph):
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
     payload = await client.get_alert("ALERT-TIRE-015")
 
@@ -296,3 +295,5 @@ async def test_no_live_graph_required(monkeypatch):
 def test_graph_query_strings_are_read_only():
     assert READ_ONLY_FORBIDDEN.search("MATCH (n) RETURN n") is None
     assert READ_ONLY_FORBIDDEN.search("CREATE (n) RETURN n") is not None
+
+

@@ -173,3 +173,11 @@ def _seed_ae_events(store: SQLiteGraphStore) -> None:
             },
         },
     )
+
+@pytest.fixture
+def no_graph(monkeypatch):
+    """Ensure no live graph backend for fallback/offline tests."""
+    monkeypatch.delenv("GRAPH_BACKEND", raising=False)
+    monkeypatch.delenv("GRAPH_DSN", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("AGE_GRAPH_NAME", raising=False)
