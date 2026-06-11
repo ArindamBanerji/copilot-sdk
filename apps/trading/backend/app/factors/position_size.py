@@ -8,8 +8,8 @@ from app.factors.base import clamp, mean_or_neutral
 
 
 class PositionSizeFactor:
-    factor_name = "timing_quality"
-    factor_index = 3
+    factor_name = "position_sizing"
+    factor_index = 2
 
     def compute(self, event: object) -> float:
         ctx = event if isinstance(event, dict) else {}
@@ -17,6 +17,13 @@ class PositionSizeFactor:
             return 0.5
 
         components: list[float] = []
+
+        if "position_size_pct" in ctx:
+            return _position_size_pct_score(
+                ctx.get("position_size_pct"),
+                ctx.get("avg_position_size_pct", 2.0),
+                ctx.get("max_position_size_pct", 5.0),
+            )
 
         if "position_pct_of_max" in ctx:
             components.append(_size_vs_max_score(ctx.get("position_pct_of_max")))
@@ -31,6 +38,20 @@ class PositionSizeFactor:
             components.append(_kelly_ratio_score(ctx.get("kelly_ratio")))
 
         return mean_or_neutral(components)
+
+
+def _position_size_pct_score(size_value: Any, average_value: Any, max_value: Any) -> float:
+    try:
+        size = float(size_value)
+        rolling_avg = float(average_value)
+        max_allowed = float(max_value)
+    except (TypeError, ValueError):
+        return 0.5
+    if size > max_allowed:
+        return 0.1
+    ratio = size / rolling_avg if rolling_avg > 0 else 1.0
+    deviation = abs(ratio - 1.0)
+    return clamp(1.0 - min(deviation, 1.0))
 
 
 def _size_vs_max_score(value: Any) -> float:

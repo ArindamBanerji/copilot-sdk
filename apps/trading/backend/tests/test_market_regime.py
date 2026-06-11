@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from app.factors import registry as registry_module
-from app.factors.conviction import ConvictionFactor
+from app.factors.emotional_indicator import EmotionalIndicatorFactor
 from app.factors.market_regime import MarketRegimeFactor, classify_regime
 from app.factors.options_scored import (
     OptionsDeltaExposureFactor,
@@ -14,10 +14,10 @@ from app.factors.registry import (
     TRADING_FACTOR_COMPUTERS,
     compute_factors,
 )
-from app.factors.research_depth import ResearchDepthFactor
+from app.factors.risk_reward import RiskRewardActualFactor
+from app.factors.signal_alignment import SignalAlignmentFactor
 from app.factors.signal_confidence import SignalConfidenceFactor
-from app.factors.technical_signal import TechnicalSignalFactor
-from app.factors.time_horizon import TimeHorizonFactor
+from app.factors.timing_quality import TimingQualityFactor
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
@@ -101,12 +101,12 @@ def test_registry_factor_names_sourced_from_preset():
 
 def test_fallback_factor_registry_mapping_is_semantic():
     expected = {
-        "signal_alignment": ConvictionFactor,
+        "signal_alignment": SignalAlignmentFactor,
         "market_regime": MarketRegimeFactor,
         "position_sizing": PositionSizeFactor,
-        "timing_quality": TechnicalSignalFactor,
-        "risk_reward_actual": TimeHorizonFactor,
-        "emotional_indicator": ResearchDepthFactor,
+        "timing_quality": TimingQualityFactor,
+        "risk_reward_actual": RiskRewardActualFactor,
+        "emotional_indicator": EmotionalIndicatorFactor,
         "signal_confidence": SignalConfidenceFactor,
         "options_delta_exposure": OptionsDeltaExposureFactor,
         "options_iv_percentile": OptionsIVPercentileFactor,
@@ -132,20 +132,26 @@ def test_registry_implemented_factors_respond_to_context():
     values = compute_factors(
         {
             "tagged_signals": [{"confirmed": True}, {"confirmed": True}],
-            "has_trade_plan": True,
-            "position_conviction": 0.9,
-            "position_pct_of_max": 0.6,
-            "portfolio_concentration": 0.04,
-            "sources_consulted": 5,
-            "analysis_minutes": 30,
-            "has_thesis": True,
             "entry_direction": "long",
             "rsi_at_entry": 25,
             "macd_signal": "bullish",
             "price_vs_sma": 1.2,
+            "position_size_pct": 2.0,
+            "avg_position_size_pct": 2.0,
+            "max_position_size_pct": 5.0,
+            "entry_delay_minutes": 0,
+            "hold_time_vs_plan_pct": 1.0,
+            "planned_risk_reward": 2.0,
+            "actual_risk_reward": 3.0,
+            "minutes_since_last_trade": 999,
+            "last_trade_was_loss": False,
+            "consecutive_wins": 0,
+            "entry_at_day_extreme": False,
             "vix_at_entry": 18,
             "trend_strength": 30,
             "regime_accuracy": {"trending": 0.9},
+            "dk_weights_by_category": {0: [0.9, 0.8]},
+            "tagged_signal_indices": [0, 1],
         }
     )
 
@@ -153,7 +159,9 @@ def test_registry_implemented_factors_respond_to_context():
     assert values["market_regime"] == 0.9
     assert values["position_sizing"] > 0.8
     assert values["timing_quality"] > 0.8
+    assert values["risk_reward_actual"] > 0.8
     assert values["emotional_indicator"] > 0.8
+    assert values["signal_confidence"] > 0.8
 
 
 def test_registry_all_values_bounded():

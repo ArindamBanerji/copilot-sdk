@@ -85,3 +85,29 @@ def test_output_bounded():
     )
 
     assert 0.0 <= value <= 1.0
+
+
+def test_position_size_pct_matches_pd_average_and_max_semantics():
+    factor = PositionSizeFactor()
+
+    assert factor.compute(
+        {
+            "position_size_pct": 2.0,
+            "avg_position_size_pct": 2.0,
+            "max_position_size_pct": 5.0,
+        }
+    ) == 1.0
+    assert factor.compute(
+        {
+            "position_size_pct": 4.0,
+            "avg_position_size_pct": 2.0,
+            "max_position_size_pct": 5.0,
+        }
+    ) == 0.0
+    assert factor.compute(
+        {
+            "position_size_pct": 6.0,
+            "avg_position_size_pct": 2.0,
+            "max_position_size_pct": 5.0,
+        }
+    ) == 0.1

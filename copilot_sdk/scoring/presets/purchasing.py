@@ -65,6 +65,10 @@ class PurchasingPreset:
         return 0.1
 
     @property
+    def q_window(self) -> int:
+        return 400
+
+    @property
     def plateau_config(self) -> PlateauConfig:
         # C*A=20; window=round(10*sqrt((C*A)/20))=10; cooldown=5*window.
         return PlateauConfig(

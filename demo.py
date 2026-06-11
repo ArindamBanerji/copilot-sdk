@@ -4,6 +4,8 @@ Compounding Intelligence Platform Launcher.
 
 Usage:
     python demo.py                  # Start all 5 copilots, open browsers
+    python demo.py --soc --diag-mode --diag-graph-name GRAPH
+                                    # Start SOC backend for proof/perf diagnostics
     python demo.py --playwright     # Start SOC + S2P only (Playwright prereqs)
     python demo.py --soc            # SOC only (requires AGE)
     python demo.py --s2p            # S2P only
@@ -18,6 +20,7 @@ Usage:
 """
 
 import argparse
+import asyncio
 import json
 import os
 import subprocess
@@ -40,23 +43,24 @@ KEEPALIVE_PID_FILE = SCRIPT_DIR / ".wsl_keepalive.pid"
 IS_WINDOWS = sys.platform == "win32"
 CREATE_FLAGS = subprocess.CREATE_NEW_CONSOLE if IS_WINDOWS else 0
 
-# AGE connection parameters (Rule #40: always 127.0.0.1, never localhost)
+# AGE connection parameters (Rule #40: Windows-side AGE DSNs use localhost;
+# HTTP/FastAPI URLs use 127.0.0.1.)
 AGE_DSN_SOC = "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres"
 AGE_DSN_DATAOPS = "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres"
+SOC_REPO = Path(os.environ.get(
+    "CLAUDE_SOC",
+    str(SCRIPT_DIR.parent / "gen-ai-roi-demo-v4-v50"),
+))
+SOC_BACKEND = SOC_REPO / "backend"
+SOC_CONTRACT_PATH = SOC_REPO / "scratch" / "temp" / "soc_diag_backend_contract.json"
 
 COPILOTS = [
     {
         "name": "SOC",
         "be_port": 8001,
         "fe_port": 5173,
-        "be_path": Path(os.environ.get(
-            "CLAUDE_SOC",
-            str(SCRIPT_DIR.parent / "gen-ai-roi-demo-v4-v50"),
-        )) / "backend",
-        "fe_path": Path(os.environ.get(
-            "CLAUDE_SOC",
-            str(SCRIPT_DIR.parent / "gen-ai-roi-demo-v4-v50"),
-        )) / "frontend",
+        "be_path": SOC_BACKEND,
+        "fe_path": SOC_REPO / "frontend",
         "requires_age": True,
         "graph_dsn": AGE_DSN_SOC,
         "env": {
@@ -110,7 +114,7 @@ def check_port(port: int) -> bool:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2)
     try:
-        s.connect(("localhost", port))
+        s.connect(("127.0.0.1", port))
         s.close()
         return True
     except Exception:
@@ -120,7 +124,7 @@ def check_port(port: int) -> bool:
 def check_health(port: int, path: str = "/health") -> dict | None:
     """Check backend health endpoint."""
     try:
-        r = urlopen(f"http://localhost:{port}{path}", timeout=5)
+        r = urlopen(f"http://127.0.0.1:{port}{path}", timeout=5)
         return json.loads(r.read())
     except Exception:
         return None
@@ -135,6 +139,21 @@ def verify_age(dsn: str) -> bool:
         return True
     except Exception:
         return False
+
+
+def redact_dsn(dsn: str) -> str:
+    """Redact DSN passwords for diagnostic contract files."""
+    parts = []
+    for part in str(dsn).split():
+        if part.lower().startswith("password="):
+            parts.append("password=***")
+        else:
+            parts.append(part)
+    return " ".join(parts)
+
+
+def env_truthy(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def verify_wsl2_running() -> bool:
@@ -270,6 +289,62 @@ def ensure_age_available(dsn: str) -> bool:
 
     print("  ✗ AGE not reachable after PostgreSQL start")
     return False
+
+
+def ensure_soc_diag_graph(graph_name: str, dsn: str) -> dict[str, str]:
+    """Ensure the SOC AGE graph exists and return AGE connection diagnostics."""
+    if str(CI_PLATFORM) not in sys.path:
+        sys.path.insert(0, str(CI_PLATFORM))
+    from ci_platform.graph.age_client import AGEClient
+
+    client = AGEClient(dsn=dsn, graph_name=graph_name)
+    asyncio.run(client.ensure_graph())
+    diagnostics = {
+        "connection_mode": client.connection_mode,
+        "pool_available": "true" if client.pool_available else "false",
+    }
+    asyncio.run(client.close())
+    return diagnostics
+
+
+def remove_soc_diag_contract(contract_path: Path) -> None:
+    """Remove stale SOC diagnostic contract before launching a new backend."""
+    if contract_path.exists():
+        contract_path.unlink()
+        print(f"  Removed stale SOC diagnostic contract: {contract_path}")
+
+
+def write_soc_diag_contract(
+    *,
+    graph_name: str,
+    backend_port: int,
+    graph_dsn: str,
+    contract_path: Path,
+    ci_platform_import_path: str,
+    age_use_pool_requested: str,
+    connection_mode: str,
+    pool_available: str,
+) -> None:
+    """Write the runtime contract consumed by SOC proof/perf runners."""
+    contract_path.parent.mkdir(parents=True, exist_ok=True)
+    contract = {
+        "launcher": "copilot-sdk/demo.py --diag-mode",
+        "graph_name": graph_name,
+        "backend_port": backend_port,
+        "graph_dsn_redacted": redact_dsn(graph_dsn),
+        "soc_learning_enabled": os.getenv("SOC_LEARNING_ENABLED", "true"),
+        "use_entity_cache": os.getenv("USE_ENTITY_CACHE", "false"),
+        "age_use_pool_requested": age_use_pool_requested,
+        "age_use_pool": age_use_pool_requested,
+        "connection_mode": connection_mode,
+        "pool_available": pool_available,
+        "pythonpath": os.getenv("PYTHONPATH", ""),
+        "ci_platform_import_path": ci_platform_import_path,
+        "health_url": f"http://127.0.0.1:{backend_port}/health",
+        "launched_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+    }
+    contract_path.write_text(json.dumps(contract, indent=2), encoding="utf-8")
+    print(f"  Wrote SOC diagnostic contract: {contract_path}")
 
 
 def wait_for_health(name: str, port: int, timeout: int = 30) -> bool:
@@ -432,6 +507,40 @@ def cmd_status(selected: list[dict]):
 
 def cmd_start(selected: list[dict], args):
     """Start selected copilots."""
+    if args.diag_mode:
+        diag_age_use_pool_requested = args.age_use_pool or env_truthy("AGE_USE_POOL")
+        selected = [c for c in selected if c["name"].lower() == "soc"]
+        if not selected:
+            print("Diagnostic mode is SOC-only; no SOC copilot selected.")
+            return
+        args.no_browser = True
+        args.preseed = False
+        args.graph = False
+        soc = selected[0]
+        soc["be_port"] = args.diag_backend_port
+        soc["fe_port"] = None
+        soc["graph_dsn"] = args.diag_graph_dsn
+        soc["env"] = {
+            "GRAPH_BACKEND": "age",
+            "GRAPH_DSN": args.diag_graph_dsn,
+            "AGE_GRAPH_NAME": args.diag_graph_name,
+            "SOC_LEARNING_ENABLED": "true",
+        }
+        if diag_age_use_pool_requested:
+            soc["env"]["AGE_USE_POOL"] = "true"
+        diag_pythonpath = f"{CI_PLATFORM};{soc['be_path']}"
+        os.environ["GRAPH_BACKEND"] = "age"
+        os.environ["GRAPH_DSN"] = args.diag_graph_dsn
+        os.environ["AGE_GRAPH_NAME"] = args.diag_graph_name
+        os.environ["SOC_LEARNING_ENABLED"] = "true"
+        os.environ["PYTHONPATH"] = diag_pythonpath
+        if diag_age_use_pool_requested:
+            os.environ["AGE_USE_POOL"] = "true"
+        else:
+            os.environ.pop("AGE_USE_POOL", None)
+        contract_path = args.diag_contract.resolve()
+        remove_soc_diag_contract(contract_path)
+
     print()
     print("╔══════════════════════════════════════════════════════╗")
     print(f"║  Starting {len(selected)} copilot(s)...                        ║")
@@ -455,6 +564,22 @@ def cmd_start(selected: list[dict], args):
                 return
         print()
 
+    diag_connection_mode = None
+    diag_pool_available = None
+    diag_import_path = None
+    if args.diag_mode:
+        try:
+            print(f"Ensuring SOC diagnostic graph: {args.diag_graph_name}")
+            diag_age_diagnostics = ensure_soc_diag_graph(args.diag_graph_name, args.diag_graph_dsn)
+            diag_connection_mode = diag_age_diagnostics["connection_mode"]
+            diag_pool_available = diag_age_diagnostics["pool_available"]
+            import ci_platform.graph.age_graph_store as age_graph_store
+            diag_import_path = str(Path(age_graph_store.__file__).resolve())
+            print(f"  ✓ SOC diagnostic graph ready ({diag_connection_mode}; pool_available={diag_pool_available})")
+        except Exception as exc:
+            print(f"  ✗ SOC diagnostic graph setup failed: {exc}")
+            return
+
     # --- Graph mode (DataOps AGE) ---
     if args.graph:
         setup_graph_mode()
@@ -477,6 +602,8 @@ def cmd_start(selected: list[dict], args):
         env = os.environ.copy()
         if c.get("env"):
             env.update(c["env"])
+        if args.diag_mode:
+            env["PYTHONPATH"] = diag_pythonpath
 
         proc = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "app.main:app",
@@ -500,10 +627,29 @@ def cmd_start(selected: list[dict], args):
         print()
         print("Some backends failed. Check the console windows for errors.")
         # Continue anyway — some backends may be up
+    elif args.diag_mode:
+        write_soc_diag_contract(
+            graph_name=args.diag_graph_name,
+            backend_port=args.diag_backend_port,
+            graph_dsn=args.diag_graph_dsn,
+            contract_path=args.diag_contract.resolve(),
+            ci_platform_import_path=diag_import_path or "",
+            age_use_pool_requested="true" if diag_age_use_pool_requested else "false",
+            connection_mode=diag_connection_mode or "unknown",
+            pool_available=diag_pool_available or "unknown",
+        )
 
     # --- Pre-seed ---
     if args.preseed:
         run_preseed(selected)
+
+    if args.diag_mode:
+        print()
+        print("SOC diagnostic backend is ready for T2 proof/perf validation.")
+        print(f"  graph: {args.diag_graph_name}")
+        print(f"  health: http://127.0.0.1:{args.diag_backend_port}/health")
+        print(f"  contract: {args.diag_contract.resolve()}")
+        return
 
     # --- Start frontends ---
     print()
@@ -670,10 +816,18 @@ def main():
     parser.add_argument("--graph", action="store_true", help="AGE graph mode for DataOps")
     parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")
+    parser.add_argument("--diag-mode", action="store_true", help="SOC proof/perf backend-only diagnostic mode")
+    parser.add_argument("--diag-graph-name", default="soc_graph_diag_f", help="SOC AGE graph for --diag-mode")
+    parser.add_argument("--diag-backend-port", type=int, default=8001, help="SOC backend port for --diag-mode")
+    parser.add_argument("--diag-graph-dsn", default=AGE_DSN_SOC, help="SOC AGE DSN for --diag-mode")
+    parser.add_argument("--diag-contract", type=Path, default=SOC_CONTRACT_PATH, help="SOC diagnostic backend contract path")
+    parser.add_argument("--age-use-pool", action="store_true", help="Set AGE_USE_POOL=true for SOC --diag-mode")
 
     args = parser.parse_args()
 
     # --- Select copilots ---
+    if args.diag_mode:
+        args.soc = True
     individual = args.soc or args.trading or args.purchasing or args.dataops or args.s2p
     group = args.sdk or args.playwright
 
@@ -710,4 +864,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

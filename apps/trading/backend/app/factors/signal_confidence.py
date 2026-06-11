@@ -16,6 +16,10 @@ class SignalConfidenceFactor:
         if not ctx:
             return 0.5
 
+        dk_score = _dk_weight_score(ctx)
+        if dk_score is not None:
+            return dk_score
+
         components: list[float] = []
 
         if "factors_with_data" in ctx:
@@ -52,3 +56,27 @@ def _scaled_score(value: Any, denominator: float) -> float:
         return clamp(float(value) / denominator)
     except (TypeError, ValueError):
         return 0.5
+
+
+def _dk_weight_score(ctx: dict[str, Any]) -> float | None:
+    weights_by_category = ctx.get("dk_weights_by_category")
+    tagged = ctx.get("tagged_signal_indices")
+    if not isinstance(weights_by_category, dict) or not isinstance(tagged, list):
+        return None
+
+    category = ctx.get("category_index", 0)
+    weights = weights_by_category.get(category)
+    if weights is None:
+        weights = weights_by_category.get(str(category))
+    if not isinstance(weights, list) or not weights:
+        return 0.5
+
+    relevant: list[float] = []
+    for index in tagged:
+        try:
+            signal_index = int(index)
+        except (TypeError, ValueError):
+            continue
+        if 0 <= signal_index < len(weights):
+            relevant.append(clamp(weights[signal_index]))
+    return mean_or_neutral(relevant)

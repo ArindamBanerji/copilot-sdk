@@ -27,7 +27,7 @@ L5_BASELINE_PRODUCT_FALLBACK = 0.0
 
 
 def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, Any]:
-    counts = state_counts(state)
+    counts = state_counts(state, domain=domain)
     check = conservation_status(
         verified_count=counts["verified_count"],
         correct_count=counts["correct_count"],
@@ -50,7 +50,7 @@ def compute_conservation_metrics(state: Any, domain: str | None = None) -> dict[
     if not effective_domain:
         raise RuntimeError("conservation metrics require a domain")
 
-    counts = state_counts(state)
+    counts = state_counts(state, domain=effective_domain)
     categories_total = category_count(state)
     categories_with_data = count_categories_with_data(store, effective_domain)
 
@@ -91,7 +91,7 @@ def compute_conservation_metrics(state: Any, domain: str | None = None) -> dict[
     }
 
 
-def state_counts(state: Any) -> dict[str, Any]:
+def state_counts(state: Any, domain: str | None = None) -> dict[str, Any]:
     if isinstance(state, dict):
         verified = max(int(state.get("verified_count") or 0), 0)
         correct = max(int(state.get("correct_count") or 0), 0)
@@ -111,10 +111,10 @@ def state_counts(state: Any) -> dict[str, Any]:
         correct = int(getattr(state, "correct_count", 0) or 0)
         total = int(getattr(state, "total_decisions", verified) or verified)
     else:
-        domain = store_domain(store, getattr(state, "domain", ""))
-        verified = _call_count(store, "count_verified", domain)
-        correct = _call_count(store, "count_correct", domain)
-        total = _call_count_optional(store, "count_verified_decisions", domain)
+        effective_domain = str(domain or store_domain(store, getattr(state, "domain", "")))
+        verified = _call_count(store, "count_verified", effective_domain)
+        correct = _call_count(store, "count_correct", effective_domain)
+        total = _call_count_optional(store, "count_verified_decisions", effective_domain)
         if total is None:
             total = max(verified, correct)
 

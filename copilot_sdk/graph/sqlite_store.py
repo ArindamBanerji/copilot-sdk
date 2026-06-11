@@ -103,6 +103,98 @@ def _normalize_computed_at(computed_at: Any) -> float:
         raise TypeError("computed_at must be numeric") from error
 
 
+_DK_WELFORD_VECTOR_KEYS = (
+    "confirmed_mean",
+    "confirmed_m2",
+    "overridden_mean",
+    "overridden_m2",
+    "all_mean",
+    "all_m2",
+)
+
+
+def _normalize_optional_nonnegative_int(value: Any, field_name: str) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise TypeError(f"{field_name} must be an integer")
+    try:
+        normalized = int(value)
+    except (TypeError, ValueError) as error:
+        raise TypeError(f"{field_name} must be an integer") from error
+    if normalized < 0:
+        raise ValueError(f"{field_name} must be non-negative")
+    return normalized
+
+
+def _normalize_dk_welford_vector(vector: Any, field_name: str) -> list[float]:
+    if isinstance(vector, (str, bytes, bytearray)):
+        raise TypeError(f"{field_name} must be a non-string 1D numeric iterable")
+    if isinstance(vector, Mapping):
+        raise TypeError(f"{field_name} must be a non-mapping 1D numeric iterable")
+    if not isinstance(vector, Iterable):
+        raise TypeError(f"{field_name} must be a 1D numeric iterable")
+    try:
+        normalized = [float(value) for value in vector]
+    except (TypeError, ValueError) as error:
+        raise TypeError(f"{field_name} must contain only numeric values") from error
+    if not normalized:
+        raise ValueError(f"{field_name} must be non-empty")
+    return normalized
+
+
+def _normalize_dk_welford_state(
+    welford_state: Any,
+    *,
+    n_decisions_used: int,
+) -> dict[str, object] | None:
+    if welford_state is None:
+        return None
+    if not isinstance(welford_state, Mapping):
+        raise TypeError("welford_state must be a mapping")
+    missing = [key for key in (*_DK_WELFORD_VECTOR_KEYS, "n_all") if key not in welford_state]
+    if missing:
+        raise ValueError(f"welford_state missing required fields: {', '.join(missing)}")
+
+    normalized: dict[str, object] = {}
+    expected_width: int | None = None
+    for key in _DK_WELFORD_VECTOR_KEYS:
+        vector = _normalize_dk_welford_vector(welford_state[key], key)
+        if expected_width is None:
+            expected_width = len(vector)
+        elif len(vector) != expected_width:
+            raise ValueError("welford_state vectors must have equal length")
+        normalized[key] = vector
+
+    n_all = _normalize_optional_nonnegative_int(welford_state["n_all"], "n_all")
+    if n_all is None:
+        raise TypeError("n_all must be an integer")
+    if n_all != n_decisions_used:
+        raise ValueError("welford_state n_all must equal n_decisions_used")
+    normalized["n_all"] = n_all
+    return normalized
+
+
+def _decode_dk_welford_state(
+    row: Mapping[str, Any],
+    *,
+    n_decisions_used: int,
+) -> dict[str, object] | None:
+    json_fields = {key: f"{key}_json" for key in _DK_WELFORD_VECTOR_KEYS}
+    if not any(row.get(field) is not None for field in json_fields.values()):
+        return None
+    state: dict[str, object] = {}
+    for key, field in json_fields.items():
+        raw_value = row.get(field)
+        if raw_value is None:
+            raise ValueError("stored DK Welford state is partial")
+        if not isinstance(raw_value, str):
+            raise TypeError(f"{field} must be a JSON string")
+        state[key] = json.loads(raw_value)
+    state["n_all"] = n_decisions_used
+    return _normalize_dk_welford_state(state, n_decisions_used=n_decisions_used)
+
+
 _CONSERVATION_STATUSES = {"GREEN", "AMBER", "RED"}
 
 
@@ -364,11 +456,20 @@ class SQLiteGraphStore:
                  domain TEXT NOT NULL,
                  weight_json TEXT NOT NULL,
                  n_decisions_used INTEGER NOT NULL,
-                 computed_at REAL NOT NULL,
-                 supersedes_id INTEGER,
-                 is_current INTEGER NOT NULL DEFAULT 1,
-                 created_at TEXT NOT NULL
-             );
+                  computed_at REAL NOT NULL,
+                  supersedes_id INTEGER,
+                  is_current INTEGER NOT NULL DEFAULT 1,
+                  created_at TEXT NOT NULL,
+                  confirmed_mean_json TEXT,
+                  confirmed_m2_json TEXT,
+                  overridden_mean_json TEXT,
+                  overridden_m2_json TEXT,
+                  all_mean_json TEXT,
+                  all_m2_json TEXT,
+                  n_confirmed INTEGER,
+                  n_overridden INTEGER,
+                  entity_group TEXT
+              );
 
              CREATE TABLE IF NOT EXISTS l5_conservation_state (
                  id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -562,6 +663,7 @@ class SQLiteGraphStore:
         self._ensure_decision_status_column()
         self._ensure_outcome_columns()
         self._ensure_centroid_columns()
+        self._ensure_l5_dk_weight_columns()
         self._ensure_evolution_columns()
         self._ensure_entity_edge_columns()
         for table in (
@@ -714,6 +816,25 @@ class SQLiteGraphStore:
             "CREATE INDEX IF NOT EXISTS idx_cc_checkpoint_id "
             "ON centroid_checkpoints(checkpoint_id)"
         )
+
+    def _ensure_l5_dk_weight_columns(self) -> None:
+        columns = self._columns("l5_dk_weights")
+        additions = {
+            "confirmed_mean_json": "TEXT",
+            "confirmed_m2_json": "TEXT",
+            "overridden_mean_json": "TEXT",
+            "overridden_m2_json": "TEXT",
+            "all_mean_json": "TEXT",
+            "all_m2_json": "TEXT",
+            "n_confirmed": "INTEGER",
+            "n_overridden": "INTEGER",
+            "entity_group": "TEXT",
+        }
+        for column, column_type in additions.items():
+            if column not in columns:
+                self.connection.execute(
+                    f"ALTER TABLE l5_dk_weights ADD COLUMN {column} {column_type}"
+                )
 
     def _ensure_evolution_columns(self) -> None:
         columns = self._columns("evolution_events")
@@ -1854,10 +1975,30 @@ class SQLiteGraphStore:
         weight_tensor: list[list[float]],
         n_decisions_used: int,
         computed_at: float,
+        *,
+        welford_state: dict[str, object] | None = None,
+        n_confirmed: int | None = None,
+        n_overridden: int | None = None,
+        entity_group: str | None = None,
     ) -> None:
         tensor = _normalize_dk_weight_tensor(weight_tensor)
         decisions_used = _normalize_n_decisions_used(n_decisions_used)
         computed_at_value = _normalize_computed_at(computed_at)
+        normalized_welford = _normalize_dk_welford_state(
+            welford_state,
+            n_decisions_used=decisions_used,
+        )
+        confirmed_count = _normalize_optional_nonnegative_int(n_confirmed, "n_confirmed")
+        overridden_count = _normalize_optional_nonnegative_int(n_overridden, "n_overridden")
+        entity_group_value = None if entity_group is None else str(entity_group)
+        welford_json = {
+            key: (
+                json.dumps(normalized_welford[key], separators=(",", ":"))
+                if normalized_welford is not None
+                else None
+            )
+            for key in _DK_WELFORD_VECTOR_KEYS
+        }
         weight_json = json.dumps(tensor, separators=(",", ":"))
         created_at = _utc_iso_now()
         domain_value = str(domain)
@@ -1883,9 +2024,13 @@ class SQLiteGraphStore:
                 """
                 INSERT INTO l5_dk_weights (
                     domain, weight_json, n_decisions_used, computed_at,
-                    supersedes_id, is_current, created_at
+                    supersedes_id, is_current, created_at,
+                    confirmed_mean_json, confirmed_m2_json,
+                    overridden_mean_json, overridden_m2_json,
+                    all_mean_json, all_m2_json,
+                    n_confirmed, n_overridden, entity_group
                 )
-                VALUES (?, ?, ?, ?, ?, 1, ?)
+                VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     domain_value,
@@ -1894,6 +2039,15 @@ class SQLiteGraphStore:
                     computed_at_value,
                     old_id,
                     created_at,
+                    welford_json["confirmed_mean"],
+                    welford_json["confirmed_m2"],
+                    welford_json["overridden_mean"],
+                    welford_json["overridden_m2"],
+                    welford_json["all_mean"],
+                    welford_json["all_m2"],
+                    confirmed_count,
+                    overridden_count,
+                    entity_group_value,
                 ),
             )
             return None
@@ -1904,7 +2058,11 @@ class SQLiteGraphStore:
     def get_dk_weights(self, domain: str) -> dict[str, object] | None:
         row = self.connection.execute(
             """
-            SELECT domain, weight_json, n_decisions_used, computed_at, supersedes_id, created_at
+            SELECT domain, weight_json, n_decisions_used, computed_at, supersedes_id, created_at,
+                   confirmed_mean_json, confirmed_m2_json,
+                   overridden_mean_json, overridden_m2_json,
+                   all_mean_json, all_m2_json,
+                   n_confirmed, n_overridden, entity_group
             FROM l5_dk_weights
             WHERE domain = ? AND is_current = 1
             """,
@@ -1912,14 +2070,28 @@ class SQLiteGraphStore:
         ).fetchone()
         if row is None:
             return None
+        decisions_used = int(row["n_decisions_used"])
         tensor = _normalize_dk_weight_tensor(json.loads(row["weight_json"]))
+        welford_state = _decode_dk_welford_state(dict(row), n_decisions_used=decisions_used)
         return {
             "weight_json": tensor,
-            "n_decisions_used": int(row["n_decisions_used"]),
+            "n_decisions_used": decisions_used,
             "computed_at": float(row["computed_at"]),
             "supersedes_id": row["supersedes_id"],
             "created_at": row["created_at"],
             "domain": row["domain"],
+            "welford_state": welford_state,
+            "n_confirmed": (
+                _normalize_optional_nonnegative_int(row["n_confirmed"], "n_confirmed")
+                if row["n_confirmed"] is not None
+                else None
+            ),
+            "n_overridden": (
+                _normalize_optional_nonnegative_int(row["n_overridden"], "n_overridden")
+                if row["n_overridden"] is not None
+                else None
+            ),
+            "entity_group": row["entity_group"],
         }
 
     def update_conservation_state(

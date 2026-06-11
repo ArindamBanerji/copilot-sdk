@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.factors.base import clamp
-from app.factors.conviction import ConvictionFactor
+from app.factors.emotional_indicator import EmotionalIndicatorFactor
 from app.factors.market_regime import MarketRegimeFactor
 from app.factors.options_scored import (
     OptionsDeltaExposureFactor,
@@ -13,10 +13,10 @@ from app.factors.options_scored import (
     OptionsIVPercentileFactor,
 )
 from app.factors.position_size import PositionSizeFactor
-from app.factors.research_depth import ResearchDepthFactor
+from app.factors.risk_reward import RiskRewardActualFactor
+from app.factors.signal_alignment import SignalAlignmentFactor
 from app.factors.signal_confidence import SignalConfidenceFactor
-from app.factors.technical_signal import TechnicalSignalFactor
-from app.factors.time_horizon import TimeHorizonFactor
+from app.factors.timing_quality import TimingQualityFactor
 
 try:
     from copilot_sdk.scoring.presets.trading import TradingPreset
@@ -40,12 +40,12 @@ except Exception:
 
 
 _PRESET_FACTOR_COMPUTERS = {
-    "signal_alignment": ConvictionFactor(),
+    "signal_alignment": SignalAlignmentFactor(),
     "market_regime": MarketRegimeFactor(),
     "position_sizing": PositionSizeFactor(),
-    "timing_quality": TechnicalSignalFactor(),
-    "risk_reward_actual": TimeHorizonFactor(),
-    "emotional_indicator": ResearchDepthFactor(),
+    "timing_quality": TimingQualityFactor(),
+    "risk_reward_actual": RiskRewardActualFactor(),
+    "emotional_indicator": EmotionalIndicatorFactor(),
     "signal_confidence": SignalConfidenceFactor(),
     "options_delta_exposure": OptionsDeltaExposureFactor(),
     "options_iv_percentile": OptionsIVPercentileFactor(),
@@ -53,12 +53,12 @@ _PRESET_FACTOR_COMPUTERS = {
 }
 
 _FALLBACK_FACTOR_COMPUTERS = {
-    "signal_alignment": ConvictionFactor(),
+    "signal_alignment": SignalAlignmentFactor(),
     "market_regime": MarketRegimeFactor(),
     "position_sizing": PositionSizeFactor(),
-    "timing_quality": TechnicalSignalFactor(),
-    "risk_reward_actual": TimeHorizonFactor(),
-    "emotional_indicator": ResearchDepthFactor(),
+    "timing_quality": TimingQualityFactor(),
+    "risk_reward_actual": RiskRewardActualFactor(),
+    "emotional_indicator": EmotionalIndicatorFactor(),
     "signal_confidence": SignalConfidenceFactor(),
     "options_delta_exposure": OptionsDeltaExposureFactor(),
     "options_iv_percentile": OptionsIVPercentileFactor(),

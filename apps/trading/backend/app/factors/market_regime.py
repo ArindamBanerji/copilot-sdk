@@ -18,8 +18,8 @@ def classify_regime(vix: float, trend_strength: float = 20.0) -> str:
 
 
 class MarketRegimeFactor:
-    factor_name = "emotional_indicator"
-    factor_index = 5
+    factor_name = "market_regime"
+    factor_index = 1
 
     def compute(self, event: object) -> float:
         if not isinstance(event, dict):

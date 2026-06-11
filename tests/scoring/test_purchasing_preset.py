@@ -91,6 +91,7 @@ def test_preset_loads():
     assert preset.eta_confirm == 0.05
     assert preset.eta_override == 0.01
     assert preset.temperature == 0.1
+    assert preset.q_window == 400
 
 
 def test_preset_in_registry():

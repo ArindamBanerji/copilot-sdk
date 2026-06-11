@@ -37,7 +37,16 @@ def test_l5_learning_store_method_signatures() -> None:
         "weight_tensor",
         "n_decisions_used",
         "computed_at",
+        "welford_state",
+        "n_confirmed",
+        "n_overridden",
+        "entity_group",
     ]
+    dk_params = inspect.signature(L5LearningStore.update_dk_weights).parameters
+    assert dk_params["welford_state"].kind is inspect.Parameter.KEYWORD_ONLY
+    assert dk_params["n_confirmed"].kind is inspect.Parameter.KEYWORD_ONLY
+    assert dk_params["n_overridden"].kind is inspect.Parameter.KEYWORD_ONLY
+    assert dk_params["entity_group"].kind is inspect.Parameter.KEYWORD_ONLY
     assert list(inspect.signature(L5LearningStore.get_dk_weights).parameters) == ["self", "domain"]
     assert list(inspect.signature(L5LearningStore.update_conservation_state).parameters) == [
         "self",
@@ -124,9 +133,16 @@ def test_minimal_graphstore_does_not_need_l5_methods() -> None:
     assert not isinstance(MinimalGraphStore(), L5LearningStore)
 
 
-def test_l5_signatures_do_not_include_welford_fields() -> None:
+def test_l5_signatures_do_not_include_welford_algorithm_fields() -> None:
     forbidden = {"confirmed_mean", "overridden_mean", "m2", "variance"}
-    for method_name in [*L5_STORAGE_METHODS, "count_categories_with_n"]:
+    for method_name in [
+        "update_centroid",
+        "get_centroids",
+        "get_dk_weights",
+        "update_conservation_state",
+        "get_conservation_state",
+        "count_categories_with_n",
+    ]:
         signature = inspect.signature(getattr(L5LearningStore, method_name))
         assert forbidden.isdisjoint(signature.parameters)
 

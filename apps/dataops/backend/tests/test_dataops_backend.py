@@ -151,6 +151,55 @@ def test_no_env_uses_explicit_fallback(tmp_path: Path, monkeypatch) -> None:
     assert _count_decisions(db_path, "dataops") == 20
 
 
+def test_startup_records_l5_source_status(tmp_path: Path) -> None:
+    from app.main import create_app
+
+    with TestClient(create_app(db_path=tmp_path / "l5-status.db", demo_bundle_path=False)) as client:
+        assert client.get("/health").status_code == 200
+        status = client.app.state.l5_startup_status
+    assert status["dk_source"] in {"missing", "l5", "error", "deferred"}
+    assert status["welford_source"] in {"missing", "l5", "error"}
+    assert status["centroid_source"] in {"missing", "l5", "error", "deferred"}
+    assert status["conservation_source"] in {"missing", "l5", "error"}
+
+
+def test_l5_startup_restore_runs_after_seed_setup(tmp_path: Path, monkeypatch) -> None:
+    from app import main as app_main
+
+    calls: list[str] = []
+
+    def fake_seed(_store):
+        calls.append("seed")
+
+    def fake_evolution_seed(_store):
+        calls.append("evolution_seed")
+
+    def fake_restore(*, domain, scorer, learning_store, welford_tracker=None):
+        calls.append("restore")
+        assert domain == "dataops"
+        assert scorer is not None
+        assert learning_store is not None
+        assert welford_tracker is not None
+        return {
+            "dk_source": "missing",
+            "welford_source": "missing",
+            "centroid_source": "missing",
+            "conservation_source": "missing",
+            "welford_tracker": None,
+        }
+
+    monkeypatch.setattr(app_main, "_auto_seed_if_needed", fake_seed)
+    monkeypatch.setattr(app_main, "_seed_demo_evolution_events_if_needed", fake_evolution_seed)
+    monkeypatch.setattr(app_main, "restore_l5_runtime_state", fake_restore)
+
+    with TestClient(app_main.create_app(db_path=tmp_path / "ordered.db", demo_bundle_path=False)) as client:
+        assert client.get("/health").status_code == 200
+        status = client.app.state.l5_startup_status
+
+    assert calls == ["seed", "evolution_seed", "restore"]
+    assert status["dk_source"] == "missing"
+
+
 def test_alert_detail(client: TestClient) -> None:
     payload = client.get("/api/context/alert/ALERT-TIRE-001").json()
 

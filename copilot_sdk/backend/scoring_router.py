@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import math
 import threading
 from dataclasses import asdict, is_dataclass
 from typing import Any, Callable
@@ -22,6 +23,10 @@ from copilot_sdk.backend.models import (
     TrajectoryResponse,
 )
 from copilot_sdk.scoring import CompoundingScorer
+from copilot_sdk.scoring.dk_persistence import (
+    DKWelfordTracker,
+    persist_dk_after_reestimate,
+)
 
 
 ENGINE = {
@@ -50,12 +55,16 @@ def create_scoring_router(
     db_path: str | None = None,
     scorer_factory: Callable[..., Any] | None = None,
     learning_store: Any | None = None,
+    dk_welford_tracker: DKWelfordTracker | None = None,
 ) -> APIRouter:
     """Create a domain-parametric scoring router."""
 
     router = APIRouter()
     scorer_cache: dict[str, Any] = {}
     l5_conservation_lock = threading.RLock()
+    l5_dk_lock = threading.RLock()
+    l5_centroid_lock = threading.RLock()
+    active_dk_welford_tracker = dk_welford_tracker or DKWelfordTracker()
 
     def get_scorer() -> Any:
         if "scorer" not in scorer_cache:
@@ -102,6 +111,13 @@ def create_scoring_router(
                 is_correct=is_correct,
             )
             previous_reward = _previous_reward(request.context or {})
+            category = _decision_category(decision)
+            pre_centroid = _read_centroid_for_l5(
+                scorer,
+                category=category,
+                action=request.actual_action,
+                logger=log,
+            )
             result = scorer.learn(
                 request.decision_id,
                 request.actual_action,
@@ -124,12 +140,33 @@ def create_scoring_router(
         payload["previous_reward"] = previous_reward
         payload["reward_multiplier"] = _reward_multiplier(reward, previous_reward)
         payload["engine"] = ENGINE
+        _persist_centroid_l5(
+            domain=domain,
+            scorer=scorer,
+            explicit_learning_store=learning_store,
+            category=category,
+            actual_action=request.actual_action,
+            caused_by_decision_id=request.decision_id,
+            pre_centroid=pre_centroid,
+            persistence_lock=l5_centroid_lock,
+            logger=log,
+        )
         _persist_conservation_state_l5(
             domain=domain,
             scorer=scorer,
             explicit_learning_store=learning_store,
             caused_by_decision_id=request.decision_id,
             persistence_lock=l5_conservation_lock,
+        )
+        _persist_dk_state_l5(
+            domain=domain,
+            scorer=scorer,
+            explicit_learning_store=learning_store,
+            decision=decision,
+            actual_action=request.actual_action,
+            payload=payload,
+                welford_tracker=active_dk_welford_tracker,
+            persistence_lock=l5_dk_lock,
         )
         return payload
 
@@ -347,6 +384,220 @@ def _learning_store_for(scorer: Any, explicit_learning_store: Any | None = None)
             getattr(candidate, "update_conservation_state", None)
         ):
             return candidate
+    return None
+
+
+def _dk_learning_store_for(scorer: Any, explicit_learning_store: Any | None = None) -> Any | None:
+    candidates = [
+        explicit_learning_store,
+        getattr(scorer, "learning_store", None),
+        getattr(scorer, "_learning_store", None),
+        _scorer_data_store(scorer),
+    ]
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        if callable(getattr(candidate, "update_dk_weights", None)):
+            return candidate
+    return None
+
+
+def _centroid_learning_store_for(scorer: Any, explicit_learning_store: Any | None = None) -> Any | None:
+    candidates = [
+        explicit_learning_store,
+        getattr(scorer, "learning_store", None),
+        getattr(scorer, "_learning_store", None),
+        _scorer_data_store(scorer),
+    ]
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        if callable(getattr(candidate, "update_centroid", None)):
+            return candidate
+    return None
+
+
+def _persist_centroid_l5(
+    *,
+    domain: str,
+    scorer: Any,
+    explicit_learning_store: Any | None,
+    category: str | None,
+    actual_action: str,
+    caused_by_decision_id: str | None,
+    pre_centroid: list[float] | None = None,
+    persistence_lock: threading.RLock | None = None,
+    logger: logging.Logger | None = None,
+) -> bool:
+    store = _centroid_learning_store_for(scorer, explicit_learning_store)
+    if store is None:
+        return False
+    if not category:
+        return False
+    get_phase = getattr(scorer, "get_category_phase", None)
+    get_centroid = getattr(scorer, "get_centroid", None)
+    if not callable(get_phase) or not callable(get_centroid):
+        return False
+    try:
+        phase = str(get_phase(category))
+    except Exception as exc:
+        if logger is not None:
+            logger.debug("L5 centroid persistence skipped for %s: phase unavailable: %s", domain, exc)
+        return False
+    if phase == "VARIANCE_LEARNING":
+        return False
+    if phase != "MEAN_CONVERGENCE":
+        if logger is not None:
+            logger.debug("L5 centroid persistence skipped for %s: unknown phase %s", domain, phase)
+        return False
+    try:
+        post_centroid = get_centroid(category, actual_action)
+    except Exception as exc:
+        if logger is not None:
+            logger.debug("L5 centroid persistence skipped for %s: centroid unavailable: %s", domain, exc)
+        return False
+    if post_centroid is None:
+        return False
+    try:
+        post_vector = [float(item) for item in post_centroid]
+    except (TypeError, ValueError):
+        return False
+    if not post_vector or not all(math.isfinite(item) for item in post_vector):
+        return False
+    delta_norm = _centroid_delta_norm(pre_centroid, post_vector)
+    lock = persistence_lock or threading.RLock()
+    try:
+        with lock:
+            store.update_centroid(
+                domain=domain,
+                category=str(category),
+                action=str(actual_action),
+                centroid_vector=post_vector,
+                delta_norm=delta_norm,
+                caused_by_decision_id=caused_by_decision_id,
+            )
+    except Exception as exc:
+        if logger is not None:
+            logger.warning("L5 centroid write failed for %s: %s", domain, exc)
+        return False
+    return True
+
+
+def _read_centroid_for_l5(
+    scorer: Any,
+    *,
+    category: str | None,
+    action: str,
+    logger: logging.Logger | None = None,
+) -> list[float] | None:
+    if not category:
+        return None
+    get_centroid = getattr(scorer, "get_centroid", None)
+    if not callable(get_centroid):
+        return None
+    try:
+        centroid = get_centroid(category, action)
+    except Exception as exc:
+        if logger is not None:
+            logger.debug("L5 centroid pre-read skipped: %s", exc)
+        return None
+    if centroid is None:
+        return None
+    try:
+        return [float(item) for item in centroid]
+    except (TypeError, ValueError):
+        return None
+
+
+def _centroid_delta_norm(
+    pre_centroid: list[float] | None,
+    post_centroid: list[float],
+) -> float:
+    if pre_centroid is None or len(pre_centroid) != len(post_centroid):
+        return float(np.linalg.norm(np.asarray(post_centroid, dtype=np.float64)))
+    before = np.asarray(pre_centroid, dtype=np.float64)
+    after = np.asarray(post_centroid, dtype=np.float64)
+    return float(np.linalg.norm(after - before))
+
+
+def _persist_dk_state_l5(
+    *,
+    domain: str,
+    scorer: Any,
+    explicit_learning_store: Any | None,
+    decision: dict[str, Any],
+    actual_action: str,
+    payload: dict[str, Any],
+    welford_tracker: DKWelfordTracker,
+    persistence_lock: threading.RLock,
+) -> None:
+    if payload.get("status") == "paused" or payload.get("paused") is True:
+        return None
+    factor_vector = _decision_factor_vector(decision)
+    recommended_action = _decision_recommended_action(decision)
+    if factor_vector is None or recommended_action is None:
+        log.warning("L5 DK persistence skipped for %s: missing decision factor/action data", domain)
+        return None
+    reestimate = getattr(scorer, "reestimate_dk_if_due", None)
+    get_dk_weights = getattr(scorer, "get_dk_weights", None)
+    if not callable(reestimate) or not callable(get_dk_weights):
+        log.warning("L5 DK persistence skipped for %s: scorer lacks DK runtime helpers", domain)
+        return None
+    is_correct = str(actual_action) == str(recommended_action)
+    try:
+        with persistence_lock:
+            welford_tracker.update(factor_vector, is_correct)
+            reestimate()
+            store = _dk_learning_store_for(scorer, explicit_learning_store)
+            if store is None:
+                return None
+            if get_dk_weights() is None:
+                return None
+            persist_dk_after_reestimate(
+                domain=domain,
+                scorer=scorer,
+                learning_store=store,
+                welford_tracker=welford_tracker,
+                entity_group=None,
+                logger=log,
+            )
+    except Exception as exc:
+        log.warning("L5 DK persistence skipped for %s: %s", domain, exc)
+    return None
+
+
+def _decision_factor_vector(decision: dict[str, Any]) -> list[float] | None:
+    value = _decision_lookup(decision, "factor_vector")
+    if value is None:
+        value = _decision_lookup(decision, "factors")
+    if isinstance(value, dict):
+        return [float(item) for item in value.values()]
+    if isinstance(value, (str, bytes, bytearray)) or value is None:
+        return None
+    try:
+        return [float(item) for item in value]
+    except (TypeError, ValueError):
+        return None
+
+
+def _decision_recommended_action(decision: dict[str, Any]) -> str | None:
+    value = _decision_lookup(decision, "recommended_action")
+    if value is None:
+        value = _decision_lookup(decision, "action")
+    return None if value is None else str(value)
+
+
+def _decision_category(decision: dict[str, Any]) -> str | None:
+    value = _decision_lookup(decision, "category")
+    return None if value is None else str(value)
+
+
+def _decision_lookup(decision: dict[str, Any], key: str) -> Any:
+    if key in decision:
+        return decision[key]
+    metadata = decision.get("metadata")
+    if isinstance(metadata, dict) and key in metadata:
+        return metadata[key]
     return None
 
 

@@ -50,7 +50,9 @@ from copilot_sdk.backend import (  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
+from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
+from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
 
 
@@ -258,15 +260,48 @@ def create_app(
     else:
         _bundle_path = Path(demo_bundle_path)
     seed_graph_store = _graph_store(scoring_db)
-    startup_state = {"seeded": False}
+    startup_state = {"seeded": False, "restored": False}
     scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, selected_graph_store_factory)
+    dk_welford_tracker = DKWelfordTracker()
+    l5_startup_status = {
+        "dk_source": "cold-start",
+        "welford_source": "cold-start",
+        "centroid_source": "cold-start",
+        "conservation_source": "cold-start",
+        "dk_weights_loaded": False,
+        "centroids_loaded": False,
+        "conservation_state": None,
+    }
+
+    def _run_startup_seed_once() -> None:
+        if not startup_state["seeded"]:
+            startup_state["seeded"] = True
+            if active_graph_store is not None:
+                print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
+            else:
+                if _bundle_path is not False:
+                    _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
+                _auto_seed_if_needed(seed_graph_store)
+        if not startup_state["restored"]:
+            startup_state["restored"] = True
+            status = restore_l5_runtime_state(
+                domain=DOMAIN,
+                scorer=scorer_proxy._scorer(),
+                learning_store=scorer_proxy.graph_store,
+                welford_tracker=dk_welford_tracker,
+            )
+            status.pop("welford_tracker", None)
+            app.state.l5_startup_status = status
+
     app.state.trading_active_graph_config = active_graph_config
     app.state.trading_selected_graph_store = scorer_proxy.graph_store
+    app.state.l5_startup_status = l5_startup_status
     app.include_router(
         create_scoring_router(
             DOMAIN,
             db_path=scoring_db,
             scorer_factory=lambda: scorer_proxy,
+            dk_welford_tracker=dk_welford_tracker,
         ),
         prefix="/api",
     )
@@ -308,17 +343,6 @@ def create_app(
     app.include_router(create_broker_router(), prefix="/api/broker", tags=["broker"])
     app.include_router(data_import_router)
     app.include_router(trading_graph_status_router)
-
-    def _run_startup_seed_once() -> None:
-        if startup_state["seeded"]:
-            return
-        startup_state["seeded"] = True
-        if active_graph_store is not None:
-            print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
-            return
-        if _bundle_path is not False:
-            _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
-        _auto_seed_if_needed(seed_graph_store)
 
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:

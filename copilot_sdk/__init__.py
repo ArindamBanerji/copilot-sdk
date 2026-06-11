@@ -13,9 +13,10 @@ Quick start:
 Validated domains: SOC (security operations), S2P (procurement).
 Platform claim: +40-55pp Day-1 accuracy lift, domain-agnostic.
 """
+from copilot_sdk.scoring.iks_service import IKSService
 from copilot_sdk.protocols import (
     DomainConfig, FactorComputer, SourceConnector, ReferralRule
 )
 __version__ = "0.1.0"
 __all__ = ["DomainConfig", "FactorComputer",
-           "SourceConnector", "ReferralRule"]
+           "SourceConnector", "ReferralRule", "IKSService"]

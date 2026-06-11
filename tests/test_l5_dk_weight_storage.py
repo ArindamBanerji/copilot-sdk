@@ -77,6 +77,10 @@ def test_first_write_read_shape_and_types(store: Any) -> None:
         "supersedes_id",
         "created_at",
         "domain",
+        "welford_state",
+        "n_confirmed",
+        "n_overridden",
+        "entity_group",
     ]
     assert row["weight_json"] == tensor
     assert all(isinstance(value, float) for values in row["weight_json"] for value in values)
@@ -85,6 +89,10 @@ def test_first_write_read_shape_and_types(store: Any) -> None:
     assert row["supersedes_id"] is None
     assert _parse_iso(row["created_at"])
     assert row["domain"] == "s2p"
+    assert row["welford_state"] is None
+    assert row["n_confirmed"] is None
+    assert row["n_overridden"] is None
+    assert row["entity_group"] is None
     assert FORBIDDEN_WELFORD.isdisjoint(row)
 
 
@@ -189,7 +197,7 @@ def test_sqlite_get_dk_weights_rejects_corrupt_ragged_json(tmp_path: Path) -> No
         store.get_dk_weights("s2p")
 
 
-def test_sqlite_schema_current_index_and_no_welford(tmp_path: Path) -> None:
+def test_sqlite_schema_current_index_and_nullable_welford_columns(tmp_path: Path) -> None:
     store = SQLiteGraphStore(tmp_path / "schema.sqlite")
     tables = {
         row["name"]
@@ -212,6 +220,15 @@ def test_sqlite_schema_current_index_and_no_welford(tmp_path: Path) -> None:
         "supersedes_id",
         "is_current",
         "created_at",
+        "confirmed_mean_json",
+        "confirmed_m2_json",
+        "overridden_mean_json",
+        "overridden_m2_json",
+        "all_mean_json",
+        "all_m2_json",
+        "n_confirmed",
+        "n_overridden",
+        "entity_group",
     } <= columns
     assert FORBIDDEN_WELFORD.isdisjoint(columns)
 

@@ -100,12 +100,12 @@ def test_no_more_default_missing_computers():
 
 def test_fallback_registry_uses_semantic_factor_mapping(monkeypatch):
     expected = {
-        "signal_alignment": "ConvictionFactor",
+        "signal_alignment": "SignalAlignmentFactor",
         "market_regime": "MarketRegimeFactor",
         "position_sizing": "PositionSizeFactor",
-        "timing_quality": "TechnicalSignalFactor",
-        "risk_reward_actual": "TimeHorizonFactor",
-        "emotional_indicator": "ResearchDepthFactor",
+        "timing_quality": "TimingQualityFactor",
+        "risk_reward_actual": "RiskRewardActualFactor",
+        "emotional_indicator": "EmotionalIndicatorFactor",
         "signal_confidence": "SignalConfidenceFactor",
         "options_delta_exposure": "OptionsDeltaExposureFactor",
         "options_iv_percentile": "OptionsIVPercentileFactor",
@@ -141,33 +141,26 @@ def test_compute_all_10_responds():
     values = compute_factors(
         {
             "tagged_signals": [{"confirmed": True}, {"confirmed": True}],
-            "has_trade_plan": True,
-            "position_conviction": 0.9,
-            "sources_consulted": 5,
-            "analysis_minutes": 30,
-            "has_thesis": True,
-            "checklist_completed": 6,
-            "checklist_total": 6,
             "entry_direction": "long",
             "rsi_at_entry": 25,
             "macd_signal": "bullish",
             "price_vs_sma": 1.2,
-            "position_pct_of_max": 0.8,
-            "portfolio_concentration": 0.05,
-            "correlated_exposure": 0.05,
-            "kelly_ratio": 1.0,
-            "planned_hold_hours": 10,
-            "actual_hold_hours": 10,
-            "exit_reason": "target",
-            "entry_hour": 11,
-            "preferred_session": "morning",
+            "position_size_pct": 2.0,
+            "avg_position_size_pct": 2.0,
+            "max_position_size_pct": 5.0,
+            "entry_delay_minutes": 0,
+            "hold_time_vs_plan_pct": 1.0,
+            "planned_risk_reward": 2.0,
+            "actual_risk_reward": 3.0,
+            "minutes_since_last_trade": 999,
+            "last_trade_was_loss": False,
+            "consecutive_wins": 0,
+            "entry_at_day_extreme": False,
             "vix_at_entry": 18,
             "trend_strength": 30,
             "regime_accuracy": {"trending": 0.9},
-            "factors_with_data": 10,
-            "category_accuracy": 0.95,
-            "similar_trade_count": 100,
-            "novelty_distance": 0.2,
+            "dk_weights_by_category": {0: [0.9, 0.8]},
+            "tagged_signal_indices": [0, 1],
             "delta": 0.65,
             "iv_percentile": 72,
             "gamma": 0.04,
@@ -188,3 +181,15 @@ def test_unrelated_exception_still_defaults_factor_neutral(monkeypatch):
 
     assert values["signal_confidence"] == 0.5
     assert all(0.0 <= value <= 1.0 for value in values.values())
+
+
+def test_signal_confidence_uses_dk_weights_for_tagged_signals():
+    value = SignalConfidenceFactor().compute(
+        {
+            "category_index": 0,
+            "dk_weights_by_category": {0: [0.2, 0.8, 1.0]},
+            "tagged_signal_indices": [1, 2],
+        }
+    )
+
+    assert value == 0.9

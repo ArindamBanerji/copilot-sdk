@@ -32,7 +32,13 @@ def _ensure_gae_path() -> None:
 
 _ensure_gae_path()
 
-from gae.profile_scorer import ProfileScorer  # noqa: E402
+from gae.dk_estimator import CoordinateDescentEstimator  # noqa: E402
+from gae.profile_scorer import (  # noqa: E402
+    DecisionCountPolicy,
+    FixedAlpha,
+    LearningStrategy,
+    ProfileScorer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -188,10 +194,18 @@ class CompoundingScorer:
         if centroids is None:
             centroids = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
 
+        learning_strategy = LearningStrategy(
+            phase_policy=DecisionCountPolicy(n=200),
+            dk_estimator=CoordinateDescentEstimator(),
+            shrinkage_schedule=FixedAlpha(0.5),
+        )
         scorer = ProfileScorer(
             mu=centroids,
             actions=list(preset.shape.action_names),
             categories=list(preset.shape.category_names),
+            eta_override=0.01,
+            auto_pause_on_amber=True,
+            learning_strategy=learning_strategy,
         )
         if enable_rl and (
             reward_function is None
@@ -294,6 +308,128 @@ class CompoundingScorer:
             category=category,
             factors=factor_values,
         )
+
+    def reestimate_dk_if_due(self) -> bool:
+        """Run GAE DK re-estimation and report whether active weights changed."""
+        before = getattr(self._scorer, "_dk_weights", None)
+        before_array = None if before is None else np.asarray(before, dtype=np.float64).copy()
+
+        self._scorer.reestimate_dk()
+
+        after = getattr(self._scorer, "_dk_weights", None)
+        if after is None:
+            return False
+        after_array = np.asarray(after, dtype=np.float64).copy()
+        if before_array is None:
+            return True
+        return bool(not np.array_equal(before_array, after_array))
+
+    def get_dk_weights(self) -> list[list[float]] | None:
+        """Return a copy of current GAE DK weights when variance learning is active."""
+        weights = getattr(self._scorer, "_dk_weights", None)
+        if weights is None:
+            return None
+        return cast(list[list[float]], np.asarray(weights, dtype=np.float64).copy().tolist())
+
+    def get_centroid(self, category: str, action: str) -> list[float] | None:
+        """Return a copy of the current centroid vector for category/action."""
+        if category not in self._preset.shape.category_names:
+            raise ValueError(f"unknown category: {category}")
+        if action not in self._preset.shape.action_names:
+            raise ValueError(f"unknown action: {action}")
+        category_index = self._preset.shape.category_names.index(category)
+        action_index = self._preset.shape.action_names.index(action)
+        centroids = np.asarray(self._scorer.centroids, dtype=np.float64)
+        expected = (
+            self._preset.shape.n_categories,
+            len(self._preset.shape.action_names),
+            self._preset.shape.n_factors,
+        )
+        if centroids.shape != expected:
+            raise ValueError(f"centroid tensor shape {centroids.shape} != {expected}")
+        vector = centroids[category_index, action_index, :]
+        return cast(list[float], vector.copy().tolist())
+
+    def get_category_phase(self, category: str) -> str:
+        """Return the GAE learning phase for a category when available."""
+        if category not in self._preset.shape.category_names:
+            raise ValueError(f"unknown category: {category}")
+        category_index = self._preset.shape.category_names.index(category)
+        category_states = getattr(self._scorer, "_category_states", None)
+        if category_states is None:
+            category_states = getattr(self._scorer, "category_states", None)
+        if category_states is None:
+            return "UNKNOWN"
+        try:
+            state = category_states[category_index]
+        except (IndexError, KeyError, TypeError):
+            return "UNKNOWN"
+        phase = getattr(state, "phase", None)
+        if phase is None and isinstance(state, dict):
+            phase = state.get("phase")
+        if phase is None:
+            return "UNKNOWN"
+        value = getattr(phase, "value", phase)
+        name = getattr(value, "name", value)
+        phase_name = str(name)
+        if phase_name in {"MEAN_CONVERGENCE", "VARIANCE_LEARNING"}:
+            return phase_name
+        if phase_name.endswith(".MEAN_CONVERGENCE"):
+            return "MEAN_CONVERGENCE"
+        if phase_name.endswith(".VARIANCE_LEARNING"):
+            return "VARIANCE_LEARNING"
+        return "UNKNOWN"
+
+    def load_dk_weights_from_l5(self, weight_tensor: Any) -> bool:
+        """Load validated L5 DK weights into the active GAE scorer."""
+        weights = np.asarray(weight_tensor, dtype=np.float64)
+        expected = (
+            self._preset.shape.n_categories,
+            self._preset.shape.n_factors,
+        )
+        if weights.shape != expected:
+            raise ValueError(f"DK weight shape {weights.shape} != {expected}")
+        if not np.all(np.isfinite(weights)):
+            raise ValueError("DK weights must be finite")
+        self._scorer._dk_weights = weights.copy()
+        return True
+
+    def load_centroids_from_l5(self, centroids: list[dict[str, Any]]) -> bool:
+        """Load validated L5 centroid rows into the active GAE centroid tensor."""
+        if not centroids:
+            return False
+        restored = np.asarray(self._scorer.centroids, dtype=np.float64).copy()
+        category_index = {
+            name: index for index, name in enumerate(self._preset.shape.category_names)
+        }
+        action_index = {
+            name: index for index, name in enumerate(self._preset.shape.action_names)
+        }
+        for row in centroids:
+            category = str(row.get("category"))
+            action = str(row.get("action"))
+            if category not in category_index or action not in action_index:
+                raise ValueError(f"unknown centroid identity: {category}/{action}")
+            vector = np.asarray(row.get("vector_json"), dtype=np.float64)
+            expected = (self._preset.shape.n_factors,)
+            if vector.shape != expected:
+                raise ValueError(f"centroid vector shape {vector.shape} != {expected}")
+            if not np.all(np.isfinite(vector)):
+                raise ValueError("centroid vector must be finite")
+            restored[category_index[category], action_index[action], :] = vector
+        self._scorer.centroids = restored
+        return True
+
+    def get_verified_count(self) -> int:
+        """Return the current verified-decision count without adding GraphStore APIs."""
+        for method_name in ("count_verified_decisions", "count_verified"):
+            method = getattr(self._graph_store, method_name, None)
+            if callable(method):
+                return int(method(self._domain))
+        get_verified_decisions = getattr(self._graph_store, "get_verified_decisions", None)
+        if callable(get_verified_decisions):
+            return len(list(get_verified_decisions(self._domain)))
+        return 0
 
     def learn(
         self,

@@ -255,6 +255,11 @@ class L5LearningStore(Protocol):
         weight_tensor: list[list[float]],
         n_decisions_used: int,
         computed_at: float,
+        *,
+        welford_state: dict[str, object] | None = None,
+        n_confirmed: int | None = None,
+        n_overridden: int | None = None,
+        entity_group: str | None = None,
     ) -> None:
         """Persist a batch DKWeight tensor and its decision support count."""
         ...

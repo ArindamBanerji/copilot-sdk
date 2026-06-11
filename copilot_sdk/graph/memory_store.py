@@ -92,6 +92,76 @@ def _normalize_computed_at(computed_at: Any) -> float:
         raise TypeError("computed_at must be numeric") from error
 
 
+_DK_WELFORD_VECTOR_KEYS = (
+    "confirmed_mean",
+    "confirmed_m2",
+    "overridden_mean",
+    "overridden_m2",
+    "all_mean",
+    "all_m2",
+)
+
+
+def _normalize_optional_nonnegative_int(value: Any, field_name: str) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise TypeError(f"{field_name} must be an integer")
+    try:
+        normalized = int(value)
+    except (TypeError, ValueError) as error:
+        raise TypeError(f"{field_name} must be an integer") from error
+    if normalized < 0:
+        raise ValueError(f"{field_name} must be non-negative")
+    return normalized
+
+
+def _normalize_dk_welford_vector(vector: Any, field_name: str) -> list[float]:
+    if isinstance(vector, (str, bytes, bytearray)):
+        raise TypeError(f"{field_name} must be a non-string 1D numeric iterable")
+    if isinstance(vector, Mapping):
+        raise TypeError(f"{field_name} must be a non-mapping 1D numeric iterable")
+    if not isinstance(vector, Iterable):
+        raise TypeError(f"{field_name} must be a 1D numeric iterable")
+    try:
+        normalized = [float(value) for value in vector]
+    except (TypeError, ValueError) as error:
+        raise TypeError(f"{field_name} must contain only numeric values") from error
+    if not normalized:
+        raise ValueError(f"{field_name} must be non-empty")
+    return normalized
+
+
+def _normalize_dk_welford_state(
+    welford_state: Any,
+    *,
+    n_decisions_used: int,
+) -> dict[str, object] | None:
+    if welford_state is None:
+        return None
+    if not isinstance(welford_state, Mapping):
+        raise TypeError("welford_state must be a mapping")
+    missing = [key for key in (*_DK_WELFORD_VECTOR_KEYS, "n_all") if key not in welford_state]
+    if missing:
+        raise ValueError(f"welford_state missing required fields: {', '.join(missing)}")
+    normalized: dict[str, object] = {}
+    expected_width: int | None = None
+    for key in _DK_WELFORD_VECTOR_KEYS:
+        vector = _normalize_dk_welford_vector(welford_state[key], key)
+        if expected_width is None:
+            expected_width = len(vector)
+        elif len(vector) != expected_width:
+            raise ValueError("welford_state vectors must have equal length")
+        normalized[key] = vector
+    n_all = _normalize_optional_nonnegative_int(welford_state["n_all"], "n_all")
+    if n_all is None:
+        raise TypeError("n_all must be an integer")
+    if n_all != n_decisions_used:
+        raise ValueError("welford_state n_all must equal n_decisions_used")
+    normalized["n_all"] = n_all
+    return normalized
+
+
 _CONSERVATION_STATUSES = {"GREEN", "AMBER", "RED"}
 
 
@@ -916,11 +986,23 @@ class InMemoryGraphStore:
         weight_tensor: list[list[float]],
         n_decisions_used: int,
         computed_at: float,
+        *,
+        welford_state: dict[str, object] | None = None,
+        n_confirmed: int | None = None,
+        n_overridden: int | None = None,
+        entity_group: str | None = None,
     ) -> None:
         domain_value = str(domain)
         tensor = _normalize_dk_weight_tensor(weight_tensor)
         decisions_used = _normalize_n_decisions_used(n_decisions_used)
         computed_at_value = _normalize_computed_at(computed_at)
+        normalized_welford = _normalize_dk_welford_state(
+            welford_state,
+            n_decisions_used=decisions_used,
+        )
+        confirmed_count = _normalize_optional_nonnegative_int(n_confirmed, "n_confirmed")
+        overridden_count = _normalize_optional_nonnegative_int(n_overridden, "n_overridden")
+        entity_group_value = None if entity_group is None else str(entity_group)
         history = self._l5_dk_weights.setdefault(domain_value, [])
         current = next((row for row in history if row.get("is_current") is True), None)
         old_id = cast(int | None, current.get("id")) if current is not None else None
@@ -937,6 +1019,10 @@ class InMemoryGraphStore:
                 "supersedes_id": old_id,
                 "is_current": True,
                 "created_at": _utc_iso_now(),
+                "welford_state": deepcopy(normalized_welford),
+                "n_confirmed": confirmed_count,
+                "n_overridden": overridden_count,
+                "entity_group": entity_group_value,
             }
         )
         return None
@@ -954,6 +1040,10 @@ class InMemoryGraphStore:
             "supersedes_id": current["supersedes_id"],
             "created_at": current["created_at"],
             "domain": current["domain"],
+            "welford_state": deepcopy(current.get("welford_state")),
+            "n_confirmed": current.get("n_confirmed"),
+            "n_overridden": current.get("n_overridden"),
+            "entity_group": current.get("entity_group"),
         }
 
     def update_conservation_state(
