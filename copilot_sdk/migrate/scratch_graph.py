@@ -64,23 +64,41 @@ def _row_value(row: Any, key: str, index: int = 0) -> Any:
         return row[index]
 
 
-def create_scratch_graph(conn: psycopg.Connection, domain: str) -> str:
+def _open_ddl_connection(dsn: str) -> psycopg.Connection:
+    conn = psycopg.connect(dsn, autocommit=True, connect_timeout=10)
+    conn.execute("LOAD 'age'")
+    conn.execute("SET search_path = ag_catalog, '$user', public")
+    return conn
+
+
+def create_scratch_graph(dsn: str, domain: str) -> str:
     """Create a scratch graph for migration and return its graph name."""
     safe_domain = _identifier(domain)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
     graph_name = _validate_graph_name(f"scratch_migration_{safe_domain}_{timestamp}")
-    drop_scratch_graph(conn, graph_name)
-    conn.execute(f"SELECT create_graph('{graph_name}')")
+    conn = _open_ddl_connection(dsn)
+    try:
+        try:
+            conn.execute(f"SELECT drop_graph('{graph_name}', true)")
+        except Exception:
+            pass
+        conn.execute(f"SELECT create_graph('{graph_name}')")
+    finally:
+        conn.close()
     return graph_name
 
 
-def drop_scratch_graph(conn: psycopg.Connection, graph_name: str) -> None:
+def drop_scratch_graph(dsn: str, graph_name: str) -> None:
     """Drop a scratch graph, ignoring missing-graph errors."""
     graph_name = _validate_graph_name(graph_name)
+    conn = _open_ddl_connection(dsn)
     try:
-        conn.execute(f"SELECT drop_graph('{graph_name}', true)")
-    except Exception:
-        conn.rollback()
+        try:
+            conn.execute(f"SELECT drop_graph('{graph_name}', true)")
+        except Exception:
+            pass
+    finally:
+        conn.close()
 
 
 def verify_scratch_clean(conn: psycopg.Connection, graph_name: str) -> bool:

@@ -18,6 +18,7 @@ from typing import Any, Mapping
 
 import psycopg
 
+from ci_platform.graph.agtype import normalize_agtype_value
 from copilot_sdk.migrate.scratch_graph import (
     copy_to_live,
     create_scratch_graph,
@@ -201,10 +202,10 @@ def _age_decision_by_id(
     if row is None:
         return None
     return {
-        "category": _row_value(row, "category", 0),
-        "recommended_action": _row_value(row, "recommended_action", 1),
-        "confidence": _row_value(row, "confidence", 2),
-        "factors_json": _row_value(row, "factors_json", 3),
+        "category": normalize_agtype_value(_row_value(row, "category", 0)),
+        "recommended_action": normalize_agtype_value(_row_value(row, "recommended_action", 1)),
+        "confidence": normalize_agtype_value(_row_value(row, "confidence", 2)),
+        "factors_json": normalize_agtype_value(_row_value(row, "factors_json", 3)),
     }
 
 
@@ -356,8 +357,13 @@ def run_migration(
     batch_size: int = 50,
     verify: bool = True,
     use_scratch: bool = False,
+    verify_l3: bool = False,
+    preset_config: Any = None,
 ) -> dict[str, Any]:
     """Run the verified-decision-log migration."""
+    if verify and verify_l3 and preset_config is None:
+        raise ValueError("preset_config is required when verify_l3=True")
+
     decisions = _read_verified_decisions(source_db)
     if not decisions:
         raise ValueError(f"no verified decisions found in {source_db}")
@@ -393,7 +399,7 @@ def run_migration(
     should_drop_scratch = False
     try:
         if use_scratch:
-            scratch_graph = create_scratch_graph(conn, domain)
+            scratch_graph = create_scratch_graph(age_dsn, domain)
             should_drop_scratch = True
             result["scratch_graph"] = scratch_graph
             write_graph = scratch_graph
@@ -429,6 +435,17 @@ def run_migration(
                 result["fail_reason"] = f"Level 2 verification failed: {level2['details']}"
                 logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
                 return result
+
+            if verify_l3 and not use_scratch:
+                from copilot_sdk.migrate.verify_state import verify_level3
+
+                level3 = verify_level3(source_db, conn, write_graph, domain, preset_config)
+                result["verification"]["level3"] = level3
+                if not level3["passed"]:
+                    result["status"] = "FAIL"
+                    result["fail_reason"] = "Level 3 state-vector verification failed"
+                    logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
+                    return result
         if use_scratch and scratch_graph is not None:
             should_drop_scratch = False
             try:
@@ -457,9 +474,22 @@ def run_migration(
                     exc,
                 )
                 return result
+            if verify_l3:
+                from copilot_sdk.migrate.verify_state import verify_level3
+
+                result.setdefault("verification", {})
+                level3 = verify_level3(source_db, conn, graph_name, domain, preset_config)
+                result["verification"]["level3"] = level3
+                if not level3["passed"]:
+                    result["status"] = "FAIL"
+                    result["fail_reason"] = "Level 3 state-vector verification failed"
+                    result["scratch_retained"] = scratch_graph
+                    result["scratch_retained_reason"] = "live Level 3 verification failed"
+                    logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
+                    return result
             should_drop_scratch = True
     finally:
         if scratch_graph is not None and should_drop_scratch:
-            drop_scratch_graph(conn, scratch_graph)
+            drop_scratch_graph(age_dsn, scratch_graph)
         conn.close()
     return result

@@ -49,6 +49,9 @@ class FakeConn:
     def rollback(self):
         self.rollback_count += 1
 
+    def close(self):
+        self.closed = True
+
 
 def _can_roundtrip(payload: str, serialized: str) -> bool:
     restored = ast.literal_eval(serialized)
@@ -57,6 +60,13 @@ def _can_roundtrip(payload: str, serialized: str) -> bool:
 
 def test_create_scratch_graph_uses_safe_timestamped_name(monkeypatch):
     conn = FakeConn()
+    connect_calls = []
+
+    def fake_connect(*args, **kwargs):
+        connect_calls.append((args, kwargs))
+        return conn
+
+    monkeypatch.setattr("copilot_sdk.migrate.scratch_graph.psycopg.connect", fake_connect)
     monkeypatch.setattr(
         "copilot_sdk.migrate.scratch_graph.datetime",
         type(
@@ -68,24 +78,37 @@ def test_create_scratch_graph_uses_safe_timestamped_name(monkeypatch):
         ),
     )
 
-    graph_name = create_scratch_graph(conn, "Trading Ops!")
+    graph_name = create_scratch_graph("dsn", "Trading Ops!")
 
     assert graph_name.startswith("scratch_migration_trading_ops_20260611_123045")
+    assert connect_calls == [(("dsn",), {"autocommit": True, "connect_timeout": 10})]
+    assert conn.queries[:2] == ["LOAD 'age'", "SET search_path = ag_catalog, '$user', public"]
     assert any(query.startswith("SELECT drop_graph('scratch_migration_trading_ops_20260611_123045") for query in conn.queries)
     assert any(query.startswith("SELECT create_graph('scratch_migration_trading_ops_20260611_123045") for query in conn.queries)
 
 
-def test_drop_scratch_graph_ignores_missing_graph_errors():
+def test_drop_scratch_graph_ignores_missing_graph_errors(monkeypatch):
     class FailingConn(FakeConn):
         def execute(self, query):
             self.queries.append(query)
-            raise RuntimeError("graph does not exist")
+            if query.startswith("SELECT drop_graph"):
+                raise RuntimeError("graph does not exist")
+            return FakeCursor(None)
 
     conn = FailingConn()
+    connect_calls = []
 
-    drop_scratch_graph(conn, "scratch_migration_test_20260611_123045")
+    def fake_connect(*args, **kwargs):
+        connect_calls.append((args, kwargs))
+        return conn
 
-    assert conn.rollback_count == 1
+    monkeypatch.setattr("copilot_sdk.migrate.scratch_graph.psycopg.connect", fake_connect)
+
+    drop_scratch_graph("dsn", "scratch_migration_test_20260611_123045")
+
+    assert connect_calls == [(("dsn",), {"autocommit": True, "connect_timeout": 10})]
+    assert conn.rollback_count == 0
+    assert conn.closed is True
 
 
 def test_verify_scratch_clean_true_when_no_decisions():

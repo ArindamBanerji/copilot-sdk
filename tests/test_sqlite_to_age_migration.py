@@ -286,6 +286,43 @@ def test_verify_level2_pass(tmp_path, monkeypatch):
     assert _verify_level2(str(db_path), FakeConn(), "graph", "trading")["passed"] is True
 
 
+def test_l2_handles_agtype_encoded_values(monkeypatch):
+    decision = {
+        "decision_id": "d1",
+        "domain": "trading",
+        "category": "trend_following",
+        "category_index": 0,
+        "factors_json": '{"signal_alignment": 0.69}',
+        "factor_vector_json": "[0.69]",
+        "recommended_action": "strong_execution",
+        "recommended_index": 0,
+        "confidence": 0.75,
+        "probabilities_json": "[0.75, 0.25]",
+        "status": "confirmed",
+        "created_at": 1.0,
+    }
+
+    class EncodedConn:
+        def execute(self, query):
+            return FakeCursor(
+                (
+                    '"trend_following"',
+                    '"strong_execution"',
+                    0.75,
+                    '"{\\"signal_alignment\\": 0.69}"',
+                )
+            )
+
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._read_verified_decisions",
+        lambda db_path: [decision],
+    )
+
+    result = _verify_level2("source.db", EncodedConn(), "graph", "trading")
+
+    assert result["passed"] is True
+
+
 def test_verify_level2_fail_json(tmp_path, monkeypatch):
     db_path = _make_db(tmp_path)
     monkeypatch.setattr(
@@ -331,7 +368,7 @@ def test_scratch_migration_verifies_then_copies_to_live(tmp_path, monkeypatch):
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn)
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
-        lambda conn, domain: calls.append(("create_scratch", domain)) or "scratch_migration_trading_20260611_123045",
+        lambda dsn, domain: calls.append(("create_scratch", dsn, domain)) or "scratch_migration_trading_20260611_123045",
     )
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean",
@@ -355,7 +392,7 @@ def test_scratch_migration_verifies_then_copies_to_live(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
-        lambda conn, graph: calls.append(("drop", graph)),
+        lambda dsn, graph: calls.append(("drop", dsn, graph)),
     )
 
     result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
@@ -371,7 +408,7 @@ def test_scratch_migration_verifies_then_copies_to_live(tmp_path, monkeypatch):
     assert len(copy_calls) == 1
     assert len(copy_calls[0][1]) == 4
     assert copy_calls[0][2:] == ("live_graph", "trading")
-    assert ("drop", scratch) in calls
+    assert ("drop", "dsn", scratch) in calls
 
 
 def test_scratch_migration_drops_scratch_and_skips_copy_on_l1_failure(tmp_path, monkeypatch):
@@ -380,7 +417,7 @@ def test_scratch_migration_drops_scratch_and_skips_copy_on_l1_failure(tmp_path, 
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
-        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+        lambda dsn, domain: "scratch_migration_trading_20260611_123045",
     )
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: True)
     monkeypatch.setattr(
@@ -397,14 +434,14 @@ def test_scratch_migration_drops_scratch_and_skips_copy_on_l1_failure(tmp_path, 
     )
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
-        lambda conn, graph: calls.append(("drop", graph)),
+        lambda dsn, graph: calls.append(("drop", dsn, graph)),
     )
 
     result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
 
     assert result["status"] == "FAIL"
     assert result["fail_reason"].startswith("Level 1 verification failed:")
-    assert calls == [("drop", "scratch_migration_trading_20260611_123045")]
+    assert calls == [("drop", "dsn", "scratch_migration_trading_20260611_123045")]
 
 
 def test_scratch_migration_fails_when_scratch_not_clean(tmp_path, monkeypatch):
@@ -413,7 +450,7 @@ def test_scratch_migration_fails_when_scratch_not_clean(tmp_path, monkeypatch):
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
-        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+        lambda dsn, domain: "scratch_migration_trading_20260611_123045",
     )
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: False)
     monkeypatch.setattr(
@@ -422,14 +459,14 @@ def test_scratch_migration_fails_when_scratch_not_clean(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
-        lambda conn, graph: calls.append(("drop", graph)),
+        lambda dsn, graph: calls.append(("drop", dsn, graph)),
     )
 
     result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
 
     assert result["status"] == "FAIL"
     assert result["fail_reason"] == "scratch graph is not clean: scratch_migration_trading_20260611_123045"
-    assert calls == [("drop", "scratch_migration_trading_20260611_123045")]
+    assert calls == [("drop", "dsn", "scratch_migration_trading_20260611_123045")]
 
 
 def test_scratch_retained_on_copy_failure(tmp_path, monkeypatch):
@@ -438,7 +475,7 @@ def test_scratch_retained_on_copy_failure(tmp_path, monkeypatch):
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
-        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+        lambda dsn, domain: "scratch_migration_trading_20260611_123045",
     )
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: True)
     monkeypatch.setattr(
@@ -459,7 +496,7 @@ def test_scratch_retained_on_copy_failure(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
-        lambda conn, graph: calls.append(("drop", graph)),
+        lambda dsn, graph: calls.append(("drop", dsn, graph)),
     )
 
     result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
@@ -477,7 +514,7 @@ def test_scratch_retained_on_copy_write_errors(tmp_path, monkeypatch):
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
-        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+        lambda dsn, domain: "scratch_migration_trading_20260611_123045",
     )
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: True)
     monkeypatch.setattr(
@@ -498,7 +535,7 @@ def test_scratch_retained_on_copy_write_errors(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
-        lambda conn, graph: calls.append(("drop", graph)),
+        lambda dsn, graph: calls.append(("drop", dsn, graph)),
     )
 
     result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
@@ -516,7 +553,7 @@ def test_scratch_dropped_on_copy_success(tmp_path, monkeypatch):
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
-        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+        lambda dsn, domain: "scratch_migration_trading_20260611_123045",
     )
     monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: True)
     monkeypatch.setattr(
@@ -537,13 +574,13 @@ def test_scratch_dropped_on_copy_success(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
-        lambda conn, graph: calls.append(("drop", graph)),
+        lambda dsn, graph: calls.append(("drop", dsn, graph)),
     )
 
     result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
 
     assert result["status"] == "PASS"
-    assert calls == [("drop", "scratch_migration_trading_20260611_123045")]
+    assert calls == [("drop", "dsn", "scratch_migration_trading_20260611_123045")]
 
 
 def test_compare_json_float_tolerance():
