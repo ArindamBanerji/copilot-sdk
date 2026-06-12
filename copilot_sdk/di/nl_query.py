@@ -76,8 +76,10 @@ def _evidence_for_intent(intent: str, decisions: list[dict[str, Any]]) -> list[d
 
 
 def _decision_payload(decision: dict[str, Any]) -> dict[str, Any]:
-    metadata = decision.get("metadata") if isinstance(decision.get("metadata"), dict) else {}
-    factors = decision.get("factors") if isinstance(decision.get("factors"), dict) else {}
+    raw_metadata = decision.get("metadata")
+    metadata: dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
+    raw_factors = decision.get("factors")
+    factors: dict[str, Any] = raw_factors if isinstance(raw_factors, dict) else {}
     return {
         "decision_id": str(decision.get("decision_id") or metadata.get("decision_id") or ""),
         "category": str(decision.get("category") or metadata.get("category") or ""),

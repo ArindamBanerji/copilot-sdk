@@ -62,7 +62,8 @@ def _normalize_decision(decision: dict[str, Any], index: int) -> dict[str, Any]:
 
 
 def _decision_category(decision: dict[str, Any]) -> str:
-    metadata = decision.get("metadata") if isinstance(decision.get("metadata"), dict) else {}
+    raw_metadata = decision.get("metadata")
+    metadata: dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
     return str(decision.get("category") or metadata.get("category") or "")
 
 
