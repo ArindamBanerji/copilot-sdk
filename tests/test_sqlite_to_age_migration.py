@@ -324,6 +324,228 @@ def test_l2_failure_fails_migration(tmp_path, monkeypatch):
     assert result["verification"]["level2"]["passed"] is False
 
 
+def test_scratch_migration_verifies_then_copies_to_live(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    conn = FakeConn()
+    calls: list[tuple] = []
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: conn)
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
+        lambda conn, domain: calls.append(("create_scratch", domain)) or "scratch_migration_trading_20260611_123045",
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean",
+        lambda conn, graph: calls.append(("verify_clean", graph)) or True,
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._write_batch",
+        lambda conn, batch, graph: calls.append(("write", graph, len(batch))) or {"written": len(batch), "skipped": 0, "errors": 0},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_level1",
+        lambda db, conn, graph, domain: calls.append(("l1", graph)) or {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_level2",
+        lambda db, conn, graph, domain: calls.append(("l2", graph)) or {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.copy_to_live",
+        lambda conn, transformed, live, domain: calls.append(("copy", transformed, live, domain)) or {"copied": 4, "skipped": 0, "errors": 0},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
+        lambda conn, graph: calls.append(("drop", graph)),
+    )
+
+    result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
+
+    scratch = "scratch_migration_trading_20260611_123045"
+    assert result["status"] == "PASS"
+    assert result["scratch_graph"] == scratch
+    assert result["live_copy"] == {"copied": 4, "skipped": 0, "errors": 0}
+    assert ("write", scratch, 4) in calls
+    assert ("l1", scratch) in calls
+    assert ("l2", scratch) in calls
+    copy_calls = [call for call in calls if call[0] == "copy"]
+    assert len(copy_calls) == 1
+    assert len(copy_calls[0][1]) == 4
+    assert copy_calls[0][2:] == ("live_graph", "trading")
+    assert ("drop", scratch) in calls
+
+
+def test_scratch_migration_drops_scratch_and_skips_copy_on_l1_failure(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    calls: list[tuple] = []
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
+        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+    )
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: True)
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._write_batch",
+        lambda *args: {"written": 4, "skipped": 0, "errors": 0},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_level1",
+        lambda *args: {"passed": False, "details": {"reason": "count mismatch"}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.copy_to_live",
+        lambda *args: (_ for _ in ()).throw(AssertionError("copy should not run")),
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
+        lambda conn, graph: calls.append(("drop", graph)),
+    )
+
+    result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
+
+    assert result["status"] == "FAIL"
+    assert result["fail_reason"].startswith("Level 1 verification failed:")
+    assert calls == [("drop", "scratch_migration_trading_20260611_123045")]
+
+
+def test_scratch_migration_fails_when_scratch_not_clean(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    calls: list[tuple] = []
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
+        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+    )
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: False)
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._write_batch",
+        lambda *args: (_ for _ in ()).throw(AssertionError("write should not run")),
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
+        lambda conn, graph: calls.append(("drop", graph)),
+    )
+
+    result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
+
+    assert result["status"] == "FAIL"
+    assert result["fail_reason"] == "scratch graph is not clean: scratch_migration_trading_20260611_123045"
+    assert calls == [("drop", "scratch_migration_trading_20260611_123045")]
+
+
+def test_scratch_retained_on_copy_failure(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    calls: list[tuple] = []
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
+        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+    )
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: True)
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._write_batch",
+        lambda *args: {"written": 4, "skipped": 0, "errors": 0},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_level1",
+        lambda *args: {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_level2",
+        lambda *args: {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.copy_to_live",
+        lambda *args: (_ for _ in ()).throw(RuntimeError("copy failed")),
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
+        lambda conn, graph: calls.append(("drop", graph)),
+    )
+
+    result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
+
+    assert result["status"] == "FAIL"
+    assert result["fail_reason"] == "live copy failed: RuntimeError: copy failed"
+    assert result["scratch_retained"] == "scratch_migration_trading_20260611_123045"
+    assert result["scratch_retained_reason"] == "live copy failed"
+    assert calls == []
+
+
+def test_scratch_retained_on_copy_write_errors(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    calls: list[tuple] = []
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
+        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+    )
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: True)
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._write_batch",
+        lambda *args: {"written": 4, "skipped": 0, "errors": 0},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_level1",
+        lambda *args: {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_level2",
+        lambda *args: {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.copy_to_live",
+        lambda *args: {"copied": 3, "skipped": 0, "errors": 1},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
+        lambda conn, graph: calls.append(("drop", graph)),
+    )
+
+    result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
+
+    assert result["status"] == "FAIL"
+    assert result["fail_reason"] == "live copy failed: 1 write errors"
+    assert result["scratch_retained"] == "scratch_migration_trading_20260611_123045"
+    assert result["scratch_retained_reason"] == "live copy failed"
+    assert calls == []
+
+
+def test_scratch_dropped_on_copy_success(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    calls: list[tuple] = []
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.create_scratch_graph",
+        lambda conn, domain: "scratch_migration_trading_20260611_123045",
+    )
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age.verify_scratch_clean", lambda *args: True)
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._write_batch",
+        lambda *args: {"written": 4, "skipped": 0, "errors": 0},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_level1",
+        lambda *args: {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_level2",
+        lambda *args: {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.copy_to_live",
+        lambda *args: {"copied": 4, "skipped": 0, "errors": 0},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age.drop_scratch_graph",
+        lambda conn, graph: calls.append(("drop", graph)),
+    )
+
+    result = run_migration("trading", str(db_path), "dsn", "live_graph", use_scratch=True)
+
+    assert result["status"] == "PASS"
+    assert calls == [("drop", "scratch_migration_trading_20260611_123045")]
+
+
 def test_compare_json_float_tolerance():
     assert _compare_json('{"value": 0.1}', '{"value": 0.10000000001}')
 

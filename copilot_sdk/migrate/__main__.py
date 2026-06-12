@@ -25,6 +25,11 @@ def build_parser() -> argparse.ArgumentParser:
     sqlite_to_age.add_argument("--dry-run", action="store_true")
     sqlite_to_age.add_argument("--batch-size", type=int, default=50)
     sqlite_to_age.add_argument("--no-verify", action="store_true")
+    sqlite_to_age.add_argument(
+        "--use-scratch-graph",
+        action="store_true",
+        help="Write to a scratch graph, verify, then copy to live.",
+    )
 
     return parser
 
@@ -43,6 +48,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             dry_run=args.dry_run,
             batch_size=args.batch_size,
             verify=not args.no_verify,
+            use_scratch=args.use_scratch_graph,
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         if result.get("status") == "FAIL":

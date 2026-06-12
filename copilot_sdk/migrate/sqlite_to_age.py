@@ -18,6 +18,12 @@ from typing import Any, Mapping
 
 import psycopg
 
+from copilot_sdk.migrate.scratch_graph import (
+    copy_to_live,
+    create_scratch_graph,
+    drop_scratch_graph,
+    verify_scratch_clean,
+)
 from ci_platform.graph.age_client import AGEClient
 
 _S = AGEClient.serialize_for_age
@@ -213,7 +219,11 @@ def _write_batch(
     errors = 0
     for properties in batch:
         decision_id = str(properties["decision_id"])
-        match = f"MATCH (d:Decision {{decision_id: {_S(decision_id)}}}) RETURN d"
+        domain = str(properties.get("domain") or "")
+        match = (
+            f"MATCH (d:Decision {{decision_id: {_S(decision_id)}, "
+            f"domain: {_S(domain)}}}) RETURN d"
+        )
         try:
             existing = conn.execute(_age_sql(graph_name, match, "d agtype")).fetchone()
             if existing is not None:
@@ -345,6 +355,7 @@ def run_migration(
     dry_run: bool = False,
     batch_size: int = 50,
     verify: bool = True,
+    use_scratch: bool = False,
 ) -> dict[str, Any]:
     """Run the verified-decision-log migration."""
     decisions = _read_verified_decisions(source_db)
@@ -367,6 +378,7 @@ def run_migration(
         "first_created_at": first_created_at,
         "last_created_at": last_created_at,
         "dry_run": bool(dry_run),
+        "use_scratch": bool(use_scratch),
     }
 
     if dry_run:
@@ -376,9 +388,23 @@ def run_migration(
 
     conn = _connect_age(age_dsn, graph_name)
     totals = {"written": 0, "skipped": 0, "errors": 0}
+    write_graph = graph_name
+    scratch_graph: str | None = None
+    should_drop_scratch = False
     try:
+        if use_scratch:
+            scratch_graph = create_scratch_graph(conn, domain)
+            should_drop_scratch = True
+            result["scratch_graph"] = scratch_graph
+            write_graph = scratch_graph
+            if not verify_scratch_clean(conn, scratch_graph):
+                result["status"] = "FAIL"
+                result["fail_reason"] = f"scratch graph is not clean: {scratch_graph}"
+                logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
+                return result
+
         for start in range(0, len(transformed), batch_size):
-            batch_result = _write_batch(conn, transformed[start : start + batch_size], graph_name)
+            batch_result = _write_batch(conn, transformed[start : start + batch_size], write_graph)
             for key in totals:
                 totals[key] += int(batch_result[key])
         result["write"] = totals
@@ -387,8 +413,8 @@ def run_migration(
             result["fail_reason"] = f"{totals['errors']} write errors"
             logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
             return result
-        if verify:
-            level1 = _verify_level1(source_db, conn, graph_name, domain)
+        if verify or use_scratch:
+            level1 = _verify_level1(source_db, conn, write_graph, domain)
             result["verification"] = {"level1": level1}
             if not level1["passed"]:
                 result["status"] = "FAIL"
@@ -396,13 +422,44 @@ def run_migration(
                 logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
                 return result
 
-            level2 = _verify_level2(source_db, conn, graph_name, domain)
+            level2 = _verify_level2(source_db, conn, write_graph, domain)
             result["verification"]["level2"] = level2
             if not level2["passed"]:
                 result["status"] = "FAIL"
                 result["fail_reason"] = f"Level 2 verification failed: {level2['details']}"
                 logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
                 return result
+        if use_scratch and scratch_graph is not None:
+            should_drop_scratch = False
+            try:
+                live_copy = copy_to_live(conn, transformed, graph_name, domain)
+                result["live_copy"] = live_copy
+                live_copy_errors = int(live_copy.get("errors", 0))
+                if live_copy_errors:
+                    result["status"] = "FAIL"
+                    result["fail_reason"] = f"live copy failed: {live_copy_errors} write errors"
+                    result["scratch_retained"] = scratch_graph
+                    result["scratch_retained_reason"] = "live copy failed"
+                    logger.warning(
+                        "SQLite to AGE migration retained scratch graph %s after %s live copy errors",
+                        scratch_graph,
+                        live_copy_errors,
+                    )
+                    return result
+            except Exception as exc:
+                result["status"] = "FAIL"
+                result["fail_reason"] = f"live copy failed: {type(exc).__name__}: {exc}"
+                result["scratch_retained"] = scratch_graph
+                result["scratch_retained_reason"] = "live copy failed"
+                logger.warning(
+                    "SQLite to AGE migration retained scratch graph %s after live copy failure: %s",
+                    scratch_graph,
+                    exc,
+                )
+                return result
+            should_drop_scratch = True
     finally:
+        if scratch_graph is not None and should_drop_scratch:
+            drop_scratch_graph(conn, scratch_graph)
         conn.close()
     return result
