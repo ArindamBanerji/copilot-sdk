@@ -9,9 +9,20 @@ import numpy as np
 
 from copilot_sdk.evolution import PlateauConfig
 from copilot_sdk.scoring.config import DomainShape
+from copilot_sdk.scoring.polarity import Polarity
 
 
 class PurchasingPreset:
+    factor_polarities = {
+        "expected_demand": Polarity.POSITIVE,
+        "day_of_week": Polarity.NEUTRAL,
+        "weather_forecast": Polarity.NEUTRAL,
+        "event_flag": Polarity.NEUTRAL,
+        "historical_waste": Polarity.NEGATIVE,
+        "supplier_lead_time": Polarity.NEGATIVE,
+        "price_memory_index": Polarity.POSITIVE,
+    }
+
     @property
     def name(self) -> str:
         return "purchasing"

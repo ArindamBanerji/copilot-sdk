@@ -9,9 +9,19 @@ import numpy as np
 
 from copilot_sdk.evolution import PlateauConfig
 from copilot_sdk.scoring.config import DomainShape
+from copilot_sdk.scoring.polarity import Polarity
 
 
 class DataOpsPreset:
+    factor_polarities = {
+        "impact_scope": Polarity.NEGATIVE,
+        "source_reliability": Polarity.POSITIVE,
+        "recurrence_frequency": Polarity.NEGATIVE,
+        "downstream_urgency": Polarity.NEGATIVE,
+        "data_freshness": Polarity.POSITIVE,
+        "business_criticality": Polarity.NEGATIVE,
+    }
+
     @property
     def name(self) -> str:
         return "dataops"

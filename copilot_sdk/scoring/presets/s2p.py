@@ -6,9 +6,20 @@ import numpy as np
 
 from copilot_sdk.evolution import PlateauConfig
 from copilot_sdk.scoring.config import DomainShape
+from copilot_sdk.scoring.polarity import Polarity
 
 
 class S2PPreset:
+    factor_polarities = {
+        "match_status": Polarity.POSITIVE,
+        "amount_variance_ratio": Polarity.NEGATIVE,
+        "duplicate_score": Polarity.NEGATIVE,
+        "supplier_exception_history": Polarity.NEGATIVE,
+        "payment_terms_impact": Polarity.POSITIVE,
+        "commodity_index_correlation": Polarity.NEUTRAL,
+        "tax_regulatory_compliance": Polarity.POSITIVE,
+    }
+
     @property
     def name(self) -> str:
         return "s2p"

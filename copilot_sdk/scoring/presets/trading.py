@@ -9,6 +9,7 @@ import numpy as np
 
 from copilot_sdk.evolution import PlateauConfig
 from copilot_sdk.scoring.config import DomainShape
+from copilot_sdk.scoring.polarity import Polarity
 
 
 _LEGACY_ACTION_CONFIDENCE = (0.65, 0.55, 0.50)
@@ -16,6 +17,19 @@ _NEUTRAL_SKIP_CENTROID = (0.30, 0.35, 0.50, 0.50, 0.50, 0.25, 0.40, 0.50, 0.50, 
 
 
 class TradingPreset:
+    factor_polarities = {
+        "signal_alignment": Polarity.POSITIVE,
+        "market_regime": Polarity.NEUTRAL,
+        "position_sizing": Polarity.POSITIVE,
+        "timing_quality": Polarity.NEGATIVE,
+        "risk_reward_actual": Polarity.POSITIVE,
+        "emotional_indicator": Polarity.NEGATIVE,
+        "signal_confidence": Polarity.POSITIVE,
+        "options_delta_exposure": Polarity.NEUTRAL,
+        "options_iv_percentile": Polarity.NEUTRAL,
+        "options_gamma_risk": Polarity.NEGATIVE,
+    }
+
     @property
     def name(self) -> str:
         return "trading"
