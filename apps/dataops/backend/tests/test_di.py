@@ -116,3 +116,10 @@ def test_query_router_registered_on_main_app(client):
 
     assert response.status_code == 200
     assert response.json()["intent"] == "impact"
+
+
+def test_di_source_profiles_router_registered_on_main_app(client):
+    response = client.get("/api/di/profiles")
+
+    assert response.status_code == 200
+    assert response.json() == {"sources": [], "total": 0}

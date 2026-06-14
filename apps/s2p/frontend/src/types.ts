@@ -774,21 +774,83 @@ export interface NoveltyHistoryResponse {
   alert_active: boolean;
 }
 
-export interface CentroidResponse {
-  category: number;
-  category_name: string;
-  action: number;
-  action_name: string;
-  centroid: number[];
+export interface CentroidCell {
+  category: string;
+  category_index: number;
+  action: string;
+  action_index: number;
+  factor_names: string[];
+  centroid_vector: number[];
+  source: "scorer_centroid" | string;
+  read_only: boolean;
+}
+
+export interface CentroidAllResponse {
+  cells: CentroidCell[];
+  shape: {
+    categories: number;
+    actions: number;
+    factors: number;
+  };
+  categories: string[];
+  actions: string[];
   factors: string[];
+  read_only: boolean;
+}
+
+export interface FactorContribution {
+  factor_name: string;
+  factor_index: number;
+  factor_value: number;
+  centroid_value: number;
+  distance: number;
+  dk_weight: number;
+  dk_status: "available" | "learning" | "unavailable" | string;
+  weighted_distance: number;
+  direction: "above_centroid" | "below_centroid" | "at_centroid" | string;
+}
+
+export interface ProvenanceDisplayValue {
+  value: unknown;
+  source?: string;
+  provenance_tier?: string;
+  provenance_label?: string;
+  measured?: boolean;
+  verified?: boolean;
+  factor_eligible?: boolean;
+}
+
+export interface CentroidExplanation {
+  decision_id: string;
+  category: string;
+  recommended_action: string;
+  closest_action: string;
+  closest_matches_recommendation: boolean;
+  factor_names: string[];
+  factor_contributions: FactorContribution[];
+  centroid_distances: Record<string, number>;
+  summary: string;
+  dk_status: "available" | "learning" | "unavailable" | string;
+  p39_evidence: Record<string, ProvenanceDisplayValue>;
+  read_only: boolean;
+}
+
+export interface DriftPoint {
+  timestamp?: string | null;
+  verified_count?: number | null;
+  centroid_vector?: number[];
+  distance_from_previous?: number | null;
 }
 
 export interface DriftResponse {
-  category: number;
-  category_name: string;
-  factors: string[];
-  centroids: Record<string, number[]>;
+  category: string;
+  action: string;
+  supported: boolean;
+  reason: string;
+  points: DriftPoint[];
 }
+
+export type CentroidResponse = CentroidCell;
 
 export interface DKWeightsResponse {
   factors: string[];
@@ -885,6 +947,52 @@ export interface ImpactSummaryResponse {
   scenarios_causing_red: number;
   scenarios_causing_amber: number;
   scenarios_green_safe: number;
+}
+
+export interface FinancialImpactBucket {
+  count: number;
+  amount: number;
+  at_risk: number;
+  recovered: number;
+}
+
+export interface FinancialImpactSummaryResponse {
+  total_decisions: number;
+  verified_decisions: number;
+  total_amount: number;
+  total_at_risk: number;
+  total_recovered: number;
+  net_savings: number;
+  recovery_rate: number;
+  missing_receipts: number;
+  by_supplier: Record<string, FinancialImpactBucket>;
+  by_category: Record<string, FinancialImpactBucket>;
+}
+
+export interface FinancialImpactCategoryResponse extends FinancialImpactSummaryResponse {
+  category: string;
+  allowed_categories: string[];
+}
+
+export interface FinancialImpactTrendPoint {
+  week: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  total_decisions: number;
+  verified_decisions: number;
+  total_amount: number;
+  total_at_risk: number;
+  total_recovered: number;
+  net_savings: number;
+  recovery_rate: number;
+  missing_receipts: number;
+}
+
+export interface FinancialImpactTrendResponse {
+  window_weeks: number;
+  as_of?: string | null;
+  points: FinancialImpactTrendPoint[];
+  totals: FinancialImpactSummaryResponse;
 }
 
 export interface ExtendedDiscovery {

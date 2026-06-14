@@ -34,6 +34,9 @@ def test_graph_store_protocol_required_methods_exist():
         "archive_old_decisions",
         "count_archived",
         "close",
+        "write_entity_enrichment",
+        "read_entity_enrichment",
+        "list_entity_enrichments",
     ]
 
     for method in required:

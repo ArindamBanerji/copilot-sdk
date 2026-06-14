@@ -12,6 +12,7 @@ import type {
   ConservationWhatIfRequest,
   DataOpsAlert,
   DecisionExplorerResponse,
+  DIProfilesResponse,
   FactorAutoFillResponse,
   FingerprintResponse,
   Health,
@@ -187,6 +188,10 @@ function toSnakePayload(value: unknown): unknown {
 
 export async function getHealth(): Promise<Health> {
   return apiGet<Health>("/health");
+}
+
+export async function fetchDIProfiles(): Promise<DIProfilesResponse | null> {
+  return safeApiGet<DIProfilesResponse>("/api/di/profiles");
 }
 
 export async function getPipelines(): Promise<PipelineSystem[]> {

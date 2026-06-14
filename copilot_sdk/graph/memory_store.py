@@ -13,6 +13,15 @@ from typing import Any, cast
 
 import numpy as np
 
+from copilot_sdk.graph.enrichment import (
+    EnrichmentSourceSet,
+    EntityEnrichmentReceipt,
+    EntityEnrichmentRecord,
+    ProvenancedValue,
+    is_protected_metric_name,
+    utc_iso_now,
+)
+
 
 def _utc_iso_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -334,6 +343,7 @@ class InMemoryGraphStore:
         self._archive: list[dict[str, Any]] = []
         self._outbox: list[dict[str, Any]] = []
         self._outbox_quarantine: list[dict[str, Any]] = []
+        self._entity_enrichments: dict[tuple[str, str, str, str, str], EntityEnrichmentRecord] = {}
         self._outbox_counter = 0
         self._quarantine_counter = 0
         self._sequence = 0
@@ -1196,6 +1206,144 @@ class InMemoryGraphStore:
         ]
         return deepcopy(events[-limit:] if limit else [])
 
+    def write_entity_enrichment(
+        self,
+        *,
+        domain: str,
+        entity_type: str,
+        entity_id: str,
+        namespace: str,
+        metrics: dict[str, ProvenancedValue],
+        computed_from: EnrichmentSourceSet,
+        dry_run: bool = False,
+        idempotency_key: str | None = None,
+    ) -> EntityEnrichmentReceipt:
+        domain = str(domain)
+        entity_type = str(entity_type)
+        entity_id = str(entity_id)
+        namespace = str(namespace)
+        computed_at = utc_iso_now()
+        allowed: dict[str, ProvenancedValue] = {}
+        protected: list[str] = []
+        rejected: list[str] = []
+        warnings: list[str] = []
+
+        for metric_name, value in dict(metrics or {}).items():
+            metric_key = str(metric_name)
+            if is_protected_metric_name(metric_key):
+                protected.append(metric_key)
+                rejected.append(metric_key)
+                continue
+            if not isinstance(value, ProvenancedValue):
+                raise TypeError("metrics values must be ProvenancedValue instances")
+            allowed[metric_key] = value
+
+        if protected:
+            warnings.append("protected metric names were rejected")
+        if not allowed:
+            warnings.append("no enrichment metrics were written")
+            return EntityEnrichmentReceipt(
+                domain=domain,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                namespace=namespace,
+                persisted=False,
+                dry_run=bool(dry_run),
+                metrics_written=[],
+                metrics_rejected=rejected,
+                protected_fields_rejected=protected,
+                idempotency_key=str(idempotency_key or ""),
+                computed_at=computed_at,
+                warnings=warnings,
+            )
+        if dry_run:
+            return EntityEnrichmentReceipt(
+                domain=domain,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                namespace=namespace,
+                persisted=False,
+                dry_run=True,
+                metrics_written=list(allowed),
+                metrics_rejected=rejected,
+                protected_fields_rejected=protected,
+                idempotency_key=str(idempotency_key or ""),
+                computed_at=computed_at,
+                warnings=warnings,
+            )
+
+        for metric_name, value in allowed.items():
+            key = (domain, entity_type, entity_id, namespace, metric_name)
+            self._entity_enrichments[key] = EntityEnrichmentRecord(
+                domain=domain,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                namespace=namespace,
+                metric_name=metric_name,
+                value=deepcopy(value),
+                computed_from=deepcopy(computed_from),
+                computed_at=computed_at,
+                idempotency_key=str(idempotency_key or ""),
+            )
+        return EntityEnrichmentReceipt(
+            domain=domain,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            namespace=namespace,
+            persisted=True,
+            dry_run=False,
+            metrics_written=list(allowed),
+            metrics_rejected=rejected,
+            protected_fields_rejected=protected,
+            idempotency_key=str(idempotency_key or ""),
+            computed_at=computed_at,
+            warnings=warnings,
+        )
+
+    def read_entity_enrichment(
+        self,
+        *,
+        domain: str,
+        entity_type: str,
+        entity_id: str,
+        namespace: str | None = None,
+    ) -> dict[str, ProvenancedValue]:
+        result: dict[str, ProvenancedValue] = {}
+        for (row_domain, row_type, row_id, row_namespace, metric_name), record in sorted(
+            self._entity_enrichments.items()
+        ):
+            if row_domain != str(domain) or row_type != str(entity_type) or row_id != str(entity_id):
+                continue
+            if namespace is not None and row_namespace != str(namespace):
+                continue
+            key = metric_name if namespace is not None else f"{row_namespace}.{metric_name}"
+            result[key] = deepcopy(record.value)
+        return result
+
+    def list_entity_enrichments(
+        self,
+        *,
+        domain: str,
+        entity_type: str | None = None,
+        namespace: str | None = None,
+        limit: int = 500,
+    ) -> list[EntityEnrichmentRecord]:
+        try:
+            limit_value = int(limit)
+        except (TypeError, ValueError):
+            limit_value = 500
+        limit_value = max(0, limit_value)
+        records = [
+            record
+            for (row_domain, row_type, _row_id, row_namespace, _metric), record in sorted(
+                self._entity_enrichments.items()
+            )
+            if row_domain == str(domain)
+            and (entity_type is None or row_type == str(entity_type))
+            and (namespace is None or row_namespace == str(namespace))
+        ]
+        return deepcopy(records[:limit_value])
+
     def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
         keep_recent = max(int(keep_recent), 0)
         decisions = [
@@ -1356,6 +1504,11 @@ class InMemoryGraphStore:
         self._outbox_quarantine = [
             row for row in self._outbox_quarantine if row.get("domain") != domain
         ]
+        self._entity_enrichments = {
+            key: record
+            for key, record in self._entity_enrichments.items()
+            if key[0] != domain
+        }
         return None
 
     def link_decision_to_entity(

@@ -4,6 +4,13 @@ from __future__ import annotations
 
 from typing import Any, Protocol, runtime_checkable
 
+from copilot_sdk.graph.enrichment import (
+    EnrichmentSourceSet,
+    EntityEnrichmentReceipt,
+    EntityEnrichmentRecord,
+    ProvenancedValue,
+)
+
 
 @runtime_checkable
 class GraphStore(Protocol):
@@ -83,6 +90,42 @@ class GraphStore(Protocol):
 
     def close(self) -> None:
         ...
+
+    def write_entity_enrichment(
+        self,
+        *,
+        domain: str,
+        entity_type: str,
+        entity_id: str,
+        namespace: str,
+        metrics: dict[str, ProvenancedValue],
+        computed_from: EnrichmentSourceSet,
+        dry_run: bool = False,
+        idempotency_key: str | None = None,
+    ) -> EntityEnrichmentReceipt:
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support entity enrichment writes"
+        )
+
+    def read_entity_enrichment(
+        self,
+        *,
+        domain: str,
+        entity_type: str,
+        entity_id: str,
+        namespace: str | None = None,
+    ) -> dict[str, ProvenancedValue]:
+        return {}
+
+    def list_entity_enrichments(
+        self,
+        *,
+        domain: str,
+        entity_type: str | None = None,
+        namespace: str | None = None,
+        limit: int = 500,
+    ) -> list[EntityEnrichmentRecord]:
+        return []
 
 
 @runtime_checkable

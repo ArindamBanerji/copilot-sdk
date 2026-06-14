@@ -113,7 +113,7 @@ def test_tau_unchanged():
 
 
 def test_q_window_unchanged():
-    assert not hasattr(PurchasingPreset(), "q_window")
+    assert PurchasingPreset().q_window == 400
 
 
 def test_centroids_have_20_cells_7d():

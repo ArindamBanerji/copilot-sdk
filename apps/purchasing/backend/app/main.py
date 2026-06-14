@@ -33,6 +33,7 @@ from .routers.iks import create_iks_router  # noqa: E402
 from .routers.match import create_match_router  # noqa: E402
 from .routers.queue import create_queue_router  # noqa: E402
 from .routers.trust import create_trust_router  # noqa: E402
+from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
@@ -43,7 +44,12 @@ from copilot_sdk.backend import (  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
+from copilot_sdk.reporting.weekly import (  # noqa: E402
+    WeeklyReportGenerator,
+    purchasing_cost_extractor,
+)
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
+from copilot_sdk.scoring.presets.purchasing import PurchasingPreset  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 
@@ -411,6 +417,19 @@ def create_app(
     app.include_router(create_queue_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_trust_router(scorer_proxy))
     app.include_router(purchasing_graph_status_router)
+    app.include_router(
+        create_report_router(
+            "purchasing",
+            report_factory=lambda: WeeklyReportGenerator(
+                graph_store=selected_graph_store_factory(scoring_db),
+                scorer=scorer_proxy,
+                domain="purchasing",
+                cost_extractor=purchasing_cost_extractor,
+                preset=PurchasingPreset(),
+            ),
+            prefix="/api/purchasing",
+        )
+    )
 
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:

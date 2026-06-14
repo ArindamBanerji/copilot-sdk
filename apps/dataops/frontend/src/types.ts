@@ -12,6 +12,56 @@ export interface Health {
   engine?: string;
 }
 
+export interface DIProfileSummary {
+  sourceName?: string;
+  source_name?: string;
+  entityType?: string;
+  entity_type?: string;
+  trustTier?: number;
+  trust_tier?: number;
+  freshnessScore?: number;
+  freshness_score?: number;
+  completenessScore?: number;
+  completeness_score?: number;
+  consistencyScore?: number;
+  consistency_score?: number;
+  validationPassRate?: number;
+  validation_pass_rate?: number;
+  recordCount?: number;
+  record_count?: number;
+  lastProfiled?: string | null;
+  last_profiled?: string | null;
+  overallQuality?: number;
+  overall_quality?: number;
+  errors?: string[];
+  [key: string]: unknown;
+}
+
+export interface DISourceSummary {
+  sourceName?: string;
+  source_name?: string;
+  entityType?: string;
+  entity_type?: string;
+  trustTier?: number;
+  trust_tier?: number;
+  hasProfile?: boolean;
+  has_profile?: boolean;
+  cacheStatus?: string;
+  cache_status?: string;
+  ageSeconds?: number | null;
+  age_seconds?: number | null;
+  isStale?: boolean;
+  is_stale?: boolean;
+  latestProfile?: DIProfileSummary;
+  latest_profile?: DIProfileSummary;
+  [key: string]: unknown;
+}
+
+export interface DIProfilesResponse {
+  sources?: DISourceSummary[];
+  total?: number;
+}
+
 export interface PipelineSystem {
   name: string;
   displayName?: string;

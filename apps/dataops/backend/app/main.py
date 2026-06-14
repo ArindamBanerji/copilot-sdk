@@ -36,6 +36,7 @@ from .routers.query import create_query_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
+    create_di_router,
     create_evolution_router,
     create_scoring_router,
     mount_self_computation_router,
@@ -406,6 +407,9 @@ def create_app(
         ),
         prefix="/api",
     )
+    # DataOps mounts the shared DI source profiler API with an empty registry
+    # until concrete SourceConnector implementations are registered.
+    app.include_router(create_di_router({}), prefix="/api")
     app.include_router(
         create_evolution_router(
             graph_store_factory=lambda: selected_graph_store,

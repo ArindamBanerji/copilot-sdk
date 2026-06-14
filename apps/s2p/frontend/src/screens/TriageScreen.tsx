@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchConservation, fetchPreviewQueue, learnDecision, scoreInvoice } from "../api";
+import { CentroidExplorer } from "../components/CentroidExplorer";
 import { EvidenceTemplatePanel } from "../components/EvidenceTemplatePanel";
 import { ProcessContextPanel } from "../components/ProcessContextPanel";
 import { S2PConservationProjection } from "../components/S2PConservationProjection";
@@ -352,6 +353,8 @@ export function TriageScreen() {
                 <S2PReasoningPanel factors={factors} title="7-Factor Reasoning" />
                 <ProcessContextPanel processContext={context} />
               </div>
+
+              <CentroidExplorer decisionId={decisionId} />
             </>
           ) : null}
 

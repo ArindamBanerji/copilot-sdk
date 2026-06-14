@@ -1,6 +1,9 @@
 import type {
   AuditPackResponse,
   AutoApproveStats,
+  CentroidAllResponse,
+  CentroidCell,
+  CentroidExplanation,
   CentroidResponse,
   ClusteringResponse,
   ConservationStatus,
@@ -19,6 +22,9 @@ import type {
   ExpansionProof,
   ExceptionQueueResponse,
   FingerprintResponse,
+  FinancialImpactCategoryResponse,
+  FinancialImpactSummaryResponse,
+  FinancialImpactTrendResponse,
   ImpactSummaryResponse,
   LearnDecisionRequest,
   LearnDecisionResponse,
@@ -265,14 +271,24 @@ export async function getNoveltyHistory(limit = 50): Promise<NoveltyHistoryRespo
   return apiGet<NoveltyHistoryResponse>(`/api/s2p/novelty/history?${params.toString()}`).catch(() => null);
 }
 
-export async function getCentroid(category: string, action: string): Promise<CentroidResponse | null> {
+export async function getAllCentroids(): Promise<CentroidAllResponse | null> {
+  return apiGet<CentroidAllResponse>("/api/s2p/centroid/all").catch(() => null);
+}
+
+export async function getCentroid(category: string, action: string): Promise<CentroidCell | null> {
   return apiGet<CentroidResponse>(
-    `/api/s2p/explorer/centroid/${encodeURIComponent(category)}/${encodeURIComponent(action)}`
+    `/api/s2p/centroid/${encodeURIComponent(category)}/${encodeURIComponent(action)}`
   ).catch(() => null);
 }
 
-export async function getDrift(category: string): Promise<DriftResponse | null> {
-  return apiGet<DriftResponse>(`/api/s2p/explorer/drift/${encodeURIComponent(category)}`).catch(() => null);
+export async function getCentroidExplanation(decisionId: string): Promise<CentroidExplanation | null> {
+  return apiGet<CentroidExplanation>(`/api/s2p/centroid/explain/${encodeURIComponent(decisionId)}`).catch(() => null);
+}
+
+export async function getCentroidDrift(category: string, action: string): Promise<DriftResponse | null> {
+  return apiGet<DriftResponse>(
+    `/api/s2p/centroid/drift/${encodeURIComponent(category)}/${encodeURIComponent(action)}`
+  ).catch(() => null);
 }
 
 export async function getDKWeights(): Promise<DKWeightsResponse | null> {
@@ -356,6 +372,20 @@ export async function fetchVariants(): Promise<unknown | null> {
 export async function fetchImpact(period = "annual"): Promise<unknown | null> {
   const params = new URLSearchParams({ period });
   return apiGetNullable<unknown>(`/api/s2p/pvg/impact?${params.toString()}`);
+}
+
+export async function fetchFinancialImpact(): Promise<FinancialImpactSummaryResponse | null> {
+  return apiGetNullable<FinancialImpactSummaryResponse>("/api/s2p/financial-impact");
+}
+
+export async function fetchFinancialImpactTrend(): Promise<FinancialImpactTrendResponse | null> {
+  return apiGetNullable<FinancialImpactTrendResponse>("/api/s2p/financial-impact/trend");
+}
+
+export async function fetchFinancialImpactCategory(category: string): Promise<FinancialImpactCategoryResponse | null> {
+  return apiGetNullable<FinancialImpactCategoryResponse>(
+    `/api/s2p/financial-impact/${encodeURIComponent(category)}`
+  );
 }
 
 export async function fetchLeakage(): Promise<unknown | null> {

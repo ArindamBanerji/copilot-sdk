@@ -59,6 +59,15 @@ class MinimalStore:
     def close(self):
         return None
 
+    def write_entity_enrichment(self, **kwargs):
+        raise NotImplementedError("MinimalStore does not support entity enrichment writes")
+
+    def read_entity_enrichment(self, **kwargs):
+        return {}
+
+    def list_entity_enrichments(self, **kwargs):
+        return []
+
 
 def _sqlite_events(db_path: Path) -> list[dict]:
     connection = sqlite3.connect(db_path)

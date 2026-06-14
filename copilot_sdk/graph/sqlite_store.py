@@ -9,11 +9,21 @@ import threading
 import time
 import uuid
 from collections.abc import Iterable, Mapping
+from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
+
+from copilot_sdk.graph.enrichment import (
+    EnrichmentSourceSet,
+    EntityEnrichmentReceipt,
+    EntityEnrichmentRecord,
+    ProvenancedValue,
+    is_protected_metric_name,
+    utc_iso_now,
+)
 
 SQLITE_BUSY_TIMEOUT_MS = 5000
 SQLITE_LOCK_RETRY_DELAYS = (0.05, 0.1, 0.25, 0.5)
@@ -655,6 +665,20 @@ class SQLiteGraphStore:
                 archive_reason TEXT NOT NULL DEFAULT 'retention_window'
             );
 
+            CREATE TABLE IF NOT EXISTS entity_enrichments (
+                domain TEXT NOT NULL,
+                entity_type TEXT NOT NULL,
+                entity_id TEXT NOT NULL,
+                namespace TEXT NOT NULL,
+                metric_name TEXT NOT NULL,
+                value_json TEXT NOT NULL,
+                provenance_json TEXT NOT NULL,
+                source_set_json TEXT NOT NULL,
+                computed_at TEXT NOT NULL,
+                idempotency_key TEXT,
+                PRIMARY KEY (domain, entity_type, entity_id, namespace, metric_name)
+            );
+
             """
         )
         self.connection.commit()
@@ -679,6 +703,7 @@ class SQLiteGraphStore:
             "conservation_snapshots",
             "fingerprints",
             "decisions_archive",
+            "entity_enrichments",
         ):
             self._ensure_domain_column(table)
         self._create_indexes()
@@ -712,7 +737,9 @@ class SQLiteGraphStore:
              CREATE INDEX IF NOT EXISTS idx_l5_centroids_domain ON l5_centroids(domain);
              CREATE UNIQUE INDEX IF NOT EXISTS idx_l5_dk_weights_current_domain ON l5_dk_weights(domain) WHERE is_current = 1;
              CREATE INDEX IF NOT EXISTS idx_decisions_archive_domain ON decisions_archive(domain);
-             """
+             CREATE INDEX IF NOT EXISTS idx_entity_enrichments_lookup ON entity_enrichments(domain, entity_type, entity_id, namespace);
+             CREATE INDEX IF NOT EXISTS idx_entity_enrichments_namespace ON entity_enrichments(domain, entity_type, namespace);
+              """
          )
 
     def _columns(self, table: str) -> set[str]:
@@ -2433,6 +2460,188 @@ class SQLiteGraphStore:
             ).fetchall()
         return [dict(row) for row in rows]
 
+    def write_entity_enrichment(
+        self,
+        *,
+        domain: str,
+        entity_type: str,
+        entity_id: str,
+        namespace: str,
+        metrics: dict[str, ProvenancedValue],
+        computed_from: EnrichmentSourceSet,
+        dry_run: bool = False,
+        idempotency_key: str | None = None,
+    ) -> EntityEnrichmentReceipt:
+        domain = str(domain)
+        entity_type = str(entity_type)
+        entity_id = str(entity_id)
+        namespace = str(namespace)
+        computed_at = utc_iso_now()
+        allowed: dict[str, ProvenancedValue] = {}
+        protected: list[str] = []
+        rejected: list[str] = []
+        warnings: list[str] = []
+
+        for metric_name, value in dict(metrics or {}).items():
+            metric_key = str(metric_name)
+            if is_protected_metric_name(metric_key):
+                protected.append(metric_key)
+                rejected.append(metric_key)
+                continue
+            if not isinstance(value, ProvenancedValue):
+                raise TypeError("metrics values must be ProvenancedValue instances")
+            allowed[metric_key] = value
+
+        if protected:
+            warnings.append("protected metric names were rejected")
+        if not allowed:
+            warnings.append("no enrichment metrics were written")
+            return EntityEnrichmentReceipt(
+                domain=domain,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                namespace=namespace,
+                persisted=False,
+                dry_run=bool(dry_run),
+                metrics_written=[],
+                metrics_rejected=rejected,
+                protected_fields_rejected=protected,
+                idempotency_key=str(idempotency_key or ""),
+                computed_at=computed_at,
+                warnings=warnings,
+            )
+
+        if dry_run:
+            return EntityEnrichmentReceipt(
+                domain=domain,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                namespace=namespace,
+                persisted=False,
+                dry_run=True,
+                metrics_written=list(allowed),
+                metrics_rejected=rejected,
+                protected_fields_rejected=protected,
+                idempotency_key=str(idempotency_key or ""),
+                computed_at=computed_at,
+                warnings=warnings,
+            )
+
+        source_set_json = _to_json(asdict(computed_from))
+
+        def persist() -> None:
+            for metric_name, value in allowed.items():
+                self.connection.execute(
+                    """
+                    INSERT INTO entity_enrichments (
+                        domain, entity_type, entity_id, namespace, metric_name,
+                        value_json, provenance_json, source_set_json, computed_at, idempotency_key
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(domain, entity_type, entity_id, namespace, metric_name)
+                    DO UPDATE SET
+                        value_json = excluded.value_json,
+                        provenance_json = excluded.provenance_json,
+                        source_set_json = excluded.source_set_json,
+                        computed_at = excluded.computed_at,
+                        idempotency_key = excluded.idempotency_key
+                    """,
+                    (
+                        domain,
+                        entity_type,
+                        entity_id,
+                        namespace,
+                        metric_name,
+                        _to_json(value.value),
+                        _to_json(value.to_storage_dict()),
+                        source_set_json,
+                        computed_at,
+                        idempotency_key,
+                    ),
+                )
+            return None
+
+        self._run_write(persist)
+        return EntityEnrichmentReceipt(
+            domain=domain,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            namespace=namespace,
+            persisted=True,
+            dry_run=False,
+            metrics_written=list(allowed),
+            metrics_rejected=rejected,
+            protected_fields_rejected=protected,
+            idempotency_key=str(idempotency_key or ""),
+            computed_at=computed_at,
+            warnings=warnings,
+        )
+
+    def read_entity_enrichment(
+        self,
+        *,
+        domain: str,
+        entity_type: str,
+        entity_id: str,
+        namespace: str | None = None,
+    ) -> dict[str, ProvenancedValue]:
+        params: list[Any] = [str(domain), str(entity_type), str(entity_id)]
+        namespace_filter = ""
+        if namespace is not None:
+            namespace_filter = " AND namespace = ?"
+            params.append(str(namespace))
+        rows = self.connection.execute(
+            f"""
+            SELECT namespace, metric_name, value_json, provenance_json
+            FROM entity_enrichments
+            WHERE domain = ? AND entity_type = ? AND entity_id = ?{namespace_filter}
+            ORDER BY namespace, metric_name
+            """,
+            params,
+        ).fetchall()
+        result: dict[str, ProvenancedValue] = {}
+        for row in rows:
+            key = row["metric_name"] if namespace is not None else f"{row['namespace']}.{row['metric_name']}"
+            result[key] = ProvenancedValue.from_storage_dict(
+                _from_json(row["value_json"]),
+                _from_json(row["provenance_json"]),
+            )
+        return result
+
+    def list_entity_enrichments(
+        self,
+        *,
+        domain: str,
+        entity_type: str | None = None,
+        namespace: str | None = None,
+        limit: int = 500,
+    ) -> list[EntityEnrichmentRecord]:
+        try:
+            limit_value = int(limit)
+        except (TypeError, ValueError):
+            limit_value = 500
+        limit_value = max(0, limit_value)
+        params: list[Any] = [str(domain)]
+        filters = ["domain = ?"]
+        if entity_type is not None:
+            filters.append("entity_type = ?")
+            params.append(str(entity_type))
+        if namespace is not None:
+            filters.append("namespace = ?")
+            params.append(str(namespace))
+        params.append(limit_value)
+        rows = self.connection.execute(
+            f"""
+            SELECT domain, entity_type, entity_id, namespace, metric_name,
+                   value_json, provenance_json, source_set_json, computed_at, idempotency_key
+            FROM entity_enrichments
+            WHERE {" AND ".join(filters)}
+            ORDER BY domain, entity_type, entity_id, namespace, metric_name
+            LIMIT ?
+            """,
+            params,
+        ).fetchall()
+        return [self._entity_enrichment_record_from_row(row) for row in rows]
+
     def count_categories_with_n(self, domain: str, n: int) -> int:
         rows = self.connection.execute(
             """
@@ -2618,6 +2827,7 @@ class SQLiteGraphStore:
                   "l5_centroids",
                   "l5_dk_weights",
                   "l5_conservation_state",
+                  "entity_enrichments",
                 ):
                     self.connection.execute(f"DELETE FROM {table} WHERE domain = ?", (domain,))
             return None
@@ -2670,6 +2880,23 @@ class SQLiteGraphStore:
             }
         )
         return data
+
+    def _entity_enrichment_record_from_row(self, row: sqlite3.Row) -> EntityEnrichmentRecord:
+        value = ProvenancedValue.from_storage_dict(
+            _from_json(row["value_json"]),
+            _from_json(row["provenance_json"]),
+        )
+        return EntityEnrichmentRecord(
+            domain=row["domain"],
+            entity_type=row["entity_type"],
+            entity_id=row["entity_id"],
+            namespace=row["namespace"],
+            metric_name=row["metric_name"],
+            value=value,
+            computed_from=EnrichmentSourceSet(**_from_json(row["source_set_json"])),
+            computed_at=row["computed_at"],
+            idempotency_key=row["idempotency_key"] or "",
+        )
 
     def _checkpoint_from_row(self, row: sqlite3.Row) -> dict[str, Any]:
         return {

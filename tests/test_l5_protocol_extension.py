@@ -129,6 +129,15 @@ def test_minimal_graphstore_does_not_need_l5_methods() -> None:
         def close(self):
             return None
 
+        def write_entity_enrichment(self, **kwargs):
+            raise NotImplementedError("MinimalGraphStore does not support entity enrichment writes")
+
+        def read_entity_enrichment(self, **kwargs):
+            return {}
+
+        def list_entity_enrichments(self, **kwargs):
+            return []
+
     assert isinstance(MinimalGraphStore(), GraphStore)
     assert not isinstance(MinimalGraphStore(), L5LearningStore)
 

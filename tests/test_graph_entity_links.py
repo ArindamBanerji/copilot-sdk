@@ -130,6 +130,15 @@ class MinimalGraphStore:
     def close(self):
         return None
 
+    def write_entity_enrichment(self, **kwargs):
+        raise NotImplementedError("MinimalGraphStore does not support entity enrichment writes")
+
+    def read_entity_enrichment(self, **kwargs):
+        return {}
+
+    def list_entity_enrichments(self, **kwargs):
+        return []
+
 
 def _build_scorer(tmp_path, graph_store=None) -> CompoundingScorer:
     preset = LinkPreset()
