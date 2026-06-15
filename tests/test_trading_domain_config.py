@@ -219,3 +219,61 @@ def test_config_does_not_affect_scoring(tmp_path):
         assert r1.confidence == r2.confidence
     finally:
         scorer.graph_store.close()
+
+
+def test_validate_against_preset_clean():
+    """TradingDomainConfig matches TradingPreset exactly."""
+    from copilot_sdk.scoring.presets.trading import TradingPreset
+
+    TradingDomainConfig = _trading_config_cls()
+    config = TradingDomainConfig()
+    preset = TradingPreset()
+    errors = config.validate_against_preset(preset)
+    assert errors == [], f"Config/preset mismatch: {errors}"
+
+
+def test_validate_detects_count_mismatch():
+    """Config with wrong factor count produces error."""
+    from copilot_sdk.scoring.presets.trading import TradingPreset
+
+    config = BaseDomainConfig()
+    config.factors = [DomainFactor(id="only_one", label="Only")]
+    errors = config.validate_against_preset(TradingPreset())
+    assert any("factors" in error for error in errors)
+
+
+def test_validate_detects_id_mismatch():
+    """Config with renamed factor produces error."""
+    from copilot_sdk.scoring.presets.trading import TradingPreset
+
+    TradingDomainConfig = _trading_config_cls()
+    config = TradingDomainConfig()
+    wrong = list(config.factors)
+    wrong[0] = DomainFactor(id="WRONG_NAME", label="Wrong")
+    config.factors = wrong
+    errors = config.validate_against_preset(TradingPreset())
+    assert any("factor IDs" in error for error in errors)
+
+
+def test_validate_detects_reorder():
+    """Config with swapped factor order produces error."""
+    from copilot_sdk.scoring.presets.trading import TradingPreset
+
+    TradingDomainConfig = _trading_config_cls()
+    config = TradingDomainConfig()
+    swapped = list(config.factors)
+    swapped[0], swapped[1] = swapped[1], swapped[0]
+    config.factors = swapped
+    errors = config.validate_against_preset(TradingPreset())
+    assert any("factor IDs" in error for error in errors)
+
+
+def test_validate_no_shape_returns_empty():
+    """Preset without .shape returns no errors (graceful)."""
+    TradingDomainConfig = _trading_config_cls()
+
+    class NoShapePreset:
+        pass
+
+    errors = TradingDomainConfig().validate_against_preset(NoShapePreset())
+    assert errors == []

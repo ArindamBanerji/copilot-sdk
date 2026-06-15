@@ -15,6 +15,7 @@ migrate to this SDK version when it next touches its DomainConfig.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -105,3 +106,70 @@ class BaseDomainConfig:
 
     def get_factor_ids(self) -> list[str]:
         return [factor.id for factor in self.factors]
+
+    def validate_against_preset(self, preset: Any) -> list[str]:
+        """Verify domain config agrees with scorer preset shape.
+
+        Checks count AND ordered ID parity for actions, factors, categories.
+        Returns list of mismatches (empty = clean).
+
+        This is the programmatic SHAPE-02 integrity check.
+
+        Args:
+            preset: A DomainPreset with a .shape attribute (DomainShape with
+                n_actions, n_factors, n_categories, action_names, factor_names,
+                category_names).
+
+        Returns:
+            List of mismatch descriptions. Empty = config and preset agree
+            completely.
+
+        Future: DD-1 entity_field check can be added here when entity_field
+        ships on DomainPreset.
+        """
+        shape = getattr(preset, "shape", None)
+        if shape is None:
+            return []
+
+        errors: list[str] = []
+        def check(
+            label: str,
+            ids: list[str],
+            configured_count: int,
+            expected_count: int,
+            expected_ids: list[str],
+        ) -> None:
+            if configured_count != expected_count:
+                errors.append(
+                    f"{label} count mismatch: config={configured_count} "
+                    f"preset={expected_count}"
+                )
+            id_label = label[:-1] if label.endswith("s") else label
+            if ids != expected_ids:
+                errors.append(
+                    f"{id_label} IDs mismatch: config={ids} preset={expected_ids}"
+                )
+
+        check(
+            "actions",
+            self.get_action_ids(),
+            len(self.actions),
+            shape.n_actions,
+            list(shape.action_names),
+        )
+        check(
+            "factors",
+            self.get_factor_ids(),
+            len(self.factors),
+            shape.n_factors,
+            list(shape.factor_names),
+        )
+        check(
+            "categories",
+            self.get_categories(),
+            len(self.categories),
+            shape.n_categories,
+            list(shape.category_names),
+        )
+
+        return errors
