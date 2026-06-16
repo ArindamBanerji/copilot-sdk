@@ -15,3 +15,4 @@ class Provenanced(Generic[T]):
     value: T
     source: str
     label: str | None = None
+    as_of: str | None = None  # ISO timestamp of data freshness
