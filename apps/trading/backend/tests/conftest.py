@@ -17,6 +17,8 @@ for path in (BACKEND_ROOT, REPO_ROOT):
 
 from app import context_router  # noqa: E402
 from app.main import create_app  # noqa: E402
+from apps.trading.backend.app.connectors.market_source import MockMarketSource  # noqa: E402
+from apps.trading.backend.app.services.market_data_provider import MarketDataProvider  # noqa: E402
 
 
 @pytest.fixture
@@ -44,3 +46,15 @@ def client(tmp_path, monkeypatch) -> TestClient:
     app = create_app(db_path=tmp_path / "trading_test.db", demo_bundle_path=False)
     app.state.trading_data_dir = temp_data
     return TestClient(app)
+
+
+@pytest.fixture
+def mock_market_source():
+    """Shared mock market source for all trading tests."""
+    return MockMarketSource()
+
+
+@pytest.fixture
+def market_provider(mock_market_source):
+    """Shared market data provider with mock source."""
+    return MarketDataProvider(source=mock_market_source)
