@@ -35,6 +35,18 @@ from app.factors.registry import (  # noqa: E402
     TRADING_FACTOR_COMPUTERS,
     compute_factors,
 )
+from app.cli_sdk import (  # noqa: E402
+    _cmd_conservation as _sdk_cmd_conservation,
+    _cmd_decide as _sdk_cmd_decide,
+    _cmd_init as _sdk_cmd_init,
+    _cmd_journal as _sdk_cmd_journal,
+    _cmd_learn as _sdk_cmd_learn,
+    _cmd_record as _sdk_cmd_record,
+    _cmd_score as _sdk_cmd_score,
+    _cmd_status as _sdk_cmd_status,
+    _cmd_trust as _sdk_cmd_trust,
+    add_sdk_subcommands,
+)
 from app.services.subcategory import get_subcategory  # noqa: E402
 
 
@@ -225,6 +237,34 @@ def cmd_init(args: argparse.Namespace) -> int:
         print(f"Created trades store: {trades_path}")
     else:
         print(f"Trades store already exists: {trades_path}")
+    return 0
+
+
+def cmd_config(args: argparse.Namespace) -> int:
+    if args.disable_pattern_detection and args.enable_pattern_detection:
+        print("Choose only one pattern-detection toggle.", file=sys.stderr)
+        return 1
+
+    config_dir = Path(args.config_dir).expanduser()
+    config = _load_config(config_dir) or {
+        "version": "0.1.0",
+        "broker": None,
+        "data_dir": str(config_dir),
+        "pattern_detection_enabled": True,
+    }
+
+    changed = False
+    if args.disable_pattern_detection:
+        config["pattern_detection_enabled"] = False
+        changed = True
+    elif args.enable_pattern_detection:
+        config["pattern_detection_enabled"] = True
+        changed = True
+
+    if changed:
+        _save_config(config, config_dir)
+
+    print(json.dumps(config, indent=2))
     return 0
 
 
@@ -942,14 +982,71 @@ def cmd_evolution_promote(args: argparse.Namespace) -> int:
     return 1
 
 
+def _sdk_missing_args(*names: str) -> int:
+    print(
+        json.dumps(
+            {
+                "error": f"Missing required SDK argument(s): {', '.join(names)}",
+                "hint": "Use --category and --factors for SDK-backed scoring commands.",
+            },
+            indent=2,
+        )
+    )
+    return 1
+
+
+def cmd_init_dispatch(args: argparse.Namespace) -> int:
+    if getattr(args, "db_path", None):
+        return _sdk_cmd_init(args)
+    return cmd_init(args)
+
+
+def cmd_score_dispatch(args: argparse.Namespace) -> int:
+    sdk_requested = any(
+        getattr(args, name, None)
+        for name in ("db_path", "category", "factors")
+    )
+    if not sdk_requested:
+        return cmd_score(args)
+    missing = [name for name in ("category", "factors") if not getattr(args, name, None)]
+    if missing:
+        return _sdk_missing_args(*missing)
+    return _sdk_cmd_score(args)
+
+
+def cmd_trust_dispatch(args: argparse.Namespace) -> int:
+    if getattr(args, "db_path", None) or getattr(args, "category", None) or getattr(args, "format", None):
+        return _sdk_cmd_trust(args)
+    return cmd_trust(args)
+
+
+def cmd_conservation_dispatch(args: argparse.Namespace) -> int:
+    if getattr(args, "db_path", None):
+        return _sdk_cmd_conservation(args)
+    return cmd_conservation(args)
+
+
+def cmd_journal_dispatch(args: argparse.Namespace) -> int:
+    if getattr(args, "db_path", None) or getattr(args, "format", None):
+        return _sdk_cmd_journal(args)
+    return cmd_journal(args)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ci-trading")
     parser.add_argument("--config-dir", default=DEFAULT_CONFIG_DIR)
 
     subparsers = parser.add_subparsers(dest="command")
+    add_sdk_subcommands(subparsers)
 
     init_parser = subparsers.add_parser("init", help="Initialize local Trading CLI storage.")
-    init_parser.set_defaults(func=cmd_init)
+    init_parser.add_argument("--db-path")
+    init_parser.set_defaults(func=cmd_init_dispatch)
+
+    config_parser = subparsers.add_parser("config", help="Show or update local Trading CLI config.")
+    config_parser.add_argument("--disable-pattern-detection", action="store_true")
+    config_parser.add_argument("--enable-pattern-detection", action="store_true")
+    config_parser.set_defaults(func=cmd_config)
 
     import_parser = subparsers.add_parser("import", help="Import trades from CSV.")
     import_parser.add_argument("--file")
@@ -960,16 +1057,47 @@ def build_parser() -> argparse.ArgumentParser:
 
     score_parser = subparsers.add_parser("score", help="Compute offline factor scores.")
     score_parser.add_argument("--trade-id")
-    score_parser.set_defaults(func=cmd_score)
+    score_parser.add_argument("--category")
+    score_parser.add_argument("--factors")
+    score_parser.add_argument("--db-path")
+    score_parser.set_defaults(func=cmd_score_dispatch)
+
+    decide_parser = subparsers.add_parser("decide", help="Persist an SDK scorer decision.")
+    decide_parser.add_argument("--category", required=True)
+    decide_parser.add_argument("--factors", required=True)
+    decide_parser.add_argument("--db-path")
+    decide_parser.set_defaults(func=_sdk_cmd_decide)
+
+    learn_parser = subparsers.add_parser("learn", help="Record an SDK outcome for a decision.")
+    learn_parser.add_argument("--decision", required=True)
+    learn_parser.add_argument("--action", required=True)
+    learn_parser.add_argument("--db-path")
+    learn_parser.set_defaults(func=_sdk_cmd_learn)
+
+    record_parser = subparsers.add_parser("record", help="Persist an SDK decision and outcome.")
+    record_parser.add_argument("--category", required=True)
+    record_parser.add_argument("--factors", required=True)
+    record_parser.add_argument("--action", required=True)
+    record_parser.add_argument("--db-path")
+    record_parser.set_defaults(func=_sdk_cmd_record)
 
     trust_parser = subparsers.add_parser("trust", help="Summarize factor computer coverage.")
-    trust_parser.set_defaults(func=cmd_trust)
+    trust_parser.add_argument("--category")
+    trust_parser.add_argument("--db-path")
+    trust_parser.add_argument("--format", choices=["json", "human"])
+    trust_parser.set_defaults(func=cmd_trust_dispatch)
 
     conservation_parser = subparsers.add_parser(
         "conservation",
         help="Show an offline conservation proxy.",
     )
-    conservation_parser.set_defaults(func=cmd_conservation)
+    conservation_parser.add_argument("--db-path")
+    conservation_parser.set_defaults(func=cmd_conservation_dispatch)
+
+    status_parser = subparsers.add_parser("status", help="Show SDK-backed Trading status.")
+    status_parser.add_argument("--db-path")
+    status_parser.add_argument("--format", choices=["json", "human"], default="json")
+    status_parser.set_defaults(func=_sdk_cmd_status)
 
     journal_parser = subparsers.add_parser("journal", help="Show local imported trade journal.")
     journal_parser.add_argument("--ticker")
@@ -978,7 +1106,9 @@ def build_parser() -> argparse.ArgumentParser:
     journal_parser.add_argument("--wins-only", action="store_true")
     journal_parser.add_argument("--losses-only", action="store_true")
     journal_parser.add_argument("--limit", type=int, default=20)
-    journal_parser.set_defaults(func=cmd_journal)
+    journal_parser.add_argument("--db-path")
+    journal_parser.add_argument("--format", choices=["json", "human"])
+    journal_parser.set_defaults(func=cmd_journal_dispatch)
 
     regime_parser = subparsers.add_parser("regime", help="Show current market regime and local regime accuracy.")
     regime_parser.add_argument("--detail", action="store_true")
@@ -1059,7 +1189,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
-    args = parser.parse_args(argv)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        code = exc.code if isinstance(exc.code, int) else 1
+        if code != 0:
+            print(json.dumps({"error": "Invalid arguments", "hint": "Run 'ci-trading --help'"}))
+        raise
     if not hasattr(args, "func"):
         parser.print_help()
         return 1
