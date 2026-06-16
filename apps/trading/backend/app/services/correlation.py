@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import importlib
+import importlib.util
 from datetime import datetime, timedelta, timezone
 from math import isnan
 from typing import Any
@@ -15,13 +17,8 @@ except ImportError:
     np = None  # type: ignore[assignment]
     NUMPY_AVAILABLE = False
 
-try:
-    import yfinance as yf  # type: ignore
-
-    YFINANCE_AVAILABLE = True
-except ImportError:
-    yf = None  # type: ignore[assignment]
-    YFINANCE_AVAILABLE = False
+YFINANCE_AVAILABLE = importlib.util.find_spec("yfinance") is not None
+yf: Any | None = None
 
 
 ALERT_WARNING = 0.6
@@ -31,14 +28,15 @@ MAX_TICKERS = 20
 
 
 class CorrelationService:
-    def __init__(self, window_days: int = DEFAULT_WINDOW) -> None:
+    def __init__(self, window_days: int = DEFAULT_WINDOW, provider: Any | None = None) -> None:
         self.window_days = max(2, int(window_days or DEFAULT_WINDOW))
+        self._provider = provider
 
     def compute(self, trades: list[dict[str, Any]]) -> dict[str, Any]:
         tickers = _extract_tickers(trades)
         if len(tickers) < 2:
             return self._insufficient(tickers, "At least two tickers are required for correlation monitoring.")
-        if not YFINANCE_AVAILABLE or yf is None:
+        if self._provider is None and (not YFINANCE_AVAILABLE or _yfinance_module() is None):
             return self._insufficient(tickers, "yfinance is unavailable.")
         if not NUMPY_AVAILABLE or np is None:
             return self._insufficient(tickers, "numpy is unavailable.")
@@ -68,12 +66,18 @@ class CorrelationService:
         }
 
     def _fetch_returns(self, tickers: list[str]) -> dict[str, list[float]] | None:
-        if not YFINANCE_AVAILABLE or yf is None:
+        end = datetime.now(timezone.utc).date()
+        start = end - timedelta(days=self.window_days * 2)
+        if self._provider is not None:
+            result = self._provider.get_batch_returns(tickers, start.isoformat(), end.isoformat())
+            history = result.value if result is not None else None
+            return self._returns_from_history(tickers, history if isinstance(history, dict) else None)
+
+        yf_module = _yfinance_module()
+        if not YFINANCE_AVAILABLE or yf_module is None:
             return None
         try:
-            end = datetime.now(timezone.utc).date()
-            start = end - timedelta(days=self.window_days * 2)
-            data = yf.download(
+            data = yf_module.download(
                 tickers,
                 start=start.isoformat(),
                 end=end.isoformat(),
@@ -100,6 +104,23 @@ class CorrelationService:
             return output
         except Exception:
             return None
+
+    def _returns_from_history(
+        self,
+        tickers: list[str],
+        history: dict[str, list[dict]] | None,
+    ) -> dict[str, list[float]] | None:
+        if not history:
+            return None
+        output: dict[str, list[float]] = {}
+        for ticker in tickers:
+            rows = history.get(ticker)
+            if not rows:
+                continue
+            values = _pct_change([row.get("close") for row in rows])
+            if len(values) >= self.window_days - 2:
+                output[ticker] = values[-self.window_days :]
+        return output
 
     def _compute_matrix(
         self,
@@ -203,3 +224,16 @@ def _pct_change(values: list[Any]) -> list[float]:
             output.append((current - previous) / previous)
         previous = current
     return output
+
+
+def _yfinance_module() -> Any | None:
+    global yf
+    if yf is not None:
+        return yf
+    if not YFINANCE_AVAILABLE:
+        return None
+    try:
+        yf = importlib.import_module("yfinance")
+        return yf
+    except ImportError:
+        return None

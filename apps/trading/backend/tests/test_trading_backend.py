@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from app import context_router
 from app.main import _build_seed_context
+from copilot_sdk.evidence.provenance import Provenanced
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
@@ -33,6 +34,24 @@ TRADING_SEED_FACTORS = tuple(
         "options_gamma_risk",
     }
 )
+
+
+class _FakeContextProvider:
+    def __init__(
+        self,
+        *,
+        market_snapshot: dict | None = None,
+        tickers: dict[str, dict] | None = None,
+    ):
+        self._market_snapshot = market_snapshot
+        self._tickers = tickers or {}
+
+    def get_market_snapshot(self):
+        return Provenanced(value=self._market_snapshot, source="live", as_of="2026-06-14T16:00:00Z")
+
+    def get_ticker_snapshot(self, ticker: str):
+        value = self._tickers.get(ticker)
+        return Provenanced(value=value, source="live", as_of="2026-06-14T16:00:00Z")
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 REQUIRED_SEED_FIELDS = {
     "trade_id",
@@ -133,45 +152,77 @@ def test_seed_context_uses_current_trading_factor_width():
     assert context["options_gamma_risk"] == 0.5
 
 
-def test_market_snapshot(client):
+def test_market_snapshot(client, monkeypatch):
+    monkeypatch.setattr(
+        context_router,
+        "_provider",
+        _FakeContextProvider(
+            market_snapshot={
+                "spy": {"price": 555.2, "change_pct": 1.3},
+                "vix": 14.8,
+                "rsi": 58.2,
+                "above_50ma": True,
+                "volume_rank": 67,
+                "sector": "Financial Services",
+                "market_cap_b": 550.1,
+            }
+        ),
+    )
     response = client.get("/api/context/market-snapshot")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["source"] == "cached"
+    assert payload["source"] == "live"
+    assert payload["provenance"]["source"] == "live"
     assert "spy" in payload
     assert "vix" in payload
     assert "sector" in payload
+    assert payload["spy"]["change30dPct"] == 1.3
 
 
 def test_market_snapshot_missing_file_returns_default(client, monkeypatch, tmp_path):
-    from app import context_router
-
+    monkeypatch.setattr(context_router, "_provider", _FakeContextProvider(market_snapshot=None))
     monkeypatch.setattr(context_router, "_DATA_DIR", tmp_path / "missing-data")
     monkeypatch.setattr(context_router, "_DEFAULT_DATA_DIR", tmp_path / "missing-default-data")
 
     response = client.get("/api/context/market-snapshot")
 
     assert response.status_code == 200
-    assert response.json() == {
-        "regime": "ranging",
-        "vix": 20.0,
-        "adx": 25.0,
-        "source": "default",
-    }
+    payload = response.json()
+    assert payload["regime"] == "ranging"
+    assert payload["vix"]["price"] == 20.0
+    assert payload["adx"] == 25.0
+    assert payload["source"] == "default"
+    assert payload["provenance"] == {"source": "fixture", "as_of": None}
 
 
-def test_ticker_known(client):
+def test_ticker_known(client, monkeypatch):
+    monkeypatch.setattr(
+        context_router,
+        "_provider",
+        _FakeContextProvider(
+            tickers={
+                "NVDA": {
+                    "ticker": "NVDA",
+                    "price": 900.0,
+                    "change_30d_pct": 2.1,
+                    "volume": 30_000_000,
+                }
+            }
+        ),
+    )
     response = client.get("/api/context/ticker/NVDA")
 
     assert response.status_code == 200
     payload = response.json()
     assert payload["ticker"] == "NVDA"
     assert payload["price"] is not None
-    assert payload["source"] == "cached"
+    assert payload["source"] == "live"
+    assert payload["provenance"]["as_of"] == "2026-06-14T16:00:00Z"
 
 
-def test_ticker_unknown(client):
+def test_ticker_unknown(client, monkeypatch):
+    monkeypatch.setattr(context_router, "_provider", _FakeContextProvider())
     response = client.get("/api/context/ticker/ZZZZ")
 
     assert response.status_code == 200
@@ -179,9 +230,29 @@ def test_ticker_unknown(client):
     assert payload["ticker"] == "ZZZZ"
     assert payload["price"] is None
     assert payload["source"] == "unknown"
+    assert payload["provenance"] == {"source": "fixture", "as_of": None}
 
 
-def test_ticker_enhanced_fields(client):
+def test_ticker_enhanced_fields(client, monkeypatch):
+    monkeypatch.setattr(
+        context_router,
+        "_provider",
+        _FakeContextProvider(
+            tickers={
+                "MSFT": {
+                    "ticker": "MSFT",
+                    "price": 430.0,
+                    "change_30d_pct": 1.4,
+                    "volume": 22_000_000,
+                    "sector": "Technology",
+                    "rsi": 59.5,
+                    "above_50ma": True,
+                    "vol_rank_pctl": 71,
+                    "market_cap_b": 3200.0,
+                }
+            }
+        ),
+    )
     response = client.get("/api/context/ticker/MSFT")
 
     assert response.status_code == 200
@@ -191,6 +262,8 @@ def test_ticker_enhanced_fields(client):
     assert isinstance(payload["rsi"], float)
     assert isinstance(payload["above_50ma"], bool)
     assert isinstance(payload["vol_rank_pctl"], int)
+    assert payload["volRankPctl"] == payload["vol_rank_pctl"]
+    assert payload["marketCapB"] == payload["market_cap_b"]
     assert payload["market_cap_b"] > 0
 
 

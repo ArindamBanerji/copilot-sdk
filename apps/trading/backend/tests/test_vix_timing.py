@@ -4,8 +4,9 @@ from datetime import datetime, timezone
 
 import cli
 from app.routers import data_import
-from app.services.regime import RegimeService
+from app.routers import vix_timing as vix_timing_router
 from app.services.vix_timing import VIXTimingService, _bucket_hold_period, _bucket_vix
+from copilot_sdk.evidence.provenance import Provenanced
 
 
 def _trade(
@@ -39,6 +40,17 @@ def _many_trades(prefix: str, count: int, entry: str, exit_: str, wins: int) -> 
     for index in range(count):
         rows.append(_trade(f"{prefix}-{index}", entry, exit_, 1.0 if index < wins else -1.0))
     return rows
+
+
+class _FakeVixProvider:
+    def __init__(self, payload: dict[str, float], calls: dict[str, int] | None = None):
+        self._payload = payload
+        self._calls = calls
+
+    def get_vix_history(self, start: str, end: str):
+        if self._calls is not None:
+            self._calls["count"] += 1
+        return Provenanced(value=self._payload, source="live")
 
 
 def test_hold_intraday_under_8h():
@@ -207,7 +219,7 @@ def test_recommendations_insufficient_data():
 def test_vix_timing_returns_200(client, monkeypatch):
     data_import._trade_store_ref.clear()
     data_import._trade_store_ref.append(_trade("t1", "2026-01-01T09:00:00", "2026-01-01T12:00:00", 1.0))
-    monkeypatch.setattr(RegimeService, "get_historical_vix", lambda self, trades: {"2026-01-01": 18.0})
+    monkeypatch.setattr(vix_timing_router, "_provider", _FakeVixProvider({"2026-01-01": 18.0}))
 
     response = client.get("/api/trading/vix-timing")
 
@@ -224,16 +236,12 @@ def test_vix_timing_no_trades_returns_empty_or_all_skipped(client):
     assert payload["matrix"]["intraday"]["low"]["count"] == 0
 
 
-def test_vix_timing_uses_regime_historical_vix_mocked(client, monkeypatch):
+def test_vix_timing_uses_provider_vix_mocked(client, monkeypatch):
     data_import._trade_store_ref.clear()
     data_import._trade_store_ref.append(_trade("t1", "2026-01-01T09:00:00", "2026-01-01T12:00:00", 1.0))
     calls = {"count": 0}
 
-    def fake_vix(self, trades):
-        calls["count"] += 1
-        return {"2026-01-01": 31.0}
-
-    monkeypatch.setattr(RegimeService, "get_historical_vix", fake_vix)
+    monkeypatch.setattr(vix_timing_router, "_provider", _FakeVixProvider({"2026-01-01": 31.0}, calls))
 
     payload = client.get("/api/trading/vix-timing").json()
 
@@ -245,9 +253,8 @@ def test_vix_timing_command_output(tmp_path, monkeypatch, capsys):
     config_dir = _config_dir(tmp_path)
     assert cli.main(["--config-dir", str(config_dir), "init"]) == 0
     cli._save_trades([
-        _trade("t1", "2026-01-01T09:00:00", "2026-01-01T12:00:00", 1.0),
+        _trade("t1", "2026-01-01T09:00:00", "2026-01-01T12:00:00", 1.0, vix=18.0),
     ], config_dir)
-    monkeypatch.setattr(RegimeService, "get_historical_vix", lambda self, trades: {"2026-01-01": 18.0})
 
     assert cli.main(["--config-dir", str(config_dir), "vix-timing"]) == 0
 

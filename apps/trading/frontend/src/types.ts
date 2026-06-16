@@ -201,6 +201,9 @@ export interface RegimeDetailRecommendation {
   shiftPct?: NullableNumber;
   rationale?: string;
   regimeNeutral?: boolean;
+  sampleSize?: number;
+  minSampleSizeMet?: boolean;
+  source?: string;
 }
 
 export interface RegimeTransition {
@@ -218,6 +221,71 @@ export interface RegimeDetailResponse {
   conservationSafe?: boolean;
   conservationStatus?: "safe" | "unsafe" | "unknown" | string;
   summary?: string;
+  regimeEdgeSummary?: {
+    category?: string;
+    currentRegime?: string;
+    comparisonRegime?: string | null;
+    currentAccuracy?: NullableNumber;
+    comparisonAccuracy?: NullableNumber;
+    edgeDeltaPp?: NullableNumber;
+    sampleSizeCurrent?: number;
+    sampleSizeComparison?: number;
+    source?: string;
+    status?: "available" | "insufficient_data" | "unavailable" | string;
+    message?: string;
+  };
+  sizingRecommendation?: {
+    action?: "avoid" | "reduce" | "normal" | "increase_small" | string;
+    suggestedSizeMultiplier?: NullableNumber;
+    maxSizeMultiplier?: NullableNumber;
+    reason?: string;
+    regime?: string;
+    sampleSize?: number;
+    minSampleSizeMet?: boolean;
+    confidenceStatus?: string;
+    advisoryOnly?: boolean;
+  };
+  transitionAlert?: {
+    active?: boolean;
+    previousRegime?: string | null;
+    currentRegime?: string;
+    edgeDeltaPp?: NullableNumber;
+    oldRecommendation?: string | null;
+    newRecommendation?: string | null;
+    message?: string;
+    severity?: "info" | "warning" | "critical" | string;
+    reason?: string;
+  };
+  regimeFactorWeights?: {
+    status?: "available" | "learning" | "unavailable" | string;
+    regime?: string;
+    factorWeights?: Array<Record<string, unknown>>;
+    source?: string;
+    sampleSize?: number;
+    reason?: string;
+  };
+  regimeFactorInfluence?: {
+    status?: "available" | "learning" | "unavailable" | string;
+    regime?: string;
+    factors?: Array<{
+      factor?: string;
+      influencePp?: NullableNumber;
+      winAverage?: NullableNumber;
+      lossAverage?: NullableNumber;
+      sampleSize?: number;
+    }>;
+    source?: string;
+    sampleSize?: number;
+    warning?: string | null;
+  };
+  dataQuality?: {
+    source?: string;
+    totalTrades?: number;
+    sampledOutcomeTrades?: number;
+    minEdgeSample?: number;
+    warnings?: string[];
+  };
+  productHonestyWarnings?: string[];
 }
 
 export interface PrescoreRequest {
@@ -344,6 +412,11 @@ export interface TickerData {
   volRankPctl?: NullableNumber;
 }
 
+export interface MarketProvenance {
+  source: string;
+  as_of?: string | null;
+}
+
 export interface JoinedTrade extends TradeMetadata {
   decisionId: string;
   history?: TradeHistoryDecision;
@@ -360,6 +433,7 @@ export interface MarketSnapshot {
   vix?: TickerData;
   sectors?: Array<{ name: string; changePct?: NullableNumber; breadth?: NullableNumber }>;
   sector?: { leader?: string; laggard?: string; breadth?: NullableNumber };
+  provenance?: MarketProvenance;
   [key: string]: unknown;
 }
 

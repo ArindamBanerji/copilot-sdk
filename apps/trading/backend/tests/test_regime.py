@@ -4,15 +4,14 @@ import json
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from types import SimpleNamespace
 
-import pandas as pd
 
 import cli
 from app.routers import data_import
 from app.routers.regime import _regime_recommendations
 from app.services import regime as regime_module
 from app.services.regime import DEFAULT_ADX, RegimeService, classify_regime, compute_adx
+from copilot_sdk.evidence.provenance import Provenanced
 
 
 def test_volatile_above_30():
@@ -58,10 +57,8 @@ def test_adx_import_failure_returns_default(monkeypatch):
     assert compute_adx(list(range(30)), list(range(30)), list(range(30))) == DEFAULT_ADX
 
 
-def test_service_returns_dict_with_regime_key(monkeypatch):
-    monkeypatch.setattr(regime_module, "YFINANCE_AVAILABLE", False)
-
-    payload = RegimeService().get_current_regime()
+def test_service_returns_dict_with_regime_key():
+    payload = RegimeService(provider=_empty_provider()).get_current_regime()
 
     assert payload["regime"] == "ranging"
     assert payload["source"] == "default"
@@ -70,33 +67,35 @@ def test_service_returns_dict_with_regime_key(monkeypatch):
 def test_service_caches_result(monkeypatch):
     calls = {"count": 0}
 
-    class FakeTicker:
-        def __init__(self, ticker: str):
-            self.ticker = ticker
-
-        def history(self, **_kwargs):
+    class CountProvider:
+        def get_vix_current(self):
             calls["count"] += 1
-            if self.ticker == "^VIX":
-                return pd.DataFrame({"Close": [18.0]})
-            return pd.DataFrame({"High": [30 + i for i in range(30)], "Low": [20 + i for i in range(30)], "Close": [25 + i for i in range(30)]})
+            return Provenanced(value=18.0, source="live", as_of="2026-01-01T00:00:00Z")
 
-    monkeypatch.setattr(regime_module, "YFINANCE_AVAILABLE", True)
-    monkeypatch.setattr(regime_module, "yf", SimpleNamespace(Ticker=FakeTicker))
+        def get_ohlcv(self, *_args, **_kwargs):
+            calls["count"] += 1
+            return Provenanced(
+                value=[
+                    {"high": 30 + index, "low": 20 + index, "close": 25 + index}
+                    for index in range(30)
+                ],
+                source="live",
+                as_of="2026-01-01T00:00:00Z",
+            )
+
     monkeypatch.setattr(regime_module, "compute_adx", lambda *_args, **_kwargs: 30.0)
-    service = RegimeService()
+    service = RegimeService(provider=CountProvider())
 
     first = service.get_current_regime()
     second = service.get_current_regime()
 
-    assert first["source"] == "yfinance"
+    assert first["source"] == "live"
     assert second["source"] == "cached"
     assert calls["count"] == 2
 
 
-def test_service_default_when_no_yfinance(monkeypatch):
-    monkeypatch.setattr(regime_module, "YFINANCE_AVAILABLE", False)
-
-    assert RegimeService().get_current_regime() == {
+def test_service_default_when_provider_empty():
+    assert RegimeService(provider=_empty_provider()).get_current_regime() == {
         "regime": "ranging",
         "vix": 20.0,
         "adx": 20.0,
@@ -246,7 +245,7 @@ def test_regime_with_trades_shows_table(tmp_path, monkeypatch, capsys):
 def test_regime_no_yfinance_uses_default(tmp_path, monkeypatch, capsys):
     config_dir = tmp_path / "ci-trading"
     assert cli.main(["--config-dir", str(config_dir), "init"]) == 0
-    monkeypatch.setattr(regime_module, "YFINANCE_AVAILABLE", False)
+    monkeypatch.setattr(RegimeService, "get_current_regime", lambda self: {"regime": "ranging", "vix": 20.0, "adx": 20.0, "source": "default"})
 
     assert cli.main(["--config-dir", str(config_dir), "regime"]) == 0
 
@@ -263,3 +262,17 @@ def test_regime_no_trades_still_shows_regime(tmp_path, monkeypatch, capsys):
     output = capsys.readouterr().out
     assert "Current regime: ranging" in output
     assert "No local trades available" in output
+
+
+def _empty_provider():
+    class EmptyProvider:
+        def get_vix_current(self):
+            return Provenanced(value=None, source="fixture", label="no data available")
+
+        def get_ohlcv(self, *_args, **_kwargs):
+            return Provenanced(value=None, source="fixture", label="no data available")
+
+        def get_vix_history(self, *_args, **_kwargs):
+            return Provenanced(value=None, source="fixture", label="no data available")
+
+    return EmptyProvider()

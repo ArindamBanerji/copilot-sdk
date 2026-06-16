@@ -18,6 +18,7 @@ from copilot_sdk.scoring.presets.trading import TradingPreset
 router = APIRouter(tags=["context"])
 _DEFAULT_DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 _DATA_DIR = _DEFAULT_DATA_DIR
+_provider: Any | None = None
 _FACTOR_NAMES = (
     "signal_alignment",
     "market_regime",
@@ -75,6 +76,74 @@ def _empty_analytics() -> dict[str, Any]:
 
 def _default_market_snapshot() -> dict[str, Any]:
     return {"regime": "ranging", "vix": 20.0, "adx": 25.0, "source": "default"}
+
+
+def _market_provider() -> Any:
+    global _provider
+    if _provider is None:
+        from app.connectors.market_source import YFinanceSource
+        from app.services.market_data_provider import MarketDataProvider
+
+        _provider = MarketDataProvider(source=YFinanceSource())
+    return _provider
+
+
+def _provenance_payload(result: Any) -> dict[str, Any]:
+    return {"source": result.source, "as_of": result.as_of}
+
+
+def _fallback_provenance(source: str = "fixture") -> dict[str, Any]:
+    return {"source": source, "as_of": None}
+
+
+def _ticker_response(value: dict[str, Any], provenance: dict[str, Any] | None = None) -> dict[str, Any]:
+    payload = dict(value)
+    if "change30dPct" not in payload and "change_30d_pct" in payload:
+        payload["change30dPct"] = payload.get("change_30d_pct")
+    if "change_30d_pct" not in payload and "change30dPct" in payload:
+        payload["change_30d_pct"] = payload.get("change30dPct")
+    if "marketCapB" not in payload and "market_cap_b" in payload:
+        payload["marketCapB"] = payload.get("market_cap_b")
+    if "market_cap_b" not in payload and "marketCapB" in payload:
+        payload["market_cap_b"] = payload.get("marketCapB")
+    if "above50ma" not in payload and "above_50ma" in payload:
+        payload["above50ma"] = payload.get("above_50ma")
+    if "above_50ma" not in payload and "above50ma" in payload:
+        payload["above_50ma"] = payload.get("above50ma")
+    if "volRankPctl" not in payload and "vol_rank_pctl" in payload:
+        payload["volRankPctl"] = payload.get("vol_rank_pctl")
+    if "vol_rank_pctl" not in payload and "volRankPctl" in payload:
+        payload["vol_rank_pctl"] = payload.get("volRankPctl")
+    if provenance is not None:
+        payload.setdefault("source", provenance["source"])
+        payload["provenance"] = provenance
+    return payload
+
+
+def _market_snapshot_response(value: dict[str, Any], provenance: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(value)
+    spy = payload.get("spy")
+    if isinstance(spy, dict):
+        spy_payload = {"ticker": "SPY", **spy}
+        if "change30dPct" not in spy_payload:
+            spy_payload["change30dPct"] = spy_payload.get("change_pct") or spy_payload.get("change_30d_pct")
+        if "change_30d_pct" not in spy_payload and "change30dPct" in spy_payload:
+            spy_payload["change_30d_pct"] = spy_payload.get("change30dPct")
+        payload["spy"] = spy_payload
+    vix = payload.get("vix")
+    if isinstance(vix, (int, float)):
+        payload["vix"] = {"ticker": "VIX", "price": float(vix), "value": float(vix)}
+    elif isinstance(vix, dict):
+        vix_payload = {"ticker": "VIX", **vix}
+        if "price" not in vix_payload and "value" in vix_payload:
+            vix_payload["price"] = vix_payload.get("value")
+        if "change30dPct" not in vix_payload and "change_30d_pct" in vix_payload:
+            vix_payload["change30dPct"] = vix_payload.get("change_30d_pct")
+        payload["vix"] = vix_payload
+    payload.setdefault("source", provenance["source"])
+    payload["asOf"] = provenance.get("as_of")
+    payload["provenance"] = provenance
+    return payload
 
 
 def _cosine_similarity(left: list[float], right: list[float]) -> float:
@@ -257,23 +326,37 @@ def _conservation_category_row(
 
 @router.get("/market-snapshot")
 def market_snapshot() -> dict[str, Any]:
+    result = _market_provider().get_market_snapshot()
+    if isinstance(result.value, dict):
+        return _market_snapshot_response(result.value, _provenance_payload(result))
+
+    # JSON cache remains as the fixture fallback reference when live/provider data is unavailable.
     payload = _load_json_optional("market_snapshot.json")
-    return payload if isinstance(payload, dict) else _default_market_snapshot()
+    if isinstance(payload, dict):
+        return _market_snapshot_response(payload, _fallback_provenance())
+    return _market_snapshot_response(_default_market_snapshot(), _fallback_provenance())
 
 
 @router.get("/ticker/{ticker}")
 def ticker_detail(ticker: str) -> dict[str, Any]:
     normalized = ticker.upper()
+    result = _market_provider().get_ticker_snapshot(normalized)
+    if isinstance(result.value, dict):
+        return _ticker_response(result.value, _provenance_payload(result))
+
+    # JSON cache remains as the fixture fallback reference when live/provider data is unavailable.
     cache = _load_json("ticker_cache.json")
     if normalized not in cache:
         return {
             "ticker": normalized,
             "price": None,
             "change_30d_pct": None,
+            "change30dPct": None,
             "volume": None,
             "source": "unknown",
+            "provenance": _fallback_provenance(),
         }
-    return cache[normalized]
+    return _ticker_response(cache[normalized], _fallback_provenance(str(cache[normalized].get("source") or "fixture")))
 
 
 @router.get("/portfolio-summary")

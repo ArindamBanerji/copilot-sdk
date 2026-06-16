@@ -7,8 +7,19 @@ from typing import Any
 from fastapi import APIRouter, Body, HTTPException, Query
 
 from app.connectors.csv_connector import CSVConnector
-from app.connectors.yfinance_provider import YFinanceProvider
 from app.models.trade import NormalizedTrade
+
+_provider: Any | None = None
+
+
+def _market_provider() -> Any:
+    global _provider
+    if _provider is None:
+        from app.connectors.market_source import YFinanceSource
+        from app.services.market_data_provider import MarketDataProvider
+
+        _provider = MarketDataProvider(source=YFinanceSource())
+    return _provider
 
 
 def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
@@ -48,15 +59,41 @@ def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
         period: str = "1mo",
         interval: str = "1d",
     ) -> dict[str, Any]:
-        rows = YFinanceProvider().get_ohlcv(ticker, period=period, interval=interval)
-        return {"ticker": ticker.upper(), "rows": rows, "count": len(rows)}
+        result = _market_provider().get_ohlcv(ticker.upper(), period=period)
+        rows = result.value or []
+        return {
+            "ticker": ticker.upper(),
+            "rows": rows,
+            "count": len(rows),
+        }
 
     @router.get("/market/vix")
     def get_vix() -> dict[str, Any]:
-        provider = YFinanceProvider()
-        rows = provider.get_vix()
+        rows_result = _market_provider().get_ohlcv("^VIX")
+        current_result = _market_provider().get_vix_current()
+        rows = rows_result.value or []
         current = float(rows[-1]["close"]) if rows else None
-        return {"ticker": "^VIX", "current": current, "rows": rows, "count": len(rows)}
+        if current_result.value is not None:
+            current = float(current_result.value)
+        return {
+            "ticker": "^VIX",
+            "current": current,
+            "rows": rows,
+            "count": len(rows),
+        }
+
+    @router.post("/market/refresh")
+    def refresh_market() -> dict[str, Any]:
+        provider = _market_provider()
+        provider.refresh()
+        result = provider.get_market_snapshot()
+        return {
+            "refreshed": True,
+            "provenance": {
+                "source": result.source,
+                "as_of": result.as_of,
+            },
+        }
 
     return router, trade_store
 

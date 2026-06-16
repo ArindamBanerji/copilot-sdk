@@ -1,3 +1,4 @@
+import ProvenanceBadge from "./ProvenanceBadge";
 import type { MarketSnapshot, TickerData } from "../types";
 
 function formatPct(value: number | null | undefined): string {
@@ -21,12 +22,15 @@ function Instrument({ label, data }: { label: string; data?: TickerData }) {
 
 export default function MarketContext({ snapshot }: { snapshot?: MarketSnapshot }) {
   const sectorRows = Array.isArray(snapshot?.sectors) ? snapshot.sectors.slice(0, 5) : [];
+  const provenance = snapshot?.provenance;
+  const provenanceAsOf = provenance ? ((provenance as { asOf?: string | null }).asOf ?? provenance.as_of) : null;
   return (
     <section className="copilot-card p-4">
       <div className="mb-4 flex items-start justify-between">
         <div>
           <h2 className="text-base font-semibold">Market Context</h2>
           <p className="text-sm trading-muted">{snapshot?.source || "Cached context"}</p>
+          {provenance?.source ? <ProvenanceBadge source={provenance.source} asOf={provenanceAsOf} /> : null}
         </div>
         {snapshot?.asOf ? <span className="text-xs trading-muted">{snapshot.asOf}</span> : null}
       </div>

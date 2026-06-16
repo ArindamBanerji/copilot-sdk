@@ -14,13 +14,24 @@ from copilot_sdk.backend.conservation_router import _check_payload, _state_count
 
 GraphStoreFactory = Callable[[], Any]
 ServiceFactory = Callable[[], RegimeService]
+_provider: Any | None = None
+
+
+def _regime_service() -> RegimeService:
+    global _provider
+    if _provider is None:
+        from app.connectors.market_source import YFinanceSource
+        from app.services.market_data_provider import MarketDataProvider
+
+        _provider = MarketDataProvider(source=YFinanceSource())
+    return RegimeService(provider=_provider)
 
 
 def create_regime_router(
     graph_store_factory: GraphStoreFactory | None = None,
     *,
     domain: str = "trading",
-    service_factory: ServiceFactory = RegimeService,
+    service_factory: ServiceFactory = _regime_service,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/trading", tags=["trading-regime"])
 
@@ -37,7 +48,7 @@ def create_regime_router(
         }
 
     @router.get("/regime/detail")
-    def regime_detail() -> dict[str, Any]:
+    def regime_detail(previous_regime: str | None = None) -> dict[str, Any]:
         service = service_factory()
         trades = _journal_records(graph_store_factory, domain)
         current = service.get_current_regime()
@@ -47,6 +58,9 @@ def create_regime_router(
             str(current.get("regime") or "ranging"),
             accuracy,
             conservation_status=conservation,
+            trades=trades,
+            current=current,
+            previous_regime=previous_regime,
         )
 
     return router
