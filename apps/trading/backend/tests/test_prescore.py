@@ -264,5 +264,103 @@ def test_prescore_warns_on_quick_reentry_after_loss(client, monkeypatch):
     assert "Quick re-entry after loss detected" in payload["warnings"]
 
 
+def test_prescore_market_regime_uses_accuracy_dict(client, monkeypatch):
+    monkeypatch.setattr(
+        RegimeService,
+        "get_current_regime",
+        lambda self: {"regime": "trending", "vix": 18.0, "adx": 32.0},
+    )
+    monkeypatch.setattr(
+        RegimeService,
+        "get_regime_accuracy",
+        lambda self, trades: {"trend_following": {"trending": 0.82}},
+    )
+
+    payload = client.post("/api/trading/prescore", json=_payload()).json()
+
+    assert payload["regime_accuracy"] == 0.82
+    assert payload["factors"]["market_regime"] == 0.82
+
+
+def test_prescore_signal_confidence_has_context_keys(client, monkeypatch):
+    for index in range(6):
+        trade = _trade(
+            f"trade-{index}",
+            pnl=10.0 if index < 5 else -10.0,
+            minutes_ago=120 - index,
+        )
+        trade["verified"] = True
+        trade["is_correct"] = index < 5
+        _trade_store_ref.append(trade)
+
+    captured: dict = {}
+    real_compute_factors = prescore.compute_factors
+
+    def spy_compute_factors(context):
+        captured.update(context)
+        return real_compute_factors(context)
+
+    monkeypatch.setattr(prescore, "compute_factors", spy_compute_factors)
+
+    payload = client.post("/api/trading/prescore", json=_payload()).json()
+
+    assert captured["similar_trade_count"] == 6
+    assert captured["category_accuracy"] == pytest.approx(5 / 6)
+    assert captured["factors_with_data"] == 7
+    assert payload["factors"]["signal_confidence"] != 0.5
+
+
+def test_prescore_all_10_factors_wired(client, monkeypatch):
+    for index in range(20):
+        trade = _trade(f"trade-{index}", minutes_ago=300 - index)
+        trade["verified"] = True
+        trade["is_correct"] = index < 18
+        _trade_store_ref.append(trade)
+    monkeypatch.setattr(
+        RegimeService,
+        "get_current_regime",
+        lambda self: {"regime": "trending", "vix": 18.0, "adx": 32.0},
+    )
+    monkeypatch.setattr(
+        RegimeService,
+        "get_regime_accuracy",
+        lambda self, trades: {"trend_following": {"trending": 0.82}},
+    )
+
+    payload = client.post(
+        "/api/trading/prescore",
+        json=_payload(
+            context={
+                "tagged_signals": [
+                    {"name": "breakout", "confirmed": True},
+                    {"name": "volume", "confirmed": True},
+                ],
+                "rsi_at_entry": 25.0,
+                "macd_signal": "bullish",
+                "price_vs_sma": 1.1,
+                "entry_delay_minutes": 5,
+                "hold_time_vs_plan_pct": 1.0,
+                "time_of_day_accuracy": 0.8,
+                "planned_risk_reward": 2.0,
+                "actual_risk_reward": 2.5,
+                "delta": 0.65,
+                "iv_percentile": 80,
+                "gamma": 0.04,
+            },
+        ),
+    ).json()
+
+    factors = payload["factors"]
+    assert len(factors) == 10
+    assert all(value != 0.5 for value in factors.values())
+
+
+def test_prescore_empty_history_defaults_gracefully(client):
+    response = client.post("/api/trading/prescore", json=_payload())
+
+    assert response.status_code == 200
+    assert set(response.json()["factors"]) == set(prescore.compute_factors({}))
+
+
 def response_payload(client):
     return client.post("/api/trading/prescore", json=_payload()).json()

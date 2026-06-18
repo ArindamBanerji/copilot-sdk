@@ -27,6 +27,8 @@ class PreScoreRequest(BaseModel):
     category: str | None = None
     notes: str | None = None
     size_pct: float = Field(default=0.0)
+    position_size_pct: float | None = None
+    context: dict[str, Any] | None = None
 
 
 def create_prescore_router(
@@ -56,7 +58,10 @@ def create_prescore_router(
             "notes": request.notes,
         })
         accuracy = service.get_regime_accuracy(trades)
-        regime_accuracy = float(accuracy.get(category, {}).get(current_regime, 0.5))
+        regime_accuracy_by_regime = accuracy.get(category, {})
+        if not isinstance(regime_accuracy_by_regime, dict):
+            regime_accuracy_by_regime = {}
+        regime_accuracy = float(regime_accuracy_by_regime.get(current_regime, 0.5))
         context = _context_for(
             request=request,
             ticker=ticker,
@@ -64,6 +69,7 @@ def create_prescore_router(
             trades=trades,
             regime=regime,
             regime_accuracy=regime_accuracy,
+            regime_accuracy_by_regime=regime_accuracy_by_regime,
         )
         if subcategory:
             context["subcategory"] = subcategory
@@ -172,18 +178,26 @@ def _context_for(
     trades: list[dict[str, Any]],
     regime: dict[str, Any],
     regime_accuracy: float,
+    regime_accuracy_by_regime: dict[str, float] | None = None,
 ) -> dict[str, Any]:
     avg_size = _avg_size(trades)
-    size_pct = _number(request.size_pct) or 0.0
-    return {
+    requested_size = (
+        request.position_size_pct
+        if request.position_size_pct is not None
+        else request.size_pct
+    )
+    size_pct = _number(requested_size) or 0.0
+    context = {
         "trade_id": f"prescore-{ticker}-{datetime.now(timezone.utc).isoformat()}",
         "ticker": ticker,
         "direction": request.direction,
+        "entry_direction": request.direction,
         "category": category,
         "strategy_tag": request.strategy_tag,
         "notes": request.notes,
         "current_regime": regime.get("regime") or "ranging",
-        "regime_accuracy": regime_accuracy,
+        "regime_accuracy": regime_accuracy_by_regime or {},
+        "regime_accuracy_current": regime_accuracy,
         "vix_at_entry": _number(regime.get("vix")) or 20.0,
         "position_size_pct": size_pct,
         "avg_position_size_pct": avg_size,
@@ -194,6 +208,61 @@ def _context_for(
         "size_vs_rolling_avg": size_pct / avg_size if avg_size > 0 else 1.0,
         "entry_at_day_extreme": False,
     }
+    if isinstance(request.context, dict):
+        for key, value in request.context.items():
+            context.setdefault(key, value)
+    context.update(_signal_confidence_context(trades, category, context))
+    return context
+
+
+def _signal_confidence_context(
+    trades: list[dict[str, Any]],
+    category: str,
+    context: dict[str, Any],
+) -> dict[str, Any]:
+    """Build SignalConfidenceFactor component keys from journal history."""
+    category_trades = [trade for trade in trades if trade.get("category") == category]
+    verified = [
+        trade
+        for trade in category_trades
+        if trade.get("verified") or _trade_pnl(trade) is not None
+    ]
+    correct = [trade for trade in verified if _trade_was_correct(trade)]
+
+    result: dict[str, Any] = {
+        "similar_trade_count": len(category_trades),
+        "category_accuracy": len(correct) / len(verified) if verified else 0.5,
+    }
+
+    recent_factors = [trade.get("factors", {}) for trade in category_trades[-20:]]
+    if recent_factors:
+        non_default_counts = []
+        for factors in recent_factors:
+            if isinstance(factors, dict):
+                non_default = sum(1 for value in factors.values() if value != 0.5)
+                non_default_counts.append(non_default)
+        result["factors_with_data"] = (
+            sum(non_default_counts) / len(non_default_counts)
+            if non_default_counts else 0
+        )
+
+    if len(category_trades) >= 20:
+        result["novelty_distance"] = 0.1
+    elif len(category_trades) >= 5:
+        result["novelty_distance"] = 0.4
+    else:
+        result["novelty_distance"] = 0.8
+
+    return result
+
+
+def _trade_was_correct(trade: dict[str, Any]) -> bool:
+    if trade.get("correct") is not None:
+        return bool(trade.get("correct"))
+    if trade.get("is_correct") is not None:
+        return bool(trade.get("is_correct"))
+    pnl = _trade_pnl(trade)
+    return pnl is not None and pnl > 0
 
 
 def _auto_classify(body: PreScoreRequest | dict[str, Any], trades: list[dict[str, Any]] | None = None) -> str:
