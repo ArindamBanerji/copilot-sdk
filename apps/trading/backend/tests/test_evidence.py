@@ -6,6 +6,7 @@ from app.evidence import (
     FACTOR_DISPLAY,
     TradingTemplateEngine,
     _emotional_detail,
+    _polarity_quality,
     _quality,
 )
 from app.factors.registry import ALL_FACTOR_NAMES
@@ -140,6 +141,223 @@ def test_trust_analysis_sorted_by_weight():
 
 def test_trust_analysis_insufficient_data():
     assert TradingTemplateEngine().render_trust_analysis() == "Trust analysis has insufficient data."
+
+
+def test_polarity_positive_high():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        _factors(signal_alignment=0.9),
+        "strong_execution",
+        0.8,
+    )
+
+    assert "strong (favorable) signal alignment" in text
+
+
+def test_polarity_negative_low():
+    text = TradingTemplateEngine().render(
+        _trade(category="scalp_intraday"),
+        _factors(emotional_indicator=0.1, timing_quality=0.1),
+        "strong_execution",
+        0.8,
+    )
+
+    assert "low (favorable) decision context" in text
+    assert "weak decision context" not in text
+
+
+def test_polarity_neutral_unchanged():
+    assert _polarity_quality("unknown_factor", 0.6) == "moderate"
+
+
+def test_dk_weights_trusted_label():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        _factors(signal_alignment=0.9),
+        "strong_execution",
+        0.8,
+        dk_weights={"signal_alignment": 0.85},
+    )
+
+    assert "(trusted, weight 0.85)" in text
+
+
+def test_dk_weights_noisy_label():
+    text = TradingTemplateEngine().render(
+        _trade(category="income_strategy"),
+        _factors(options_gamma_risk=0.8),
+        "strong_execution",
+        0.8,
+        dk_weights={"options_gamma_risk": 0.12},
+    )
+
+    assert "(noisy, weight 0.12)" in text
+
+
+def test_dk_weights_none_no_labels():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        _factors(signal_alignment=0.9),
+        "strong_execution",
+        0.8,
+    )
+
+    assert "trusted" not in text
+    assert "noisy" not in text
+
+
+def test_negative_evidence_present():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        _factors(signal_alignment=0.15),
+        "strong_execution",
+        0.8,
+    )
+
+    assert "Working against strong_execution" in text
+    assert "Signal alignment" in text
+
+
+def test_negative_evidence_empty():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        _factors(
+            signal_alignment=0.9,
+            position_sizing=0.9,
+            risk_reward_actual=0.9,
+            signal_confidence=0.9,
+            emotional_indicator=0.1,
+            timing_quality=0.1,
+            options_gamma_risk=0.1,
+        ),
+        "strong_execution",
+        0.8,
+    )
+
+    assert "Working against" not in text
+
+
+def test_negative_evidence_ignores_noisy():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        _factors(signal_alignment=0.15),
+        "strong_execution",
+        0.8,
+        dk_weights={"signal_alignment": 0.12},
+    )
+
+    assert "Working against" not in text
+
+
+def test_all_5_categories_use_polarity():
+    engine = TradingTemplateEngine()
+    factors = _factors(
+        signal_alignment=0.9,
+        position_sizing=0.9,
+        timing_quality=0.1,
+        risk_reward_actual=0.9,
+        emotional_indicator=0.1,
+        signal_confidence=0.9,
+    )
+    dk_weights = {
+        "signal_alignment": 0.85,
+        "position_sizing": 0.85,
+        "timing_quality": 0.85,
+        "risk_reward_actual": 0.85,
+        "emotional_indicator": 0.85,
+        "signal_confidence": 0.85,
+    }
+
+    for category in (
+        "trend_following",
+        "mean_reversion",
+        "event_driven",
+        "income_strategy",
+        "scalp_intraday",
+    ):
+        text = engine.render(
+            _trade(category=category),
+            factors,
+            "strong_execution",
+            0.8,
+            dk_weights=dk_weights,
+        )
+        assert "(favorable)" in text
+
+
+def test_negative_polarity_high_value_caution():
+    text = TradingTemplateEngine().render(
+        _trade(category="scalp_intraday"),
+        _factors(emotional_indicator=0.9),
+        "strong_execution",
+        0.8,
+    )
+
+    assert "high (caution) decision context" in text
+
+
+def test_mixed_dk_weights_same_render():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        _factors(signal_alignment=0.9, options_gamma_risk=0.8),
+        "strong_execution",
+        0.8,
+        dk_weights={"signal_alignment": 0.85, "options_gamma_risk": 0.12},
+    )
+
+    assert "(trusted, weight 0.85)" in text
+    assert "(noisy, weight 0.12)" in text
+
+
+def test_multiple_negative_factors():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        _factors(
+            signal_alignment=0.15,
+            position_sizing=0.2,
+            emotional_indicator=0.9,
+        ),
+        "strong_execution",
+        0.8,
+    )
+
+    negative = text.split("Working against", maxsplit=1)[1]
+    assert "Signal alignment" in negative
+    assert "Position sizing" in negative
+    assert "Decision context" in negative
+
+
+def test_backward_compat_no_dk():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        _factors(
+            signal_alignment=0.9,
+            position_sizing=0.9,
+            risk_reward_actual=0.9,
+            signal_confidence=0.9,
+            emotional_indicator=0.1,
+            timing_quality=0.1,
+            options_gamma_risk=0.1,
+        ),
+        "strong_execution",
+        0.8,
+    )
+
+    assert "trusted" not in text
+    assert "noisy" not in text
+    assert "Working against" not in text
+
+
+def test_empty_factors_no_crash():
+    text = TradingTemplateEngine().render(
+        _trade(category="trend_following"),
+        {},
+        "strong_execution",
+        0.8,
+    )
+
+    assert isinstance(text, str)
+    assert text
 
 
 def test_render_all_categories_produce_output():

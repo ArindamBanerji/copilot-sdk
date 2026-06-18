@@ -19,6 +19,11 @@ except Exception:
         "signal_confidence",
     )
 
+try:
+    from copilot_sdk.scoring.presets.trading import TradingPreset
+except Exception:
+    TradingPreset = None  # type: ignore[assignment]
+
 
 FACTOR_DISPLAY = {
     "signal_alignment": "Signal alignment",
@@ -28,7 +33,40 @@ FACTOR_DISPLAY = {
     "risk_reward_actual": "Risk/reward",
     "emotional_indicator": "Decision context",
     "signal_confidence": "Signal confidence",
+    "options_delta_exposure": "Options delta exposure",
+    "options_iv_percentile": "Options IV percentile",
+    "options_gamma_risk": "Options gamma risk",
 }
+
+
+def _polarity_value(value: Any) -> int:
+    try:
+        numeric = int(value)
+    except (TypeError, ValueError):
+        name = str(getattr(value, "name", value)).upper()
+        if "POSITIVE" in name:
+            return 1
+        if "NEGATIVE" in name:
+            return -1
+        return 0
+    if numeric > 0:
+        return 1
+    if numeric < 0:
+        return -1
+    return 0
+
+
+def _load_factor_polarities() -> dict[str, int]:
+    if TradingPreset is None:
+        return {}
+    try:
+        polarities = getattr(TradingPreset(), "factor_polarities", {}) or {}
+    except Exception:
+        return {}
+    return {str(name): _polarity_value(value) for name, value in polarities.items()}
+
+
+FACTOR_POLARITIES = _load_factor_polarities()
 
 
 def _quality(value: Any) -> str:
@@ -40,6 +78,25 @@ def _quality(value: Any) -> str:
     if score >= 0.40:
         return "weak"
     return "poor"
+
+
+def _polarity_quality(factor_name: str, value: Any) -> str:
+    score = _number(value, 0.5)
+    polarity = FACTOR_POLARITIES.get(factor_name, 0)
+    if polarity > 0:
+        base = _quality(score)
+        if score >= 0.60:
+            return f"{base} (favorable)"
+        if score < 0.40:
+            return f"{base} (unfavorable)"
+        return f"{base} (mixed)"
+    if polarity < 0:
+        if score <= 0.35:
+            return "low (favorable)"
+        if score >= 0.65:
+            return "high (caution)"
+        return "moderate"
+    return _quality(score)
 
 
 def _regime_label(value: Any) -> str:
@@ -98,6 +155,7 @@ class TradingTemplateEngine:
         action: str,
         confidence: float,
         context: Mapping[str, Any] | None = None,
+        dk_weights: Mapping[str, Any] | None = None,
     ) -> str:
         category = str(trade.get("category") or "")
         renderer = {
@@ -107,7 +165,14 @@ class TradingTemplateEngine:
             "income_strategy": self._income_strategy,
             "scalp_intraday": self._scalp_intraday,
         }.get(category, self._generic)
-        return renderer(trade, factors, action, confidence, context or {})
+        text = renderer(trade, factors, action, confidence, context or {}, dk_weights)
+        trust_context = self._trust_context(dk_weights)
+        if trust_context:
+            text = f"{text} {trust_context}"
+        negative = self._negative_evidence(factors, action, dk_weights)
+        if negative:
+            text = f"{text}\n\n{negative}"
+        return text
 
     def render_factor_breakdown(self, factors: Mapping[str, Any]) -> list[str]:
         ordered = list(ALL_FACTOR_NAMES)
@@ -139,12 +204,13 @@ class TradingTemplateEngine:
         action: str,
         confidence: float,
         context: Mapping[str, Any],
+        dk_weights: Mapping[str, Any] | None,
     ) -> str:
         return self._base(
             trade,
             action,
             confidence,
-            f"Trend-following setup has {_quality(factors.get('signal_alignment'))} signal alignment and {_regime_label(factors.get('market_regime'))}.",
+            f"Trend-following setup has {self._factor_phrase('signal_alignment', factors, dk_weights)} signal alignment and {self._factor_phrase('market_regime', factors, dk_weights)} regime fit.",
             context,
             factors,
         )
@@ -156,12 +222,13 @@ class TradingTemplateEngine:
         action: str,
         confidence: float,
         context: Mapping[str, Any],
+        dk_weights: Mapping[str, Any] | None,
     ) -> str:
         return self._base(
             trade,
             action,
             confidence,
-            f"Mean-reversion setup has {_quality(factors.get('timing_quality'))} timing and {_sizing_label(factors.get('position_sizing'))}.",
+            f"Mean-reversion setup has {self._factor_phrase('timing_quality', factors, dk_weights)} timing and {self._factor_phrase('position_sizing', factors, dk_weights)} position sizing.",
             context,
             factors,
         )
@@ -173,6 +240,7 @@ class TradingTemplateEngine:
         action: str,
         confidence: float,
         context: Mapping[str, Any],
+        dk_weights: Mapping[str, Any] | None,
     ) -> str:
         subcategory = get_subcategory({
             "category": "event_driven",
@@ -187,7 +255,7 @@ class TradingTemplateEngine:
             trade,
             action,
             confidence,
-            f"Event: {label}. Event-driven setup has {_quality(factors.get('signal_confidence'))} signal confidence and {_quality(factors.get('risk_reward_actual'))} risk/reward.",
+            f"Event: {label}. Event-driven setup has {self._factor_phrase('signal_confidence', factors, dk_weights)} signal confidence and {self._factor_phrase('risk_reward_actual', factors, dk_weights)} risk/reward.",
             context,
             factors,
         )
@@ -199,11 +267,12 @@ class TradingTemplateEngine:
         action: str,
         confidence: float,
         context: Mapping[str, Any],
+        dk_weights: Mapping[str, Any] | None,
     ) -> str:
         options_text = _options_analytics_text(context.get("options_factors"))
         thesis = (
-            f"Income strategy setup has {_quality(factors.get('risk_reward_actual'))} risk/reward "
-            f"and {_sizing_label(factors.get('position_sizing'))}."
+            f"Income strategy setup has {self._factor_phrase('risk_reward_actual', factors, dk_weights)} risk/reward "
+            f"and {self._factor_phrase('position_sizing', factors, dk_weights)} position sizing."
         )
         if options_text:
             thesis = f"{thesis} {options_text}"
@@ -223,12 +292,13 @@ class TradingTemplateEngine:
         action: str,
         confidence: float,
         context: Mapping[str, Any],
+        dk_weights: Mapping[str, Any] | None,
     ) -> str:
         return self._base(
             trade,
             action,
             confidence,
-            f"Intraday scalp setup has {_quality(factors.get('timing_quality'))} timing and {_emotional_label(factors.get('emotional_indicator'))}.",
+            f"Intraday scalp setup has {self._factor_phrase('timing_quality', factors, dk_weights)} timing and {self._factor_phrase('emotional_indicator', factors, dk_weights)} decision context.",
             context,
             factors,
         )
@@ -240,15 +310,58 @@ class TradingTemplateEngine:
         action: str,
         confidence: float,
         context: Mapping[str, Any],
+        dk_weights: Mapping[str, Any] | None,
     ) -> str:
         return self._base(
             trade,
             action,
             confidence,
-            f"Trading setup has {_quality(factors.get('signal_alignment'))} signal alignment and {_quality(factors.get('signal_confidence'))} signal confidence.",
+            f"Trading setup has {self._factor_phrase('signal_alignment', factors, dk_weights)} signal alignment and {self._factor_phrase('signal_confidence', factors, dk_weights)} signal confidence.",
             context,
             factors,
         )
+
+    def _factor_phrase(
+        self,
+        factor_name: str,
+        factors: Mapping[str, Any],
+        dk_weights: Mapping[str, Any] | None = None,
+    ) -> str:
+        return f"{_polarity_quality(factor_name, factors.get(factor_name))}{_trust_label(factor_name, dk_weights)}"
+
+    def _negative_evidence(
+        self,
+        factors: Mapping[str, Any],
+        action: str,
+        dk_weights: Mapping[str, Any] | None = None,
+    ) -> str:
+        rows: list[str] = []
+        for name in ALL_FACTOR_NAMES:
+            value = _number(factors.get(name), 0.5)
+            if not _works_against(name, value):
+                continue
+            weight = _optional_float(dk_weights.get(name)) if dk_weights else None
+            if dk_weights is not None and (weight is None or weight <= 0.30):
+                continue
+            label = FACTOR_DISPLAY.get(name, _display_name(name))
+            trust = ""
+            if weight is not None:
+                trust = ", trusted" if weight >= 0.70 else f", weight {weight:.2f}"
+            rows.append(f"{label} is {_polarity_quality(name, value)} ({value:.2f}{trust})")
+        if not rows:
+            return ""
+        joined = "; ".join(rows)
+        return f"Working against {action}: {joined}. Consider reducing conviction or waiting for confirmation."
+
+    def _trust_context(self, dk_weights: Mapping[str, Any] | None = None) -> str:
+        if not dk_weights:
+            return ""
+        labels: list[str] = []
+        for name in ALL_FACTOR_NAMES:
+            label = _trust_label(name, dk_weights)
+            if label:
+                labels.append(f"{FACTOR_DISPLAY.get(name, _display_name(name))} {label}")
+        return "Trust context: " + "; ".join(labels) + "." if labels else ""
 
     def _base(
         self,
@@ -271,6 +384,28 @@ class TradingTemplateEngine:
 
 def _display_name(name: str) -> str:
     return str(name).replace("_", " ").capitalize()
+
+
+def _trust_label(factor_name: str, dk_weights: Mapping[str, Any] | None = None) -> str:
+    if not dk_weights or factor_name not in dk_weights:
+        return ""
+    weight = _optional_float(dk_weights.get(factor_name))
+    if weight is None:
+        return ""
+    if weight >= 0.70:
+        return f" (trusted, weight {weight:.2f})"
+    if weight < 0.30:
+        return f" (noisy, weight {weight:.2f})"
+    return ""
+
+
+def _works_against(factor_name: str, value: float) -> bool:
+    polarity = FACTOR_POLARITIES.get(factor_name, 0)
+    if polarity > 0:
+        return value < 0.35
+    if polarity < 0:
+        return value > 0.65
+    return False
 
 
 def _number(value: Any, fallback: float) -> float:
