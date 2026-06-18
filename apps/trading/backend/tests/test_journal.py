@@ -1,7 +1,13 @@
 from __future__ import annotations
 
-import pytest
+import json
+from concurrent.futures import ThreadPoolExecutor
 
+import pytest
+from fastapi.testclient import TestClient
+
+from app.main import create_app
+from app.routers import journal as journal_router
 from app.routers.data_import import _trade_store_ref
 
 
@@ -51,6 +57,16 @@ def _seed_trades() -> None:
             _trade("t-3", ticker="MSFT", category="trend_following", strategy_tag="swing", regime="bull", pnl=0.0, confidence=0.5, entry_time="2026-02-03T09:30:00"),
         ]
     )
+
+
+def _set_journal_dir(client: TestClient, tmp_path) -> None:
+    client.app.state.trading_journal_dir = tmp_path / "journal"
+
+
+def _journal_client(tmp_path) -> TestClient:
+    app = create_app(db_path=tmp_path / "trading_journal.db", demo_bundle_path=False)
+    app.state.trading_journal_dir = tmp_path / "journal"
+    return TestClient(app)
 
 
 def test_trades_returns_list(client):
@@ -242,3 +258,228 @@ def test_analytics_empty_group(client):
 
     assert response.status_code == 200
     assert response.json() == {"group_by": "category", "groups": [], "total": 0}
+
+
+def test_create_manual_entry(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+
+    response = client.post(
+        "/api/trading/journal/entry",
+        json={"ticker": "AAPL", "category": "trend_following", "reflection": "clean breakout"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["created"] is True
+    assert response.json()["entry_id"]
+
+
+def test_created_entry_appears_in_list(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    created = client.post("/api/trading/journal/entry", json={"ticker": "AAPL"}).json()
+
+    response = client.get("/api/trading/trades")
+
+    assert response.status_code == 200
+    assert any(trade["trade_id"] == created["entry_id"] for trade in response.json()["trades"])
+
+
+def test_create_entry_validates_required_fields(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+
+    response = client.post("/api/trading/journal/entry", json={"category": "trend_following"})
+
+    assert response.status_code in {400, 422}
+
+
+def test_update_reflection(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    entry_id = client.post("/api/trading/journal/entry", json={"ticker": "AAPL"}).json()["entry_id"]
+
+    update = client.put(
+        f"/api/trading/journal/entry/{entry_id}/reflection",
+        json={"reflection": "followed plan"},
+    )
+    detail = client.get(f"/api/trading/trades/{entry_id}")
+
+    assert update.status_code == 200
+    assert detail.json()["reflection"] == "followed plan"
+    assert detail.json()["notes"] == "followed plan"
+
+
+def test_reflection_on_imported_trade(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    _seed_trades()
+
+    response = client.put(
+        "/api/trading/journal/entry/t-1/reflection",
+        json={"reflection": "imported trade review"},
+    )
+    detail = client.get("/api/trading/trades/t-1")
+
+    assert response.status_code == 200
+    assert detail.json()["reflection"] == "imported trade review"
+
+
+def test_reflection_preserved_on_update(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    entry_id = client.post("/api/trading/journal/entry", json={"ticker": "AAPL"}).json()["entry_id"]
+
+    client.put(f"/api/trading/journal/entry/{entry_id}/reflection", json={"reflection": "first"})
+    client.put(f"/api/trading/journal/entry/{entry_id}/reflection", json={"reflection": "second"})
+    detail = client.get(f"/api/trading/trades/{entry_id}")
+    overlay = json.loads((tmp_path / "journal" / "journal_reflections.json").read_text(encoding="utf-8"))
+
+    assert detail.json()["reflection"] == "second"
+    assert [row["reflection"] for row in overlay[entry_id]["history"]] == ["first", "second"]
+
+
+def test_add_tags(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    entry_id = client.post("/api/trading/journal/entry", json={"ticker": "AAPL"}).json()["entry_id"]
+
+    response = client.put(
+        f"/api/trading/journal/entry/{entry_id}/tags",
+        json={"tags": ["earnings", "setup-A"]},
+    )
+    detail = client.get(f"/api/trading/trades/{entry_id}")
+
+    assert response.status_code == 200
+    assert detail.json()["tags"] == ["earnings", "setup-A"]
+
+
+def test_tags_filter(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    first = client.post("/api/trading/journal/entry", json={"ticker": "AAPL"}).json()["entry_id"]
+    second = client.post("/api/trading/journal/entry", json={"ticker": "MSFT"}).json()["entry_id"]
+    client.put(f"/api/trading/journal/entry/{first}/tags", json={"tags": ["earnings"]})
+    client.put(f"/api/trading/journal/entry/{second}/tags", json={"tags": ["setup-B"]})
+
+    response = client.get("/api/trading/trades?tag=earnings")
+
+    assert response.status_code == 200
+    assert [trade["trade_id"] for trade in response.json()["trades"]] == [first]
+
+
+def test_search_by_reflection_text(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    entry_id = client.post(
+        "/api/trading/journal/entry",
+        json={"ticker": "AAPL", "reflection": "revenge trade after loss"},
+    ).json()["entry_id"]
+
+    response = client.get("/api/trading/trades?search=revenge")
+
+    assert response.status_code == 200
+    assert [trade["trade_id"] for trade in response.json()["trades"]] == [entry_id]
+
+
+def test_search_by_ticker(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    entry_id = client.post("/api/trading/journal/entry", json={"ticker": "AAPL"}).json()["entry_id"]
+
+    response = client.get("/api/trading/trades?search=AAPL")
+
+    assert response.status_code == 200
+    assert [trade["trade_id"] for trade in response.json()["trades"]] == [entry_id]
+
+
+def test_search_by_tag(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    entry_id = client.post("/api/trading/journal/entry", json={"ticker": "AAPL"}).json()["entry_id"]
+    client.put(f"/api/trading/journal/entry/{entry_id}/tags", json={"tags": ["earnings"]})
+
+    response = client.get("/api/trading/trades?search=earnings")
+
+    assert response.status_code == 200
+    assert [trade["trade_id"] for trade in response.json()["trades"]] == [entry_id]
+
+
+def test_search_no_matches(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    client.post("/api/trading/journal/entry", json={"ticker": "AAPL"})
+
+    response = client.get("/api/trading/trades?search=nonexistent")
+
+    assert response.status_code == 200
+    assert response.json()["trades"] == []
+    assert response.json()["total"] == 0
+
+
+def test_manual_entries_persist_across_requests(tmp_path):
+    with _journal_client(tmp_path) as first:
+        entry_id = first.post("/api/trading/journal/entry", json={"ticker": "AAPL"}).json()["entry_id"]
+
+    with _journal_client(tmp_path) as second:
+        response = second.get("/api/trading/trades")
+
+    assert any(trade["trade_id"] == entry_id for trade in response.json()["trades"])
+
+
+def test_reflections_persist_across_requests(tmp_path):
+    with _journal_client(tmp_path) as first:
+        entry_id = first.post("/api/trading/journal/entry", json={"ticker": "AAPL"}).json()["entry_id"]
+        first.put(f"/api/trading/journal/entry/{entry_id}/reflection", json={"reflection": "persistent note"})
+
+    with _journal_client(tmp_path) as second:
+        detail = second.get(f"/api/trading/trades/{entry_id}")
+
+    assert detail.status_code == 200
+    assert detail.json()["reflection"] == "persistent note"
+
+
+def test_concurrent_appends_no_data_loss(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+
+    def post_entry(i: int) -> int:
+        response = client.post("/api/trading/journal/entry", json={"ticker": f"T{i:02d}"})
+        return response.status_code
+
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        statuses = list(pool.map(post_entry, range(10)))
+
+    response = client.get("/api/trading/trades?limit=20")
+    tickers = {trade["ticker"] for trade in response.json()["trades"]}
+
+    assert statuses == [201] * 10
+    assert {f"T{i:02d}" for i in range(10)} <= tickers
+
+
+def test_corrupted_json_preserved(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    journal_dir = tmp_path / "journal"
+    journal_dir.mkdir()
+    entries_path = journal_dir / "journal_entries.json"
+    entries_path.write_text("{not valid json", encoding="utf-8")
+
+    response = client.post("/api/trading/journal/entry", json={"ticker": "AAPL"})
+
+    corrupt_files = list(journal_dir.glob("journal_entries.json.corrupt.*"))
+    saved_entries = json.loads(entries_path.read_text(encoding="utf-8"))
+    assert response.status_code == 201
+    assert len(corrupt_files) == 1
+    assert corrupt_files[0].read_text(encoding="utf-8") == "{not valid json"
+    assert saved_entries[0]["ticker"] == "AAPL"
+
+
+def test_search_none_does_not_match_missing_fields(client, tmp_path):
+    _set_journal_dir(client, tmp_path)
+    client.post("/api/trading/journal/entry", json={"ticker": "AAPL"})
+
+    response = client.get("/api/trading/trades?search=none")
+
+    assert response.status_code == 200
+    assert response.json()["trades"] == []
+
+
+def test_write_permission_error_returns_500(client, tmp_path, monkeypatch):
+    _set_journal_dir(client, tmp_path)
+
+    def fail_write(*_args, **_kwargs):
+        raise OSError("disk is read-only")
+
+    monkeypatch.setattr(journal_router, "_write_json_atomic_unlocked", fail_write)
+
+    response = client.post("/api/trading/journal/entry", json={"ticker": "AAPL"})
+
+    assert response.status_code == 500
+    assert response.json()["error"] == "Failed to write journal"
