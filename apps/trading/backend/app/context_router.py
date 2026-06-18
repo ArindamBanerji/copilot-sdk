@@ -7,12 +7,13 @@ import math
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 
-from app.factors.registry import ALL_FACTOR_NAMES, TRADING_FACTOR_COMPUTERS, compute_factors
 from app.routers.data_import import _trade_store_ref
 from app.services.pattern_detector import detect_patterns
+from app.services.trust_analysis import TrustAnalyzer
 from copilot_sdk.scoring.presets.trading import TradingPreset
+from copilot_sdk.scoring.scorer import CompoundingScorer
 
 
 router = APIRouter(tags=["context"])
@@ -167,72 +168,38 @@ def _as_trade_dict(trade: Any) -> dict[str, Any]:
     return {}
 
 
-def _population_variance(values: list[float]) -> float:
-    if not values:
-        return 0.0
-    average = sum(values) / len(values)
-    return sum((value - average) ** 2 for value in values) / len(values)
+def _unwrap_shared_scorer(candidate: Any) -> Any:
+    scorer_factory = getattr(candidate, "_scorer", None)
+    return scorer_factory() if callable(scorer_factory) else candidate
 
 
-def _trust_label(factor: str, variance: float, n_samples: int) -> str:
-    if factor not in TRADING_FACTOR_COMPUTERS:
-        return "not_computed"
-    if n_samples == 0:
-        return "insufficient_data"
-    if variance < 0.01:
-        return "highly_trusted"
-    if variance < 0.03:
-        return "trusted"
-    if variance < 0.08:
-        return "moderate"
-    if variance < 0.15:
-        return "noisy"
-    return "very_noisy"
+def _scoring_route_scorer(request: Request) -> Any | None:
+    for route in getattr(request.app, "routes", []):
+        if getattr(route, "path", None) != "/api/score":
+            continue
+        endpoint = getattr(route, "endpoint", None)
+        code = getattr(endpoint, "__code__", None)
+        closure = getattr(endpoint, "__closure__", None)
+        if code is None or not closure:
+            continue
+        for name, cell in zip(code.co_freevars, closure):
+            if name != "get_scorer":
+                continue
+            get_scorer = cell.cell_contents
+            if callable(get_scorer):
+                return _unwrap_shared_scorer(get_scorer())
+    return None
 
 
-def _trust_scores(trades: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
-    computed = [compute_factors(trade) for trade in trades[:500]]
-    scores: dict[str, dict[str, Any]] = {}
-    for factor in ALL_FACTOR_NAMES:
-        values = [float(row.get(factor, 0.5)) for row in computed]
-        n_samples = len(values)
-        average = sum(values) / n_samples if n_samples else 0.5
-        variance = _population_variance(values)
-        sigma = math.sqrt(variance)
-        scores[factor] = {
-            "variance": round(variance, 6),
-            "mean": round(average, 6),
-            "n_samples": n_samples,
-            "trust_label": _trust_label(factor, variance, n_samples),
-            "sigma": round(sigma, 6),
-        }
-    return scores
+def _trust_scorer(request: Request) -> Any:
+    shared_scorer = _scoring_route_scorer(request)
+    if shared_scorer is not None:
+        return shared_scorer
 
-
-def _hero_insight(scores: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
-    implemented = [
-        factor
-        for factor in ALL_FACTOR_NAMES
-        if factor in TRADING_FACTOR_COMPUTERS and scores[factor]["n_samples"] > 0
-    ]
-    if len(implemented) < 2:
-        return None
-    overused = max(implemented, key=lambda factor: scores[factor]["variance"])
-    underused = min(implemented, key=lambda factor: scores[factor]["variance"])
-    if overused == underused:
-        return None
-    overused_sigma = float(scores[overused]["sigma"])
-    underused_sigma = float(scores[underused]["sigma"])
-    return {
-        "overused_factor": overused,
-        "overused_sigma": overused_sigma,
-        "underused_factor": underused,
-        "underused_sigma": underused_sigma,
-        "message": (
-            f"{overused.replace('_', ' ')} is varying most across recent trades; "
-            f"{underused.replace('_', ' ')} is currently the steadiest implemented signal."
-        ),
-    }
+    store = getattr(request.app.state, "trading_selected_graph_store", None)
+    if store is not None:
+        return CompoundingScorer.from_preset("trading", graph_store=store)
+    return CompoundingScorer.from_preset("trading")
 
 
 def _trading_conservation_config() -> dict[str, Any]:
@@ -376,17 +343,15 @@ def analytics() -> dict[str, Any]:
 
 
 @router.get("/trust-analysis")
-def trust_analysis() -> dict[str, Any]:
+def trust_analysis(request: Request, category: str | None = None) -> dict[str, Any]:
     trades = [_as_trade_dict(trade) for trade in list(_trade_store_ref)]
     trades = [trade for trade in trades if trade]
-    scores = _trust_scores(trades)
-    return {
-        "factors": list(ALL_FACTOR_NAMES),
-        "implemented": list(TRADING_FACTOR_COMPUTERS),
-        "trust_scores": scores,
-        "total_trades": len(trades),
-        "hero_insight": _hero_insight(scores) if trades else None,
-    }
+    result = TrustAnalyzer().analyze(_trust_scorer(request), trades, category=category)
+    factor_details = list(result["factors"])
+    result["factor_details"] = factor_details
+    result["factors"] = list(result["factor_names"])
+    result["trust_scores"] = {factor["name"]: factor for factor in factor_details}
+    return result
 
 
 @router.get("/patterns")

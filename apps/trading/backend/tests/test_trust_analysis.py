@@ -4,6 +4,8 @@ import pytest
 
 from app.factors.registry import ALL_FACTOR_NAMES, TRADING_FACTOR_COMPUTERS
 from app.routers.data_import import _trade_store_ref
+from app.services.trust_analysis import TrustAnalyzer
+from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
 @pytest.fixture(autouse=True)
@@ -35,6 +37,62 @@ def _trade(**overrides):
     return payload
 
 
+class FakeStore:
+    def __init__(self, total: int = 0):
+        self._total = total
+
+    def get_decisions(self, domain: str = "trading", limit: int = 10000):
+        return [{"decision_id": f"d-{idx}"} for idx in range(self._total)]
+
+
+class FakeScorer:
+    def __init__(self, phase: str = "A", weights: list[list[float]] | None = None, total: int = 0):
+        self._preset = TradingPreset()
+        self.phase = phase
+        self._weights = weights
+        self.graph_store = FakeStore(total=total)
+
+    def get_phase(self) -> str:
+        return self.phase
+
+    def get_dk_weights(self):
+        return self._weights
+
+
+def _fake_scorer(phase: str = "A", weights: list[list[float]] | None = None, total: int = 0) -> FakeScorer:
+    return FakeScorer(phase=phase, weights=weights, total=total)
+
+
+def _dk_matrix() -> list[list[float]]:
+    factors = TradingPreset().shape.factor_names
+    categories = TradingPreset().shape.category_names
+    matrix = []
+    for cat_index, _category in enumerate(categories):
+        row = []
+        for factor_index, _factor in enumerate(factors):
+            row.append(round(0.42 + cat_index * 0.02 + factor_index * 0.01, 3))
+        row[0] = 0.95 - cat_index * 0.01
+        row[1] = 0.20
+        row[2] = 0.10
+        matrix.append(row)
+    return matrix
+
+
+def _scoring_route_scorer_proxy(app):
+    for route in app.routes:
+        if getattr(route, "path", None) != "/api/score":
+            continue
+        endpoint = getattr(route, "endpoint", None)
+        code = getattr(endpoint, "__code__", None)
+        closure = getattr(endpoint, "__closure__", None)
+        if code is None or not closure:
+            continue
+        for name, cell in zip(code.co_freevars, closure):
+            if name == "get_scorer":
+                return cell.cell_contents()
+    raise AssertionError("Could not find /api/score get_scorer closure")
+
+
 def test_trust_endpoint_200_empty(client):
     response = client.get("/api/context/trust-analysis")
 
@@ -47,13 +105,14 @@ def test_trust_empty_has_all_10_factors(client):
     assert payload["factors"] == list(ALL_FACTOR_NAMES)
     assert len(payload["factors"]) == 10
     assert set(payload["trust_scores"]) == set(ALL_FACTOR_NAMES)
+    assert set(score["name"] for score in payload["factor_details"]) == set(ALL_FACTOR_NAMES)
 
 
 def test_trust_empty_total_trades_zero(client):
     payload = client.get("/api/context/trust-analysis").json()
 
     assert payload["total_trades"] == 0
-    assert payload["hero_insight"] is None
+    assert isinstance(payload["hero_insight"], str)
     for factor, score in payload["trust_scores"].items():
         assert score["variance"] == 0.0
         assert score["mean"] == 0.5
@@ -129,13 +188,91 @@ def test_hero_insight_shape_when_available(client):
     payload = client.get("/api/context/trust-analysis").json()
     insight = payload["hero_insight"]
 
-    assert insight is not None
-    assert {
-        "overused_factor",
-        "overused_sigma",
-        "underused_factor",
-        "underused_sigma",
-        "message",
-    } <= set(insight)
-    assert insight["overused_factor"] in TRADING_FACTOR_COMPUTERS
-    assert insight["underused_factor"] in TRADING_FACTOR_COMPUTERS
+    assert isinstance(insight, str)
+    assert "Most consistent factor:" in insight
+
+
+def test_dk_mode_returns_dk_weights():
+    result = TrustAnalyzer().analyze(_fake_scorer("B", _dk_matrix()), [], category=None)
+
+    assert result["mode"] == "dk"
+    assert result["phase"] == "B"
+    assert all("dk_weight" in factor for factor in result["factors"])
+
+
+def test_variance_mode_on_phase_a():
+    result = TrustAnalyzer().analyze(_fake_scorer("A", _dk_matrix()), [_trade()], category=None)
+
+    assert result["mode"] == "variance"
+    assert all("dk_weight" not in factor for factor in result["factors"])
+
+
+def test_phase_b_missing_dk_falls_to_variance():
+    result = TrustAnalyzer().analyze(_fake_scorer("B", None), [_trade()], category=None)
+
+    assert result["mode"] == "variance"
+    assert result["phase"] == "B"
+    assert len(result["factors"]) == 10
+    assert all("variance_score" in factor for factor in result["factors"])
+    assert "Phase B reached but DK weights not yet available" in result["hero_insight"]
+
+
+def test_per_category_dk():
+    result = TrustAnalyzer().analyze(_fake_scorer("B", _dk_matrix()), [], category=None)
+
+    assert set(result["per_category"]) == set(TradingPreset().shape.category_names)
+    assert all(len(factors) == 10 for factors in result["per_category"].values())
+
+
+def test_noise_detection():
+    result = TrustAnalyzer().analyze(_fake_scorer("B", _dk_matrix()), [], category=None)
+
+    assert {"market_regime", "position_sizing"} <= set(result["noise_signals"])
+
+
+def test_top_signal():
+    result = TrustAnalyzer().analyze(_fake_scorer("B", _dk_matrix()), [], category=None)
+
+    assert result["top_signal"] == "signal_alignment"
+
+
+def test_hero_insight_dk_mode():
+    result = TrustAnalyzer().analyze(_fake_scorer("B", _dk_matrix()), [], category=None)
+
+    assert "Your most trusted signal is signal_alignment" in result["hero_insight"]
+    assert "market_regime" in result["hero_insight"]
+
+
+def test_hero_insight_variance_mode():
+    result = TrustAnalyzer().analyze(_fake_scorer("A"), [_trade()], category=None)
+
+    assert "Most consistent factor:" in result["hero_insight"]
+
+
+def test_available_categories():
+    result = TrustAnalyzer().analyze(_fake_scorer("B", _dk_matrix()), [], category=None)
+
+    assert result["available_categories"] == list(TradingPreset().shape.category_names)
+
+
+def test_backward_compat_trust_scores(client):
+    payload = client.get("/api/context/trust-analysis").json()
+
+    assert "trust_scores" in payload
+    assert isinstance(payload["trust_scores"], dict)
+    assert set(payload["trust_scores"]) == set(payload["factors"])
+
+
+def test_trust_endpoint_uses_shared_scorer(client):
+    scorer_proxy = _scoring_route_scorer_proxy(client.app)
+    original_scorer = getattr(scorer_proxy, "_scorer_instance", None)
+    scorer_proxy._scorer_instance = _fake_scorer("B", _dk_matrix())
+
+    try:
+        payload = client.get("/api/context/trust-analysis?category=trend_following").json()
+    finally:
+        scorer_proxy._scorer_instance = original_scorer
+
+    assert payload["mode"] == "dk"
+    assert payload["phase"] == "B"
+    assert payload["trust_scores"]["signal_alignment"]["dk_weight"] == 0.95

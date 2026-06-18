@@ -476,11 +476,16 @@ export interface FingerprintResponse {
 }
 
 export interface TrustScore {
+  name?: string;
   variance: number;
+  varianceScore?: number;
   mean: number;
   nSamples: number;
   trustLabel: string;
   sigma: number;
+  dkWeight?: number;
+  isNoise?: boolean;
+  rank?: number;
 }
 
 export interface HeroInsight {
@@ -492,11 +497,19 @@ export interface HeroInsight {
 }
 
 export interface TrustAnalysisResponse {
+  mode?: "dk" | "variance";
+  phase?: "A" | "B";
   factors: string[];
+  factorDetails?: TrustScore[];
   implemented: string[];
   trustScores: Record<string, TrustScore>;
+  availableCategories?: string[];
+  perCategory?: Record<string, TrustScore[]>;
+  decisionsUntilDk?: number | null;
+  topSignal?: string | null;
+  noiseSignals?: string[];
   totalTrades: number;
-  heroInsight: HeroInsight | null;
+  heroInsight: HeroInsight | string | null;
 }
 
 export interface DetectedPattern {
