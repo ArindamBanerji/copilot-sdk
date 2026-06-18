@@ -44,6 +44,16 @@ BROKER_PRESETS = {
         "pnl": "Amount",
         "notes": "Description",
     },
+    "alpaca": {
+        "trade_id": "id",
+        "ticker": "symbol",
+        "direction": "side",
+        "entry_price": "avg_entry_price",
+        "exit_price": "avg_exit_price",
+        "size": "qty",
+        "entry_time": "filled_at",
+        "fees": "commission",
+    },
 }
 
 
@@ -73,11 +83,13 @@ class CSVConnector:
         filepath: str,
         column_map: dict[str, str] | None = None,
         broker_preset: str | None = None,
+        date_format: str | None = None,
+        delimiter: str | None = None,
     ) -> list[NormalizedTrade]:
         content = Path(filepath).read_text(encoding="utf-8-sig")
         if not content.strip():
             return []
-        reader = csv.DictReader(content.splitlines())
+        reader = csv.DictReader(content.splitlines(), delimiter=delimiter or self._detect_delimiter(content.splitlines()[0]))
         if not reader.fieldnames:
             return []
         mapping = self._auto_detect_columns(reader.fieldnames)
@@ -87,55 +99,46 @@ class CSVConnector:
             mapping.update(column_map)
         trades: list[NormalizedTrade] = []
         for index, row in enumerate(reader, start=1):
-            trade = self._row_to_trade(row, mapping, index)
+            trade = self._row_to_trade(row, mapping, index, date_format=date_format)
             if trade is not None:
                 trades.append(trade)
         return trades
 
-    def import_from_string(self, csv_content: str) -> list[NormalizedTrade]:
+    def import_from_string(
+        self,
+        csv_content: str,
+        *,
+        column_map: dict[str, str] | None = None,
+        broker_preset: str | None = None,
+        date_format: str | None = None,
+        delimiter: str | None = None,
+    ) -> list[NormalizedTrade]:
         if not csv_content.strip():
             return []
-        reader = csv.DictReader(csv_content.splitlines())
+        reader = csv.DictReader(
+            csv_content.splitlines(),
+            delimiter=delimiter or self._detect_delimiter(csv_content.splitlines()[0]),
+        )
         if not reader.fieldnames:
             return []
 
-        normalized_headers = {
-            header: header.strip().lower().replace(" ", "_")
-            for header in reader.fieldnames
-            if header is not None
-        }
+        mapping = self._auto_detect_columns(reader.fieldnames)
+        if broker_preset:
+            mapping.update(BROKER_PRESETS.get(broker_preset.lower(), {}))
+        if column_map:
+            mapping.update(column_map)
         trades: list[NormalizedTrade] = []
-        for row in reader:
-            try:
-                ticker = str(self._value(row, normalized_headers, "ticker") or "").strip()
-                if not ticker:
-                    continue
-                direction = _normalize_direction(self._value(row, normalized_headers, "direction"))
-                entry_price = _parse_float(self._value(row, normalized_headers, "entry_price"))
-                trade = NormalizedTrade(
-                    trade_id=str(
-                        self._value(row, normalized_headers, "trade_id")
-                        or f"csv-{len(trades) + 1}"
-                    ),
-                    broker="csv",
-                    ticker=ticker,
-                    direction=direction,
-                    entry_price=entry_price,
-                    exit_price=_parse_optional_float(self._value(row, normalized_headers, "exit_price")),
-                    size=_parse_optional_float(self._value(row, normalized_headers, "size")) or 0.0,
-                    entry_time=_parse_datetime(self._value(row, normalized_headers, "entry_time")),
-                      exit_time=_parse_optional_datetime(self._value(row, normalized_headers, "exit_time")),
-                      strategy_tag=_optional_str(self._value(row, normalized_headers, "strategy_tag")),
-                      asset_type=_optional_str(self._value(row, normalized_headers, "asset_type")) or "equity",
-                      trader_id=_trader_id(self._value(row, normalized_headers, "trader_id")),
-                      fees=_parse_optional_float(self._value(row, normalized_headers, "fees")) or 0.0,
-                    pnl=_parse_optional_float(self._value(row, normalized_headers, "pnl")),
-                    notes=_optional_str(self._value(row, normalized_headers, "notes")),
-                )
+        for index, row in enumerate(reader, start=1):
+            trade = self._row_to_trade(row, mapping, len(trades) + 1, date_format=date_format)
+            if trade is not None:
                 trades.append(trade)
-            except (TypeError, ValueError):
-                continue
         return trades
+
+    def _detect_delimiter(self, first_line: str) -> str:
+        """Detect common CSV delimiters from the header line."""
+        counts = {delimiter: first_line.count(delimiter) for delimiter in (",", "\t", "|", ";")}
+        delimiter, count = max(counts.items(), key=lambda item: item[1])
+        return delimiter if count > 0 else ","
 
     def _auto_detect_columns(self, headers: Iterable[str]) -> dict[str, str]:
         normalized_headers = {
@@ -157,6 +160,8 @@ class CSVConnector:
         row: dict[str, str],
         mapping: dict[str, str],
         index: int,
+        *,
+        date_format: str | None = None,
     ) -> NormalizedTrade | None:
         try:
             ticker = str(_mapped(row, mapping, "ticker") or "").strip()
@@ -170,20 +175,20 @@ class CSVConnector:
                 entry_price=_parse_float(_mapped(row, mapping, "entry_price")),
                 exit_price=_parse_optional_float(_mapped(row, mapping, "exit_price")),
                 size=_parse_optional_float(_mapped(row, mapping, "size")) or 0.0,
-                entry_time=self._parse_date(_mapped(row, mapping, "entry_time")),
-                  exit_time=_parse_optional_datetime(_mapped(row, mapping, "exit_time")),
-                  strategy_tag=_optional_str(_mapped(row, mapping, "strategy_tag")),
-                  asset_type=_optional_str(_mapped(row, mapping, "asset_type")) or "equity",
-                  trader_id=_trader_id(_mapped(row, mapping, "trader_id")),
-                  fees=_parse_optional_float(_mapped(row, mapping, "fees")) or 0.0,
+                entry_time=self._parse_date(_mapped(row, mapping, "entry_time"), date_format=date_format),
+                exit_time=_parse_optional_datetime(_mapped(row, mapping, "exit_time"), date_format=date_format),
+                strategy_tag=_optional_str(_mapped(row, mapping, "strategy_tag")),
+                asset_type=_optional_str(_mapped(row, mapping, "asset_type")) or "equity",
+                trader_id=_trader_id(_mapped(row, mapping, "trader_id")),
+                fees=_parse_optional_float(_mapped(row, mapping, "fees")) or 0.0,
                 pnl=_parse_optional_float(_mapped(row, mapping, "pnl")),
                 notes=_optional_str(_mapped(row, mapping, "notes")),
             )
         except (TypeError, ValueError):
             return None
 
-    def _parse_date(self, date_str: object) -> datetime:
-        return _parse_datetime(date_str)
+    def _parse_date(self, date_str: object, *, date_format: str | None = None) -> datetime:
+        return _parse_datetime(date_str, date_format=date_format)
 
     def _value(
         self,
@@ -223,12 +228,12 @@ def _parse_optional_float(value: object) -> float | None:
     return float(text.replace("$", "").replace(",", ""))
 
 
-def _parse_datetime(value: object) -> datetime:
-    parsed = _parse_optional_datetime(value)
+def _parse_datetime(value: object, *, date_format: str | None = None) -> datetime:
+    parsed = _parse_optional_datetime(value, date_format=date_format)
     return parsed or datetime.now()
 
 
-def _parse_optional_datetime(value: object) -> datetime | None:
+def _parse_optional_datetime(value: object, *, date_format: str | None = None) -> datetime | None:
     if value is None:
         return None
     text = str(value).strip()
@@ -236,7 +241,7 @@ def _parse_optional_datetime(value: object) -> datetime | None:
         return None
     if text.endswith("Z"):
         text = f"{text[:-1]}+00:00"
-    for parser in (_from_iso, *_strptime_parsers()):
+    for parser in (_from_iso, *_strptime_parsers(date_format=date_format)):
         parsed = parser(text)
         if parsed is not None:
             return parsed
@@ -250,8 +255,8 @@ def _from_iso(value: str) -> datetime | None:
         return None
 
 
-def _strptime_parsers() -> Iterable:
-    formats = (
+def _strptime_parsers(date_format: str | None = None) -> Iterable:
+    us_formats = (
         "%Y-%m-%d",
         "%m/%d/%Y",
         "%m/%d/%y",
@@ -259,6 +264,12 @@ def _strptime_parsers() -> Iterable:
         "%m/%d/%Y %H:%M",
         "%Y/%m/%d",
     )
+    european_formats = (
+        "%d-%m-%Y",
+        "%d/%m/%Y",
+        "%d.%m.%Y",
+    )
+    formats = european_formats + us_formats if date_format == "european" else us_formats + european_formats
     for date_format in formats:
         yield lambda value, fmt=date_format: _strptime(value, fmt)
 

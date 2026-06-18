@@ -5,6 +5,7 @@ import builtins
 from app.connectors.alpaca_connector import AlpacaConnector
 from app.connectors.csv_connector import CSVConnector
 from app.connectors.yfinance_provider import YFinanceProvider
+from app.routers import data_import
 
 
 def test_basic_csv_import():
@@ -91,6 +92,122 @@ def test_commas_in_numbers():
 
     assert trades[0].entry_price == 1234.50
     assert trades[0].size == 1000.0
+
+
+def test_delimiter_auto_detect_tab():
+    trades = CSVConnector().import_from_string(
+        "ticker\tdirection\tentry_price\tsize\tentry_time\n"
+        "MSFT\tbuy\t100\t2\t2026-01-01\n"
+    )
+
+    assert len(trades) == 1
+    assert trades[0].ticker == "MSFT"
+    assert trades[0].size == 2.0
+
+
+def test_delimiter_auto_detect_pipe():
+    trades = CSVConnector().import_from_string(
+        "ticker|direction|entry_price|size|entry_time\n"
+        "SPY|sell|450|1|2026-01-01\n"
+    )
+
+    assert len(trades) == 1
+    assert trades[0].ticker == "SPY"
+    assert trades[0].direction == "short"
+
+
+def test_delimiter_semicolon():
+    trades = CSVConnector().import_from_string(
+        "ticker;direction;entry_price;size;entry_time\n"
+        "QQQ;buy;390;3;2026-01-01\n"
+    )
+
+    assert len(trades) == 1
+    assert trades[0].ticker == "QQQ"
+    assert trades[0].size == 3.0
+
+
+def test_alpaca_preset():
+    trades = CSVConnector().import_from_string(
+        "id,symbol,side,qty,avg_entry_price,avg_exit_price,commission,filled_at\n"
+        "a1,AAPL,buy,3,180.5,184.5,1.25,2026-01-01T09:30:00\n",
+        broker_preset="alpaca",
+    )
+
+    assert len(trades) == 1
+    assert trades[0].trade_id == "a1"
+    assert trades[0].ticker == "AAPL"
+    assert trades[0].entry_price == 180.5
+    assert trades[0].exit_price == 184.5
+    assert trades[0].fees == 1.25
+
+
+def test_european_date_day_first():
+    trades = CSVConnector().import_from_string(
+        "ticker,direction,entry_price,size,entry_time\n"
+        "MSFT,buy,100,1,15-03-2025\n"
+    )
+
+    assert trades[0].entry_time.year == 2025
+    assert trades[0].entry_time.month == 3
+    assert trades[0].entry_time.day == 15
+
+
+def test_european_date_dot_separated():
+    trades = CSVConnector().import_from_string(
+        "ticker,direction,entry_price,size,entry_time\n"
+        "MSFT,buy,100,1,15.03.2025\n"
+    )
+
+    assert trades[0].entry_time.year == 2025
+    assert trades[0].entry_time.month == 3
+    assert trades[0].entry_time.day == 15
+
+
+def test_european_date_slash():
+    trades = CSVConnector().import_from_string(
+        "ticker,direction,entry_price,size,entry_time\n"
+        "MSFT,buy,100,1,15/03/2025\n"
+    )
+
+    assert trades[0].entry_time.year == 2025
+    assert trades[0].entry_time.month == 3
+    assert trades[0].entry_time.day == 15
+
+
+def test_flexible_csv_endpoint(client):
+    data_import._trade_store_ref.clear()
+
+    response = client.post(
+        "/api/trading/import/csv",
+        json={
+            "preset": "thinkorswim",
+            "csv_content": "Exec ID,Symbol,Side,Price,Qty,Exec Time\n1,AAPL,BOT,200,3,01/02/2026\n",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["imported"] == 1
+    assert payload["trades"][0]["trade_id"] == "1"
+    assert payload["trades"][0]["ticker"] == "AAPL"
+
+
+def test_csv_unknown_preset_returns_400(client):
+    data_import._trade_store_ref.clear()
+
+    response = client.post(
+        "/api/trading/import/csv",
+        json={
+            "preset": "thinkorswin",
+            "csv_content": "Exec ID,Symbol,Side,Price,Qty,Exec Time\n1,AAPL,BOT,200,3,01/02/2026\n",
+        },
+    )
+
+    assert response.status_code == 400
+    payload = response.json()
+    assert payload["error"] == "Unknown preset: thinkorswin"
+    assert "thinkorswim" in payload["valid_presets"]
 
 
 def test_normalize_buy_order():
