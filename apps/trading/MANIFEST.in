@@ -1,0 +1,7 @@
+# Exclude non-Python directories from package discovery
+global-exclude *.db *.db-shm *.db-wal
+prune frontend
+prune backend/data
+prune e2e
+prune test-results
+prune node_modules

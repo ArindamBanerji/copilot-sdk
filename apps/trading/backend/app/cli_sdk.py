@@ -8,11 +8,15 @@ argparse hook at the bottom serializes those objects for CLI use.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import math
 import os
+import shutil
+import sqlite3
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
 
@@ -489,6 +493,246 @@ def journal_sdk(
         _close_scorer(scorer)
 
 
+def export_sdk(
+    format: str = "json",
+    output_path: str | None = None,
+    db_path: str | None = None,
+) -> dict[str, Any]:
+    """Export all SDK decisions to JSON or CSV."""
+    export_format = format.lower().strip()
+    if export_format not in {"json", "csv"}:
+        raise CLIUsageError("Unknown export format", "Valid formats: json, csv")
+
+    path = _db_path(db_path)
+    out_path = Path(output_path) if output_path else Path(path).parent / f"decisions.{export_format}"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    scorer = _get_scorer(db_path)
+    try:
+        decisions = scorer.graph_store.get_decisions(DOMAIN, limit=10000)
+        verified = {
+            row["decision_id"]: row
+            for row in scorer.graph_store.get_verified_decisions(DOMAIN)
+        }
+        rows = [_export_row(decision, verified.get(decision["decision_id"])) for decision in decisions]
+    finally:
+        _close_scorer(scorer)
+
+    if export_format == "json":
+        out_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+    else:
+        fieldnames = _csv_fieldnames(rows)
+        with out_path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in rows:
+                writer.writerow({name: _csv_value(row.get(name)) for name in fieldnames})
+
+    return {"exported": len(rows), "format": export_format, "path": str(out_path)}
+
+
+def backup_sdk(backup_path: str | None = None, db_path: str | None = None) -> dict[str, Any]:
+    """Copy the SDK Trading DB to a backup file."""
+    src = _db_path(db_path)
+    scorer = _get_scorer(db_path)
+    _close_scorer(scorer)
+
+    if backup_path is None:
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        backup_dir = Path(src).parent / "backups"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        backup_path = str(backup_dir / f"trading_{timestamp}.db")
+    else:
+        Path(backup_path).parent.mkdir(parents=True, exist_ok=True)
+
+    shutil.copy2(src, backup_path)
+    return {"backed_up": src, "backup_path": str(backup_path)}
+
+
+def restore_sdk(
+    backup_path: str,
+    confirm: bool = False,
+    db_path: str | None = None,
+) -> dict[str, Any]:
+    """Restore the SDK Trading DB from a validated SQLite backup."""
+    if not confirm:
+        return {"error": "Restore is destructive. Use --confirm."}
+
+    if not backup_path or not Path(backup_path).exists():
+        return {"error": "Backup file not found"}
+
+    conn = sqlite3.connect(backup_path)
+    try:
+        conn.execute("SELECT count(*) FROM sqlite_master").fetchone()
+    except sqlite3.DatabaseError:
+        return {"error": "Invalid backup file"}
+    finally:
+        conn.close()
+
+    dest = _db_path(db_path)
+    parent = os.path.dirname(dest)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    shutil.copy2(backup_path, dest)
+    return {"restored_from": str(backup_path), "restored_to": dest}
+
+
+def import_sdk(
+    source: str = "csv",
+    file_path: str | None = None,
+    broker: str | None = None,
+    preset: str | None = None,
+    days: int = 365,
+    db_path: str | None = None,
+) -> dict[str, Any]:
+    """Import CSV or broker trades as SDK decisions with trade metadata."""
+    source_name = source.lower().strip()
+    if source_name == "csv":
+        if not file_path:
+            return {"error": "Specify --file for CSV import"}
+        trades = _load_csv_trades(file_path, preset)
+    elif source_name == "broker":
+        if not broker:
+            return {"error": "Specify --broker for broker import"}
+        trades = _load_broker_trades(broker, days)
+    else:
+        return {"error": "Unknown import source", "valid_sources": ["csv", "broker"]}
+
+    scorer = _get_scorer(db_path)
+    imported = 0
+    skipped = 0
+    try:
+        existing_keys = _existing_import_keys(scorer.graph_store.get_decisions(DOMAIN, limit=10000))
+        factors = {name: 0.5 for name in _valid_factors()}
+        categories = _valid_categories()
+        default_category = categories[0]
+        for trade in trades:
+            trade_data = _trade_to_dict(trade)
+            trade_key = _trade_key(trade_data)
+            if trade_key in existing_keys:
+                skipped += 1
+                continue
+            category = str(trade_data.get("category") or trade_data.get("strategy_tag") or default_category)
+            if category not in categories:
+                category = default_category
+            scorer.score(
+                factors,
+                category,
+                metadata={
+                    "source": f"import:{source_name}",
+                    "import_key": trade_key,
+                    "trade": trade_data,
+                    "entity_id": str(trade_data.get("trade_id") or trade_key),
+                },
+            )
+            existing_keys.add(trade_key)
+            imported += 1
+    finally:
+        _close_scorer(scorer)
+
+    return {"imported": imported, "skipped": skipped, "errors": 0}
+
+
+def _export_row(decision: dict[str, Any], outcome: dict[str, Any] | None) -> dict[str, Any]:
+    row = {
+        "decision_id": decision.get("decision_id"),
+        "category": decision.get("category"),
+        "recommended": decision.get("recommended_action"),
+        "actual": outcome.get("actual_action") if outcome else None,
+        "is_correct": outcome.get("is_correct") if outcome else None,
+        "confidence": decision.get("confidence"),
+        "created_at": decision.get("created_at"),
+    }
+    factors = decision.get("factors") or {}
+    if isinstance(factors, dict):
+        for name in _valid_factors():
+            row[f"factor_{name}"] = factors.get(name)
+    return row
+
+
+def _csv_fieldnames(rows: list[dict[str, Any]]) -> list[str]:
+    base = ["decision_id", "category", "recommended", "actual", "is_correct", "confidence", "created_at"]
+    factor_names = [f"factor_{name}" for name in _valid_factors()]
+    extras = sorted({key for row in rows for key in row if key not in base and key not in factor_names})
+    return base + factor_names + extras
+
+
+def _csv_value(value: Any) -> Any:
+    if isinstance(value, (dict, list)):
+        return json.dumps(value)
+    return value
+
+
+def _load_csv_trades(file_path: str, preset: str | None) -> list[Any]:
+    from app.connectors.csv_connector import BROKER_PRESETS, CSVConnector
+
+    if not Path(file_path).is_file():
+        raise CLIUsageError(
+            f"CSV file not found: {file_path}",
+            "Provide a valid file path with --file",
+        )
+    if preset and preset.lower() not in BROKER_PRESETS:
+        raise CLIUsageError(
+            f"Unknown CSV preset '{preset}'",
+            f"Valid presets: {_format_hint(sorted(BROKER_PRESETS))}",
+        )
+    connector = CSVConnector()
+    return connector.import_flexible(file_path, broker_preset=preset) if preset else connector.import_from_file(file_path)
+
+
+def _load_broker_trades(broker: str, days: int) -> list[Any]:
+    from app.brokers import get_broker
+
+    try:
+        days_int = int(days)
+    except (TypeError, ValueError) as exc:
+        raise CLIUsageError("Invalid days parameter", "Days must be an integer.") from exc
+    try:
+        connector = get_broker(broker)
+    except (ValueError, KeyError, ImportError) as exc:
+        raise CLIUsageError(
+            f"Unknown or unavailable broker: {broker}",
+            "Valid brokers: mock, alpaca, ibkr",
+        ) from exc
+    import_trades = getattr(connector, "import_trades", None)
+    if import_trades is None:
+        raise CLIUsageError(
+            f"Broker '{broker}' does not support trade import",
+            "Use a broker connector with import_trades(), such as ibkr.",
+        )
+    return import_trades(days=days_int)
+
+
+def _trade_to_dict(trade: Any) -> dict[str, Any]:
+    if hasattr(trade, "to_dict"):
+        return trade.to_dict()
+    if isinstance(trade, dict):
+        return dict(trade)
+    return dict(getattr(trade, "__dict__", {}))
+
+
+def _existing_import_keys(decisions: list[dict[str, Any]]) -> set[str]:
+    keys: set[str] = set()
+    for decision in decisions:
+        metadata = decision.get("metadata") or {}
+        if isinstance(metadata, dict) and metadata.get("import_key"):
+            keys.add(str(metadata["import_key"]))
+    return keys
+
+
+def _trade_key(trade: dict[str, Any]) -> str:
+    ticker = str(trade.get("ticker") or trade.get("symbol") or "").upper()
+    raw_date = trade.get("entry_time") or trade.get("entry_date") or trade.get("date") or trade.get("timestamp") or ""
+    date = raw_date.isoformat() if hasattr(raw_date, "isoformat") else str(raw_date)
+    size = trade.get("size", trade.get("qty", trade.get("quantity", 0)))
+    try:
+        normalized_size = abs(float(size or 0))
+    except (TypeError, ValueError):
+        normalized_size = 0.0
+    direction = str(trade.get("direction") or trade.get("side") or "unknown").lower()
+    return "|".join([ticker, date[:19], f"{normalized_size:g}", direction])
+
+
 def _format_timestamp(value: Any) -> str | None:
     if value is None:
         return None
@@ -547,6 +791,8 @@ def _print_payload(payload: Any, output_format: str = "json") -> int:
         print(payload)
     else:
         print(json.dumps(payload, indent=2))
+    if isinstance(payload, dict) and "error" in payload:
+        return 1
     return 0
 
 
@@ -614,8 +860,111 @@ def _cmd_journal(args: argparse.Namespace) -> int:
     )
 
 
+def _cmd_export(args: argparse.Namespace) -> int:
+    return _run_json_command(lambda: export_sdk(args.format, args.output, args.db_path))
+
+
+def _cmd_backup(args: argparse.Namespace) -> int:
+    return _run_json_command(lambda: backup_sdk(args.backup_path, args.db_path))
+
+
+def _cmd_restore(args: argparse.Namespace) -> int:
+    return _run_json_command(lambda: restore_sdk(args.backup_path, args.confirm, args.db_path))
+
+
+def _cmd_import(args: argparse.Namespace) -> int:
+    return _run_json_command(
+        lambda: import_sdk(
+            source=args.source,
+            file_path=args.file_path,
+            broker=args.broker,
+            preset=args.preset,
+            days=args.days,
+            db_path=args.db_path,
+        )
+    )
+
+
 def _add_db_path(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--db-path")
+
+
+def _add_top_level_subcommands(subparsers: argparse._SubParsersAction) -> None:
+    init_parser = subparsers.add_parser("init", help="Initialize SDK-backed Trading DB.")
+    _add_db_path(init_parser)
+    init_parser.set_defaults(func=_cmd_init)
+
+    score_parser = subparsers.add_parser("score", help="Preview a scorer decision.")
+    _add_db_path(score_parser)
+    score_parser.add_argument("--category", required=True)
+    score_parser.add_argument("--factors", required=True)
+    score_parser.set_defaults(func=_cmd_score)
+
+    decide_parser = subparsers.add_parser("decide", help="Persist a scorer decision.")
+    _add_db_path(decide_parser)
+    decide_parser.add_argument("--category", required=True)
+    decide_parser.add_argument("--factors", required=True)
+    decide_parser.set_defaults(func=_cmd_decide)
+
+    learn_parser = subparsers.add_parser("learn", help="Record an outcome for a decision.")
+    _add_db_path(learn_parser)
+    learn_parser.add_argument("--decision", required=True)
+    learn_parser.add_argument("--action", required=True)
+    learn_parser.set_defaults(func=_cmd_learn)
+
+    record_parser = subparsers.add_parser("record", help="Persist a decision and outcome.")
+    _add_db_path(record_parser)
+    record_parser.add_argument("--category", required=True)
+    record_parser.add_argument("--factors", required=True)
+    record_parser.add_argument("--action", required=True)
+    record_parser.set_defaults(func=_cmd_record)
+
+    trust_parser = subparsers.add_parser("trust", help="Show DK weights and trust fingerprint.")
+    _add_db_path(trust_parser)
+    trust_parser.add_argument("--category")
+    trust_parser.add_argument("--format", choices=["json", "human"], default="json")
+    trust_parser.set_defaults(func=_cmd_trust)
+
+    conservation_parser = subparsers.add_parser("conservation", help="Show conservation status.")
+    _add_db_path(conservation_parser)
+    conservation_parser.set_defaults(func=_cmd_conservation)
+
+    status_parser = subparsers.add_parser("status", help="Show SDK-backed Trading status.")
+    _add_db_path(status_parser)
+    status_parser.add_argument("--format", choices=["json", "human"], default="json")
+    status_parser.set_defaults(func=_cmd_status)
+
+    journal_parser = subparsers.add_parser("journal", help="Show recent SDK decisions.")
+    _add_db_path(journal_parser)
+    journal_parser.add_argument("--limit", type=int, default=20)
+    journal_parser.add_argument("--format", choices=["json", "human"], default="json")
+    journal_parser.set_defaults(func=_cmd_journal)
+
+    export_parser = subparsers.add_parser("export", help="Export SDK decisions.")
+    _add_db_path(export_parser)
+    export_parser.add_argument("--format", choices=["json", "csv"], default="json")
+    export_parser.add_argument("--output", dest="output")
+    export_parser.set_defaults(func=_cmd_export)
+
+    backup_parser = subparsers.add_parser("backup", help="Back up the SDK Trading DB.")
+    _add_db_path(backup_parser)
+    backup_parser.add_argument("--backup-path")
+    backup_parser.set_defaults(func=_cmd_backup)
+
+    restore_parser = subparsers.add_parser("restore", help="Restore the SDK Trading DB from backup.")
+    _add_db_path(restore_parser)
+    restore_parser.add_argument("--backup-path", required=True)
+    restore_parser.add_argument("--confirm", action="store_true")
+    restore_parser.set_defaults(func=_cmd_restore)
+
+    import_parser = subparsers.add_parser("import", help="Import CSV or broker trades.")
+    _add_db_path(import_parser)
+    import_parser.add_argument("--source", choices=["csv", "broker"], default="csv")
+    import_parser.add_argument("--file", dest="file_path")
+    import_parser.add_argument("--broker")
+    import_parser.add_argument("--preset")
+    import_parser.add_argument("--days", type=int, default=365)
+    import_parser.set_defaults(func=_cmd_import)
 
 
 def add_sdk_subcommands(subparsers: argparse._SubParsersAction) -> None:
@@ -675,9 +1024,12 @@ def add_sdk_subcommands(subparsers: argparse._SubParsersAction) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="ci-trading-sdk")
+    parser = argparse.ArgumentParser(
+        prog="ci-trading",
+        description="Compounding Intelligence - Trading Copilot CLI",
+    )
     subparsers = parser.add_subparsers(dest="command")
-    add_sdk_subcommands(subparsers)
+    _add_top_level_subcommands(subparsers)
     return parser
 
 
@@ -696,13 +1048,17 @@ __all__ = [
     "SELF_CONFIRM_WARNING",
     "_get_scorer",
     "add_sdk_subcommands",
+    "backup_sdk",
     "conservation_sdk",
     "decide_sdk",
+    "export_sdk",
+    "import_sdk",
     "init_sdk",
     "journal_sdk",
     "learn_sdk",
     "parse_factors",
     "record_sdk",
+    "restore_sdk",
     "score_sdk",
     "status_sdk",
     "trust_sdk",

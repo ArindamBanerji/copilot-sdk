@@ -22,13 +22,17 @@ import app.cli_sdk as cli_sdk  # noqa: E402
 from app.cli_sdk import (  # noqa: E402
     CLIUsageError,
     _get_scorer,
+    backup_sdk,
     conservation_sdk,
     decide_sdk,
+    export_sdk,
+    import_sdk,
     init_sdk,
     journal_sdk,
     learn_sdk,
     parse_factors,
     record_sdk,
+    restore_sdk,
     score_sdk,
     status_sdk,
     trust_sdk,
@@ -349,6 +353,170 @@ def test_parse_factors_accepts_json_string():
     parsed = parse_factors(json.dumps(factors))
 
     assert parsed == factors
+
+
+def test_main_help(capsys):
+    with pytest.raises(SystemExit) as exc:
+        cli_sdk.main(["--help"])
+
+    captured = capsys.readouterr()
+    assert exc.value.code == 0
+    assert "ci-trading" in captured.out
+
+
+def test_export_json(db_path, tmp_path):
+    for value in (0.51, 0.52, 0.53):
+        decide_sdk(_category(), _all_factors(value), db_path)
+    output = tmp_path / "decisions.json"
+
+    result = export_sdk(format="json", output_path=str(output), db_path=db_path)
+
+    data = json.loads(output.read_text(encoding="utf-8"))
+    assert result["exported"] == 3
+    assert len(data) == 3
+    assert data[0]["decision_id"]
+
+
+def test_export_csv(db_path, tmp_path):
+    for value in (0.51, 0.52, 0.53):
+        decide_sdk(_category(), _all_factors(value), db_path)
+    output = tmp_path / "decisions.csv"
+
+    result = export_sdk(format="csv", output_path=str(output), db_path=db_path)
+
+    lines = output.read_text(encoding="utf-8").splitlines()
+    assert result["exported"] == 3
+    assert lines[0].startswith("decision_id,category,recommended")
+    assert len(lines) == 4
+
+
+def test_export_empty(db_path, tmp_path):
+    output = tmp_path / "empty.json"
+
+    result = export_sdk(format="json", output_path=str(output), db_path=db_path)
+
+    assert result["exported"] == 0
+    assert json.loads(output.read_text(encoding="utf-8")) == []
+
+
+def test_backup_creates_file(db_path, tmp_path):
+    init_sdk(db_path)
+    backup = tmp_path / "backup.db"
+
+    result = backup_sdk(backup_path=str(backup), db_path=db_path)
+
+    assert result["backed_up"] == db_path
+    assert Path(result["backup_path"]).exists()
+
+
+def test_restore_requires_confirm(db_path, tmp_path):
+    init_sdk(db_path)
+    backup = backup_sdk(backup_path=str(tmp_path / "backup.db"), db_path=db_path)
+
+    result = restore_sdk(backup["backup_path"], confirm=False, db_path=db_path)
+
+    assert "Restore is destructive" in result["error"]
+
+
+def test_restore_with_confirm(db_path, tmp_path):
+    decide_sdk(_category(), _all_factors(), db_path)
+    backup = backup_sdk(backup_path=str(tmp_path / "backup.db"), db_path=db_path)
+    Path(db_path).write_text("not sqlite", encoding="utf-8")
+
+    result = restore_sdk(backup["backup_path"], confirm=True, db_path=db_path)
+
+    assert result["restored_to"] == db_path
+    assert len(_decisions(db_path)) == 1
+
+
+def test_import_csv_basic(db_path, tmp_path):
+    csv_path = tmp_path / "trades.csv"
+    csv_path.write_text(
+        "ticker,direction,entry_price,size,entry_time\n"
+        "AAPL,long,100,10,2026-01-01\n"
+        "MSFT,short,200,5,2026-01-02\n",
+        encoding="utf-8",
+    )
+
+    result = import_sdk(source="csv", file_path=str(csv_path), db_path=db_path)
+
+    assert result["imported"] == 2
+    assert result["skipped"] == 0
+    assert len(_decisions(db_path)) == 2
+
+
+def test_import_dedup(db_path, tmp_path):
+    csv_path = tmp_path / "trades.csv"
+    csv_path.write_text(
+        "ticker,direction,entry_price,size,entry_time\n"
+        "AAPL,long,100,10,2026-01-01\n",
+        encoding="utf-8",
+    )
+
+    first = import_sdk(source="csv", file_path=str(csv_path), db_path=db_path)
+    second = import_sdk(source="csv", file_path=str(csv_path), db_path=db_path)
+
+    assert first["imported"] == 1
+    assert second["imported"] == 0
+    assert second["skipped"] == 1
+    assert len(_decisions(db_path)) == 1
+
+
+def test_import_csv_missing_file(tmp_path):
+    missing = tmp_path / "missing.csv"
+
+    with pytest.raises(CLIUsageError) as exc:
+        import_sdk(source="csv", file_path=str(missing))
+
+    assert "CSV file not found" in str(exc.value)
+    assert "valid file path" in exc.value.hint
+
+
+def test_import_unknown_broker(db_path):
+    with pytest.raises(CLIUsageError) as exc:
+        import_sdk(source="broker", broker="nonexistent", db_path=db_path)
+
+    assert "Unknown or unavailable broker" in str(exc.value)
+    assert "mock, alpaca, ibkr" in exc.value.hint
+
+
+def test_restore_no_confirm_exit_nonzero(capsys):
+    result = cli_sdk.main(["restore", "--backup-path", "x.db"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert result == 1
+    assert "Restore is destructive" in payload["error"]
+
+
+def test_error_payload_returns_nonzero(capsys):
+    result = cli_sdk._print_payload({"error": "boom", "hint": "fix it"})
+    payload = json.loads(capsys.readouterr().out)
+
+    assert result == 1
+    assert payload["error"] == "boom"
+
+
+def test_all_commands_registered(capsys):
+    with pytest.raises(SystemExit):
+        cli_sdk.main(["--help"])
+    output = capsys.readouterr().out
+
+    for command in [
+        "init",
+        "score",
+        "decide",
+        "learn",
+        "record",
+        "trust",
+        "conservation",
+        "status",
+        "journal",
+        "export",
+        "backup",
+        "restore",
+        "import",
+    ]:
+        assert command in output
 
 
 def test_parser_missing_args_returns_error(capsys):

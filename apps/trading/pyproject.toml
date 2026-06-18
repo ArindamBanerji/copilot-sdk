@@ -32,6 +32,7 @@ classifiers = [
 ]
 dependencies = [
   "numpy>=1.24.0",
+  "copilot-sdk",
 ]
 
 [project.optional-dependencies]
@@ -51,6 +52,19 @@ dev = ["pytest>=7.0.0"]
 [project.scripts]
 ci-trading = "ci_trading.cli:main"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["ci_trading*"]
+[tool.setuptools]
+packages = [
+  "ci_trading",
+  "app",
+  "app.brokers",
+  "app.connectors",
+  "app.domains",
+  "app.evolution",
+  "app.factors",
+  "app.models",
+  "app.services",
+]
+
+[tool.setuptools.package-dir]
+ci_trading = "ci_trading"
+app = "backend/app"
