@@ -20,7 +20,12 @@ import type {
   SelfAuditTrailResponse,
   SelfCentroidHistoryResponse,
   SelfDecisionExplorerResponse,
+  CategorySpend,
+  CostPerCoverPoint,
   SimilarOrder,
+  SpendAlert,
+  SpendSummary,
+  SupplierSpend,
   TodaySummary,
   TrajectoryResponse,
   Variant,
@@ -218,6 +223,26 @@ export function getQBOPriceHistory(vendorId: string, item: string): Promise<QBOP
 
 export function getQBOLeadTimes(vendorId: string): Promise<QBOLeadTimes> {
   return apiGet<QBOLeadTimes>(`/api/purchasing/qbo/lead-times/${encodeURIComponent(vendorId)}`);
+}
+
+export function getSpendSummary(days = 7): Promise<SpendSummary> {
+  return apiGet<SpendSummary>(withParams("/api/purchasing/spend/summary", { days }));
+}
+
+export function getSpendByCategory(days = 30): Promise<CategorySpend[]> {
+  return apiGet<CategorySpend[]>(withParams("/api/purchasing/spend/by-category", { days }));
+}
+
+export function getSpendAlerts(threshold = 10): Promise<SpendAlert[]> {
+  return apiGet<SpendAlert[]>(withParams("/api/purchasing/spend/alerts", { threshold }));
+}
+
+export function getSpendBySupplier(days = 30, limit = 10): Promise<SupplierSpend[]> {
+  return apiGet<SupplierSpend[]>(withParams("/api/purchasing/spend/by-supplier", { days, limit }));
+}
+
+export function getSpendCostPerCover(days = 30): Promise<CostPerCoverPoint[]> {
+  return apiGet<CostPerCoverPoint[]>(withParams("/api/purchasing/spend/cost-per-cover", { days }));
 }
 
 export function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {

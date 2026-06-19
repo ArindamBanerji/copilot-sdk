@@ -16,6 +16,7 @@ import EventBadge from "../components/EventBadge";
 import IgnoringCostCard from "../components/IgnoringCostCard";
 import OrderCard from "../components/OrderCard";
 import ParLevelMonitor from "../components/ParLevelMonitor";
+import SpendSummaryPanel from "../components/SpendSummaryPanel";
 import WeatherWidget from "../components/WeatherWidget";
 import type {
   Analytics,
@@ -159,6 +160,8 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
 
   return (
     <div className="purchase-stack dashboard-screen">
+      <SpendSummaryPanel />
+
       <div className="purchase-grid three">
         <WeatherWidget weather={state.today?.weather} dayOfWeek={state.today?.dayOfWeek} />
         <EventBadge events={state.today?.events} />

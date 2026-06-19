@@ -459,3 +459,48 @@ export interface QBOLeadTimes {
   byQuarter?: Record<string, number>;
   [key: string]: unknown;
 }
+
+export interface SpendSummary {
+  totalSpend: number;
+  orderCount: number;
+  avgOrderAmount?: number;
+  costPerCover?: number | null;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  [key: string]: unknown;
+}
+
+export interface CategorySpend {
+  category: string;
+  totalAmount: number;
+  orderCount: number;
+  pctOfTotal: number;
+  [key: string]: unknown;
+}
+
+export interface SpendAlert {
+  itemName: string;
+  currentPrice: number;
+  avgPrice: number;
+  variancePct: number;
+  supplierName?: string;
+  category?: string;
+  [key: string]: unknown;
+}
+
+export interface SupplierSpend {
+  supplierId: string;
+  supplierName: string;
+  totalAmount: number;
+  orderCount: number;
+  categories?: string[];
+  [key: string]: unknown;
+}
+
+export interface CostPerCoverPoint {
+  date: string;
+  totalSpend: number;
+  covers?: number | null;
+  costPerCover?: number | null;
+  [key: string]: unknown;
+}

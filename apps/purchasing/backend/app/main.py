@@ -34,6 +34,7 @@ from .routers.match import create_match_router  # noqa: E402
 from .routers.pos_router import create_pos_router  # noqa: E402
 from .routers.qbo_router import create_qbo_router  # noqa: E402
 from .routers.queue import create_queue_router  # noqa: E402
+from .routers.spend_router import create_spend_router  # noqa: E402
 from .routers.trust import create_trust_router  # noqa: E402
 from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
@@ -418,6 +419,7 @@ def create_app(
     app.include_router(create_match_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_pos_router())
     app.include_router(create_qbo_router())
+    app.include_router(create_spend_router())
     app.include_router(create_queue_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_trust_router(scorer_proxy))
     app.include_router(purchasing_graph_status_router)
