@@ -6,6 +6,8 @@ import type {
   Item,
   ItemProfile,
   LearnResponse,
+  MatchQueueResponse,
+  MatchResult,
   OrderFormState,
   OrderMetadataPayload,
   OrderMetadata,
@@ -243,6 +245,18 @@ export function getSpendBySupplier(days = 30, limit = 10): Promise<SupplierSpend
 
 export function getSpendCostPerCover(days = 30): Promise<CostPerCoverPoint[]> {
   return apiGet<CostPerCoverPoint[]>(withParams("/api/purchasing/spend/cost-per-cover", { days }));
+}
+
+export function getMatchQueue(): Promise<MatchQueueResponse> {
+  return apiGet<MatchQueueResponse>("/api/purchasing/match/queue");
+}
+
+export function postMatch(
+  order: Record<string, unknown>,
+  delivery?: Record<string, unknown>,
+  invoice?: Record<string, unknown>,
+): Promise<MatchResult> {
+  return apiPost<MatchResult>("/api/purchasing/match", { order, delivery, invoice });
 }
 
 export function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {

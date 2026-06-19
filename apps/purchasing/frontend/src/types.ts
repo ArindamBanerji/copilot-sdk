@@ -504,3 +504,29 @@ export interface CostPerCoverPoint {
   costPerCover?: number | null;
   [key: string]: unknown;
 }
+
+export interface MatchResult {
+  matched?: boolean;
+  status?: string;
+  orderId?: string;
+  supplierId?: string;
+  supplierName?: string;
+  item?: string;
+  amount?: number;
+  matchConfidence?: number;
+  confidence?: number;
+  discrepancyMessages?: string[];
+  reasons?: string[];
+  [key: string]: unknown;
+}
+
+export interface MatchQueueResponse {
+  exceptions?: MatchResult[];
+  recentResults?: MatchResult[];
+  count?: number;
+  pendingCount?: number;
+  autoMatchedCount?: number;
+  exceptionCount?: number;
+  source?: string;
+  [key: string]: unknown;
+}

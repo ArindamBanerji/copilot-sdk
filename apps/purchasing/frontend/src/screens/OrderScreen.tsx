@@ -18,6 +18,7 @@ import AEManagedBadge from "../components/AEManagedBadge";
 import CostAnalysis from "../components/CostAnalysis";
 import EngineAssessment from "../components/EngineAssessment";
 import EventBadge from "../components/EventBadge";
+import MatchResultPanel from "../components/MatchResultPanel";
 import OrderContext from "../components/OrderContext";
 import SimilarOrdersPanel from "../components/SimilarOrdersPanel";
 import WeatherWidget from "../components/WeatherWidget";
@@ -492,6 +493,8 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
           </div>
         </div>
       </section>
+
+      <MatchResultPanel />
 
       {itemLoading ? <section className="purchase-card">Loading item profile...</section> : null}
 
