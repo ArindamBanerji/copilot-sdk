@@ -6,6 +6,7 @@ import CategoryEmoji from "../components/CategoryEmoji";
 import ItemProfile from "../components/ItemProfile";
 import { RuleGenealogyTree } from "../components/RuleGenealogyTree";
 import { RuleLifecyclePanel } from "../components/RuleLifecyclePanel";
+import SupplierIntelligencePanel from "../components/SupplierIntelligencePanel";
 import type { Item, Variant, WasteHistory } from "../types";
 
 const categories = ["protein", "produce", "dairy", "dry_goods", "beverages"];
@@ -154,6 +155,7 @@ export default function InventoryScreen() {
       <RuleGenealogyTree />
       <RuleLifecyclePanel />
       <AuditTrailViewer />
+      <SupplierIntelligencePanel />
 
       <section className="purchase-card">
         <p className="purchase-kicker">Category summary</p>

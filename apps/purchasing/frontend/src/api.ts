@@ -10,6 +10,11 @@ import type {
   OrderMetadataPayload,
   OrderMetadata,
   FactorMap,
+  QBOInvoice,
+  QBOLeadTimes,
+  QBOPricePoint,
+  QBOStatus,
+  QBOSupplier,
   ScoreResponse,
   SelfAccuracyByCategoryResponse,
   SelfAuditTrailResponse,
@@ -191,6 +196,28 @@ export function getTrajectory(): Promise<TrajectoryResponse> {
 
 export function getConservationStatus(): Promise<ConservationState> {
   return apiGet<ConservationState>("/api/conservation/status");
+}
+
+export function getQBOVendors(): Promise<QBOSupplier[]> {
+  return apiGet<QBOSupplier[]>("/api/purchasing/qbo/vendors");
+}
+
+export function getQBOBills(): Promise<QBOInvoice[]> {
+  return apiGet<QBOInvoice[]>("/api/purchasing/qbo/bills");
+}
+
+export function getQBOStatus(): Promise<QBOStatus> {
+  return apiGet<QBOStatus>("/api/purchasing/qbo/status");
+}
+
+export function getQBOPriceHistory(vendorId: string, item: string): Promise<QBOPricePoint[]> {
+  return apiGet<QBOPricePoint[]>(
+    `/api/purchasing/qbo/price-history/${encodeURIComponent(vendorId)}/${encodeURIComponent(item)}`,
+  );
+}
+
+export function getQBOLeadTimes(vendorId: string): Promise<QBOLeadTimes> {
+  return apiGet<QBOLeadTimes>(`/api/purchasing/qbo/lead-times/${encodeURIComponent(vendorId)}`);
 }
 
 export function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {

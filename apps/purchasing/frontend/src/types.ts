@@ -395,3 +395,67 @@ export interface OrderMetadataPayload extends OrderMetadata {
   action?: string;
   confirmedAction?: string;
 }
+
+export interface QBOLineItem {
+  itemName?: string;
+  category?: string;
+  quantity?: number;
+  unitPrice?: number;
+  amount?: number;
+  [key: string]: unknown;
+}
+
+export interface QBOSupplier {
+  recordType?: string;
+  supplierId: string;
+  supplierName: string;
+  archetype?: string;
+  primaryCategory?: string;
+  active?: boolean;
+  balance?: number;
+  currency?: string;
+  timestamp?: string;
+  [key: string]: unknown;
+}
+
+export interface QBOInvoice {
+  recordType?: string;
+  invoiceId?: string;
+  supplierId?: string;
+  supplierName?: string;
+  archetype?: string;
+  invoiceDate?: string;
+  amount?: number;
+  currency?: string;
+  orderId?: string | null;
+  lineItems?: QBOLineItem[];
+  timestamp?: string;
+  [key: string]: unknown;
+}
+
+export interface QBOStatus {
+  connected?: boolean;
+  companyName?: string | null;
+  realmId?: string | null;
+  sourceName?: string;
+  entityType?: string;
+  error?: string;
+  [key: string]: unknown;
+}
+
+export interface QBOPricePoint {
+  date?: string;
+  unitPrice?: number;
+  quantity?: number;
+  invoiceId?: string;
+  [key: string]: unknown;
+}
+
+export interface QBOLeadTimes {
+  meanDays?: number | null;
+  medianDays?: number | null;
+  stdDays?: number | null;
+  sampleCount?: number;
+  byQuarter?: Record<string, number>;
+  [key: string]: unknown;
+}
