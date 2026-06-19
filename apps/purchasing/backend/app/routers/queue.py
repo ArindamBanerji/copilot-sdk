@@ -7,6 +7,7 @@ from typing import Any, Callable
 from fastapi import APIRouter
 
 from app.data_helpers import load_purchasing_orders
+from app.factors import ALL_FACTOR_NAMES, compute_factors
 
 
 DOMAIN = "purchasing"
@@ -39,7 +40,7 @@ def _orders() -> list[dict[str, Any]]:
 
 
 def _recommendation(order: dict[str, Any]) -> dict[str, Any] | None:
-    factors = order.get("factors") if isinstance(order.get("factors"), dict) else {}
+    factors = _merged_factors(order)
     expected_demand = _coerce_factor(factors.get("expected_demand"))
     historical_waste = _coerce_factor(factors.get("historical_waste"))
     supplier_lead_time = _coerce_factor(factors.get("supplier_lead_time"))
@@ -57,13 +58,76 @@ def _recommendation(order: dict[str, Any]) -> dict[str, Any] | None:
         "supplier_id": order.get("supplier_id"),
         "category": order.get("category"),
         "priority_score": round(priority_score, 6),
-        "factors": {
-            "historical_waste": historical_waste,
-            "expected_demand": expected_demand,
-            "supplier_lead_time": supplier_lead_time,
-        },
+        "factors": factors,
         "data_source": "purchasing_orders_fixture",
     }
+
+
+def _merged_factors(order: dict[str, Any]) -> dict[str, float]:
+    explicit_factors = order.get("factors") if isinstance(order.get("factors"), dict) else {}
+    computed = compute_factors(_factor_context(order))
+    return {**computed, **_explicit_factor_overrides(order, explicit_factors)}
+
+
+def _factor_context(order: dict[str, Any]) -> dict[str, Any]:
+    outcome = order.get("outcome") if isinstance(order.get("outcome"), dict) else {}
+    context = {
+        "forecast_demand": order.get("forecast_demand") or order.get("expected_demand"),
+        "par_level": order.get("par_level"),
+        "day_of_week": _day_index(order.get("day_of_week")),
+        "weather_score": order.get("weather_score") or order.get("weather_forecast"),
+        "weather": order.get("weather"),
+        "event_flag": order.get("event_flag"),
+        "event_covers": order.get("event_covers"),
+        "normal_covers": order.get("normal_covers"),
+        "waste_pct": order.get("waste_pct") or order.get("historical_waste") or outcome.get("waste_pct"),
+        "lead_time_days": order.get("lead_time_days") or order.get("supplier_lead_time"),
+        "price_change_count": order.get("price_change_count"),
+        "months_tracked": order.get("months_tracked"),
+    }
+    return {key: value for key, value in context.items() if value is not None}
+
+
+def _explicit_factor_overrides(order: dict[str, Any], explicit_factors: dict[str, Any]) -> dict[str, float]:
+    overrides: dict[str, float] = {}
+    for name in ALL_FACTOR_NAMES:
+        if name == "day_of_week" and order.get("day_of_week_factor") is not None:
+            raw = order.get("day_of_week_factor")
+        elif name in explicit_factors:
+            raw = explicit_factors.get(name)
+        elif name in order:
+            raw = order.get(name)
+        else:
+            continue
+        value = _finite_factor(raw)
+        if value is not None:
+            overrides[name] = value
+    return overrides
+
+
+def _day_index(value: Any) -> Any:
+    if isinstance(value, str):
+        lookup = {
+            "monday": 0,
+            "tuesday": 1,
+            "wednesday": 2,
+            "thursday": 3,
+            "friday": 4,
+            "saturday": 5,
+            "sunday": 6,
+        }
+        return lookup.get(value.strip().lower())
+    return value
+
+
+def _finite_factor(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if 0.0 <= number <= 1.0:
+        return number
+    return None
 
 
 def _conservation_status(graph_store_factory: GraphStoreFactory | None) -> dict[str, Any]:

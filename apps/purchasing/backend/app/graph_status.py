@@ -9,6 +9,7 @@ import re
 
 from fastapi import APIRouter, Request
 
+from app.factors import compute_factors
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 
 
@@ -184,7 +185,9 @@ class PurchasingActiveAGEGraphStore:
         if isinstance(decision_metadata.get("factor_vector"), list):
             factor_vector = [float(value) for value in decision_metadata["factor_vector"]]
         else:
-            factor_vector = [float(factors.get(name, 0.5)) for name in factor_names]
+            computed = compute_factors(_factor_context(decision_metadata))
+            merged = {**computed, **_request_factor_overrides(factors)}
+            factor_vector = [float(merged.get(name, 0.5)) for name in factor_names]
         recommended_index = int(
             decision_metadata.get(
                 "recommended_index",
@@ -229,6 +232,47 @@ class PurchasingActiveAGEGraphStore:
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._store, name)
+
+
+def _factor_context(order: dict[str, Any]) -> dict[str, Any]:
+    context = {
+        "forecast_demand": order.get("forecast_demand") or order.get("expected_demand"),
+        "par_level": order.get("par_level"),
+        "day_of_week": _day_index(order.get("day_of_week")),
+        "weather_score": order.get("weather_score") or order.get("weather_forecast"),
+        "weather": order.get("weather"),
+        "event_flag": order.get("event_flag"),
+        "event_covers": order.get("event_covers"),
+        "normal_covers": order.get("normal_covers"),
+        "waste_pct": order.get("waste_pct") or order.get("historical_waste"),
+        "lead_time_days": order.get("lead_time_days") or order.get("supplier_lead_time"),
+        "price_change_count": order.get("price_change_count"),
+        "months_tracked": order.get("months_tracked"),
+    }
+    return {key: value for key, value in context.items() if value is not None}
+
+
+def _request_factor_overrides(factors: dict[str, Any]) -> dict[str, float]:
+    overrides: dict[str, float] = {}
+    for key, value in factors.items():
+        if value is not None:
+            overrides[key] = float(value)
+    return overrides
+
+
+def _day_index(value: Any) -> Any:
+    if isinstance(value, str):
+        lookup = {
+            "monday": 0,
+            "tuesday": 1,
+            "wednesday": 2,
+            "thursday": 3,
+            "friday": 4,
+            "saturday": 5,
+            "sunday": 6,
+        }
+        return lookup.get(value.strip().lower())
+    return value
 
 
 def initialize_purchasing_active_graph_config(

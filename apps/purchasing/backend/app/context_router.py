@@ -11,6 +11,7 @@ from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException, status
 
+from app.factors import compute_factors
 from copilot_sdk.scoring.verification.weather import get_weather_factor
 
 
@@ -99,15 +100,74 @@ def _cosine_similarity(left: list[float], right: list[float]) -> float:
 
 
 def _order_vector(order: dict[str, Any]) -> list[float]:
-    return [
-        float(order.get("expected_demand", 0.0)),
-        float(order.get("day_of_week_factor", 0.0)),
-        float(order.get("weather_forecast", 0.0)),
-        float(order.get("event_flag", 0.0)),
-        float(order.get("historical_waste", 0.0)),
-        float(order.get("supplier_lead_time", 0.0)),
-        float(order.get("price_memory_index", 0.5)),
-    ]
+    factors = _merged_order_factors(order)
+    return [float(factors.get(name, 0.5)) for name in _FACTOR_NAMES]
+
+
+def _merged_order_factors(order: dict[str, Any]) -> dict[str, float]:
+    computed = compute_factors(_factor_context(order))
+    return {**computed, **_explicit_factor_overrides(order)}
+
+
+def _factor_context(order: dict[str, Any]) -> dict[str, Any]:
+    outcome = order.get("outcome") if isinstance(order.get("outcome"), dict) else {}
+    context = {
+        "forecast_demand": order.get("forecast_demand") or order.get("expected_demand"),
+        "par_level": order.get("par_level"),
+        "day_of_week": _day_index(order.get("day_of_week")),
+        "weather_score": order.get("weather_score") or order.get("weather_forecast"),
+        "weather": order.get("weather"),
+        "event_flag": order.get("event_flag"),
+        "event_covers": order.get("event_covers"),
+        "normal_covers": order.get("normal_covers"),
+        "waste_pct": order.get("waste_pct") or order.get("historical_waste") or outcome.get("waste_pct"),
+        "lead_time_days": order.get("lead_time_days") or order.get("supplier_lead_time"),
+        "price_change_count": order.get("price_change_count"),
+        "months_tracked": order.get("months_tracked"),
+    }
+    return {key: value for key, value in context.items() if value is not None}
+
+
+def _explicit_factor_overrides(order: dict[str, Any]) -> dict[str, float]:
+    overrides: dict[str, float] = {}
+    for name in _FACTOR_NAMES:
+        if name == "day_of_week" and order.get("day_of_week_factor") is not None:
+            raw = order.get("day_of_week_factor")
+        elif name in order:
+            raw = order.get(name)
+        else:
+            continue
+        value = _finite_factor(raw)
+        if value is not None:
+            overrides[name] = value
+    return overrides
+
+
+def _day_index(value: Any) -> Any:
+    if isinstance(value, str):
+        lookup = {
+            "monday": 0,
+            "tuesday": 1,
+            "wednesday": 2,
+            "thursday": 3,
+            "friday": 4,
+            "saturday": 5,
+            "sunday": 6,
+        }
+        return lookup.get(value.strip().lower())
+    return value
+
+
+def _finite_factor(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    if 0.0 <= number <= 1.0:
+        return number
+    return None
 
 
 def _waste_trend(values: list[float]) -> str:

@@ -7,6 +7,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
+from app.factors import compute_factors
 from copilot_sdk.scoring.presets import PurchasingPreset
 
 
@@ -270,6 +271,7 @@ def _recommended_action(decision: dict[str, Any]) -> str:
 def _decision_factors(decision: dict[str, Any]) -> dict[str, float]:
     factors = decision.get("factors") if isinstance(decision.get("factors"), dict) else {}
     metadata = factors.get("metadata") if isinstance(factors.get("metadata"), dict) else {}
+    decision_metadata = decision.get("metadata") if isinstance(decision.get("metadata"), dict) else {}
     scored = metadata.get("scored_factors") if isinstance(metadata.get("scored_factors"), dict) else {}
     vector = decision.get("factor_vector") if isinstance(decision.get("factor_vector"), list) else []
     result: dict[str, float] = {}
@@ -282,7 +284,54 @@ def _decision_factors(decision: dict[str, Any]) -> dict[str, float]:
         value = _finite_float(raw)
         if value is not None:
             result[factor] = value
+    if len(result) < len(FACTOR_NAMES):
+        recomputed = compute_factors(_factor_context(decision, decision_metadata, metadata))
+        for factor in FACTOR_NAMES:
+            if factor not in result and factor in recomputed:
+                result[factor] = recomputed[factor]
     return result
+
+
+def _factor_context(
+    decision: dict[str, Any],
+    decision_metadata: dict[str, Any],
+    factor_metadata: dict[str, Any],
+) -> dict[str, Any]:
+    context: dict[str, Any] = {}
+    for source in (decision, decision_metadata, factor_metadata):
+        context.update({key: value for key, value in source.items() if value is not None})
+
+    outcome = context.get("outcome") if isinstance(context.get("outcome"), dict) else {}
+    mapped = {
+        "forecast_demand": context.get("forecast_demand") or context.get("expected_demand"),
+        "par_level": context.get("par_level"),
+        "day_of_week": _day_index(context.get("day_of_week")),
+        "weather_score": context.get("weather_score") or context.get("weather_forecast"),
+        "weather": context.get("weather"),
+        "event_flag": context.get("event_flag"),
+        "event_covers": context.get("event_covers"),
+        "normal_covers": context.get("normal_covers"),
+        "waste_pct": context.get("waste_pct") or context.get("historical_waste") or outcome.get("waste_pct"),
+        "lead_time_days": context.get("lead_time_days") or context.get("supplier_lead_time"),
+        "price_change_count": context.get("price_change_count"),
+        "months_tracked": context.get("months_tracked"),
+    }
+    return {key: value for key, value in mapped.items() if value is not None}
+
+
+def _day_index(value: Any) -> Any:
+    if isinstance(value, str):
+        lookup = {
+            "monday": 0,
+            "tuesday": 1,
+            "wednesday": 2,
+            "thursday": 3,
+            "friday": 4,
+            "saturday": 5,
+            "sunday": 6,
+        }
+        return lookup.get(value.strip().lower())
+    return value
 
 
 def _reasoning(decision: dict[str, Any]) -> str:
