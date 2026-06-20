@@ -4,7 +4,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 import pytest
 
-from app.routers.spend_router import create_spend_router
+from app.connectors.mock_qbo import MockQBOConnector
+from app.data_helpers import assert_no_sample_in_metric
+from app.routers.spend_router import SCRAPED_EXTERNAL_PROVENANCE, create_spend_router, qbo_bills_for_spend
 from app.services.spend_dashboard import SpendDashboardService
 
 
@@ -140,3 +142,27 @@ def test_router_with_custom_orders():
 
     assert response.status_code == 200
     assert len(response.json()) == 5
+
+
+def test_spend_no_sample_data():
+    rows = qbo_bills_for_spend(MockQBOConnector())
+
+    assert rows
+    assert all(row.get("provenance") != "sample" for row in rows)
+    assert_no_sample_in_metric(rows, "spend_dashboard")
+
+
+def test_spend_from_qbo_has_provenance():
+    rows = qbo_bills_for_spend(MockQBOConnector())
+
+    assert rows
+    assert all(row.get("provenance") == SCRAPED_EXTERNAL_PROVENANCE for row in rows)
+
+
+def test_spend_from_qbo_metrics_valid():
+    rows = qbo_bills_for_spend(MockQBOConnector())
+    service = SpendDashboardService(rows)
+
+    assert service.summary(days=365)["total_spend"] > 0
+    assert service.by_category(days=365)
+    assert any(row["total_amount"] > 0 for row in service.by_category(days=365))

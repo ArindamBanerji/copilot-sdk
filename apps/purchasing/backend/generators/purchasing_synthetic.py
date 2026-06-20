@@ -1,4 +1,10 @@
-"""Generate deterministic Purchasing supplier and order fixtures."""
+"""Generate deterministic Purchasing supplier and order fixtures.
+
+K3 demo-population fixture (Rule 67).
+All output carries provenance="sample".
+This data substantiates nothing; it is for demo realism only.
+Never use it in a metric, score, par, or claim (F-26).
+"""
 
 from __future__ import annotations
 
@@ -13,6 +19,7 @@ SEED = 42
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 SUPPLIERS_PATH = DATA_DIR / "purchasing_suppliers.json"
 ORDERS_PATH = DATA_DIR / "purchasing_orders.json"
+SAMPLE_PROVENANCE = "sample"
 
 CATEGORIES = ("protein", "produce", "dairy", "dry_goods", "beverages")
 ACTIONS = ("order_as_planned", "order_more", "order_less", "skip")
@@ -155,6 +162,7 @@ def _supplier_record(
         trend = "declining"
     return {
         "supplier_id": supplier_id,
+        "provenance": SAMPLE_PROVENANCE,
         "name": name,
         "archetype": archetype,
         "categories": list(categories),
@@ -256,6 +264,7 @@ def generate_orders(rng: random.Random, suppliers: list[dict[str, Any]]) -> list
         orders.append(
             {
                 "order_id": f"PUR-ORD-{index:04d}",
+                "provenance": SAMPLE_PROVENANCE,
                 "supplier_id": supplier["supplier_id"],
                 "supplier_name": supplier["name"],
                 "category": category,

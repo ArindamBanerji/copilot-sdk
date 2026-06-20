@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import asdict, is_dataclass
 from typing import Any, Callable
 
@@ -88,49 +89,50 @@ def create_verify_router(scorer_provider: ScorerProvider) -> APIRouter:
         if store is None or not callable(getattr(store, "get_decision", None)):
             raise HTTPException(status_code=500, detail="Verification requires a graph store")
 
-        decision = store.get_decision(decision_id)
-        if decision is None:
-            raise HTTPException(status_code=404, detail=f"Unknown decision: {decision_id}")
-        if _already_verified(store, decision_id, decision):
-            raise HTTPException(status_code=409, detail=f"Decision already verified: {decision_id}")
+        with _verification_lock(state):
+            decision = store.get_decision(decision_id)
+            if decision is None:
+                raise HTTPException(status_code=404, detail=f"Unknown decision: {decision_id}")
+            if _already_verified(store, decision_id, decision):
+                raise HTTPException(status_code=409, detail=f"Decision already verified: {decision_id}")
 
-        recommended_action = str(decision.get("recommended_action") or decision.get("action") or "")
-        metadata = {
-            "reason_code": reason_code,
-            "reason_label": REASON_CODES[reason_code],
-            "notes": request.notes,
-            "source": "purchasing_verify",
-        }
-        try:
-            learn_result = _learn_with_context(
-                state,
-                decision_id=decision_id,
-                actual_action=actual_action,
-                context=metadata,
-            )
-            learn_payload = _learn_payload(learn_result)
-            if _is_conservation_paused(learn_payload):
-                _record_paused_outcome(
-                    store,
+            recommended_action = str(decision.get("recommended_action") or decision.get("action") or "")
+            metadata = {
+                "reason_code": reason_code,
+                "reason_label": REASON_CODES[reason_code],
+                "notes": request.notes,
+                "source": "purchasing_verify",
+            }
+            try:
+                learn_result = _learn_with_context(
+                    state,
                     decision_id=decision_id,
                     actual_action=actual_action,
-                    actual_index=preset.shape.action_names.index(actual_action),
-                    is_correct=actual_action == recommended_action,
                     context=metadata,
                 )
-        except KeyError as exc:
-            raise HTTPException(status_code=404, detail=f"Unknown decision: {decision_id}") from exc
-        except AssertionError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        except ValueError as exc:
-            if "already exists" in str(exc).lower():
-                raise HTTPException(status_code=409, detail=f"Decision already verified: {decision_id}") from exc
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+                learn_payload = _learn_payload(learn_result)
+                if _is_conservation_paused(learn_payload):
+                    _record_paused_outcome(
+                        store,
+                        decision_id=decision_id,
+                        actual_action=actual_action,
+                        actual_index=preset.shape.action_names.index(actual_action),
+                        is_correct=actual_action == recommended_action,
+                        context=metadata,
+                    )
+            except KeyError as exc:
+                raise HTTPException(status_code=404, detail=f"Unknown decision: {decision_id}") from exc
+            except AssertionError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+            except ValueError as exc:
+                if "already exists" in str(exc).lower():
+                    raise HTTPException(status_code=409, detail=f"Decision already verified: {decision_id}") from exc
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-        conservation = compute_conservation_status_payload(DOMAIN, state)
-        verified_count = int(conservation.get("verified_count") or 0)
-        correct_count = int(conservation.get("correct_count") or 0)
-        q = correct_count / verified_count if verified_count else 0.0
+            conservation = compute_conservation_status_payload(DOMAIN, state)
+            verified_count = int(conservation.get("verified_count") or 0)
+            correct_count = int(conservation.get("correct_count") or 0)
+            q = correct_count / verified_count if verified_count else 0.0
         response = {
             "decision_id": decision_id,
             "recommended_action": recommended_action,
@@ -155,6 +157,16 @@ def _state(provider: ScorerProvider) -> Any:
 
 def _store_for(state: Any) -> Any | None:
     return getattr(state, "graph_store", None) or getattr(state, "_graph_store", None)
+
+
+def _verification_lock(state: Any) -> Any:
+    """Use the app scorer proxy lock when available to serialize verify writes."""
+    lock = getattr(state, "_lock", None)
+    if callable(getattr(lock, "__enter__", None)) and callable(
+        getattr(lock, "__exit__", None)
+    ):
+        return lock
+    return nullcontext()
 
 
 def _already_verified(store: Any, decision_id: str, decision: dict[str, Any]) -> bool:

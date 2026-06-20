@@ -7,8 +7,10 @@ from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException
 
-from app.data_helpers import load_purchasing_orders
+from app.connectors.mock_qbo import MockQBOConnector
+from app.data_helpers import assert_no_sample_in_metric
 from app.factors import ALL_FACTOR_NAMES, compute_factors
+from app.routers.spend_router import SCRAPED_EXTERNAL_PROVENANCE, qbo_bills_for_spend
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
@@ -24,12 +26,14 @@ _SCORER: Any | None = None
 def create_queue_router(
     graph_store_factory: GraphStoreFactory | None = None,
     scorer_factory: ScorerFactory | None = None,
+    connector: Any | None = None,
 ) -> APIRouter:
+    qbo_connector = connector or MockQBOConnector()
     router = APIRouter(prefix="/api/purchasing", tags=["purchasing-queue"])
 
     @router.get("/queue")
     def order_queue(limit: int | None = None) -> dict[str, Any]:
-        orders = _orders()
+        orders = _orders(qbo_connector)
         max_amount = _max_amount(orders)
         scorer = _queue_scorer(scorer_factory)
         rows = [_recommendation(order, scorer=scorer, max_amount=max_amount) for order in orders]
@@ -41,12 +45,12 @@ def create_queue_router(
             "queue": rows,
             "count": len(rows),
             "conservation_status": _conservation_status(graph_store_factory),
-            "source": "purchasing_fixture_context",
+            "source": "quickbooks_online",
         }
 
     @router.get("/queue/{order_id}")
     def order_queue_detail(order_id: str) -> dict[str, Any]:
-        orders = _orders()
+        orders = _orders(qbo_connector)
         max_amount = _max_amount(orders)
         scorer = _queue_scorer(scorer_factory)
         for order in orders:
@@ -60,11 +64,14 @@ def create_queue_router(
     return router
 
 
-def _orders() -> list[dict[str, Any]]:
+def _orders(connector: Any | None = None) -> list[dict[str, Any]]:
     try:
-        return [order for order in load_purchasing_orders() if isinstance(order, dict)]
-    except (FileNotFoundError, OSError, ValueError):
+        rows = qbo_bills_for_spend(connector or MockQBOConnector())
+    except (FileNotFoundError, OSError):
         return []
+    orders = [order for order in rows if isinstance(order, dict)]
+    assert_no_sample_in_metric(orders, "order_queue")
+    return orders
 
 
 def _recommendation(
@@ -107,7 +114,8 @@ def _recommendation(
         "financial_impact": round(financial_impact, 6),
         "aging_days": _aging_days(order),
         "factors": factors,
-        "data_source": "purchasing_orders_fixture",
+        "provenance": order.get("provenance") or SCRAPED_EXTERNAL_PROVENANCE,
+        "data_source": "quickbooks_online",
     }
 
 

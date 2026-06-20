@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app import context_router
+from app.data_helpers import assert_no_sample_in_metric
 from app.factors import ALL_FACTOR_NAMES, PURCHASING_FACTOR_COMPUTERS, compute_factors
 from app.factors.day_of_week import compute as compute_day_of_week
 from app.factors.event_flag import compute as compute_event_flag
@@ -243,7 +244,7 @@ def queue_order(**overrides: object) -> dict:
 
 
 def queue_client(monkeypatch: pytest.MonkeyPatch, orders: list[dict], scorer: FixedQueueScorer | None = None) -> TestClient:
-    monkeypatch.setattr(queue_router, "load_purchasing_orders", lambda: orders)
+    monkeypatch.setattr(queue_router, "_orders", lambda connector=None: orders)
     app = FastAPI()
     app.include_router(queue_router.create_queue_router(scorer_factory=lambda: scorer or FixedQueueScorer()))
     return TestClient(app)
@@ -437,6 +438,31 @@ def test_queue_uses_app_scorer(monkeypatch):
 
     assert scorer.calls > 0
     assert payload["queue"][0]["confidence"] == pytest.approx(0.17)
+
+
+def test_queue_no_sample_data():
+    app = FastAPI()
+    app.include_router(queue_router.create_queue_router(scorer_factory=lambda: FixedQueueScorer()))
+    client = TestClient(app)
+
+    payload = client.get("/api/purchasing/queue?limit=5").json()
+
+    assert payload["queue"]
+    assert all(item.get("provenance") != "sample" for item in payload["queue"])
+    assert_no_sample_in_metric(payload["queue"], "order_queue")
+
+
+def test_queue_from_qbo_has_provenance():
+    app = FastAPI()
+    app.include_router(queue_router.create_queue_router(scorer_factory=lambda: FixedQueueScorer()))
+    client = TestClient(app)
+
+    payload = client.get("/api/purchasing/queue?limit=5").json()
+
+    assert payload["source"] == "quickbooks_online"
+    assert payload["queue"]
+    assert all(item.get("provenance") == "scraped_external" for item in payload["queue"])
+    assert all(item.get("data_source") == "quickbooks_online" for item in payload["queue"])
 
 
 def test_queue_detail_endpoint(monkeypatch):

@@ -198,7 +198,7 @@ def test_queue_returns_items_sorted_by_priority_score_descending(client):
 def test_queue_empty_context_returns_empty_queue_without_crashing(monkeypatch):
     from app.routers import queue as queue_router
 
-    monkeypatch.setattr(queue_router, "load_purchasing_orders", lambda: [])
+    monkeypatch.setattr(queue_router, "_orders", lambda connector=None: [])
     response = _client().get("/api/purchasing/queue")
 
     assert response.status_code == 200
