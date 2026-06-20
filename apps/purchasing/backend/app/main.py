@@ -28,7 +28,9 @@ from .graph_status import (  # noqa: E402
     router as purchasing_graph_status_router,
 )
 from .evolution import get_purchasing_variants  # noqa: E402
+from .connectors.commodity_source import FREDCommoditySource  # noqa: E402
 from .routers.auto_order_router import create_auto_order_router  # noqa: E402
+from .routers.commodity_router import create_commodity_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from .routers.iks import create_iks_router  # noqa: E402
 from .routers.match import create_match_router  # noqa: E402
@@ -39,6 +41,7 @@ from .routers.spend_router import create_spend_router  # noqa: E402
 from .routers.trust import create_trust_router  # noqa: E402
 from .routers.verify_router import create_verify_router  # noqa: E402
 from .services.auto_order import AutoOrderGate  # noqa: E402
+from .services.commodity_data_provider import CommodityDataProvider  # noqa: E402
 from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
@@ -425,6 +428,10 @@ def create_app(
     app.include_router(create_pos_router())
     app.include_router(create_qbo_router())
     app.include_router(create_spend_router())
+    fred_key = os.environ.get("FRED_API_KEY", "")
+    commodity_source = FREDCommoditySource(api_key=fred_key) if fred_key else None
+    commodity_provider = CommodityDataProvider(source=commodity_source)
+    app.include_router(create_commodity_router(provider=commodity_provider))
     app.include_router(
         create_queue_router(
             lambda: selected_graph_store_factory(scoring_db),

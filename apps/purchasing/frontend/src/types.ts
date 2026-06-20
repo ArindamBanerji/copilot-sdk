@@ -553,6 +553,32 @@ export interface CostPerCoverPoint {
   [key: string]: unknown;
 }
 
+export interface ProvenancedValue<T> {
+  value: T;
+  source: string;
+  label?: string | null;
+  asOf?: string | null;
+}
+
+export interface CommodityPricePoint {
+  date: string;
+  item: string;
+  price: number;
+  unit: string;
+  [key: string]: unknown;
+}
+
+export type CommodityPricesResponse = ProvenancedValue<CommodityPricePoint[] | null>;
+
+export type CommodityIndicesResponse = ProvenancedValue<Record<string, number> | null>;
+
+export interface CommodityStatus {
+  provider?: string;
+  categories?: string[];
+  ttlSeconds?: number;
+  [key: string]: unknown;
+}
+
 export interface AutoOrderStatus {
   enabled: boolean;
   threshold: number;

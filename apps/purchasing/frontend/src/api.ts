@@ -27,6 +27,9 @@ import type {
   SelfCentroidHistoryResponse,
   SelfDecisionExplorerResponse,
   CategorySpend,
+  CommodityIndicesResponse,
+  CommodityPricesResponse,
+  CommodityStatus,
   CostPerCoverPoint,
   SimilarOrder,
   SpendAlert,
@@ -252,6 +255,18 @@ export function getSpendBySupplier(days = 30, limit = 10): Promise<SupplierSpend
 
 export function getSpendCostPerCover(days = 30): Promise<CostPerCoverPoint[]> {
   return apiGet<CostPerCoverPoint[]>(withParams("/api/purchasing/spend/cost-per-cover", { days }));
+}
+
+export function getCommodityIndices(): Promise<CommodityIndicesResponse> {
+  return apiGet<CommodityIndicesResponse>("/api/purchasing/commodity/indices");
+}
+
+export function getCommodityPrices(category: string): Promise<CommodityPricesResponse> {
+  return apiGet<CommodityPricesResponse>(`/api/purchasing/commodity/prices/${encodeURIComponent(category)}`);
+}
+
+export function getCommodityStatus(): Promise<CommodityStatus> {
+  return apiGet<CommodityStatus>("/api/purchasing/commodity/status");
 }
 
 export function getAutoOrderStatus(): Promise<AutoOrderStatus> {

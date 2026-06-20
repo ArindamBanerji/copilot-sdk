@@ -129,6 +129,17 @@ def populate_default_registry() -> ClaimRegistry:
             feature="P72-PUR-CONSERVATION-FULL",
         )
     )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P-PUR-COMMODITY-K4",
+            text="Commodity price indices for purchasing categories",
+            tier=Tier.SCRAPED,
+            evidence_ref="FRED commodity source with K4 provenance cascade",
+            is_magnitude_claim=False,
+            copilot="purchasing",
+            feature="P-PUR-COMMODITY-K4",
+        )
+    )
 
     registry.register(
         ClaimProvenance(
