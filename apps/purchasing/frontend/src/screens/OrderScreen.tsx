@@ -8,17 +8,19 @@ import {
   getItems,
   getSimilarOrders,
   getTodaySummary,
+  getVerifyReasonCodes,
   getWasteHistory,
   getWeather,
-  learnOrder,
   saveOrderMetadata,
   scoreOrder,
+  verifyOrder,
 } from "../api";
 import AEManagedBadge from "../components/AEManagedBadge";
 import CostAnalysis from "../components/CostAnalysis";
 import EngineAssessment from "../components/EngineAssessment";
 import EventBadge from "../components/EventBadge";
 import MatchResultPanel from "../components/MatchResultPanel";
+import OrderQueuePanel from "../components/OrderQueuePanel";
 import OrderContext from "../components/OrderContext";
 import SimilarOrdersPanel from "../components/SimilarOrdersPanel";
 import WeatherWidget from "../components/WeatherWidget";
@@ -29,10 +31,12 @@ import type {
   FingerprintResponse,
   Item,
   ItemProfile,
-  LearnResponse,
   ScoreResponse,
   SimilarOrder,
   TodaySummary,
+  VerifyReasonCode,
+  VerifyReasonOption,
+  VerifyResponse,
   WasteHistory,
   Weather,
 } from "../types";
@@ -65,6 +69,15 @@ const actionDisplay: Record<string, string> = {
   order_less: "Order less",
   skip: "Skip",
 };
+const defaultVerifyReasons: VerifyReasonOption[] = [
+  { code: "supplier_preference", label: "Chose preferred supplier" },
+  { code: "price_override", label: "Found better price" },
+  { code: "seasonal_adjustment", label: "Seasonal menu change" },
+  { code: "manager_directive", label: "Manager instruction" },
+  { code: "quality_concern", label: "Quality issue flagged" },
+  { code: "par_adjustment", label: "Par levels changed" },
+  { code: "other", label: "Other" },
+];
 const factorNames = [
   "expected_demand",
   "day_of_week",
@@ -229,7 +242,10 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
   const [similarCount, setSimilarCount] = useState(0);
   const [scoring, setScoring] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [learnResult, setLearnResult] = useState<LearnResponse | undefined>();
+  const [verifyReasons, setVerifyReasons] = useState<VerifyReasonOption[]>(defaultVerifyReasons);
+  const [reasonCode, setReasonCode] = useState<VerifyReasonCode>("supplier_preference");
+  const [reasonNotes, setReasonNotes] = useState("");
+  const [verifyResult, setVerifyResult] = useState<VerifyResponse | undefined>();
 
   useEffect(() => {
     let mounted = true;
@@ -271,6 +287,24 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+    getVerifyReasonCodes()
+      .then((payload) => {
+        if (mounted && payload.reasonCodes?.length) {
+          setVerifyReasons(payload.reasonCodes);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setVerifyReasons(defaultVerifyReasons);
+        }
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (selectedItem?.name) {
       setItemName(selectedItem.name);
       setQuantity(defaultQuantity(selectedItem));
@@ -292,7 +326,7 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
       setError(undefined);
       setScore(undefined);
       setSimilarOrders([]);
-      setLearnResult(undefined);
+      setVerifyResult(undefined);
       try {
         const [nextProfile, nextWaste] = await Promise.all([
           getItemProfile(currentItem.name),
@@ -362,6 +396,7 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
       setScore(nextScore);
       setSimilarOrders(similar.similar ?? []);
       setSimilarCount(similar.count ?? similar.similar?.length ?? 0);
+      setVerifyResult(undefined);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Unable to score order");
     } finally {
@@ -377,17 +412,11 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
     setConfirming(true);
     setError(undefined);
     try {
-      const learned = await learnOrder({
+      const verified = await verifyOrder({
         decisionId,
         actualAction: actionId,
-        outcome: "confirmed",
-        context: {
-          item: currentItem.name,
-          quantity,
-          orderCost: costs.orderCost,
-          stockoutEstimate: costs.stockoutEstimate,
-          wasteEstimate: costs.wasteEstimate,
-        },
+        reasonCode,
+        notes: reasonCode === "other" ? reasonNotes : undefined,
       });
       await saveOrderMetadata({
         decisionId,
@@ -410,10 +439,10 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
         expectedDemand: factors.expected_demand,
         action: String(score.action ?? ""),
         confirmedAction: actionId,
-        reward: learned.reward,
+        reward: verified.reward ?? undefined,
         createdAt: new Date().toISOString(),
       });
-      setLearnResult(learned);
+      setVerifyResult(verified);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Unable to confirm order");
     } finally {
@@ -422,11 +451,11 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
   }
 
   const scoreResult = score ? toScoreResult(score) : undefined;
-  const rewardLine: RewardLine | undefined = learnResult
+  const rewardLine: RewardLine | undefined = verifyResult
     ? {
-        reward: numberOr(learnResult.reward, 0),
-        previousReward: learnResult.previousReward ?? null,
-        rewardMultiplier: learnResult.rewardMultiplier,
+        reward: numberOr(verifyResult.reward, 0),
+        previousReward: null,
+        rewardMultiplier: verifyResult.rewardMultiplier,
       }
     : undefined;
 
@@ -442,6 +471,8 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
           <p>{error}</p>
         </section>
       )}
+
+      <OrderQueuePanel />
 
       <section className="purchase-card">
         <div className="purchase-card-header">
@@ -547,6 +578,42 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
         <>
           <EngineAssessment factors={factors} fingerprint={fingerprint} analytics={analytics} similarCount={similarCount} />
           <SimilarOrdersPanel orders={similarOrders} count={similarCount} />
+          <section className="purchase-card">
+            <div className="purchase-card-header">
+              <div>
+                <p className="purchase-kicker">Verify</p>
+                <h2 className="purchase-title">Reason for this ordering decision</h2>
+              </div>
+            </div>
+            <div className="order-form-grid">
+              <label>
+                <span>Reason</span>
+                <select
+                  data-testid="reason-selector"
+                  value={reasonCode}
+                  onChange={(event) => setReasonCode(event.target.value as VerifyReasonCode)}
+                >
+                  {verifyReasons.map((reason) => (
+                    <option key={reason.code} value={reason.code}>
+                      {reason.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {reasonCode === "other" ? (
+                <label>
+                  <span>Notes</span>
+                  <input
+                    data-testid="reason-notes"
+                    type="text"
+                    value={reasonNotes}
+                    onChange={(event) => setReasonNotes(event.target.value)}
+                    placeholder="Add kitchen context"
+                  />
+                </label>
+              ) : null}
+            </div>
+          </section>
           <ScoreResultCard
             result={scoreResult}
             onConfirm={(decisionId) => confirm(decisionId)}
@@ -574,18 +641,23 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
             actionLabels={actionDisplay}
             factorLabels={factorLabels}
           />
-          {confirming ? <p className="purchase-muted">Confirming and storing order metadata...</p> : null}
-          {learnResult ? (
-            <section className="purchase-card">
+          {confirming ? <p className="purchase-muted">Verifying and storing order metadata...</p> : null}
+          {verifyResult ? (
+            <section className="purchase-card" data-testid="verify-conservation">
               <p className="purchase-kicker">Learned</p>
               <h2 className="purchase-title">
-                {numberOr(learnResult.rewardMultiplier, 0) > 2
-                  ? `The system learned ${numberOr(learnResult.rewardMultiplier, 0).toFixed(1)}x more from this ordering decision.`
-                  : "The system learned from this ordering decision."}
+                {verifyResult.isOverride ? "Override verified" : "Order confirmed"}
               </h2>
               <p className="purchase-muted">
                 {currentItem?.displayName ?? currentItem?.name}, {quantity} {currentItem?.unit ?? "units"}
               </p>
+              <p className="purchase-muted">
+                Conservation {verifyResult.conservationStatus} after {verifyResult.verifiedCount} verified decisions.
+              </p>
+              <p className="purchase-muted">
+                Reward +{numberOr(verifyResult.reward, 0).toFixed(2)} · IKS {numberOr(verifyResult.iksAfter, 0).toFixed(2)}
+              </p>
+              <p className="purchase-muted">The system learned from this ordering decision.</p>
             </section>
           ) : null}
         </>

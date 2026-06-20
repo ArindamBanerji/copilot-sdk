@@ -28,6 +28,7 @@ from .graph_status import (  # noqa: E402
     router as purchasing_graph_status_router,
 )
 from .evolution import get_purchasing_variants  # noqa: E402
+from .routers.auto_order_router import create_auto_order_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from .routers.iks import create_iks_router  # noqa: E402
 from .routers.match import create_match_router  # noqa: E402
@@ -36,6 +37,8 @@ from .routers.qbo_router import create_qbo_router  # noqa: E402
 from .routers.queue import create_queue_router  # noqa: E402
 from .routers.spend_router import create_spend_router  # noqa: E402
 from .routers.trust import create_trust_router  # noqa: E402
+from .routers.verify_router import create_verify_router  # noqa: E402
+from .services.auto_order import AutoOrderGate  # noqa: E402
 from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
@@ -383,6 +386,7 @@ def create_app(
     app.state.purchasing_active_graph_config = active_graph_config
     app.state.purchasing_selected_graph_store = scorer_proxy.graph_store
     app.state.l5_startup_status = l5_startup_status
+    auto_order_gate = AutoOrderGate()
     app.include_router(
         create_scoring_router(
             DOMAIN,
@@ -417,10 +421,17 @@ def create_app(
     app.include_router(create_evidence_router(scorer_proxy))
     app.include_router(create_iks_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_match_router(lambda: selected_graph_store_factory(scoring_db)))
+    app.include_router(create_auto_order_router(auto_order_gate, scorer_proxy))
     app.include_router(create_pos_router())
     app.include_router(create_qbo_router())
     app.include_router(create_spend_router())
-    app.include_router(create_queue_router(lambda: selected_graph_store_factory(scoring_db)))
+    app.include_router(
+        create_queue_router(
+            lambda: selected_graph_store_factory(scoring_db),
+            lambda: scorer_proxy._scorer(),
+        )
+    )
+    app.include_router(create_verify_router(scorer_proxy))
     app.include_router(create_trust_router(scorer_proxy))
     app.include_router(purchasing_graph_status_router)
     app.include_router(

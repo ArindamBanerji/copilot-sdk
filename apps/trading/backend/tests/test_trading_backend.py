@@ -446,6 +446,9 @@ def test_l5_startup_restore_runs_after_seed_setup(tmp_path, monkeypatch):
 
     calls: list[str] = []
 
+    # MOCK-OK: this test is only about startup sequencing. Real seed/restore
+    # behavior is covered by integration tests, and these sentinels keep the
+    # ordering assertion focused.
     def fake_seed(_store):
         calls.append("seed")
 

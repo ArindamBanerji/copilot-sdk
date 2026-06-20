@@ -68,7 +68,9 @@ test("confirm shows reward after scoring", async ({ page }) => {
   await scoreOrder(page);
   await expectAnyText(page, [/confidence/i, /Engine assessment/i, /\d+%/]);
 
-  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await expect(page.getByTestId("reason-selector")).toBeVisible({ timeout: 10_000 });
+  await page.getByTestId("reason-selector").selectOption("supplier_preference");
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/purchasing/verify") && response.request().method() === "POST" && response.ok());
   await page.getByRole("button", { name: "Confirm" }).click();
   await learnResponse;
   await expectAnyText(page, [/Learned/i, /system learned/i, /ordering decision/i, /Reward/i, /IKS/i]);
@@ -81,7 +83,9 @@ test("learn response shows reward after confirm", async ({ page }) => {
   await scoreOrder(page);
   await expect(page.getByRole("button", { name: "Confirm" }).first()).toBeVisible();
 
-  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok());
+  await expect(page.getByTestId("reason-selector")).toBeVisible({ timeout: 10_000 });
+  await page.getByTestId("reason-selector").selectOption("supplier_preference");
+  const learnResponse = page.waitForResponse((response) => response.url().includes("/api/purchasing/verify") && response.request().method() === "POST" && response.ok());
   await page.getByRole("button", { name: "Confirm" }).first().click();
   await learnResponse;
 

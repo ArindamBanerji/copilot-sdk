@@ -12,6 +12,7 @@ import {
 } from "../api";
 import { AccuracyAlertPanel } from "../components/AccuracyAlertPanel";
 import AEStatusBar from "../components/AEStatusBar";
+import AutoOrderPanel from "../components/AutoOrderPanel";
 import EventBadge from "../components/EventBadge";
 import IgnoringCostCard from "../components/IgnoringCostCard";
 import OrderCard from "../components/OrderCard";
@@ -161,6 +162,7 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
   return (
     <div className="purchase-stack dashboard-screen">
       <SpendSummaryPanel />
+      <AutoOrderPanel />
 
       <div className="purchase-grid three">
         <WeatherWidget weather={state.today?.weather} dayOfWeek={state.today?.dayOfWeek} />

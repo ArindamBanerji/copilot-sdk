@@ -239,6 +239,54 @@ export interface LearnResponse {
   [key: string]: unknown;
 }
 
+export type VerifyReasonCode =
+  | "supplier_preference"
+  | "price_override"
+  | "seasonal_adjustment"
+  | "manager_directive"
+  | "quality_concern"
+  | "par_adjustment"
+  | "other";
+
+export interface VerifyReasonOption {
+  code: VerifyReasonCode;
+  label: string;
+}
+
+export interface VerifyReasonCodesResponse {
+  reasonCodes: VerifyReasonOption[];
+  count: number;
+}
+
+export interface VerifyRequest {
+  decisionId: string;
+  actualAction: string;
+  reasonCode: VerifyReasonCode;
+  notes?: string;
+}
+
+export interface VerifyResponse {
+  decisionId: string;
+  recommendedAction: string;
+  actualAction: string;
+  isOverride: boolean;
+  reasonCode: VerifyReasonCode;
+  notes?: string | null;
+  conservationStatus: string;
+  conservationQ: number;
+  verifiedCount: number;
+  metadata?: Record<string, unknown>;
+  reward?: number | null;
+  rewardRaw?: number | null;
+  rewardMultiplier?: number;
+  iksBefore?: number | null;
+  iksAfter?: number | null;
+  centroidDelta?: number | null;
+  decisionsTotal?: number | null;
+  outcome?: string | null;
+  [key: string]: unknown;
+}
+
 export interface FingerprintFactor {
   name: string;
   displayName?: string;
@@ -505,6 +553,50 @@ export interface CostPerCoverPoint {
   [key: string]: unknown;
 }
 
+export interface AutoOrderStatus {
+  enabled: boolean;
+  threshold: number;
+  initialThreshold?: number;
+  minThreshold?: number;
+  spotCheckRate?: number;
+  minVerified?: number;
+  autoOrderedCount: number;
+  spotCheckCount: number;
+  errorCount?: number;
+  errorRate: number;
+  auditCount?: number;
+  conservationStatus?: string;
+  verifiedCount?: number;
+  reason?: string;
+  [key: string]: unknown;
+}
+
+export interface AutoOrderAuditEvent {
+  eventId?: string;
+  orderId?: string | null;
+  decisionId?: string | null;
+  category?: string;
+  action?: string;
+  confidence?: number;
+  threshold?: number;
+  autoOrder?: boolean;
+  spotCheck?: boolean;
+  reason?: string;
+  source?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface AutoOrderEvaluateResponse {
+  autoOrder: boolean;
+  reason: string;
+  spotCheck: boolean;
+  threshold: number;
+  event?: AutoOrderAuditEvent;
+  learningApplied?: boolean;
+  [key: string]: unknown;
+}
+
 export interface MatchResult {
   matched?: boolean;
   status?: string;
@@ -527,6 +619,40 @@ export interface MatchQueueResponse {
   pendingCount?: number;
   autoMatchedCount?: number;
   exceptionCount?: number;
+  source?: string;
+  [key: string]: unknown;
+}
+
+export interface OrderQueueTopFactor {
+  name: string;
+  value: number;
+  interpretation: string;
+}
+
+export interface OrderQueueItem {
+  orderId?: string;
+  supplierId?: string;
+  supplierName?: string;
+  category?: string;
+  totalAmount?: number;
+  recommendedAction?: string;
+  confidence?: number;
+  priorityScore?: number;
+  topFactors?: OrderQueueTopFactor[];
+  stockoutRisk?: number;
+  financialImpact?: number;
+  agingDays?: number;
+  whatToOrder?: string;
+  howMuch?: number;
+  unit?: string;
+  factors?: Record<string, number>;
+  [key: string]: unknown;
+}
+
+export interface OrderQueueResponse {
+  queue: OrderQueueItem[];
+  count: number;
+  conservationStatus?: ConservationState | Record<string, unknown>;
   source?: string;
   [key: string]: unknown;
 }

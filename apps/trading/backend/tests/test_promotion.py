@@ -4,8 +4,8 @@ from datetime import datetime, timedelta, timezone
 
 import cli
 from app.routers import data_import
-from app.routers import promotion as promotion_router
 from app.services.promotion import PromotionService, _is_conservation_green, strategy_key
+from conftest_helpers import seed_green_client
 
 
 def _trade(
@@ -226,20 +226,19 @@ def test_no_duplicate_promotion_on_repeated_evaluate(tmp_path):
     assert second == []
 
 
-def test_promotion_endpoint_returns_strategies(client, monkeypatch):
+def test_promotion_endpoint_returns_strategies(client):
     data_import._trade_store_ref.clear()
     data_import._trade_store_ref.extend(_trades(2, 1))
-    monkeypatch.setattr(promotion_router, "_conservation_status", lambda _factory: {"status": "GREEN"})
 
     payload = client.get("/api/trading/promotion").json()
 
     assert payload["strategies"][0]["strategy_key"] == "trend_following:momentum"
 
 
-def test_promotion_endpoint_includes_history(client, monkeypatch):
+def test_promotion_endpoint_includes_history(client):
     data_import._trade_store_ref.clear()
     data_import._trade_store_ref.extend(_trades(50, 30))
-    monkeypatch.setattr(promotion_router, "_conservation_status", lambda _factory: {"status": "GREEN"})
+    seed_green_client(client)
     client.post("/api/trading/promotion/evaluate")
 
     payload = client.get("/api/trading/promotion").json()
@@ -247,10 +246,10 @@ def test_promotion_endpoint_includes_history(client, monkeypatch):
     assert payload["history"]
 
 
-def test_promotion_evaluate_returns_events(client, monkeypatch):
+def test_promotion_evaluate_returns_events(client):
     data_import._trade_store_ref.clear()
     data_import._trade_store_ref.extend(_trades(50, 30))
-    monkeypatch.setattr(promotion_router, "_conservation_status", lambda _factory: {"status": "GREEN"})
+    seed_green_client(client)
 
     payload = client.post("/api/trading/promotion/evaluate").json()
 

@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 import pytest
+
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from app import context_router
 from app.factors import ALL_FACTOR_NAMES, PURCHASING_FACTOR_COMPUTERS, compute_factors
@@ -189,6 +194,61 @@ class CapturingAGEStore:
         self.decision = kwargs
 
 
+class FixedQueueScore:
+    def __init__(self, action: str = "order_more", confidence: float = 0.5) -> None:
+        self.action = action
+        self.confidence = confidence
+
+
+class FixedQueueScorer:
+    def __init__(self, action: str = "order_more", confidence: float = 0.5) -> None:
+        self.action = action
+        self.confidence = confidence
+
+    def score_read_only(self, *, factors: dict, category: str) -> FixedQueueScore:
+        return FixedQueueScore(action=self.action, confidence=self.confidence)
+
+
+class CountingQueueScorer(FixedQueueScorer):
+    def __init__(self, action: str = "order_more", confidence: float = 0.5) -> None:
+        super().__init__(action=action, confidence=confidence)
+        self.calls = 0
+
+    def score_read_only(self, *, factors: dict, category: str) -> FixedQueueScore:
+        self.calls += 1
+        return super().score_read_only(factors=factors, category=category)
+
+
+def queue_order(**overrides: object) -> dict:
+    order = {
+        "order_id": "Q-ORDER",
+        "category": "produce",
+        "supplier_id": "SUP-1",
+        "supplier_name": "Fresh Supplier",
+        "items": [{"name": "romaine", "quantity": 10, "unit": "lb"}],
+        "total_value": 100.0,
+        "par_compliance": 0.5,
+        "factors": {
+            "expected_demand": 0.8,
+            "day_of_week": 0.7,
+            "weather_forecast": 0.6,
+            "event_flag": 0.2,
+            "historical_waste": 0.75,
+            "supplier_lead_time": 0.3,
+            "price_memory_index": 0.9,
+        },
+    }
+    order.update(overrides)
+    return order
+
+
+def queue_client(monkeypatch: pytest.MonkeyPatch, orders: list[dict], scorer: FixedQueueScorer | None = None) -> TestClient:
+    monkeypatch.setattr(queue_router, "load_purchasing_orders", lambda: orders)
+    app = FastAPI()
+    app.include_router(queue_router.create_queue_router(scorer_factory=lambda: scorer or FixedQueueScorer()))
+    return TestClient(app)
+
+
 def _write_graph_status_decision(metadata: dict, factors: dict | None = None) -> dict[str, float]:
     store = CapturingAGEStore()
     adapter = PurchasingActiveAGEGraphStore(store)
@@ -266,6 +326,171 @@ def test_queue_uses_computed_factors():
     assert set(row["factors"]) == set(ALL_FACTOR_NAMES)
     assert row["factors"]["historical_waste"] == pytest.approx(0.75)
     assert row["factors"]["historical_waste"] != 0.5
+
+
+def test_queue_priority_formula():
+    row = queue_router._recommendation(
+        queue_order(par_compliance=0.0, total_value=50.0),
+        scorer=FixedQueueScorer(confidence=0.5),
+        max_amount=100.0,
+    )
+
+    assert row is not None
+    assert row["stockout_risk"] == pytest.approx(1.0)
+    assert row["financial_impact"] == pytest.approx(0.5)
+    assert row["priority_score"] == pytest.approx(0.7)
+
+
+def test_queue_sorted_descending(monkeypatch):
+    client = queue_client(
+        monkeypatch,
+        [
+            queue_order(order_id="LOW", total_value=10, par_compliance=1.0),
+            queue_order(order_id="HIGH", total_value=100, par_compliance=0.0),
+        ],
+        scorer=FixedQueueScorer(confidence=0.5),
+    )
+
+    payload = client.get("/api/purchasing/queue").json()
+
+    assert [row["order_id"] for row in payload["queue"]] == ["HIGH", "LOW"]
+
+
+def test_queue_has_confidence():
+    row = queue_router._recommendation(queue_order(), scorer=FixedQueueScorer(confidence=0.42), max_amount=100)
+
+    assert row is not None
+    assert row["confidence"] == pytest.approx(0.42)
+
+
+def test_queue_has_recommended_action():
+    row = queue_router._recommendation(queue_order(), scorer=FixedQueueScorer(action="order_less"), max_amount=100)
+
+    assert row is not None
+    assert row["recommended_action"] == "order_less"
+
+
+def test_queue_top_factors_max_3():
+    row = queue_router._recommendation(queue_order(), scorer=FixedQueueScorer(), max_amount=100)
+
+    assert row is not None
+    assert 1 <= len(row["top_factors"]) <= 3
+    assert all("interpretation" in factor for factor in row["top_factors"])
+
+
+def test_queue_stockout_high_priority():
+    row = queue_router._recommendation(
+        queue_order(par_compliance=0.0, total_value=100.0),
+        scorer=FixedQueueScorer(confidence=0.5),
+        max_amount=100.0,
+    )
+
+    assert row is not None
+    assert row["priority_score"] > 0.7
+
+
+def test_queue_low_confidence_high_priority():
+    row = queue_router._recommendation(
+        queue_order(par_compliance=0.5, total_value=100.0),
+        scorer=FixedQueueScorer(confidence=0.3),
+        max_amount=100.0,
+    )
+
+    assert row is not None
+    assert row["priority_score"] > 0.7
+
+
+def test_queue_empty(monkeypatch):
+    client = queue_client(monkeypatch, [])
+
+    response = client.get("/api/purchasing/queue")
+
+    assert response.status_code == 200
+    assert response.json()["queue"] == []
+
+
+def test_queue_limit(monkeypatch):
+    client = queue_client(
+        monkeypatch,
+        [queue_order(order_id=f"Q-{index}", total_value=100 - index) for index in range(8)],
+    )
+
+    payload = client.get("/api/purchasing/queue?limit=5").json()
+
+    assert payload["count"] == 5
+    assert len(payload["queue"]) == 5
+
+
+def test_queue_endpoint_200(monkeypatch):
+    client = queue_client(monkeypatch, [queue_order()])
+
+    response = client.get("/api/purchasing/queue")
+
+    assert response.status_code == 200
+
+
+def test_queue_uses_app_scorer(monkeypatch):
+    scorer = CountingQueueScorer(confidence=0.17)
+    client = queue_client(monkeypatch, [queue_order()], scorer=scorer)
+
+    payload = client.get("/api/purchasing/queue").json()
+
+    assert scorer.calls > 0
+    assert payload["queue"][0]["confidence"] == pytest.approx(0.17)
+
+
+def test_queue_detail_endpoint(monkeypatch):
+    client = queue_client(monkeypatch, [queue_order(order_id="DETAIL-1")])
+
+    response = client.get("/api/purchasing/queue/DETAIL-1")
+
+    assert response.status_code == 200
+    assert response.json()["order_id"] == "DETAIL-1"
+
+
+def test_queue_detail_not_found(monkeypatch):
+    client = queue_client(monkeypatch, [queue_order(order_id="DETAIL-1")])
+
+    response = client.get("/api/purchasing/queue/NONEXISTENT")
+
+    assert response.status_code == 404
+
+
+def test_queue_aging_days(monkeypatch):
+    old_date = (date.today() - timedelta(days=5)).isoformat()
+    client = queue_client(monkeypatch, [queue_order(order_id="AGED-1", order_date=old_date)])
+
+    payload = client.get("/api/purchasing/queue/AGED-1").json()
+
+    assert payload["aging_days"] >= 5
+
+
+def test_queue_limit_param(monkeypatch):
+    client = queue_client(
+        monkeypatch,
+        [queue_order(order_id=f"LIMIT-{index}", total_value=100 - index) for index in range(8)],
+    )
+
+    payload = client.get("/api/purchasing/queue?limit=3").json()
+
+    assert len(payload["queue"]) <= 3
+    assert payload["count"] <= 3
+
+
+def test_queue_priority_bounded(monkeypatch):
+    client = queue_client(
+        monkeypatch,
+        [
+            queue_order(order_id="LOW", total_value=0, par_compliance=1.0),
+            queue_order(order_id="HIGH", total_value=100, par_compliance=0.0),
+        ],
+    )
+
+    payload = client.get("/api/purchasing/queue").json()
+
+    assert payload["queue"]
+    for item in payload["queue"]:
+        assert 0.0 <= item["priority_score"] <= 1.0
 
 
 def test_evidence_recomputes_missing_factors():

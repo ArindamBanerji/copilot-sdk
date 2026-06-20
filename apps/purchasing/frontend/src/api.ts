@@ -1,5 +1,8 @@
 import type {
   Analytics,
+  AutoOrderAuditEvent,
+  AutoOrderEvaluateResponse,
+  AutoOrderStatus,
   ConservationState,
   FingerprintResponse,
   HistoryDecision,
@@ -8,6 +11,7 @@ import type {
   LearnResponse,
   MatchQueueResponse,
   MatchResult,
+  OrderQueueResponse,
   OrderFormState,
   OrderMetadataPayload,
   OrderMetadata,
@@ -31,6 +35,9 @@ import type {
   TodaySummary,
   TrajectoryResponse,
   Variant,
+  VerifyReasonCode,
+  VerifyReasonCodesResponse,
+  VerifyResponse,
   WasteHistory,
   Weather,
 } from "./types";
@@ -247,8 +254,38 @@ export function getSpendCostPerCover(days = 30): Promise<CostPerCoverPoint[]> {
   return apiGet<CostPerCoverPoint[]>(withParams("/api/purchasing/spend/cost-per-cover", { days }));
 }
 
+export function getAutoOrderStatus(): Promise<AutoOrderStatus> {
+  return apiGet<AutoOrderStatus>("/api/purchasing/auto-order/status");
+}
+
+export function enableAutoOrder(): Promise<AutoOrderStatus> {
+  return apiPost<AutoOrderStatus>("/api/purchasing/auto-order/enable", {});
+}
+
+export function disableAutoOrder(): Promise<AutoOrderStatus> {
+  return apiPost<AutoOrderStatus>("/api/purchasing/auto-order/disable", {});
+}
+
+export function getAutoOrderAudit(): Promise<AutoOrderAuditEvent[]> {
+  return apiGet<AutoOrderAuditEvent[]>("/api/purchasing/auto-order/audit");
+}
+
+export function evaluateAutoOrder(payload: {
+  category: string;
+  confidence: number;
+  orderId?: string;
+  decisionId?: string;
+  action?: string;
+}): Promise<AutoOrderEvaluateResponse> {
+  return apiPost<AutoOrderEvaluateResponse>("/api/purchasing/auto-order/evaluate", payload);
+}
+
 export function getMatchQueue(): Promise<MatchQueueResponse> {
   return apiGet<MatchQueueResponse>("/api/purchasing/match/queue");
+}
+
+export function getOrderQueue(limit?: number): Promise<OrderQueueResponse> {
+  return apiGet<OrderQueueResponse>(withParams("/api/purchasing/queue", { limit }));
 }
 
 export function postMatch(
@@ -313,4 +350,17 @@ export function learnOrder(payload: {
   context?: Record<string, unknown>;
 }): Promise<LearnResponse> {
   return apiPost<LearnResponse>("/api/learn", payload);
+}
+
+export function getVerifyReasonCodes(): Promise<VerifyReasonCodesResponse> {
+  return apiGet<VerifyReasonCodesResponse>("/api/purchasing/verify/reason-codes");
+}
+
+export function verifyOrder(payload: {
+  decisionId: string;
+  actualAction: string;
+  reasonCode: VerifyReasonCode;
+  notes?: string;
+}): Promise<VerifyResponse> {
+  return apiPost<VerifyResponse>("/api/purchasing/verify", payload);
 }

@@ -53,6 +53,40 @@ The SDK is the public interface. It must never leak domain internals.
 - Do NOT use git directly. User handles all git operations.
 - asyncio.run() not asyncio.get_event_loop() (Windows Python 3.11+).
 
+## Testing Rules
+
+### No Mock/Fake Scorer, Store, or Conservation
+
+Tests MUST NOT fake, mock, stub, or monkeypatch any of the following:
+
+- `CompoundingScorer` or any scorer `.learn()` / `.score()` methods
+- `GraphStore`, `SQLiteGraphStore`, or any store `.write_decision()` / `.write_outcome()` methods
+- Conservation status helpers such as `_conservation_status`
+- `EvidenceLedger` or any audit chain methods
+
+Why: A fake scorer that bypassed conservation-pause hid a real bug where
+double-verify returned 200 instead of 409. Mocks that do not match production
+behavior give false confidence.
+
+Use real scorer and store paths instead:
+
+- Create a real scorer: `CompoundingScorer.from_preset(domain, db_path=tmp_db)`
+- Seed decisions with `scorer.score()` + `scorer.learn()` in a loop
+- Use `conftest.py` shared fixtures for common seeded states
+- 50 score+learn cycles is acceptable test setup cost
+
+Acceptable mocks:
+
+- External APIs such as Toast, QBO, and broker connectors
+- Environment variables through `monkeypatch.setenv`
+- File system paths
+- Network/HTTP calls
+- Clock/time through freezegun
+
+CI check: `scripts/check_no_scorer_mocks.py` scans test files for forbidden
+patterns and fails the build if found. Allowed exceptions must be marked on the
+same line with `# MOCK-OK: reason`.
+
 ## After Any Change
 
 1. `python -m pytest tests/ -v` (18 tests must pass)

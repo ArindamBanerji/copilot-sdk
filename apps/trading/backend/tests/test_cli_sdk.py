@@ -5,7 +5,6 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 
@@ -37,6 +36,7 @@ from app.cli_sdk import (  # noqa: E402
     status_sdk,
     trust_sdk,
 )
+from conftest_helpers import seed_paused_scorer  # noqa: E402
 from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
 
 
@@ -187,28 +187,15 @@ def test_learn_records_outcome(db_path):
     assert len(verified) == 1
 
 
-def test_learn_conservation_pause(monkeypatch):
-    class FakeStore:
-        def get_decision(self, decision_id):
-            return {"decision_id": decision_id, "recommended_action": _actions()[0]}
+def test_learn_conservation_pause(tmp_path):
+    db_path, decision_id, action = seed_paused_scorer(tmp_path)
 
-        def close(self):
-            pass
+    result = learn_sdk(decision_id, action, db_path)
 
-    class PauseScorer:
-        graph_store = FakeStore()
-
-        def learn(self, decision_id, action):
-            return {"status": "paused", "reason": "conservation_red"}
-
-    monkeypatch.setattr(cli_sdk, "_get_scorer", lambda db_path=None: PauseScorer())
-
-    result = learn_sdk("decision-1", _actions()[0], "ignored.db")
-
-    assert result["decision_id"] == "decision-1"
+    assert result["decision_id"] == decision_id
     assert result["outcome_recorded"] is False
     assert result["reason"] == "conservation_paused"
-    assert "ci-trading learn --decision decision-1" in result["hint"]
+    assert f"ci-trading learn --decision {decision_id}" in result["hint"]
 
 
 def test_record_creates_both(db_path):
@@ -220,29 +207,13 @@ def test_record_creates_both(db_path):
     assert len(_verified(db_path)) == 1
 
 
-def test_record_conservation_pause(monkeypatch):
-    class FakeStore:
-        def close(self):
-            pass
+def test_record_conservation_pause(tmp_path):
+    db_path, _decision_id, _action = seed_paused_scorer(tmp_path)
+    preview = score_sdk(_category(), _all_factors(), db_path)
 
-    class PauseScorer:
-        graph_store = FakeStore()
+    result = record_sdk(_category(), _all_factors(), preview["action"], db_path)
 
-        def score(self, factors, category):
-            return SimpleNamespace(
-                decision_id="decision-2",
-                action=_actions()[0],
-                confidence=0.8,
-            )
-
-        def learn(self, decision_id, action):
-            return {"status": "paused", "reason": "conservation_red"}
-
-    monkeypatch.setattr(cli_sdk, "_get_scorer", lambda db_path=None: PauseScorer())
-
-    result = record_sdk(_category(), _all_factors(), _actions()[0], "ignored.db")
-
-    assert result["decision_id"] == "decision-2"
+    assert result["decision_id"]
     assert result["outcome_recorded"] is False
     assert result["reason"] == "conservation_paused"
     assert result["recommended"] == result["actual"]

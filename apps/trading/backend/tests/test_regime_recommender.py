@@ -5,6 +5,7 @@ from app.routers import data_import
 from app.routers import regime as regime_router
 from app.services.regime import RegimeService
 from app.services.regime_recommender import RegimeRecommender
+from conftest_helpers import seed_green_client
 
 
 def _accuracy():
@@ -164,7 +165,7 @@ def test_regime_detail_returns_recommendations(client, monkeypatch):
     data_import._trade_store_ref.clear()
     data_import._trade_store_ref.append({"trade_id": "t-1", "category": "trend_following", "regime": "trending", "pnl": 5})
     monkeypatch.setattr(RegimeService, "get_current_regime", lambda self: {"regime": "trending", "vix": 18.0, "adx": 30.0, "source": "default"})
-    monkeypatch.setattr(regime_router, "_conservation_status", lambda _factory: {"status": "GREEN"})
+    seed_green_client(client)
 
     payload = client.get("/api/trading/regime/detail").json()
 
@@ -175,7 +176,7 @@ def test_regime_detail_includes_transitions(client, monkeypatch):
     data_import._trade_store_ref.clear()
     monkeypatch.setattr(RegimeService, "get_current_regime", lambda self: {"regime": "trending", "vix": 18.0, "adx": 30.0, "source": "default"})
     monkeypatch.setattr(RegimeService, "get_regime_accuracy", lambda self, trades: _accuracy())
-    monkeypatch.setattr(regime_router, "_conservation_status", lambda _factory: {"status": "GREEN"})
+    seed_green_client(client)
 
     payload = client.get("/api/trading/regime/detail").json()
 
@@ -185,7 +186,7 @@ def test_regime_detail_includes_transitions(client, monkeypatch):
 def test_regime_detail_conservation_unknown_still_200(client, monkeypatch):
     data_import._trade_store_ref.clear()
     monkeypatch.setattr(RegimeService, "get_current_regime", lambda self: {"regime": "trending", "vix": 18.0, "adx": 30.0, "source": "default"})
-    monkeypatch.setattr(regime_router, "_conservation_status", lambda _factory: None)
+    monkeypatch.setattr(regime_router, "_conservation_status", lambda _factory: None)  # MOCK-OK: tests cold-start path
 
     response = client.get("/api/trading/regime/detail")
 
