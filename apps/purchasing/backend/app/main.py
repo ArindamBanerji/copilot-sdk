@@ -38,6 +38,7 @@ from .routers.pos_router import create_pos_router  # noqa: E402
 from .routers.qbo_router import create_qbo_router  # noqa: E402
 from .routers.par_router import create_par_router  # noqa: E402
 from .routers.queue import create_queue_router  # noqa: E402
+from .routers.scorecard_router import build_iks_summary, create_scorecard_router  # noqa: E402
 from .routers.spend_router import create_spend_router  # noqa: E402
 from .routers.trust import create_trust_router  # noqa: E402
 from .routers.verify_router import create_verify_router  # noqa: E402
@@ -391,6 +392,23 @@ def create_app(
     app.state.purchasing_selected_graph_store = scorer_proxy.graph_store
     app.state.l5_startup_status = l5_startup_status
     auto_order_gate = AutoOrderGate()
+
+    @app.get("/api/health")
+    def api_health() -> dict[str, Any]:
+        scorer = scorer_proxy._scorer()
+        iks = build_iks_summary(lambda: selected_graph_store_factory(scoring_db))
+        return {
+            "phase": scorer.get_phase(),
+            "alpha": scorer.get_alpha(),
+            "engine": {
+                "scoring": "copilot_sdk.scoring.CompoundingScorer",
+                "gae": "gae.profile_scorer.ProfileScorer",
+            },
+            "iks_score": iks["iks_score"],
+            "iks_available": iks["available"],
+            "iks_verified_count": iks["verified_count"],
+        }
+
     app.include_router(
         create_scoring_router(
             DOMAIN,
@@ -429,6 +447,7 @@ def create_app(
     app.include_router(create_pos_router())
     app.include_router(create_qbo_router())
     app.include_router(create_spend_router())
+    app.include_router(create_scorecard_router(lambda: selected_graph_store_factory(scoring_db)))
     fred_key = os.environ.get("FRED_API_KEY", "")
     commodity_source = FREDCommoditySource(api_key=fred_key) if fred_key else None
     commodity_provider = CommodityDataProvider(source=commodity_source)
@@ -468,11 +487,15 @@ def create_app(
         return await call_next(request)
 
     @app.get("/health")
-    def health() -> dict[str, str]:
+    def health() -> dict[str, Any]:
+        iks = build_iks_summary(lambda: selected_graph_store_factory(scoring_db))
         return {
             "status": "ok",
             "domain": DOMAIN,
             "engine": "copilot_sdk.scoring + gae.profile_scorer + gae.evolution",
+            "iks_score": iks["iks_score"],
+            "iks_available": iks["available"],
+            "iks_verified_count": iks["verified_count"],
         }
 
     return app

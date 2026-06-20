@@ -6,6 +6,7 @@ import type {
   ConservationState,
   FingerprintResponse,
   HistoryDecision,
+  IKSSummary,
   Item,
   ItemProfile,
   LearnResponse,
@@ -14,6 +15,7 @@ import type {
   OrderQueueResponse,
   ParRecommendation,
   ParStatus,
+  SupplierScorecard,
   OrderFormState,
   OrderMetadataPayload,
   OrderMetadata,
@@ -288,6 +290,22 @@ export function getParRecommendations(
 
 export function getParStatus(): Promise<ParStatus> {
   return apiGet<ParStatus>("/api/purchasing/par/status");
+}
+
+export function getIKSSummary(): Promise<IKSSummary> {
+  return apiGet<IKSSummary>("/api/purchasing/iks/summary");
+}
+
+export function getSupplierScorecards(minOrders = 5): Promise<SupplierScorecard[]> {
+  return apiGet<SupplierScorecard[]>(
+    withParams("/api/purchasing/suppliers/scorecards", { minOrders }),
+  );
+}
+
+export function getSupplierScorecard(supplierId: string): Promise<SupplierScorecard> {
+  return apiGet<SupplierScorecard>(
+    `/api/purchasing/supplier/${encodeURIComponent(supplierId)}/scorecard`,
+  );
 }
 
 export function getAutoOrderStatus(): Promise<AutoOrderStatus> {

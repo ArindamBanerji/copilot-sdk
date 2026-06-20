@@ -607,6 +607,33 @@ export interface ParStatus {
   [key: string]: unknown;
 }
 
+export interface IKSSummary {
+  iksScore: number;
+  perCategory: Record<string, number>;
+  verifiedCount: number;
+  available: boolean;
+  source: string;
+  substantiationTier: string;
+  dMax?: number;
+  [key: string]: unknown;
+}
+
+export interface SupplierScorecard {
+  supplierId: string;
+  supplierName: string;
+  tier: "A" | "B" | "C" | string;
+  overallScore: number;
+  reliabilityPct: number;
+  priceTrendPct: number;
+  deliveryPerformance: number;
+  exceptionRate: number;
+  decisionCount: number;
+  trend: "improving" | "stable" | "declining" | string;
+  summary: string;
+  provenance: string;
+  [key: string]: unknown;
+}
+
 export interface AutoOrderStatus {
   enabled: boolean;
   threshold: number;
