@@ -53,6 +53,20 @@ The SDK is the public interface. It must never leak domain internals.
 - Do NOT use git directly. User handles all git operations.
 - asyncio.run() not asyncio.get_event_loop() (Windows Python 3.11+).
 
+| # | Rule |
+|---|---|
+| 66 | Rule 63 EXTENDED — substantiation tier required alongside provenance tier. Every user-facing value carries BOTH: provenance (Rule 63) AND substantiation (T-A/T-S/T-O/T-R). No magnitude claim below REAL (F-24). |
+| 67 | Generated-data labeling by kind (K1-K4). K1/K2 oracle data NEVER surfaces. K3 demo-fixtures labeled `sample`, NEVER in a metric/score/par/claim. K4 scraped labeled `scraped_external`/░░. |
+
+## Forbidden Product Integrity Violations
+
+| ID | Forbidden |
+|---|---|
+| F-24 | Claim at a tier higher than its evidence: magnitude claimed as REAL without pilot `evidence_ref`. |
+| F-25 | Scraped/external (░░) presented as customer-learned (██). |
+| F-26 | K3 demo-fixture in a metric/score/par/claim. |
+| F-27 | K1/K2 oracle output surfaced to user or as magnitude claim. |
+
 ## Testing Rules
 
 ### No Mock/Fake Scorer, Store, or Conservation
