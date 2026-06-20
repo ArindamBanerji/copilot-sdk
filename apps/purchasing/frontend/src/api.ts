@@ -12,6 +12,8 @@ import type {
   MatchQueueResponse,
   MatchResult,
   OrderQueueResponse,
+  ParRecommendation,
+  ParStatus,
   OrderFormState,
   OrderMetadataPayload,
   OrderMetadata,
@@ -267,6 +269,25 @@ export function getCommodityPrices(category: string): Promise<CommodityPricesRes
 
 export function getCommodityStatus(): Promise<CommodityStatus> {
   return apiGet<CommodityStatus>("/api/purchasing/commodity/status");
+}
+
+export function getParRecommendations(
+  category?: string,
+  serviceLevel = 0.95,
+): Promise<ParRecommendation[]> {
+  const params = { serviceLevel };
+  if (category) {
+    return apiGet<ParRecommendation[]>(
+      withParams(`/api/purchasing/par/recommendations/${encodeURIComponent(category)}`, params),
+    );
+  }
+  return apiGet<ParRecommendation[]>(
+    withParams("/api/purchasing/par/recommendations", params),
+  );
+}
+
+export function getParStatus(): Promise<ParStatus> {
+  return apiGet<ParStatus>("/api/purchasing/par/status");
 }
 
 export function getAutoOrderStatus(): Promise<AutoOrderStatus> {

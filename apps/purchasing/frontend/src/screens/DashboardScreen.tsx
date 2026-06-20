@@ -17,6 +17,7 @@ import CommodityPricePanel from "../components/CommodityPricePanel";
 import EventBadge from "../components/EventBadge";
 import IgnoringCostCard from "../components/IgnoringCostCard";
 import OrderCard from "../components/OrderCard";
+import ParLevelPanel from "../components/ParLevelPanel";
 import ParLevelMonitor from "../components/ParLevelMonitor";
 import SpendSummaryPanel from "../components/SpendSummaryPanel";
 import WeatherWidget from "../components/WeatherWidget";
@@ -164,6 +165,7 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
     <div className="purchase-stack dashboard-screen">
       <SpendSummaryPanel />
       <CommodityPricePanel />
+      <ParLevelPanel />
       <AutoOrderPanel />
 
       <div className="purchase-grid three">

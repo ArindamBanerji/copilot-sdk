@@ -574,8 +574,36 @@ export type CommodityIndicesResponse = ProvenancedValue<Record<string, number> |
 
 export interface CommodityStatus {
   provider?: string;
+  source?: string;
+  provenanceTier?: string;
+  fredActive?: boolean;
   categories?: string[];
   ttlSeconds?: number;
+  [key: string]: unknown;
+}
+
+export interface ParRecommendation {
+  itemName: string;
+  category: string;
+  currentPar: number;
+  recommendedPar: number;
+  avgDailyUsage: number;
+  usageStd: number;
+  wasteRate: number;
+  serviceLevel: number;
+  weeklySavingsEstimate: number;
+  confidence: "high" | "moderate" | "low" | string;
+  seasonalAdjustment?: number | null;
+  dataDays: number;
+  provenance: string;
+  [key: string]: unknown;
+}
+
+export interface ParStatus {
+  totalItems: number;
+  categories: string[];
+  dataSource: string;
+  provenanceTier: string;
   [key: string]: unknown;
 }
 

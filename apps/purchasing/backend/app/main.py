@@ -36,6 +36,7 @@ from .routers.iks import create_iks_router  # noqa: E402
 from .routers.match import create_match_router  # noqa: E402
 from .routers.pos_router import create_pos_router  # noqa: E402
 from .routers.qbo_router import create_qbo_router  # noqa: E402
+from .routers.par_router import create_par_router  # noqa: E402
 from .routers.queue import create_queue_router  # noqa: E402
 from .routers.spend_router import create_spend_router  # noqa: E402
 from .routers.trust import create_trust_router  # noqa: E402
@@ -432,6 +433,7 @@ def create_app(
     commodity_source = FREDCommoditySource(api_key=fred_key) if fred_key else None
     commodity_provider = CommodityDataProvider(source=commodity_source)
     app.include_router(create_commodity_router(provider=commodity_provider))
+    app.include_router(create_par_router())
     app.include_router(
         create_queue_router(
             lambda: selected_graph_store_factory(scoring_db),
