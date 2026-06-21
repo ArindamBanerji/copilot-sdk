@@ -32,6 +32,7 @@ import { CelonisBadge } from "../components/CelonisBadge";
 import { EnterpriseHealthBar } from "../components/EnterpriseHealthBar";
 import PipelineGrid from "../components/PipelineGrid";
 import ProcessTimelinePanel from "../components/ProcessTimelinePanel";
+import ProvenanceBadge from "../components/ProvenanceBadge";
 import { SAPDataBadge } from "../components/SAPDataBadge";
 
 interface DashboardScreenProps {
@@ -142,11 +143,15 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
   const groups = state.alertGroups?.groups || [];
   const ungrouped = state.alertGroups?.ungrouped || [];
   const hasGroups = groups.length > 0;
+  const provenanceSource = sourceFrom(state.alerts[0]) ?? "sample";
 
   return (
     <div className="grid gap-5">
       <EnterpriseHealthBar />
-      <TransferBadge apiBase={BASE} />
+      <div className="flex flex-wrap items-center gap-2">
+        <TransferBadge apiBase={BASE} />
+        <ProvenanceBadge source={provenanceSource} />
+      </div>
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div>
@@ -274,6 +279,20 @@ function DashboardFrame({ message, tone = "muted" }: { message: string; tone?: "
       {message}
     </div>
   );
+}
+
+function sourceFrom(value: unknown): string | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+  const record = value as { provenance?: unknown; source?: unknown };
+  if (typeof record.provenance === "string") {
+    return record.provenance;
+  }
+  if (typeof record.source === "string") {
+    return record.source;
+  }
+  return null;
 }
 
 function formatCategory(value?: string): string {

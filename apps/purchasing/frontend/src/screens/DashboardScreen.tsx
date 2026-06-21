@@ -19,6 +19,7 @@ import IgnoringCostCard from "../components/IgnoringCostCard";
 import OrderCard from "../components/OrderCard";
 import ParLevelPanel from "../components/ParLevelPanel";
 import ParLevelMonitor from "../components/ParLevelMonitor";
+import ProvenanceBadge from "../components/ProvenanceBadge";
 import SpendSummaryPanel from "../components/SpendSummaryPanel";
 import WeatherWidget from "../components/WeatherWidget";
 import type {
@@ -163,6 +164,9 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
 
   return (
     <div className="purchase-stack dashboard-screen">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <ProvenanceBadge source={state.today?.weather?.source ?? "scraped_external"} />
+      </div>
       <SpendSummaryPanel />
       <CommodityPricePanel />
       <ParLevelPanel />

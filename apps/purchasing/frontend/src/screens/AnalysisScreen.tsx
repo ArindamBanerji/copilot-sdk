@@ -8,6 +8,7 @@ import DayOfWeekChart from "../components/DayOfWeekChart";
 import { DecisionExplorerPanel } from "../components/DecisionExplorerPanel";
 import EventImpactCard from "../components/EventImpactCard";
 import ProfileArchetype from "../components/ProfileArchetype";
+import ProvenanceBadge from "../components/ProvenanceBadge";
 import TrustRadarPanel from "../components/TrustRadarPanel";
 import WasteCostCard from "../components/WasteCostCard";
 import type { Analytics, FingerprintFactor, FingerprintResponse } from "../types";
@@ -104,6 +105,15 @@ export default function AnalysisScreen() {
 
   return (
     <div className="purchase-stack analysis-screen">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <ProvenanceBadge
+          source={String(
+            (fingerprint as { source?: string; provenance?: string } | undefined)?.provenance ??
+              (fingerprint as { source?: string; provenance?: string } | undefined)?.source ??
+              "real_measured",
+          )}
+        />
+      </div>
       <TrustRadarPanel />
       <ContrastCard analytics={analytics} />
       <ProfileArchetype fingerprint={fingerprint} />
