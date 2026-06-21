@@ -295,6 +295,41 @@ export function getParStatus(): Promise<ParStatus> {
   return apiGet<ParStatus>("/api/purchasing/par/status");
 }
 
+export interface CohortExperiment {
+  name?: string;
+  injectedLift?: number | null;
+  recoveredLift?: number | null;
+  pass?: boolean;
+}
+
+export interface CohortStatusResponse {
+  state?: "INSTRUMENT_VALIDATED" | "ACCUMULATING" | "MEASURED" | string;
+  instrument?: {
+    validated?: boolean;
+    provenance?: string;
+    sourceArtifact?: string;
+    experiments?: CohortExperiment[];
+  };
+  real?: {
+    treatmentN?: number;
+    controlN?: number;
+    thresholdK?: number;
+    lift?: number | null;
+    provenance?: string;
+    status?: string;
+  };
+  structure?: {
+    present?: boolean;
+    treatmentN?: number;
+    controlN?: number;
+    provenance?: string;
+  };
+}
+
+export function getCohortStatus(): Promise<CohortStatusResponse> {
+  return apiGet<CohortStatusResponse>("/api/purchasing/cohort-status");
+}
+
 export function getIKSSummary(): Promise<IKSSummary> {
   return apiGet<IKSSummary>("/api/purchasing/iks/summary");
 }
