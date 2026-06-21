@@ -9,6 +9,7 @@ from copilot_sdk.substantiation import (
     PromotionEvent,
     TIER_LANGUAGE,
     Tier,
+    populate_default_readiness,
     populate_default_registry,
 )
 
@@ -365,12 +366,12 @@ def test_readiness_all_false():
 
 def test_populate_default():
     registry = populate_default_registry()
-    assert len(registry.all_claims()) == 30
+    assert len(registry.all_claims()) == 32
 
 
 def test_populate_count():
     registry = populate_default_registry()
-    assert len(registry.all_claims()) == 30
+    assert len(registry.all_claims()) == 32
 
 
 def test_populate_no_magnitude_violations():
@@ -426,6 +427,7 @@ def test_populate_all_copilots():
         "trading",
         "purchasing",
         "dataops",
+        "cross_copilot",
     }
 
 
@@ -506,3 +508,78 @@ def test_readiness_plus_registry():
         labels_honest=True,
     )
     assert readiness.gate() == (True, [])
+
+
+def test_c21_canonical_exists():
+    registry = populate_default_registry()
+    claim = registry.get("C-21")
+    assert claim is not None
+    assert claim.tier == Tier.ANALYTIC
+    assert claim.is_magnitude_claim is False
+    assert claim.copilot == "cross_copilot"
+    assert claim.feature == "canonical"
+
+
+def test_c22_canonical_exists():
+    registry = populate_default_registry()
+    claim = registry.get("C-22")
+    assert claim is not None
+    assert claim.tier == Tier.SCRAPED
+    assert claim.is_magnitude_claim is False
+    assert claim.copilot == "cross_copilot"
+    assert claim.feature == "canonical"
+
+
+def test_readiness_entries_exist():
+    assert len(populate_default_readiness()) == 7
+
+
+def test_soc_campaign_gate_passes():
+    entry = next(
+        r
+        for r in populate_default_readiness()
+        if r.feature == "SOC-campaign-intelligence"
+    )
+    assert entry.gate() == (True, [])
+
+
+def test_purchasing_p73_gate_fails():
+    entry = next(
+        r for r in populate_default_readiness() if r.feature == "P73-par-intelligence"
+    )
+    ok, missing = entry.gate()
+    assert ok is False
+    assert "instrumented" in missing
+
+
+def test_all_entries_have_copilot():
+    assert all(entry.copilot.strip() for entry in populate_default_readiness())
+
+
+def test_readiness_gate_logic():
+    passing = DayZeroReadiness(
+        feature="feature",
+        copilot="test",
+        populated=True,
+        proven=True,
+        instrumented=True,
+        real_path_committed=True,
+        labels_honest=True,
+    )
+    assert passing.gate() == (True, [])
+
+    failing = DayZeroReadiness(
+        feature="feature",
+        copilot="test",
+        populated=True,
+        proven=True,
+        instrumented=False,
+        real_path_committed=True,
+        labels_honest=True,
+    )
+    assert failing.gate() == (False, ["instrumented"])
+
+
+def test_total_claims_with_canonicals():
+    registry = populate_default_registry()
+    assert len(registry.all_claims()) == 32

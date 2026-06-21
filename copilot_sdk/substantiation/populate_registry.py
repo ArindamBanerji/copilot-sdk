@@ -7,6 +7,38 @@ from .tiers import ClaimProvenance, Tier
 def populate_default_registry() -> ClaimRegistry:
     registry = ClaimRegistry()
 
+    # Canonical cross-copilot language templates.
+    registry.register(
+        ClaimProvenance(
+            claim_id="C-21",
+            text=(
+                "Mechanism proven analytically; magnitude measured on your "
+                "data at pilot"
+            ),
+            tier=Tier.ANALYTIC,
+            evidence_ref="gamma theorem (SOC); mechanism proofs (general)",
+            is_magnitude_claim=False,
+            copilot="cross_copilot",
+            feature="canonical",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="C-22",
+            text=(
+                "Populated day-zero with real external data, labeled context "
+                "vs learned"
+            ),
+            tier=Tier.SCRAPED,
+            evidence_ref=(
+                "T-S tier definition; context/learned labeling discipline"
+            ),
+            is_magnitude_claim=False,
+            copilot="cross_copilot",
+            feature="canonical",
+        )
+    )
+
     registry.register(
         ClaimProvenance(
             claim_id="P50-market-data",
