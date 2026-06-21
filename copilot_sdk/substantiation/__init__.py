@@ -2,6 +2,15 @@
 
 from .holdout import ConditionalHoldout, HoldoutAssigner, UnconditionalHoldout
 from .chef_oracle import ChefOracle, ChefPipelineTest
+from .cohort_day_zero import (
+    ACCUMULATING,
+    INSTRUMENT_VALIDATED,
+    MEASURED,
+    STATES,
+    BaseCohortDayZeroState,
+    compute_state,
+    evaluate_v7_gate,
+)
 from .dataops_oracle import DataOpsOracle, DataOpsPipelineTest
 from .instrument import AnalyticClaim, RealInstrument, ScrapedContextProvider
 from .oracle import (
@@ -28,6 +37,13 @@ __all__ = [
     "PromotionEvent",
     "TIER_LANGUAGE",
     "DayZeroReadiness",
+    "INSTRUMENT_VALIDATED",
+    "ACCUMULATING",
+    "MEASURED",
+    "STATES",
+    "BaseCohortDayZeroState",
+    "compute_state",
+    "evaluate_v7_gate",
     "populate_default_registry",
     "populate_default_readiness",
     "Oracle",

@@ -14,11 +14,17 @@ import json
 from pathlib import Path
 from typing import Any
 
+from copilot_sdk.substantiation.cohort_day_zero import (
+    ACCUMULATING,
+    INSTRUMENT_VALIDATED,
+    MEASURED,
+    STATES,
+    BaseCohortDayZeroState,
+    compute_state,
+    evaluate_v7_gate as _sdk_evaluate_v7_gate,
+)
 
-INSTRUMENT_VALIDATED = "INSTRUMENT_VALIDATED"
-ACCUMULATING = "ACCUMULATING"
-MEASURED = "MEASURED"
-STATE_VALUES = frozenset({INSTRUMENT_VALIDATED, ACCUMULATING, MEASURED})
+STATE_VALUES = frozenset(STATES)
 
 REAL_PROVENANCE = "real"
 SAMPLE_PROVENANCE = "sample"
@@ -51,55 +57,22 @@ NEGATIVE_ACTIONS = frozenset(
 )
 
 
-def compute_state(real_treatment_n: int, real_control_n: int, threshold_k: int) -> str:
-    """Three-state day-zero machine. No structure counts are considered."""
-
-    if real_treatment_n == 0 and real_control_n == 0:
-        return INSTRUMENT_VALIDATED
-    if real_treatment_n < threshold_k or real_control_n < threshold_k:
-        return ACCUMULATING
-    return MEASURED
-
-
 def evaluate_v7_gate(cohort_status: dict[str, Any]) -> dict[str, Any]:
-    """v7.0 tensor expansion gate over real cohorts only.
-
-    Sample and oracle cohorts are excluded by construction. Tests may pass
-    raw records under ``records`` or ``real.records`` to prove that non-real
-    provenance raises instead of being silently counted.
-    """
+    """Compatibility wrapper around the SDK v7.0 gate."""
 
     real = cohort_status.get("real", {})
     threshold_k = int(
-        real.get("threshold_k", cohort_status.get("threshold_k", CohortStatusService.THRESHOLD_K))
+        real.get("threshold_k", cohort_status.get("threshold_k", PurchasingCohortStatus.THRESHOLD_K))
     )
-    records = cohort_status.get("records") or real.get("records") or []
-    for record in records:
-        if _record_provenance(record) != REAL_PROVENANCE:
-            raise ValueError("v7 gate accepts provenance=='real' cohorts only")
-
-    treatment_n = int(real.get("treatment_n", 0))
-    control_n = int(real.get("control_n", 0))
-    if treatment_n < threshold_k or control_n < threshold_k:
-        return {
-            "status": "awaiting_real_cohorts",
-            "real_treatment_n": treatment_n,
-            "real_control_n": control_n,
-            "threshold_k": threshold_k,
-            "lift": None,
-        }
-
-    lift = real.get("lift")
-    return {
-        "status": "conditions_met" if lift is not None else "conditions_not_met",
-        "real_treatment_n": treatment_n,
-        "real_control_n": control_n,
-        "threshold_k": threshold_k,
-        "lift": lift,
-    }
+    gate_input = dict(real)
+    gate_input["provenance"] = REAL_PROVENANCE
+    records = cohort_status.get("records") or real.get("records")
+    if records is not None:
+        gate_input["records"] = records
+    return _sdk_evaluate_v7_gate(gate_input, threshold_k)
 
 
-class CohortStatusService:
+class PurchasingCohortStatus(BaseCohortDayZeroState):
     """Purchasing par-intelligence cohort day-zero status.
 
     Real lift is computed from provenance=="real" cohorts only. Sample
@@ -107,6 +80,7 @@ class CohortStatusService:
     never advance the state machine.
     """
 
+    DOMAIN = "purchasing"
     THRESHOLD_K = 30
 
     def __init__(
@@ -122,26 +96,6 @@ class CohortStatusService:
             if oracle_artifact_path is not None
             else Path(__file__).resolve().parents[2] / "chef_oracle_plumb_results.json"
         )
-
-    def get_status(self) -> dict[str, Any]:
-        """Build the full cohort-status response."""
-
-        instrument = self._load_instrument()
-        real = self._count_real_cohorts()
-        structure = self._count_structure_cohorts()
-        state = compute_state(
-            real["treatment_n"],
-            real["control_n"],
-            self.THRESHOLD_K,
-        )
-        real["status"] = "measured" if state == MEASURED else "pending"
-        real["lift"] = self._compute_real_lift() if state == MEASURED else None
-        return {
-            "state": state,
-            "instrument": instrument,
-            "real": real,
-            "structure": structure,
-        }
 
     def _load_instrument(self) -> dict[str, Any]:
         """Load ChefOracle self-test results as oracle provenance."""
@@ -176,10 +130,6 @@ class CohortStatusService:
         return {
             "treatment_n": treatment_n,
             "control_n": control_n,
-            "threshold_k": self.THRESHOLD_K,
-            "lift": None,
-            "provenance": REAL_PROVENANCE,
-            "status": "pending",
         }
 
     def _count_structure_cohorts(self) -> dict[str, Any]:
@@ -378,3 +328,6 @@ def _nullable_float(value: Any) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+CohortStatusService = PurchasingCohortStatus
