@@ -5,24 +5,85 @@
   "total_cases": 8400,
   "source": "celonis_cache",
   "activities": [
-    {"id": "create_purchase_requisition", "name": "Create Purchase Requisition", "avg_duration_hours": 0.06, "case_count": 8400, "system": "sap_mm", "status": "ok"},
-    {"id": "approve_purchase_order", "name": "Approve Purchase Order", "avg_duration_hours": 0.2, "case_count": 8400, "system": "sap_mm", "status": "warning"},
-    {"id": "match_invoice_to_gr", "name": "Match Invoice to GR", "avg_duration_hours": 0.7, "case_count": 1008, "system": "celonis_p2p", "status": "degraded", "bottleneck": true, "bottleneck_cause": "MATKL_V2"},
-    {"id": "process_payment", "name": "Process Payment", "avg_duration_hours": 0.3, "case_count": 7392, "system": "sap_fi", "status": "warning"}
+    {
+      "id": "create_purchase_requisition",
+      "name": "Create Purchase Requisition",
+      "avg_duration_hours": 0.06,
+      "case_count": 8400,
+      "system": "sap_mm",
+      "status": "ok"
+    },
+    {
+      "id": "approve_purchase_order",
+      "name": "Approve Purchase Order",
+      "avg_duration_hours": 0.2,
+      "case_count": 8400,
+      "system": "sap_mm",
+      "status": "warning"
+    },
+    {
+      "id": "match_invoice_to_gr",
+      "name": "Match Invoice to GR",
+      "avg_duration_hours": 0.7,
+      "case_count": 1008,
+      "system": "celonis_p2p",
+      "status": "degraded",
+      "bottleneck": true,
+      "bottleneck_cause": "MATKL_V2"
+    },
+    {
+      "id": "process_payment",
+      "name": "Process Payment",
+      "avg_duration_hours": 0.3,
+      "case_count": 7392,
+      "system": "sap_fi",
+      "status": "warning"
+    }
   ],
   "cross_graph_insights": [
-    {"id": "aster-rubber-fanout", "title": "Aster Rubber 9x fanout", "supplier": "Aster Rubber", "metric": "join_fanout_multiplier", "multiplier": 9, "detail": "Aster Rubber catalog expansion drives 340K MATKL_V2 combinations through the invoice-to-GR join."},
-    {"id": "matkl-v2-impact", "title": "MATKL_V2 downstream impact", "source_table": "SAP_MARA", "column": "MATKL_V2", "monthly_impact_usd": 1449000, "detail": "MATKL_V2 schema expansion fans out into sap_fi, celonis_p2p, qms_pirelli, logistics_dhl, mes_production, supplier_portal, warehouse_wms, and bi_analytics."},
-    {"id": "bottleneck-cost", "title": "$8,400/day active bottleneck", "system": "celonis_p2p", "metric": "match_invoice_to_gr_seconds", "detail": "Match Invoice to GR is running at 2,520 seconds versus a 252 second normal duration."}
+    {
+      "id": "aster-rubber-fanout",
+      "title": "Aster Rubber 9x fanout",
+      "supplier": "Aster Rubber",
+      "metric": "join_fanout_multiplier",
+      "multiplier": 9,
+      "detail": "Aster Rubber catalog expansion drives 340K MATKL_V2 combinations through the invoice-to-GR join."
+    },
+    {
+      "id": "matkl-v2-impact",
+      "title": "MATKL_V2 downstream impact",
+      "source_table": "SAP_MARA",
+      "column": "MATKL_V2",
+      "monthly_impact_usd": 1449000,
+      "detail": "MATKL_V2 schema expansion fans out into sap_fi, celonis_p2p, qms_pirelli, logistics_dhl, mes_production, supplier_portal, warehouse_wms, and bi_analytics."
+    },
+    {
+      "id": "bottleneck-cost",
+      "title": "$8,400/day active bottleneck",
+      "system": "celonis_p2p",
+      "metric": "match_invoice_to_gr_seconds",
+      "detail": "Match Invoice to GR is running at 2,520 seconds versus a 252 second normal duration."
+    }
   ],
   "recommendations": [
-    {"id": "rec-matkl-bridge", "title": "Pre-join governed MATKL_V2 bridge before invoice match", "annualized_savings_usd": 547000, "target_activity": "match_invoice_to_gr"},
-    {"id": "rec-supplier-quarantine", "title": "Quarantine Aster Rubber catalog deltas until compound grade is mapped", "annualized_savings_usd": 1073000, "target_activity": "approve_purchase_order"}
+    {
+      "id": "rec-matkl-bridge",
+      "title": "Pre-join governed MATKL_V2 bridge before invoice match",
+      "annualized_savings_usd": 547000,
+      "target_activity": "match_invoice_to_gr"
+    },
+    {
+      "id": "rec-supplier-quarantine",
+      "title": "Quarantine Aster Rubber catalog deltas until compound grade is mapped",
+      "annualized_savings_usd": 1073000,
+      "target_activity": "approve_purchase_order"
+    }
   ],
   "compounding_trajectory": {
     "annual_savings_usd": 1620000,
     "current_iks": 41.2,
     "target_iks": 55.0,
     "estimated_weeks_to_target": 6
-  }
+  },
+  "provenance": "sample"
 }

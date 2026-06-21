@@ -34,7 +34,8 @@
     "day_of_week": "Thursday",
     "date": "2026-01-08",
     "action_taken": "strong_execution",
-    "vix_at_entry": 17.1
+    "vix_at_entry": 17.1,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-002",
@@ -71,7 +72,8 @@
     "day_of_week": "Thursday",
     "date": "2026-01-15",
     "action_taken": "strong_execution",
-    "vix_at_entry": 16.8
+    "vix_at_entry": 16.8,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-003",
@@ -108,7 +110,8 @@
     "day_of_week": "Thursday",
     "date": "2026-01-22",
     "action_taken": "strong_execution",
-    "vix_at_entry": 17.6
+    "vix_at_entry": 17.6,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-004",
@@ -145,7 +148,8 @@
     "day_of_week": "Thursday",
     "date": "2026-01-29",
     "action_taken": "strong_execution",
-    "vix_at_entry": 18.2
+    "vix_at_entry": 18.2,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-005",
@@ -182,7 +186,8 @@
     "day_of_week": "Monday",
     "date": "2026-02-02",
     "action_taken": "strong_execution",
-    "vix_at_entry": 24.8
+    "vix_at_entry": 24.8,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-006",
@@ -219,7 +224,8 @@
     "day_of_week": "Thursday",
     "date": "2026-02-05",
     "action_taken": "strong_execution",
-    "vix_at_entry": 17.4
+    "vix_at_entry": 17.4,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-007",
@@ -256,7 +262,8 @@
     "day_of_week": "Tuesday",
     "date": "2026-02-10",
     "action_taken": "strong_execution",
-    "vix_at_entry": 18.9
+    "vix_at_entry": 18.9,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-008",
@@ -293,7 +300,8 @@
     "day_of_week": "Thursday",
     "date": "2026-02-12",
     "action_taken": "strong_execution",
-    "vix_at_entry": 17.9
+    "vix_at_entry": 17.9,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-009",
@@ -330,7 +338,8 @@
     "day_of_week": "Friday",
     "date": "2026-02-13",
     "action_taken": "strong_execution",
-    "vix_at_entry": 19.4
+    "vix_at_entry": 19.4,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-010",
@@ -367,7 +376,8 @@
     "day_of_week": "Monday",
     "date": "2026-02-16",
     "action_taken": "strong_execution",
-    "vix_at_entry": 27.2
+    "vix_at_entry": 27.2,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-011",
@@ -404,7 +414,8 @@
     "day_of_week": "Tuesday",
     "date": "2026-02-17",
     "action_taken": "strong_execution",
-    "vix_at_entry": 20.1
+    "vix_at_entry": 20.1,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-012",
@@ -441,7 +452,8 @@
     "day_of_week": "Wednesday",
     "date": "2026-02-18",
     "action_taken": "partial_execution",
-    "vix_at_entry": 18.7
+    "vix_at_entry": 18.7,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-013",
@@ -478,7 +490,8 @@
     "day_of_week": "Monday",
     "date": "2026-02-23",
     "action_taken": "strong_execution",
-    "vix_at_entry": 26.4
+    "vix_at_entry": 26.4,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-014",
@@ -515,7 +528,8 @@
     "day_of_week": "Monday",
     "date": "2026-03-02",
     "action_taken": "poor_execution",
-    "vix_at_entry": 28.1
+    "vix_at_entry": 28.1,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-015",
@@ -552,7 +566,8 @@
     "day_of_week": "Wednesday",
     "date": "2026-03-04",
     "action_taken": "strong_execution",
-    "vix_at_entry": 24.6
+    "vix_at_entry": 24.6,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-016",
@@ -589,7 +604,8 @@
     "day_of_week": "Thursday",
     "date": "2026-03-05",
     "action_taken": "strong_execution",
-    "vix_at_entry": 17.2
+    "vix_at_entry": 17.2,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-017",
@@ -626,7 +642,8 @@
     "day_of_week": "Thursday",
     "date": "2026-03-12",
     "action_taken": "strong_execution",
-    "vix_at_entry": 16.9
+    "vix_at_entry": 16.9,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-018",
@@ -663,7 +680,8 @@
     "day_of_week": "Friday",
     "date": "2026-03-13",
     "action_taken": "partial_execution",
-    "vix_at_entry": 18.1
+    "vix_at_entry": 18.1,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-019",
@@ -700,7 +718,8 @@
     "day_of_week": "Thursday",
     "date": "2026-03-19",
     "action_taken": "strong_execution",
-    "vix_at_entry": 17.7
+    "vix_at_entry": 17.7,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-020",
@@ -737,7 +756,8 @@
     "day_of_week": "Monday",
     "date": "2026-03-23",
     "action_taken": "strong_execution",
-    "vix_at_entry": 29.5
+    "vix_at_entry": 29.5,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-021",
@@ -774,7 +794,8 @@
     "day_of_week": "Thursday",
     "date": "2026-03-26",
     "action_taken": "strong_execution",
-    "vix_at_entry": 18.6
+    "vix_at_entry": 18.6,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-022",
@@ -811,7 +832,8 @@
     "day_of_week": "Tuesday",
     "date": "2026-03-31",
     "action_taken": "strong_execution",
-    "vix_at_entry": 19.1
+    "vix_at_entry": 19.1,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-023",
@@ -848,7 +870,8 @@
     "day_of_week": "Monday",
     "date": "2026-04-06",
     "action_taken": "strong_execution",
-    "vix_at_entry": 25.9
+    "vix_at_entry": 25.9,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-024",
@@ -885,7 +908,8 @@
     "day_of_week": "Wednesday",
     "date": "2026-04-08",
     "action_taken": "strong_execution",
-    "vix_at_entry": 18.0
+    "vix_at_entry": 18.0,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-025",
@@ -922,7 +946,8 @@
     "day_of_week": "Monday",
     "date": "2026-01-12",
     "action_taken": "strong_execution",
-    "vix_at_entry": 24.2
+    "vix_at_entry": 24.2,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-026",
@@ -959,7 +984,8 @@
     "day_of_week": "Monday",
     "date": "2026-01-19",
     "action_taken": "strong_execution",
-    "vix_at_entry": 25.4
+    "vix_at_entry": 25.4,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-027",
@@ -996,7 +1022,8 @@
     "day_of_week": "Monday",
     "date": "2026-02-09",
     "action_taken": "strong_execution",
-    "vix_at_entry": 30.1
+    "vix_at_entry": 30.1,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-028",
@@ -1033,7 +1060,8 @@
     "day_of_week": "Thursday",
     "date": "2026-02-19",
     "action_taken": "partial_execution",
-    "vix_at_entry": 19.8
+    "vix_at_entry": 19.8,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-029",
@@ -1070,7 +1098,8 @@
     "day_of_week": "Monday",
     "date": "2026-03-09",
     "action_taken": "strong_execution",
-    "vix_at_entry": 27.8
+    "vix_at_entry": 27.8,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-030",
@@ -1107,7 +1136,8 @@
     "day_of_week": "Wednesday",
     "date": "2026-03-18",
     "action_taken": "poor_execution",
-    "vix_at_entry": 26.5
+    "vix_at_entry": 26.5,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-031",
@@ -1144,7 +1174,8 @@
     "day_of_week": "Thursday",
     "date": "2026-01-09",
     "action_taken": "strong_execution",
-    "vix_at_entry": 17.3
+    "vix_at_entry": 17.3,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-032",
@@ -1181,7 +1212,8 @@
     "day_of_week": "Monday",
     "date": "2026-01-26",
     "action_taken": "strong_execution",
-    "vix_at_entry": 24.9
+    "vix_at_entry": 24.9,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-033",
@@ -1218,7 +1250,8 @@
     "day_of_week": "Monday",
     "date": "2026-02-23",
     "action_taken": "strong_execution",
-    "vix_at_entry": 29.1
+    "vix_at_entry": 29.1,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-034",
@@ -1255,7 +1288,8 @@
     "day_of_week": "Thursday",
     "date": "2026-04-09",
     "action_taken": "strong_execution",
-    "vix_at_entry": 18.4
+    "vix_at_entry": 18.4,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-035",
@@ -1292,7 +1326,8 @@
     "day_of_week": "Thursday",
     "date": "2026-01-16",
     "action_taken": "strong_execution",
-    "vix_at_entry": 16.5
+    "vix_at_entry": 16.5,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-036",
@@ -1329,7 +1364,8 @@
     "day_of_week": "Thursday",
     "date": "2026-02-06",
     "action_taken": "strong_execution",
-    "vix_at_entry": 18.8
+    "vix_at_entry": 18.8,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-037",
@@ -1366,7 +1402,8 @@
     "day_of_week": "Monday",
     "date": "2026-03-16",
     "action_taken": "strong_execution",
-    "vix_at_entry": 25.1
+    "vix_at_entry": 25.1,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-038",
@@ -1403,7 +1440,8 @@
     "day_of_week": "Wednesday",
     "date": "2026-03-25",
     "action_taken": "partial_execution",
-    "vix_at_entry": 19.0
+    "vix_at_entry": 19.0,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-039",
@@ -1440,7 +1478,8 @@
     "day_of_week": "Thursday",
     "date": "2026-04-02",
     "action_taken": "strong_execution",
-    "vix_at_entry": 17.5
+    "vix_at_entry": 17.5,
+    "provenance": "sample"
   },
   {
     "trade_id": "V2-040",
@@ -1477,6 +1516,7 @@
     "day_of_week": "Friday",
     "date": "2026-04-10",
     "action_taken": "strong_execution",
-    "vix_at_entry": 18.6
+    "vix_at_entry": 18.6,
+    "provenance": "sample"
   }
 ]

@@ -15,6 +15,9 @@ DEFAULT_SAP_BASE_URL = "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sa
 
 
 class SAPConnector:
+    provenance_tier = "sample"  # cache-backed fixture, not live SAP
+    # When real SAP API wired: change to "scraped_external"
+
     def __init__(
         self,
         base_url: str | None = None,

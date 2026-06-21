@@ -15,8 +15,16 @@
       "active_alert_count": 3,
       "upstream_count": 1,
       "downstream_count": 5,
-      "upstream": ["supplier_portal"],
-      "downstream": ["celonis_p2p", "sap_fi", "qms_pirelli", "warehouse_wms", "bi_analytics"]
+      "upstream": [
+        "supplier_portal"
+      ],
+      "downstream": [
+        "celonis_p2p",
+        "sap_fi",
+        "qms_pirelli",
+        "warehouse_wms",
+        "bi_analytics"
+      ]
     },
     {
       "name": "sap_fi",
@@ -32,8 +40,14 @@
       "active_alert_count": 2,
       "upstream_count": 2,
       "downstream_count": 2,
-      "upstream": ["sap_mm", "celonis_p2p"],
-      "downstream": ["bi_analytics", "warehouse_wms"]
+      "upstream": [
+        "sap_mm",
+        "celonis_p2p"
+      ],
+      "downstream": [
+        "bi_analytics",
+        "warehouse_wms"
+      ]
     },
     {
       "name": "celonis_p2p",
@@ -49,8 +63,14 @@
       "active_alert_count": 2,
       "upstream_count": 2,
       "downstream_count": 2,
-      "upstream": ["sap_mm", "sap_fi"],
-      "downstream": ["bi_analytics", "mes_production"]
+      "upstream": [
+        "sap_mm",
+        "sap_fi"
+      ],
+      "downstream": [
+        "bi_analytics",
+        "mes_production"
+      ]
     },
     {
       "name": "qms_pirelli",
@@ -66,8 +86,13 @@
       "active_alert_count": 1,
       "upstream_count": 1,
       "downstream_count": 2,
-      "upstream": ["sap_mm"],
-      "downstream": ["mes_production", "bi_analytics"]
+      "upstream": [
+        "sap_mm"
+      ],
+      "downstream": [
+        "mes_production",
+        "bi_analytics"
+      ]
     },
     {
       "name": "logistics_dhl",
@@ -83,8 +108,13 @@
       "active_alert_count": 1,
       "upstream_count": 1,
       "downstream_count": 2,
-      "upstream": ["supplier_portal"],
-      "downstream": ["warehouse_wms", "mes_production"]
+      "upstream": [
+        "supplier_portal"
+      ],
+      "downstream": [
+        "warehouse_wms",
+        "mes_production"
+      ]
     },
     {
       "name": "mes_production",
@@ -100,8 +130,14 @@
       "active_alert_count": 1,
       "upstream_count": 3,
       "downstream_count": 1,
-      "upstream": ["qms_pirelli", "logistics_dhl", "celonis_p2p"],
-      "downstream": ["bi_analytics"]
+      "upstream": [
+        "qms_pirelli",
+        "logistics_dhl",
+        "celonis_p2p"
+      ],
+      "downstream": [
+        "bi_analytics"
+      ]
     },
     {
       "name": "supplier_portal",
@@ -118,7 +154,11 @@
       "upstream_count": 0,
       "downstream_count": 3,
       "upstream": [],
-      "downstream": ["sap_mm", "logistics_dhl", "warehouse_wms"]
+      "downstream": [
+        "sap_mm",
+        "logistics_dhl",
+        "warehouse_wms"
+      ]
     },
     {
       "name": "warehouse_wms",
@@ -134,8 +174,14 @@
       "active_alert_count": 1,
       "upstream_count": 3,
       "downstream_count": 1,
-      "upstream": ["sap_mm", "sap_fi", "logistics_dhl"],
-      "downstream": ["bi_analytics"]
+      "upstream": [
+        "sap_mm",
+        "sap_fi",
+        "logistics_dhl"
+      ],
+      "downstream": [
+        "bi_analytics"
+      ]
     },
     {
       "name": "bi_analytics",
@@ -151,8 +197,16 @@
       "active_alert_count": 0,
       "upstream_count": 6,
       "downstream_count": 0,
-      "upstream": ["sap_mm", "sap_fi", "celonis_p2p", "qms_pirelli", "mes_production", "warehouse_wms"],
+      "upstream": [
+        "sap_mm",
+        "sap_fi",
+        "celonis_p2p",
+        "qms_pirelli",
+        "mes_production",
+        "warehouse_wms"
+      ],
       "downstream": []
     }
-  ]
+  ],
+  "provenance": "sample"
 }

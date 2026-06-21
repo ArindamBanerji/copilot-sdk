@@ -15,6 +15,9 @@ DEFAULT_CELONIS_URL = "https://developer.celonis.com/demo"
 
 
 class CelonisConnector:
+    provenance_tier = "sample"  # cache-backed fixture, not live Celonis
+    # When real Celonis API wired: change to "scraped_external"
+
     def __init__(
         self,
         base_url: str | None = None,

@@ -12,9 +12,27 @@
       "rework_baseline_pct": 4.8
     },
     "metrics": [
-      {"name": "MATKL_V2 combinations", "value": 340000, "baseline": 38000, "unit": "codes", "delta_pct": 794.7},
-      {"name": "Join fanout", "value": 9, "baseline": 1, "unit": "x", "delta_pct": 800.0},
-      {"name": "Affected POs", "value": 340, "baseline": 42, "unit": "orders", "delta_pct": 709.5}
+      {
+        "name": "MATKL_V2 combinations",
+        "value": 340000,
+        "baseline": 38000,
+        "unit": "codes",
+        "delta_pct": 794.7
+      },
+      {
+        "name": "Join fanout",
+        "value": 9,
+        "baseline": 1,
+        "unit": "x",
+        "delta_pct": 800.0
+      },
+      {
+        "name": "Affected POs",
+        "value": 340,
+        "baseline": 42,
+        "unit": "orders",
+        "delta_pct": 709.5
+      }
     ],
     "variant": {
       "id": "TIRE-V-09",
@@ -41,9 +59,27 @@
       "rework_baseline_pct": 4.8
     },
     "metrics": [
-      {"name": "Daily invoice exceptions", "value": 1008, "baseline": 403, "unit": "exceptions", "delta_pct": 150.1},
-      {"name": "Backlog value", "value": 2100000, "baseline": 420000, "unit": "usd", "delta_pct": 400.0},
-      {"name": "Exception rate", "value": 12.0, "baseline": 4.8, "unit": "pct", "delta_pct": 150.0}
+      {
+        "name": "Daily invoice exceptions",
+        "value": 1008,
+        "baseline": 403,
+        "unit": "exceptions",
+        "delta_pct": 150.1
+      },
+      {
+        "name": "Backlog value",
+        "value": 2100000,
+        "baseline": 420000,
+        "unit": "usd",
+        "delta_pct": 400.0
+      },
+      {
+        "name": "Exception rate",
+        "value": 12.0,
+        "baseline": 4.8,
+        "unit": "pct",
+        "delta_pct": 150.0
+      }
     ],
     "variant": {
       "id": "TIRE-V-09",
@@ -70,9 +106,27 @@
       "rework_baseline_pct": 4.8
     },
     "metrics": [
-      {"name": "Match Invoice to GR", "value": 2520, "baseline": 252, "unit": "seconds", "delta_pct": 900.0},
-      {"name": "Active bottleneck cost", "value": 8400, "baseline": 1200, "unit": "usd_per_day", "delta_pct": 600.0},
-      {"name": "Option A savings", "value": 547000, "baseline": 0, "unit": "usd_per_year", "delta_pct": 100.0}
+      {
+        "name": "Match Invoice to GR",
+        "value": 2520,
+        "baseline": 252,
+        "unit": "seconds",
+        "delta_pct": 900.0
+      },
+      {
+        "name": "Active bottleneck cost",
+        "value": 8400,
+        "baseline": 1200,
+        "unit": "usd_per_day",
+        "delta_pct": 600.0
+      },
+      {
+        "name": "Option A savings",
+        "value": 547000,
+        "baseline": 0,
+        "unit": "usd_per_year",
+        "delta_pct": 100.0
+      }
     ],
     "variant": {
       "id": "TIRE-V-09",
@@ -86,5 +140,6 @@
       "factor": "business_criticality",
       "narrative": "Celonis process timing pinpoints Match Invoice to GR as the active tire P2P bottleneck."
     }
-  }
+  },
+  "provenance": "sample"
 }

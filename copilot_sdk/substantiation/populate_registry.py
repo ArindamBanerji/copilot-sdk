@@ -42,6 +42,17 @@ def populate_default_registry() -> ClaimRegistry:
     )
     registry.register(
         ClaimProvenance(
+            claim_id="P54-factor-computers",
+            text="Trading factor computers provide deterministic factor scores",
+            tier=Tier.SCRAPED,
+            evidence_ref="Trading factor registry over tier-tagged market/journal context",
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="P54-TRD-FACTOR-COMPUTERS",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
             claim_id="P55-patterns",
             text="Statistical pattern detection",
             tier=Tier.SCRAPED,
@@ -49,6 +60,39 @@ def populate_default_registry() -> ClaimRegistry:
             is_magnitude_claim=False,
             copilot="trading",
             feature="P55-TRD-PATTERN-DETECTOR",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P57-trade-journal",
+            text="Trade journal records and reflections",
+            tier=Tier.REAL,
+            evidence_ref="manual journal entries and imported trade records",
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="P57-TRD-TRADE-JOURNAL",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P59-ibkr-connector",
+            text="IBKR connector imports broker fills and market bars",
+            tier=Tier.SCRAPED,
+            evidence_ref="IBKRConnector broker API import path",
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="P59-TRD-IBKR-CONNECTOR",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P60-csv-import",
+            text="CSV import normalizes broker trade exports",
+            tier=Tier.SCRAPED,
+            evidence_ref="CSVConnector imported external trade files",
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="P60-TRD-CSV-IMPORT",
         )
     )
     registry.register(
@@ -206,6 +250,17 @@ def populate_default_registry() -> ClaimRegistry:
             is_magnitude_claim=False,
             copilot="dataops",
             feature="P30-DI-1-SOURCE-PROFILER",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P44-graph-enrichment",
+            text="DataOps graph enrichment writes idempotent enrichment records",
+            tier=Tier.SCRAPED,
+            evidence_ref="DataOpsGraphEnricher graph-store write path",
+            is_magnitude_claim=False,
+            copilot="dataops",
+            feature="P44-DI-GRAPH-ENRICHMENT",
         )
     )
 

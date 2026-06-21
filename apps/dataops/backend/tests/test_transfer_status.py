@@ -69,5 +69,5 @@ def test_transfer_confidence_bounded(client: TestClient) -> None:
 def test_transfer_status_exposes_empty_store_shape(client: TestClient) -> None:
     payload = _transfer_status(client)
 
-    assert set(payload) == {"transfers", "summary"}
+    assert set(payload) == {"transfers", "summary", "provenance"}
     assert payload["summary"]["total_transfers"] == len(payload["transfers"])

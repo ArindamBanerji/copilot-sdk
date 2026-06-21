@@ -2806,5 +2806,6 @@
     "ticker": "MSFT",
     "timeHorizon": 0.4,
     "timeframe": "swing"
-  }
+  },
+  "provenance": "sample"
 }

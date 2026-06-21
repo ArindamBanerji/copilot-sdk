@@ -451,5 +451,6 @@
     "total_pnl_dollars": 13566.0,
     "ytd_return_pct": 5.43,
     "source": "analytics_cache"
-  }
+  },
+  "provenance": "sample"
 }

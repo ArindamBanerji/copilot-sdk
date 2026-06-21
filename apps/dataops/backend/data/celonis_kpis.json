@@ -1,8 +1,33 @@
 {
   "kpis": [
-    {"id": "cycle_time_days", "name": "Cycle time", "unit": "days", "value": 7.4, "baseline": 5.8},
-    {"id": "three_way_match_failure_rate", "name": "3-way match failure rate", "unit": "pct", "value": 14.8, "baseline": 8.1},
-    {"id": "invoice_rework_rate", "name": "Invoice rework rate", "unit": "pct", "value": 18.5, "baseline": 11.2},
-    {"id": "automation_rate", "name": "Automation rate", "unit": "pct", "value": 54.0, "baseline": 63.0}
-  ]
+    {
+      "id": "cycle_time_days",
+      "name": "Cycle time",
+      "unit": "days",
+      "value": 7.4,
+      "baseline": 5.8
+    },
+    {
+      "id": "three_way_match_failure_rate",
+      "name": "3-way match failure rate",
+      "unit": "pct",
+      "value": 14.8,
+      "baseline": 8.1
+    },
+    {
+      "id": "invoice_rework_rate",
+      "name": "Invoice rework rate",
+      "unit": "pct",
+      "value": 18.5,
+      "baseline": 11.2
+    },
+    {
+      "id": "automation_rate",
+      "name": "Automation rate",
+      "unit": "pct",
+      "value": 54.0,
+      "baseline": 63.0
+    }
+  ],
+  "provenance": "sample"
 }

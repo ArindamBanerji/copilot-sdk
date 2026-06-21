@@ -166,5 +166,6 @@
     "above_50ma": false,
     "rsi": 41.5,
     "vol_rank_pctl": 86
-  }
+  },
+  "provenance": "sample"
 }

@@ -1,36 +1,291 @@
 {
   "source": "fixture",
   "systems": {
-    "sap_mm": {"system": "sap_mm", "children": [{"system": "celonis_p2p", "depth": 1, "children": [{"system": "mes_production", "depth": 2, "children": [{"system": "bi_analytics", "depth": 3, "children": []}]}]}, {"system": "sap_fi", "depth": 1, "children": [{"system": "warehouse_wms", "depth": 2, "children": [{"system": "bi_analytics", "depth": 3, "children": []}]}]}, {"system": "qms_pirelli", "depth": 1, "children": []}, {"system": "warehouse_wms", "depth": 1, "children": []}, {"system": "bi_analytics", "depth": 1, "children": []}]},
-    "sap_fi": {"system": "sap_fi", "children": [{"system": "warehouse_wms", "depth": 1, "children": [{"system": "bi_analytics", "depth": 2, "children": []}]}, {"system": "bi_analytics", "depth": 1, "children": []}]},
-    "celonis_p2p": {"system": "celonis_p2p", "children": [{"system": "mes_production", "depth": 1, "children": [{"system": "bi_analytics", "depth": 2, "children": []}]}, {"system": "bi_analytics", "depth": 1, "children": []}]},
-    "qms_pirelli": {"system": "qms_pirelli", "children": [{"system": "mes_production", "depth": 1, "children": [{"system": "bi_analytics", "depth": 2, "children": []}]}]},
-    "logistics_dhl": {"system": "logistics_dhl", "children": [{"system": "warehouse_wms", "depth": 1, "children": [{"system": "bi_analytics", "depth": 2, "children": []}]}, {"system": "mes_production", "depth": 1, "children": []}]},
-    "mes_production": {"system": "mes_production", "children": [{"system": "bi_analytics", "depth": 1, "children": []}]},
-    "supplier_portal": {"system": "supplier_portal", "children": [{"system": "sap_mm", "depth": 1, "children": [{"system": "celonis_p2p", "depth": 2, "children": []}]}, {"system": "logistics_dhl", "depth": 1, "children": []}, {"system": "warehouse_wms", "depth": 1, "children": []}]},
-    "warehouse_wms": {"system": "warehouse_wms", "children": [{"system": "bi_analytics", "depth": 1, "children": []}]},
-    "bi_analytics": {"system": "bi_analytics", "children": []}
+    "sap_mm": {
+      "system": "sap_mm",
+      "children": [
+        {
+          "system": "celonis_p2p",
+          "depth": 1,
+          "children": [
+            {
+              "system": "mes_production",
+              "depth": 2,
+              "children": [
+                {
+                  "system": "bi_analytics",
+                  "depth": 3,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "system": "sap_fi",
+          "depth": 1,
+          "children": [
+            {
+              "system": "warehouse_wms",
+              "depth": 2,
+              "children": [
+                {
+                  "system": "bi_analytics",
+                  "depth": 3,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "system": "qms_pirelli",
+          "depth": 1,
+          "children": []
+        },
+        {
+          "system": "warehouse_wms",
+          "depth": 1,
+          "children": []
+        },
+        {
+          "system": "bi_analytics",
+          "depth": 1,
+          "children": []
+        }
+      ]
+    },
+    "sap_fi": {
+      "system": "sap_fi",
+      "children": [
+        {
+          "system": "warehouse_wms",
+          "depth": 1,
+          "children": [
+            {
+              "system": "bi_analytics",
+              "depth": 2,
+              "children": []
+            }
+          ]
+        },
+        {
+          "system": "bi_analytics",
+          "depth": 1,
+          "children": []
+        }
+      ]
+    },
+    "celonis_p2p": {
+      "system": "celonis_p2p",
+      "children": [
+        {
+          "system": "mes_production",
+          "depth": 1,
+          "children": [
+            {
+              "system": "bi_analytics",
+              "depth": 2,
+              "children": []
+            }
+          ]
+        },
+        {
+          "system": "bi_analytics",
+          "depth": 1,
+          "children": []
+        }
+      ]
+    },
+    "qms_pirelli": {
+      "system": "qms_pirelli",
+      "children": [
+        {
+          "system": "mes_production",
+          "depth": 1,
+          "children": [
+            {
+              "system": "bi_analytics",
+              "depth": 2,
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "logistics_dhl": {
+      "system": "logistics_dhl",
+      "children": [
+        {
+          "system": "warehouse_wms",
+          "depth": 1,
+          "children": [
+            {
+              "system": "bi_analytics",
+              "depth": 2,
+              "children": []
+            }
+          ]
+        },
+        {
+          "system": "mes_production",
+          "depth": 1,
+          "children": []
+        }
+      ]
+    },
+    "mes_production": {
+      "system": "mes_production",
+      "children": [
+        {
+          "system": "bi_analytics",
+          "depth": 1,
+          "children": []
+        }
+      ]
+    },
+    "supplier_portal": {
+      "system": "supplier_portal",
+      "children": [
+        {
+          "system": "sap_mm",
+          "depth": 1,
+          "children": [
+            {
+              "system": "celonis_p2p",
+              "depth": 2,
+              "children": []
+            }
+          ]
+        },
+        {
+          "system": "logistics_dhl",
+          "depth": 1,
+          "children": []
+        },
+        {
+          "system": "warehouse_wms",
+          "depth": 1,
+          "children": []
+        }
+      ]
+    },
+    "warehouse_wms": {
+      "system": "warehouse_wms",
+      "children": [
+        {
+          "system": "bi_analytics",
+          "depth": 1,
+          "children": []
+        }
+      ]
+    },
+    "bi_analytics": {
+      "system": "bi_analytics",
+      "children": []
+    }
   },
   "alerts": {
-    "ALERT-TIRE-001": {"alert_id": "ALERT-TIRE-001", "system": "sap_mm", "tree_ref": "sap_mm"},
-    "ALERT-TIRE-002": {"alert_id": "ALERT-TIRE-002", "system": "sap_mm", "tree_ref": "sap_mm"},
-    "ALERT-TIRE-003": {"alert_id": "ALERT-TIRE-003", "system": "sap_fi", "tree_ref": "sap_fi"},
-    "ALERT-TIRE-004": {"alert_id": "ALERT-TIRE-004", "system": "celonis_p2p", "tree_ref": "celonis_p2p"},
-    "ALERT-TIRE-005": {"alert_id": "ALERT-TIRE-005", "system": "qms_pirelli", "tree_ref": "qms_pirelli"},
-    "ALERT-TIRE-006": {"alert_id": "ALERT-TIRE-006", "system": "logistics_dhl", "tree_ref": "logistics_dhl"},
-    "ALERT-TIRE-007": {"alert_id": "ALERT-TIRE-007", "system": "mes_production", "tree_ref": "mes_production"},
-    "ALERT-TIRE-008": {"alert_id": "ALERT-TIRE-008", "system": "supplier_portal", "tree_ref": "supplier_portal"},
-    "ALERT-TIRE-009": {"alert_id": "ALERT-TIRE-009", "system": "warehouse_wms", "tree_ref": "warehouse_wms"},
-    "ALERT-TIRE-010": {"alert_id": "ALERT-TIRE-010", "system": "bi_analytics", "tree_ref": "bi_analytics"},
-    "ALERT-TIRE-011": {"alert_id": "ALERT-TIRE-011", "system": "sap_mm", "tree_ref": "sap_mm"},
-    "ALERT-TIRE-012": {"alert_id": "ALERT-TIRE-012", "system": "sap_fi", "tree_ref": "sap_fi"},
-    "ALERT-TIRE-013": {"alert_id": "ALERT-TIRE-013", "system": "celonis_p2p", "tree_ref": "celonis_p2p"},
-    "ALERT-TIRE-014": {"alert_id": "ALERT-TIRE-014", "system": "qms_pirelli", "tree_ref": "qms_pirelli"},
-    "ALERT-TIRE-015": {"alert_id": "ALERT-TIRE-015", "system": "logistics_dhl", "tree_ref": "logistics_dhl"},
-    "ALERT-TIRE-016": {"alert_id": "ALERT-TIRE-016", "system": "mes_production", "tree_ref": "mes_production"},
-    "ALERT-TIRE-017": {"alert_id": "ALERT-TIRE-017", "system": "supplier_portal", "tree_ref": "supplier_portal"},
-    "ALERT-TIRE-018": {"alert_id": "ALERT-TIRE-018", "system": "warehouse_wms", "tree_ref": "warehouse_wms"},
-    "ALERT-TIRE-019": {"alert_id": "ALERT-TIRE-019", "system": "bi_analytics", "tree_ref": "bi_analytics"},
-    "ALERT-TIRE-020": {"alert_id": "ALERT-TIRE-020", "system": "sap_mm", "tree_ref": "sap_mm"}
-  }
+    "ALERT-TIRE-001": {
+      "alert_id": "ALERT-TIRE-001",
+      "system": "sap_mm",
+      "tree_ref": "sap_mm"
+    },
+    "ALERT-TIRE-002": {
+      "alert_id": "ALERT-TIRE-002",
+      "system": "sap_mm",
+      "tree_ref": "sap_mm"
+    },
+    "ALERT-TIRE-003": {
+      "alert_id": "ALERT-TIRE-003",
+      "system": "sap_fi",
+      "tree_ref": "sap_fi"
+    },
+    "ALERT-TIRE-004": {
+      "alert_id": "ALERT-TIRE-004",
+      "system": "celonis_p2p",
+      "tree_ref": "celonis_p2p"
+    },
+    "ALERT-TIRE-005": {
+      "alert_id": "ALERT-TIRE-005",
+      "system": "qms_pirelli",
+      "tree_ref": "qms_pirelli"
+    },
+    "ALERT-TIRE-006": {
+      "alert_id": "ALERT-TIRE-006",
+      "system": "logistics_dhl",
+      "tree_ref": "logistics_dhl"
+    },
+    "ALERT-TIRE-007": {
+      "alert_id": "ALERT-TIRE-007",
+      "system": "mes_production",
+      "tree_ref": "mes_production"
+    },
+    "ALERT-TIRE-008": {
+      "alert_id": "ALERT-TIRE-008",
+      "system": "supplier_portal",
+      "tree_ref": "supplier_portal"
+    },
+    "ALERT-TIRE-009": {
+      "alert_id": "ALERT-TIRE-009",
+      "system": "warehouse_wms",
+      "tree_ref": "warehouse_wms"
+    },
+    "ALERT-TIRE-010": {
+      "alert_id": "ALERT-TIRE-010",
+      "system": "bi_analytics",
+      "tree_ref": "bi_analytics"
+    },
+    "ALERT-TIRE-011": {
+      "alert_id": "ALERT-TIRE-011",
+      "system": "sap_mm",
+      "tree_ref": "sap_mm"
+    },
+    "ALERT-TIRE-012": {
+      "alert_id": "ALERT-TIRE-012",
+      "system": "sap_fi",
+      "tree_ref": "sap_fi"
+    },
+    "ALERT-TIRE-013": {
+      "alert_id": "ALERT-TIRE-013",
+      "system": "celonis_p2p",
+      "tree_ref": "celonis_p2p"
+    },
+    "ALERT-TIRE-014": {
+      "alert_id": "ALERT-TIRE-014",
+      "system": "qms_pirelli",
+      "tree_ref": "qms_pirelli"
+    },
+    "ALERT-TIRE-015": {
+      "alert_id": "ALERT-TIRE-015",
+      "system": "logistics_dhl",
+      "tree_ref": "logistics_dhl"
+    },
+    "ALERT-TIRE-016": {
+      "alert_id": "ALERT-TIRE-016",
+      "system": "mes_production",
+      "tree_ref": "mes_production"
+    },
+    "ALERT-TIRE-017": {
+      "alert_id": "ALERT-TIRE-017",
+      "system": "supplier_portal",
+      "tree_ref": "supplier_portal"
+    },
+    "ALERT-TIRE-018": {
+      "alert_id": "ALERT-TIRE-018",
+      "system": "warehouse_wms",
+      "tree_ref": "warehouse_wms"
+    },
+    "ALERT-TIRE-019": {
+      "alert_id": "ALERT-TIRE-019",
+      "system": "bi_analytics",
+      "tree_ref": "bi_analytics"
+    },
+    "ALERT-TIRE-020": {
+      "alert_id": "ALERT-TIRE-020",
+      "system": "sap_mm",
+      "tree_ref": "sap_mm"
+    }
+  },
+  "provenance": "sample"
 }

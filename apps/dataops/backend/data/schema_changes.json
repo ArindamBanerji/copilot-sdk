@@ -7,7 +7,17 @@
         "change_type": "schema_expansion",
         "detected": "2026-05-18T00:16:00Z",
         "downstream_impact": 9,
-        "impacted_systems": ["sap_mm", "sap_fi", "celonis_p2p", "qms_pirelli", "logistics_dhl", "mes_production", "supplier_portal", "warehouse_wms", "bi_analytics"],
+        "impacted_systems": [
+          "sap_mm",
+          "sap_fi",
+          "celonis_p2p",
+          "qms_pirelli",
+          "logistics_dhl",
+          "mes_production",
+          "supplier_portal",
+          "warehouse_wms",
+          "bi_analytics"
+        ],
         "proposed_fix": "Canonicalize MATKL_V2 into a governed tire material taxonomy before invoice matching.",
         "alerts_prevented": 11
       }
@@ -19,7 +29,12 @@
         "change_type": "downstream_join_fanout",
         "detected": "2026-05-18T00:24:00Z",
         "downstream_impact": 4,
-        "impacted_systems": ["sap_fi", "celonis_p2p", "warehouse_wms", "bi_analytics"],
+        "impacted_systems": [
+          "sap_fi",
+          "celonis_p2p",
+          "warehouse_wms",
+          "bi_analytics"
+        ],
         "proposed_fix": "Pre-join material taxonomy bridge before Match Invoice to GR.",
         "alerts_prevented": 7
       }
@@ -31,7 +46,11 @@
         "change_type": "process_bottleneck",
         "detected": "2026-05-18T00:31:00Z",
         "downstream_impact": 3,
-        "impacted_systems": ["celonis_p2p", "mes_production", "bi_analytics"],
+        "impacted_systems": [
+          "celonis_p2p",
+          "mes_production",
+          "bi_analytics"
+        ],
         "proposed_fix": "Route Aster Rubber invoice cases through corrected MATKL_V2 bridge.",
         "alerts_prevented": 5
       }
@@ -43,10 +62,15 @@
         "change_type": "new_supplier_taxonomy",
         "detected": "2026-05-18T00:28:00Z",
         "downstream_impact": 3,
-        "impacted_systems": ["supplier_portal", "sap_mm", "logistics_dhl"],
+        "impacted_systems": [
+          "supplier_portal",
+          "sap_mm",
+          "logistics_dhl"
+        ],
         "proposed_fix": "Require Aster Rubber catalog uploads to include governed compound grade mappings.",
         "alerts_prevented": 4
       }
     ]
-  }
+  },
+  "provenance": "sample"
 }
