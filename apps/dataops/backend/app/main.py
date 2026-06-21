@@ -31,6 +31,7 @@ from .graph_status import (  # noqa: E402
     router as dataops_graph_status_router,
 )
 from .graph_queries import DataOpsGraphClient  # noqa: E402
+from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.dataops_status import router as dataops_status_router  # noqa: E402
 from .routers.query import create_query_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
@@ -430,6 +431,9 @@ def create_app(
     app.include_router(dataops_graph_status_router)
     app.include_router(dataops_status_router)
     app.include_router(create_query_router(lambda: selected_graph_store))
+    app.include_router(
+        create_cohort_status_router(graph_store_factory=lambda: selected_graph_store)
+    )
 
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:

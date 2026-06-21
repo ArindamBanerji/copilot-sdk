@@ -29,6 +29,7 @@ from .graph_status import (  # noqa: E402
 )
 from .routers.broker_router import create_broker_router  # noqa: E402
 from .routers.analytics import create_analytics_router  # noqa: E402
+from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.correlation import create_correlation_router  # noqa: E402
 from .routers.data_import import router as data_import_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
@@ -348,6 +349,11 @@ def create_app(
     app.include_router(create_regime_classifier_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_social_router(scorer_proxy))
     app.include_router(create_vix_timing_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(
+        create_cohort_status_router(
+            graph_store_factory=lambda: selected_graph_store_factory(scoring_db)
+        )
+    )
     app.include_router(create_webhook_router(scorer_proxy))
     app.include_router(create_broker_router(), prefix="/api/broker", tags=["broker"])
     app.include_router(data_import_router)
