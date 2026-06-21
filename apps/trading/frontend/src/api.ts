@@ -215,6 +215,79 @@ export function fetchPromotion(): Promise<PromotionResponse | null> {
   return safeApiGet<PromotionResponse>("/api/trading/promotion");
 }
 
+export interface PromotionEvidence {
+  decisionsInStage?: number;
+  accuracyInStage?: number;
+  minDecisions?: number;
+  minAccuracy?: number;
+  conservationStatus?: string;
+  maxSizingPct?: number;
+}
+
+export interface PromotionHistoryEntry {
+  action?: "promote" | "demote" | string;
+  category?: string;
+  fromStage?: string;
+  toStage?: string;
+  confirmedBy?: string;
+  reason?: string;
+  timestamp?: string;
+  evidence?: PromotionEvidence;
+}
+
+export interface PromotionStatePayload {
+  category?: string;
+  currentStage?: string;
+  decisionsInStage?: number;
+  accuracyInStage?: number;
+  promotedAt?: string | null;
+  demotedAt?: string | null;
+  promotionHistory?: PromotionHistoryEntry[];
+}
+
+export interface PromotionDetailResponse {
+  category?: string;
+  currentStage?: string;
+  currentStageLabel?: string;
+  nextStage?: string | null;
+  nextStageLabel?: string | null;
+  ready?: boolean;
+  evidence?: PromotionEvidence;
+  recommendation?: string;
+  blockers?: string[];
+  maxSizingPct?: number;
+  state?: PromotionStatePayload;
+}
+
+export type PromotionDashboardResponse = PromotionDetailResponse[];
+
+export interface PromotionResult {
+  promoted?: boolean;
+  demoted?: boolean;
+  category?: string;
+  fromStage?: string;
+  currentStage?: string;
+  historyEntry?: PromotionHistoryEntry;
+  reason?: string;
+}
+
+export function getPromotionDashboard(): Promise<PromotionDashboardResponse> {
+  return apiGet<PromotionDashboardResponse>("/api/trading/promotion/dashboard");
+}
+
+export function getPromotionDetail(category: string): Promise<PromotionDetailResponse> {
+  return apiGet<PromotionDetailResponse>(`/api/trading/promotion/${encodeURIComponent(category)}`);
+}
+
+export function promoteCategory(
+  category: string,
+  confirmedBy = "trader",
+): Promise<PromotionResult> {
+  return apiPost<PromotionResult>(`/api/trading/promotion/${encodeURIComponent(category)}/promote`, {
+    confirmed_by: confirmedBy,
+  });
+}
+
 export function fetchCorrelation(window = 20): Promise<CorrelationResponse | null> {
   const params = new URLSearchParams({ window: String(window) });
   return safeApiGet<CorrelationResponse>(`/api/trading/correlation?${params.toString()}`);

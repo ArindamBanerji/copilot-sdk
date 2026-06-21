@@ -3,9 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 import cli
-from app.routers import data_import
 from app.services.promotion import PromotionService, _is_conservation_green, strategy_key
-from conftest_helpers import seed_green_client
 
 
 def _trade(
@@ -226,42 +224,29 @@ def test_no_duplicate_promotion_on_repeated_evaluate(tmp_path):
     assert second == []
 
 
-def test_promotion_endpoint_returns_strategies(client):
-    data_import._trade_store_ref.clear()
-    data_import._trade_store_ref.extend(_trades(2, 1))
+def test_promotion_endpoint_returns_categories(client):
+    payload = client.get("/api/trading/promotion/dashboard").json()
 
-    payload = client.get("/api/trading/promotion").json()
-
-    assert payload["strategies"][0]["strategy_key"] == "trend_following:momentum"
+    assert any(row["category"] == "trend_following" for row in payload)
 
 
-def test_promotion_endpoint_includes_history(client):
-    data_import._trade_store_ref.clear()
-    data_import._trade_store_ref.extend(_trades(50, 30))
-    seed_green_client(client)
-    client.post("/api/trading/promotion/evaluate")
+def test_promotion_endpoint_includes_state_history(client):
+    payload = client.get("/api/trading/promotion/trend_following").json()
 
-    payload = client.get("/api/trading/promotion").json()
-
-    assert payload["history"]
+    assert isinstance(payload["state"]["promotion_history"], list)
 
 
-def test_promotion_evaluate_returns_events(client):
-    data_import._trade_store_ref.clear()
-    data_import._trade_store_ref.extend(_trades(50, 30))
-    seed_green_client(client)
+def test_promotion_dashboard_returns_evaluations(client):
+    payload = client.get("/api/trading/promotion/dashboard").json()
 
-    payload = client.post("/api/trading/promotion/evaluate").json()
-
-    assert payload["events"][0]["to_tier"] == "small_live"
+    assert payload[0]["current_stage"] in {"paper", "small_live", "full_live"}
+    assert "recommendation" in payload[0]
 
 
-def test_promotion_no_trades_returns_empty(client):
-    data_import._trade_store_ref.clear()
+def test_promotion_dashboard_includes_all_categories(client):
+    payload = client.get("/api/trading/promotion/dashboard").json()
 
-    payload = client.get("/api/trading/promotion").json()
-
-    assert payload["strategies"] == []
+    assert len(payload) >= 5
 
 
 def test_promotion_state_persists_between_service_instances(tmp_path):

@@ -36,7 +36,7 @@ from .evolution import get_trading_variants  # noqa: E402
 from .routers.journal import create_journal_router  # noqa: E402
 from .routers.pre_score_router import create_pre_score_router  # noqa: E402
 from .routers.prescore import create_prescore_router  # noqa: E402
-from .routers.promotion import create_promotion_router  # noqa: E402
+from .routers.promotion_router import create_promotion_engine_router  # noqa: E402
 from .routers.regime import create_regime_router  # noqa: E402
 from .routers.regime_router import create_regime_router as create_regime_classifier_router  # noqa: E402
 from .routers.social import create_social_router  # noqa: E402
@@ -339,9 +339,8 @@ def create_app(
     )
     app.include_router(create_prescore_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(
-        create_promotion_router(
+        create_promotion_engine_router(
             lambda: selected_graph_store_factory(scoring_db),
-            config_dir=_promotion_config_dir(scoring_db),
             domain=DOMAIN,
         )
     )
