@@ -17,6 +17,14 @@ def test_mock_source_fetch_ohlcv_returns_list():
     assert "date" in data[0]
 
 
+def test_yfinance_provenance_tier():
+    assert YFinanceSource().provenance_tier == "scraped_external"
+
+
+def test_mock_provenance_tier():
+    assert MockMarketSource().provenance_tier == "sample"
+
+
 def test_mock_source_fetch_vix_returns_float():
     """MockMarketSource.fetch_vix returns a float."""
     source = MockMarketSource()

@@ -130,7 +130,11 @@ class MarketDataProvider:
                         expires_at=now_utc() + self._ttl_duration(),
                     )
                     self._clear_backoff(key)
-                    return Provenanced(value=data, source="live", as_of=timestamp)
+                    return Provenanced(
+                        value=data,
+                        source=self._source.provenance_tier,
+                        as_of=timestamp,
+                    )
             except Exception:
                 pass
             self._enter_backoff(key)

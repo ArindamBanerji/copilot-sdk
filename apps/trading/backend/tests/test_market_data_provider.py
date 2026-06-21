@@ -26,12 +26,12 @@ class FailSource:
         return None
 
 
-def test_live_source_returns_provenanced_live():
-    """When source returns data, result is Provenanced(source='live')."""
+def test_source_returns_declared_provenance_tier():
+    """When source returns data, result uses the source-declared provenance tier."""
     provider = MarketDataProvider(source=MockMarketSource())
     result = provider.get_vix_current()
     assert isinstance(result, Provenanced)
-    assert result.source == "live"
+    assert result.source == "sample"
     assert result.value is not None
     assert result.as_of is not None
 
@@ -48,7 +48,7 @@ def test_cached_after_live():
     """Second call returns cached before TTL expires."""
     provider = MarketDataProvider(source=MockMarketSource())
     first = provider.get_vix_current()
-    assert first.source == "live"
+    assert first.source == "sample"
     second = provider.get_vix_current()
     assert second.source == "cached"
     assert second.value == first.value
@@ -99,20 +99,20 @@ def test_refresh_clears_cache():
     """After refresh(), next call hits live source again."""
     provider = MarketDataProvider(source=MockMarketSource())
     first = provider.get_vix_current()
-    assert first.source == "live"
+    assert first.source == "sample"
     second = provider.get_vix_current()
     assert second.source == "cached"
     refresh_result = provider.refresh()
     assert isinstance(refresh_result, Provenanced)
     third = provider.get_vix_current()
-    assert third.source == "live"
+    assert third.source == "sample"
 
 
 def test_market_snapshot_has_enriched_fields():
     """Snapshot includes RSI, above_50ma, volume_rank."""
     provider = MarketDataProvider(source=MockMarketSource())
     result = provider.get_market_snapshot()
-    assert result.source == "live"
+    assert result.source == "sample"
     snap = result.value
     assert "spy" in snap
     assert "vix" in snap
@@ -125,7 +125,7 @@ def test_ticker_snapshot_has_enriched_fields():
     """Ticker snapshot includes RSI, vol_rank, sector."""
     provider = MarketDataProvider(source=MockMarketSource())
     result = provider.get_ticker_snapshot("SPY")
-    assert result.source == "live"
+    assert result.source == "sample"
     snap = result.value
     assert snap["ticker"] == "SPY"
     assert "price" in snap
@@ -137,7 +137,7 @@ def test_batch_returns():
     """Batch history returns data for multiple tickers."""
     provider = MarketDataProvider(source=MockMarketSource())
     result = provider.get_batch_returns(["SPY", "QQQ"], "2026-01-01", "2026-06-01")
-    assert result.source == "live"
+    assert result.source == "sample"
     assert "SPY" in result.value
     assert "QQQ" in result.value
 
@@ -146,7 +146,7 @@ def test_vix_history_returns_date_keyed_dict():
     """VIX history returns {date: close} for vix_timing compatibility."""
     provider = MarketDataProvider(source=MockMarketSource())
     result = provider.get_vix_history("2026-01-01", "2026-06-01")
-    assert result.source == "live"
+    assert result.source == "sample"
     assert isinstance(result.value, dict)
     for key, value in result.value.items():
         assert isinstance(key, str)
@@ -201,7 +201,7 @@ def test_shared_market_provider_fixture(market_provider):
     """Shared fixture provides a MarketDataProvider with mock source."""
     result = market_provider.get_vix_current()
     assert isinstance(result, Provenanced)
-    assert result.source == "live"
+    assert result.source == "sample"
 
 
 def test_market_snapshot_field_names_match_frontend():
@@ -241,7 +241,7 @@ def test_ohlcv_returns_list_of_dicts():
     """OHLCV returns list of dicts with expected fields."""
     provider = MarketDataProvider(source=MockMarketSource())
     result = provider.get_ohlcv("SPY")
-    assert result.source == "live"
+    assert result.source == "sample"
     assert isinstance(result.value, list)
     for row in result.value:
         assert "date" in row
@@ -259,7 +259,16 @@ def test_provenanced_source_never_none():
         provider.get_ticker_snapshot("SPY"),
     ]:
         assert isinstance(method_call.source, str)
-        assert method_call.source in ("live", "cached", "fixture")
+        assert method_call.source in ("scraped_external", "sample", "cached", "fixture")
+
+
+def test_f25_no_mock_labeled_live():
+    provider = MarketDataProvider(source=MockMarketSource())
+
+    result = provider.get_vix_current()
+
+    assert result.source != "live"
+    assert result.source == "sample"
 
 
 def test_provenanced_as_of_iso_format():

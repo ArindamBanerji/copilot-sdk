@@ -12,6 +12,8 @@ class MarketSource(Protocol):
     The provider above owns the cascade and provenance tagging.
     """
 
+    provenance_tier: str  # "scraped_external" | "sample"
+
     def fetch_ohlcv(self, ticker: str, period: str = "1mo") -> list[dict] | None: ...
     def fetch_vix(self) -> float | None: ...
     def fetch_info(self, ticker: str) -> dict | None: ...
@@ -30,6 +32,8 @@ class YFinanceSource:
     yfinance is imported inside each method to preserve the optional
     dependency pattern.
     """
+
+    provenance_tier = "scraped_external"  # K4 real market data
 
     def fetch_ohlcv(self, ticker: str, period: str = "1mo") -> list[dict] | None:
         try:
@@ -104,6 +108,8 @@ class MockMarketSource:
 
     Returns realistic data for SPY, QQQ, and ^VIX.
     """
+
+    provenance_tier = "sample"  # K3 fixture data
 
     def __init__(self, fixture_data: dict[str, Any] | None = None):
         self._data = fixture_data or self._defaults()

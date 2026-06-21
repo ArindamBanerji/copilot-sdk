@@ -49,7 +49,7 @@ def test_smoke_market_snapshot_returns_provenance(client, monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert "provenance" in payload
-    assert payload["provenance"]["source"] in {"live", "cached", "fixture"}
+    assert payload["provenance"]["source"] in {"scraped_external", "sample", "cached", "fixture"}
     assert "as_of" in payload["provenance"]
 
 
@@ -75,7 +75,7 @@ def test_smoke_ticker_returns_provenance(client, monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert payload["ticker"] == "SPY"
-    assert payload["provenance"]["source"] in {"live", "cached", "fixture"}
+    assert payload["provenance"]["source"] in {"scraped_external", "sample", "cached", "fixture"}
 
 
 def test_smoke_ticker_camelcase_fields(client, monkeypatch):
@@ -165,7 +165,7 @@ def test_smoke_refresh_returns_provenance(client, monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert payload["refreshed"] is True
-    assert payload["provenance"]["source"] in {"live", "cached", "fixture"}
+    assert payload["provenance"]["source"] in {"scraped_external", "sample", "cached", "fixture", "local"}
 
 
 def test_smoke_all_sources_labeled():
@@ -182,4 +182,4 @@ def test_smoke_all_sources_labeled():
     for name, args in methods:
         result = getattr(provider, name)(*args)
         assert isinstance(result, Provenanced), f"{name} not Provenanced"
-        assert result.source in ("live", "cached", "fixture"), f"{name} source={result.source}"
+        assert result.source in ("scraped_external", "sample", "cached", "fixture"), f"{name} source={result.source}"
