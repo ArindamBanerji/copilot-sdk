@@ -3,11 +3,17 @@ from __future__ import annotations
 from copilot_sdk.substantiation import (
     AnalyticClaim,
     BaseOracle,
+    ChefOracle,
+    ChefPipelineTest,
     ConditionalHoldout,
+    DataOpsOracle,
+    DataOpsPipelineTest,
     HoldoutAssigner,
     Oracle,
     RealInstrument,
     ScrapedContextProvider,
+    TraderOracle,
+    TraderPipelineTest,
     UnconditionalHoldout,
     compute_accuracy,
     compute_lift,
@@ -255,3 +261,40 @@ def test_unconditional_satisfies_protocol():
 
 def test_conditional_satisfies_protocol():
     assert isinstance(ConditionalHoldout(), HoldoutAssigner)
+
+
+def test_trader_pipeline_run_all():
+    results = TraderPipelineTest(n_per_arm=200).run_all()
+
+    assert len(results) == 4
+    assert all(result.passed for result in results.values())
+
+
+def test_chef_pipeline_run_all():
+    results = ChefPipelineTest(n_per_arm=200).run_all()
+
+    assert len(results) == 4
+    assert all(result.passed for result in results.values())
+
+
+def test_dataops_pipeline_run_all():
+    results = DataOpsPipelineTest(n_per_arm=200).run_all()
+
+    assert len(results) == 4
+    assert all(result.passed for result in results.values())
+
+
+def test_all_oracles_satisfy_protocol():
+    for oracle in (TraderOracle(), ChefOracle(), DataOpsOracle()):
+        assert isinstance(oracle.known_effect, float)
+        assert isinstance(oracle.known_accuracy_effect, float)
+        assert callable(oracle.synthetic_outcome)
+        assert isinstance(oracle, Oracle)
+
+
+def test_oracle_outcomes_have_required_fields():
+    required = {"action", "was_override", "quality_signal", "correct"}
+
+    for oracle in (TraderOracle(), ChefOracle(), DataOpsOracle()):
+        outcome = oracle.synthetic_outcome(shown=True)
+        assert required.issubset(outcome)

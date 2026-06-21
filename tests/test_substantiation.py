@@ -583,3 +583,203 @@ def test_readiness_gate_logic():
 def test_total_claims_with_canonicals():
     registry = populate_default_registry()
     assert len(registry.all_claims()) == 32
+
+
+def test_promote_analytic_to_real_requires_evidence():
+    registry = ClaimRegistry()
+    registry.register(_claim(claim_id="analytic-claim", tier=Tier.ANALYTIC))
+
+    with pytest.raises(ValueError, match="requires pilot evidence_ref"):
+        registry.promote(
+            PromotionEvent(
+                claim_id="analytic-claim",
+                from_tier=Tier.ANALYTIC,
+                to_tier=Tier.REAL,
+                evidence_ref="",
+                approved_by="roadmap",
+                date="2026-06-20",
+            )
+        )
+
+
+def test_promote_with_evidence_succeeds():
+    registry = ClaimRegistry()
+    registry.register(_claim(claim_id="pilot-claim", tier=Tier.SCRAPED))
+
+    registry.promote(
+        PromotionEvent(
+            claim_id="pilot-claim",
+            from_tier=Tier.SCRAPED,
+            to_tier=Tier.REAL,
+            evidence_ref="EXP-G1",
+            approved_by="roadmap",
+            date="2026-06-20",
+        )
+    )
+
+    claim = registry.get("pilot-claim")
+    assert claim.tier == Tier.REAL
+    assert claim.evidence_ref == "EXP-G1"
+
+
+def test_promote_preserves_history():
+    registry = ClaimRegistry()
+    registry.register(_claim(claim_id="history-claim", tier=Tier.SCRAPED))
+    event = PromotionEvent(
+        claim_id="history-claim",
+        from_tier=Tier.SCRAPED,
+        to_tier=Tier.REAL,
+        evidence_ref="pilot outcome",
+        approved_by="roadmap",
+        date="2026-06-20",
+    )
+
+    registry.promote(event)
+
+    assert registry.history() == [event]
+
+
+def test_promote_updates_claim_tier():
+    registry = ClaimRegistry()
+    registry.register(_claim(claim_id="tier-claim", tier=Tier.ORACLE))
+
+    registry.promote(
+        PromotionEvent(
+            claim_id="tier-claim",
+            from_tier=Tier.ORACLE,
+            to_tier=Tier.SCRAPED,
+            evidence_ref="external data",
+            approved_by="reviewer",
+            date="2026-06-20",
+        )
+    )
+
+    assert registry.get("tier-claim").tier == Tier.SCRAPED
+
+
+def test_sales_safe_returns_tier_language():
+    registry = ClaimRegistry()
+    registry.register(_claim(claim_id="analytic-safe", tier=Tier.ANALYTIC))
+    registry.register(_claim(claim_id="scraped-safe", tier=Tier.SCRAPED))
+    registry.register(_claim(claim_id="oracle-safe", tier=Tier.ORACLE))
+
+    assert "Proven mathematically" in registry.sales_safe("analytic-safe")
+    assert "Populated day-zero" in registry.sales_safe("scraped-safe")
+    assert "capability runs" in registry.sales_safe("oracle-safe")
+
+
+def test_c21_canonical_sales_safe():
+    registry = populate_default_registry()
+    assert "Proven mathematically" in registry.sales_safe("C-21")
+
+
+def test_c22_canonical_sales_safe():
+    registry = populate_default_registry()
+    assert "Populated day-zero" in registry.sales_safe("C-22")
+
+
+def test_f24_blocks_magnitude_at_oracle():
+    registry = ClaimRegistry()
+
+    with pytest.raises(ValueError, match="F-24"):
+        registry.register(
+            _claim(
+                claim_id="oracle-magnitude-blocked",
+                tier=Tier.ORACLE,
+                is_magnitude_claim=True,
+            )
+        )
+
+
+def test_f24_allows_magnitude_at_real():
+    registry = ClaimRegistry()
+    registry.register(
+        _claim(
+            claim_id="real-magnitude-allowed",
+            tier=Tier.REAL,
+            is_magnitude_claim=True,
+        )
+    )
+
+    assert registry.get("real-magnitude-allowed").tier == Tier.REAL
+
+
+def test_readiness_all_true_passes():
+    readiness = DayZeroReadiness(
+        feature="ready-feature",
+        copilot="test",
+        populated=True,
+        proven=True,
+        instrumented=True,
+        real_path_committed=True,
+        labels_honest=True,
+    )
+
+    assert readiness.gate() == (True, [])
+
+
+def test_readiness_each_false_fails():
+    gate_fields = [
+        "populated",
+        "proven",
+        "instrumented",
+        "real_path_committed",
+        "labels_honest",
+    ]
+
+    for field_name in gate_fields:
+        values = {field: True for field in gate_fields}
+        values[field_name] = False
+        readiness = DayZeroReadiness(
+            feature=f"missing-{field_name}",
+            copilot="test",
+            **values,
+        )
+        assert readiness.gate() == (False, [field_name])
+
+
+def test_readiness_multiple_false():
+    readiness = DayZeroReadiness(
+        feature="multi-missing",
+        copilot="test",
+        populated=False,
+        proven=True,
+        instrumented=False,
+        real_path_committed=True,
+        labels_honest=False,
+    )
+
+    assert readiness.gate() == (
+        False,
+        ["populated", "instrumented", "labels_honest"],
+    )
+
+
+def test_readiness_soc_is_only_pass():
+    passing = [
+        entry.feature
+        for entry in populate_default_readiness()
+        if entry.gate()[0]
+    ]
+
+    assert passing == ["SOC-campaign-intelligence"]
+
+
+def test_readiness_purchasing_fails_on_proven():
+    entry = next(
+        readiness
+        for readiness in populate_default_readiness()
+        if readiness.feature == "P73-par-intelligence"
+    )
+
+    assert entry.gate() == (False, ["proven"])
+
+
+def test_readiness_trading_fails_on_proven():
+    entry = next(
+        readiness
+        for readiness in populate_default_readiness()
+        if readiness.feature == "P53-trust-radar"
+    )
+
+    assert entry.gate() == (False, ["proven"])
