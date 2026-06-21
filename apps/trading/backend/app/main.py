@@ -34,9 +34,11 @@ from .routers.data_import import router as data_import_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from .evolution import get_trading_variants  # noqa: E402
 from .routers.journal import create_journal_router  # noqa: E402
+from .routers.pre_score_router import create_pre_score_router  # noqa: E402
 from .routers.prescore import create_prescore_router  # noqa: E402
 from .routers.promotion import create_promotion_router  # noqa: E402
 from .routers.regime import create_regime_router  # noqa: E402
+from .routers.regime_router import create_regime_router as create_regime_classifier_router  # noqa: E402
 from .routers.social import create_social_router  # noqa: E402
 from .routers.vix_timing import create_vix_timing_router  # noqa: E402
 from .routers.webhook import create_webhook_router  # noqa: E402
@@ -328,6 +330,13 @@ def create_app(
     app.include_router(create_journal_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_analytics_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_correlation_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(
+        create_pre_score_router(
+            scorer_proxy,
+            lambda: selected_graph_store_factory(scoring_db),
+            domain=DOMAIN,
+        )
+    )
     app.include_router(create_prescore_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(
         create_promotion_router(
@@ -337,6 +346,7 @@ def create_app(
         )
     )
     app.include_router(create_regime_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(create_regime_classifier_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_social_router(scorer_proxy))
     app.include_router(create_vix_timing_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_webhook_router(scorer_proxy))

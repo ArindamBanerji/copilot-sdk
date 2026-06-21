@@ -193,6 +193,7 @@ def _score_event(
     event_id: str,
     received_at: str,
 ) -> dict[str, Any]:
+    current_regime = _current_regime_from_indicators(request.indicators)
     try:
         result = scorer_proxy.score(
             factors,
@@ -206,6 +207,7 @@ def _score_event(
                 "strategy": request.strategy,
                 "alert_action": request.action,
                 "received_at": received_at,
+                "current_regime": current_regime,
             },
         )
     except (AssertionError, ValueError) as exc:
@@ -226,6 +228,20 @@ def _score_event(
         "confidence": _clamp(payload.get("confidence")),
         "auto_score_status": "scored",
     }
+
+
+def _current_regime_from_indicators(indicators: dict[str, Any] | None) -> str | None:
+    try:
+        from app.services.regime_classifier import RegimeClassifier
+
+        values = indicators or {}
+        vix = _number(values.get("vix"))
+        adx = _number(values.get("adx"))
+        if vix is None or adx is None:
+            return None
+        return RegimeClassifier().classify(vix, adx)
+    except Exception:
+        return None
 
 
 def _normalize_category(category: str | None, strategy: str | None) -> str:

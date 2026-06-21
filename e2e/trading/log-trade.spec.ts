@@ -48,7 +48,7 @@ test("score button exists", async ({ page }) => {
   await gotoLogTrade(page);
 
   await expect(page.getByRole("button", { name: "Score This Trade" })).toBeVisible();
-  await expect(page.getByText("Factor Vector")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Factor Vector" })).toBeVisible();
 });
 
 test("score produces result", async ({ page }) => {

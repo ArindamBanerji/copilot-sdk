@@ -145,6 +145,72 @@ export function fetchRegimeDetail(): Promise<RegimeDetailResponse | null> {
   return safeApiGet<RegimeDetailResponse>("/api/trading/regime/detail");
 }
 
+export interface RegimeCurrentResponse {
+  regime?: "trending" | "ranging" | "volatile" | string;
+  confidence?: number;
+  vix?: number;
+  adx?: number;
+  nearBoundary?: boolean;
+  timestamp?: string;
+  source?: string;
+}
+
+export interface RegimeHistoryEntry {
+  date?: string;
+  regime?: "trending" | "ranging" | "volatile" | string;
+  vix?: number;
+  adx?: number;
+}
+
+export interface RegimePerformanceCell {
+  accuracy?: number;
+  nDecisions?: number;
+}
+
+export interface RegimeEdgeCategory {
+  category?: string;
+  regimeAccuracy?: number;
+  baselineAccuracy?: number;
+  edge?: number;
+  nDecisions?: number;
+}
+
+export interface RegimePerformanceResponse {
+  perRegimeAccuracy?: Record<string, Record<string, RegimePerformanceCell>>;
+  currentRegime?: string;
+  edgeCategories?: RegimeEdgeCategory[];
+  recommendation?: string;
+}
+
+export interface RegimeShift {
+  category?: string;
+  direction?: string;
+  edge?: number;
+  conservationStatus?: string;
+  reason?: string;
+}
+
+export interface RegimeRecommendationResponse {
+  currentRegime?: string;
+  shifts?: RegimeShift[];
+}
+
+export function getRegimeCurrent(): Promise<RegimeCurrentResponse> {
+  return apiGet<RegimeCurrentResponse>("/api/trading/regime/current");
+}
+
+export function getRegimeHistory(days = 90): Promise<RegimeHistoryEntry[]> {
+  return apiGet<RegimeHistoryEntry[]>(`/api/trading/regime/history?days=${days}`);
+}
+
+export function getRegimePerformance(): Promise<RegimePerformanceResponse> {
+  return apiGet<RegimePerformanceResponse>("/api/trading/regime/performance");
+}
+
+export function getRegimeRecommendation(): Promise<RegimeRecommendationResponse> {
+  return apiGet<RegimeRecommendationResponse>("/api/trading/regime/recommendation");
+}
+
 export function fetchPromotion(): Promise<PromotionResponse | null> {
   return safeApiGet<PromotionResponse>("/api/trading/promotion");
 }
@@ -170,6 +236,36 @@ export async function prescoreTrade(payload: PrescoreRequest): Promise<PrescoreR
   } catch {
     return null;
   }
+}
+
+export interface PreScoreSimilarTrade {
+  decisionId?: string;
+  similarity?: number;
+  action?: string;
+  isCorrect?: boolean | null;
+  timestamp?: string | number | null;
+}
+
+export interface PreScoreResponse {
+  recommendedAction?: string;
+  confidence?: number;
+  probabilities?: Record<string, number>;
+  category?: string;
+  factorValues?: Record<string, number>;
+  similarTrades?: PreScoreSimilarTrade[];
+  categoryAccuracy?: number;
+  currentRegime?: string | null;
+  regimeAccuracy?: number | null;
+  warning?: string | null;
+  preview?: boolean;
+  message?: string;
+}
+
+export function preScore(
+  category: string,
+  factors: Record<string, number>,
+): Promise<PreScoreResponse> {
+  return apiPost<PreScoreResponse>("/api/trading/pre-score", { category, factors });
 }
 
 export function getHistory(): Promise<TradeHistoryDecision[]> {

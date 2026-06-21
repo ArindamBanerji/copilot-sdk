@@ -4,6 +4,7 @@ import {
   getAnalytics,
   getFingerprint,
   getMarketSnapshot,
+  getRegimeCurrent,
   getSimilarTrades,
   learnTrade,
   saveTradeMetadata,
@@ -209,10 +210,27 @@ export default function LogTradeScreen() {
     setRewardLine(undefined);
     setIksDelta(undefined);
     try {
+      let currentRegime: string | null = null;
+      try {
+        const regimePayload = await getRegimeCurrent();
+        currentRegime = typeof regimePayload.regime === "string" ? regimePayload.regime : null;
+      } catch (regimeError) {
+        console.debug("Regime context unavailable for score metadata", regimeError);
+      }
+      const scoreContext = {
+        ticker: form.ticker,
+        thesis_type: form.thesisType,
+        timeframe: form.timeframe,
+        current_regime: currentRegime,
+      };
       const result = await scoreTrade({
         category: form.category,
         factors,
-        context: { ticker: form.ticker, thesis_type: form.thesisType, timeframe: form.timeframe },
+        context: scoreContext,
+        metadata: {
+          current_regime: currentRegime,
+          context: scoreContext,
+        },
       });
       setScore(result);
       await saveTradeMetadata({
@@ -222,6 +240,7 @@ export default function LogTradeScreen() {
         category: form.category,
         thesisType: form.thesisType,
         timeframe: form.timeframe,
+        currentRegime,
         researchChecklist: form.researchChecklist,
         researchDepth: factors.market_regime,
         signal_alignment: factors.signal_alignment,
@@ -302,7 +321,6 @@ export default function LogTradeScreen() {
         onTicker={setTicker}
       />
 
-      <PreScorePanel ticker={form.ticker} category={form.category} sizePct={sizing.exposurePct || 2} />
       {isOptionsContext(form) ? <OptionsFactorPanel showEmpty analyticsOnly /> : null}
 
       <section className="copilot-card p-4">
@@ -348,14 +366,11 @@ export default function LogTradeScreen() {
       />
 
       <section className="copilot-card p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
           <div>
             <h2 className="text-base font-semibold">Factor Vector</h2>
             <p className="text-sm trading-muted">signal alignment, regime, sizing, timing, risk/reward, emotion</p>
           </div>
-          <button type="button" className="copilot-button px-4 py-2 text-sm" onClick={submitScore}>
-            Score This Trade
-          </button>
         </div>
         <div className="mt-4 grid gap-2 md:grid-cols-6">
           {Object.entries(factors).map(([name, value]) => (
@@ -364,6 +379,20 @@ export default function LogTradeScreen() {
               <div className="font-semibold">{value.toFixed(2)}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <PreScorePanel ticker={form.ticker} category={form.category} sizePct={sizing.exposurePct || 2} factors={factors} />
+
+      <section className="copilot-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold">Record Trade Decision</h2>
+            <p className="text-sm trading-muted">Submit only when you are ready to record this decision.</p>
+          </div>
+          <button type="button" className="copilot-button px-4 py-2 text-sm" onClick={submitScore}>
+            Score This Trade
+          </button>
         </div>
       </section>
 

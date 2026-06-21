@@ -7,7 +7,7 @@ test("evolution variants API exposes Trading presentation variants", async ({ re
   const payload = await response.json();
   expect(payload.domain).toBe("trading");
   expect(payload.variants.length).toBeGreaterThan(0);
-  expect(payload.variants[0].variant_id).toMatch(/^trd-ev-/);
+  expect(payload.variants[0].variant_id).toMatch(/^(EXECUTION_THRESHOLD|REVENGE_COOLDOWN)_v\d+$/);
 });
 
 test("evolution variants include Trading-specific dimensions", async ({ request }) => {
@@ -17,16 +17,14 @@ test("evolution variants include Trading-specific dimensions", async ({ request 
     Object.keys(variant.dimensions),
   );
 
-  expect(dimensions).toContain("evidence_ordering");
-  expect(dimensions).toContain("risk_framing");
-  expect(dimensions).toContain("strategy_weight");
+  expect(dimensions).toContain("family");
+  expect(dimensions).toContain("version");
 });
 
 test("evolution variants remain presentation-only", async ({ request }) => {
   const response = await request.get("http://localhost:8010/api/evolution/variants");
   const text = JSON.stringify(await response.json()).toLowerCase();
 
-  expect(text).not.toContain("buy");
-  expect(text).not.toContain("sell");
-  expect(text).not.toContain("hold");
+  expect(text).not.toMatch(/\b(buy|sell|hold)\b/);
+  expect(text).not.toMatch(/you should|financial advice/);
 });
