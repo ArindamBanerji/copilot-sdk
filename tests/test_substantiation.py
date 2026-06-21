@@ -549,7 +549,7 @@ def test_purchasing_p73_gate_fails():
     )
     ok, missing = entry.gate()
     assert ok is False
-    assert "instrumented" in missing
+    assert missing == ["proven"]
 
 
 def test_all_entries_have_copilot():

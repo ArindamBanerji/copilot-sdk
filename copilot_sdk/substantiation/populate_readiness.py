@@ -13,7 +13,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             copilot="purchasing",
             populated=True,
             proven=False,
-            instrumented=False,
+            instrumented=True,
             real_path_committed=True,
             labels_honest=True,
         )
@@ -24,7 +24,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             copilot="purchasing",
             populated=True,
             proven=False,
-            instrumented=False,
+            instrumented=True,
             real_path_committed=True,
             labels_honest=True,
         )
@@ -35,7 +35,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             copilot="purchasing",
             populated=True,
             proven=False,
-            instrumented=False,
+            instrumented=True,
             real_path_committed=True,
             labels_honest=True,
         )
@@ -68,7 +68,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             copilot="trading",
             populated=True,
             proven=False,
-            instrumented=False,
+            instrumented=True,
             real_path_committed=True,
             labels_honest=True,
         )
@@ -79,7 +79,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             copilot="dataops",
             populated=True,
             proven=False,
-            instrumented=False,
+            instrumented=True,
             real_path_committed=True,
             labels_honest=True,
         )

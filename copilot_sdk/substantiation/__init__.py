@@ -1,6 +1,8 @@
 """Public API for substantiation discipline."""
 
 from .holdout import ConditionalHoldout, HoldoutAssigner, UnconditionalHoldout
+from .chef_oracle import ChefOracle, ChefPipelineTest
+from .dataops_oracle import DataOpsOracle, DataOpsPipelineTest
 from .instrument import AnalyticClaim, RealInstrument, ScrapedContextProvider
 from .oracle import (
     AccuracyResult,
@@ -17,6 +19,7 @@ from .populate_registry import populate_default_registry
 from .readiness import DayZeroReadiness
 from .registry import ClaimRegistry, PromotionEvent, TIER_LANGUAGE
 from .tiers import ClaimProvenance, Tier
+from .trader_oracle import TraderOracle, TraderPipelineTest
 
 __all__ = [
     "Tier",
@@ -41,4 +44,10 @@ __all__ = [
     "RealInstrument",
     "ScrapedContextProvider",
     "AnalyticClaim",
+    "TraderOracle",
+    "TraderPipelineTest",
+    "ChefOracle",
+    "ChefPipelineTest",
+    "DataOpsOracle",
+    "DataOpsPipelineTest",
 ]
