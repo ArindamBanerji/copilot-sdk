@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 from pathlib import Path
 from typing import Mapping, Sequence
 
 from .store import OutboxStore
 from .worker import OutboxWorker
+
+logger = logging.getLogger(__name__)
 
 
 def _default_db_path(domain: str) -> Path:
@@ -41,6 +44,10 @@ def process_command(domain: str, db_path: str | None = None) -> dict[str, int | 
     store = _store_for(domain, db_path)
     try:
         worker = OutboxWorker(store)
+        logger.warning(
+            "No handlers registered. Events will remain unprocessed. "
+            "Register handlers via worker.register() before calling process."
+        )
         processed = worker.run_until_empty()
         return {
             "domain": domain,

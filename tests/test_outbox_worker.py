@@ -180,8 +180,8 @@ def test_failed_handler_dead_letters(store: OutboxStore) -> None:
 def test_no_handler_skips(store: OutboxStore) -> None:
     _append(store)
 
-    assert OutboxWorker(store).process_batch() == 1
-    assert store.count_unprocessed() == 0
+    assert OutboxWorker(store).process_batch() == 0
+    assert store.count_unprocessed() == 1
 
 
 def test_run_until_empty(store: OutboxStore) -> None:
@@ -345,4 +345,4 @@ def test_cli_process(tmp_path: Path) -> None:
 
     result = process_command("trading", str(db_path))
 
-    assert result == {"domain": "trading", "processed": 2, "pending": 0}
+    assert result == {"domain": "trading", "processed": 0, "pending": 2}

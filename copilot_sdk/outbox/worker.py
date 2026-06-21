@@ -26,6 +26,9 @@ class OutboxWorker:
         self._store = store
         self._handlers: dict[str, list[EventHandler]] = {}
         self._max_retries = max_retries
+        # TODO: max_retries is accepted but not yet implemented.
+        # Current behavior: immediate dead-letter on first failure.
+        # Future: retry up to max_retries before dead-lettering.
         self._batch_size = batch_size
         self._running = True
 
@@ -44,8 +47,11 @@ class OutboxWorker:
                 break
             handlers = self._handlers.get(event.event_type, [])
             if not handlers:
-                self._store.mark_processed(event.event_id)
-                processed += 1
+                logger.debug(
+                    "No handler registered for %s, skipping event %d",
+                    event.event_type,
+                    event.event_id,
+                )
                 continue
             try:
                 for handler in handlers:
