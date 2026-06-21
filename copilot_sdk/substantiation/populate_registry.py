@@ -209,6 +209,28 @@ def populate_default_registry() -> ClaimRegistry:
     )
     registry.register(
         ClaimProvenance(
+            claim_id="P38-context-builder",
+            text="Source-labeled S2P context builder",
+            tier=Tier.SCRAPED,
+            evidence_ref="ProvenancedValue source labels",
+            is_magnitude_claim=False,
+            copilot="s2p",
+            feature="P38-S2P-CONTEXT-BUILDER",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P39-graph-enrichment",
+            text="Supplier enrichment hooks for S2P graph context",
+            tier=Tier.SCRAPED,
+            evidence_ref="P39A/P39B shipped, provenance-tagged",
+            is_magnitude_claim=False,
+            copilot="s2p",
+            feature="P39-S2P-GRAPH-ENRICHMENT",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
             claim_id="P40-auto-approve",
             text="Auto-approve advisory (shadow)",
             tier=Tier.SCRAPED,
@@ -216,6 +238,17 @@ def populate_default_registry() -> ClaimRegistry:
             is_magnitude_claim=False,
             copilot="s2p",
             feature="P40-S2P-AUTO-APPROVE",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P41-centroid-explorer",
+            text="Centroid explorer factor values in FactorRadar",
+            tier=Tier.SCRAPED,
+            evidence_ref="per-factor provenance from preset",
+            is_magnitude_claim=False,
+            copilot="s2p",
+            feature="P41-S2P-CENTROID-EXPLORER",
         )
     )
 
@@ -273,6 +306,39 @@ def populate_default_registry() -> ClaimRegistry:
             is_magnitude_claim=False,
             copilot="soc",
             feature="CC-21-GAMMA",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="SOC-threat-intel",
+            text="Threat intelligence enrichment factor",
+            tier=Tier.SCRAPED,
+            evidence_ref="seeded ThreatIndicator/Campaign (K3->K4 on real alerts)",
+            is_magnitude_claim=False,
+            copilot="soc",
+            feature="SOC-THREAT-INTEL",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="SOC-campaign",
+            text="Campaign intelligence context",
+            tier=Tier.SCRAPED,
+            evidence_ref="campaign context from seed (K3->K4 on real campaigns)",
+            is_magnitude_claim=False,
+            copilot="soc",
+            feature="SOC-CAMPAIGN",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="SOC-conservation",
+            text="SOC conservation state",
+            tier=Tier.REAL,
+            evidence_ref="from verified decisions via scorer.learn()",
+            is_magnitude_claim=False,
+            copilot="soc",
+            feature="SOC-CONSERVATION",
         )
     )
 

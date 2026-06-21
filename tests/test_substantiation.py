@@ -365,12 +365,12 @@ def test_readiness_all_false():
 
 def test_populate_default():
     registry = populate_default_registry()
-    assert len(registry.all_claims()) == 24
+    assert len(registry.all_claims()) == 30
 
 
 def test_populate_count():
     registry = populate_default_registry()
-    assert len(registry.all_claims()) == 24
+    assert len(registry.all_claims()) == 30
 
 
 def test_populate_no_magnitude_violations():
