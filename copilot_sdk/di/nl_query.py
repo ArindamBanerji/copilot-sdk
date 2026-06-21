@@ -2,11 +2,21 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
+
+from copilot_sdk.di.query_patterns import QueryPattern, default_patterns
 
 
 class NLQueryRouter:
     """Route natural-language questions to deterministic graph query templates."""
+
+    def __init__(self, patterns: Sequence[QueryPattern] | None = None) -> None:
+        self._patterns = sorted(
+            list(patterns) if patterns is not None else default_patterns(),
+            key=lambda pattern: pattern.priority,
+            reverse=True,
+        )
 
     def query(self, question: str, graph_store: Any) -> dict[str, Any]:
         normalized = str(question or "").strip()
@@ -21,7 +31,9 @@ class NLQueryRouter:
 
     def _classify_intent(self, question: str) -> str:
         lowered = question.lower()
-        if any(term in lowered for term in ("confidence", "trust", "reliable", "reliability")):
+        aggregation_terms = ("average", "avg", "mean", "count", "sum", "total", "max", "min", " by ")
+        confidence_as_aggregation = "confidence" in lowered and any(term in lowered for term in aggregation_terms)
+        if any(term in lowered for term in ("confidence", "trust", "reliable", "reliability")) and not confidence_as_aggregation:
             return "source_reliability"
         if any(term in lowered for term in ("fresh", "freshness", "stale", "late")):
             return "freshness"
@@ -35,11 +47,11 @@ class NLQueryRouter:
 
     def _execute(self, intent: str, question: str, graph_store: Any) -> dict[str, Any]:
         if intent == "unknown":
-            return {
-                "intent": intent,
-                "answer": "I could not map that question to a DataOps graph query template.",
-                "evidence": [],
-            }
+            decisions = _decisions(graph_store)
+            for pattern in self._patterns:
+                if pattern.matches(question):
+                    return pattern.execute(question, decisions).to_response()
+            return _unknown_response(intent)
 
         decisions = _decisions(graph_store)
         evidence = _evidence_for_intent(intent, decisions)
@@ -53,6 +65,10 @@ class NLQueryRouter:
 
 
 def _decisions(graph_store: Any) -> list[dict[str, Any]]:
+    if isinstance(graph_store, (list, tuple)):
+        return [row for row in graph_store if isinstance(row, dict)]
+    if graph_store is None:
+        return []
     for method_name in ("get_verified_decisions", "get_all_decisions"):
         method = getattr(graph_store, method_name, None)
         if not callable(method):
@@ -66,6 +82,14 @@ def _decisions(graph_store: Any) -> list[dict[str, Any]]:
         if rows:
             return [row for row in rows if isinstance(row, dict)]
     return []
+
+
+def _unknown_response(intent: str = "unknown") -> dict[str, Any]:
+    return {
+        "intent": intent,
+        "answer": "I could not map that question to a DataOps graph query template.",
+        "evidence": [],
+    }
 
 
 def _evidence_for_intent(intent: str, decisions: list[dict[str, Any]]) -> list[dict[str, Any]]:

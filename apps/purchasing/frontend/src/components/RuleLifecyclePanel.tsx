@@ -36,7 +36,7 @@ export function RuleLifecyclePanel() {
   const lifecycle = buildLifecycle(variants, events, promoted);
 
   return (
-    <section className="purchase-card">
+    <section className="purchase-card" data-testid="rule-lifecycle-panel">
       <p className="purchase-kicker">SC-15 Rule Lifecycle</p>
       <h3 className="purchase-title">Rule promotion states</h3>
       <div className="mt-4 grid gap-3">

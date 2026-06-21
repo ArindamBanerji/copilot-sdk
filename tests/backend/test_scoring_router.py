@@ -74,7 +74,7 @@ class FakeTrajectoryResult:
     days_active: float
 
 
-class FakeStore:
+class FakeStore:  # MOCK-OK: scoring router contract fixture, no production conservation path
     def __init__(self) -> None:
         self.domain = "dataops"
         self.decisions: dict[str, dict] = {}
@@ -99,7 +99,7 @@ class FakeStore:
         return list(self.decisions.values())
 
 
-class FakeScorer:
+class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests cover scorer behavior
     def __init__(self) -> None:
         self.graph_store = FakeStore()
 

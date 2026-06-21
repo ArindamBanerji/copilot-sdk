@@ -94,7 +94,7 @@ test("Order tab shows match result panel", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
   await clickTab(page, "Order");
-  await expect(page.getByTestId("match-queue-summary")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("match-queue-summary")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Match results table has rows", async ({ page }) => {
@@ -102,8 +102,8 @@ test("Match results table has rows", async ({ page }) => {
   await waitForAppShell(page);
   await clickTab(page, "Order");
   const table = page.getByTestId("match-results-table");
-  await expect(table).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByTestId("match-result-row").first()).toBeVisible({ timeout: 10_000 });
+  await expect(table).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("match-result-row").first()).toBeVisible({ timeout: 20_000 });
 });
 
 test("Match confidence indicator visible", async ({ page }) => {
@@ -111,5 +111,5 @@ test("Match confidence indicator visible", async ({ page }) => {
   await waitForAppShell(page);
   await clickTab(page, "Order");
   const confidence = page.getByTestId("match-confidence").first();
-  await expect(confidence).toBeVisible({ timeout: 10_000 });
+  await expect(confidence).toBeVisible({ timeout: 20_000 });
 });

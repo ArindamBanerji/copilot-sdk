@@ -29,7 +29,7 @@ class FakeScore:
             self.factors = {"signal_alignment": 0.7, "market_regime": 0.5}
 
 
-class FakeScorer:
+class FakeScorer:  # MOCK-OK: shadow wrapper fixture, no scorer learning path
     def __init__(self, scores: list[FakeScore] | None = None) -> None:
         self._scores = list(scores or [])
         self.learn_calls: list[tuple[tuple, dict]] = []

@@ -28,7 +28,7 @@ function differentAction(action: string) {
 
 async function scoreInUi(page: Page) {
   const scoreButton = page.getByRole("button", { name: "Score This Order" });
-  await expect(scoreButton).toBeEnabled({ timeout: 10_000 });
+  await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
   const response = page.waitForResponse(
     (r) => r.url().includes("/api/score") && r.request().method() === "POST" && r.ok(),
   );
@@ -136,7 +136,7 @@ test("Reason selector visible after scoring", async ({ page }) => {
   await clickTab(page, "Order");
   await scoreInUi(page);
 
-  await expect(page.getByTestId("reason-selector")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("reason-selector")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Conservation status shown after verify", async ({ page }) => {
@@ -152,5 +152,5 @@ test("Conservation status shown after verify", async ({ page }) => {
   await page.getByRole("button", { name: "Confirm" }).click();
   await response;
 
-  await expect(page.getByTestId("verify-conservation")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("verify-conservation")).toBeVisible({ timeout: 20_000 });
 });

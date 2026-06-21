@@ -401,7 +401,7 @@ def _sqlite_decision_count(db_path: Path) -> int:
         store.close()
 
 
-class FakeAGEStore:
+class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
     domain = "purchasing"
 
     def __init__(self) -> None:

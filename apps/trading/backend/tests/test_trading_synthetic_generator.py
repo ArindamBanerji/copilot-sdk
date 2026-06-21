@@ -49,10 +49,12 @@ def test_generated_trades_include_preseed_compatible_fields():
         "direction",
         "action_taken",
         "is_correct",
+        "provenance",
         "factors",
         "metadata",
     ):
         assert field in trade
+    assert trade["provenance"] == "sample"
 
 
 def test_main_writes_valid_generated_file():
@@ -62,3 +64,4 @@ def test_main_writes_valid_generated_file():
     assert len(trades) == 2000
     assert all("r_multiple" in trade for trade in trades)
     assert all("execution_quality" in trade for trade in trades)
+    assert all(trade.get("provenance") == "sample" for trade in trades)

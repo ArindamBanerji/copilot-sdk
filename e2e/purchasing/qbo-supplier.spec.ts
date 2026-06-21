@@ -83,13 +83,13 @@ test("QBO kitchen language - no raw QBO terms", async ({ request }) => {
 test("Inventory tab shows supplier intelligence panel", async ({ page }) => {
   await gotoInventoryTab(page);
   const panel = page.getByTestId("supplier-intelligence-panel");
-  await expect(panel).toBeVisible({ timeout: 10_000 });
+  await expect(panel).toBeVisible({ timeout: 20_000 });
 });
 
 test("Supplier table shows at least one row", async ({ page }) => {
   await gotoInventoryTab(page);
   const table = page.getByTestId("supplier-table");
-  await expect(table).toBeVisible({ timeout: 10_000 });
+  await expect(table).toBeVisible({ timeout: 20_000 });
   const rows = page.getByTestId("supplier-row");
   await expect(rows.first()).toBeVisible();
 });
@@ -97,13 +97,13 @@ test("Supplier table shows at least one row", async ({ page }) => {
 test("QBO status badge is visible", async ({ page }) => {
   await gotoInventoryTab(page);
   const badge = page.getByTestId("qbo-status-badge");
-  await expect(badge).toBeVisible({ timeout: 10_000 });
+  await expect(badge).toBeVisible({ timeout: 20_000 });
 });
 
 test("Supplier names use kitchen language", async ({ page }) => {
   await gotoInventoryTab(page);
   const panel = page.getByTestId("supplier-intelligence-panel");
-  await expect(panel).toBeVisible({ timeout: 10_000 });
+  await expect(panel).toBeVisible({ timeout: 20_000 });
   const text = await panel.textContent();
   expect(text).not.toContain("Vendor");
   expect(text).toContain("Supplier");

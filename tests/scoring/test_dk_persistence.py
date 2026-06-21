@@ -151,7 +151,7 @@ def test_welford_tracker_copy_safety() -> None:
     assert fresh_state["confirmed_mean"][0] != 999.0  # type: ignore[index]
 
 
-class FakeScorer:
+class FakeScorer:  # MOCK-OK: DK persistence helper exposes runtime accessors only
     def __init__(self, weights: list[list[float]] | None) -> None:
         self._weights = weights
         self.calls = 0

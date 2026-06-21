@@ -159,7 +159,7 @@ def test_load_fingerprints_skips_malformed_json(tmp_path: Path) -> None:
     assert warnings[0]["file"] == "bad.json"
 
 
-class FakeScorer:
+class FakeScorer:  # MOCK-OK: transfer planner reads centroids only
     _domain = "trading"
 
 

@@ -446,7 +446,7 @@ def _age_adapter_class():
     return import_module("ci_platform.graph.age_sdk_adapter").AGEGraphStoreAdapter
 
 
-class FakeAGEStore:
+class FakeAGEStore:  # MOCK-OK: AGE entity-link protocol without external AGE
     def close(self):
         return None
 

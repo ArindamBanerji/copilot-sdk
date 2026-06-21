@@ -133,6 +133,7 @@ def generate_trades(n: int = 2000, seed: int = 42) -> list[dict[str, Any]]:
                 "action": action,
                 "action_taken": action,
                 "is_correct": outcome_correct,
+                "provenance": "sample",
                 "factors": factor_values,
                 "metadata": {
                     "generator": "trading_synthetic",

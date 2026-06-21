@@ -708,3 +708,121 @@ Implement P42 with:
 - Optional direct decision-list support inside `nl_query.py`.
 - Tests in `tests/test_nl_query_extended.py`.
 - No graph/scorer/package changes.
+
+## Implementation Addendum - 2026-06-14
+
+Files created:
+
+- `copilot_sdk/di/query_patterns.py`
+- `tests/test_nl_query_extended.py`
+
+Files modified:
+
+- `copilot_sdk/di/nl_query.py`
+- `copilot_sdk/di/__init__.py`
+- `docs/implementation_plans/p42_di_nl_query_plan.md`
+
+Actual pattern behavior:
+
+- `ComparisonPattern` handles deterministic period comparisons, including this month vs last month, and simple term comparisons.
+- `AggregationPattern` handles count/sum/average/min/max over available numeric metrics and category/source/supplier/action/entity grouping.
+- `AccuracyPattern` computes accuracy/error rate only from rows with explicit or inferable correctness and reports unknown correctness counts.
+- `TimeWindowPattern` supports simple current-date windows such as last N days/weeks/months, yesterday, this week, this month, and this quarter.
+- `MultiEntityPattern` lists grouped supplier/source/system/category/action/entity values and supports simple numeric thresholds over group counts.
+
+Router integration strategy:
+
+- Existing `query(question, graph_store)` remains intact.
+- Existing empty-query and unknown fallback response shapes remain intact.
+- Existing intents still route first, except explicit aggregation phrases like `average confidence by category`, where `confidence` is treated as the metric being aggregated rather than source-reliability intent.
+- Extended patterns dispatch only after legacy classification returns `unknown`.
+- Decisions are loaded through existing `get_verified_decisions("dataops")` / `get_all_decisions("dataops")` behavior, with additive support for passing a direct list/tuple of decision dictionaries.
+
+Exports:
+
+- `copilot_sdk.di.__init__` preserves the existing exports:
+  `NLQueryRouter`, `ProfileConfig`, `SourceProfile`, `BaseSourceProfiler`.
+- It now also exports `QueryResult`, `QueryPattern`, `MultiEntityPattern`, `TimeWindowPattern`, `AggregationPattern`, `ComparisonPattern`, and `AccuracyPattern`.
+
+Tests added:
+
+- `tests/test_nl_query_extended.py` covers all five new patterns, old-intent preservation, unknown/empty fallback preservation, case-insensitivity, direct decision-list execution, package exports, and no external API/LLM dependency checks.
+
+Validation results:
+
+- `python -m pytest tests/test_nl_query_extended.py -q --timeout=120`: 31 passed, 62 warnings.
+- `python -m pytest tests/ -k "nl_query or di" -q --timeout=120`: 210 passed, 6 skipped, 1188 deselected, 2812 warnings.
+- `python -m pytest tests/test_di_profiler.py -q --timeout=120`: 16 passed, 32 warnings.
+- `python -m pytest tests/ -q --timeout=120`: 1342 passed, 62 skipped, 2812 warnings.
+
+Known limitations:
+
+- Pattern parsing is intentionally deterministic and simple; it does not parse arbitrary SQL-like expressions.
+- Time windows use current UTC time and simple month approximations for `last N months`.
+- Threshold filters currently apply to grouped counts rather than arbitrary metric predicates.
+
+Scope controls:
+
+- No GraphStore protocol changes.
+- No scorer changes.
+- No package/dependency changes.
+- No raw DB access.
+- No external API calls.
+- No LLM parsing.
+
+## Fixer Addendum - 2026-06-14
+
+P2 since-window fix:
+
+- `TimeWindowPattern` now parses simple `since YYYY-MM-DD` and `since YYYY/MM/DD`
+  windows deterministically.
+- Invalid or unsupported `since` windows return `supported=false` metadata with
+  `reason="invalid_since_date"` or `reason="unsupported_since_window"`.
+- Matched but unrecognized time-window queries no longer silently fall back to
+  `last 30 days`; they return an honest unsupported time-window response.
+
+P3 cleanup - timestamp metadata:
+
+- Time-window responses now include structured `missing_timestamp_count`.
+- Month-comparison responses now include structured `missing_timestamp_count`
+  without double-counting the same timestamp-less row across both periods.
+
+P3 cleanup - accuracy grouping:
+
+- Accuracy queries now support `by category`, `by source`, `by supplier`, and
+  `by entity`, with missing grouping fields grouped under `unknown`.
+
+P3 cleanup - percent threshold semantics:
+
+- Percentage thresholds are accepted only when the query names a rate-like
+  metric such as `exception_rate`, `accuracy`, `error_rate`, or `confidence`.
+- Percent thresholds without a rate-like metric return `supported=false` rather
+  than applying percentages to raw counts.
+- Plain numeric count thresholds such as `list suppliers > 1` continue to work.
+
+Tests added:
+
+- Since-window parsing and invalid/unsupported since behavior.
+- Unrecognized time-window no-default regression.
+- Structured missing timestamp metadata for time-window and comparison patterns.
+- Accuracy grouping by source, supplier, and missing-field `unknown`.
+- Percent threshold semantics for rate metrics, ambiguous count percentages, and
+  missing rate metrics.
+
+Validation results:
+
+- `python -m pytest tests/test_nl_query_extended.py -q --timeout=120`: 43 passed, 86 warnings.
+- `python -m pytest tests/ -k "nl_query or di" -q --timeout=120`: 223 passed, 6 skipped, 1203 deselected, 2868 warnings.
+- `python -m pytest tests/test_di_profiler.py -q --timeout=120`: 16 passed, 32 warnings.
+- `python -m pytest tests/ -q --timeout=120`: 1370 passed, 62 skipped, 2868 warnings.
+
+Scope controls:
+
+- NLQueryRouter public API unchanged.
+- Existing intent routing unchanged.
+- No GraphStore protocol changes.
+- No scorer changes.
+- No package/dependency changes.
+- No raw DB access.
+- No external API calls.
+- No LLM parsing.

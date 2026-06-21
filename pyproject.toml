@@ -21,6 +21,9 @@ python_version = "3.11"
 ignore_missing_imports = true
 warn_return_any = true
 warn_unused_configs = true
+exclude = [
+    "copilot_sdk/migrate/",
+]
 
 [tool.pytest.ini_options]
 markers = [

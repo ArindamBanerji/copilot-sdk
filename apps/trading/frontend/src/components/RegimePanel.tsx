@@ -33,12 +33,21 @@ function shiftText(value: number | null | undefined): string {
 function actionClass(action: string | undefined): string {
   if (action === "avoid") return "border-red-300/50 bg-red-500/10 text-red-100";
   if (action === "reduce") return "border-amber-300/50 bg-amber-500/10 text-amber-100";
+  if (action === "increase_small") return "border-emerald-300/50 bg-emerald-500/10 text-emerald-100";
   if (action === "increase") return "border-emerald-300/50 bg-emerald-500/10 text-emerald-100";
   return "border-white/20 bg-white/5 text-slate-100";
 }
 
 function recommendationDelta(recommendation?: RegimeRecommendation): number | null | undefined {
   return recommendation?.vsBaseline ?? recommendation?.delta;
+}
+
+function pp(value: number | null | undefined): string {
+  return typeof value === "number" && Number.isFinite(value) ? `${value >= 0 ? "+" : ""}${value.toFixed(1)}pp` : "-";
+}
+
+function multiplier(value: number | null | undefined): string {
+  return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(2)}x` : "-";
 }
 
 function RecommendationCard({ recommendation }: { recommendation: RegimeDetailRecommendation }) {
@@ -115,6 +124,12 @@ export default function RegimePanel() {
   const delta = recommendationDelta(recommendation);
   const detailRecommendations = detail?.recommendations || [];
   const transitions = detail?.regimeTransitions || [];
+  const edgeSummary = detail?.regimeEdgeSummary;
+  const sizing = detail?.sizingRecommendation;
+  const transitionAlert = detail?.transitionAlert;
+  const factorWeights = detail?.regimeFactorWeights;
+  const factorInfluence = detail?.regimeFactorInfluence;
+  const dataQuality = detail?.dataQuality;
 
   return (
     <section className="copilot-card p-4">
@@ -191,6 +206,82 @@ export default function RegimePanel() {
         {!detailLoading && detail ? (
           <div className="mt-3 grid gap-3">
             {detail.summary ? <p className="text-sm trading-muted">{detail.summary}</p> : null}
+            <div className="grid gap-3 lg:grid-cols-2">
+              <article className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
+                <div className="text-xs uppercase tracking-wide trading-muted">Observed edge comparison</div>
+                <h3 className="mt-1 text-sm font-semibold">
+                  {edgeSummary?.category?.replace(/_/g, " ") || "Regime edge"}
+                </h3>
+                <p className="mt-2 text-sm trading-muted">
+                  {edgeSummary?.message || "Score more trades to build sample-backed regime edge comparisons."}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs trading-muted">
+                  <span className="rounded-full border px-2 py-0.5" style={{ borderColor: "var(--copilot-border)" }}>
+                    {edgeSummary?.status || "unavailable"}
+                  </span>
+                  <span>source {edgeSummary?.source || dataQuality?.source || "unknown"}</span>
+                  <span>current n={edgeSummary?.sampleSizeCurrent ?? 0}</span>
+                  <span>comparison n={edgeSummary?.sampleSizeComparison ?? 0}</span>
+                  <span>{pp(edgeSummary?.edgeDeltaPp)}</span>
+                </div>
+                <p className="mt-2 text-xs trading-muted">Historical observed context only; not a guarantee of future profit.</p>
+              </article>
+
+              <article className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
+                <div className="text-xs uppercase tracking-wide trading-muted">Sizing advisory</div>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${actionClass(sizing?.action)}`}>
+                    {actionLabel(sizing?.action || "normal")}
+                  </span>
+                  <span className="text-sm font-semibold">suggested {multiplier(sizing?.suggestedSizeMultiplier)}</span>
+                  <span className="text-sm trading-muted">max {multiplier(sizing?.maxSizeMultiplier)}</span>
+                </div>
+                <p className="mt-2 text-sm trading-muted">{sizing?.reason || "Insufficient data; use conservative sizing."}</p>
+                <div className="mt-2 text-xs trading-muted">
+                  sample n={sizing?.sampleSize ?? 0} · {sizing?.confidenceStatus || "insufficient_data"} · advisory only
+                </div>
+              </article>
+            </div>
+
+            {transitionAlert?.active ? (
+              <div className="rounded-md border border-amber-300/40 bg-amber-500/10 p-3 text-sm">
+                <div className="font-semibold">{transitionAlert.message || "Regime changed; observed edge shifted."}</div>
+                <div className="mt-1 trading-muted">
+                  {transitionAlert.previousRegime} -&gt; {transitionAlert.currentRegime} · {pp(transitionAlert.edgeDeltaPp)} · {transitionAlert.oldRecommendation || "-"} to{" "}
+                  {transitionAlert.newRecommendation || "-"}
+                </div>
+              </div>
+            ) : null}
+
+            <article className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-base font-semibold">Regime factor / DK context</h3>
+                  <p className="mt-1 text-sm trading-muted">
+                    {factorWeights?.status === "available"
+                      ? "Per-regime factor weights are available."
+                      : "Per-regime DK weights are unavailable; they are not fabricated."}
+                  </p>
+                </div>
+                <span className="rounded-full border px-2 py-0.5 text-xs trading-muted" style={{ borderColor: "var(--copilot-border)" }}>
+                  {factorWeights?.status || "unavailable"}
+                </span>
+              </div>
+              {factorInfluence?.factors?.length ? (
+                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  {factorInfluence.factors.slice(0, 4).map((factor) => (
+                    <div key={factor.factor} className="rounded-md bg-white/5 px-3 py-2 text-sm">
+                      <span className="font-semibold">{factor.factor?.replace(/_/g, " ")}</span>
+                      <span className={Number(factor.influencePp || 0) >= 0 ? "ml-2 trading-positive" : "ml-2 trading-negative"}>{pp(factor.influencePp)}</span>
+                      <span className="ml-2 text-xs trading-muted">n={factor.sampleSize ?? 0}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm trading-muted">{factorWeights?.reason || factorInfluence?.warning || "Regime factor influence is still learning."}</p>
+              )}
+            </article>
+
             {detailRecommendations.length ? (
               <div className="grid gap-3 lg:grid-cols-2">
                 {detailRecommendations.slice(0, 4).map((item) => (

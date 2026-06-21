@@ -11,7 +11,7 @@ from copilot_sdk.discovery.patterns import (
 )
 
 
-class FakeScorer:
+class FakeScorer:  # MOCK-OK: discovery patterns read phase/alpha/centroids only
     def __init__(self, centroids=None, phase="A", alpha=0.0):
         self.gae_scorer = SimpleNamespace(centroids=centroids)
         self._phase = phase

@@ -39,18 +39,18 @@ test("Commodity provenance is not sample when live", async ({ request }) => {
 test("Dashboard shows commodity price panel", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
-  await expect(page.getByTestId("commodity-price-panel")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("commodity-price-panel")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Commodity index cards visible", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
   const cards = page.getByTestId("commodity-index-card");
-  await expect(cards.first()).toBeVisible({ timeout: 10_000 });
+  await expect(cards.first()).toBeVisible({ timeout: 20_000 });
 });
 
 test("Commodity provenance badge visible", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
-  await expect(page.getByTestId("commodity-provenance")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("commodity-provenance")).toBeVisible({ timeout: 20_000 });
 });

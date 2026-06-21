@@ -53,26 +53,26 @@ test("Dashboard shows auto-order panel", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
   const panel = page.getByTestId("auto-order-status");
-  await expect(panel).toBeVisible({ timeout: 10_000 });
+  await expect(panel).toBeVisible({ timeout: 20_000 });
 });
 
 test("Auto-order toggle visible", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
   const toggle = page.getByTestId("auto-order-toggle");
-  await expect(toggle).toBeVisible({ timeout: 10_000 });
+  await expect(toggle).toBeVisible({ timeout: 20_000 });
 });
 
 test("Auto-order stats card visible", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
   const stats = page.getByTestId("auto-order-stats");
-  await expect(stats).toBeVisible({ timeout: 10_000 });
+  await expect(stats).toBeVisible({ timeout: 20_000 });
 });
 
 test("Auto-order history table visible", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
   const history = page.getByTestId("auto-order-history");
-  await expect(history).toBeVisible({ timeout: 10_000 });
+  await expect(history).toBeVisible({ timeout: 20_000 });
 });

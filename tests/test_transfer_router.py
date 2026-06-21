@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from copilot_sdk.backend.transfer_router import create_transfer_router
 
 
-class FakeScorer:
+class FakeScorer:  # MOCK-OK: transfer router reads centroids only
     def __init__(self, warm_start_info=None, store=None):
         if warm_start_info is not None:
             self._warm_start_info = warm_start_info
@@ -12,7 +12,7 @@ class FakeScorer:
         self._domain = "test"
 
 
-class FakeStore:
+class FakeStore:  # MOCK-OK: transfer router history fixture
     def __init__(self, checkpoints):
         self._checkpoints = checkpoints
 

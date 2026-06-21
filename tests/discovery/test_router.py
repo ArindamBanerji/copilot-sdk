@@ -8,7 +8,7 @@ from copilot_sdk.backend.discovery_router import create_discovery_router
 from copilot_sdk.discovery import ConservationAlignmentPattern, DiscoveryEngine
 
 
-class FakeScorer:
+class FakeScorer:  # MOCK-OK: discovery router reads phase/alpha/centroids only
     def __init__(self, phase="A"):
         self.gae_scorer = SimpleNamespace(centroids=np.ones((1, 1, 2)))
         self._phase = phase

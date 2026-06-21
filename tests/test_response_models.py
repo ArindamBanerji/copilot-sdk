@@ -93,7 +93,7 @@ class FakeTrajectoryResult:
     days_active: float
 
 
-class FakeStore:
+class FakeStore:  # MOCK-OK: response model fixture store, no conservation behavior
     domain = "dataops"
 
     def __init__(self) -> None:
@@ -119,7 +119,7 @@ class FakeStore:
         return list(self.decisions.values())
 
 
-class FakeScorer:
+class FakeScorer:  # MOCK-OK: response model fixture, real scorer covered elsewhere
     def __init__(self) -> None:
         self.graph_store = FakeStore()
 

@@ -83,6 +83,7 @@ REQUIRED_SEED_FIELDS = {
     "date",
     "action_taken",
     "vix_at_entry",
+    "provenance",
 }
 
 
