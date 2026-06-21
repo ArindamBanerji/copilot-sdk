@@ -51,7 +51,15 @@ def create_par_router(
             else ParLevelOptimizer(target_service_level=service_level)
         )
         items = _items_from_orders(orders, category=category)
-        return [asdict(rec) for rec in active_optimizer.recommend_all(items, orders)]
+        recommendations: list[dict[str, Any]] = []
+        for rec in active_optimizer.recommend_all(items, orders):
+            row = asdict(rec)
+            metadata = dict(row.get("decision_metadata") or {})
+            metadata["par_shown"] = True
+            row["decision_metadata"] = metadata
+            row["par_shown"] = True
+            recommendations.append(row)
+        return recommendations
 
     @router.get("/recommendations")
     def get_recommendations(

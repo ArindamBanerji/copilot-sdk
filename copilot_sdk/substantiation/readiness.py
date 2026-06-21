@@ -14,6 +14,7 @@ class DayZeroReadiness:
     instrumented: bool
     real_path_committed: bool
     labels_honest: bool
+    renders_day_zero_state: bool = False
 
     def gate(self) -> tuple[bool, list[str]]:
         """Returns (pass, missing_layers)."""
@@ -25,6 +26,7 @@ class DayZeroReadiness:
                 "instrumented",
                 "real_path_committed",
                 "labels_honest",
+                "renders_day_zero_state",
             )
             if not getattr(self, key)
         ]

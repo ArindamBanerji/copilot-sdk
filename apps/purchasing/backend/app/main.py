@@ -30,6 +30,7 @@ from .graph_status import (  # noqa: E402
 from .evolution import get_purchasing_variants  # noqa: E402
 from .connectors.commodity_source import FREDCommoditySource  # noqa: E402
 from .routers.auto_order_router import create_auto_order_router  # noqa: E402
+from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.commodity_router import create_commodity_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from .routers.iks import create_iks_router  # noqa: E402
@@ -453,6 +454,11 @@ def create_app(
     commodity_provider = CommodityDataProvider(source=commodity_source)
     app.include_router(create_commodity_router(provider=commodity_provider))
     app.include_router(create_par_router())
+    app.include_router(
+        create_cohort_status_router(
+            graph_store_factory=lambda: selected_graph_store_factory(scoring_db)
+        )
+    )
     app.include_router(
         create_queue_router(
             lambda: selected_graph_store_factory(scoring_db),
