@@ -36,7 +36,7 @@ test("score confirm then Performance shows IKS", async ({ page }) => {
   await clickTab(page, "Order");
   await expect(page.getByRole("heading", { name: "Score the next purchase" })).toBeVisible();
 
-  const itemSelect = page.locator(".order-form-grid select").first();
+  const itemSelect = page.getByTestId("order-item-select");
   if (await itemSelect.isVisible().catch(() => false)) {
     const optionCount = await itemSelect.locator("option").count();
     if (optionCount > 1) {
@@ -113,7 +113,7 @@ test("order from dropdown versus dashboard item click", async ({ page }) => {
   await clickTab(page, "Order");
   await expect(page.getByRole("heading", { name: "Score the next purchase" })).toBeVisible();
 
-  const itemSelect = page.locator(".order-form-grid select").first();
+  const itemSelect = page.getByTestId("order-item-select");
   await expect(itemSelect).toBeVisible();
   const optionCount = await itemSelect.locator("option").count();
   if (optionCount > 1) {
@@ -155,7 +155,7 @@ test("Dashboard to Order score to confirm to Performance IKS", async ({ page }) 
   await clickTab(page, "Order");
   await expectAnyText(page, [/Score the next purchase/i, /stockout/i, /order/i]);
 
-  const itemSelect = page.locator(".order-form-grid select").first();
+  const itemSelect = page.getByTestId("order-item-select");
   if (await itemSelect.isVisible().catch(() => false)) {
     const optionCount = await itemSelect.locator("option").count();
     if (optionCount > 1) {

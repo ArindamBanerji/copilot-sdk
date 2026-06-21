@@ -41,6 +41,7 @@ from .routers.queue import create_queue_router  # noqa: E402
 from .routers.scorecard_router import build_iks_summary, create_scorecard_router  # noqa: E402
 from .routers.spend_router import create_spend_router  # noqa: E402
 from .routers.trust import create_trust_router  # noqa: E402
+from .routers.trust_router import create_trust_router as create_trust_weights_router  # noqa: E402
 from .routers.verify_router import create_verify_router  # noqa: E402
 from .services.auto_order import AutoOrderGate  # noqa: E402
 from .services.commodity_data_provider import CommodityDataProvider  # noqa: E402
@@ -461,6 +462,7 @@ def create_app(
     )
     app.include_router(create_verify_router(scorer_proxy))
     app.include_router(create_trust_router(scorer_proxy))
+    app.include_router(create_trust_weights_router(lambda: scorer_proxy._scorer()))
     app.include_router(purchasing_graph_status_router)
     app.include_router(
         create_report_router(

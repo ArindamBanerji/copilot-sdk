@@ -5,7 +5,7 @@ import { gotoInventory } from "./helpers";
 test("SC genealogy shows live data or empty state", async ({ page }) => {
   await gotoInventory(page);
 
-  const genealogy = page.locator("section", { hasText: /Rule Genealogy/i }).first();
+  const genealogy = page.getByTestId("rule-genealogy-panel");
   await expect(genealogy).toBeVisible();
   await expect(genealogy.getByText(/SC-13/i)).toBeVisible();
   await expectAnyText(page, [/No evolution data yet/i, /V-PUR-/i, /Evolution variant/i, /Rule genealogy event/i, /step \d+/i]);
@@ -14,7 +14,7 @@ test("SC genealogy shows live data or empty state", async ({ page }) => {
 test("SC lifecycle shows live data or empty state", async ({ page }) => {
   await gotoInventory(page);
 
-  const lifecycle = page.locator("section", { hasText: /Rule Lifecycle/i }).first();
+  const lifecycle = page.getByTestId("rule-lifecycle-panel");
   await expect(lifecycle).toBeVisible();
   await expect(lifecycle.getByText(/SC-15/i)).toBeVisible();
   await expectAnyText(page, [/No evolution data yet/i, /V-PUR-/i, /promoted/i, /rejected/i, /shadow/i, /proposed/i]);

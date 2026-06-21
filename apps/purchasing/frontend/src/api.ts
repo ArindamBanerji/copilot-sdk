@@ -16,6 +16,9 @@ import type {
   ParRecommendation,
   ParStatus,
   SupplierScorecard,
+  TrustExpectedWeightsResponse,
+  TrustInsight,
+  TrustWeightsResponse,
   OrderFormState,
   OrderMetadataPayload,
   OrderMetadata,
@@ -306,6 +309,18 @@ export function getSupplierScorecard(supplierId: string): Promise<SupplierScorec
   return apiGet<SupplierScorecard>(
     `/api/purchasing/supplier/${encodeURIComponent(supplierId)}/scorecard`,
   );
+}
+
+export function getTrustWeights(): Promise<TrustWeightsResponse> {
+  return apiGet<TrustWeightsResponse>("/api/purchasing/trust-weights");
+}
+
+export function getExpectedTrustWeights(): Promise<TrustExpectedWeightsResponse> {
+  return apiGet<TrustExpectedWeightsResponse>("/api/purchasing/trust-weights/expected");
+}
+
+export function getTrustInsights(): Promise<TrustInsight[]> {
+  return apiGet<TrustInsight[]>("/api/purchasing/trust-weights/insights");
 }
 
 export function getAutoOrderStatus(): Promise<AutoOrderStatus> {

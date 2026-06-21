@@ -7,10 +7,6 @@ from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException
 
-from app.data_helpers import (
-    get_orders_by_supplier,
-    get_supplier_by_id,
-)
 from copilot_sdk import IKSService
 from copilot_sdk.scoring.presets import PurchasingPreset
 
@@ -40,11 +36,7 @@ def create_iks_router(graph_store_factory: GraphStoreFactory | None = None) -> A
         graph_rows = _supplier_rows_from_graph(store, supplier_id)
         if graph_rows:
             return _scorecard_from_graph(supplier_id, graph_rows)
-
-        supplier = get_supplier_by_id(supplier_id)
-        if supplier is None:
-            raise HTTPException(status_code=404, detail="supplier not found")
-        return _scorecard_from_fixtures(supplier_id, supplier)
+        raise HTTPException(status_code=404, detail="supplier scorecard not found")
 
     return router
 
@@ -85,29 +77,6 @@ def _scorecard_from_graph(supplier_id: str, rows: list[dict[str, Any]]) -> dict[
         "price_memory": _last_prices_by_category(rows),
         "seasonal_patterns": _seasonal_patterns(rows),
         "source": "graphstore",
-    }
-
-
-def _scorecard_from_fixtures(supplier_id: str, supplier: dict[str, Any]) -> dict[str, Any]:
-    orders = [
-        order
-        for order in get_orders_by_supplier(supplier_id)
-        if isinstance(order, dict) and order.get("verified") is True
-    ]
-    price_memory = [
-        {
-            "category": str(order.get("category") or supplier.get("primary_category") or ""),
-            "price": _finite_float(order.get("total_value"), default=0.0),
-        }
-        for order in orders[-5:]
-    ]
-    return {
-        "supplier_id": supplier_id,
-        "otif_rate": _bounded(supplier.get("otif_score")),
-        "exception_rate": _bounded(supplier.get("exception_rate")),
-        "price_memory": price_memory,
-        "seasonal_patterns": [],
-        "source": "fixture_context",
     }
 
 

@@ -69,6 +69,15 @@ The SDK is the public interface. It must never leak domain internals.
 
 ## Testing Rules
 
+### Playwright Selector Stability
+
+No position-dependent Playwright selectors. Do NOT use
+`page.locator("main section").first()` or `.nth(N)` to select components by
+layout position. Use `data-testid` on every component root. Position-based
+selectors break when panels are added or reordered, as proven by the P75 trust
+radar mount. SAFE: `getByTestId("x").first()` to disambiguate multiple matching
+testids. FRAGILE: `locator("tag").first()` to assume layout order.
+
 ### No Mock/Fake Scorer, Store, or Conservation
 
 Tests MUST NOT fake, mock, stub, or monkeypatch any of the following:

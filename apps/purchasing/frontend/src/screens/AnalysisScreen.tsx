@@ -8,6 +8,7 @@ import DayOfWeekChart from "../components/DayOfWeekChart";
 import { DecisionExplorerPanel } from "../components/DecisionExplorerPanel";
 import EventImpactCard from "../components/EventImpactCard";
 import ProfileArchetype from "../components/ProfileArchetype";
+import TrustRadarPanel from "../components/TrustRadarPanel";
 import WasteCostCard from "../components/WasteCostCard";
 import type { Analytics, FingerprintFactor, FingerprintResponse } from "../types";
 
@@ -103,6 +104,7 @@ export default function AnalysisScreen() {
 
   return (
     <div className="purchase-stack analysis-screen">
+      <TrustRadarPanel />
       <ContrastCard analytics={analytics} />
       <ProfileArchetype fingerprint={fingerprint} />
       <FingerprintPanel

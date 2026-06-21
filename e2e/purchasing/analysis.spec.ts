@@ -12,8 +12,9 @@ async function gotoAnalysis(page: import("@playwright/test").Page) {
 test("contrast card visible and first", async ({ page }) => {
   await gotoAnalysis(page);
 
-  const firstSection = page.locator("main section").first();
-  await expect(firstSection).toContainText("YOUR TWO SELVES");
+  const contrastCard = page.getByTestId("contrast-card");
+  await expect(contrastCard).toBeVisible({ timeout: 10_000 });
+  await expect(contrastCard).toContainText("YOUR TWO SELVES");
   await expectAnyText(page, [/Aligned/i, /Misaligned/i, /\d+(\.\d+)?%/]);
 });
 

@@ -38,7 +38,7 @@ export default function ContrastCard({ analytics }: ContrastCardProps) {
   const chartData = Array.isArray(exactCurves) && exactCurves.length > 0 ? exactCurves : derivedCurve(aligned, misaligned);
 
   return (
-    <section className="purchase-card contrast-card">
+    <section className="purchase-card contrast-card" data-testid="contrast-card">
       <div className="purchase-card-header">
         <div>
           <p className="purchase-kicker">Contrast card</p>

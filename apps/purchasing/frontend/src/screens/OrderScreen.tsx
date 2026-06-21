@@ -487,7 +487,7 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
         <div className="order-form-grid">
           <label>
             <span>Item</span>
-            <select value={itemName} onChange={(event) => setItemName(event.target.value)}>
+            <select data-testid="order-item-select" value={itemName} onChange={(event) => setItemName(event.target.value)}>
               {items.map((item) => (
                 <option key={item.itemId ?? item.name} value={item.name}>
                   {item.displayName ?? item.name}

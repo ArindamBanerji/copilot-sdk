@@ -21,7 +21,7 @@ test("item dropdown exists", async ({ page }) => {
   await gotoOrder(page);
 
   await expect(page.getByText("Item", { exact: true })).toBeVisible();
-  await expect(page.locator(".order-form-grid select").first()).toBeVisible();
+  await expect(page.getByTestId("order-item-select")).toBeVisible();
 });
 
 test("cost analysis shows stockout vs waste", async ({ page }) => {

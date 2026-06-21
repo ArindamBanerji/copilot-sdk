@@ -634,6 +634,31 @@ export interface SupplierScorecard {
   [key: string]: unknown;
 }
 
+export interface TrustWeightsResponse {
+  weights: Record<string, Record<string, number>> | null;
+  phase: "learning" | "active" | string;
+  decisionsTotal: number;
+  decisionsNeeded: number;
+  provenance: string;
+  [key: string]: unknown;
+}
+
+export interface TrustExpectedWeightsResponse {
+  weights: Record<string, Record<string, number>>;
+  source: string;
+  factorLabels?: Record<string, string>;
+  [key: string]: unknown;
+}
+
+export interface TrustInsight {
+  category: string;
+  insight: string;
+  trapFactor: string;
+  trustedFactor: string;
+  gap: number;
+  [key: string]: unknown;
+}
+
 export interface AutoOrderStatus {
   enabled: boolean;
   threshold: number;
