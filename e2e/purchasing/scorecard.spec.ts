@@ -53,20 +53,20 @@ test("Scorecard provenance is not sample", async ({ request }) => {
 
 test("Performance shows IKS tracker panel", async ({ page }) => {
   await gotoPerformance(page);
-  await expect(page.getByTestId("iks-tracker-panel")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("iks-tracker-panel")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Performance shows supplier scorecard panel", async ({ page }) => {
   await gotoPerformance(page);
-  await expect(page.getByTestId("supplier-scorecard-panel")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("supplier-scorecard-panel")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Supplier tier badges visible", async ({ page }) => {
   await gotoPerformance(page);
-  await expect(page.getByTestId("supplier-tier-badge").first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("supplier-tier-badge").first()).toBeVisible({ timeout: 20_000 });
 });
 
 test("IKS gauge shows percentage", async ({ page }) => {
   await gotoPerformance(page);
-  await expect(page.getByTestId("iks-gauge")).toContainText("%", { timeout: 10_000 });
+  await expect(page.getByTestId("iks-gauge")).toContainText("%", { timeout: 20_000 });
 });

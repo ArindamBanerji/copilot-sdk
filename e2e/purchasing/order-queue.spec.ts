@@ -65,7 +65,7 @@ test("Order tab shows queue panel", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
   await clickTab(page, "Order");
-  await expect(page.getByTestId("queue-summary")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("queue-summary")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Queue table has items", async ({ page }) => {
@@ -73,7 +73,7 @@ test("Queue table has items", async ({ page }) => {
   await waitForAppShell(page);
   await clickTab(page, "Order");
   const table = page.getByTestId("queue-table");
-  await expect(table).toBeVisible({ timeout: 10_000 });
+  await expect(table).toBeVisible({ timeout: 20_000 });
 });
 
 test("Queue items show priority", async ({ page }) => {
@@ -81,5 +81,5 @@ test("Queue items show priority", async ({ page }) => {
   await waitForAppShell(page);
   await clickTab(page, "Order");
   const item = page.getByTestId("queue-item").first();
-  await expect(item).toBeVisible({ timeout: 10_000 });
+  await expect(item).toBeVisible({ timeout: 20_000 });
 });

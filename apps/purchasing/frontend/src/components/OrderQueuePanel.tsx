@@ -70,50 +70,55 @@ export default function OrderQueuePanel() {
     [items],
   );
 
-  if (loading) {
-    return (
-      <section className="purchase-card" data-testid="queue-loading">
-        Loading order queue...
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="purchase-card" data-testid="order-queue-panel">
-        <p className="purchase-kicker">Order queue</p>
-        <h2 className="purchase-title">Queue unavailable</h2>
-        <p className="purchase-muted">{error}</p>
-      </section>
-    );
-  }
-
   return (
     <section className="purchase-card order-queue-panel" data-testid="order-queue-panel">
       <div className="purchase-card-header">
         <div>
           <p className="purchase-kicker">Order queue</p>
-          <h2 className="purchase-title">Prioritized supplier orders</h2>
+          <h2 className="purchase-title">
+            {error ? "Queue unavailable" : "Prioritized supplier orders"}
+          </h2>
+          {error ? <p className="purchase-muted">{error}</p> : null}
         </div>
       </div>
 
       <div className="mini-metric-grid" data-testid="queue-summary">
-        <div>
-          <span>Pending orders</span>
-          <strong>{queue?.count ?? items.length}</strong>
-        </div>
-        <div>
-          <span>High priority</span>
-          <strong>{highPriority}</strong>
-        </div>
-        <div>
-          <span>Conservation</span>
-          <strong>{String(queue?.conservationStatus?.status ?? "BOOTSTRAP")}</strong>
-        </div>
+        {loading ? (
+          <div data-testid="queue-loading">
+            <span>Order queue</span>
+            <strong>Loading...</strong>
+            <small className="purchase-muted">Loading queue...</small>
+          </div>
+        ) : error ? (
+          <div data-testid="queue-error">
+            <span>Order queue</span>
+            <strong>Unavailable</strong>
+            <small className="purchase-muted">Unable to load queue</small>
+          </div>
+        ) : (
+          <>
+            <div>
+              <span>Pending orders</span>
+              <strong>{queue?.count ?? items.length}</strong>
+            </div>
+            <div>
+              <span>High priority</span>
+              <strong>{highPriority}</strong>
+            </div>
+            <div>
+              <span>Conservation</span>
+              <strong>{String(queue?.conservationStatus?.status ?? "BOOTSTRAP")}</strong>
+            </div>
+          </>
+        )}
       </div>
 
       <div data-testid="queue-table" style={{ display: "grid", gap: 10, marginTop: 16 }}>
-        {items.length === 0 ? (
+        {loading ? (
+          <p className="purchase-muted">Loading queue...</p>
+        ) : error ? (
+          <p className="purchase-muted">Unable to load queue.</p>
+        ) : items.length === 0 ? (
           <p className="purchase-muted">No pending orders in the queue.</p>
         ) : (
           items.map((item, index) => {

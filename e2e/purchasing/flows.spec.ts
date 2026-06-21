@@ -1,12 +1,13 @@
 import { type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
+import { waitForScorerResponse } from "../helpers";
 import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
 
 async function scoreCurrentOrder(page: Page) {
   await expect(page.getByText("Six scorer inputs")).toBeVisible();
   const scoreButton = page.getByRole("button", { name: "Score This Order" });
   await expect(scoreButton).toBeEnabled();
-  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  const scoreResponse = waitForScorerResponse(page, "/api/score");
   await scoreButton.click();
   await scoreResponse;
   await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();

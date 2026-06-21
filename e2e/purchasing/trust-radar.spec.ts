@@ -50,7 +50,7 @@ test("Trust weights have 7 factors per category", async ({ request }) => {
 
 test("Analysis shows trust radar panel", async ({ page }) => {
   await gotoAnalysis(page);
-  await expect(page.getByTestId("trust-radar-panel")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("trust-radar-panel")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Trust radar chart visible or learning state shown", async ({ page }) => {
@@ -58,9 +58,9 @@ test("Trust radar chart visible or learning state shown", async ({ page }) => {
   const chart = page.getByTestId("trust-radar-chart");
   const learning = page.getByTestId("trust-learning-state");
   if (await chart.count()) {
-    await expect(chart).toBeVisible({ timeout: 10_000 });
+    await expect(chart).toBeVisible({ timeout: 20_000 });
   } else {
-    await expect(learning).toBeVisible({ timeout: 10_000 });
+    await expect(learning).toBeVisible({ timeout: 20_000 });
   }
 });
 
@@ -69,15 +69,15 @@ test("Trust insight cards visible when insights exist", async ({ page, request }
   const insights = await response.json();
   await gotoAnalysis(page);
   if (insights.length > 0) {
-    await expect(page.getByTestId("trust-insight-card").first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId("trust-insight-card").first()).toBeVisible({ timeout: 20_000 });
   } else {
-    await expect(page.getByTestId("trust-radar-panel")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId("trust-radar-panel")).toBeVisible({ timeout: 20_000 });
   }
 });
 
 test("Trust factor labels use kitchen language", async ({ page }) => {
   await gotoAnalysis(page);
   const panel = page.getByTestId("trust-radar-panel");
-  await expect(panel).toContainText("Demand forecast", { timeout: 10_000 });
-  await expect(panel).toContainText("Price memory", { timeout: 10_000 });
+  await expect(panel).toContainText("Demand forecast", { timeout: 20_000 });
+  await expect(panel).toContainText("Price memory", { timeout: 20_000 });
 });

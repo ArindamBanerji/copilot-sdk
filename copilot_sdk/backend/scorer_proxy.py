@@ -50,11 +50,33 @@ class FreshScorerProxy:
             finally:
                 self._close_scorer_store(scorer)
 
-    def learn(self, decision_id: str, actual_action: str, outcome: str = "confirmed"):
+    def learn(
+        self,
+        decision_id: str,
+        actual_action: str,
+        outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, Any] | None = None,
+    ):
         with self._lock:
             scorer = self._scorer()
             try:
-                return scorer.learn(decision_id, actual_action, outcome)
+                return scorer.learn(
+                    decision_id,
+                    actual_action,
+                    outcome,
+                    consolidate=consolidate,
+                    context=context,
+                )
+            finally:
+                self._close_scorer_store(scorer)
+
+    def score_read_only(self, factors: dict[str, float], category: str):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.score_read_only(factors, category)
             finally:
                 self._close_scorer_store(scorer)
 
@@ -87,6 +109,46 @@ class FreshScorerProxy:
             scorer = self._scorer()
             try:
                 return scorer.get_alpha()
+            finally:
+                self._close_scorer_store(scorer)
+
+    def get_dk_weights(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.get_dk_weights()
+            finally:
+                self._close_scorer_store(scorer)
+
+    def get_verified_count(self) -> int:
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.get_verified_count()
+            finally:
+                self._close_scorer_store(scorer)
+
+    def get_category_phase(self, category: str):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.get_category_phase(category)
+            finally:
+                self._close_scorer_store(scorer)
+
+    def get_centroid(self, category: str, action: str):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.get_centroid(category, action)
+            finally:
+                self._close_scorer_store(scorer)
+
+    def reestimate_dk_if_due(self):
+        with self._lock:
+            scorer = self._scorer()
+            try:
+                return scorer.reestimate_dk_if_due()
             finally:
                 self._close_scorer_store(scorer)
 

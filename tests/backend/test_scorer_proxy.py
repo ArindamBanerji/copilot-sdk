@@ -26,7 +26,7 @@ def _graph_store(db_path: str | Path):
     return store
 
 
-class FakeScorer:
+class FakeScorer:  # MOCK-OK: proxy construction/cache sentinel, real scorer paths covered above
     def __init__(self, label: str = "fake") -> None:
         self.label = label
         self.calls: list[str] = []
@@ -45,7 +45,15 @@ class FakeScorer:
             factors=dict(factors),
         )
 
-    def learn(self, decision_id, actual_action, outcome="confirmed"):
+    def learn(
+        self,
+        decision_id,
+        actual_action,
+        outcome="confirmed",
+        *,
+        consolidate=False,
+        context=None,
+    ):
         self.calls.append("learn")
         return SimpleNamespace(decision_id=decision_id, outcome=outcome)
 
@@ -69,7 +77,17 @@ class FakeScorer:
 def test_fresh_scorer_proxy_exposes_required_methods(tmp_path):
     proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store)
 
-    for name in ("score", "learn", "fingerprint", "trajectory", "get_phase", "get_alpha"):
+    for name in (
+        "score",
+        "score_read_only",
+        "learn",
+        "fingerprint",
+        "trajectory",
+        "get_phase",
+        "get_alpha",
+        "get_dk_weights",
+        "get_verified_count",
+    ):
         assert callable(getattr(proxy, name))
 
 
@@ -134,7 +152,7 @@ def test_fresh_scorer_proxy_uses_rlock(tmp_path):
 
 def test_fresh_scorer_proxy_starts_empty_and_caches_after_first_call(tmp_path, monkeypatch):
     fake = FakeScorer()
-    monkeypatch.setattr(
+    monkeypatch.setattr(  # MOCK-OK: isolates proxy lazy construction, not learning behavior
         scorer_proxy_module.CompoundingScorer,
         "from_preset",
         lambda *args, **kwargs: fake,
@@ -159,7 +177,7 @@ def test_fresh_scorer_proxy_constructs_scorer_once_per_proxy(tmp_path, monkeypat
         calls.append((args, kwargs))
         return fake
 
-    monkeypatch.setattr(scorer_proxy_module.CompoundingScorer, "from_preset", fake_from_preset)
+    monkeypatch.setattr(scorer_proxy_module.CompoundingScorer, "from_preset", fake_from_preset)  # MOCK-OK: verifies one construction call
     proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store)
 
     score = proxy.score(TRADING_FACTORS, "trend_following")
@@ -192,7 +210,7 @@ def test_fresh_scorer_proxy_read_methods_do_not_reconstruct_scorer(tmp_path, mon
         calls.append((args, kwargs))
         return fake
 
-    monkeypatch.setattr(scorer_proxy_module.CompoundingScorer, "from_preset", fake_from_preset)
+    monkeypatch.setattr(scorer_proxy_module.CompoundingScorer, "from_preset", fake_from_preset)  # MOCK-OK: verifies cached read methods
     proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store)
 
     proxy.score(TRADING_FACTORS, "trend_following")
@@ -212,7 +230,7 @@ def test_fresh_scorer_proxy_keeps_proxy_instances_isolated(tmp_path, monkeypatch
         created.append((scorer, kwargs["graph_store"]))
         return scorer
 
-    monkeypatch.setattr(scorer_proxy_module.CompoundingScorer, "from_preset", fake_from_preset)
+    monkeypatch.setattr(scorer_proxy_module.CompoundingScorer, "from_preset", fake_from_preset)  # MOCK-OK: verifies proxy instance isolation
     first = FreshScorerProxy("trading", tmp_path / "one.db", _graph_store)
     second = FreshScorerProxy("trading", tmp_path / "two.db", _graph_store)
 
@@ -256,6 +274,41 @@ def test_fresh_scorer_proxy_interleaved_score_learn_score_uses_shared_state(tmp_
     assert first.decision_id != second.decision_id
     assert proxy.graph_store.count_verified("trading") == 1
     assert len(proxy.graph_store.get_all_decisions("trading")) == 2
+
+
+def test_scorer_proxy_serialized(tmp_path):
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store)
+
+    def score_once(index: int):
+        factors = dict(TRADING_FACTORS)
+        factors["timing_quality"] = 0.25 + (index * 0.02)
+        return proxy.score(factors, "trend_following")
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(score_once, range(16)))
+
+    assert len({result.decision_id for result in results}) == 16
+    assert len(proxy.graph_store.get_all_decisions("trading")) == 16
+
+
+def test_scorer_proxy_score_and_learn(tmp_path):
+    proxy = FreshScorerProxy("trading", tmp_path / "proxy.db", _graph_store)
+
+    def score_and_learn(index: int):
+        factors = dict(TRADING_FACTORS)
+        factors["signal_alignment"] = 0.55 + (index * 0.01)
+        result = proxy.score(factors, "trend_following")
+        return proxy.learn(
+            result.decision_id,
+            result.action,
+            context={"worker": index},
+        )
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(score_and_learn, range(8)))
+
+    assert len({result.decision_id for result in results}) == 8
+    assert proxy.graph_store.count_verified("trading") == 8
 
 
 def test_app_mains_no_longer_define_local_fresh_proxy():

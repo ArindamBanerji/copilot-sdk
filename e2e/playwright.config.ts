@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   timeout: 30_000,
   retries: 1,
+  workers: process.env.CI ? 2 : 4,
   globalSetup: "./global-setup",
   reporter: [
     ["list"],

@@ -396,11 +396,10 @@ def create_app(
 
     @app.get("/api/health")
     def api_health() -> dict[str, Any]:
-        scorer = scorer_proxy._scorer()
         iks = build_iks_summary(lambda: selected_graph_store_factory(scoring_db))
         return {
-            "phase": scorer.get_phase(),
-            "alpha": scorer.get_alpha(),
+            "phase": scorer_proxy.get_phase(),
+            "alpha": scorer_proxy.get_alpha(),
             "engine": {
                 "scoring": "copilot_sdk.scoring.CompoundingScorer",
                 "gae": "gae.profile_scorer.ProfileScorer",
@@ -457,12 +456,12 @@ def create_app(
     app.include_router(
         create_queue_router(
             lambda: selected_graph_store_factory(scoring_db),
-            lambda: scorer_proxy._scorer(),
+            lambda: scorer_proxy,
         )
     )
     app.include_router(create_verify_router(scorer_proxy))
     app.include_router(create_trust_router(scorer_proxy))
-    app.include_router(create_trust_weights_router(lambda: scorer_proxy._scorer()))
+    app.include_router(create_trust_weights_router(lambda: scorer_proxy))
     app.include_router(purchasing_graph_status_router)
     app.include_router(
         create_report_router(

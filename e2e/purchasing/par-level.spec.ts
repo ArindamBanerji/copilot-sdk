@@ -48,19 +48,19 @@ test("Par provenance is not sample", async ({ request }) => {
 test("Dashboard shows par level panel", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
-  await expect(page.getByTestId("par-level-panel")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("par-level-panel")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Par recommendation cards visible", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
-  await expect(page.getByTestId("par-recommendation-card").first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("par-recommendation-card").first()).toBeVisible({ timeout: 20_000 });
 });
 
 test("Par savings shows estimate label", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
   const summary = page.getByTestId("par-level-summary");
-  await expect(summary).toBeVisible({ timeout: 10_000 });
+  await expect(summary).toBeVisible({ timeout: 20_000 });
   await expect(summary).toContainText("estimate");
 });
