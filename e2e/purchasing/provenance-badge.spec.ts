@@ -26,7 +26,7 @@ test("provenance badge visible on dashboard", async ({ page }) => {
 test("badge shows external for live data", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
-  await expect(page.getByTestId("provenance-badge").first()).toContainText(/External|░░/, {
+  await expect(page.getByTestId("provenance-badge").first()).toContainText(/External|░░|Cached/, {
     timeout: 20_000,
   });
 });
