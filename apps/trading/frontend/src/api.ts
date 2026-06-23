@@ -415,6 +415,82 @@ export interface EvolutionPromotedResponse {
   promoted?: EvolutionVariant[];
 }
 
+export interface TradingEvolutionResult {
+  variantId?: string;
+  variant_id?: string;
+  batchNumber?: number;
+  batch_number?: number;
+  decisionsTested?: number;
+  decisions_tested?: number;
+  variantAccuracy?: number;
+  variant_accuracy?: number;
+  baselineAccuracy?: number;
+  baseline_accuracy?: number;
+  improvementPp?: number;
+  improvement_pp?: number;
+  conservationSafe?: boolean;
+  conservation_safe?: boolean;
+}
+
+export interface TradingEvolutionLogEntry {
+  kind?: string;
+  variantId?: string;
+  variant_id?: string;
+  description?: string;
+  createdAt?: string;
+  created_at?: string;
+  adjustments?: Record<string, number>;
+  batches?: number;
+  avgImprovementPp?: number;
+  avg_improvement_pp?: number;
+  status?: string;
+  results?: TradingEvolutionResult[];
+}
+
+export interface ParameterEvolutionProposal {
+  kind?: string;
+  proposalId?: string;
+  proposal_id?: string;
+  parameter?: string;
+  currentValue?: number;
+  current_value?: number;
+  proposedValue?: number;
+  proposed_value?: number;
+  evidence?: string;
+  conservationState?: string;
+  conservation_state?: string;
+  approved?: boolean;
+  applied?: boolean;
+  rolledBack?: boolean;
+  rolled_back?: boolean;
+  createdAt?: string;
+  created_at?: string;
+  appliedAt?: string | null;
+  applied_at?: string | null;
+  originalValue?: number | null;
+  original_value?: number | null;
+}
+
+export interface ParameterEvolutionActive {
+  variant?: TradingEvolutionLogEntry | null;
+  parameterAdjustments?: Record<string, {
+    original?: number;
+    adjusted?: number;
+    evidence?: string;
+    appliedAt?: string | null;
+    proposalId?: string;
+  }>;
+  conservationState?: string;
+  bounds?: Record<string, [number, number]>;
+}
+
+export interface ParameterEvolutionProposalResponse {
+  proposals?: ParameterEvolutionProposal[];
+  provenance?: string;
+  note?: string;
+  conservationState?: string;
+}
+
 export async function getEvolutionVariants(): Promise<EvolutionVariant[]> {
   const payload = await safeApiGet<{ variants?: EvolutionVariant[] } | EvolutionVariant[]>("/api/evolution/variants");
   if (!payload) return [];
@@ -428,6 +504,53 @@ export async function getEvolutionHistory(): Promise<EvolutionHistoryResponse> {
 export async function getPromotedEvolutionRules(): Promise<EvolutionVariant[]> {
   const payload = await safeApiGet<EvolutionPromotedResponse>("/api/evolution/promoted");
   return payload?.promoted ?? [];
+}
+
+export async function fetchEvolutionLog(): Promise<TradingEvolutionLogEntry[]> {
+  return (await safeApiGet<TradingEvolutionLogEntry[]>("/api/trading/evolution/log?kind=variant")) ?? [];
+}
+
+export async function fetchActiveVariant(): Promise<TradingEvolutionLogEntry | null> {
+  const payload = await safeApiGet<TradingEvolutionLogEntry | ParameterEvolutionActive | null>("/api/trading/evolution/active");
+  if (payload && "variant" in payload) {
+    return (payload as ParameterEvolutionActive).variant ?? null;
+  }
+  return payload as TradingEvolutionLogEntry | null;
+}
+
+export async function fetchEvolutionProposals(): Promise<ParameterEvolutionProposal[]> {
+  const payload = await fetchEvolutionProposalResponse();
+  if (Array.isArray(payload)) return payload;
+  return payload?.proposals ?? [];
+}
+
+export async function fetchEvolutionProposalResponse(): Promise<ParameterEvolutionProposalResponse | ParameterEvolutionProposal[]> {
+  return (await safeApiGet<ParameterEvolutionProposalResponse | ParameterEvolutionProposal[]>("/api/trading/evolution/proposals")) ?? [];
+}
+
+export async function fetchEvolutionActive(): Promise<ParameterEvolutionActive> {
+  return (await safeApiGet<ParameterEvolutionActive>("/api/trading/evolution/active")) ?? {
+    parameterAdjustments: {},
+    conservationState: "GREEN",
+    bounds: {},
+  };
+}
+
+export async function fetchParameterEvolutionLog(): Promise<ParameterEvolutionProposal[]> {
+  const entries = (await safeApiGet<ParameterEvolutionProposal[]>("/api/trading/evolution/log?kind=parameter")) ?? [];
+  return entries.filter((entry) => entry.kind === "parameter");
+}
+
+export function applyEvolutionProposal(id: string): Promise<{ applied?: boolean; proposalId?: string }> {
+  return apiPost<{ applied?: boolean; proposalId?: string }>("/api/trading/evolution/apply", {
+    proposal_id: id,
+  });
+}
+
+export function rollbackEvolution(param: string): Promise<{ rolledBack?: boolean; parameter?: string }> {
+  return apiPost<{ rolledBack?: boolean; parameter?: string }>("/api/trading/evolution/rollback", {
+    parameter: param,
+  });
 }
 
 export function getTradeMetadata(): Promise<Record<string, TradeMetadata>> {

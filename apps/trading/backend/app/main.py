@@ -33,6 +33,7 @@ from .routers.cohort_status_router import create_cohort_status_router  # noqa: E
 from .routers.correlation import create_correlation_router  # noqa: E402
 from .routers.data_import import router as data_import_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
+from .routers.evolution_router import create_trading_evolution_router  # noqa: E402
 from .evolution import get_trading_variants  # noqa: E402
 from .routers.journal import create_journal_router  # noqa: E402
 from .routers.pre_score_router import create_pre_score_router  # noqa: E402
@@ -314,6 +315,12 @@ def create_app(
             graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
             domain=DOMAIN,
             variant_provider=get_trading_variants,
+        )
+    )
+    app.include_router(
+        create_trading_evolution_router(
+            graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
+            domain=DOMAIN,
         )
     )
 

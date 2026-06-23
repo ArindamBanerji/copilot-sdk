@@ -10,6 +10,8 @@ import AuditTrail from "../components/AuditTrail";
 import CategoryPerformance from "../components/CategoryPerformance";
 import CentroidTimeline from "../components/CentroidTimeline";
 import CohortStatusPanel from "../components/CohortStatusPanel";
+import EvolutionControlsPanel from "../components/EvolutionControlsPanel";
+import EvolutionPanel from "../components/EvolutionPanel";
 import PromotionDashboard from "../components/PromotionDashboard";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
@@ -124,6 +126,8 @@ export default function PerformanceScreen() {
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <StrategySafetyBreakdownPanel />
       <PromotionDashboard />
+      <EvolutionPanel />
+      <EvolutionControlsPanel />
       <CohortStatusPanel />
       <VIXTimingPanel />
       <RollingMetrics analytics={analytics} />
