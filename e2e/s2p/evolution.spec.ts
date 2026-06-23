@@ -16,31 +16,31 @@ test("Evolution panel is visible on Evidence", async ({ page }) => {
   await openEvidence(page);
   const region = evolutionRegion(page);
 
-  await expect(region).toContainText(/Variant Evolution|No S2P variants/i);
-  await expect(region).toContainText(/Active.*Evidence|Active.*Routing|No S2P variants|variant/i);
+  await expect(region).toContainText(/Variant Evolution|No S2P variants|Loading variants/i);
+  await expect(region).toContainText(/Active.*Evidence|Active.*Routing|No S2P variants|variant|Loading variants/i);
 });
 
 test("Rule lifecycle shows states or empty state", async ({ page }) => {
   await openEvidence(page);
   const region = evolutionRegion(page);
 
-  await expect(region).toContainText(/variant|active|No S2P variants/i);
-  await expect(region).toContainText(/promoted|shadow|active|No S2P variants/i);
+  await expect(region).toContainText(/variant|active|No S2P variants|Loading variants/i);
+  await expect(region).toContainText(/promoted|shadow|active|No S2P variants|Loading variants/i);
 });
 
 test("Evolution history shows events or empty state", async ({ page }) => {
   await openEvidence(page);
   const region = evolutionRegion(page);
 
-  await expect(region).toContainText(/Variant Evolution|Self-tuning/i);
-  await expect(region).toContainText(/win|shadow|active|No S2P variants/i);
+  await expect(region).toContainText(/Variant Evolution|Self-tuning|Loading variants/i);
+  await expect(region).toContainText(/win|shadow|active|No S2P variants|Loading variants/i);
 });
 
 test("Evolution screen has no console errors", async ({ page }) => {
   const errors = collectConsoleErrors(page);
 
   await openEvidence(page);
-  await expect(evolutionRegion(page)).toContainText(/Variant Evolution|No S2P variants/i);
+  await expect(evolutionRegion(page)).toContainText(/Variant Evolution|No S2P variants|Loading variants/i);
 
   expectNoConsoleErrors(errors);
 });

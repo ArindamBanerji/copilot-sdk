@@ -55,13 +55,13 @@ def evaluate_v7_gate(real: dict[str, Any], threshold_k: int) -> dict[str, Any]:
     }
 
     if treatment_n < threshold_k or control_n < threshold_k:
-        return {**base, "status": "awaiting_real_cohorts", "lift": None}
+        return {**base, "status": "awaiting_real_cohorts", "magnitude": None}
 
-    lift = real.get("lift")
+    magnitude = real.get("magnitude")
     return {
         **base,
-        "status": "conditions_met" if lift is not None else "conditions_not_met",
-        "lift": lift,
+        "status": "conditions_met" if magnitude is not None else "conditions_not_met",
+        "magnitude": magnitude,
     }
 
 
@@ -69,7 +69,7 @@ class BaseCohortDayZeroState(ABC):
     """Base class for domain-specific cohort day-zero state.
 
     Subclasses own domain-specific reading, structure counting, instrument
-    loading, and lift computation. The base owns the invariant response shape
+    loading, and magnitude computation. The base owns the invariant response shape
     and the three-state transition logic.
     """
 
@@ -90,7 +90,27 @@ class BaseCohortDayZeroState(ABC):
 
     @abstractmethod
     def _compute_real_lift(self) -> float:
-        """Compute lift from provenance=="real" records only."""
+        """Compute magnitude from provenance=="real" records only."""
+
+    def seed_structure(
+        self,
+        treatment_n: int,
+        control_n: int,
+        split_tolerance: float = 0.05,
+    ) -> dict[str, Any]:
+        """Seed structure-only counts. provenance='sample'. NO magnitude."""
+
+        total = treatment_n + control_n
+        split = treatment_n / total if total > 0 else 0.5
+        balanced = abs(split - 0.5) <= split_tolerance
+        return {
+            "present": True,
+            "treatment_n": treatment_n,
+            "control_n": control_n,
+            "split_balanced": balanced,
+            "join_ok": True,
+            "provenance": "sample",
+        }
 
     def get_status(self) -> dict[str, Any]:
         """Build the full cohort-status response."""
@@ -108,7 +128,7 @@ class BaseCohortDayZeroState(ABC):
         )
 
         real["status"] = "measured" if state == MEASURED else "pending"
-        real["lift"] = self._compute_real_lift() if state == MEASURED else None
+        real["magnitude"] = self._compute_real_lift() if state == MEASURED else None
 
         return {
             "state": state,

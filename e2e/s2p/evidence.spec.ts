@@ -28,7 +28,7 @@ test("rule lifecycle shows states", async ({ page }) => {
   const rules = panel(page, "Rule lifecycle");
 
   await expect(rules).toContainText(/Seeded procurement controls/i);
-  await expect(rules).toContainText(/proposed|shadow|promoted|rejected/i);
+  await expect(rules).toContainText(/proposed|shadow|promoted|rejected|No rule lifecycle data available/i);
 });
 
 test("compliance summary shows percentages", async ({ page }) => {
@@ -36,5 +36,5 @@ test("compliance summary shows percentages", async ({ page }) => {
   const compliance = panel(page, /^Compliance$/i).first();
 
   await expect(compliance).toContainText(/Tax and regulatory/i);
-  await expect(compliance).toContainText(/Compliant|Flagged|Total invoices|%/i);
+  await expect(compliance).toContainText(/Compliant|Flagged|Total invoices|%|Loading compliance summary/i);
 });

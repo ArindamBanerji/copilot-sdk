@@ -4,6 +4,7 @@ import TrajectoryChart, { type TrajectoryPoint } from "../../../../../copilot_sd
 import { getAnalytics, getConservationStatus, getTrajectory } from "../api";
 import CategoryAccuracyChart from "../components/CategoryAccuracyChart";
 import { CentroidTimelineChart } from "../components/CentroidTimelineChart";
+import CohortStatusPanel from "../components/CohortStatusPanel";
 import IKSTrackerPanel from "../components/IKSTrackerPanel";
 import SupplierScorecardPanel from "../components/SupplierScorecardPanel";
 import WasteCostCard from "../components/WasteCostCard";
@@ -97,6 +98,7 @@ export default function PerformanceScreen() {
       </section>
 
       <IKSTrackerPanel />
+      <CohortStatusPanel />
       <SupplierScorecardPanel />
 
       <TrajectoryChart

@@ -7,6 +7,7 @@ from typing import Any, Callable
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from app.data_helpers import is_sample_data
 from app.services.auto_order import AutoOrderGate
 from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
@@ -150,7 +151,9 @@ def _category_verified_decisions(store: Any | None, category: str) -> list[dict[
         return [
             decision
             for decision in decisions
-            if _decision_category(decision) == category and _is_verified_decision(decision)
+            if _decision_category(decision) == category
+            and _is_verified_decision(decision)
+            and _decision_allowed_for_metric(decision)
         ]
     get_decisions = getattr(store, "get_decisions", None)
     if callable(get_decisions):
@@ -158,8 +161,16 @@ def _category_verified_decisions(store: Any | None, category: str) -> list[dict[
             decisions = list(get_decisions(DOMAIN, category=category, limit=10**12) or [])
         except TypeError:
             decisions = list(get_decisions(DOMAIN, category, 10**12) or [])
-        return [decision for decision in decisions if _is_verified_decision(decision)]
+        return [
+            decision
+            for decision in decisions
+            if _is_verified_decision(decision) and _decision_allowed_for_metric(decision)
+        ]
     return None
+
+
+def _decision_allowed_for_metric(decision: dict[str, Any]) -> bool:
+    return not is_sample_data(decision)
 
 
 def _decision_category(decision: dict[str, Any]) -> str:

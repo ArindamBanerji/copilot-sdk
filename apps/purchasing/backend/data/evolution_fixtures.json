@@ -18,10 +18,13 @@
       "source_copilot": null,
       "source_rule": null,
       "match": {
-        "categories": ["produce"],
+        "categories": [
+          "produce"
+        ],
         "day": "friday"
       },
-      "warm_start_prior": "{}"
+      "warm_start_prior": "{}",
+      "provenance": "sample"
     },
     {
       "id": "V-PUR-EVENT-001",
@@ -41,10 +44,13 @@
       "source_copilot": "dataops",
       "source_rule": "recurrence_frequency_signal",
       "match": {
-        "categories": ["protein"],
+        "categories": [
+          "protein"
+        ],
         "event_required": true
       },
-      "warm_start_prior": "{\"confidence\":0.62}"
+      "warm_start_prior": "{\"confidence\":0.62}",
+      "provenance": "sample"
     },
     {
       "id": "V-PUR-DAIRY-001",
@@ -64,9 +70,13 @@
       "source_copilot": null,
       "source_rule": null,
       "match": {
-        "categories": ["dairy"]
+        "categories": [
+          "dairy"
+        ]
       },
-      "warm_start_prior": "{}"
+      "warm_start_prior": "{}",
+      "provenance": "sample"
     }
-  ]
+  ],
+  "provenance": "sample"
 }

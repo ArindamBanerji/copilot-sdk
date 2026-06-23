@@ -9,6 +9,7 @@ import { getAnalytics, getConservationStatus, getTrajectory } from "../api";
 import AuditTrail from "../components/AuditTrail";
 import CategoryPerformance from "../components/CategoryPerformance";
 import CentroidTimeline from "../components/CentroidTimeline";
+import CohortStatusPanel from "../components/CohortStatusPanel";
 import PromotionDashboard from "../components/PromotionDashboard";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
@@ -123,6 +124,7 @@ export default function PerformanceScreen() {
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <StrategySafetyBreakdownPanel />
       <PromotionDashboard />
+      <CohortStatusPanel />
       <VIXTimingPanel />
       <RollingMetrics analytics={analytics} />
       <CategoryPerformance analytics={analytics} />

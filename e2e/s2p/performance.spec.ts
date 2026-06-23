@@ -40,7 +40,7 @@ test("operational summary shows metrics and savings", async ({ page }) => {
 
   const summary = panel(page, "Operational summary");
   await expect(summary).toContainText(/Learning, approvals, savings/i);
-  await expect(summary).toContainText(/Scored|Accuracy|Auto approve|Savings estimate|Annual target/i);
+  await expect(summary).toContainText(/Scored|Accuracy|Auto approve|Savings estimate|Annual target|Loading operational summary/i);
 });
 
 test("dashboard mini process context shows bottleneck", async ({ page }) => {

@@ -43,6 +43,14 @@ class ClaimRegistry:
         ok, why = claim.is_valid()
         if not ok:
             raise ValueError(f"FORBIDDEN (F-24): {why}  [{claim.claim_id}]")
+        if claim.claim_id in self._claims:
+            existing = self._claims[claim.claim_id]
+            if existing != claim:
+                raise ValueError(
+                    f"CONFLICT: claim {claim.claim_id} already registered "
+                    f"with tier={existing.tier.value}, cannot re-register "
+                    f"with tier={claim.tier.value} without promote()"
+                )
         self._claims[claim.claim_id] = claim
 
     def promote(self, ev: PromotionEvent) -> None:

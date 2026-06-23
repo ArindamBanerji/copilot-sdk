@@ -14,6 +14,18 @@ class Tier(str, Enum):
 _MAGNITUDE_OK = {Tier.REAL}
 
 
+RULES = {
+    66: "Substantiation tier required alongside provenance tier.",
+    67: "K1-K4 generated-data values must be labeled by kind.",
+}
+
+FORBIDDEN_FAILURES = {
+    "F-24": "No value at REAL without pilot evidence.",
+    "F-26": "K3 demo-fixture values are forbidden in metric/score/par.",
+    "F-27": "K1/K2 oracle output is forbidden when surfaced to users.",
+}
+
+
 @dataclass(frozen=True)
 class ClaimProvenance:
     """Every commercial claim tagged with its evidence tier."""

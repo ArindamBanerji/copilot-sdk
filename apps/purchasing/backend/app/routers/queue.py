@@ -8,7 +8,7 @@ from typing import Any, Callable
 from fastapi import APIRouter, HTTPException
 
 from app.connectors.mock_qbo import MockQBOConnector
-from app.data_helpers import assert_no_sample_in_metric
+from app.data_helpers import is_sample_data
 from app.factors import ALL_FACTOR_NAMES, compute_factors
 from app.routers.spend_router import SCRAPED_EXTERNAL_PROVENANCE, qbo_bills_for_spend
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
@@ -70,8 +70,7 @@ def _orders(connector: Any | None = None) -> list[dict[str, Any]]:
     except (FileNotFoundError, OSError):
         return []
     orders = [order for order in rows if isinstance(order, dict)]
-    assert_no_sample_in_metric(orders, "order_queue")
-    return orders
+    return [order for order in orders if not is_sample_data(order)]
 
 
 def _recommendation(

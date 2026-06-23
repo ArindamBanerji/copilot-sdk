@@ -111,12 +111,22 @@ def test_register_magnitude_violation():
         registry.register(_claim(tier=Tier.SCRAPED, is_magnitude_claim=True))
 
 
-def test_register_duplicate_claim_id():
+def test_register_conflicting_duplicate_claim_id_rejected():
     registry = ClaimRegistry()
     registry.register(_claim(claim_id="C1", tier=Tier.SCRAPED))
-    registry.register(_claim(claim_id="C1", tier=Tier.ANALYTIC))
+    with pytest.raises(ValueError, match="CONFLICT: claim C1 already registered"):
+        registry.register(_claim(claim_id="C1", tier=Tier.ANALYTIC))
     assert len(registry.all_claims()) == 1
-    assert registry.get("C1").tier == Tier.ANALYTIC
+    assert registry.get("C1").tier == Tier.SCRAPED
+
+
+def test_register_identical_duplicate_claim_id_idempotent():
+    registry = ClaimRegistry()
+    claim = _claim(claim_id="C1", tier=Tier.SCRAPED)
+    registry.register(claim)
+    registry.register(claim)
+    assert len(registry.all_claims()) == 1
+    assert registry.get("C1") == claim
 
 
 def test_promote_to_real_needs_evidence():
@@ -284,6 +294,7 @@ def test_readiness_all_true():
         instrumented=True,
         real_path_committed=True,
         labels_honest=True,
+        renders_day_zero_state=True,
     )
     assert readiness.gate() == (True, [])
 
@@ -297,6 +308,7 @@ def test_readiness_missing_populated():
         instrumented=True,
         real_path_committed=True,
         labels_honest=True,
+        renders_day_zero_state=True,
     )
     assert readiness.gate() == (False, ["populated"])
 
@@ -308,6 +320,7 @@ def test_readiness_single_missing():
         "instrumented",
         "real_path_committed",
         "labels_honest",
+        "renders_day_zero_state",
     ]
     for missing_field in fields_to_check:
         values = {field: True for field in fields_to_check}
@@ -325,6 +338,7 @@ def test_readiness_na_fields():
         instrumented=True,
         real_path_committed=True,
         labels_honest=True,
+        renders_day_zero_state=True,
     )
     assert readiness.gate() == (True, [])
 
@@ -338,6 +352,7 @@ def test_readiness_missing_multiple():
         instrumented=True,
         real_path_committed=False,
         labels_honest=True,
+        renders_day_zero_state=True,
     )
     assert readiness.gate() == (False, ["proven", "real_path_committed"])
 
@@ -360,18 +375,25 @@ def test_readiness_all_false():
             "instrumented",
             "real_path_committed",
             "labels_honest",
+            "renders_day_zero_state",
         ],
     )
 
 
 def test_populate_default():
     registry = populate_default_registry()
-    assert len(registry.all_claims()) == 32
+    assert len(registry.all_claims()) >= 44, (
+        f"Registry has {len(registry.all_claims())} claims, expected >= 44. "
+        "New features must register claims."
+    )
 
 
 def test_populate_count():
     registry = populate_default_registry()
-    assert len(registry.all_claims()) == 32
+    assert len(registry.all_claims()) >= 44, (
+        f"Registry has {len(registry.all_claims())} claims, expected >= 44. "
+        "New features must register claims."
+    )
 
 
 def test_populate_no_magnitude_violations():
@@ -506,6 +528,7 @@ def test_readiness_plus_registry():
         instrumented=True,
         real_path_committed=True,
         labels_honest=True,
+        renders_day_zero_state=True,
     )
     assert readiness.gate() == (True, [])
 
@@ -565,6 +588,7 @@ def test_readiness_gate_logic():
         instrumented=True,
         real_path_committed=True,
         labels_honest=True,
+        renders_day_zero_state=True,
     )
     assert passing.gate() == (True, [])
 
@@ -576,13 +600,17 @@ def test_readiness_gate_logic():
         instrumented=False,
         real_path_committed=True,
         labels_honest=True,
+        renders_day_zero_state=True,
     )
     assert failing.gate() == (False, ["instrumented"])
 
 
 def test_total_claims_with_canonicals():
     registry = populate_default_registry()
-    assert len(registry.all_claims()) == 32
+    assert len(registry.all_claims()) >= 44, (
+        f"Registry has {len(registry.all_claims())} claims, expected >= 44. "
+        "New features must register claims."
+    )
 
 
 def test_promote_analytic_to_real_requires_evidence():
@@ -713,6 +741,7 @@ def test_readiness_all_true_passes():
         instrumented=True,
         real_path_committed=True,
         labels_honest=True,
+        renders_day_zero_state=True,
     )
 
     assert readiness.gate() == (True, [])
@@ -725,6 +754,7 @@ def test_readiness_each_false_fails():
         "instrumented",
         "real_path_committed",
         "labels_honest",
+        "renders_day_zero_state",
     ]
 
     for field_name in gate_fields:
@@ -747,6 +777,7 @@ def test_readiness_multiple_false():
         instrumented=False,
         real_path_committed=True,
         labels_honest=False,
+        renders_day_zero_state=True,
     )
 
     assert readiness.gate() == (

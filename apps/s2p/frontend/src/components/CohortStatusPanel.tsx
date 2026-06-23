@@ -1,0 +1,148 @@
+import { useEffect, useMemo, useState } from "react";
+import { getCohortStatus, type CohortExperiment, type CohortStatusResponse } from "../api";
+
+const FALLBACK_STATUS: CohortStatusResponse = {
+  state: "INSTRUMENT_VALIDATED",
+  instrument: { validated: false, provenance: "oracle", experiments: [] },
+  real: {
+    treatment_n: 0,
+    control_n: 0,
+    threshold_k: 30,
+    magnitude: null,
+    provenance: "real",
+    status: "pending",
+  },
+  structure: { present: false, treatment_n: 0, control_n: 0, provenance: "sample" },
+};
+
+export default function CohortStatusPanel() {
+  const [status, setStatus] = useState<CohortStatusResponse>(FALLBACK_STATUS);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getCohortStatus()
+      .then((payload) => {
+        if (!cancelled) {
+          setStatus(payload);
+        }
+      })
+      .catch((error) => {
+        console.debug("cohort status fetch failed", error);
+        if (!cancelled) {
+          setStatus(FALLBACK_STATUS);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const real = status.real ?? FALLBACK_STATUS.real;
+  const treatmentN = numberOr(real?.treatment_n ?? real?.treatmentN, 0);
+  const controlN = numberOr(real?.control_n ?? real?.controlN, 0);
+  const thresholdK = numberOr(real?.threshold_k ?? real?.thresholdK, 30);
+  const total = treatmentN + controlN;
+  const experiments = useMemo(
+    () => ensureArray(status.instrument?.experiments),
+    [status.instrument?.experiments],
+  );
+  const state = status.state || "INSTRUMENT_VALIDATED";
+  const badge = badgeFor(state);
+  const measured = state === "MEASURED" && typeof real?.magnitude === "number";
+
+  return (
+    <section className="copilot-card p-5" data-testid="cohort-status-panel">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">S2P Measurement Status</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-950">Cohort measurement readiness</h2>
+        </div>
+        <span
+          className="rounded-full px-3 py-1 text-xs font-semibold"
+          data-testid="cohort-status-state"
+          style={{ background: badge.background, color: badge.color }}
+        >
+          {badge.label}
+        </span>
+      </div>
+
+      <p className="mt-3 text-sm text-slate-600">
+        {loading ? "Loading measurement status..." : summaryFor(state, real?.magnitude, total, thresholdK)}
+      </p>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <section className="rounded-md border border-slate-200 p-3" data-testid="cohort-status-instrument">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">T-O instrument</div>
+          <p className="mt-2 text-sm text-slate-700">Instrument: Validated. The measurement instrument is validated and running. Context is populated with real external data.</p>
+          {experiments.length ? (
+            <ul className="mt-3 grid gap-2 text-xs text-slate-600">
+              {experiments.map((experiment, index) => (
+                <li key={`${experiment.name || "experiment"}-${index}`}>
+                  {experiment.name || `Experiment ${index + 1}`}: {experiment.pass ? "pass" : "pending"}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+
+        <section className="rounded-md border border-slate-200 p-3" data-testid="cohort-status-real">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">T-R real measurement</div>
+          <p className="mt-2 text-sm text-slate-700">
+            {measured
+              ? `Measured: ${formatLift(real?.magnitude)} from ${total} verified decisions. This is your magnitude - not a projection, not synthetic.`
+              : state === "ACCUMULATING"
+                ? `Real decisions are accumulating: ${total} / ${thresholdK * 2} decisions. The instrument is measuring your operations. Magnitude will appear when ${thresholdK} decisions per arm are verified.`
+                : "The measurement instrument is validated and running. Context is populated with real external data. As your team operates, real decisions will accumulate and your specific magnitude will be measured - never synthesized."}
+          </p>
+          <p className="mt-2 text-xs text-slate-500" data-testid="cohort-status-progress">
+            {treatmentN}/{thresholdK} shown, {controlN}/{thresholdK} control
+          </p>
+        </section>
+      </div>
+    </section>
+  );
+}
+
+function badgeFor(state: string) {
+  if (state === "MEASURED") {
+    return { label: "Measured", background: "rgba(16, 185, 129, 0.16)", color: "#047857" };
+  }
+  if (state === "ACCUMULATING") {
+    return { label: "Measuring", background: "rgba(245, 158, 11, 0.18)", color: "#92400e" };
+  }
+  return { label: "Measurement ready", background: "rgba(59, 130, 246, 0.16)", color: "#1d4ed8" };
+}
+
+function summaryFor(state: string, magnitude: number | null | undefined, total: number, thresholdK: number): string {
+  if (state === "MEASURED" && typeof magnitude === "number") {
+    return `Measured on your operations from ${total} verified decisions. This is your magnitude - not a projection, not synthetic.`;
+  }
+  if (state === "ACCUMULATING") {
+    return `Real decisions are accumulating. The instrument is measuring your operations. Magnitude will appear when ${thresholdK} decisions per arm are verified.`;
+  }
+  return "The measurement instrument is validated and running. Context is populated with real external data. As your team operates, real decisions will accumulate and your specific magnitude will be measured - never synthesized.";
+}
+
+function ensureArray(value: CohortExperiment[] | undefined): CohortExperiment[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function numberOr(value: unknown, fallback: number): number {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function formatLift(value: number | null | undefined): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "+0.0%";
+  }
+  const percent = Math.abs(value) <= 1 ? value * 100 : value;
+  return `${percent >= 0 ? "+" : ""}${percent.toFixed(1)}%`;
+}

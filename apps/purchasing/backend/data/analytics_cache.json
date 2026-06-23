@@ -192,5 +192,6 @@
     "total_waste_cost": 1903.84,
     "total_stockout_cost": 920.0,
     "waste_reduction_since_start_pct": 19.17
-  }
+  },
+  "provenance": "sample"
 }

@@ -40,17 +40,17 @@ def test_v7_gate_abstains() -> None:
     )
 
     assert result["status"] == "awaiting_real_cohorts"
-    assert result["lift"] is None
+    assert result["magnitude"] is None
 
 
 def test_v7_gate_conditions_met() -> None:
     result = evaluate_v7_gate(
-        {"provenance": "real", "treatment_n": 50, "control_n": 50, "lift": 0.12},
+        {"provenance": "real", "treatment_n": 50, "control_n": 50, "magnitude": 0.12},
         threshold_k=50,
     )
 
     assert result["status"] == "conditions_met"
-    assert result["lift"] == 0.12
+    assert result["magnitude"] == 0.12
 
 
 def test_v7_gate_rejects_non_real() -> None:
@@ -71,14 +71,14 @@ def test_get_status_shape() -> None:
 
     assert sorted(status.keys()) == ["instrument", "real", "state", "structure"]
     assert status["state"] == MEASURED
-    assert status["real"]["lift"] == 0.2
+    assert status["real"]["magnitude"] == 0.2
 
 
 def test_get_status_lift_null_below_k() -> None:
     status = _MockCohortState(treatment_n=10, control_n=50).get_status()
 
     assert status["state"] == ACCUMULATING
-    assert status["real"]["lift"] is None
+    assert status["real"]["magnitude"] is None
 
 
 def test_get_status_instrument_always_present() -> None:
@@ -88,6 +88,17 @@ def test_get_status_instrument_always_present() -> None:
             control_n=control_n,
         ).get_status()
         assert status["instrument"]["provenance"] == "oracle"
+
+
+def test_seed_structure_is_sample_only_and_never_moves_state() -> None:
+    cohort = _SeededStructureCohortState(treatment_n=25, control_n=25)
+    status = cohort.get_status()
+
+    assert status["state"] == INSTRUMENT_VALIDATED
+    assert status["structure"]["present"] is True
+    assert status["structure"]["provenance"] == "sample"
+    assert status["real"]["magnitude"] is None
+    assert "magnitude" not in status["structure"]
 
 
 class _MockCohortState(BaseCohortDayZeroState):
@@ -122,3 +133,13 @@ class _MockCohortState(BaseCohortDayZeroState):
 
     def _compute_real_lift(self) -> float:
         return 0.2
+
+
+class _SeededStructureCohortState(_MockCohortState):
+    def __init__(self, *, treatment_n: int, control_n: int) -> None:
+        super().__init__(treatment_n=0, control_n=0)
+        self._seed_treatment_n = treatment_n
+        self._seed_control_n = control_n
+
+    def _count_structure_cohorts(self) -> dict:
+        return self.seed_structure(self._seed_treatment_n, self._seed_control_n)

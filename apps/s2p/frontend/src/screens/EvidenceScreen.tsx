@@ -4,6 +4,7 @@ import { AuditTrailPanel } from "../components/AuditTrailPanel";
 import { AuditExportPanel } from "../components/AuditExportPanel";
 import { CompliancePanel } from "../components/CompliancePanel";
 import { ComplianceScreeningPanel } from "../components/ComplianceScreeningPanel";
+import CohortStatusPanel from "../components/CohortStatusPanel";
 import { DiscoveryPanel } from "../components/DiscoveryPanel";
 import { DisruptionRecoveryPanel } from "../components/DisruptionRecoveryPanel";
 import { EvolutionPanel } from "../components/EvolutionPanel";
@@ -67,6 +68,7 @@ export function EvidenceScreen() {
       </article>
 
       <AuditTrailPanel invoiceId={invoiceId(selected)} />
+      <CohortStatusPanel />
       <EvolutionPanel />
       <DiscoveryPanel />
       <DisruptionRecoveryPanel />

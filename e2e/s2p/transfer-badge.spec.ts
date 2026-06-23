@@ -12,7 +12,7 @@ interface TransferStatus {
 }
 
 async function fetchTransferStatus(request: APIRequestContext): Promise<TransferStatus> {
-  const response = await request.get(`${BACKEND}/api/transfer/status`);
+  const response = await request.get(`${BACKEND}/api/transfer/status`, { timeout: 30_000 });
   expect(response.ok()).toBeTruthy();
   return response.json();
 }

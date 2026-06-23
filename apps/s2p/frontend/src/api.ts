@@ -79,6 +79,49 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export interface CohortExperiment {
+  name?: string;
+  injected_lift?: number | null;
+  injectedLift?: number | null;
+  recovered_lift?: number | null;
+  recoveredLift?: number | null;
+  pass?: boolean;
+}
+
+export interface CohortStatusResponse {
+  state?: "INSTRUMENT_VALIDATED" | "ACCUMULATING" | "MEASURED" | string;
+  instrument?: {
+    validated?: boolean;
+    provenance?: string;
+    source_artifact?: string;
+    sourceArtifact?: string;
+    experiments?: CohortExperiment[];
+  };
+  real?: {
+    treatment_n?: number;
+    treatmentN?: number;
+    control_n?: number;
+    controlN?: number;
+    threshold_k?: number;
+    thresholdK?: number;
+    magnitude?: number | null;
+    provenance?: string;
+    status?: string;
+  };
+  structure?: {
+    present?: boolean;
+    treatment_n?: number;
+    treatmentN?: number;
+    control_n?: number;
+    controlN?: number;
+    provenance?: string;
+  };
+}
+
+export async function getCohortStatus(): Promise<CohortStatusResponse> {
+  return apiGet<CohortStatusResponse>("/api/s2p/cohort-status");
+}
+
 export async function getPreviewQueue(): Promise<PreviewQueueResponse> {
   return apiGet<PreviewQueueResponse>("/api/s2p/preview/queue").catch(() => ({
     exceptions: [],

@@ -138,6 +138,39 @@ def populate_default_registry() -> ClaimRegistry:
             feature="P63-TRD-EVIDENCE-NL",
         )
     )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P81-regime-classifier",
+            text="Trading regime classifier labels regime context from market features",
+            tier=Tier.SCRAPED,
+            evidence_ref="P81 regime classifier over tier-tagged market context",
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="P81-TRD-REGIME-CLASSIFIER",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P82-pre-trade-scoring",
+            text="Pre-trade scoring produces advisory trade readiness labels",
+            tier=Tier.SCRAPED,
+            evidence_ref="P82 pre-trade scorer over market/journal context",
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="P82-TRD-PRE-TRADE-SCORING",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="P83-promotion-engine",
+            text="Promotion engine tracks candidate promotion state without claiming lift",
+            tier=Tier.REAL,
+            evidence_ref="P83 promotion event audit trail",
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="P83-TRD-PROMOTION-ENGINE",
+        )
+    )
 
     registry.register(
         ClaimProvenance(
@@ -216,6 +249,39 @@ def populate_default_registry() -> ClaimRegistry:
             feature="P-PUR-COMMODITY-K4",
         )
     )
+    registry.register(
+        ClaimProvenance(
+            claim_id="PUR-cohort-day-zero-status",
+            text="Purchasing cohort status separates real cohorts from sample structure",
+            tier=Tier.ORACLE,
+            evidence_ref="Purchasing cohort-status endpoint and oracle artifact",
+            is_magnitude_claim=False,
+            copilot="purchasing",
+            feature="P-COHORT-DAY-ZERO",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="PUR-spend-conservation-f26",
+            text="Purchasing spend and conservation surfaces exclude K3 sample metrics",
+            tier=Tier.REAL,
+            evidence_ref="R5 F-26 guards on spend/conservation metric paths",
+            is_magnitude_claim=False,
+            copilot="purchasing",
+            feature="R5-PUR-SPEND-CONSERVATION-F26",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="PUR-commodity-provider-r4",
+            text="Purchasing commodity provider reports source provenance for each value",
+            tier=Tier.SCRAPED,
+            evidence_ref="R4 commodity provider provenance cascade",
+            is_magnitude_claim=False,
+            copilot="purchasing",
+            feature="R4-PUR-COMMODITY-PROVIDER",
+        )
+    )
 
     registry.register(
         ClaimProvenance(
@@ -283,6 +349,28 @@ def populate_default_registry() -> ClaimRegistry:
             feature="P41-S2P-CENTROID-EXPLORER",
         )
     )
+    registry.register(
+        ClaimProvenance(
+            claim_id="S2P-cohort-day-zero-status",
+            text="S2P cohort status separates real cohorts from sample structure",
+            tier=Tier.ORACLE,
+            evidence_ref="S2P cohort-status contract",
+            is_magnitude_claim=False,
+            copilot="s2p",
+            feature="P-COHORT-DAY-ZERO",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="S2P-otif-lead-time-r3",
+            text="S2P OTIF and lead-time values carry source provenance",
+            tier=Tier.SCRAPED,
+            evidence_ref="R3 OTIF/lead-time provenance fields",
+            is_magnitude_claim=False,
+            copilot="s2p",
+            feature="R3-S2P-OTIF-LEAD-TIME-PROVENANCE",
+        )
+    )
 
     registry.register(
         ClaimProvenance(
@@ -328,6 +416,17 @@ def populate_default_registry() -> ClaimRegistry:
             feature="P44-DI-GRAPH-ENRICHMENT",
         )
     )
+    registry.register(
+        ClaimProvenance(
+            claim_id="DATAOPS-cohort-day-zero-status",
+            text="DataOps cohort status separates real cohorts from sample structure",
+            tier=Tier.ORACLE,
+            evidence_ref="DataOps cohort-status endpoint and oracle artifact",
+            is_magnitude_claim=False,
+            copilot="dataops",
+            feature="P-COHORT-DAY-ZERO",
+        )
+    )
 
     registry.register(
         ClaimProvenance(
@@ -371,6 +470,39 @@ def populate_default_registry() -> ClaimRegistry:
             is_magnitude_claim=False,
             copilot="soc",
             feature="SOC-CONSERVATION",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="SOC-cohort-day-zero-status",
+            text="SOC cohort status separates real cohorts from sample structure",
+            tier=Tier.ORACLE,
+            evidence_ref="SOC cohort-status contract",
+            is_magnitude_claim=False,
+            copilot="soc",
+            feature="P-COHORT-DAY-ZERO",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="TRADING-cohort-day-zero-status",
+            text="Trading cohort status separates real cohorts from sample structure",
+            tier=Tier.ORACLE,
+            evidence_ref="Trading cohort-status endpoint and oracle artifact",
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="P-COHORT-DAY-ZERO",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="SOC-factor-provenance-r2",
+            text="SOC factor values expose provenance for enforcement",
+            tier=Tier.SCRAPED,
+            evidence_ref="R2 SOC factor provenance labels",
+            is_magnitude_claim=False,
+            copilot="soc",
+            feature="R2-SOC-FACTOR-PROVENANCE",
         )
     )
 

@@ -5,8 +5,9 @@ from fastapi.testclient import TestClient
 import pytest
 
 from app.connectors.mock_qbo import MockQBOConnector
+from app.connectors.commodity_provider import CommodityDataProvider
 from app.data_helpers import assert_no_sample_in_metric
-from app.routers.spend_router import SCRAPED_EXTERNAL_PROVENANCE, create_spend_router, qbo_bills_for_spend
+from app.routers.spend_router import SAMPLE_PROVENANCE, create_spend_router, qbo_bills_for_spend
 from app.services.spend_dashboard import SpendDashboardService
 
 
@@ -148,21 +149,69 @@ def test_spend_no_sample_data():
     rows = qbo_bills_for_spend(MockQBOConnector())
 
     assert rows
-    assert all(row.get("provenance") != "sample" for row in rows)
-    assert_no_sample_in_metric(rows, "spend_dashboard")
+    assert all(row.get("provenance") == SAMPLE_PROVENANCE for row in rows)
+    with pytest.raises(ValueError, match="F-26 VIOLATION"):
+        assert_no_sample_in_metric(rows, "spend_dashboard")
 
 
 def test_spend_from_qbo_has_provenance():
     rows = qbo_bills_for_spend(MockQBOConnector())
 
     assert rows
-    assert all(row.get("provenance") == SCRAPED_EXTERNAL_PROVENANCE for row in rows)
+    assert all(row.get("provenance") == SAMPLE_PROVENANCE for row in rows)
 
 
 def test_spend_from_qbo_metrics_valid():
     rows = qbo_bills_for_spend(MockQBOConnector())
-    service = SpendDashboardService(rows)
+    service = SpendDashboardService([row for row in rows if row.get("provenance") != SAMPLE_PROVENANCE])
 
-    assert service.summary(days=365)["total_spend"] > 0
+    assert service.summary(days=365)["total_spend"] == 0
     assert service.by_category(days=365)
-    assert any(row["total_amount"] > 0 for row in service.by_category(days=365))
+    assert all(row["total_amount"] == 0 for row in service.by_category(days=365))
+
+
+def test_food_cost_excludes_sample():
+    app = FastAPI()
+    app.include_router(create_spend_router([
+        {**sample_orders()[0], "provenance": "sample"},
+        {**sample_orders()[1], "provenance": "scraped_external"},
+    ]))
+    client = TestClient(app)
+
+    payload = client.get("/api/purchasing/spend/summary", params={"days": 365}).json()
+
+    assert payload["total_spend"] == 300.0
+    assert payload["order_count"] == 1
+
+
+def test_commodity_provider_wired():
+    class LiveSource:
+        provenance_tier = "scraped_external"
+
+        def fetch_category_prices(self, category: str):
+            return [{"date": "2026-06", "item": category, "price": 2.0, "unit": "lb"}]
+
+    app = FastAPI()
+    app.include_router(
+        create_spend_router(
+            sample_orders(),
+            commodity_provider=CommodityDataProvider(source=LiveSource()),
+        )
+    )
+    client = TestClient(app)
+
+    payload = client.get("/api/purchasing/spend/summary", params={"days": 365}).json()
+
+    assert payload["commodity"]["provenance"] == "scraped_external"
+    assert payload["commodity"]["indices"]
+
+
+def test_fixture_fallback_labeled_sample():
+    app = FastAPI()
+    app.include_router(create_spend_router(sample_orders(), commodity_provider=CommodityDataProvider()))
+    client = TestClient(app)
+
+    payload = client.get("/api/purchasing/spend/summary", params={"days": 365}).json()
+
+    assert payload["commodity"]["provenance"] == "sample"
+    assert payload["commodity"]["indices"] == {}

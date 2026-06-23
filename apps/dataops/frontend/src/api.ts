@@ -269,7 +269,7 @@ export interface CohortStatusResponse {
     treatmentN?: number;
     controlN?: number;
     thresholdK?: number;
-    lift?: number | null;
+    magnitude?: number | null;
     provenance?: string;
     status?: string;
   };

@@ -212,6 +212,38 @@ def test_auto_order_audit_has_source():
     assert gate.audit()[-1]["source"] == "auto_order"
 
 
+def test_conservation_excludes_sample():
+    app = FastAPI()
+    gate = AutoOrderGate(min_verified=50)
+    assert gate.enable("GREEN")["enabled"] is True
+    app.include_router(create_auto_order_router(gate, _SampleMixedState()))
+    client = TestClient(app)
+
+    payload = client.post(
+        "/api/purchasing/auto-order/evaluate",
+        json={"category": "protein", "confidence": 0.95},
+    ).json()
+
+    assert payload["verified_count"] == 50
+    assert payload["conservation_source"] == "category"
+
+
+def test_auto_approve_excludes_sample():
+    app = FastAPI()
+    gate = AutoOrderGate(min_verified=50)
+    assert gate.enable("GREEN")["enabled"] is True
+    app.include_router(create_auto_order_router(gate, _SampleOnlyState()))
+    client = TestClient(app)
+
+    payload = client.post(
+        "/api/purchasing/auto-order/evaluate",
+        json={"category": "protein", "confidence": 0.95},
+    ).json()
+
+    assert payload["auto_order"] is False
+    assert payload["verified_count"] == 0
+
+
 class _CategoryStore:
     def get_verified_decisions(self, domain: str) -> list[dict]:
         assert domain == "purchasing"
@@ -238,3 +270,55 @@ class _CategoryStore:
 
 class _CategoryState:
     graph_store = _CategoryStore()
+
+
+class _SampleMixedStore:
+    def get_verified_decisions(self, domain: str) -> list[dict]:
+        assert domain == "purchasing"
+        real_rows = [
+            {
+                "decision_id": f"REAL-{index}",
+                "domain": "purchasing",
+                "category": "protein",
+                "status": "confirmed",
+                "is_correct": True,
+                "provenance": "real",
+            }
+            for index in range(50)
+        ]
+        sample_rows = [
+            {
+                "decision_id": f"SAMPLE-{index}",
+                "domain": "purchasing",
+                "category": "protein",
+                "status": "overridden",
+                "is_correct": False,
+                "provenance": "sample",
+            }
+            for index in range(50)
+        ]
+        return real_rows + sample_rows
+
+
+class _SampleMixedState:
+    graph_store = _SampleMixedStore()
+
+
+class _SampleOnlyStore:
+    def get_verified_decisions(self, domain: str) -> list[dict]:
+        assert domain == "purchasing"
+        return [
+            {
+                "decision_id": f"SAMPLE-{index}",
+                "domain": "purchasing",
+                "category": "protein",
+                "status": "confirmed",
+                "is_correct": True,
+                "provenance": "sample",
+            }
+            for index in range(100)
+        ]
+
+
+class _SampleOnlyState:
+    graph_store = _SampleOnlyStore()

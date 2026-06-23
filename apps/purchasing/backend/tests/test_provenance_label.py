@@ -7,6 +7,7 @@ import pytest
 
 from app.connectors.mock_qbo import MockQBOConnector
 from app.data_helpers import (
+    DATA_DIR,
     ORDERS_PATH,
     SUPPLIERS_PATH,
     assert_no_sample_in_metric,
@@ -14,7 +15,8 @@ from app.data_helpers import (
     load_purchasing_orders,
     reset_purchasing_fixtures,
 )
-from app.routers.spend_router import SCRAPED_EXTERNAL_PROVENANCE, qbo_bills_for_spend
+from app.routers.spend_router import qbo_bills_for_spend
+from app.main import SEED_FIXTURE_PATH
 from generators.purchasing_synthetic import (
     SAMPLE_PROVENANCE,
     SEED,
@@ -77,10 +79,31 @@ def test_load_orders_preserves_provenance():
     assert all(order.get("provenance") == SAMPLE_PROVENANCE for order in orders)
 
 
+def test_seed_fixture_has_sample_provenance():
+    rows = json.loads(SEED_FIXTURE_PATH.read_text(encoding="utf-8"))
+
+    assert rows
+    assert all(row.get("provenance") == SAMPLE_PROVENANCE for row in rows)
+
+
+def test_all_purchasing_fixtures_have_provenance():
+    missing: list[str] = []
+    for path in sorted(DATA_DIR.glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for label, record in _fixture_records(path.name, data):
+            if record.get("provenance") != SAMPLE_PROVENANCE:
+                missing.append(f"{path.name}:{label}")
+
+    assert missing == []
+
+
 def test_is_sample_data():
     assert is_sample_data({"provenance": "sample"}) is True
     assert is_sample_data({"provenance": "scraped_external"}) is False
     assert is_sample_data({}) is False
+    assert is_sample_data({"supplier_id": "PUR-SUP-001"}) is True
+    assert is_sample_data({"order_id": "PUR-ORD-0001"}) is True
+    assert is_sample_data({"archetype": "reliable_premium"}) is True
 
 
 def test_assert_no_sample_raises():
@@ -100,6 +123,35 @@ def test_spend_dashboard_uses_real_data():
     rows = qbo_bills_for_spend(MockQBOConnector())
 
     assert rows
-    assert all(row.get("provenance") == SCRAPED_EXTERNAL_PROVENANCE for row in rows)
-    assert all(row.get("provenance") != SAMPLE_PROVENANCE for row in rows)
-    assert_no_sample_in_metric(rows, "spend_dashboard")
+    assert all(row.get("provenance") == SAMPLE_PROVENANCE for row in rows)
+    with pytest.raises(ValueError, match="F-26 VIOLATION"):
+        assert_no_sample_in_metric(rows, "spend_dashboard")
+
+
+def _fixture_records(filename: str, data: object) -> list[tuple[str, dict]]:
+    if isinstance(data, list):
+        return [
+            (f"[{index}]", record)
+            for index, record in enumerate(data)
+            if isinstance(record, dict)
+        ]
+
+    if not isinstance(data, dict):
+        return []
+
+    if filename == "order_metadata.json":
+        return [
+            (str(decision_id), record)
+            for decision_id, record in data.items()
+            if isinstance(record, dict)
+        ]
+
+    records = [("$", data)]
+    variants = data.get("variants")
+    if isinstance(variants, list):
+        records.extend(
+            (f"variants[{index}]", variant)
+            for index, variant in enumerate(variants)
+            if isinstance(variant, dict)
+        )
+    return records

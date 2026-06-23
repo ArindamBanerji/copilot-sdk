@@ -3,6 +3,7 @@ import { EvolutionPanel } from "../../../../../copilot_sdk/frontend";
 import { getAeImpact, getEvolutionVariants, getPatternOrigin } from "../api";
 import AEImpactPanel from "../components/AEImpactPanel";
 import AuditTrailViewer from "../components/AuditTrailViewer";
+import CohortStatusPanel from "../components/CohortStatusPanel";
 import OperationalRulesPanel from "../components/OperationalRulesPanel";
 import PatternOriginCard from "../components/PatternOriginCard";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
@@ -52,6 +53,7 @@ export default function EvidenceScreen() {
   return (
     <div className="grid gap-4">
       {error ? <Frame message={error} tone="error" /> : null}
+      <CohortStatusPanel />
       <AEImpactPanel impact={impact} />
       <EvolutionPanel variants={variants} title="AgentEvolver Audit Trail" />
       <RuleGenealogyTree />

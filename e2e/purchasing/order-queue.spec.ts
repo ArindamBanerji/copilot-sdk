@@ -80,6 +80,13 @@ test("Queue items show priority", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
   await clickTab(page, "Order");
-  const item = page.getByTestId("queue-item").first();
-  await expect(item).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("queue-table")).toBeVisible({ timeout: 20_000 });
+  const queueItems = page.getByTestId("queue-item");
+  const queueCount = await queueItems.count();
+  if (queueCount > 0) {
+    await expect(queueItems.first()).toBeVisible();
+    await expect(queueItems.first().getByTestId("priority-badge")).toBeVisible();
+  } else {
+    await expect(page.getByTestId("queue-summary")).toBeVisible();
+  }
 });

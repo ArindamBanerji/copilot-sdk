@@ -2,8 +2,13 @@ from __future__ import annotations
 
 import inspect
 import json
+from datetime import date, timedelta
 from pathlib import Path
 
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from app.routers.par_router import create_par_router
 from app.services.cohort_status import (
     ACCUMULATING,
     INSTRUMENT_VALIDATED,
@@ -74,7 +79,7 @@ def test_t1_sample_only_no_lift():
 
     status = service.get_status()
 
-    assert status["real"]["lift"] is None
+    assert status["real"]["magnitude"] is None
     assert status["real"]["status"] == "pending"
     assert status["state"] == INSTRUMENT_VALIDATED
 
@@ -96,7 +101,7 @@ def test_t3_one_real_below_k():
     status = service.get_status()
 
     assert status["state"] == ACCUMULATING
-    assert status["real"]["lift"] is None
+    assert status["real"]["magnitude"] is None
     assert status["real"]["treatment_n"] == 1
 
 
@@ -120,7 +125,7 @@ def test_t4_real_above_k_both_arms():
     status = service.get_status()
 
     assert status["state"] == MEASURED
-    assert status["real"]["lift"] == 0.4
+    assert status["real"]["magnitude"] == 0.4
 
 
 def test_t5_instrument_present_at_every_state(tmp_path):
@@ -150,7 +155,7 @@ def test_structure_never_moves_state():
 
     assert status["state"] == INSTRUMENT_VALIDATED
     assert status["structure"]["present"] is True
-    assert status["real"]["lift"] is None
+    assert status["real"]["magnitude"] is None
 
 
 def test_v7_gate_abstains_below_threshold():
@@ -159,14 +164,14 @@ def test_v7_gate_abstains_below_threshold():
             "treatment_n": 3,
             "control_n": 2,
             "threshold_k": 30,
-            "lift": None,
+            "magnitude": None,
         }
     }
 
     result = evaluate_v7_gate(status)
 
     assert result["status"] == "awaiting_real_cohorts"
-    assert result["lift"] is None
+    assert result["magnitude"] is None
 
 
 def test_v7_gate_rejects_non_real():
@@ -175,7 +180,7 @@ def test_v7_gate_rejects_non_real():
             "treatment_n": 30,
             "control_n": 30,
             "threshold_k": 30,
-            "lift": 0.1,
+            "magnitude": 0.1,
             "records": [{"provenance": "sample", "par_shown": True}],
         }
     }
@@ -189,7 +194,31 @@ def test_v7_gate_rejects_non_real():
 
 
 def test_par_shown_flag_recorded(client):
-    response = client.get("/api/purchasing/par/recommendations")
+    class ScrapedQBOConnector:
+        source_name = "quickbooks_online"
+
+        def fetch_bills(self):
+            return [
+                {
+                    "invoice_id": f"LIVE-{index}",
+                    "invoice_date": (date(2026, 1, 1) + timedelta(days=index)).isoformat(),
+                    "provenance": "scraped_external",
+                    "line_items": [
+                        {
+                            "item_name": "flour",
+                            "category": "dry_goods",
+                            "quantity": 16 + (index % 2),
+                            "unit_price": 4.0,
+                            "amount": (16 + (index % 2)) * 4.0,
+                        }
+                    ],
+                }
+                for index in range(60)
+            ]
+
+    app = FastAPI()
+    app.include_router(create_par_router(connector=ScrapedQBOConnector()))
+    response = TestClient(app).get("/api/purchasing/par/recommendations")
 
     assert response.status_code == 200
     rows = response.json()

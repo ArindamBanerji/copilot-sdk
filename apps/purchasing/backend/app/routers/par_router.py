@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 
 from app.connectors.mock_qbo import MockQBOConnector
-from app.data_helpers import assert_no_sample_in_metric
+from app.data_helpers import is_sample_data
 from app.routers.spend_router import qbo_bills_for_spend
 from app.services.par_optimizer import ParLevelOptimizer
 
@@ -32,8 +32,7 @@ def create_par_router(
         except Exception:
             return []
 
-        assert_no_sample_in_metric(orders, "par_intelligence")
-        return orders
+        return [order for order in orders if not is_sample_data(order)]
 
     def _recommendations(
         category: str | None = None, service_level: float = 0.95
@@ -84,7 +83,7 @@ def create_par_router(
             "total_items": len(items),
             "categories": categories,
             "data_source": "quickbooks_online",
-            "provenance_tier": SCRAPED_EXTERNAL_PROVENANCE,
+            "provenance_tier": SCRAPED_EXTERNAL_PROVENANCE if orders else "sample",
         }
 
     return router

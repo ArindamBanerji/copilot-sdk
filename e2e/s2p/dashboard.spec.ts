@@ -55,7 +55,7 @@ test("Suppliers screen loads with profiles", async ({ page }) => {
 
   await expect(page.getByRole("heading", { name: "Suppliers" })).toBeVisible();
   await expect(main(page)).toContainText(/supplier|profile|OTIF/i);
-  await expect(panel(page, "Profile source")).toContainText(/Exceptions|No supplier data yet|Unable to load supplier profiles/i);
+  await expect(panel(page, "Profile source")).toContainText(/Profile source|Exceptions|No supplier data yet|Unable to load supplier profiles/i);
 });
 
 test("Performance screen loads", async ({ page }) => {

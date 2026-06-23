@@ -15,20 +15,32 @@ function cachedAge(asOf?: string | null): string {
 export default function ProvenanceBadge({ source, asOf }: ProvenanceBadgeProps) {
   const normalized = source.toLowerCase();
   const label =
-    normalized === "live"
-      ? "Market data: live"
+    normalized === "live" || normalized === "scraped_external"
+      ? "░░ External"
+      : normalized === "real_measured" || normalized === "learned" || normalized === "verified"
+        ? "██ Learned"
       : normalized === "cached"
         ? `Market data: cached${cachedAge(asOf)}`
-        : "Market data: sample";
+        : "Sample";
+  const title =
+    normalized === "live" || normalized === "scraped_external"
+      ? "Real external context (░░) - real data, not yet customer-specific"
+      : normalized === "real_measured" || normalized === "learned" || normalized === "verified"
+        ? "Learned from your decisions (██) - measured, not synthesized"
+        : normalized === "cached"
+          ? `Cached real external context${cachedAge(asOf)}`
+          : "Demo data - excluded from all metrics and scores";
   const color =
-    normalized === "live"
+    normalized === "live" || normalized === "scraped_external"
       ? "bg-emerald-500"
+      : normalized === "real_measured" || normalized === "learned" || normalized === "verified"
+        ? "bg-blue-500"
       : normalized === "cached"
         ? "bg-amber-500"
         : "bg-slate-400";
 
   return (
-    <div className="mt-1 inline-flex items-center gap-2 text-xs trading-muted">
+    <div className="mt-1 inline-flex items-center gap-2 text-xs trading-muted" title={title}>
       <span className={`h-2 w-2 rounded-full ${color}`} aria-hidden="true" />
       <span>{label}</span>
     </div>

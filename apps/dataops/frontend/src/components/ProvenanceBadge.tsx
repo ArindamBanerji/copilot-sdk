@@ -46,7 +46,7 @@ export default function ProvenanceBadge({ source, provenance, asOf }: Provenance
     <span
       data-testid="provenance-badge"
       className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold ${style}`}
-      title={`Source: ${normalized}`}
+      title={isExternal ? "Real external context (░░) - real data, not yet customer-specific" : isLearned ? "Learned from your decisions (██) - measured, not synthesized" : isSample ? "Demo data - excluded from all metrics and scores" : `Source: ${normalized}`}
     >
       {label}
     </span>

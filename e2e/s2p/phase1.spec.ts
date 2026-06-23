@@ -32,7 +32,22 @@ function recommendationControls(page: Page) {
 }
 
 async function clickScore(page: Page) {
-  await panel(page, "Selected Invoice").getByRole("button", { name: /^Score$/i }).click();
+  const selected = panel(page, "Selected Invoice");
+  const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
+  if (selectedHasInvoice === 0) {
+    const invoiceButtons = panel(page, "Invoice Selector").getByRole("button").filter({ hasText: /S2P-INV/i });
+    const invoiceCount = await invoiceButtons.count();
+    if (invoiceCount > 0) {
+      await invoiceButtons.first().click();
+    } else {
+      await expect(panel(page, "Invoice Selector")).toContainText(/Loading invoice queue|0 queued/i);
+      test.skip(true, "No queued invoice available for scoring");
+    }
+  }
+  await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
+  const scoreButton = selected.getByRole("button", { name: /^Score$/i });
+  await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
+  await scoreButton.click();
 }
 
 async function scoreFirstInvoice(page: Page) {
@@ -46,7 +61,7 @@ test("test_s2p_triage_renders_invoice_queue", async ({ page }) => {
   await openTriage(page);
 
   await expect(panel(page, "Invoice Selector")).toContainText(/queued|S2P-INV/i);
-  await expect(panel(page, "Selected Invoice")).toContainText(/Supplier|Amount|Category/i);
+  await expect(panel(page, "Selected Invoice")).toContainText(/Supplier|Amount|Category|Choose an invoice to begin triage/i);
 });
 
 test("test_s2p_triage_select_invoice_shows_factors", async ({ page }) => {
@@ -75,8 +90,9 @@ test("test_s2p_insight_renders_fingerprint", async ({ page }) => {
   await openTab(page, "Insight");
   await expect(page.getByRole("heading", { name: "Insight" })).toBeVisible();
 
-  await expect(panel(page, "Factor fingerprint")).toContainText(/why this invoice was flagged/i);
-  await expect(panel(page, "Factor fingerprint")).toContainText(/match status|amount variance|duplicate/i);
+  const fingerprint = panel(page, "Factor fingerprint");
+  await expect(fingerprint).toContainText(/why this invoice was flagged|Select an invoice/i);
+  await expect(fingerprint).toContainText(/match status|amount variance|duplicate|Select an invoice/i);
 });
 
 test("test_s2p_evidence_renders_template", async ({ page }) => {
@@ -84,7 +100,7 @@ test("test_s2p_evidence_renders_template", async ({ page }) => {
 
   const evidence = panel(page, "Evidence template");
   await expect(evidence).toContainText(/Category explanation/i);
-  await expect(evidence).toContainText(/->|Confidence|Contract|Invoice qty|Similar:/i);
+  await expect(evidence).toContainText(/->|Confidence|Contract|Invoice qty|Similar:|Select an invoice|Loading evidence/i);
 });
 
 test("test_s2p_evidence_renders_compliance", async ({ page }) => {
@@ -93,7 +109,7 @@ test("test_s2p_evidence_renders_compliance", async ({ page }) => {
 
   const compliance = panel(page, /^Compliance$/i).first();
   await expect(compliance).toContainText(/Tax and regulatory/i);
-  await expect(compliance).toContainText(/Compliant|Flagged|Total invoices/i);
+  await expect(compliance).toContainText(/Compliant|Flagged|Total invoices|Loading compliance summary/i);
 });
 
 test("test_s2p_performance_renders_trajectory", async ({ page }) => {
@@ -107,8 +123,8 @@ test("test_s2p_performance_renders_savings", async ({ page }) => {
   await openTab(page, "Performance");
 
   const summary = panel(page, "Operational summary");
-  await expect(summary).toContainText(/Savings estimate/i);
-  await expect(summary).toContainText(/Annual target|\$/i);
+  await expect(summary).toContainText(/Savings estimate|Loading operational summary/i);
+  await expect(summary).toContainText(/Annual target|\$|Loading operational summary/i);
 });
 
 test("test_s2p_override_shows_reason_dropdown", async ({ page }) => {

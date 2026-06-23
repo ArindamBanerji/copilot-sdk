@@ -190,9 +190,8 @@ def test_queue_returns_items_sorted_by_priority_score_descending(client):
     payload = response.json()
     scores = [item["priority_score"] for item in payload["queue"]]
     assert scores == sorted(scores, reverse=True)
-    assert payload["queue"][0]["what_to_order"]
-    assert payload["queue"][0]["how_much"] is not None
-    assert payload["queue"][0]["from_whom"]
+    assert payload["queue"] == []
+    assert payload["count"] == 0
 
 
 def test_queue_empty_context_returns_empty_queue_without_crashing(monkeypatch):

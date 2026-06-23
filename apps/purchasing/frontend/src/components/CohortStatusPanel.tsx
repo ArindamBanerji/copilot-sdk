@@ -8,7 +8,7 @@ const FALLBACK_STATUS: CohortStatusResponse = {
     treatmentN: 0,
     controlN: 0,
     thresholdK: 30,
-    lift: null,
+    magnitude: null,
     provenance: "real",
     status: "pending",
   },
@@ -55,7 +55,7 @@ export default function CohortStatusPanel() {
   );
   const state = status.state || "INSTRUMENT_VALIDATED";
   const badge = badgeFor(state);
-  const measured = state === "MEASURED" && typeof real?.lift === "number";
+  const measured = state === "MEASURED" && typeof real?.magnitude === "number";
 
   return (
     <section className="purchase-card" data-testid="cohort-status-panel">
@@ -73,12 +73,12 @@ export default function CohortStatusPanel() {
         </span>
       </div>
 
-      <p className="mt-3 text-sm purchase-muted">{loading ? "Loading measurement status..." : summaryFor(state, real?.lift, total, thresholdK)}</p>
+      <p className="mt-3 text-sm purchase-muted">{loading ? "Loading measurement status..." : summaryFor(state, real?.magnitude, total, thresholdK)}</p>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         <section className="rounded-md border p-3" data-testid="cohort-status-instrument" style={{ borderColor: "var(--copilot-border)" }}>
           <div className="text-xs font-semibold uppercase tracking-wide purchase-muted">T-O instrument</div>
-          <p className="mt-2 text-sm">Validated - detects injected lift (+/-, recovered pass)</p>
+          <p className="mt-2 text-sm">Instrument: Validated. The measurement instrument is validated and running. Context is populated with real external data.</p>
           {experiments.length ? (
             <ul className="mt-3 grid gap-2 text-xs purchase-muted">
               {experiments.map((experiment, index) => (
@@ -94,10 +94,10 @@ export default function CohortStatusPanel() {
           <div className="text-xs font-semibold uppercase tracking-wide purchase-muted">T-R real measurement</div>
           <p className="mt-2 text-sm">
             {measured
-              ? `Lift: ${formatLift(real?.lift)} from ${total} real decisions`
+              ? `Measured: ${formatLift(real?.magnitude)} from ${total} verified decisions. This is your magnitude - not a projection, not synthetic.`
               : state === "ACCUMULATING"
-                ? `Collecting decisions: ${total} of ${thresholdK * 2}`
-                : "Measured on your team's real decisions. Appears here as they act."}
+                ? `Real decisions are accumulating: ${total} / ${thresholdK * 2} decisions. The instrument is measuring your operations. Magnitude will appear when ${thresholdK} decisions per arm are verified.`
+                : "The measurement instrument is validated and running. Context is populated with real external data. As your team operates, real decisions will accumulate and your specific magnitude will be measured - never synthesized."}
           </p>
           <p className="mt-2 text-xs purchase-muted" data-testid="cohort-status-progress">
             {treatmentN}/{thresholdK} shown, {controlN}/{thresholdK} control
@@ -118,14 +118,14 @@ function badgeFor(state: string) {
   return { label: "Measurement ready", background: "rgba(59, 130, 246, 0.16)", color: "#1d4ed8" };
 }
 
-function summaryFor(state: string, lift: number | null | undefined, total: number, thresholdK: number): string {
-  if (state === "MEASURED" && typeof lift === "number") {
-    return `Measured from ${total} real decisions.`;
+function summaryFor(state: string, magnitude: number | null | undefined, total: number, thresholdK: number): string {
+  if (state === "MEASURED" && typeof magnitude === "number") {
+    return `Measured on your operations from ${total} verified decisions. This is your magnitude - not a projection, not synthetic.`;
   }
   if (state === "ACCUMULATING") {
-    return `Measuring with ${total} of ${thresholdK * 2} decisions collected.`;
+    return `Real decisions are accumulating. The instrument is measuring your operations. Magnitude will appear when ${thresholdK} decisions per arm are verified.`;
   }
-  return "Measurement machinery is ready before real cohorts arrive.";
+  return "The measurement instrument is validated and running. Context is populated with real external data. As your team operates, real decisions will accumulate and your specific magnitude will be measured - never synthesized.";
 }
 
 function ensureArray(value: CohortExperiment[] | undefined): CohortExperiment[] {

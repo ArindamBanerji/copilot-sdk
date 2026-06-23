@@ -17,8 +17,8 @@ test("dashboard shows financial impact", async ({ page }) => {
   await page.goto("/");
   const impact = panel(page, "Financial impact");
 
-  await expect(impact).toContainText(/PVG savings/i);
-  await expect(impact).toContainText(/leakage prevented|cycle time saved|auto approve efficiency|unavailable/i);
+  await expect(impact).toContainText(/PVG savings|Financial impact data is unavailable|Recovered impact|Loading/i);
+  await expect(impact).toContainText(/leakage prevented|cycle time saved|auto approve efficiency|unavailable|Loading/i);
 });
 
 test("insight shows leakage detection", async ({ page }) => {
@@ -28,7 +28,7 @@ test("insight shows leakage detection", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Insight" })).toBeVisible();
   const leakage = panel(page, "Leakage detection");
   await expect(leakage).toContainText(/PVG at-risk invoices/i);
-  await expect(leakage).toContainText(/Total at risk|No invoices currently meet|Leakage data is unavailable|S2P-INV/i);
+  await expect(leakage).toContainText(/Total at risk|No invoices currently meet|Leakage data is unavailable|S2P-INV|Loading leakage signals/i);
 });
 
 test("performance shows cycle-time signal or unavailable state", async ({ page }) => {

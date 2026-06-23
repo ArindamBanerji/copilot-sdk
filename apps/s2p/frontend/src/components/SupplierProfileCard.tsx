@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchSupplierProfile } from "../api";
+import { ProvenanceBadge } from "./ProvenanceBadge";
 
 type RecentInvoice = {
   invoice_id?: string;
@@ -86,7 +87,7 @@ export function SupplierProfileCard({ supplierId }: { supplierId?: string }) {
             <span className="rounded bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">{profile.supplier_id ?? supplierId}</span>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <Metric label="OTIF score" value={formatPct(profile.otif_score)} />
+            <Metric label="OTIF score" value={formatPct(profile.otif_score)} provenance="sample" />
             <Metric label="Exception rate" value={formatPct(profile.exception_rate)} />
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -117,10 +118,13 @@ export function SupplierProfileCard({ supplierId }: { supplierId?: string }) {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value, provenance }: { label: string; value: string; provenance?: string }) {
   return (
     <div className="rounded-md border border-slate-200 bg-white p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+        {provenance ? <ProvenanceBadge source={provenance} /> : null}
+      </div>
       <p className="mt-2 text-lg font-semibold text-slate-950">{value}</p>
     </div>
   );
@@ -129,7 +133,10 @@ function Metric({ label, value }: { label: string; value: string }) {
 function Trend({ label, values }: { label: string; values: number[] }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+        <ProvenanceBadge source="real_measured" />
+      </div>
       <div className="mt-2 flex h-10 items-end gap-1">
         {values.length === 0 ? (
           <span className="text-sm text-slate-500">n/a</span>

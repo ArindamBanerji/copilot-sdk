@@ -187,6 +187,7 @@ def test_par_endpoint_200():
 
     assert r.status_code == 200
     assert isinstance(r.json(), list)
+    assert r.json() == []
 
 
 def test_par_category_filter():
@@ -202,7 +203,7 @@ def test_par_status():
     assert r.status_code == 200
     data = r.json()
     assert data["data_source"] == "quickbooks_online"
-    assert data["provenance_tier"] == "scraped_external"
+    assert data["provenance_tier"] == "sample"
 
 
 def test_par_uses_qbo_not_fixture():
@@ -216,6 +217,7 @@ def test_par_no_sample_in_recommendations():
     r = _client().get("/api/purchasing/par/recommendations")
 
     assert r.status_code == 200
+    assert r.json() == []
     assert all(item.get("provenance") != "sample" for item in r.json())
 
 

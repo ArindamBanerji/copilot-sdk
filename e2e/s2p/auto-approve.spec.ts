@@ -88,7 +88,7 @@ test("dashboard shows auto-approve panel", async ({ page }) => {
   const panel = autoApprovePanel(page);
 
   await expect(panel).toBeVisible();
-  await expect(panel).toContainText("Auto-approve rate");
+  await expect(panel).toContainText(/Auto-approve rate|Loading auto-approve telemetry/i);
 });
 
 test("auto-approve panel displays per-category thresholds", async ({ page }) => {

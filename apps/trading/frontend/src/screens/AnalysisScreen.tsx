@@ -9,6 +9,7 @@ import DecisionExplorer from "../components/DecisionExplorer";
 import PatternDetectionPanel from "../components/PatternDetectionPanel";
 import ProfileArchetype from "../components/ProfileArchetype";
 import RegimeChart from "../components/RegimeChart";
+import RegimePanel from "../components/RegimePanel";
 import ResearchImpactChart from "../components/ResearchImpactChart";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
@@ -105,6 +106,7 @@ export default function AnalysisScreen() {
   return (
     <div className="flex flex-col gap-4">
       <TrustRadarPanel />
+      <RegimePanel />
       <PatternDetectionPanel />
       <ContrastCard analytics={analytics} />
       <ProfileArchetype fingerprint={fingerprint} />

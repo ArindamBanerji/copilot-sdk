@@ -41,7 +41,17 @@ def reset_purchasing_fixtures() -> None:
 
 def is_sample_data(record: dict) -> bool:
     """Check if a record is K3 demo-fixture data (Rule 67)."""
-    return record.get("provenance") == "sample"
+    if record.get("provenance") == "sample":
+        return True
+    if record.get("provenance") is not None:
+        return False
+    supplier_id = str(record.get("supplier_id") or "")
+    order_id = str(record.get("order_id") or "")
+    return (
+        bool(record.get("archetype"))
+        or supplier_id.startswith("PUR-SUP-")
+        or order_id.startswith("PUR-ORD-")
+    )
 
 
 def assert_no_sample_in_metric(records: list[dict], metric_name: str) -> None:

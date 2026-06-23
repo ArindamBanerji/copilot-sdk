@@ -1,4 +1,5 @@
 import type { FactorMap } from "../types";
+import { ProvenanceBadge } from "./ProvenanceBadge";
 
 function label(name: string): string {
   return name
@@ -36,7 +37,10 @@ export function S2PReasoningPanel({
             return (
               <div key={name}>
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="font-medium text-slate-700">{label(name)}</span>
+                  <span className="flex items-center gap-2 font-medium text-slate-700">
+                    {label(name)}
+                    <ProvenanceBadge source="sample" />
+                  </span>
                   <span className="font-semibold text-slate-950">{pct}%</span>
                 </div>
                 <div className="mt-1 h-2 rounded-full bg-slate-100">

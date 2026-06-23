@@ -6,21 +6,26 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from app.data_helpers import assert_no_sample_in_metric
+from app.connectors.commodity_provider import CommodityDataProvider
+from app.data_helpers import is_sample_data
 from app.services.spend_dashboard import SpendDashboardService
 
 
 SCRAPED_EXTERNAL_PROVENANCE = "scraped_external"
+SAMPLE_PROVENANCE = "sample"
 
 
 def create_spend_router(
     orders: list[dict] | None = None,
     connector: Any | None = None,
+    commodity_provider: CommodityDataProvider | None = None,
 ) -> APIRouter:
     if connector is None:
         from app.connectors.mock_qbo import MockQBOConnector
 
         connector = MockQBOConnector()
+    if commodity_provider is None:
+        commodity_provider = CommodityDataProvider()
 
     router = APIRouter(prefix="/api/purchasing/spend", tags=["spend"])
 
@@ -29,15 +34,14 @@ def create_spend_router(
             rows = list(orders)
         else:
             rows = qbo_bills_for_spend(connector)
-        assert_no_sample_in_metric(rows, "spend_dashboard")
-        return rows
+        return [row for row in rows if not is_sample_data(row)]
 
     def _service() -> SpendDashboardService:
         return SpendDashboardService(_get_orders())
 
     @router.get("/summary")
     def get_summary(days: int = 7) -> dict:
-        return _service().summary(days=days)
+        return {**_service().summary(days=days), "commodity": _commodity_context(commodity_provider)}
 
     @router.get("/by-category")
     def get_by_category(days: int = 30) -> list[dict]:
@@ -61,7 +65,12 @@ def create_spend_router(
 def qbo_bills_for_spend(connector: Any) -> list[dict]:
     """Return QBO invoice records normalized for spend analytics."""
     bills = connector.fetch_bills()
-    return [_normalize_qbo_bill_for_spend(bill) for bill in bills if isinstance(bill, dict)]
+    connector_source = str(getattr(connector, "source_name", type(connector).__name__))
+    return [
+        _normalize_qbo_bill_for_spend({**bill, "_connector_source": connector_source})
+        for bill in bills
+        if isinstance(bill, dict)
+    ]
 
 
 def _normalize_qbo_bill_for_spend(bill: dict[str, Any]) -> dict[str, Any]:
@@ -78,7 +87,7 @@ def _normalize_qbo_bill_for_spend(bill: dict[str, Any]) -> dict[str, Any]:
     row = dict(bill)
     row.update(
         {
-            "provenance": SCRAPED_EXTERNAL_PROVENANCE,
+            "provenance": _connector_provenance(bill),
             "order_id": bill.get("order_id") or bill.get("invoice_id"),
             "order_date": bill.get("order_date") or bill.get("invoice_date") or bill.get("timestamp"),
             "total_value": bill.get("total_value") if bill.get("total_value") is not None else bill.get("amount"),
@@ -89,6 +98,20 @@ def _normalize_qbo_bill_for_spend(bill: dict[str, Any]) -> dict[str, Any]:
     return row
 
 
+def _connector_provenance(bill: dict[str, Any]) -> str:
+    if bill.get("provenance"):
+        return str(bill["provenance"])
+    source = str(
+        bill.get("source")
+        or bill.get("source_name")
+        or bill.get("_connector_source")
+        or ""
+    ).lower()
+    if "mock" in source or "fixture" in source:
+        return SAMPLE_PROVENANCE
+    return SCRAPED_EXTERNAL_PROVENANCE
+
+
 def _normalize_qbo_line_item(line: dict[str, Any]) -> dict[str, Any]:
     item = dict(line)
     item_name = item.get("name") or item.get("item_name") or item.get("item_id")
@@ -96,3 +119,14 @@ def _normalize_qbo_line_item(line: dict[str, Any]) -> dict[str, Any]:
         item.setdefault("name", str(item_name))
         item.setdefault("item_id", str(item_name).replace(" ", "_"))
     return item
+
+
+def _commodity_context(provider: CommodityDataProvider | None = None) -> dict[str, Any]:
+    provider = provider or CommodityDataProvider()
+    result = provider.get_all_indices()
+    source = str(result.source)
+    return {
+        "provenance": source,
+        "source": result.label,
+        "indices": result.value if source != SAMPLE_PROVENANCE else {},
+    }

@@ -71,7 +71,7 @@ def test_t1_sample_only_no_lift():
     ).get_status()
 
     assert status["state"] == "INSTRUMENT_VALIDATED"
-    assert status["real"]["lift"] is None
+    assert status["real"]["magnitude"] is None
     assert status["real"]["status"] == "pending"
 
 
@@ -90,7 +90,7 @@ def test_t3_one_real_below_k():
     ).get_status()
 
     assert status["state"] == "ACCUMULATING"
-    assert status["real"]["lift"] is None
+    assert status["real"]["magnitude"] is None
     assert status["real"]["treatment_n"] == 1
 
 
@@ -113,7 +113,7 @@ def test_t4_real_above_k_both_arms():
     ).get_status()
 
     assert status["state"] == "MEASURED"
-    assert status["real"]["lift"] == 0.4
+    assert status["real"]["magnitude"] == 0.4
 
 
 def test_t5_instrument_present_at_every_state(tmp_path):
@@ -141,7 +141,7 @@ def test_structure_never_moves_state():
 
     assert status["state"] == "INSTRUMENT_VALIDATED"
     assert status["structure"]["present"] is True
-    assert status["real"]["lift"] is None
+    assert status["real"]["magnitude"] is None
 
 
 def test_v7_gate_abstains_below_threshold():
@@ -150,7 +150,7 @@ def test_v7_gate_abstains_below_threshold():
     )
 
     assert result["status"] == "awaiting_real_cohorts"
-    assert result["lift"] is None
+    assert result["magnitude"] is None
 
 
 def test_v7_gate_rejects_non_real():

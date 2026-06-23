@@ -16,6 +16,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             instrumented=True,
             real_path_committed=True,
             labels_honest=True,
+            renders_day_zero_state=True,
         )
     )
     entries.append(
@@ -27,6 +28,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             instrumented=True,
             real_path_committed=True,
             labels_honest=True,
+            renders_day_zero_state=True,
         )
     )
     entries.append(
@@ -38,6 +40,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             instrumented=True,
             real_path_committed=True,
             labels_honest=True,
+            renders_day_zero_state=True,
         )
     )
     entries.append(
@@ -49,6 +52,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             instrumented=True,
             real_path_committed=True,
             labels_honest=True,
+            renders_day_zero_state=True,
         )
     )
     entries.append(
@@ -60,6 +64,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             instrumented=True,
             real_path_committed=True,
             labels_honest=True,
+            renders_day_zero_state=True,
         )
     )
     entries.append(
@@ -71,6 +76,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             instrumented=True,
             real_path_committed=True,
             labels_honest=True,
+            renders_day_zero_state=True,
         )
     )
     entries.append(
@@ -82,6 +88,7 @@ def populate_default_readiness() -> list[DayZeroReadiness]:
             instrumented=True,
             real_path_committed=True,
             labels_honest=True,
+            renders_day_zero_state=True,
         )
     )
 

@@ -18,7 +18,7 @@ def _expected_window(cells: int) -> int:
 
 
 def test_preset_plateau_config_tensor_derived() -> None:
-    assert set(PRESET_REGISTRY) == {"dataops", "purchasing", "s2p", "trading"}
+    assert set(PRESET_REGISTRY) == {"dataops", "purchasing", "s2p", "soc", "trading"}
 
     for preset_cls in PRESET_REGISTRY.values():
         preset = preset_cls()
@@ -51,13 +51,15 @@ def test_plateau_window_ordering_by_cells() -> None:
 
     assert presets["trading"].shape.n_categories * presets["trading"].shape.n_actions == 20
     assert presets["purchasing"].shape.n_categories * presets["purchasing"].shape.n_actions == 20
+    assert presets["soc"].shape.n_categories * presets["soc"].shape.n_actions == 24
     assert presets["s2p"].shape.n_categories * presets["s2p"].shape.n_actions == 25
     assert presets["dataops"].shape.n_categories * presets["dataops"].shape.n_actions == 30
 
     assert presets["trading"].plateau_config.plateau_window == presets["purchasing"].plateau_config.plateau_window
     assert (
         presets["purchasing"].plateau_config.plateau_window
-        < presets["s2p"].plateau_config.plateau_window
+        < presets["soc"].plateau_config.plateau_window
+        <= presets["s2p"].plateau_config.plateau_window
         < presets["dataops"].plateau_config.plateau_window
     )
 
