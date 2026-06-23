@@ -9,6 +9,7 @@ import {
   getTradeMetadata,
 } from "../api";
 import AccuracyByCategory from "../components/AccuracyByCategory";
+import ArchetypeSelector from "../components/ArchetypeSelector";
 import CalendarHeatmap from "../components/CalendarHeatmap";
 import MarketContext from "../components/MarketContext";
 import PortfolioConcentration from "../components/PortfolioConcentration";
@@ -70,6 +71,10 @@ function joinTrades(
       factors: historyItem?.factors,
     };
   });
+}
+
+function scrollToArchetypes() {
+  document.getElementById("archetype-select")?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 export default function DashboardScreen({
@@ -171,6 +176,19 @@ export default function DashboardScreen({
         </button>
       </div>
 
+      {joinedTrades.length === 0 ? (
+        <div className="copilot-card p-4">
+          <h2 className="text-base font-semibold">Get started faster</h2>
+          <p className="mt-2 max-w-2xl text-sm trading-muted">
+            No decisions yet. Select an industry template to start with calibrated centroids instead of generic 50% priors.
+          </p>
+          <button type="button" className="copilot-button mt-4 px-4 py-2 text-sm" onClick={scrollToArchetypes}>
+            Browse Industry Templates
+          </button>
+        </div>
+      ) : null}
+
+      <ArchetypeSelector />
       <MarketContext snapshot={state.market} />
       <RegimePanel />
       <PortfolioSummary summary={state.analytics?.portfolioSummary} />

@@ -16,6 +16,7 @@ import PromotionDashboard from "../components/PromotionDashboard";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
 import StrategySafetyBreakdownPanel from "../components/StrategySafetyBreakdownPanel";
+import TransferPanel from "../components/TransferPanel";
 import VIXTimingPanel from "../components/VIXTimingPanel";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
 
@@ -126,6 +127,7 @@ export default function PerformanceScreen() {
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <StrategySafetyBreakdownPanel />
       <PromotionDashboard />
+      <TransferPanel />
       <EvolutionPanel />
       <EvolutionControlsPanel />
       <CohortStatusPanel />

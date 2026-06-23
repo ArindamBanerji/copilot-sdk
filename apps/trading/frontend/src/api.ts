@@ -553,6 +553,126 @@ export function rollbackEvolution(param: string): Promise<{ rolledBack?: boolean
   });
 }
 
+export interface TransferOpportunity {
+  sourceDomain?: string;
+  source_domain?: string;
+  targetDomain?: string;
+  target_domain?: string;
+  factor?: string;
+  recommendation?: string;
+  [key: string]: unknown;
+}
+
+export interface TransferMappingSummary {
+  source?: string;
+  target?: string;
+  categories?: number;
+}
+
+export interface TransferOpportunitiesResponse {
+  status?: string;
+  domain?: string;
+  ownFingerprintPresent?: boolean;
+  availableDomains?: string[];
+  opportunityCount?: number;
+  opportunities?: TransferOpportunity[];
+  availableTransfers?: TransferMappingSummary[];
+  warnings?: string[];
+}
+
+export interface TransferStatusResponse {
+  warmStarted?: boolean;
+  sourceCopilot?: string;
+  patternsTransferred?: number;
+  transferredAt?: string | null;
+  sourceAccuracy?: number | null;
+  categoriesTransferred?: number;
+  provenance?: string;
+}
+
+export interface TransferExecuteResponse {
+  executed?: boolean;
+  dryRun?: boolean;
+  sourceDomain?: string;
+  targetDomain?: string;
+  ownDomain?: string;
+  categoriesMapped?: number;
+  patternsApplied?: number;
+  conservationReset?: boolean;
+  provenance?: string;
+  reason?: string;
+  mapping?: Record<string, string>;
+  summary?: Record<string, unknown>;
+}
+
+export function fetchTransferOpportunities(): Promise<TransferOpportunitiesResponse> {
+  return apiGet<TransferOpportunitiesResponse>("/api/transfer/opportunities");
+}
+
+export function fetchTransferStatus(): Promise<TransferStatusResponse> {
+  return apiGet<TransferStatusResponse>("/api/transfer/status");
+}
+
+export function executeTransfer(
+  sourceDomain: string,
+  targetDomain: string,
+  dryRun = true,
+): Promise<TransferExecuteResponse> {
+  return apiPost<TransferExecuteResponse>("/api/transfer/execute", {
+    source_domain: sourceDomain,
+    target_domain: targetDomain,
+    dry_run: dryRun,
+  });
+}
+
+export interface ArchetypeSummary {
+  name: string;
+  domain?: string;
+  description?: string;
+  expectedInitialAccuracy?: number;
+  categories?: string[];
+  actions?: string[];
+  factors?: string[];
+}
+
+export interface ArchetypeDetail extends ArchetypeSummary {
+  shape?: number[];
+  centroids?: unknown[];
+  penaltyRatio?: number;
+  calibrationNote?: string;
+  calibrationNotes?: string[];
+}
+
+export interface ArchetypeApplyResponse {
+  applied?: boolean;
+  archetype?: string;
+  current?: string;
+  domain?: string;
+  preset?: ArchetypeDetail;
+  conservationNote?: string;
+}
+
+export interface ArchetypeCurrentResponse {
+  current?: string;
+}
+
+export function fetchArchetypes(domain?: string): Promise<ArchetypeSummary[]> {
+  const query = domain ? `?domain=${encodeURIComponent(domain)}` : "";
+  return apiGet<ArchetypeSummary[]>(`/api/archetypes${query}`);
+}
+
+export function fetchArchetype(name: string): Promise<ArchetypeDetail> {
+  return apiGet<ArchetypeDetail>(`/api/archetypes/${encodeURIComponent(name)}`);
+}
+
+export function fetchCurrentArchetype(): Promise<ArchetypeCurrentResponse> {
+  return apiGet<ArchetypeCurrentResponse>("/api/archetypes/current");
+}
+
+export function applyArchetype(name: string): Promise<ArchetypeApplyResponse> {
+  return apiPost<ArchetypeApplyResponse>(`/api/archetypes/apply/${encodeURIComponent(name)}`, {});
+}
+
 export function getTradeMetadata(): Promise<Record<string, TradeMetadata>> {
   return apiGet<Record<string, TradeMetadata>>("/api/context/trade-metadata");
 }

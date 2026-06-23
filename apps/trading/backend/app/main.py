@@ -45,6 +45,7 @@ from .routers.social import create_social_router  # noqa: E402
 from .routers.vix_timing import create_vix_timing_router  # noqa: E402
 from .routers.webhook import create_webhook_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
+from copilot_sdk.backend.archetype_router import create_archetype_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
     create_evolution_router,
@@ -310,6 +311,7 @@ def create_app(
         prefix="/api",
     )
     app.include_router(create_transfer_router(scorer_proxy))
+    app.include_router(create_archetype_router())
     app.include_router(
         create_evolution_router(
             graph_store_factory=lambda: selected_graph_store_factory(scoring_db),

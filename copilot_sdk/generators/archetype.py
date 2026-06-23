@@ -27,6 +27,7 @@ class GeneratedDomainPreset:
     eta_confirm: float = 0.05
     eta_override: float = 0.01
     temperature: float = 0.1
+    expected_initial_accuracy: float = 0.65
     plateau_config: PlateauConfig | None = None
 
 
@@ -221,11 +222,13 @@ def _build_preset(
         factor_names=factors,
     )
     centroids = _generate_centroids(spec.name, shape, values)
+    expected_initial_accuracy = _expected_initial_accuracy(centroids)
     return GeneratedDomainPreset(
         name=spec.name,
         shape=shape,
         penalty_ratio=values["penalty_ratio"],
         bootstrap_centroids=centroids,
+        expected_initial_accuracy=expected_initial_accuracy,
         plateau_config=_plateau_config_for_shape(shape),
     )
 
@@ -314,6 +317,12 @@ def _generate_centroids(
     base = np.full(shape.tensor_shape, 0.5, dtype=np.float64)
     noise = rng.uniform(-0.1, 0.1, size=shape.tensor_shape)
     return np.clip(base + noise, 0.0, 1.0).astype(np.float64)
+
+
+def _expected_initial_accuracy(centroids: np.ndarray) -> float:
+    """Heuristic initial accuracy from archetype centroid confidence."""
+    confidence = float(np.mean(np.max(np.asarray(centroids, dtype=np.float64), axis=1)))
+    return round(max(0.5, min(0.9, confidence + 0.08)), 2)
 
 
 def _score_with_sklearn(text: str) -> list[tuple[str, float]] | None:
