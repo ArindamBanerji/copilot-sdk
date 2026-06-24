@@ -332,6 +332,97 @@ export function fetchVIXTiming(): Promise<VIXTimingResponse | null> {
   return safeApiGet<VIXTimingResponse>("/api/trading/vix-timing");
 }
 
+export interface BrokerExecutionSummary {
+  broker?: string;
+  tradeCount?: number;
+  avgSlippage?: number;
+  fillRate?: number;
+  avgFillTimeSeconds?: number | null;
+}
+
+export interface ExecutionSummaryResponse {
+  brokerCount?: number;
+  bestBroker?: string;
+  annualSavingsEstimate?: number;
+  recommendation?: string;
+  brokers?: BrokerExecutionSummary[];
+}
+
+export interface ExecutionAnalysisResponse extends ExecutionSummaryResponse {
+  brokers?: Array<BrokerExecutionSummary & {
+    medianSlippage?: number;
+    totalSlippageCost?: number;
+  }>;
+}
+
+export function fetchExecutionSummary(): Promise<ExecutionSummaryResponse | null> {
+  return safeApiGet<ExecutionSummaryResponse>("/api/trading/execution/summary");
+}
+
+export function fetchExecutionAnalysis(): Promise<ExecutionAnalysisResponse | null> {
+  return safeApiGet<ExecutionAnalysisResponse>("/api/trading/execution/analysis");
+}
+
+export interface WebhookHistoryItem {
+  signalId?: string;
+  ticker?: string;
+  signalType?: string;
+  action?: string;
+  category?: string;
+  confidence?: number;
+  receivedAt?: string;
+  timestamp?: string;
+  timeToTradeSeconds?: number;
+  time_to_trade_seconds?: number;
+  isCorrect?: boolean;
+  is_correct?: boolean;
+  scored?: Record<string, unknown> | null;
+  [key: string]: unknown;
+}
+
+export interface WebhookStatusResponse {
+  totalAlerts: number;
+  correlatedTrades: number;
+  lastAlert?: WebhookHistoryItem | null;
+  lastReceived?: string | null;
+  fastAccuracy?: number | null;
+  slowAccuracy?: number | null;
+  health?: string;
+}
+
+export function fetchWebhookHistory(): Promise<WebhookHistoryItem[]> {
+  return safeApiGet<WebhookHistoryItem[]>("/api/trading/webhook/history").then((payload) => payload ?? []);
+}
+
+function speedAccuracy(alerts: WebhookHistoryItem[]): number | null {
+  if (alerts.length === 0) return null;
+  const labeled = alerts.filter((alert) => typeof (alert.isCorrect ?? alert.is_correct) === "boolean");
+  if (labeled.length === 0) return null;
+  return labeled.filter((alert) => Boolean(alert.isCorrect ?? alert.is_correct)).length / labeled.length;
+}
+
+export async function fetchWebhookStatus(): Promise<WebhookStatusResponse> {
+  const history = await fetchWebhookHistory();
+  const lastAlert = history[0] ?? null;
+  const correlatedTrades = history.filter((item) => item.scored).length;
+  const fast = history.filter((item) => Number(item.timeToTradeSeconds ?? item.time_to_trade_seconds) < 300);
+  const slow = history.filter((item) => Number(item.timeToTradeSeconds ?? item.time_to_trade_seconds) > 1800);
+  return {
+    totalAlerts: history.length,
+    correlatedTrades,
+    lastAlert,
+    lastReceived: lastAlert?.receivedAt ?? lastAlert?.timestamp ?? null,
+    fastAccuracy: speedAccuracy(fast),
+    slowAccuracy: speedAccuracy(slow),
+    health: history.length > 0 ? "active" : "waiting",
+  };
+}
+
+export async function fetchWebhookCorrelations(): Promise<WebhookHistoryItem[]> {
+  const history = await fetchWebhookHistory();
+  return history.filter((item) => item.scored);
+}
+
 export async function prescoreTrade(payload: PrescoreRequest): Promise<PrescoreResponse | null> {
   try {
     return await apiPost<PrescoreResponse>("/api/trading/prescore", {

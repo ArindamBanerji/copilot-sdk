@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchAnalytics, fetchSubcategoryAnalytics, fetchTradeDetail, fetchTrades, type TradeJournalFilters } from "../api";
+import EarningsInsightCard from "../components/EarningsInsightCard";
 import EvidencePanel from "../components/EvidencePanel";
 import OptionsFactorPanel from "../components/OptionsFactorPanel";
 import type { AnalyticsResponse, JournalAggregate, TradeJournalEntry, TradesResponse } from "../types";
@@ -194,6 +195,7 @@ export default function JournalScreen() {
       {!loading && !error ? (
         <>
           <AggregateCards aggregate={aggregate} total={tradesPayload?.total ?? trades.length} />
+          <EarningsInsightCard groups={subcategoryGroups} />
           <section className="copilot-card p-4">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-base font-semibold">Trades</h3>

@@ -12,12 +12,14 @@ import CentroidTimeline from "../components/CentroidTimeline";
 import CohortStatusPanel from "../components/CohortStatusPanel";
 import EvolutionControlsPanel from "../components/EvolutionControlsPanel";
 import EvolutionPanel from "../components/EvolutionPanel";
+import ExecutionQualityCard from "../components/ExecutionQualityCard";
 import PromotionDashboard from "../components/PromotionDashboard";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
 import StrategySafetyBreakdownPanel from "../components/StrategySafetyBreakdownPanel";
 import TransferPanel from "../components/TransferPanel";
 import VIXTimingPanel from "../components/VIXTimingPanel";
+import WebhookStatusCard from "../components/WebhookStatusCard";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
 
 function pct(value: number | null | undefined): string {
@@ -130,6 +132,8 @@ export default function PerformanceScreen() {
       <TransferPanel />
       <EvolutionPanel />
       <EvolutionControlsPanel />
+      <ExecutionQualityCard />
+      <WebhookStatusCard />
       <CohortStatusPanel />
       <VIXTimingPanel />
       <RollingMetrics analytics={analytics} />

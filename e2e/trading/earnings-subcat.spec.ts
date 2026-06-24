@@ -98,3 +98,31 @@ test("Journal subcategory panel has no SOC vocabulary", async ({ page }) => {
 
   await expect(categoryAnalytics(page)).not.toContainText(/\bSOC\b|\bSC-\d+\b/i);
 });
+
+test("earnings insight card renders on Journal Analytics", async ({ page }) => {
+  await routeJournalAnalytics(page, true);
+  await openJournal(page);
+
+  await expect(page.getByRole("heading", { name: "Earnings Style Analysis" })).toBeVisible();
+});
+
+test("earnings insight shows directional vs volatility split", async ({ page }) => {
+  await routeJournalAnalytics(page, true);
+  await openJournal(page);
+
+  const card = page.locator("section", { has: page.getByRole("heading", { name: "Earnings Style Analysis" }) });
+  await expect(card.getByText("Directional", { exact: true })).toBeVisible();
+  await expect(card.getByText("Volatility", { exact: true })).toBeVisible();
+  await expect(card.getByText("Single-leg calls/puts")).toBeVisible();
+  await expect(card.getByText("Straddles/strangles")).toBeVisible();
+});
+
+test("earnings insight shows dominant style callout", async ({ page }) => {
+  await routeJournalAnalytics(page, true);
+  await openJournal(page);
+
+  const card = page.locator("section", { has: page.getByRole("heading", { name: "Earnings Style Analysis" }) });
+  await expect(card).toContainText("You are an earnings DIRECTIONAL trader.");
+  await expect(card).toContainText("directional: 50.0%");
+  await expect(card).toContainText("Volatility: 100.0%");
+});
