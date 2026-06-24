@@ -7,6 +7,7 @@ import CounterfactualCard from "../components/CounterfactualCard";
 import DayOfWeekChart from "../components/DayOfWeekChart";
 import { DecisionExplorerPanel } from "../components/DecisionExplorerPanel";
 import EventImpactCard from "../components/EventImpactCard";
+import MenuMatrixCard from "../components/MenuMatrixCard";
 import ProfileArchetype from "../components/ProfileArchetype";
 import ProvenanceBadge from "../components/ProvenanceBadge";
 import TrustRadarPanel from "../components/TrustRadarPanel";
@@ -129,6 +130,7 @@ export default function AnalysisScreen() {
       <DayOfWeekChart analytics={analytics} />
       <EventImpactCard analytics={analytics} />
       <WasteCostCard analytics={analytics} />
+      <MenuMatrixCard />
     </div>
   );
 }

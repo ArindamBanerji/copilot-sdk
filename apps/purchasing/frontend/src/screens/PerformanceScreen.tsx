@@ -7,6 +7,7 @@ import { CentroidTimelineChart } from "../components/CentroidTimelineChart";
 import CohortStatusPanel from "../components/CohortStatusPanel";
 import IKSTrackerPanel from "../components/IKSTrackerPanel";
 import SupplierScorecardPanel from "../components/SupplierScorecardPanel";
+import WasteAlertCard from "../components/WasteAlertCard";
 import WasteCostCard from "../components/WasteCostCard";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
 
@@ -137,6 +138,7 @@ export default function PerformanceScreen() {
       </section>
 
       <WasteCostCard analytics={analytics} />
+      <WasteAlertCard />
       <CategoryAccuracyChart analytics={analytics} />
     </div>
   );

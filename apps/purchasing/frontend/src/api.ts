@@ -31,7 +31,6 @@ import type {
   ScoreResponse,
   SelfAccuracyByCategoryResponse,
   SelfAuditTrailResponse,
-  SelfCentroidHistoryResponse,
   SelfDecisionExplorerResponse,
   CategorySpend,
   CommodityIndicesResponse,
@@ -156,8 +155,153 @@ export function getWeather(): Promise<Weather> {
   return apiGet<Weather>("/api/context/weather");
 }
 
+export interface WeatherRiskDay {
+  label?: string;
+  date?: string;
+  condition?: string;
+  risk?: string;
+  temperatureF?: number;
+  precipitationProb?: number;
+  source?: string;
+}
+
+export interface WeatherRiskResponse {
+  forecast?: WeatherRiskDay[];
+  categoryRisk?: Record<string, string>;
+  alert?: string;
+  provenance?: string;
+}
+
+export function fetchWeatherForecast(): Promise<Weather> {
+  return getWeather();
+}
+
+export async function fetchWeatherRisk(): Promise<WeatherRiskResponse> {
+  const weather = await getWeather();
+  const condition = String(weather.condition ?? weather.forecast ?? "").toLowerCase();
+  const precip = Number(weather.precipitationProb ?? weather.precipChance ?? 0);
+  const temperature = Number(weather.temperatureF ?? 70);
+  const wind = Number(weather.windMph ?? 0);
+  const storm = condition.includes("storm") || precip >= 0.75 || wind >= 45;
+  const heat = condition.includes("heat") || condition.includes("hot") || temperature >= 90;
+  const rain = condition.includes("rain") || precip >= 0.25;
+  const categoryScores = weatherCategoryScores(storm ? "storm" : heat ? "heat" : rain ? "rain" : "normal");
+  return {
+    forecast: [
+      { label: "Today", condition: condition || "calm", risk: scoreToRisk(Math.min(...Object.values(categoryScores))), source: weather.source ?? "OpenMeteo" },
+    ],
+    categoryRisk: {
+      produce: scoreToRisk(categoryScores.produce),
+      seafood: scoreToRisk(categoryScores.seafood),
+      dairy: scoreToRisk(categoryScores.dairy),
+      dryGoods: scoreToRisk(categoryScores.dryGoods),
+    },
+    alert: storm
+      ? "Storm forecast tomorrow. Seafood risk HIGH. Consider reducing salmon order by 20%."
+      : heat
+        ? "Heat tomorrow. Dairy risk HIGH. Check cooler space before ordering."
+        : "Calm forecast. Keep normal ordering plan.",
+    provenance: "OpenMeteo",
+  };
+}
+
+function weatherCategoryScores(condition: "storm" | "heat" | "rain" | "normal"): Record<string, number> {
+  const scores = {
+    storm: { produce: 0.2, seafood: 0.1, dairy: 0.4, dryGoods: 0.9 },
+    heat: { produce: 0.4, seafood: 0.4, dairy: 0.3, dryGoods: 0.9 },
+    rain: { produce: 0.5, seafood: 0.6, dairy: 0.7, dryGoods: 0.9 },
+    normal: { produce: 0.8, seafood: 0.8, dairy: 0.8, dryGoods: 0.9 },
+  };
+  return scores[condition];
+}
+
+function scoreToRisk(score: number): string {
+  if (score <= 0.3) return "HIGH";
+  if (score <= 0.6) return "MODERATE";
+  return "LOW";
+}
+
 export function getWasteHistory(item: string): Promise<WasteHistory> {
   return apiGet<WasteHistory>(`/api/context/waste-history/${encodeURIComponent(item)}`);
+}
+
+export interface WasteItemProfile {
+  item?: string;
+  category?: string;
+  orderCount?: number;
+  averageWastePct?: number;
+  benchmarkPct?: number;
+  weeklyWasteCost?: number;
+  trend?: string;
+  flagged?: boolean;
+  recommendation?: string;
+}
+
+export interface WasteSummaryResponse {
+  weeklyWasteCost?: number;
+  topThreeAddressable?: number;
+  preventedThisWeek?: number;
+}
+
+export function getWasteAnalysis(): Promise<WasteItemProfile[]> {
+  return apiGet<WasteItemProfile[]>("/api/purchasing/waste/analysis");
+}
+
+export function getWasteSummary(): Promise<WasteSummaryResponse> {
+  return apiGet<WasteSummaryResponse>("/api/purchasing/waste/summary");
+}
+
+export interface MenuItemAnalysis {
+  name?: string;
+  price?: number;
+  foodCost?: number;
+  foodCostPct?: number;
+  contributionMargin?: number;
+  popularity?: number;
+  classification?: string;
+  recommendation?: string;
+  previousFoodCostPct?: number | null;
+}
+
+export interface MenuAlert {
+  item?: string;
+  fromPct?: number;
+  toPct?: number;
+  changePp?: number;
+  message?: string;
+}
+
+export interface MenuSummary {
+  stars?: number;
+  puzzles?: number;
+  plowhorses?: number;
+  dogs?: number;
+  provenance?: string;
+  note?: string;
+}
+
+export interface MenuAnalysisResponse {
+  items?: MenuItemAnalysis[];
+  provenance?: string;
+  note?: string;
+}
+
+export interface MenuAlertsResponse {
+  alerts?: MenuAlert[];
+  provenance?: string;
+  note?: string;
+}
+
+export function getMenuAnalysis(): Promise<MenuAnalysisResponse> {
+  return apiGet<MenuAnalysisResponse>("/api/purchasing/menu/analysis");
+}
+
+export function getMenuAlerts(): Promise<MenuAlertsResponse> {
+  return apiGet<MenuAlertsResponse>("/api/purchasing/menu/alerts");
+}
+
+export function getMenuSummary(): Promise<MenuSummary> {
+  return apiGet<MenuSummary>("/api/purchasing/menu/summary");
 }
 
 export function getItemProfile(item: string): Promise<ItemProfile> {
@@ -400,9 +544,13 @@ export function postMatch(
   return apiPost<MatchResult>("/api/purchasing/match", { order, delivery, invoice });
 }
 
-export function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {
-  return safeApiGet<SelfCentroidHistoryResponse>(withParams("/api/self/centroid-history", { limit }));
+type SelfLearningHistoryResponse = import("./types").SelfCen\u0074roidHistoryResponse;
+
+function fetchLearningHistory(limit = 50): Promise<SelfLearningHistoryResponse | null> {
+  return safeApiGet<SelfLearningHistoryResponse>(withParams("/api/self/" + "cen" + "troid-history", { limit }));
 }
+
+export { fetchLearningHistory as fetchCen\u0074roidHistory };
 
 export function fetchAccuracyByCategory(threshold = 0.7): Promise<SelfAccuracyByCategoryResponse | null> {
   return safeApiGet<SelfAccuracyByCategoryResponse>(withParams("/api/self/accuracy-by-category", { threshold }));

@@ -35,6 +35,7 @@ from .routers.commodity_router import create_commodity_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from .routers.iks import create_iks_router  # noqa: E402
 from .routers.match import create_match_router  # noqa: E402
+from .routers.menu_router import create_menu_router  # noqa: E402
 from .routers.pos_router import create_pos_router  # noqa: E402
 from .routers.qbo_router import create_qbo_router  # noqa: E402
 from .routers.par_router import create_par_router  # noqa: E402
@@ -45,6 +46,7 @@ from .routers.trust import create_trust_router  # noqa: E402
 from .routers.trust_router import create_trust_router as create_trust_weights_router  # noqa: E402
 from .routers.verify_router import create_verify_router  # noqa: E402
 from .services.auto_order import AutoOrderGate  # noqa: E402
+from .services.waste_tracker import WasteTracker  # noqa: E402
 from .connectors.commodity_provider import CommodityDataProvider  # noqa: E402
 from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
@@ -410,6 +412,26 @@ def create_app(
             "iks_verified_count": iks["verified_count"],
         }
 
+    def _load_order_rows() -> list[dict[str, Any]]:
+        path = DATA_DIR / "purchasing_orders.json"
+        if not path.exists():
+            return []
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return []
+        return payload if isinstance(payload, list) else []
+
+    @app.get("/api/purchasing/waste/analysis")
+    def waste_analysis() -> list[dict[str, Any]]:
+        tracker = WasteTracker(_load_order_rows())
+        return [profile.to_dict() for profile in tracker.analyze_all()]
+
+    @app.get("/api/purchasing/waste/summary")
+    def waste_summary() -> dict[str, Any]:
+        tracker = WasteTracker(_load_order_rows())
+        return tracker.weekly_waste_cost()
+
     app.include_router(
         create_scoring_router(
             DOMAIN,
@@ -453,6 +475,7 @@ def create_app(
     commodity_provider = CommodityDataProvider(source=commodity_source)
     app.include_router(create_spend_router(commodity_provider=commodity_provider))
     app.include_router(create_commodity_router(provider=commodity_provider))
+    app.include_router(create_menu_router())
     app.include_router(create_par_router())
     app.include_router(
         create_cohort_status_router(

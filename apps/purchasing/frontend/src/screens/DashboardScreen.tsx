@@ -21,6 +21,7 @@ import ParLevelPanel from "../components/ParLevelPanel";
 import ParLevelMonitor from "../components/ParLevelMonitor";
 import ProvenanceBadge from "../components/ProvenanceBadge";
 import SpendSummaryPanel from "../components/SpendSummaryPanel";
+import WeatherImpactCard from "../components/WeatherImpactCard";
 import WeatherWidget from "../components/WeatherWidget";
 import type {
   Analytics,
@@ -168,6 +169,7 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
         <ProvenanceBadge source={state.today?.weather?.source ?? "scraped_external"} />
       </div>
       <SpendSummaryPanel />
+      <WeatherImpactCard />
       <CommodityPricePanel />
       <ParLevelPanel />
       <AutoOrderPanel />
