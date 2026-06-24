@@ -4,6 +4,7 @@ import { getAeImpact, getEvolutionVariants, getPatternOrigin } from "../api";
 import AEImpactPanel from "../components/AEImpactPanel";
 import AuditTrailViewer from "../components/AuditTrailViewer";
 import CohortStatusPanel from "../components/CohortStatusPanel";
+import CrossSystemPanel from "../components/CrossSystemPanel";
 import OperationalRulesPanel from "../components/OperationalRulesPanel";
 import PatternOriginCard from "../components/PatternOriginCard";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
@@ -54,6 +55,7 @@ export default function EvidenceScreen() {
     <div className="grid gap-4">
       {error ? <Frame message={error} tone="error" /> : null}
       <CohortStatusPanel />
+      <CrossSystemPanel />
       <AEImpactPanel impact={impact} />
       <EvolutionPanel variants={variants} title="AgentEvolver Audit Trail" />
       <RuleGenealogyTree />

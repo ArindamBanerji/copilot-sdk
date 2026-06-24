@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchConservation, fetchPreviewQueue, learnDecision, scoreInvoice } from "../api";
 import { CentroidExplorer } from "../components/CentroidExplorer";
 import { EvidenceTemplatePanel } from "../components/EvidenceTemplatePanel";
+import NoveltyAlertBanner from "../components/NoveltyAlertBanner";
 import { ProcessContextPanel } from "../components/ProcessContextPanel";
 import { S2PConservationProjection } from "../components/S2PConservationProjection";
 import { S2PReasoningPanel } from "../components/S2PReasoningPanel";
@@ -195,6 +196,8 @@ export function TriageScreen() {
           or override the recommendation so S2P can record reward.
         </p>
       </div>
+
+      <NoveltyAlertBanner />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(260px,360px)_1fr]">
         <article className="copilot-card p-5">

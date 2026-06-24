@@ -250,6 +250,32 @@ export async function getTransferStatus(): Promise<TransferStatusResponse | null
   };
 }
 
+export interface CrossSystemAlert {
+  alertId?: string;
+  alert_id?: string;
+  entityId?: string;
+  entity_id?: string;
+  domains?: string[];
+  sourceSignal?: string;
+  source_signal?: string;
+  relatedSignal?: string;
+  related_signal?: string;
+  correlation?: number;
+  advisory?: boolean;
+  timeline?: Array<Record<string, unknown>>;
+  title?: string;
+  description?: string;
+}
+
+export interface CrossSystemResponse {
+  alerts?: CrossSystemAlert[];
+  provenance?: string;
+}
+
+export async function getCrossSystemInsights(): Promise<CrossSystemResponse | null> {
+  return safeApiGet<CrossSystemResponse>("/api/discovery/cross-system");
+}
+
 export interface CohortExperiment {
   name?: string;
   injectedLift?: number | null;

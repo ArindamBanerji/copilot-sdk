@@ -745,7 +745,10 @@ export interface NoveltyPerCategory {
   novelty_count?: number;
   novelty_rate?: number;
   alert_active?: boolean;
-  [key: string]: number | boolean | undefined;
+  conservation_review?: boolean;
+  recommendation?: string;
+  status?: string;
+  [key: string]: number | boolean | string | undefined;
 }
 
 export interface NoveltyStatusResponse {
@@ -755,6 +758,10 @@ export interface NoveltyStatusResponse {
   novelty_count: number;
   novelty_rate: number;
   alert_active: boolean;
+  conservation_review?: boolean;
+  recommendation?: string;
+  review_categories?: Array<Record<string, unknown>>;
+  status?: string;
   per_category: Record<string, NoveltyPerCategory | number>;
 }
 
@@ -772,6 +779,11 @@ export interface NoveltyHistoryResponse {
   entries: NoveltyHistoryEntry[];
   total_in_window: number;
   alert_active: boolean;
+}
+
+export interface NoveltyTriggeredResponse {
+  decisions: NoveltyHistoryEntry[];
+  total: number;
 }
 
 export interface CentroidCell {

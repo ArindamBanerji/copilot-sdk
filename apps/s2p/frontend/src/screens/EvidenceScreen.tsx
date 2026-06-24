@@ -8,6 +8,7 @@ import CohortStatusPanel from "../components/CohortStatusPanel";
 import { DiscoveryPanel } from "../components/DiscoveryPanel";
 import { DisruptionRecoveryPanel } from "../components/DisruptionRecoveryPanel";
 import { EvolutionPanel } from "../components/EvolutionPanel";
+import FactorInsightPanel from "../components/FactorInsightPanel";
 import { ReceiptChainPanel } from "../components/ReceiptChainPanel";
 import { RuleLifecyclePanel } from "../components/RuleLifecyclePanel";
 import type { InvoiceException, PreviewQueueResponse } from "../types";
@@ -69,6 +70,7 @@ export function EvidenceScreen() {
 
       <AuditTrailPanel invoiceId={invoiceId(selected)} />
       <CohortStatusPanel />
+      <FactorInsightPanel />
       <EvolutionPanel />
       <DiscoveryPanel />
       <DisruptionRecoveryPanel />

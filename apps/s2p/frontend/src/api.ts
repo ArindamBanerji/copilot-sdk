@@ -47,6 +47,7 @@ import type {
   SupplierProfilesResponse,
   TrendSignal,
   NoveltyHistoryResponse,
+  NoveltyTriggeredResponse,
   NoveltyStatusResponse,
   ReceiptsResponse,
   RationalizationResponse,
@@ -314,6 +315,11 @@ export async function getNoveltyHistory(limit = 50): Promise<NoveltyHistoryRespo
   return apiGet<NoveltyHistoryResponse>(`/api/s2p/novelty/history?${params.toString()}`).catch(() => null);
 }
 
+export async function getNoveltyTriggeredDecisions(limit = 10): Promise<NoveltyTriggeredResponse | null> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return apiGet<NoveltyTriggeredResponse>(`/api/s2p/novelty/triggered-decisions?${params.toString()}`).catch(() => null);
+}
+
 export async function getAllCentroids(): Promise<CentroidAllResponse | null> {
   return apiGet<CentroidAllResponse>("/api/s2p/centroid/all").catch(() => null);
 }
@@ -336,6 +342,58 @@ export async function getCentroidDrift(category: string, action: string): Promis
 
 export async function getDKWeights(): Promise<DKWeightsResponse | null> {
   return apiGet<DKWeightsResponse>("/api/s2p/explorer/dk-weights").catch(() => null);
+}
+
+export interface FactorRecommendation {
+  factor_name?: string;
+  factorName?: string;
+  current_dk_weight?: number;
+  currentDkWeight?: number;
+  signal_contribution_pct?: number;
+  signalContributionPct?: number;
+  outcome_correlation?: number;
+  outcomeCorrelation?: number;
+  verdict?: string;
+  replacement_suggestion?: string | null;
+  replacementSuggestion?: string | null;
+  estimated_impact_pp?: number;
+  estimatedImpactPp?: number;
+}
+
+export interface FactorAnalysisResponse {
+  factors?: FactorRecommendation[];
+  count?: number;
+  advisory?: boolean;
+}
+
+export interface FactorRecommendationsResponse {
+  recommendations?: FactorRecommendation[];
+  count?: number;
+  advisory?: boolean;
+}
+
+export interface FactorProposalResponse {
+  factor?: string;
+  replacement?: string;
+  estimated_pp?: number;
+  estimatedPp?: number;
+  rationale?: string;
+  advisory?: boolean;
+}
+
+export async function getFactorAnalysis(): Promise<FactorAnalysisResponse | null> {
+  return apiGet<FactorAnalysisResponse>("/api/s2p/factors/analysis").catch(() => null);
+}
+
+export async function getFactorRecommendations(): Promise<FactorRecommendationsResponse | null> {
+  return apiGet<FactorRecommendationsResponse>("/api/s2p/factors/recommendations").catch(() => null);
+}
+
+export async function proposeFactorReplacement(factor: string): Promise<FactorProposalResponse | null> {
+  return apiPost<FactorProposalResponse>("/api/s2p/factors/propose", {
+    factor,
+    candidates: ["tariff_exposure", "supplier_geo_exposure", "cash_discount_capture"]
+  }).catch(() => null);
 }
 
 export async function getReceipts(limit = 50): Promise<ReceiptsResponse | null> {
