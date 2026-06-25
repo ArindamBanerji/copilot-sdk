@@ -693,3 +693,61 @@ export function verifyOrder(payload: {
 }): Promise<VerifyResponse> {
   return apiPost<VerifyResponse>("/api/purchasing/verify", payload);
 }
+
+export interface PredictiveParResult {
+  item?: string;
+  category?: string;
+  day?: string;
+  basePar?: number;
+  adjustedPar?: number;
+  dollarImpact?: number;
+  explanation?: string;
+  breakdown?: string[];
+}
+
+export interface PredictiveParWeekResponse {
+  items?: PredictiveParResult[];
+  provenance?: string;
+  dollarImpact?: number;
+  summary?: string;
+}
+
+export function fetchPredictivePar(item = "salmon", category = "protein", date = "2026-06-26"): Promise<PredictiveParResult> {
+  return apiGet<PredictiveParResult>(withParams("/api/purchasing/par/predict", { item, category, date }));
+}
+
+export function fetchPredictiveParWeek(): Promise<PredictiveParWeekResponse> {
+  return apiGet<PredictiveParWeekResponse>("/api/purchasing/par/predict-week");
+}
+
+export interface DiscoveryInsight {
+  title?: string;
+  explanation?: string;
+  strength?: string;
+  evidenceCount?: number;
+  suggestedAction?: string;
+}
+
+export function fetchDiscoveryInsights(): Promise<{ insights?: DiscoveryInsight[]; provenance?: string }> {
+  return apiGet<{ insights?: DiscoveryInsight[]; provenance?: string }>("/api/purchasing/discovery/insights");
+}
+
+export function fetchDiscoveryDigest(): Promise<{ digest?: string[]; provenance?: string }> {
+  return apiGet<{ digest?: string[]; provenance?: string }>("/api/purchasing/discovery/digest");
+}
+
+export interface PurchasingAlert {
+  alertType?: string;
+  severity?: string;
+  title?: string;
+  recommendation?: string;
+  scenario?: string;
+}
+
+export function fetchAlerts(): Promise<{ alerts?: PurchasingAlert[]; provenance?: string }> {
+  return apiGet<{ alerts?: PurchasingAlert[]; provenance?: string }>("/api/purchasing/alerts");
+}
+
+export function fetchAlertsBySeverity(severity: string): Promise<{ alerts?: PurchasingAlert[]; provenance?: string }> {
+  return apiGet<{ alerts?: PurchasingAlert[]; provenance?: string }>(withParams("/api/purchasing/alerts", { severity }));
+}

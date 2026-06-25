@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ConservationProjection } from "../../../../../copilot_sdk/frontend";
 import TrajectoryChart, { type TrajectoryPoint } from "../../../../../copilot_sdk/frontend/TrajectoryChart";
 import { getAnalytics, getConservationStatus, getTrajectory } from "../api";
+import AlertDashboardCard from "../components/AlertDashboardCard";
 import CategoryAccuracyChart from "../components/CategoryAccuracyChart";
 import { CentroidTimelineChart } from "../components/CentroidTimelineChart";
 import ChainTransferCard from "../components/ChainTransferCard";
@@ -100,6 +101,7 @@ export default function PerformanceScreen() {
       </section>
 
       <ChainTransferCard />
+      <AlertDashboardCard />
       <IKSTrackerPanel />
       <CohortStatusPanel />
       <SupplierScorecardPanel />

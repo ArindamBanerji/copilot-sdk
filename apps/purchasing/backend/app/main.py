@@ -30,10 +30,12 @@ from .graph_status import (  # noqa: E402
 from .evolution import get_purchasing_variants  # noqa: E402
 from .connectors.commodity_source import FREDCommoditySource  # noqa: E402
 from .routers.auto_order_router import create_auto_order_router  # noqa: E402
+from .routers.alert_router import create_alert_router  # noqa: E402
 from .routers.chain_router import create_chain_router, reset_chain_state  # noqa: E402
 from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.commodity_router import create_commodity_router  # noqa: E402
 from .routers.delivery_router import create_delivery_router  # noqa: E402
+from .routers.discovery_router import create_discovery_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from .routers.event_router import create_event_router, reset_event_state  # noqa: E402
 from .routers.iks import create_iks_router  # noqa: E402
@@ -49,7 +51,9 @@ from .routers.trust import create_trust_router  # noqa: E402
 from .routers.trust_router import create_trust_router as create_trust_weights_router  # noqa: E402
 from .routers.verify_router import create_verify_router  # noqa: E402
 from .services.auto_order import AutoOrderGate  # noqa: E402
+from .services.par_optimizer import ParLevelOptimizer  # noqa: E402
 from .services.waste_tracker import WasteTracker  # noqa: E402
+from .services.predictive_par import PredictivePar, demo_par_items  # noqa: E402
 from .connectors.commodity_provider import CommodityDataProvider  # noqa: E402
 from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
@@ -59,6 +63,7 @@ from copilot_sdk.backend import (  # noqa: E402
     create_scoring_router,
     mount_self_computation_router,
 )
+from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
@@ -425,6 +430,35 @@ def create_app(
             return []
         return payload if isinstance(payload, list) else []
 
+    def _par_optimizer() -> Any:
+        return getattr(app.state, "purchasing_par_optimizer", None) or ParLevelOptimizer()
+
+    def _conservation_status(category: str | None = None) -> str:
+        override = getattr(app.state, "purchasing_conservation_status", None)
+        if isinstance(override, dict):
+            state = override.get(str(category)) or override.get("state") or override.get("default")
+            return str(state or "GREEN").upper()
+        if override:
+            return str(override).upper()
+        try:
+            payload = compute_conservation_status_payload(DOMAIN, scorer_proxy)
+        except Exception:
+            return "GREEN"
+        return str(payload.get("status") or payload.get("state") or "GREEN").upper()
+
+    def _alert_conservation_status() -> dict[str, Any] | None:
+        override = getattr(app.state, "purchasing_alert_conservation_status", None)
+        if override is not None:
+            return override if isinstance(override, dict) else {"state": str(override)}
+        try:
+            payload = compute_conservation_status_payload(DOMAIN, scorer_proxy)
+        except Exception:
+            return None
+        status = payload.get("status") or payload.get("state")
+        if not status:
+            return None
+        return {"state": str(status), "category": "all"}
+
     @app.get("/api/purchasing/waste/analysis")
     def waste_analysis() -> list[dict[str, Any]]:
         tracker = WasteTracker(_load_order_rows())
@@ -434,6 +468,31 @@ def create_app(
     def waste_summary() -> dict[str, Any]:
         tracker = WasteTracker(_load_order_rows())
         return tracker.weekly_waste_cost()
+
+    @app.get("/api/purchasing/par/predict")
+    def predictive_par(item: str = "salmon", category: str = "protein", date: str = "2026-06-26") -> dict[str, Any]:
+        service = PredictivePar(optimizer=_par_optimizer())
+        base = service.base_from_optimizer(item, category, _load_order_rows())
+        return service.predict(
+            item,
+            category,
+            date,
+            base_par=base,
+            conservation_status=_conservation_status(category),
+        ).to_dict()
+
+    @app.get("/api/purchasing/par/predict-week")
+    def predictive_par_week() -> dict[str, Any]:
+        service = PredictivePar(optimizer=_par_optimizer())
+        items = []
+        for row in demo_par_items():
+            item = str(row.get("item") or "salmon")
+            category = str(row.get("category") or "protein")
+            with_base = dict(row)
+            with_base["base_par"] = service.base_from_optimizer(item, category, _load_order_rows())
+            with_base["conservation_status"] = _conservation_status(category)
+            items.append(with_base)
+        return service.predict_week(items)
 
     app.include_router(
         create_scoring_router(
@@ -470,8 +529,10 @@ def create_app(
     app.include_router(create_iks_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_match_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_auto_order_router(auto_order_gate, scorer_proxy))
+    app.include_router(create_alert_router(conservation_provider=_alert_conservation_status))
     app.include_router(create_chain_router())
     app.include_router(create_delivery_router())
+    app.include_router(create_discovery_router())
     app.include_router(create_event_router())
     app.include_router(create_pos_router())
     app.include_router(create_qbo_router())

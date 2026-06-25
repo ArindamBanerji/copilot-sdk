@@ -6,6 +6,7 @@ import ContrastCard from "../components/ContrastCard";
 import CounterfactualCard from "../components/CounterfactualCard";
 import DayOfWeekChart from "../components/DayOfWeekChart";
 import { DecisionExplorerPanel } from "../components/DecisionExplorerPanel";
+import DiscoveryDigestCard from "../components/DiscoveryDigestCard";
 import EventImpactCard from "../components/EventImpactCard";
 import MenuMatrixCard from "../components/MenuMatrixCard";
 import ProfileArchetype from "../components/ProfileArchetype";
@@ -129,6 +130,7 @@ export default function AnalysisScreen() {
       <CategoryAccuracyChart analytics={analytics} />
       <DayOfWeekChart analytics={analytics} />
       <EventImpactCard analytics={analytics} />
+      <DiscoveryDigestCard />
       <WasteCostCard analytics={analytics} />
       <MenuMatrixCard />
     </div>

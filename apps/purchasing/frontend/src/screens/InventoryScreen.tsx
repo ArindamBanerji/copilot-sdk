@@ -6,6 +6,7 @@ import CategoryEmoji from "../components/CategoryEmoji";
 import DeliveryScheduleCard from "../components/DeliveryScheduleCard";
 import EventPlannerCard from "../components/EventPlannerCard";
 import ItemProfile from "../components/ItemProfile";
+import PredictiveParCard from "../components/PredictiveParCard";
 import { RuleGenealogyTree } from "../components/RuleGenealogyTree";
 import { RuleLifecyclePanel } from "../components/RuleLifecyclePanel";
 import SupplierIntelligencePanel from "../components/SupplierIntelligencePanel";
@@ -158,6 +159,7 @@ export default function InventoryScreen() {
       <RuleLifecyclePanel />
       <AuditTrailViewer />
       <SupplierIntelligencePanel />
+      <PredictiveParCard />
       <EventPlannerCard />
       <DeliveryScheduleCard />
 
