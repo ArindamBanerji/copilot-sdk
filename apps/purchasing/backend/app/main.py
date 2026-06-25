@@ -36,11 +36,13 @@ from .routers.cohort_status_router import create_cohort_status_router  # noqa: E
 from .routers.commodity_router import create_commodity_router  # noqa: E402
 from .routers.delivery_router import create_delivery_router  # noqa: E402
 from .routers.discovery_router import create_discovery_router  # noqa: E402
+from .routers.economic_router import create_economic_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from .routers.event_router import create_event_router, reset_event_state  # noqa: E402
 from .routers.iks import create_iks_router  # noqa: E402
 from .routers.match import create_match_router  # noqa: E402
 from .routers.menu_router import create_menu_router  # noqa: E402
+from .routers.multi_unit_router import create_multi_unit_router  # noqa: E402
 from .routers.pos_router import create_pos_router  # noqa: E402
 from .routers.qbo_router import create_qbo_router  # noqa: E402
 from .routers.par_router import create_par_router  # noqa: E402
@@ -533,6 +535,7 @@ def create_app(
     app.include_router(create_chain_router())
     app.include_router(create_delivery_router())
     app.include_router(create_discovery_router())
+    app.include_router(create_economic_router())
     app.include_router(create_event_router())
     app.include_router(create_pos_router())
     app.include_router(create_qbo_router())
@@ -543,6 +546,7 @@ def create_app(
     app.include_router(create_spend_router(commodity_provider=commodity_provider))
     app.include_router(create_commodity_router(provider=commodity_provider))
     app.include_router(create_menu_router())
+    app.include_router(create_multi_unit_router())
     app.include_router(create_par_router())
     app.include_router(
         create_cohort_status_router(

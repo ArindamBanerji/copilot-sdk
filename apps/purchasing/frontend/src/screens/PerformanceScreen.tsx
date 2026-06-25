@@ -7,6 +7,8 @@ import CategoryAccuracyChart from "../components/CategoryAccuracyChart";
 import { CentroidTimelineChart } from "../components/CentroidTimelineChart";
 import ChainTransferCard from "../components/ChainTransferCard";
 import CohortStatusPanel from "../components/CohortStatusPanel";
+import EconomicDashboardCard from "../components/EconomicDashboardCard";
+import GroupDashboardCard from "../components/GroupDashboardCard";
 import IKSTrackerPanel from "../components/IKSTrackerPanel";
 import SupplierScorecardPanel from "../components/SupplierScorecardPanel";
 import WasteAlertCard from "../components/WasteAlertCard";
@@ -101,6 +103,8 @@ export default function PerformanceScreen() {
       </section>
 
       <ChainTransferCard />
+      <EconomicDashboardCard />
+      <GroupDashboardCard />
       <AlertDashboardCard />
       <IKSTrackerPanel />
       <CohortStatusPanel />

@@ -751,3 +751,54 @@ export function fetchAlerts(): Promise<{ alerts?: PurchasingAlert[]; provenance?
 export function fetchAlertsBySeverity(severity: string): Promise<{ alerts?: PurchasingAlert[]; provenance?: string }> {
   return apiGet<{ alerts?: PurchasingAlert[]; provenance?: string }>(withParams("/api/purchasing/alerts", { severity }));
 }
+
+export interface EconomicModelResponse {
+  tier?: string;
+  decisions?: number;
+  projectedSavings?: number;
+  actualSavings?: number;
+  attainmentPct?: number;
+  annualProjection?: number;
+  roiMultiple?: number;
+  annualBenchmark?: number;
+  summary?: string;
+  sources?: Record<string, number>;
+  unlocks?: Array<{ name?: string; savings?: number }>;
+  weeklyReport?: { found?: number; prevented?: number; flagged?: number; netRecoveredMonth?: number; summary?: string };
+  provenance?: string;
+}
+
+export function fetchEconomicModel(): Promise<EconomicModelResponse> {
+  return apiGet<EconomicModelResponse>("/api/purchasing/economic/model");
+}
+
+export function fetchROISummary(): Promise<{ summary?: string; tier?: string; provenance?: string }> {
+  return apiGet<{ summary?: string; tier?: string; provenance?: string }>("/api/purchasing/economic/roi-summary");
+}
+
+export interface GroupDashboardResponse {
+  locations?: Array<{ name?: string; decisions?: number; accuracy?: number; foodCostPct?: number; conservation?: string }>;
+  weightedAccuracy?: number;
+  bestLocation?: string;
+  needsHelpLocation?: string;
+  economic?: EconomicModelResponse;
+  purchasingPower?: { supplier?: string; monthlySpend?: number; threshold?: number; callout?: string };
+  transferOpportunities?: Array<{ source?: string; target?: string; estimatedAccuracy?: number; message?: string }>;
+  provenance?: string;
+}
+
+export function fetchGroupDashboard(): Promise<GroupDashboardResponse> {
+  return apiGet<GroupDashboardResponse>("/api/purchasing/multi-unit/dashboard");
+}
+
+export function fetchLocationComparison(metric = "accuracy"): Promise<{ locations?: GroupDashboardResponse["locations"]; metric?: string; provenance?: string }> {
+  return apiGet<{ locations?: GroupDashboardResponse["locations"]; metric?: string; provenance?: string }>(
+    withParams("/api/purchasing/multi-unit/compare", { metric }),
+  );
+}
+
+export function fetchTransferOpportunities(): Promise<{ opportunities?: GroupDashboardResponse["transferOpportunities"]; provenance?: string }> {
+  return apiGet<{ opportunities?: GroupDashboardResponse["transferOpportunities"]; provenance?: string }>(
+    "/api/purchasing/multi-unit/transfer-opportunities",
+  );
+}
