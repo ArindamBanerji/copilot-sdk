@@ -30,9 +30,12 @@ from .graph_status import (  # noqa: E402
 from .evolution import get_purchasing_variants  # noqa: E402
 from .connectors.commodity_source import FREDCommoditySource  # noqa: E402
 from .routers.auto_order_router import create_auto_order_router  # noqa: E402
+from .routers.chain_router import create_chain_router, reset_chain_state  # noqa: E402
 from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.commodity_router import create_commodity_router  # noqa: E402
+from .routers.delivery_router import create_delivery_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
+from .routers.event_router import create_event_router, reset_event_state  # noqa: E402
 from .routers.iks import create_iks_router  # noqa: E402
 from .routers.match import create_match_router  # noqa: E402
 from .routers.menu_router import create_menu_router  # noqa: E402
@@ -467,6 +470,9 @@ def create_app(
     app.include_router(create_iks_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_match_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_auto_order_router(auto_order_gate, scorer_proxy))
+    app.include_router(create_chain_router())
+    app.include_router(create_delivery_router())
+    app.include_router(create_event_router())
     app.include_router(create_pos_router())
     app.include_router(create_qbo_router())
     app.include_router(create_scorecard_router(lambda: selected_graph_store_factory(scoring_db)))
@@ -509,6 +515,8 @@ def create_app(
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:
         _run_startup_seed_once()
+        reset_chain_state(app.state)
+        reset_event_state(app.state)
 
     @app.middleware("http")
     async def direct_testclient_autoseed(request, call_next):
@@ -527,6 +535,12 @@ def create_app(
             "iks_available": iks["available"],
             "iks_verified_count": iks["verified_count"],
         }
+
+    @app.post("/api/purchasing/demo/reset")
+    def reset_demo_state() -> dict[str, Any]:
+        reset_chain_state(app.state)
+        reset_event_state(app.state)
+        return {"reset": True, "state": ["chain", "events"]}
 
     return app
 

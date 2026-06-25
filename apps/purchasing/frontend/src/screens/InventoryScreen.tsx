@@ -3,6 +3,8 @@ import EvolutionPanel, { type EvolutionStatus, type EvolutionVariant } from "../
 import { getEvolutionVariants, getItems, getWasteHistory } from "../api";
 import { AuditTrailViewer } from "../components/AuditTrailViewer";
 import CategoryEmoji from "../components/CategoryEmoji";
+import DeliveryScheduleCard from "../components/DeliveryScheduleCard";
+import EventPlannerCard from "../components/EventPlannerCard";
 import ItemProfile from "../components/ItemProfile";
 import { RuleGenealogyTree } from "../components/RuleGenealogyTree";
 import { RuleLifecyclePanel } from "../components/RuleLifecyclePanel";
@@ -156,6 +158,8 @@ export default function InventoryScreen() {
       <RuleLifecyclePanel />
       <AuditTrailViewer />
       <SupplierIntelligencePanel />
+      <EventPlannerCard />
+      <DeliveryScheduleCard />
 
       <section className="purchase-card">
         <p className="purchase-kicker">Category summary</p>

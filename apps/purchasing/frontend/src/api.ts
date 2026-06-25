@@ -304,6 +304,83 @@ export function getMenuSummary(): Promise<MenuSummary> {
   return apiGet<MenuSummary>("/api/purchasing/menu/summary");
 }
 
+export interface EventPlanResponse {
+  guestCount?: number;
+  cuisine?: string;
+  categories?: Array<{ category?: string; quantityLbs?: number; estimatedCost?: number; text?: string }>;
+  estimatedCost?: number;
+  expectedWastePct?: number;
+  similarEvents?: number;
+  confidence?: string;
+  dollarImpact?: number;
+  note?: string;
+  provenance?: string;
+}
+
+export function fetchEventPlan(guests = 80, cuisine = "mixed"): Promise<EventPlanResponse> {
+  return apiGet<EventPlanResponse>(withParams("/api/purchasing/events/plan", { guests, cuisine }));
+}
+
+export function fetchEventHistory(): Promise<Array<Record<string, unknown>>> {
+  return apiGet<Array<Record<string, unknown>>>("/api/purchasing/events/history");
+}
+
+export function recordEventOutcome(
+  plan: Record<string, unknown>,
+  actualUsage: Record<string, number>,
+  actualWaste: number,
+): Promise<Record<string, unknown>> {
+  return apiPost<Record<string, unknown>>("/api/purchasing/events/record", { plan, actualUsage, actualWaste });
+}
+
+export interface ChainStatusResponse {
+  source?: { location?: string; decisions?: number; accuracy?: number };
+  target?: { location?: string; decisions?: number; accuracy?: number };
+  estimatedAccuracy?: number;
+  provenance?: string;
+  note?: string;
+}
+
+export function validateChainTransfer(source = "chicago", target = "miami"): Promise<Record<string, unknown>> {
+  return apiPost<Record<string, unknown>>("/api/purchasing/chain/validate", { source, target, dryRun: true });
+}
+
+export function executeChainTransfer(source = "chicago", target = "miami", dryRun = true): Promise<Record<string, unknown>> {
+  return apiPost<Record<string, unknown>>("/api/purchasing/chain/transfer", { source, target, dryRun });
+}
+
+export function fetchChainStatus(): Promise<ChainStatusResponse> {
+  return apiGet<ChainStatusResponse>("/api/purchasing/chain/status");
+}
+
+export interface DeliveryScheduleResponse {
+  date?: string;
+  deliveries?: Array<{ supplier?: string; window?: string; items?: string[]; amount?: number }>;
+  suggestions?: Array<{ supplier?: string; items?: string[]; minutesSaved?: number; text?: string }>;
+  receivingMinutes?: number;
+  provenance?: string;
+}
+
+export interface DeliveryWeekResponse {
+  days?: DeliveryScheduleResponse[];
+  deliveryCount?: number;
+  opportunities?: number;
+  receivingHoursSaved?: number;
+  provenance?: string;
+}
+
+export function fetchDeliveryToday(): Promise<DeliveryScheduleResponse> {
+  return apiGet<DeliveryScheduleResponse>("/api/purchasing/delivery/today");
+}
+
+export function fetchDeliveryWeek(startDate?: string): Promise<DeliveryWeekResponse> {
+  return apiGet<DeliveryWeekResponse>(withParams("/api/purchasing/delivery/week", { start: startDate }));
+}
+
+export function fetchConsolidationSuggestions(): Promise<{ suggestions?: DeliveryScheduleResponse["suggestions"]; provenance?: string }> {
+  return apiGet<{ suggestions?: DeliveryScheduleResponse["suggestions"]; provenance?: string }>("/api/purchasing/delivery/consolidation");
+}
+
 export function getItemProfile(item: string): Promise<ItemProfile> {
   return apiGet<ItemProfile>(`/api/context/item/${encodeURIComponent(item)}/profile`);
 }
