@@ -13,6 +13,7 @@ from copilot_sdk.di.enrichment import (
     GraphEnrichmentResult,
 )
 from copilot_sdk.di.models import ProfileConfig, SourceProfile
+from copilot_sdk.di.integrator import JoinCandidate, SourceIntegrator
 from copilot_sdk.di.nl_query import NLQueryRouter
 from copilot_sdk.di.profiler import BaseSourceProfiler
 from copilot_sdk.di.query_patterns import (
@@ -30,6 +31,8 @@ __all__ = [
     "ProfileConfig",
     "SourceProfile",
     "BaseSourceProfiler",
+    "JoinCandidate",
+    "SourceIntegrator",
     "QueryResult",
     "QueryPattern",
     "MultiEntityPattern",
