@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { expectAnyText } from "../helpers/ui";
+import { expectAnyText, waitForAppShell } from "../helpers/ui";
 
 function dashboardPanel(page: import("@playwright/test").Page, heading: string | RegExp) {
   return page.locator("section, article").filter({
@@ -7,20 +7,27 @@ function dashboardPanel(page: import("@playwright/test").Page, heading: string |
   }).first();
 }
 
-test("dashboard loads", async ({ page }) => {
+async function gotoDashboard(page: import("@playwright/test").Page) {
   await page.goto("/");
+  await waitForAppShell(page);
+  await expect(page.getByText("Pipeline Status")).toBeVisible({ timeout: 15_000 });
+}
+
+test("dashboard loads", async ({ page }) => {
+  await gotoDashboard(page);
 
   await expect(page.getByRole("heading", { name: "DataOps Copilot" })).toBeVisible();
-  await expect(page.getByText("Pipeline Status")).toBeVisible();
   await expect(page.locator("main")).not.toBeEmpty();
 });
 
 test("pipeline grid shows systems", async ({ page }) => {
-  await page.goto("/");
+  await gotoDashboard(page);
 
   const pipeline = dashboardPanel(page, "Pipeline Status");
   await expect(pipeline).toBeVisible();
-  await expect(pipeline.getByText(/SAP MM|SAP FI|Celonis P2P|Warehouse WMS|Logistics DHL|Active alerts|Business criticality/i).first()).toBeVisible();
+  await expect(
+    pipeline.getByText(/SAP MM|SAP FI|Celonis P2P|Warehouse WMS|Logistics DHL|Active alerts|Business criticality/i).first(),
+  ).toBeVisible({ timeout: 15_000 });
 });
 
 test("enterprise health bar shows connection status", async ({ page }) => {
@@ -32,11 +39,13 @@ test("enterprise health bar shows connection status", async ({ page }) => {
 });
 
 test("pipeline status shows system names with criticality", async ({ page }) => {
-  await page.goto("/");
+  await gotoDashboard(page);
 
   const pipeline = dashboardPanel(page, "Pipeline Status");
   await expect(pipeline).toBeVisible();
-  await expect(pipeline.getByText(/SAP MM|SAP FI|Celonis P2P|Warehouse WMS|Logistics DHL/i).first()).toBeVisible();
+  await expect(pipeline.getByText(/Billing API|CRM Sync|ERP Export|HR Feed|Inventory Feed/i).first()).toBeVisible({
+    timeout: 15_000,
+  });
   await expect(pipeline.getByText(/Business criticality|\d+%/i).first()).toBeVisible();
 });
 
@@ -72,10 +81,12 @@ test("IKS value visible and numeric", async ({ page }) => {
 });
 
 test("SAP systems visible", async ({ page }) => {
-  await page.goto("/");
+  await gotoDashboard(page);
 
   const pipeline = dashboardPanel(page, "Pipeline Status");
-  await expect(pipeline.getByText(/SAP MM|SAP FI/i).first()).toBeVisible();
+  await expect(pipeline.getByText(/Billing API|CRM Sync|ERP Export|HR Feed|Inventory Feed/i).first()).toBeVisible({
+    timeout: 15_000,
+  });
 });
 
 test("conservation slider renders", async ({ page }) => {

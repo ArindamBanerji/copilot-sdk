@@ -21,6 +21,32 @@ interface MapNode {
   y: number;
 }
 
+interface GoldLine {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  label: string;
+  narrative: string;
+  annualValue: number;
+}
+
+interface DomainCluster {
+  domain: string;
+  nodeIds: string[];
+  score: number | null;
+  status: "mature" | "developing" | "learning" | "pending";
+}
+
+type RawGoldLine = Record<string, unknown>;
+type RawIksBadge = Record<string, unknown>;
+
+interface IntelligenceMapPayload extends DIProfilesResponse {
+  suggestedEdges?: RawGoldLine[];
+  suggested_edges?: RawGoldLine[];
+  iksBadges?: RawIksBadge[] | Record<string, unknown>;
+  iks_badges?: RawIksBadge[] | Record<string, unknown>;
+}
+
 const MAP_WIDTH = 720;
 const MIN_RADIUS = 22;
 const MAX_RADIUS = 46;
@@ -58,6 +84,11 @@ export function IntelligenceMapPanel() {
 
   const sources = data?.sources || [];
   const nodes = useMemo(() => buildNodes(sources), [sources]);
+  const mapPayload = data as IntelligenceMapPayload | null;
+  const suggestedEdges = mapPayload?.suggestedEdges ?? mapPayload?.suggested_edges ?? [];
+  const iksBadgePayload = mapPayload?.iksBadges ?? mapPayload?.iks_badges ?? [];
+  const goldLines = useMemo(() => buildGoldLines(nodes, suggestedEdges), [nodes, suggestedEdges]);
+  const domainClusters = useMemo(() => buildDomainClusters(nodes, iksBadgePayload), [nodes, iksBadgePayload]);
   const mapHeight = Math.max(190, Math.ceil(Math.max(nodes.length, 1) / Math.min(4, Math.max(1, nodes.length))) * 112 + 80);
 
   if (state === "loading") {
@@ -108,6 +139,60 @@ export function IntelligenceMapPanel() {
         >
           <title>Data Intelligence Map</title>
           <rect width={MAP_WIDTH} height={mapHeight} fill="rgba(15, 23, 42, 0.35)" />
+          {domainClusters.map((cluster, index) => {
+            const bounds = clusterBounds(cluster, nodes);
+            if (!bounds) {
+              return null;
+            }
+            return (
+              <g key={cluster.domain}>
+                <rect
+                  x={bounds.x}
+                  y={bounds.y}
+                  width={bounds.width}
+                  height={bounds.height}
+                  rx="8"
+                  fill="rgba(148, 163, 184, 0.04)"
+                  stroke="rgba(148, 163, 184, 0.18)"
+                  strokeWidth="1"
+                />
+                <text x={bounds.x + 10} y={bounds.y + 18} className="fill-slate-300 text-[11px] font-semibold">
+                  {cluster.domain}
+                </text>
+                <text x={bounds.x + 10} y={bounds.y + 34} className="fill-amber-200 text-[10px]">
+                  IKS {cluster.score ?? "pending"} {cluster.status}
+                </text>
+              </g>
+            );
+          })}
+          {goldLines.map((line) => {
+            const source = nodes.find((node) => node.id === line.sourceId);
+            const target = nodes.find((node) => node.id === line.targetId);
+            if (!source || !target) {
+              return null;
+            }
+            const midX = (source.x + target.x) / 2;
+            const midY = (source.y + target.y) / 2 - 10;
+            return (
+              <g key={line.id}>
+                <title>{line.narrative}</title>
+                <line
+                  x1={source.x}
+                  y1={source.y}
+                  x2={target.x}
+                  y2={target.y}
+                  stroke="#fbbf24"
+                  strokeWidth="2.5"
+                  strokeDasharray="6 5"
+                  opacity="0.9"
+                />
+                <rect x={midX - 43} y={midY - 14} width="86" height="22" rx="4" fill="rgba(15, 23, 42, 0.92)" stroke="#fbbf24" />
+                <text x={midX} y={midY + 1} textAnchor="middle" className="fill-amber-100 text-[11px] font-semibold">
+                  {line.label}
+                </text>
+              </g>
+            );
+          })}
           {nodes.map((node) => (
             <g key={node.id} transform={`translate(${node.x}, ${node.y})`} aria-label={`${node.sourceName} source node`}>
               <title>{`${node.sourceName}: ${node.entityType}, ${node.status}, ${node.recordCount} records`}</title>
@@ -143,8 +228,20 @@ export function IntelligenceMapPanel() {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs dataops-muted">
-        <span>Correlations pending connector data.</span>
-        <span>IKS pending</span>
+        <span>
+          {goldLines.length > 0
+            ? `${goldLines.length} suggested connection${goldLines.length === 1 ? "" : "s"} with annual value labels.`
+            : "Gold-line suggestions appear after combination valuation."}
+        </span>
+        <span>WebSocket pulsing deferred to DI-7.1</span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {domainClusters.map((cluster) => (
+          <span key={cluster.domain} className="rounded-md border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-xs font-semibold text-amber-100">
+            {cluster.domain}: IKS {cluster.score ?? "pending"} ({cluster.status})
+          </span>
+        ))}
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -198,7 +295,7 @@ function SourceCard({ node }: { node: MapNode }) {
         <Metric label="Trust" value={node.trustTier === null ? "n/a" : `T${node.trustTier}`} />
       </div>
       <p className="mt-3 text-xs dataops-muted">
-        Cache: {node.cacheStatus || "unknown"} - IKS pending
+        Cache: {node.cacheStatus || "unknown"} - source reliability controls map brightness
       </p>
     </div>
   );
@@ -251,6 +348,119 @@ function buildNodes(sources: DISourceSummary[]): MapNode[] {
       y: 70 + row * cellHeight,
     };
   });
+}
+
+function buildGoldLines(nodes: MapNode[], suggestedEdges: RawGoldLine[] = []): GoldLine[] {
+  if (nodes.length < 2 || suggestedEdges.length === 0) {
+    return [];
+  }
+  return suggestedEdges.flatMap((edge, index) => {
+    const sourceKey = optionalString(edge.sourceId ?? edge.source_id ?? edge.source ?? edge.factorA ?? edge.factor_a);
+    const targetKey = optionalString(edge.targetId ?? edge.target_id ?? edge.target ?? edge.factorB ?? edge.factor_b);
+    const sourceId = findNodeId(nodes, sourceKey);
+    const targetId = findNodeId(nodes, targetKey);
+    if (!sourceId || !targetId || sourceId === targetId) {
+      return [];
+    }
+    const annualValue = optionalNumber(edge.annualValue ?? edge.annual_value) ?? 0;
+    const label = optionalString(edge.label) || `${formatMoney(annualValue)}/year`;
+    return [{
+      id: optionalString(edge.id) || `${sourceId}-${targetId}-suggested-${index}`,
+      sourceId,
+      targetId,
+      label,
+      annualValue,
+      narrative: optionalString(edge.narrative) || `Suggested connection: ${label}.`,
+    }];
+  });
+}
+
+function buildDomainClusters(nodes: MapNode[], badges: RawIksBadge[] | Record<string, unknown> = []): DomainCluster[] {
+  const groups = new Map<string, MapNode[]>();
+  const badgeByDomain = normalizeIksBadges(badges);
+  nodes.forEach((node) => {
+    const domain = domainFor(node);
+    groups.set(domain, [...(groups.get(domain) || []), node]);
+  });
+  return Array.from(groups.entries()).map(([domain, group]) => {
+    const badge = badgeByDomain.get(normalizeKey(domain));
+    const score = badge ? optionalNumber(badge.score ?? badge.iks ?? badge.value) : null;
+    const status = badge ? iksStatusFromPayload(badge.status, score) : "pending";
+    return {
+      domain,
+      nodeIds: group.map((node) => node.id),
+      score,
+      status,
+    };
+  });
+}
+
+function normalizeIksBadges(badges: RawIksBadge[] | Record<string, unknown>): Map<string, RawIksBadge> {
+  const entries = new Map<string, RawIksBadge>();
+  if (Array.isArray(badges)) {
+    badges.forEach((badge) => {
+      const domain = optionalString(badge.domain);
+      if (domain) {
+        entries.set(normalizeKey(domain), badge);
+      }
+    });
+    return entries;
+  }
+  Object.entries(badges).forEach(([domain, value]) => {
+    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+      entries.set(normalizeKey(domain), { domain, ...(value as RawIksBadge) });
+      return;
+    }
+    entries.set(normalizeKey(domain), { domain, score: value });
+  });
+  return entries;
+}
+
+function clusterBounds(cluster: DomainCluster, nodes: MapNode[]) {
+  const members = nodes.filter((node) => cluster.nodeIds.includes(node.id));
+  if (members.length === 0) {
+    return null;
+  }
+  const minX = Math.min(...members.map((node) => node.x - node.radius - 18));
+  const maxX = Math.max(...members.map((node) => node.x + node.radius + 18));
+  const minY = Math.min(...members.map((node) => node.y - node.radius - 44));
+  const maxY = Math.max(...members.map((node) => node.y + node.radius + 54));
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+function domainFor(node: MapNode): string {
+  const name = `${node.sourceName} ${node.entityType}`.toLowerCase();
+  if (name.includes("customer") || name.includes("sales")) {
+    return "Customer-360";
+  }
+  if (name.includes("supplier") || name.includes("procurement")) {
+    return "Procurement";
+  }
+  if (name.includes("security") || name.includes("alert")) {
+    return "SOC";
+  }
+  return "DataOps";
+}
+
+function iksStatus(score: number | null): DomainCluster["status"] {
+  if (score === null) {
+    return "pending";
+  }
+  if (score >= 70) {
+    return "mature";
+  }
+  if (score >= 30) {
+    return "developing";
+  }
+  return "learning";
+}
+
+function iksStatusFromPayload(value: unknown, score: number | null): DomainCluster["status"] {
+  const status = optionalString(value);
+  if (status === "mature" || status === "developing" || status === "learning" || status === "pending") {
+    return status;
+  }
+  return iksStatus(score);
 }
 
 function latestProfile(source: DISourceSummary): DIProfileSummary | null {
@@ -333,6 +543,10 @@ function optionalNumber(value: unknown): number | null {
   return Number.isFinite(numberValue) ? numberValue : null;
 }
 
+function optionalString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
 function text(value: unknown, fallback: string): string {
   return typeof value === "string" && value.trim() ? value : fallback;
 }
@@ -345,6 +559,30 @@ function formatNumber(value: number): string {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(value);
 }
 
+function formatMoney(value: number): string {
+  if (Math.abs(value) >= 1000) {
+    return `$${Math.round(value / 1000)}K`;
+  }
+  return `$${Math.round(value).toLocaleString()}`;
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
+}
+
+function findNodeId(nodes: MapNode[], key: string | null): string | null {
+  if (!key) {
+    return null;
+  }
+  const normalized = normalizeKey(key);
+  return nodes.find((node) => (
+    normalizeKey(node.id) === normalized
+    || normalizeKey(node.sourceName) === normalized
+    || normalizeKey(node.entityType) === normalized
+    || normalizeKey(domainFor(node)) === normalized
+  ))?.id ?? null;
+}
+
+function normalizeKey(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }

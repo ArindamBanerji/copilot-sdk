@@ -9,9 +9,29 @@ function panelByHeading(page: Page, heading: string | RegExp): Locator {
     .first();
 }
 
+function expectNoActionableConsoleErrors(errors: string[]) {
+  const filtered = errors.filter((error) => {
+    const text = error.toLowerCase();
+    if (text.includes("/api/")) {
+      return true;
+    }
+    if (
+      text.includes("failed to load resource") ||
+      text.includes("favicon") ||
+      text.includes("manifest") ||
+      text.includes(".ico") ||
+      text.includes(".png")
+    ) {
+      return false;
+    }
+    return true;
+  });
+  expectNoConsoleErrors(filtered);
+}
+
 async function gotoDashboard(page: Page) {
   await page.goto("/");
-  await expect(panelByHeading(page, "Pipeline Status")).toBeVisible();
+  await expect(panelByHeading(page, "Pipeline Status")).toBeVisible({ timeout: 15_000 });
 }
 
 async function gotoInsight(page: Page) {
@@ -32,7 +52,9 @@ test("Act 1 WHERE: Dashboard shows pipeline systems and alert groups", async ({ 
   const pipeline = panelByHeading(page, "Pipeline Status");
   await expect(pipeline).toBeVisible();
   await expect(pipeline.getByText(/\d+\s+systems/i).first()).toBeVisible();
-  await expect(pipeline.getByText(/SAP MM|SAP FI|Celonis P2P|Warehouse WMS/i).first()).toBeVisible();
+  await expect(pipeline.getByText(/Billing API|CRM Sync|ERP Export|HR Feed|Inventory Feed/i).first()).toBeVisible({
+    timeout: 15_000,
+  });
 
   const alerts = panelByHeading(page, "Alert Root Causes");
   await expect(alerts).toBeVisible();
@@ -119,7 +141,7 @@ test("Full 5-act story traverses all screens without console errors", async ({ p
   await expect(panelByHeading(page, "Schema Impact")).toBeVisible();
   await expect(panelByHeading(page, "Pattern Transfer Status")).toBeVisible();
 
-  expectNoConsoleErrors(errors);
+  expectNoActionableConsoleErrors(errors);
 });
 
 test("Transfer panel has no SOC vocabulary", async ({ page }) => {

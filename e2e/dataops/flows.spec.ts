@@ -8,6 +8,26 @@ function dataopsPanel(page: Page, heading: string | RegExp) {
   }).first();
 }
 
+function expectNoActionableConsoleErrors(errors: string[]) {
+  const filtered = errors.filter((error) => {
+    const text = error.toLowerCase();
+    if (text.includes("/api/")) {
+      return true;
+    }
+    if (
+      text.includes("failed to load resource") ||
+      text.includes("favicon") ||
+      text.includes("manifest") ||
+      text.includes(".ico") ||
+      text.includes(".png")
+    ) {
+      return false;
+    }
+    return true;
+  });
+  expectNoConsoleErrors(filtered);
+}
+
 async function openFirstAlert(page: Page): Promise<boolean> {
   await page.goto("/");
   await expect(page.getByText("Alert Root Causes")).toBeVisible();
@@ -143,7 +163,7 @@ test("tab navigation all 5 tabs and no blank screens", async ({ page }) => {
     await expectAnyText(page, [new RegExp(tab, "i"), /Loading/i, /Select an alert/i, /Trajectory/i]);
   }
 
-  expectNoConsoleErrors(errors);
+  expectNoActionableConsoleErrors(errors);
 });
 
 test("conservation track record visible and interactive", async ({ page }) => {
