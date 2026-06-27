@@ -33,7 +33,7 @@ test("menu summary endpoint returns classification counts", async ({ page }) => 
 
 test("menu matrix card renders on analysis tab", async ({ page }) => {
   await gotoAnalysis(page);
-  await expect(page.getByText("Menu Intelligence")).toBeVisible();
+  await expect(page.getByText("Menu Intelligence", { exact: true })).toBeVisible();
 });
 
 test("menu card shows classification summary", async ({ page }) => {
