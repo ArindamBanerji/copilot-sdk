@@ -184,4 +184,110 @@ def test_dataops_app_mounts_di_profiles_empty_registry():
     response = client.get("/api/di/profiles")
 
     assert response.status_code == 200
-    assert response.json() == {"sources": [], "total": 0}
+    payload = response.json()
+    assert payload["total"] == 3
+    assert {source["source_name"] for source in payload["sources"]} == {
+        "airflow",
+        "dbt",
+        "snowflake",
+    }
+
+
+def _dataops_app():
+    backend_root = Path(__file__).resolve().parents[1] / "apps" / "dataops" / "backend"
+    if str(backend_root) not in sys.path:
+        sys.path.insert(0, str(backend_root))
+    from app.main import create_app
+
+    return create_app(db_path=":memory:", demo_bundle_path=False)
+
+
+def test_snowflake_in_profiler_registry():
+    app = _dataops_app()
+
+    assert "snowflake" in app.state.dataops_profiler_registry
+
+
+def test_dbt_in_profiler_registry():
+    app = _dataops_app()
+
+    assert "dbt" in app.state.dataops_profiler_registry
+
+
+def test_airflow_in_profiler_registry():
+    app = _dataops_app()
+
+    assert "airflow" in app.state.dataops_profiler_registry
+
+
+def test_profiles_endpoint_includes_snowflake():
+    response = TestClient(_dataops_app()).get("/api/di/profiles")
+
+    assert response.status_code == 200
+    sources = [source["source_name"] for source in response.json()["sources"]]
+    assert "snowflake" in sources
+
+
+def test_profiles_endpoint_includes_dbt():
+    response = TestClient(_dataops_app()).get("/api/di/profiles")
+
+    assert response.status_code == 200
+    sources = [source["source_name"] for source in response.json()["sources"]]
+    assert "dbt" in sources
+
+
+def test_profiles_endpoint_includes_airflow():
+    response = TestClient(_dataops_app()).get("/api/di/profiles")
+
+    assert response.status_code == 200
+    sources = [source["source_name"] for source in response.json()["sources"]]
+    assert "airflow" in sources
+
+
+def test_intelligence_map_has_connector_nodes():
+    response = TestClient(_dataops_app()).get("/api/di/intelligence-map")
+
+    assert response.status_code == 200
+    labels = {node["label"] for node in response.json()["nodes"]}
+    assert {"orders", "stg_orders", "etl_orders"} <= labels
+
+
+def test_connector_provenance_demo():
+    app = _dataops_app()
+    backend_root = Path(__file__).resolve().parents[1] / "apps" / "dataops" / "backend"
+    if str(backend_root) not in sys.path:
+        sys.path.insert(0, str(backend_root))
+    from app.main import _dataops_intelligence_map_sources
+
+    sources = _dataops_intelligence_map_sources(app.state.dataops_profiler_registry)
+
+    assert sources
+    assert all(source["provenance"] == "demo" for source in sources)
+
+
+def test_profiled_snowflake_has_quality():
+    app = _dataops_app()
+
+    assert app.state.dataops_profiles["snowflake"]["overall_quality"] > 0
+
+
+def test_profiled_dbt_has_quality():
+    app = _dataops_app()
+
+    assert app.state.dataops_profiles["dbt"]["overall_quality"] > 0
+
+
+def test_profiled_airflow_has_quality():
+    app = _dataops_app()
+
+    assert app.state.dataops_profiles["airflow"]["overall_quality"] > 0
+
+
+def test_profiles_endpoint_has_data():
+    response = TestClient(_dataops_app()).get("/api/di/profiles")
+
+    assert response.status_code == 200
+    sources = response.json()["sources"]
+    assert sources
+    assert all(source["has_profile"] is True for source in sources)
+    assert all(source["latest_profile"]["overall_quality"] > 0 for source in sources)

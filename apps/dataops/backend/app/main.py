@@ -43,7 +43,11 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.connectors.mock_airflow import MockAirflowConnector  # noqa: E402
+from copilot_sdk.connectors.mock_dbt import MockDBTConnector  # noqa: E402
+from copilot_sdk.connectors.mock_snowflake import MockSnowflakeConnector  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
+from copilot_sdk.di import BaseSourceProfiler, IntelligenceMapBuilder  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
@@ -84,6 +88,64 @@ def _graph_store(db_path: str | Path):
     store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="DOPS-")
     store.penalty_ratio = 10.0
     return store
+
+
+def _dataops_profiler_registry() -> dict[str, BaseSourceProfiler]:
+    return {
+        "airflow": BaseSourceProfiler(MockAirflowConnector()),
+        "dbt": BaseSourceProfiler(MockDBTConnector()),
+        "snowflake": BaseSourceProfiler(MockSnowflakeConnector()),
+    }
+
+
+def _dataops_intelligence_map_sources(profiler_registry: dict[str, BaseSourceProfiler]) -> list[dict[str, Any]]:
+    sources: list[dict[str, Any]] = []
+    for source_name in sorted(profiler_registry):
+        connector = profiler_registry[source_name].connector
+        to_map_nodes = getattr(connector, "to_map_nodes", None)
+        if callable(to_map_nodes):
+            sources.extend(to_map_nodes())
+    return sources
+
+
+def _dataops_profile_entity_ids(source_name: str) -> list[str]:
+    if source_name == "dbt":
+        return ["latest"]
+    return ["all"]
+
+
+def _profile_dataops_sources(profiler_registry: dict[str, BaseSourceProfiler]) -> dict[str, dict[str, Any]]:
+    profiles: dict[str, dict[str, Any]] = {}
+    for source_name, profiler in profiler_registry.items():
+        try:
+            profiles[source_name] = profiler.profile(_dataops_profile_entity_ids(source_name)).to_dict()
+        except Exception:
+            continue
+    return profiles
+
+
+def _dataops_profile_summaries(
+    profiler_registry: dict[str, BaseSourceProfiler],
+    profiles: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    sources = []
+    for source_name in sorted(profiler_registry):
+        profiler = profiler_registry[source_name]
+        connector = profiler.connector
+        profile = profiles.get(source_name)
+        sources.append(
+            {
+                "source_name": str(getattr(connector, "source_name", source_name)),
+                "entity_type": str(getattr(connector, "entity_type", "")),
+                "trust_tier": int(getattr(connector, "trust_tier", 3)),
+                "has_profile": profile is not None,
+                "cache_status": "fresh" if profile is not None else "not_profiled",
+                "age_seconds": 0.0 if profile is not None else None,
+                "is_stale": False,
+                "latest_profile": profile,
+            }
+        )
+    return {"sources": sources, "total": len(sources)}
 
 
 def _selected_graph_store_factory(
@@ -359,6 +421,10 @@ def create_app(
     app.state.dataops_active_graph_config = active_config
     app.state.dataops_selected_graph_store = selected_graph_store
     app.state.graph_store = selected_graph_store
+    dataops_profiler_registry = _dataops_profiler_registry()
+    app.state.dataops_profiler_registry = dataops_profiler_registry
+    dataops_profiles = _profile_dataops_sources(dataops_profiler_registry)
+    app.state.dataops_profiles = dataops_profiles
     scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, graph_store_factory)
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
@@ -408,9 +474,16 @@ def create_app(
         ),
         prefix="/api",
     )
-    # DataOps mounts the shared DI source profiler API with an empty registry
-    # until concrete SourceConnector implementations are registered.
-    app.include_router(create_di_router({}), prefix="/api")
+    @app.get("/api/di/profiles")
+    def dataops_profiles_response() -> dict[str, Any]:
+        return _dataops_profile_summaries(dataops_profiler_registry, dataops_profiles)
+
+    @app.get("/api/dataops/di/profiles")
+    def dataops_prefixed_profiles_response() -> dict[str, Any]:
+        return dataops_profiles_response()
+
+    app.include_router(create_di_router(dataops_profiler_registry), prefix="/api")
+    app.include_router(create_di_router(dataops_profiler_registry), prefix="/api/dataops")
     app.include_router(
         create_evolution_router(
             graph_store_factory=lambda: selected_graph_store,
@@ -434,6 +507,15 @@ def create_app(
     app.include_router(
         create_cohort_status_router(graph_store_factory=lambda: selected_graph_store)
     )
+
+    @app.get("/api/di/intelligence-map")
+    def dataops_intelligence_map() -> dict[str, Any]:
+        sources = _dataops_intelligence_map_sources(dataops_profiler_registry)
+        return IntelligenceMapBuilder().build(sources=sources).to_dict()
+
+    @app.get("/api/dataops/di/intelligence-map")
+    def dataops_prefixed_intelligence_map() -> dict[str, Any]:
+        return dataops_intelligence_map()
 
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:
