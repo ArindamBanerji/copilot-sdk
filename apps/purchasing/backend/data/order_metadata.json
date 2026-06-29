@@ -11926,6 +11926,37 @@
     "waste_pct": 0.07,
     "weather_forecast": 0.85
   },
+  "PUR-03cfafee84a5": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:03:56.438Z",
+    "day": "Monday",
+    "decision_id": "PUR-03cfafee84a5",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
   "PUR-045c40d4ba3b": {
     "action": "order_as_planned",
     "auto_computed_factors": {
@@ -11948,6 +11979,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -11955,8 +11987,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-057cb5468c8f": {
     "action": "order_as_planned",
@@ -12163,6 +12194,37 @@
     "waste_cost_dollars": 18.2,
     "waste_pct": 0.05,
     "weather_forecast": 0.4
+  },
+  "PUR-0c48e73fa89a": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:05:17.420Z",
+    "day": "Monday",
+    "decision_id": "PUR-0c48e73fa89a",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-0c9697f19954": {
     "_preseed_sequence": 171,
@@ -12970,6 +13032,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "ground_beef",
+    "provenance": "sample",
     "quantity": 42,
     "quantity_lbs": 42,
     "reward": 0,
@@ -12977,8 +13040,7 @@
     "stockout_estimate": 3654,
     "total_cost": 182.7,
     "unit": "lb",
-    "waste_estimate": 0.08769600000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.08769600000000001
   },
   "PUR-20de58495647": {
     "action": "order_as_planned",
@@ -13193,6 +13255,38 @@
     "waste_pct": 0.06,
     "weather_forecast": 0.45
   },
+  "PUR-24866af70ec2": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-25T12:59:14.933Z",
+    "day": "Thursday",
+    "decision_id": "PUR-24866af70ec2",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "provenance": "sample",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
   "PUR-249bc9a43161": {
     "action": "order_as_planned",
     "auto_computed_factors": {
@@ -13215,6 +13309,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -13222,8 +13317,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-26d90506da9e": {
     "_preseed_sequence": 170,
@@ -14614,6 +14708,101 @@
     "unit": "lb",
     "waste_estimate": 0.09563400000000001
   },
+  "PUR-38f39b11b689": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-25T12:59:20.088Z",
+    "day": "Thursday",
+    "decision_id": "PUR-38f39b11b689",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "provenance": "sample",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
+  "PUR-391d88c77feb": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:04:00.216Z",
+    "day": "Monday",
+    "decision_id": "PUR-391d88c77feb",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
+  "PUR-3a7b54fc3517": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-25T12:58:21.209Z",
+    "day": "Thursday",
+    "decision_id": "PUR-3a7b54fc3517",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "provenance": "sample",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
   "PUR-3bb7fbda8258": {
     "_preseed_sequence": 161,
     "_preseed_source_index": 1,
@@ -15380,6 +15569,37 @@
     "unit": "lb",
     "waste_estimate": 0.09563400000000001
   },
+  "PUR-47d10266de37": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:16:48.162Z",
+    "day": "Monday",
+    "decision_id": "PUR-47d10266de37",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
   "PUR-481002944a95": {
     "_preseed_sequence": 146,
     "_preseed_source_index": 6,
@@ -15653,6 +15873,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -15660,8 +15881,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-53497feda61e": {
     "action": "order_as_planned",
@@ -15717,6 +15937,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -15724,8 +15945,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-54d2d40b2d6c": {
     "action": "order_as_planned",
@@ -15758,6 +15978,37 @@
     "total_cost": 182.7,
     "unit": "lb",
     "waste_estimate": 0.08769600000000001
+  },
+  "PUR-55e109a91a90": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:16:40.224Z",
+    "day": "Monday",
+    "decision_id": "PUR-55e109a91a90",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-56bfded719a1": {
     "action": "order_as_planned",
@@ -15861,6 +16112,37 @@
     "total_cost": 182.7,
     "unit": "lb",
     "waste_estimate": 0.08769600000000001
+  },
+  "PUR-599b3490a562": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:17:57.445Z",
+    "day": "Monday",
+    "decision_id": "PUR-599b3490a562",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-5aa3b714fead": {
     "action": "order_as_planned",
@@ -16208,6 +16490,38 @@
     "unit": "lb",
     "waste_estimate": 0.09563400000000001
   },
+  "PUR-62c6423d9aea": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-25T12:47:32.366Z",
+    "day": "Thursday",
+    "decision_id": "PUR-62c6423d9aea",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "provenance": "sample",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
   "PUR-637d6be5ea57": {
     "action": "order_as_planned",
     "auto_computed_factors": {
@@ -16379,6 +16693,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -16386,8 +16701,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-6632ebc9f487": {
     "action": "order_as_planned",
@@ -16420,6 +16734,37 @@
     "total_cost": 182.7,
     "unit": "lb",
     "waste_estimate": 0.08769600000000001
+  },
+  "PUR-67dfae238df7": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:35:55.389Z",
+    "day": "Monday",
+    "decision_id": "PUR-67dfae238df7",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-6829f95d1068": {
     "action": "order_as_planned",
@@ -17160,6 +17505,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -17167,8 +17513,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-7581a23a86da": {
     "_preseed_sequence": 188,
@@ -17231,6 +17576,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -17238,8 +17584,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-77e7aa1b66c6": {
     "_preseed_sequence": 182,
@@ -17358,6 +17703,38 @@
     "waste_pct": 0.04,
     "weather_forecast": 0.2
   },
+  "PUR-79b14dc7611a": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.00048000000000000007,
+      "supplier_lead_time": 0.5,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 182.7,
+    "created_at": "2026-06-25T12:47:24.447Z",
+    "day": "Thursday",
+    "decision_id": "PUR-79b14dc7611a",
+    "display_name": "Ground Beef",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "ground_beef",
+    "provenance": "sample",
+    "quantity": 42,
+    "quantity_lbs": 42,
+    "reward": 0,
+    "risk_ratio": 41666.666666666664,
+    "stockout_estimate": 3654,
+    "total_cost": 182.7,
+    "unit": "lb",
+    "waste_estimate": 0.08769600000000001
+  },
   "PUR-7a87cd58c240": {
     "_preseed_sequence": 30,
     "_preseed_source_index": 10,
@@ -17428,6 +17805,37 @@
     "total_cost": 177.1,
     "unit": "lb",
     "waste_estimate": 0.09563400000000001
+  },
+  "PUR-7a8d335e68bf": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.00048000000000000007,
+      "supplier_lead_time": 0.5,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 182.7,
+    "created_at": "2026-06-29T20:15:50.825Z",
+    "day": "Monday",
+    "decision_id": "PUR-7a8d335e68bf",
+    "display_name": "Ground Beef",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "ground_beef",
+    "quantity": 42,
+    "quantity_lbs": 42,
+    "reward": 0,
+    "risk_ratio": 41666.666666666664,
+    "stockout_estimate": 3654,
+    "total_cost": 182.7,
+    "unit": "lb",
+    "waste_estimate": 0.08769600000000001
   },
   "PUR-7af9273b267b": {
     "_preseed_sequence": 39,
@@ -17702,6 +18110,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "ground_beef",
+    "provenance": "sample",
     "quantity": 42,
     "quantity_lbs": 42,
     "reward": 0,
@@ -17709,8 +18118,7 @@
     "stockout_estimate": 3654,
     "total_cost": 182.7,
     "unit": "lb",
-    "waste_estimate": 0.08769600000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.08769600000000001
   },
   "PUR-7ee050af8bf4": {
     "action": "order_as_planned",
@@ -17735,6 +18143,37 @@
     "expected_demand_choice": "average",
     "item": "ground_beef",
     "provenance": "sample",
+    "quantity": 42,
+    "quantity_lbs": 42,
+    "reward": 0,
+    "risk_ratio": 41666.666666666664,
+    "stockout_estimate": 3654,
+    "total_cost": 182.7,
+    "unit": "lb",
+    "waste_estimate": 0.08769600000000001
+  },
+  "PUR-7fdbce3c102c": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.00048000000000000007,
+      "supplier_lead_time": 0.5,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 182.7,
+    "created_at": "2026-06-29T20:02:44.799Z",
+    "day": "Monday",
+    "decision_id": "PUR-7fdbce3c102c",
+    "display_name": "Ground Beef",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "ground_beef",
     "quantity": 42,
     "quantity_lbs": 42,
     "reward": 0,
@@ -18098,6 +18537,37 @@
     "unit": "lb",
     "waste_estimate": 0.09563400000000001
   },
+  "PUR-896a6c6f6d47": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.00048000000000000007,
+      "supplier_lead_time": 0.5,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 182.7,
+    "created_at": "2026-06-29T20:34:44.955Z",
+    "day": "Monday",
+    "decision_id": "PUR-896a6c6f6d47",
+    "display_name": "Ground Beef",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "ground_beef",
+    "quantity": 42,
+    "quantity_lbs": 42,
+    "reward": 0,
+    "risk_ratio": 41666.666666666664,
+    "stockout_estimate": 3654,
+    "total_cost": 182.7,
+    "unit": "lb",
+    "waste_estimate": 0.08769600000000001
+  },
   "PUR-8996981db958": {
     "_preseed_sequence": 105,
     "_preseed_source_index": 5,
@@ -18215,6 +18685,38 @@
     "waste_pct": 0.31,
     "weather_forecast": 0.25
   },
+  "PUR-8b52b85a414a": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-25T13:00:19.429Z",
+    "day": "Thursday",
+    "decision_id": "PUR-8b52b85a414a",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "provenance": "sample",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
   "PUR-8e2bfad908e7": {
     "action": "order_as_planned",
     "auto_computed_factors": {
@@ -18231,6 +18733,69 @@
     "created_at": "2026-06-20T00:20:31.944Z",
     "day": "Friday",
     "decision_id": "PUR-8e2bfad908e7",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "provenance": "sample",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
+  "PUR-8e5d708462a1": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:34:49.873Z",
+    "day": "Monday",
+    "decision_id": "PUR-8e5d708462a1",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
+  "PUR-8ec633dcc2ab": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-25T12:47:37.320Z",
+    "day": "Thursday",
+    "decision_id": "PUR-8ec633dcc2ab",
     "display_name": "Chicken Breast",
     "emoji": "\ud83c\udf57",
     "events": [],
@@ -18308,6 +18873,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -18315,8 +18881,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-932b2e709e3f": {
     "action": "order_as_planned",
@@ -18474,6 +19039,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -18481,8 +19047,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-99216ec6c200": {
     "_preseed_sequence": 111,
@@ -19137,6 +19702,37 @@
     "waste_pct": 0.12,
     "weather_forecast": 0.75
   },
+  "PUR-a8d5d4ab1440": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:16:53.501Z",
+    "day": "Monday",
+    "decision_id": "PUR-a8d5d4ab1440",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
   "PUR-a91a37f5b807": {
     "action": "order_as_planned",
     "auto_computed_factors": {
@@ -19670,6 +20266,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -19677,8 +20274,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-b32e2bea2e0a": {
     "action": "order_as_planned",
@@ -20078,6 +20674,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -20085,8 +20682,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-b8d3cb90f171": {
     "_preseed_sequence": 6,
@@ -20197,6 +20793,38 @@
     "waste_cost_dollars": 23.1,
     "waste_pct": 0.04,
     "weather_forecast": 0.2
+  },
+  "PUR-bb99847ef5a3": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.00048000000000000007,
+      "supplier_lead_time": 0.5,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 182.7,
+    "created_at": "2026-06-25T12:46:32.395Z",
+    "day": "Thursday",
+    "decision_id": "PUR-bb99847ef5a3",
+    "display_name": "Ground Beef",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "ground_beef",
+    "provenance": "sample",
+    "quantity": 42,
+    "quantity_lbs": 42,
+    "reward": 0,
+    "risk_ratio": 41666.666666666664,
+    "stockout_estimate": 3654,
+    "total_cost": 182.7,
+    "unit": "lb",
+    "waste_estimate": 0.08769600000000001
   },
   "PUR-bc4812af2ed8": {
     "action": "order_as_planned",
@@ -20541,6 +21169,69 @@
     "waste_pct": 0.05,
     "weather_forecast": 0.4
   },
+  "PUR-c1907d3e253a": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:34:43.748Z",
+    "day": "Monday",
+    "decision_id": "PUR-c1907d3e253a",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
+  "PUR-c58558fa8b77": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.00048000000000000007,
+      "supplier_lead_time": 0.5,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 182.7,
+    "created_at": "2026-06-25T12:58:27.138Z",
+    "day": "Thursday",
+    "decision_id": "PUR-c58558fa8b77",
+    "display_name": "Ground Beef",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "ground_beef",
+    "provenance": "sample",
+    "quantity": 42,
+    "quantity_lbs": 42,
+    "reward": 0,
+    "risk_ratio": 41666.666666666664,
+    "stockout_estimate": 3654,
+    "total_cost": 182.7,
+    "unit": "lb",
+    "waste_estimate": 0.08769600000000001
+  },
   "PUR-c5b44b27cef3": {
     "action": "order_as_planned",
     "auto_computed_factors": {
@@ -20563,6 +21254,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -20570,8 +21262,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-c640766f74b5": {
     "_preseed_sequence": 195,
@@ -20942,6 +21633,38 @@
     "waste_pct": 0.01,
     "weather_forecast": 0.3
   },
+  "PUR-cdc866c04239": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-25T12:48:18.595Z",
+    "day": "Thursday",
+    "decision_id": "PUR-cdc866c04239",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "provenance": "sample",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
   "PUR-cdf76311a0d8": {
     "action": "order_as_planned",
     "auto_computed_factors": {
@@ -20964,6 +21687,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -20971,8 +21695,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-ce136990d3b0": {
     "_preseed_sequence": 128,
@@ -21139,6 +21862,37 @@
     "total_cost": 177.1,
     "unit": "lb",
     "waste_estimate": 0.09563400000000001
+  },
+  "PUR-cf4e78d80489": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.00048000000000000007,
+      "supplier_lead_time": 0.5,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 182.7,
+    "created_at": "2026-06-29T20:33:50.859Z",
+    "day": "Monday",
+    "decision_id": "PUR-cf4e78d80489",
+    "display_name": "Ground Beef",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "ground_beef",
+    "quantity": 42,
+    "quantity_lbs": 42,
+    "reward": 0,
+    "risk_ratio": 41666.666666666664,
+    "stockout_estimate": 3654,
+    "total_cost": 182.7,
+    "unit": "lb",
+    "waste_estimate": 0.08769600000000001
   },
   "PUR-d0cd728fcffb": {
     "_preseed_sequence": 47,
@@ -21913,6 +22667,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -21920,8 +22675,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-de1b5fe67378": {
     "action": "order_as_planned",
@@ -21993,6 +22747,38 @@
     "waste_cost_dollars": 59.28,
     "waste_pct": 0.06,
     "weather_forecast": 0.45
+  },
+  "PUR-dfe1d8e3cc0a": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-25T12:59:20.626Z",
+    "day": "Thursday",
+    "decision_id": "PUR-dfe1d8e3cc0a",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "provenance": "sample",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-dff6b9c43369": {
     "_preseed_sequence": 46,
@@ -22133,6 +22919,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "ground_beef",
+    "provenance": "sample",
     "quantity": 42,
     "quantity_lbs": 42,
     "reward": 0,
@@ -22140,8 +22927,7 @@
     "stockout_estimate": 3654,
     "total_cost": 182.7,
     "unit": "lb",
-    "waste_estimate": 0.08769600000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.08769600000000001
   },
   "PUR-e33c64544e0c": {
     "_preseed_sequence": 152,
@@ -22282,6 +23068,7 @@
     "expected_demand": 0.5,
     "expected_demand_choice": "average",
     "item": "chicken_breast",
+    "provenance": "sample",
     "quantity": 46,
     "quantity_lbs": 46,
     "reward": 0,
@@ -22289,8 +23076,7 @@
     "stockout_estimate": 3542,
     "total_cost": 177.1,
     "unit": "lb",
-    "waste_estimate": 0.09563400000000001,
-    "provenance": "sample"
+    "waste_estimate": 0.09563400000000001
   },
   "PUR-e5c42b02ca9d": {
     "_preseed_sequence": 117,
@@ -22369,6 +23155,68 @@
     "waste_cost_dollars": 364.56,
     "waste_pct": 0.31,
     "weather_forecast": 0.25
+  },
+  "PUR-e74969347fc8": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-29T20:02:39.537Z",
+    "day": "Monday",
+    "decision_id": "PUR-e74969347fc8",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
+  },
+  "PUR-e7b797df9149": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.14,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.00048000000000000007,
+      "supplier_lead_time": 0.5,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 182.7,
+    "created_at": "2026-06-29T20:03:30.677Z",
+    "day": "Monday",
+    "decision_id": "PUR-e7b797df9149",
+    "display_name": "Ground Beef",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "ground_beef",
+    "quantity": 42,
+    "quantity_lbs": 42,
+    "reward": 0,
+    "risk_ratio": 41666.666666666664,
+    "stockout_estimate": 3654,
+    "total_cost": 182.7,
+    "unit": "lb",
+    "waste_estimate": 0.08769600000000001
   },
   "PUR-e9541d19a9eb": {
     "action": "order_as_planned",
@@ -23490,6 +24338,38 @@
     "waste_cost_dollars": 50.4,
     "waste_pct": 0.08,
     "weather_forecast": 0.2
+  },
+  "PUR-fe6fb9cd8291": {
+    "action": "order_as_planned",
+    "auto_computed_factors": {
+      "day_of_week": 0.57,
+      "event_flag": 0,
+      "expected_demand": 0.5,
+      "historical_waste": 0.0005400000000000001,
+      "supplier_lead_time": 0.45,
+      "weather_forecast": 0.5
+    },
+    "category": "protein",
+    "confirmed_action": "order_as_planned",
+    "cost": 177.1,
+    "created_at": "2026-06-25T12:46:25.416Z",
+    "day": "Thursday",
+    "decision_id": "PUR-fe6fb9cd8291",
+    "display_name": "Chicken Breast",
+    "emoji": "\ud83c\udf57",
+    "events": [],
+    "expected_demand": 0.5,
+    "expected_demand_choice": "average",
+    "item": "chicken_breast",
+    "provenance": "sample",
+    "quantity": 46,
+    "quantity_lbs": 46,
+    "reward": 0,
+    "risk_ratio": 37037.03703703704,
+    "stockout_estimate": 3542,
+    "total_cost": 177.1,
+    "unit": "lb",
+    "waste_estimate": 0.09563400000000001
   },
   "a0b4dfafe6bc": {
     "_preseed_sequence": 109,

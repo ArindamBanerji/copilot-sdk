@@ -10,6 +10,7 @@ from app.services.trading_evolver import (
     TradingAgentEvolver,
     TradingVariantGenerator,
     _VariantRule,
+    _default_conservation_state,
 )
 
 
@@ -182,6 +183,13 @@ def test_conservation_gate_at_promotion():
     result = evolver.promote(variant["variant_id"])
     assert result["promoted"] is False
     assert result["reason"] == "conservation_not_green"
+
+
+def test_conservation_not_hardcoded_green():
+    state = _default_conservation_state()
+
+    assert state["status"] != "GREEN"
+    assert state["note"] == "conservation service not configured"
 
 
 def test_router_evolution_log():

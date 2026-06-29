@@ -47,7 +47,7 @@ from copilot_sdk.connectors.mock_airflow import MockAirflowConnector  # noqa: E4
 from copilot_sdk.connectors.mock_dbt import MockDBTConnector  # noqa: E402
 from copilot_sdk.connectors.mock_snowflake import MockSnowflakeConnector  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
-from copilot_sdk.di import BaseSourceProfiler, IntelligenceMapBuilder  # noqa: E402
+from copilot_sdk.di import AcquisitionAdvisor, BaseSourceProfiler, IntelligenceMapBuilder  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
@@ -146,6 +146,26 @@ def _dataops_profile_summaries(
             }
         )
     return {"sources": sources, "total": len(sources)}
+
+
+def _dataops_acquisition_recommendations() -> dict[str, Any]:
+    advisor = AcquisitionAdvisor()
+    payload = advisor.recommend(
+        "dataops",
+        current_sources=["snowflake", "dbt", "airflow"],
+        decisions_per_year=12000,
+    )
+    recommendations = advisor.free_first(list(payload.get("recommendations", [])))
+    for recommendation in recommendations:
+        recommendation["provenance"] = "demo"
+    monetization = advisor.discover_monetization(12000, ["dataops"])
+    monetization["provenance"] = "demo"
+    return {
+        **payload,
+        "recommendations": recommendations,
+        "monetization": monetization,
+        "provenance": "demo",
+    }
 
 
 def _selected_graph_store_factory(
@@ -481,6 +501,10 @@ def create_app(
     @app.get("/api/dataops/di/profiles")
     def dataops_prefixed_profiles_response() -> dict[str, Any]:
         return dataops_profiles_response()
+
+    @app.get("/api/dataops/di/acquisitions")
+    def dataops_acquisitions_response() -> dict[str, Any]:
+        return _dataops_acquisition_recommendations()
 
     app.include_router(create_di_router(dataops_profiler_registry), prefix="/api")
     app.include_router(create_di_router(dataops_profiler_registry), prefix="/api/dataops")

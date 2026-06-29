@@ -69,7 +69,7 @@ def compute_conservation_metrics(state: Any, domain: str | None = None) -> dict[
             penalty_ratio=float(counts["penalty_ratio"]),
         )
     else:
-        alpha = verified_count / total_decisions
+        alpha = categories_with_data / categories_total if categories_total > 0 else 0.0
         q = correct_count / verified_count
         V = verified_count
         theta_min = compute_theta_min(alpha, float(V))

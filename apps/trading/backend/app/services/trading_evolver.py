@@ -45,7 +45,7 @@ def _conservation_green(state: Any) -> bool:
 
 
 def _default_conservation_state() -> dict[str, str]:
-    return {"status": "GREEN"}
+    return {"status": "unknown", "note": "conservation service not configured"}
 
 
 class TradingVariantGenerator:

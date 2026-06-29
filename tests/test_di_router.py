@@ -291,3 +291,37 @@ def test_profiles_endpoint_has_data():
     assert sources
     assert all(source["has_profile"] is True for source in sources)
     assert all(source["latest_profile"]["overall_quality"] > 0 for source in sources)
+
+
+def test_acquisitions_endpoint_200():
+    response = TestClient(_dataops_app()).get("/api/dataops/di/acquisitions")
+
+    assert response.status_code == 200
+    assert response.json()["recommendations"]
+
+
+def test_acquisitions_has_roi():
+    response = TestClient(_dataops_app()).get("/api/dataops/di/acquisitions")
+
+    assert response.status_code == 200
+    assert all("roi" in item for item in response.json()["recommendations"])
+
+
+def test_acquisitions_free_first():
+    response = TestClient(_dataops_app()).get("/api/dataops/di/acquisitions")
+
+    assert response.status_code == 200
+    recommendations = response.json()["recommendations"]
+    free_indexes = [index for index, item in enumerate(recommendations) if item["cost"] == 0]
+    paid_indexes = [index for index, item in enumerate(recommendations) if item["cost"] > 0]
+    assert free_indexes
+    assert not paid_indexes or max(free_indexes) < min(paid_indexes)
+
+
+def test_acquisitions_provenance():
+    response = TestClient(_dataops_app()).get("/api/dataops/di/acquisitions")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["provenance"] == "demo"
+    assert all(item["provenance"] == "demo" for item in payload["recommendations"])

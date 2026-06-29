@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 import cli
-from app.services.promotion import PromotionService, _is_conservation_green, strategy_key
+from app.services.promotion import PromotionService, _is_conservation_green, _metrics, strategy_key
 
 
 def _trade(
@@ -52,6 +52,8 @@ def test_promote_paper_to_small(tmp_path):
 
     assert events[0]["action"] == "promote"
     assert events[0]["to_tier"] == "small_live"
+    assert events[0]["accuracy"] == events[0]["win_rate"]
+    assert "sigma=" in events[0]["reason"]
     assert service.get_tier("trend_following:momentum") == "small_live"
 
 
@@ -287,3 +289,28 @@ def test_promote_no_strategies_message(tmp_path, capsys):
     assert cli.main(["--config-dir", str(config_dir), "promote"]) == 0
 
     assert "No strategies tracked yet" in capsys.readouterr().out
+
+
+def test_metrics_includes_sigma():
+    metrics = _metrics(_trades(2, 1))
+
+    assert isinstance(metrics["sigma"], float)
+    assert metrics["accuracy"] == metrics["win_rate"]
+
+
+def test_sigma_all_wins():
+    metrics = _metrics(_trades(4, 4))
+
+    assert metrics["sigma"] == 0.0
+
+
+def test_sigma_mixed():
+    metrics = _metrics(_trades(4, 2))
+
+    assert abs(metrics["sigma"] - 0.5) < 0.0001
+
+
+def test_sigma_single_trade():
+    metrics = _metrics(_trades(1, 1))
+
+    assert metrics["sigma"] == 0.0

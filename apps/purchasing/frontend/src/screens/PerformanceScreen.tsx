@@ -3,13 +3,16 @@ import { ConservationProjection } from "../../../../../copilot_sdk/frontend";
 import TrajectoryChart, { type TrajectoryPoint } from "../../../../../copilot_sdk/frontend/TrajectoryChart";
 import { getAnalytics, getConservationStatus, getTrajectory } from "../api";
 import AlertDashboardCard from "../components/AlertDashboardCard";
+import AuditExportPanel from "../components/AuditExportPanel";
 import CategoryAccuracyChart from "../components/CategoryAccuracyChart";
 import { CentroidTimelineChart } from "../components/CentroidTimelineChart";
 import ChainTransferCard from "../components/ChainTransferCard";
 import CohortStatusPanel from "../components/CohortStatusPanel";
+import DisruptionRecoveryPanel from "../components/DisruptionRecoveryPanel";
 import EconomicDashboardCard from "../components/EconomicDashboardCard";
 import GroupDashboardCard from "../components/GroupDashboardCard";
 import IKSTrackerPanel from "../components/IKSTrackerPanel";
+import PaymentTimingPanel from "../components/PaymentTimingPanel";
 import SupplierScorecardPanel from "../components/SupplierScorecardPanel";
 import WasteAlertCard from "../components/WasteAlertCard";
 import WasteCostCard from "../components/WasteCostCard";
@@ -104,6 +107,9 @@ export default function PerformanceScreen() {
 
       <ChainTransferCard />
       <EconomicDashboardCard />
+      <DisruptionRecoveryPanel />
+      <PaymentTimingPanel />
+      <AuditExportPanel />
       <GroupDashboardCard />
       <AlertDashboardCard />
       <IKSTrackerPanel />

@@ -13,7 +13,12 @@ def test_dashboard_3_locations():
 
 def test_weighted_accuracy():
     data = MultiUnitManager().dashboard(demo_locations())
+    improved = demo_locations()
+    improved[1]["accuracy"] = 0.90
+    improved_data = MultiUnitManager().dashboard(improved)
+
     assert data.weighted_accuracy > 0.75
+    assert improved_data.weighted_accuracy > data.weighted_accuracy
 
 
 def test_best_worst():
@@ -103,3 +108,4 @@ def test_router_transfer_opportunities():
     response = client.get("/api/purchasing/multi-unit/transfer-opportunities")
     assert response.status_code == 200
     assert isinstance(response.json()["opportunities"], list)
+    assert response.json()["opportunities"][0]["source"] == "Chicago"

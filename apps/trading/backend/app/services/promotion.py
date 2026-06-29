@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from statistics import pstdev
 from typing import Any
 
 
@@ -98,7 +99,7 @@ class PromotionService:
                 if promotion_target:
                     target = promotion_target
                     action = "promote"
-                    reason = _promotion_reason(current, promotion_target)
+                    reason = _promotion_reason(current, promotion_target, metrics)
             elif current != "full_live":
                 reason = "conservation not GREEN"
 
@@ -113,6 +114,8 @@ class PromotionService:
                 "from_tier": current,
                 "to_tier": target,
                 "win_rate": metrics["win_rate"],
+                "accuracy": metrics["accuracy"],
+                "sigma": metrics["sigma"],
                 "verified_count": metrics["verified_count"],
                 "reason": reason,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -162,9 +165,14 @@ def _metrics(trades: list[dict[str, Any]]) -> dict[str, Any]:
     verified = [trade for trade in trades if _is_verified(trade)]
     wins = sum(1 for trade in verified if (_trade_pnl(trade) or 0.0) > 0)
     total = len(verified)
+    win_rate = wins / total if total else 0.0
+    per_trade = [_trade_accuracy_value(trade) for trade in verified]
+    sigma = pstdev(per_trade) if len(per_trade) > 1 else 0.0
     return {
         "verified_count": total,
-        "win_rate": round(wins / total, 4) if total else 0.0,
+        "win_rate": round(win_rate, 4),
+        "accuracy": round(win_rate, 4),
+        "sigma": round(sigma, 4),
         "wins": wins,
     }
 
@@ -182,11 +190,12 @@ def _promotion_target(current: str, metrics: dict[str, Any]) -> str | None:
     return None
 
 
-def _promotion_reason(current: str, target: str) -> str:
+def _promotion_reason(current: str, target: str, metrics: dict[str, Any]) -> str:
     threshold = PROMOTION_THRESHOLDS[(current, target)]
     return (
         f"win rate >= {threshold['win_rate']:.0%} and "
-        f"verified trades >= {threshold['verified_count']}"
+        f"verified trades >= {threshold['verified_count']} "
+        f"(accuracy {float(metrics['accuracy']):.0%}, sigma={float(metrics['sigma']):.2f})"
     )
 
 
@@ -230,6 +239,13 @@ def _trade_pnl(trade: dict[str, Any]) -> float | None:
         except (TypeError, ValueError):
             continue
     return None
+
+
+def _trade_accuracy_value(trade: dict[str, Any]) -> float:
+    for key in ("correct", "win", "is_correct"):
+        if key in trade:
+            return 1.0 if bool(trade.get(key)) else 0.0
+    return 1.0 if (_trade_pnl(trade) or 0.0) > 0 else 0.0
 
 
 def _trade_sort_key(trade: dict[str, Any]) -> str:

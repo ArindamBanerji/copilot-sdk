@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { FingerprintPanel } from "../../../../../copilot_sdk/frontend";
 import { getFingerprint, getIncident } from "../api";
+import AcquisitionPanel from "../components/AcquisitionPanel";
 import BottleneckPanel from "../components/BottleneckPanel";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
 import DecisionExplorerPanel from "../components/DecisionExplorerPanel";
 import IncidentReplayCard from "../components/IncidentReplayCard";
 import { IntelligenceMapPanel } from "../components/IntelligenceMapPanel";
+import NLQueryPanel from "../components/NLQueryPanel";
 import { ProcessTimelinePanel } from "../components/ProcessTimelinePanel";
 import ProfileArchetype from "../components/ProfileArchetype";
 import WhatIfReordering from "../components/WhatIfReordering";
@@ -99,6 +101,8 @@ export default function InsightScreen() {
       <IncidentReplayCard incident={incident} />
       <BottleneckPanel />
       <ProcessTimelinePanel />
+      <NLQueryPanel />
+      <AcquisitionPanel />
       <IntelligenceMapPanel />
       <CrossGraphInsightCard />
       <WhatIfReordering />

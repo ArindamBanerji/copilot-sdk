@@ -73,10 +73,12 @@ def test_trades_returns_list(client):
     _seed_trades()
 
     response = client.get("/api/trading/trades")
+    filtered = client.get("/api/trading/trades?ticker=SPY")
 
     assert response.status_code == 200
     assert len(response.json()["trades"]) == 3
     assert response.json()["total"] == 3
+    assert filtered.json()["total"] == 1
 
 
 def test_trades_filter_by_ticker(client):
@@ -143,11 +145,14 @@ def test_trades_aggregate_stats_computed(client):
     _seed_trades()
 
     response = client.get("/api/trading/trades")
+    filtered = client.get("/api/trading/trades?ticker=MSFT")
 
     aggregate = response.json()["aggregate"]
+    filtered_aggregate = filtered.json()["aggregate"]
     assert aggregate["total_trades"] == 3
     assert aggregate["total_pnl"] == 80.0
     assert round(aggregate["avg_confidence"], 4) == 0.7
+    assert filtered_aggregate["total_pnl"] == 120.0
 
 
 def test_trades_empty_returns_empty_list(client):

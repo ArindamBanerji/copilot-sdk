@@ -42,18 +42,22 @@ def test_below_threshold_rejected():
     gate = enabled_gate()
 
     payload = gate.evaluate("protein", 0.80, "GREEN", 100)
+    accepted = gate.evaluate("protein", 0.95, "GREEN", 100)
 
     assert payload["auto_order"] is False
     assert payload["reason"] == "below_threshold"
+    assert accepted["auto_order"] is True
 
 
 def test_above_threshold_accepted():
     gate = enabled_gate()
 
     payload = gate.evaluate("protein", 0.95, "GREEN", 100)
+    lower = gate.evaluate("protein", 0.89, "GREEN", 100)
 
     assert payload["auto_order"] is True
     assert payload["reason"] in {"accepted", "spot_check"}
+    assert lower["auto_order"] is False
 
 
 def test_spot_check_rate():
@@ -72,9 +76,11 @@ def test_threshold_contracts_on_error():
     gate = AutoOrderGate(initial_threshold=0.90)
 
     payload = gate.contract_threshold(error_rate=0.05)
+    stronger_error = gate.contract_threshold(error_rate=0.10)
 
     assert payload["changed"] is True
     assert payload["threshold"] > 0.90
+    assert stronger_error["threshold"] > payload["threshold"]
 
 
 def test_threshold_expands_on_accuracy():

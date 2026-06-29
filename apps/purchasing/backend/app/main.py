@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -53,7 +53,10 @@ from .routers.trust import create_trust_router  # noqa: E402
 from .routers.trust_router import create_trust_router as create_trust_weights_router  # noqa: E402
 from .routers.verify_router import create_verify_router  # noqa: E402
 from .services.auto_order import AutoOrderGate  # noqa: E402
+from .services.audit_export import AuditExportService  # noqa: E402
+from .services.disruption_recovery import DisruptionRecoveryService  # noqa: E402
 from .services.par_optimizer import ParLevelOptimizer  # noqa: E402
+from .services.payment_timing import PaymentTimingService  # noqa: E402
 from .services.waste_tracker import WasteTracker  # noqa: E402
 from .services.predictive_par import PredictivePar, demo_par_items  # noqa: E402
 from .connectors.commodity_provider import CommodityDataProvider  # noqa: E402
@@ -495,6 +498,38 @@ def create_app(
             with_base["conservation_status"] = _conservation_status(category)
             items.append(with_base)
         return service.predict_week(items)
+
+    disruption_recovery_service = DisruptionRecoveryService()
+    payment_timing_service = PaymentTimingService()
+    audit_export_service = AuditExportService()
+
+    @app.get("/api/purchasing/disruption/status")
+    def disruption_status() -> dict[str, Any]:
+        return disruption_recovery_service.recovery_status()
+
+    @app.get("/api/purchasing/disruption/history")
+    def disruption_history() -> list[dict[str, Any]]:
+        return disruption_recovery_service.recovery_history()
+
+    @app.get("/api/purchasing/payment/timing")
+    def payment_timing(supplier_id: str | None = None) -> dict[str, Any] | list[dict[str, Any]]:
+        return payment_timing_service.analyze(supplier_id)
+
+    @app.get("/api/purchasing/payment/summary")
+    def payment_summary() -> dict[str, Any]:
+        return payment_timing_service.portfolio_summary()
+
+    @app.get("/api/purchasing/audit/pack")
+    def audit_pack(period: str = "last_quarter") -> dict[str, Any]:
+        return audit_export_service.generate_pack(period)
+
+    @app.get("/api/purchasing/audit/export/json")
+    def audit_export_json(period: str = "last_quarter") -> Response:
+        return Response(audit_export_service.export_json(period), media_type="application/json")
+
+    @app.get("/api/purchasing/audit/export/csv")
+    def audit_export_csv(period: str = "last_quarter") -> Response:
+        return Response(audit_export_service.export_csv_summary(period), media_type="text/csv")
 
     app.include_router(
         create_scoring_router(
