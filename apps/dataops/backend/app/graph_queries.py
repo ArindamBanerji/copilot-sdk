@@ -68,6 +68,8 @@ class DataOpsGraphClient:
         self.last_query: str | None = None
 
         graph_dsn = dsn if dsn is not None else os.getenv("GRAPH_DSN")
+        if graph_dsn and "sslmode" not in graph_dsn:
+            graph_dsn += " sslmode=disable"
         if age_client is not None:
             self._age_client = age_client
             self._serializer = getattr(age_client, "serialize_for_age", self._fixture_serializer)
@@ -76,7 +78,7 @@ class DataOpsGraphClient:
             cls = age_client_cls or _load_age_client_class()
             if cls is not None:
                 try:
-                    self._age_client = cls(dsn=graph_dsn)
+                    self._age_client = cls(dsn=graph_dsn, graph_name=os.getenv("AGE_GRAPH_NAME", "soc_graph"))
                     self._serializer = getattr(cls, "serialize_for_age", self._fixture_serializer)
                     self._graph_connected = True
                 except Exception:

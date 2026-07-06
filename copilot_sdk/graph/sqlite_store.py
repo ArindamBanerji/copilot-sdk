@@ -2437,28 +2437,161 @@ class SQLiteGraphStore:
 
         self._run_write(persist)
 
-    def get_decision_links(self, decision_id: str | None = None) -> list[dict[str, Any]]:
+    def get_decision_links(
+        self,
+        decision_id: str | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        limit_value = _bounded_traversal_limit(limit) if limit is not None else None
         if decision_id is None:
+            limit_clause = "" if limit_value is None else "LIMIT ?"
+            params: tuple[Any, ...] = (
+                (self.domain,) if limit_value is None else (self.domain, limit_value)
+            )
             rows = self.connection.execute(
-                """
+                f"""
                 SELECT decision_id, entity_id, edge_type, created_at
                 FROM decision_entity_edges
                 WHERE domain = ?
                 ORDER BY id ASC
+                {limit_clause}
                 """,
-                (self.domain,),
+                params,
             ).fetchall()
         else:
+            limit_clause = "" if limit_value is None else "LIMIT ?"
+            params = (
+                (self.domain, decision_id)
+                if limit_value is None
+                else (self.domain, decision_id, limit_value)
+            )
             rows = self.connection.execute(
-                """
+                f"""
                 SELECT decision_id, entity_id, edge_type, created_at
                 FROM decision_entity_edges
                 WHERE domain = ? AND decision_id = ?
                 ORDER BY id ASC
+                {limit_clause}
                 """,
-                (self.domain, decision_id),
+                params,
             ).fetchall()
         return [dict(row) for row in rows]
+
+    def query_context(self, entity_id: str, max_depth: int) -> list[dict[str, Any]]:
+        depth = _bounded_traversal_depth(max_depth)
+        root_id = str(entity_id)
+        rows: list[dict[str, Any]] = [
+            {
+                "node": "entity",
+                "id": root_id,
+                "depth": 0,
+                "properties": {"entity_id": root_id, "provenance": "graph_store"},
+            }
+        ]
+        if depth == 0:
+            return rows
+
+        links = self._get_entity_links(root_id, limit=100)
+        linked_decision_ids = [
+            str(link["decision_id"])
+            for link in links
+        ]
+        if self.get_decision(root_id) is not None and root_id not in linked_decision_ids:
+            linked_decision_ids.insert(0, root_id)
+
+        seen_decisions: set[str] = set()
+        seen_entities: set[str] = {root_id}
+        for decision_id in linked_decision_ids[:100]:
+            if decision_id in seen_decisions:
+                continue
+            seen_decisions.add(decision_id)
+            decision = self.get_decision(decision_id)
+            if decision is None:
+                continue
+            rows.append(
+                {
+                    "node": "decision",
+                    "id": decision_id,
+                    "depth": 1,
+                    "properties": decision,
+                }
+            )
+            if depth < 2:
+                continue
+            for link in self.get_decision_links(decision_id, limit=100):
+                neighbor_id = str(link.get("entity_id") or "")
+                if not neighbor_id or neighbor_id in seen_entities:
+                    continue
+                seen_entities.add(neighbor_id)
+                rows.append(
+                    {
+                        "node": "entity",
+                        "id": neighbor_id,
+                        "depth": 2,
+                        "properties": {
+                            "entity_id": neighbor_id,
+                            "edge_type": link.get("edge_type"),
+                            "provenance": "graph_store",
+                        },
+                    }
+                )
+                if depth < 3:
+                    continue
+                for neighbor_link in self._get_entity_links(neighbor_id, limit=100):
+                    neighbor_decision_id = str(neighbor_link.get("decision_id") or "")
+                    if not neighbor_decision_id or neighbor_decision_id in seen_decisions:
+                        continue
+                    neighbor_decision = self.get_decision(neighbor_decision_id)
+                    if neighbor_decision is None:
+                        continue
+                    seen_decisions.add(neighbor_decision_id)
+                    rows.append(
+                        {
+                            "node": "decision",
+                            "id": neighbor_decision_id,
+                            "depth": 3,
+                            "properties": neighbor_decision,
+                        }
+                    )
+        return rows[:100]
+
+    def _get_entity_links(self, entity_id: str, limit: int = 100) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT decision_id, entity_id, edge_type, created_at
+            FROM decision_entity_edges
+            WHERE domain = ? AND entity_id = ?
+            ORDER BY id ASC
+            LIMIT ?
+            """,
+            (self.domain, str(entity_id), _bounded_traversal_limit(limit)),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def query_similar(self, entity_id: str, limit: int) -> list[dict[str, Any]]:
+        limit_value = _bounded_traversal_limit(limit)
+        source = self.get_decision(str(entity_id))
+        if source is None:
+            for link in self._get_entity_links(str(entity_id), limit=100):
+                if str(link.get("entity_id")) == str(entity_id):
+                    source = self.get_decision(str(link.get("decision_id")))
+                    break
+        if source is None:
+            return []
+        category = str(source.get("category") or "")
+        domain = str(source.get("domain") or self.domain)
+        source_supplier = _decision_supplier(source)
+        candidates = self.get_decisions(domain, category or None, limit=400)
+        matches: list[dict[str, Any]] = []
+        for candidate in candidates:
+            if candidate.get("decision_id") == source.get("decision_id"):
+                continue
+            if source_supplier and _decision_supplier(candidate) != source_supplier:
+                continue
+            matches.append(candidate)
+            if len(matches) >= limit_value:
+                break
+        return matches
 
     def write_entity_enrichment(
         self,
@@ -2946,3 +3079,32 @@ def _checkpoint_where_clause(
         clauses.append("decision_time_end <= ?")
         params.append(decision_time_end)
     return "WHERE " + " AND ".join(clauses), params
+
+
+def _bounded_traversal_depth(value: Any) -> int:
+    try:
+        depth = int(value)
+    except (TypeError, ValueError):
+        depth = 3
+    return max(0, min(depth, 3))
+
+
+def _bounded_traversal_limit(value: Any) -> int:
+    try:
+        limit = int(value)
+    except (TypeError, ValueError):
+        limit = 5
+    return max(0, min(limit, 100))
+
+
+def _decision_supplier(decision: dict[str, Any]) -> str:
+    metadata = decision.get("metadata")
+    metadata_dict = metadata if isinstance(metadata, dict) else {}
+    for key in ("supplier_id", "supplier", "supplier_name"):
+        value = decision.get(key)
+        if value not in (None, ""):
+            return str(value)
+        value = metadata_dict.get(key)
+        if value not in (None, ""):
+            return str(value)
+    return ""

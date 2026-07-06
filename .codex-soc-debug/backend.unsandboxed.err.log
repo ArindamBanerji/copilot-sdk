@@ -1,0 +1,1133 @@
+#< CLIXML
+INFO:     Started server process [56076]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1782134284.161000   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134284.225758   22272 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134284.278451    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134284.333029   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134284.396910   45280 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134284.462566   74632 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134284.518644   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134284.573282   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134285.006238   59236 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134285.184942   74632 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134285.224607   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134285.305065   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134285.415866   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134285.431874    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134285.581999   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134285.612492   59236 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134286.593863   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134286.708105   45668 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134286.723623   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134286.908468   59236 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134286.908700   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134287.005160   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134287.209817    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134287.256362   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134289.310118   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134289.385120    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134289.398040   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134289.522440   45280 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134289.565044   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134289.623497   41020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134289.684224   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134290.302400   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782134293.004555   45280 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134293.227212   45668 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134293.326812   45668 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134293.371051   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134293.525895   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134293.550782   41020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134293.892991   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+I0000 00:00:1782134294.124251   45280 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134299.110728   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134299.666380   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134299.935390   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134300.103804   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134300.453743   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134300.688921    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134300.694681   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134301.258812    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782134309.280667   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134311.016773   74632 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134311.056381   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134311.230977   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134312.092578   59236 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134312.326956   74632 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134312.452494   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134312.937346   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134323.310133   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134324.508777   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134325.095952   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134325.998750   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134326.256377   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134327.611337   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134328.274369   45668 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134330.055235   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134349.741892   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134350.221623   74632 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134350.229559   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134352.019750   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134353.160849    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134353.918519    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134356.218537   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134359.669199   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+I0000 00:00:1782134386.657534   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134392.318799   45668 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782134393.801020    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+I0000 00:00:1782134394.933427   45668 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134398.977910   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134401.393646   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+I0000 00:00:1782134405.607628   45280 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134409.513710   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782134444.083287    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+I0000 00:00:1782134453.915770   22272 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+I0000 00:00:1782134460.867153   41020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134466.858266   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134474.842446   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134481.570246   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782134482.774484   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134482.869326   59236 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+I0000 00:00:1782134553.622038   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134557.432995   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134580.492902   59236 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134587.821088    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134587.916309    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134595.263284   22272 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+I0000 00:00:1782134602.699530   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782134607.183874   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[MITRE] Unrecognized alert_type='malware_execution' -- no technique mapped
+I0000 00:00:1782134662.975911   74632 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134682.546500   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134691.472516   45280 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134705.505851   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134710.129335   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134710.724075   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134723.463791   45668 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134723.706411   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134776.492495   53112 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134798.212342   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134814.059034   53112 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134820.451040   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134828.359989    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134828.434571   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134841.714029   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134848.550902   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134884.468981    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134922.408882    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134927.271271   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134938.117224   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134940.444657   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134954.299911   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134956.779073   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134957.892259    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782134985.100328   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\gen-ai-roi-demo-v4-v50\backend\app\services\benchmarking_report.py:36: RuntimeWarning: coroutine 'AGEClient.run_query' was never awaited
+  decisions = self._fetch_verified_decisions(start_date, end_date)
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+I0000 00:00:1782135040.370196    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135042.781442   74632 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135052.730987   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135056.500576   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135060.992939   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135080.245154   53112 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135091.121290   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135110.366105    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782135156.919361   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135162.602298   53112 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135165.037648   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135176.675938   53112 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135187.407796   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135189.080840   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135215.212326   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for c1055752-c2e9-4046-b9af-80252b10263e
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135219.936230    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 37a40645-f24c-437c-acd5-abadd9beaf8a
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 511cc457-b429-44ac-bf82-329c52f21356
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 90ca4eac-1219-49f1-9d06-86ed87e63753
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 84e3007b-60d4-47f7-9bfd-c5acb141af54
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for c5cdf2d4-6005-4f34-9fd1-1b48d6fb981a
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 1ee201d1-9480-45f0-bb7f-d5cb50495e71
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for b3577d91-d872-42db-b7ad-e2fe3bea497c
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 6a19e70b-29df-426e-b78c-058c0aa219ec
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 3da430c7-9671-4a1d-b749-112297fba69f
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for bbdefa02-00f8-4976-b133-996a5459acc7
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135262.713722   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 194556b0-3dd8-4c73-a148-273b41c69ea9
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 8e9819c9-e4f1-4c0d-8e62-c608a784d474
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135277.497790   68356 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for ef56789f-6716-4b75-a81e-3386bd896690
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 80b3c3c9-3339-40f4-9eee-645957133089
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135283.466560   53112 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 58bf4822-6da7-4f96-abb4-1533c72ba619
+I0000 00:00:1782135286.913960   41020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for bd361f9c-7190-4fe6-a992-69fa8be800e1
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for ec381011-f632-41db-adc4-4fe8b5f7e0be
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for e0389545-e803-4677-982f-45fbb2626a77
+I0000 00:00:1782135302.390468   46616 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for fcdb3e95-8790-4679-a868-17f23c9c46fe
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135309.063595   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[AUDIT] No decision entry for b4b12e2a-491e-4229-98ea-1c4b625f9a40
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782135339.602576   45280 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135358.217483    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for a703d3e3-360f-478e-8341-6c596815c98b
+I0000 00:00:1782135365.554492   72984 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for 8d1a234e-9a50-4f66-815d-ad30a12ae9bf
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for ffaaa13a-b664-4826-ade8-0d2d09670a4b
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for c331f383-af6b-46d9-bf09-0c4af6b98edb
+I0000 00:00:1782135393.518508   45668 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for 0fedff16-9a61-4a6f-a7fa-e8fc76659a8e
+I0000 00:00:1782135400.688768   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135401.386319    9756 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135417.866212   65328 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 9d61c1b9-206d-4bcd-a2b6-bf98580beff4
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for e27ed7fb-e28e-499f-9e84-5bcbb3ad7b2c
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for d45126aa-3f76-451c-8def-007968e514bc
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 15212d54-52cf-4e57-acd7-e9126a318ba1
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135440.481566   53112 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 3a2dd6f6-c930-4eb9-b43d-d2d0ca46e450
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135444.827759   22272 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[MITRE] Unrecognized alert_type='insider_threat_detected' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[MITRE] Unrecognized alert_type='insider_threat_detected' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for f74da62e-3604-4cb3-8023-80f66fa1d2f8
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for 3a44fa77-b5c8-440c-b714-c6d3ca6d4823
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for b71bbc13-9d3d-4ae5-91b2-7d06d9acb6eb
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 99095f77-1621-4f81-9eeb-cb99c38388c6
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[MITRE] Unrecognized alert_type='insider_threat_detected' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[MITRE] Unrecognized alert_type='insider_threat_detected' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 6188bf5c-dd94-4a25-9e3b-5a9044eeef39
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[MITRE] Unrecognized alert_type='credential_access' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[MITRE] Unrecognized alert_type='credential_access' -- no technique mapped
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for d7b7f025-e3c5-4bf2-89d0-0fb782ebec91
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135479.655080   48416 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for 544e7d4f-8e0c-4c6e-b8c6-db97edd7692f
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135488.653550   45280 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[AUDIT] No decision entry for 5cdc5396-9015-45c3-acd8-e5f797e74ba9
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for bba313b0-bc3e-4a90-96bf-461cfc65241c
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 32f6615f-d602-41b9-8eef-9c58db4e02e5
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[MITRE] Unrecognized alert_type='insider_threat_detected' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[MITRE] Unrecognized alert_type='insider_threat_detected' -- no technique mapped
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for e8b9bb34-afa2-4211-b179-f112d7946926
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135509.572771    6880 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 6268b4a0-c99d-44ca-a3a8-7107bdb2e4da
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for b3751a88-69e6-48b9-888e-8edcda3a6110
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for 5ea3f992-7141-46bb-8962-7b0b7401e9d5
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135525.310612   30596 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[AUDIT] No decision entry for 84f37ef9-ffaa-4f75-8ae6-6055eef00ac5
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782135537.581379   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135540.953566   41020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for ba618870-8056-4368-b7b2-7bef7cf74e0d
+I0000 00:00:1782135561.413779   41020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for 5b2652d2-aa4b-4e1f-b138-8b445942fb55
+[AUDIT] No decision entry for 95e81837-b5dd-4d9c-a67a-f11752e18fc5
+[AUDIT] No decision entry for 700f363c-f3fb-4343-bdc4-4bb4be1f5418
+[AUDIT] No decision entry for 6e3b6fe1-decf-42de-835d-74f7541329b0
+[AUDIT] No decision entry for e30ddb8d-fb8e-4694-bf6a-dac7058b6cba
+[AUDIT] No decision entry for ea3c2af0-a811-410a-85c4-57d2ebe33aa8
+I0000 00:00:1782135578.339519   74632 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[AUDIT] No decision entry for 0f7d719c-2fd7-424f-8719-a3ffa2fa866d
+[AUDIT] No decision entry for 9de66223-c960-40ca-abeb-a1f59289477d
+[AUDIT] No decision entry for 497e0cab-fd1c-4905-9b4b-ed130c692f9c
+[AUDIT] No decision entry for 2f82160c-aa86-4170-874f-4b946d2b35bf
+[AUDIT] No decision entry for a68e04ea-9b2d-4b5c-aef0-cb23e26da159
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[AUDIT] No decision entry for cb36d93c-eeb5-4c88-8281-037c1b76772c
+I0000 00:00:1782135609.316708   41020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+I0000 00:00:1782135618.778693   59236 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782135619.057004   22272 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+I0000 00:00:1782135628.915439   59236 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+[PULSEDIVE] Unexpected error parsing 103.15.42.17: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 185.220.101.34: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing cobaltstrike.github.io: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing 45.33.32.156: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[PULSEDIVE] Unexpected error parsing malware-traffic-analysis.net: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1002)
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+[THREAT-INDICATOR] upsert skipped: indicator_value is empty or None (source='hardcoded_fallback', type='unknown')
+I0000 00:00:1782135659.585268   69020 ssl_transport_security.cc:1884] Handshake failed with error SSL_ERROR_SSL: error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04"><Obj S="progress" RefId="0"><TN RefId="0"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N="SourceId">1</I64><PR N="Record"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj></Objs>

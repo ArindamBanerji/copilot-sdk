@@ -18,7 +18,7 @@ def _scorer(tmp_path) -> CompoundingScorer:
 def _pattern(
     category: str = "price_variance",
     action: str = "auto_approve",
-    delta_length: int = 7,
+    delta_length: int = 8,
     source_copilot: str = "dataops",
     confidence: float = 0.9,
 ) -> TransferPattern:

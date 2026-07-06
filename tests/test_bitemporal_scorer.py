@@ -198,7 +198,7 @@ def test_warm_start_checkpoint_has_null_decision_range(tmp_path: Path) -> None:
         category="price_variance",
         action="auto_approve",
         win_rate=0.8,
-        centroid_delta=[0.05 for _ in range(7)],
+        centroid_delta=[0.05 for _ in range(8)],
         confidence=0.9,
     )
 

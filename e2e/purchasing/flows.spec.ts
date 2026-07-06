@@ -4,7 +4,7 @@ import { waitForScorerResponse } from "../helpers";
 import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
 
 async function scoreCurrentOrder(page: Page) {
-  await expect(page.getByText("Six scorer inputs")).toBeVisible();
+  await expect(page.getByText("Seven scorer inputs")).toBeVisible();
   const scoreButton = page.getByRole("button", { name: "Score This Order" });
   await expect(scoreButton).toBeEnabled();
   const scoreResponse = waitForScorerResponse(page, "/api/score");
@@ -125,7 +125,7 @@ test("order from dropdown versus dashboard item click", async ({ page }) => {
   }
 
   await expect(page.getByText("Cost analysis")).toBeVisible();
-  await expect(page.getByText("Six scorer inputs")).toBeVisible();
+  await expect(page.getByText("Seven scorer inputs")).toBeVisible();
 });
 
 test("AE-managed and rejected items show different badges", async ({ page }) => {

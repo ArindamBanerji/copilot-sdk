@@ -621,7 +621,7 @@ def test_cli_exits_nonzero_on_failure(monkeypatch):
                 "--domain",
                 "trading",
                 "--age-dsn",
-                "host=localhost port=5433 dbname=soc_copilot",
+                "host=localhost port=5433 dbname=soc_copilot sslmode=disable",
             ]
         )
 

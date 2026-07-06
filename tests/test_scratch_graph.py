@@ -81,7 +81,7 @@ def test_create_scratch_graph_uses_safe_timestamped_name(monkeypatch):
     graph_name = create_scratch_graph("dsn", "Trading Ops!")
 
     assert graph_name.startswith("scratch_migration_trading_ops_20260611_123045")
-    assert connect_calls == [(("dsn",), {"autocommit": True, "connect_timeout": 10})]
+    assert connect_calls == [(("dsn sslmode=disable",), {"autocommit": True, "connect_timeout": 10})]
     assert conn.queries[:2] == ["LOAD 'age'", "SET search_path = ag_catalog, '$user', public"]
     assert any(query.startswith("SELECT drop_graph('scratch_migration_trading_ops_20260611_123045") for query in conn.queries)
     assert any(query.startswith("SELECT create_graph('scratch_migration_trading_ops_20260611_123045") for query in conn.queries)
@@ -106,7 +106,7 @@ def test_drop_scratch_graph_ignores_missing_graph_errors(monkeypatch):
 
     drop_scratch_graph("dsn", "scratch_migration_test_20260611_123045")
 
-    assert connect_calls == [(("dsn",), {"autocommit": True, "connect_timeout": 10})]
+    assert connect_calls == [(("dsn sslmode=disable",), {"autocommit": True, "connect_timeout": 10})]
     assert conn.rollback_count == 0
     assert conn.closed is True
 

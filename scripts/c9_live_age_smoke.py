@@ -134,14 +134,21 @@ def graph_dsn_is_passwordless(dsn: str | None) -> bool:
     return "user=" in dsn.lower()
 
 
+def with_sslmode_disabled(dsn: str | None) -> str | None:
+    if not dsn or "sslmode" in dsn.lower():
+        return dsn
+    sep = "&" if "?" in dsn else ("?" if "://" in dsn else " ")
+    return f"{dsn}{sep}sslmode=disable"
+
+
 def choose_database_url(database_url: str | None, graph_dsn: str | None = None) -> tuple[str | None, str]:
     if database_url:
         reason = "DATABASE_URL"
         if graph_dsn and graph_dsn_is_passwordless(graph_dsn):
             reason += " (ignored passwordless GRAPH_DSN)"
-        return database_url, reason
+        return with_sslmode_disabled(database_url), reason
     if graph_dsn and not graph_dsn_is_passwordless(graph_dsn):
-        return graph_dsn, "GRAPH_DSN"
+        return with_sslmode_disabled(graph_dsn), "GRAPH_DSN"
     return None, "missing DATABASE_URL; GRAPH_DSN is unset or passwordless"
 
 

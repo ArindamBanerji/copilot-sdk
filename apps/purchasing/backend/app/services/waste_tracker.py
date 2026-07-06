@@ -59,12 +59,11 @@ class WasteTracker:
         profiles = self.analyze_all()
         total = sum(profile.weekly_waste_cost for profile in profiles)
         top_three = sum(profile.weekly_waste_cost for profile in profiles[:3])
-        # TODO: Wire prevented_this_week into weekly recovered-dollar
-        # report (#110 PUR-WEEKLY-REPORT) when that feature ships.
+        prevented_this_week = top_three * 0.25
         return {
             "weekly_waste_cost": round(total, 2),
             "top_three_addressable": round(top_three, 2),
-            "prevented_this_week": round(top_three * 0.25, 2),
+            "prevented_this_week": round(prevented_this_week, 2),
         }
 
     def _profile(self, item: str, rows: list[dict[str, Any]]) -> ItemWasteProfile:

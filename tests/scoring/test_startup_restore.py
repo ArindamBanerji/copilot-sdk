@@ -46,7 +46,7 @@ def test_startup_loads_dk_and_welford_from_l5() -> None:
 
     assert status["dk_source"] == "l5"
     assert status["welford_source"] == "l5"
-    assert scorer.get_dk_weights() == weights
+    assert scorer.get_dk_weights() == [[*row, 1.0] for row in weights]
     tracker = status["welford_tracker"]
     assert isinstance(tracker, DKWelfordTracker)
     assert tracker.n_all == 4
@@ -70,7 +70,7 @@ def test_startup_loads_centroids_from_l5() -> None:
     assert status["centroids_loaded"] is True
     after = np.asarray(scorer.gae_scorer.centroids, dtype=np.float64)
     assert not np.array_equal(after, before)
-    np.testing.assert_allclose(after[0, 0, :], vector)
+    np.testing.assert_allclose(after[0, 0, :], [*vector, 0.5])
 
 
 def test_startup_loads_conservation_from_l5() -> None:

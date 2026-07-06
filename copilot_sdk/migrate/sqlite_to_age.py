@@ -63,6 +63,8 @@ def _default_source_path(domain: str) -> Path:
 def _connect_age(dsn: str, graph_name: str) -> psycopg.Connection:
     """Create an AGE connection for migration with bounded statements."""
     _ = graph_name
+    if "sslmode" not in dsn:
+        dsn += " sslmode=disable"
     conn: psycopg.Connection = psycopg.connect(dsn, autocommit=False, connect_timeout=10)
     conn.execute("LOAD 'age'")
     conn.execute("SET search_path = ag_catalog, '$user', public")

@@ -24,6 +24,7 @@ import OrderQueuePanel from "../components/OrderQueuePanel";
 import OrderContext from "../components/OrderContext";
 import SimilarOrdersPanel from "../components/SimilarOrdersPanel";
 import WeatherWidget from "../components/WeatherWidget";
+import { factorDisplayName, factorDisplayNames } from "../factorDisplay";
 import type {
   Analytics,
   ExpectedDemandChoice,
@@ -85,15 +86,9 @@ const factorNames = [
   "event_flag",
   "historical_waste",
   "supplier_lead_time",
+  "price_memory_index",
 ];
-const factorLabels: Record<string, string> = {
-  expected_demand: "Expected demand",
-  day_of_week: "Day of week",
-  weather_forecast: "Weather forecast",
-  event_flag: "Event flag",
-  historical_waste: "Historical waste",
-  supplier_lead_time: "Supplier lead time",
-};
+const factorLabels: Record<string, string> = factorDisplayNames;
 
 const dayValues: Record<string, number> = {
   mon: 0.14,
@@ -161,6 +156,7 @@ function computeFactors(
     event_flag: eventFactor(today?.events),
     historical_waste: Math.min(Math.max(waste / 100, 0), 1),
     supplier_lead_time: numberOr(item?.supplierLeadTime, 0.5),
+    price_memory_index: numberOr(item?.priceMemoryIndex, 0.5),
   };
 }
 
@@ -496,7 +492,7 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
             </select>
           </label>
           <label>
-            <span>Expected demand</span>
+            <span>{factorDisplayName("expected_demand")}</span>
             <select
               value={expectedDemand}
               onChange={(event) => setExpectedDemand(event.target.value as ExpectedDemandChoice)}
@@ -548,7 +544,7 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
         <div className="purchase-card-header">
           <div>
             <p className="purchase-kicker">Auto-computed factors</p>
-            <h2 className="purchase-title">Six scorer inputs</h2>
+          <h2 className="purchase-title">Seven scorer inputs</h2>
           </div>
           <button className="purchase-button" type="button" disabled={scoring || !currentItem} onClick={runScore}>
             {scoring ? "Scoring..." : "Score This Order"}
@@ -556,15 +552,16 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
         </div>
         <div className="factor-grid">
           {[
-            ["Expected demand", factors.expected_demand],
-            ["Day of week", factors.day_of_week],
-            ["Weather", factors.weather_forecast],
-            ["Events", factors.event_flag],
-            ["Historical waste", factors.historical_waste],
-            ["Supplier lead time", factors.supplier_lead_time],
+            ["expected_demand", factors.expected_demand],
+            ["day_of_week", factors.day_of_week],
+            ["weather_forecast", factors.weather_forecast],
+            ["event_flag", factors.event_flag],
+            ["historical_waste", factors.historical_waste],
+            ["supplier_lead_time", factors.supplier_lead_time],
+            ["price_memory_index", factors.price_memory_index],
           ].map(([label, value]) => (
             <div className="factor-row" key={String(label)}>
-              <span>{label}</span>
+              <span>{factorDisplayName(String(label))}</span>
               <div className="factor-track">
                 <span style={{ width: `${Number(value) * 100}%` }} />
               </div>

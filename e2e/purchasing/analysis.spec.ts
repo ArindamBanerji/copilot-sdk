@@ -29,7 +29,7 @@ test("fingerprint renders factors", async ({ page }) => {
   await gotoAnalysis(page);
 
   await expect(page.getByRole("heading", { name: /fingerprint/i })).toBeVisible();
-  await expectAnyText(page, [/Expected demand/i, /Day of week/i, /Weather/i, /Events/i, /Historical waste/i, /Supplier lead time/i]);
+  await expectAnyText(page, [/Whether They Show Up/i, /What the Calendar Says/i, /What the Weather Says/i, /What Events Change/i, /What Gets Thrown Away/i, /When It Shows Up/i, /What They Used to Charge/i]);
 });
 
 test("category accuracy shows categories", async ({ page }) => {

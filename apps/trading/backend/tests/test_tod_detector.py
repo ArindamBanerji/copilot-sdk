@@ -124,7 +124,7 @@ def test_detector_finds_friday_14_degradation():
     assert pattern["name"] == "tod_degradation"
     assert pattern["display_name"] == "Time-of-Day Degradation"
     assert "Friday" in pattern["description"]
-    assert "14:00-15:00" in pattern["description"]
+    assert "2pm-4pm" in pattern["description"]
     assert pattern["affected_trade_count"] == 8
     assert set(pattern["affected_trades"]) == {f"weak-{index}" for index in range(8)}
     assert 0.0 <= pattern["severity"] <= 1.0
@@ -134,8 +134,8 @@ def test_detector_returns_none_when_total_trades_below_10():
     assert _detect_tod_degradation(_degradation_trades()[:9]) is None
 
 
-def test_detector_returns_none_when_weak_bucket_has_fewer_than_8_verified_trades():
-    trades = _degradation_trades()[1:]
+def test_detector_returns_none_when_weak_bucket_has_fewer_than_5_verified_trades():
+    trades = _degradation_trades()[4:]
 
     assert _detect_tod_degradation(trades) is None
 

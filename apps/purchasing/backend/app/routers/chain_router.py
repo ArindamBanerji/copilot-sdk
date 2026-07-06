@@ -61,7 +61,7 @@ def create_chain_router() -> APIRouter:
         result = transfer.validate(source, target)
         return {**result, "source_location": source.location_id, "target_location": target.location_id}
 
-    @router.post("/transfer")
+    @router.post("/sdk-transfer")
     def execute(payload: ChainRequest, request: Request) -> dict[str, Any]:
         source, target = _stores_for_request(request, payload)
         result = transfer.transfer(source, target, dry_run=payload.dry_run)

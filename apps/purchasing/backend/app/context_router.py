@@ -11,6 +11,7 @@ from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException, status
 
+from app.data_helpers import write_purchasing_fixture
 from app.factors import compute_factors
 from copilot_sdk.scoring.verification.weather import get_weather_factor
 
@@ -80,11 +81,6 @@ def _evolution_variants() -> list[dict[str, Any]]:
     except Exception:
         return []
     return [_variant_from_evolution_event(event) for event in events if isinstance(event, dict)]
-
-
-def _write_json(path: Path, payload: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
 
 def _item_key(item: str) -> str:
@@ -250,8 +246,9 @@ def save_order_metadata(payload: dict[str, Any]) -> dict[str, Any]:
     metadata_path = _DATA_DIR / "order_metadata.json"
     metadata = _load_json(metadata_path) if metadata_path.exists() else {}
     record = dict(payload)
+    record.setdefault("provenance", "sample")
     metadata[str(decision_id)] = record
-    _write_json(metadata_path, metadata)
+    write_purchasing_fixture(metadata_path, metadata)
     return {"decision_id": str(decision_id), "metadata": record}
 
 

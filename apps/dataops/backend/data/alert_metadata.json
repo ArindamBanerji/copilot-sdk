@@ -7543,6 +7543,23 @@
       "source_reliability": 0.36
     }
   },
+  "DOPS-01735766cb27": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-01735766cb27",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-028e75183792": {
     "_preseed_sequence": 51,
     "_preseed_source_index": 11,
@@ -7616,12 +7633,46 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-04de667ec43d": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-04de667ec43d",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-05b720493179": {
     "action_taken": "investigate",
     "ae_suggested": false,
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-05b720493179",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-06b39b36dfe5": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-06b39b36dfe5",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -7688,6 +7739,23 @@
       "recurrence_frequency": 0.76,
       "source_reliability": 0.91
     }
+  },
+  "DOPS-0b1dff797be3": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-0b1dff797be3",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-0b4fc7231637": {
     "_preseed_sequence": 180,
@@ -7903,6 +7971,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-10467358dcff": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-10467358dcff",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-10fcb2787c47": {
     "_preseed_sequence": 178,
     "_preseed_source_index": 18,
@@ -8088,6 +8173,23 @@
       "source_reliability": 0.86
     }
   },
+  "DOPS-1403405d50cf": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-1403405d50cf",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-1582db754ce1": {
     "_preseed_sequence": 168,
     "_preseed_source_index": 8,
@@ -8150,6 +8252,40 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-15d31c043353",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-15e619f4c8dd": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-15e619f4c8dd",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-170e6b9a270d": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-170e6b9a270d",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -8295,6 +8431,23 @@
       "recurrence_frequency": 0.36,
       "source_reliability": 0.69
     }
+  },
+  "DOPS-18d12e5f5300": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-18d12e5f5300",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-190210b3065c": {
     "action_taken": "investigate",
@@ -8487,6 +8640,23 @@
       "source_reliability": 0.36
     }
   },
+  "DOPS-1e3c86ae5c51": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-1e3c86ae5c51",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-1ea0e2897c71": {
     "_preseed_sequence": 101,
     "_preseed_source_index": 1,
@@ -8514,6 +8684,23 @@
       "recurrence_frequency": 0.82,
       "source_reliability": 0.42
     }
+  },
+  "DOPS-1ee3e6a7a2e0": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-1ee3e6a7a2e0",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-1efc50b8fbba": {
     "action_taken": "investigate",
@@ -8559,6 +8746,40 @@
       "recurrence_frequency": 0.52,
       "source_reliability": 0.25
     }
+  },
+  "DOPS-1f43ec29b369": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-1f43ec29b369",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-208a6ec31064": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-208a6ec31064",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-20d17af84b24": {
     "_preseed_sequence": 35,
@@ -8672,6 +8893,23 @@
       "source_reliability": 0.33
     }
   },
+  "DOPS-21d82c06ac91": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-21d82c06ac91",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-21e75f421319": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -8740,6 +8978,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-2446e911d2f4": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-2446e911d2f4",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-2562742353b2": {
     "_preseed_sequence": 93,
     "_preseed_source_index": 13,
@@ -8768,6 +9023,23 @@
       "source_reliability": 0.4
     }
   },
+  "DOPS-25a0a2734476": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-25a0a2734476",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-25e680133c51": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -8791,6 +9063,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-25eb3a4771d0",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-260edccbb8ca": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-260edccbb8ca",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -8864,6 +9153,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-272ecd396ad9",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-278839502164": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-278839502164",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -9122,6 +9428,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-2c5ab072ab3e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-2c5ab072ab3e",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-2c79f60771fd": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -9145,6 +9468,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-2c99d50aa81a",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-2cab7aa4e896": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-2cab7aa4e896",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -9246,6 +9586,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-2ed11ab8a103",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-2f8b7cf2fe6e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-2f8b7cf2fe6e",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -9522,6 +9879,40 @@
       "source_reliability": 0.78
     }
   },
+  "DOPS-367258b9c404": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-367258b9c404",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-3761ece7778b": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-3761ece7778b",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-389c52e0cfa3": {
     "_preseed_sequence": 87,
     "_preseed_source_index": 7,
@@ -9747,6 +10138,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-3ffd2a5860bf": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-3ffd2a5860bf",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-41011769171c": {
     "_preseed_sequence": 98,
     "_preseed_source_index": 18,
@@ -9831,6 +10239,23 @@
       "source_reliability": 0.86
     }
   },
+  "DOPS-43022189819a": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-43022189819a",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-45146171dcbf": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -9854,6 +10279,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-45b028acefd4",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-45b6058af6b5": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-45b6058af6b5",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -9983,12 +10425,63 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-4741e260583d": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-4741e260583d",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-4770b2762407": {
     "action_taken": "investigate",
     "ae_suggested": false,
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-4770b2762407",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-4893b7f3619e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-4893b7f3619e",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-48e9204a7ed4": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-48e9204a7ed4",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -10023,6 +10516,40 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-4b3c0b850438",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-4c283cd8220b": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-4c283cd8220b",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-4c37bb6f27f7": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-4c37bb6f27f7",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -10079,6 +10606,40 @@
       "source_reliability": 0.28
     }
   },
+  "DOPS-4ed6fc5846ba": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-4ed6fc5846ba",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-5010f72cc6d8": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-5010f72cc6d8",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-512b930997d3": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -10119,6 +10680,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-513dd094701f",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-5150cb43b5e6": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-5150cb43b5e6",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -10192,6 +10770,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-54a44fec067f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-54a44fec067f",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-54f7623fab75": {
     "_preseed_sequence": 145,
     "_preseed_source_index": 5,
@@ -10219,6 +10814,23 @@
       "recurrence_frequency": 0.76,
       "source_reliability": 0.91
     }
+  },
+  "DOPS-55f628e736e4": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-55f628e736e4",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-560bc78e1285": {
     "_preseed_sequence": 58,
@@ -10254,6 +10866,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-569e30a5db4c",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-5704e69be1cd": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-5704e69be1cd",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -10338,6 +10967,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-5b65f2a76833": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-5b65f2a76833",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-5bf6aa9c8bbb": {
     "_preseed_sequence": 147,
     "_preseed_source_index": 7,
@@ -10411,6 +11057,74 @@
       "source_reliability": 0.66
     }
   },
+  "DOPS-5df87235e49e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-5df87235e49e",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-5e75af258873": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-5e75af258873",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-5e8f1637bc05": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-5e8f1637bc05",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-6017cd31c67d": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-6017cd31c67d",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-6032fce95898": {
     "_preseed_sequence": 141,
     "_preseed_source_index": 1,
@@ -10462,6 +11176,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-60c4b7f66576",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-611c73c2dbd7": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-611c73c2dbd7",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -10625,6 +11356,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-6623cbbfb399": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-6623cbbfb399",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-674d7b027473": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -10665,6 +11413,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-680bf34b5311",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-68f71b6b8589": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-68f71b6b8589",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -10795,6 +11560,40 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-6da6b776b2d3",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-6dc0fb33e66f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-6dc0fb33e66f",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-6f6fbea4fdfa": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-6f6fbea4fdfa",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -10997,6 +11796,23 @@
       "source_reliability": 0.72
     }
   },
+  "DOPS-72cda6763b03": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-72cda6763b03",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-731ee354d15c": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -11103,6 +11919,23 @@
       "recurrence_frequency": 0.08,
       "source_reliability": 0.33
     }
+  },
+  "DOPS-76c52ed5b72e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-76c52ed5b72e",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-775d437e448c": {
     "_preseed_sequence": 47,
@@ -11312,6 +12145,40 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-7a0ed1bfdf61": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-7a0ed1bfdf61",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-7a1ce96821e1": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-7a1ce96821e1",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-7a52c7ced318": {
     "_preseed_sequence": 77,
     "_preseed_source_index": 17,
@@ -11340,6 +12207,23 @@
       "source_reliability": 0.58
     }
   },
+  "DOPS-7a6694cd2a4d": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-7a6694cd2a4d",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-7ade3a41f4ba": {
     "_preseed_sequence": 155,
     "_preseed_source_index": 15,
@@ -11367,6 +12251,23 @@
       "recurrence_frequency": 0.74,
       "source_reliability": 0.78
     }
+  },
+  "DOPS-7b2990109aad": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-7b2990109aad",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-7b2f3abe7be7": {
     "_preseed_sequence": 26,
@@ -11402,6 +12303,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-7c122edeb772",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-7c690d60aef0": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-7c690d60aef0",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -11496,6 +12414,40 @@
       "recurrence_frequency": 0.52,
       "source_reliability": 0.25
     }
+  },
+  "DOPS-7f1500f5a70a": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-7f1500f5a70a",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-7f40ab9b8fef": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-7f40ab9b8fef",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-8039871ab00b": {
     "_preseed_sequence": 131,
@@ -11946,6 +12898,23 @@
       "source_reliability": 0.78
     }
   },
+  "DOPS-8b9d18fe32ae": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-8b9d18fe32ae",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-8bf479cebb71": {
     "_preseed_sequence": 70,
     "_preseed_source_index": 10,
@@ -11973,6 +12942,23 @@
       "recurrence_frequency": 0.18,
       "source_reliability": 0.76
     }
+  },
+  "DOPS-8d2ac03f6831": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-8d2ac03f6831",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-8dd110576547": {
     "_preseed_sequence": 88,
@@ -12446,6 +13432,23 @@
       "source_reliability": 0.86
     }
   },
+  "DOPS-9bb50ddcdd4c": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-9bb50ddcdd4c",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-9c6fc5a0906b": {
     "_preseed_sequence": 9,
     "_preseed_source_index": 9,
@@ -12502,6 +13505,23 @@
       "source_reliability": 0.25
     }
   },
+  "DOPS-9eca8695b18f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-9eca8695b18f",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-9f170eab6946": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -12546,6 +13566,23 @@
       "recurrence_frequency": 0.27,
       "source_reliability": 0.58
     }
+  },
+  "DOPS-a123812e90a6": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-a123812e90a6",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-a14c72c3e364": {
     "_preseed_sequence": 110,
@@ -12620,6 +13657,23 @@
       "source_reliability": 0.76
     }
   },
+  "DOPS-a2e87bfc79fb": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-a2e87bfc79fb",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-a309418a027a": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -12665,6 +13719,40 @@
       "source_reliability": 0.4
     }
   },
+  "DOPS-a42cdfd5e5ca": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-a42cdfd5e5ca",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-a53586b3cdd9": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-a53586b3cdd9",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-a5aec1207e39": {
     "_preseed_sequence": 152,
     "_preseed_source_index": 12,
@@ -12699,6 +13787,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-a5be8e8ed936",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-a62662c8546f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-a62662c8546f",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -12754,6 +13859,23 @@
       "recurrence_frequency": 0.31,
       "source_reliability": 0.4
     }
+  },
+  "DOPS-a68f5f3397ce": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-a68f5f3397ce",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-a6f9dbe9e903": {
     "_preseed_sequence": 161,
@@ -12844,6 +13966,23 @@
       "recurrence_frequency": 0.55,
       "source_reliability": 0.3
     }
+  },
+  "DOPS-a83f16487151": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-a83f16487151",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-a89fcff0b166": {
     "_preseed_sequence": 5,
@@ -12980,6 +14119,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-acb54817f145": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-acb54817f145",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-accda57fc6ce": {
     "_preseed_sequence": 65,
     "_preseed_source_index": 5,
@@ -13064,12 +14220,63 @@
       "source_reliability": 0.42
     }
   },
+  "DOPS-ae709bce65d7": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-ae709bce65d7",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-ae9f7343b74f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-ae9f7343b74f",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-b062e9ce7150": {
     "action_taken": "investigate",
     "ae_suggested": false,
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-b062e9ce7150",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-b0ff1b8bd2d6": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-b0ff1b8bd2d6",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -13525,6 +14732,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-b96151ba8273": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-b96151ba8273",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-b9b128072dcf": {
     "_preseed_sequence": 38,
     "_preseed_source_index": 18,
@@ -13580,6 +14804,23 @@
       "recurrence_frequency": 0.12,
       "source_reliability": 0.66
     }
+  },
+  "DOPS-ba59a2fc3d17": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-ba59a2fc3d17",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-ba7cf3a8eb8c": {
     "_preseed_sequence": 113,
@@ -13772,6 +15013,23 @@
       "source_reliability": 0.69
     }
   },
+  "DOPS-be4fecd60dec": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-be4fecd60dec",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-bea22f4c8c0d": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -13823,12 +15081,63 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-bf6a0981d8df": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-bf6a0981d8df",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-c0164f30dee7": {
     "action_taken": "investigate",
     "ae_suggested": false,
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-c0164f30dee7",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-c02271a849c3": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-c02271a849c3",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-c0599ade8e53": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-c0599ade8e53",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -13884,6 +15193,23 @@
       "recurrence_frequency": 0.34,
       "source_reliability": 0.54
     }
+  },
+  "DOPS-c284e41839d4": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-c284e41839d4",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-c3022d96a1ee": {
     "action_taken": "investigate",
@@ -13957,6 +15283,23 @@
       "recurrence_frequency": 0.36,
       "source_reliability": 0.69
     }
+  },
+  "DOPS-c3ed1a0b57d2": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-c3ed1a0b57d2",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-c55a48ef38ab": {
     "_preseed_sequence": 13,
@@ -14194,6 +15537,40 @@
       "source_reliability": 0.47
     }
   },
+  "DOPS-c9b66952e2ce": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-c9b66952e2ce",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-c9d64cc5620f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-c9d64cc5620f",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-c9d8b9a436a6": {
     "_preseed_sequence": 12,
     "_preseed_source_index": 12,
@@ -14284,6 +15661,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-cab1625b1584",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-cb0ab0d1cb28": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-cb0ab0d1cb28",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -14520,6 +15914,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-d219633be940": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-d219633be940",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-d2bc5a2e6a57": {
     "_preseed_sequence": 3,
     "_preseed_source_index": 3,
@@ -14547,6 +15958,23 @@
       "recurrence_frequency": 0.34,
       "source_reliability": 0.54
     }
+  },
+  "DOPS-d31699b60b51": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-d31699b60b51",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-d387bfd90c1c": {
     "action_taken": "investigate",
@@ -14706,6 +16134,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-d87b7135fc5a": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-d87b7135fc5a",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-d915f50fb26e": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -14757,6 +16202,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-d9c57d9ae5e7",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-d9eee9c0ff26": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-d9eee9c0ff26",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,
@@ -14879,6 +16341,40 @@
       "recurrence_frequency": 0.74,
       "source_reliability": 0.78
     }
+  },
+  "DOPS-dfe1267db2c6": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-dfe1267db2c6",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-dffa61dcbdb4": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-dffa61dcbdb4",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-e0d0596a7266": {
     "_preseed_sequence": 135,
@@ -15105,6 +16601,23 @@
       "source_reliability": 0.86
     }
   },
+  "DOPS-e79d315dedc9": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-e79d315dedc9",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-e8246306e260": {
     "_preseed_sequence": 10,
     "_preseed_source_index": 10,
@@ -15132,6 +16645,23 @@
       "recurrence_frequency": 0.18,
       "source_reliability": 0.76
     }
+  },
+  "DOPS-e82bed9d50cf": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-e82bed9d50cf",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-e845b0147cd6": {
     "_preseed_sequence": 72,
@@ -15274,6 +16804,23 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-eaed71895251": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-eaed71895251",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-eaf5061d9b32": {
     "_preseed_sequence": 56,
     "_preseed_source_index": 16,
@@ -15357,6 +16904,23 @@
       "recurrence_frequency": 0.18,
       "source_reliability": 0.76
     }
+  },
+  "DOPS-ece6800a5d9a": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-ece6800a5d9a",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-ece87af7d488": {
     "action_taken": "investigate",
@@ -15453,6 +17017,23 @@
       "recurrence_frequency": 0.12,
       "source_reliability": 0.66
     }
+  },
+  "DOPS-f11a43492c60": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-f11a43492c60",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-f172056fcd4d": {
     "_preseed_sequence": 34,
@@ -15651,6 +17232,40 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "DOPS-f4c5a0f11f7c": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-f4c5a0f11f7c",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-f58d5614a180": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-f58d5614a180",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
   "DOPS-f619ad6a90db": {
     "_preseed_sequence": 111,
     "_preseed_source_index": 11,
@@ -15678,6 +17293,23 @@
       "recurrence_frequency": 0.88,
       "source_reliability": 0.84
     }
+  },
+  "DOPS-f67353df16a1": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-f67353df16a1",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-f68be44b580a": {
     "_preseed_sequence": 4,
@@ -15734,6 +17366,40 @@
       "recurrence_frequency": 0.7,
       "source_reliability": 0.61
     }
+  },
+  "DOPS-f751929dc57d": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-f751929dc57d",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-f7bc9918364e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-f7bc9918364e",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
   },
   "DOPS-f85e09aa57fa": {
     "action_taken": "investigate",
@@ -16017,6 +17683,23 @@
     "alert_id": "ALERT-TIRE-001",
     "category": "schema_change",
     "decision_id": "DOPS-ff33958ff2d1",
+    "factors": {
+      "business_criticality": 0.96,
+      "data_freshness": 0.37,
+      "downstream_urgency": 0.9167,
+      "impact_scope": 0.625,
+      "recurrence_frequency": 0.0833,
+      "source_reliability": 0.72
+    },
+    "followed_ae": false,
+    "system_name": "sap_mm"
+  },
+  "DOPS-ff58e368e1e7": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "ALERT-TIRE-001",
+    "category": "schema_change",
+    "decision_id": "DOPS-ff58e368e1e7",
     "factors": {
       "business_criticality": 0.96,
       "data_freshness": 0.37,

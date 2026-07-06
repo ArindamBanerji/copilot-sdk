@@ -55,6 +55,7 @@ import type {
   ScoreInvoiceResponse,
   SimilarResponse,
   SimulationScenariosResponse,
+  SituationResponse,
   WhatIfResponse
 } from "./types";
 
@@ -206,6 +207,18 @@ export async function fetchS2PFingerprint(invoiceId: string): Promise<Fingerprin
 export async function fetchS2PSimilar(invoiceId: string, limit = 5): Promise<SimilarResponse | null> {
   const params = new URLSearchParams({ invoice_id: invoiceId, limit: String(limit) });
   return apiGet<SimilarResponse>(`/api/s2p/insight/similar?${params.toString()}`).catch(() => null);
+}
+
+export async function fetchSituation(decisionId: string, maxDepth = 3): Promise<SituationResponse | null> {
+  try {
+    const resp = await fetch(
+      `${API_URL}/api/s2p/situation/${encodeURIComponent(decisionId)}?max_depth=${maxDepth}`
+    );
+    if (!resp.ok) return null;
+    return (await resp.json()) as SituationResponse;
+  } catch {
+    return null;
+  }
 }
 
 export async function getSimilarInvoices(invoiceId: string, limit = 5): Promise<SimilarResponse | null> {

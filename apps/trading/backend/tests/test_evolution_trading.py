@@ -31,11 +31,17 @@ FORBIDDEN_SEMANTICS = {
 }
 
 
+EXPECTED_FAMILIES = {
+    "execution_threshold",
+    "revenge_cooldown",
+    "alert_threshold",
+    "pattern_sensitivity",
+    "regime_boundary",
+}
+
+
 def test_trading_variant_dimensions_have_expected_entries():
-    assert {dimension["name"] for dimension in TRADING_VARIANT_DIMENSIONS} == {
-        "execution_threshold",
-        "revenge_cooldown",
-    }
+    assert {dimension["name"] for dimension in TRADING_VARIANT_DIMENSIONS} == EXPECTED_FAMILIES
 
 
 def test_each_dimension_has_required_shape_and_default_value():
@@ -89,8 +95,8 @@ def test_variant_specs_define_expected_families_and_statuses():
     specs = get_trading_variant_specs()
     families = {spec.family for spec in specs}
 
-    assert len(specs) == 4
-    assert families == {"execution_threshold", "revenge_cooldown"}
+    assert len(specs) == 10
+    assert families == EXPECTED_FAMILIES
     for family in families:
         statuses = {spec.status for spec in specs if spec.family == family}
         assert statuses == {"active", "shadow"}
@@ -122,6 +128,43 @@ def test_revenge_cooldown_metadata_values_are_ordered():
     assert v2["max_size_ratio"] < v1["max_size_ratio"]
 
 
+def test_alert_threshold_family_loads_with_correct_dimensions():
+    by_id = {variant["id"]: variant for variant in get_trading_variants()}
+    v1 = by_id["ALERT_THRESHOLD_v1"]["metadata"]
+    v2 = by_id["ALERT_THRESHOLD_v2"]["metadata"]
+
+    assert v1["revenge_window_minutes"] == 30
+    assert v2["revenge_window_minutes"] == 45
+    assert v1["candidate_revenge_window_minutes"] == [30, 45, 60]
+    assert v2["candidate_revenge_window_minutes"] == [30, 45, 60]
+
+
+def test_pattern_sensitivity_family_loads_with_correct_dimensions():
+    by_id = {variant["id"]: variant for variant in get_trading_variants()}
+    v1 = by_id["PATTERN_SENSITIVITY_v1"]["metadata"]
+    v2 = by_id["PATTERN_SENSITIVITY_v2"]["metadata"]
+
+    assert v1["overconfidence_win_streak"] == 3
+    assert v2["overconfidence_win_streak"] == 4
+    assert v1["drawdown_size_increase_pct"] == 30
+    assert v2["drawdown_size_increase_pct"] == 40
+    assert v1["candidate_overconfidence_win_streak"] == [3, 4, 5]
+    assert v1["candidate_drawdown_size_increase_pct"] == [30, 40, 50]
+
+
+def test_regime_boundary_family_loads_with_correct_dimensions():
+    by_id = {variant["id"]: variant for variant in get_trading_variants()}
+    v1 = by_id["REGIME_BOUNDARY_v1"]["metadata"]
+    v2 = by_id["REGIME_BOUNDARY_v2"]["metadata"]
+
+    assert v1["vix_low_threshold"] == 20
+    assert v1["vix_high_threshold"] == 30
+    assert v2["vix_low_threshold"] == 22
+    assert v2["vix_high_threshold"] == 32
+    assert v1["candidate_vix_low_threshold"] == [18, 20, 22]
+    assert v1["candidate_vix_high_threshold"] == [28, 30, 32]
+
+
 def test_trading_evolver_config_matches_map_105_requirements():
     assert TRADING_EVOLVER_CONFIG.promotion_min_samples == 50
     assert TRADING_EVOLVER_CONFIG.exploration_constant == 1.414
@@ -151,7 +194,7 @@ def test_evolution_variants_route_returns_trading_variants(client):
     assert payload["domain"] == "trading"
     assert payload["variants"]
     families = {variant["family"] for variant in payload["variants"]}
-    assert families == {"execution_threshold", "revenge_cooldown"}
+    assert families == EXPECTED_FAMILIES
     assert {variant["status"] for variant in payload["variants"]} == {"active", "shadow"}
 
 

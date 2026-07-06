@@ -227,12 +227,18 @@ def _cost_payload(
     affected_count: int,
     total: int,
     trades: list[dict[str, Any]],
+    annualized_trades: list[dict[str, Any]] | None = None,
 ) -> tuple[float | None, dict[str, float]]:
     trades_per_year_fraction = affected_count / total if total else 0.0
     avg_loss = _avg_loss(trades)
     avg_trade_size = _avg_trade_size(trades)
+    annualized_count = (
+        _annualized_count(annualized_trades)
+        if annualized_trades is not None
+        else float(affected_count)
+    )
     cost = (
-        max(0.0, accuracy_delta) * affected_count * avg_loss
+        max(0.0, accuracy_delta) * annualized_count * avg_loss
         if avg_loss is not None
         else None
     )
@@ -243,6 +249,7 @@ def _cost_payload(
         "trades_per_year_fraction": round(trades_per_year_fraction, 4),
         "affected_frequency": round(trades_per_year_fraction, 4),
         "avg_trade_size": round(avg_trade_size, 4),
+        "annualized_count": round(annualized_count, 4),
     }
 
 
@@ -515,6 +522,7 @@ def _detect_tod_degradation(trades: list[dict[str, Any]]) -> dict[str, Any] | No
             affected_count=len(worst_trades),
             total=len(trades),
             trades=trades,
+            annualized_trades=worst_trades,
         )
         return _pattern(
             name="tod_degradation",
@@ -551,51 +559,122 @@ def _detect_tod_degradation_heuristic(
         parsed = _parse_time(trade.get("entry_time"))
         if parsed is None:
             continue
-        key = f"{parsed.strftime('%A')}_{parsed.hour:02d}"
-        buckets[key].append(trade)
+        day_name = parsed.strftime("%A")
+        hour = parsed.hour
+        for start_hour in (hour - 1, hour):
+            if 0 <= start_hour <= 22:
+                buckets[f"{day_name}_{start_hour:02d}_{start_hour + 2:02d}"].append(trade)
 
-    worst_key: str | None = None
-    worst_trades: list[dict[str, Any]] = []
-    worst_gap = 0.0
-    worst_acc = 0.0
-
+    bad_windows: list[dict[str, Any]] = []
     for key, bucket_trades in buckets.items():
-        if len(bucket_trades) < 8:
+        if len(bucket_trades) < MIN_STAT_GROUP:
             continue
         bucket_acc = _accuracy(bucket_trades)
         if bucket_acc is None:
             continue
         gap = baseline_acc - bucket_acc
-        if gap > worst_gap:
-            worst_key = key
-            worst_trades = bucket_trades
-            worst_gap = gap
-            worst_acc = bucket_acc
+        if gap <= 0:
+            continue
+        correct, incorrect = _outcome_counts(bucket_trades)
+        p_value = stats.binomtest(
+            correct,
+            correct + incorrect,
+            baseline_acc,
+            alternative="less",
+        ).pvalue
+        if p_value >= SIGNIFICANCE_THRESHOLD:
+            continue
+        day_name, start_text, end_text = key.rsplit("_", 2)
+        start_hour = int(start_text)
+        end_hour = int(end_text)
+        estimated_cost, cost_components = _cost_payload(
+            accuracy_delta=gap,
+            affected_count=len(bucket_trades),
+            total=len(trades),
+            trades=trades,
+            annualized_trades=bucket_trades,
+        )
+        bad_windows.append({
+            "key": key,
+            "day": day_name,
+            "start_hour": start_hour,
+            "window": f"{_format_hour(start_hour)}-{_format_hour(end_hour)}",
+            "accuracy": bucket_acc,
+            "baseline_accuracy": baseline_acc,
+            "accuracy_delta": gap,
+            "trade_count": len(bucket_trades),
+            "p_value": float(p_value),
+            "estimated_annual_cost": estimated_cost,
+            "cost_components": cost_components,
+            "trades": bucket_trades,
+        })
 
-    if worst_key is None or worst_gap < 0.12:
+    if not bad_windows:
         return None
 
-    day_name, hour_text = worst_key.rsplit("_", 1)
-    hour = int(hour_text)
-    next_hour = (hour + 1) % 24
-    window = f"{hour:02d}:00-{next_hour:02d}:00"
-    gap_text = f"{worst_gap:.0%}"
+    bad_windows.sort(
+        key=lambda window: (
+            float(window["p_value"]),
+            -float(window["accuracy_delta"]),
+            -int(window["trade_count"]),
+            -int(window["start_hour"]),
+        )
+    )
+    worst = bad_windows[0]
+    cost_text = (
+        f" Estimated annual cost: ${worst['estimated_annual_cost']:,.0f}."
+        if worst["estimated_annual_cost"] is not None
+        else ""
+    )
 
     return _pattern(
         name="tod_degradation",
         display_name="Time-of-Day Degradation",
         description=(
-            f"{day_name} {window} accuracy is {worst_acc:.0%}, below the "
-            f"{baseline_acc:.0%} verified baseline by {gap_text}."
+            f"{worst['day']} {worst['window']}: accuracy {worst['accuracy']:.0%} "
+            f"vs {baseline_acc:.0%} baseline.{cost_text}"
         ),
-        affected=worst_trades,
-        severity=min(1.0, 0.3 + worst_gap * 2),
+        affected=worst["trades"],
+        severity=min(1.0, 0.3 + float(worst["accuracy_delta"]) * 2),
         recommendation=(
-            f"Review {day_name} {window} setups and reduce size or skip that window "
+            f"Review {worst['day']} {worst['window']} setups and reduce size or skip that window "
             "until accuracy recovers."
         ),
         total=len(trades),
+        p_value=worst["p_value"],
+        estimated_annual_cost=worst["estimated_annual_cost"],
+        cost_components=worst["cost_components"],
+        statistical_test="binomial",
+        extra={
+            "worst_window": {
+                "day": worst["day"],
+                "window": worst["window"],
+                "accuracy": round(float(worst["accuracy"]), 4),
+                "baseline_accuracy": round(baseline_acc, 4),
+                "estimated_annual_cost": worst["estimated_annual_cost"],
+            },
+            "bad_windows": [
+                {
+                    "day": window["day"],
+                    "window": window["window"],
+                    "accuracy": round(float(window["accuracy"]), 4),
+                    "baseline_accuracy": round(float(window["baseline_accuracy"]), 4),
+                    "trade_count": window["trade_count"],
+                    "p_value": round(float(window["p_value"]), 6),
+                    "estimated_annual_cost": window["estimated_annual_cost"],
+                }
+                for window in bad_windows
+            ],
+        },
     )
+
+
+def _format_hour(hour: int) -> str:
+    suffix = "am" if hour % 24 < 12 else "pm"
+    value = hour % 12
+    if value == 0:
+        value = 12
+    return f"{value}{suffix}"
 
 
 def _market_session(trade: dict[str, Any]) -> str | None:

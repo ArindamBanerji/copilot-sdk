@@ -810,7 +810,8 @@ def test_conservation_metrics_use_real_category_coverage(tmp_path):
 
     assert metrics["categories_total"] == 3
     assert metrics["categories_with_data"] == 1
-    assert metrics["categories_with_data"] != int(float(metrics["alpha"]) * int(metrics["categories_total"]))
+    assert metrics["alpha"] == 1 / 3
+    assert metrics["categories_with_data"] == int(float(metrics["alpha"]) * int(metrics["categories_total"]))
     assert metrics["baseline_product"] == 0.0
     assert metrics["relative_threshold"] == 0.0
     assert metrics["complacency_flag"] == "false"
@@ -829,7 +830,7 @@ def test_conservation_metrics_use_explicit_domain_for_all_counts():
     metrics = compute_conservation_metrics(scorer, domain="dataops")
 
     assert metrics["V"] == 12
-    assert metrics["alpha"] == 12 / 16
+    assert metrics["alpha"] == 2 / 3
     assert metrics["q"] == 9 / 12
     assert metrics["categories_with_data"] == 2
     assert math.isfinite(float(metrics["theta_min"]))
@@ -853,7 +854,7 @@ def test_conservation_metrics_do_not_bleed_between_live_domains():
     metrics = compute_conservation_metrics(scorer, domain="purchasing")
 
     assert metrics["V"] == 20
-    assert metrics["alpha"] == 20 / 25
+    assert metrics["alpha"] == 1.0
     assert metrics["q"] == 18 / 20
     assert metrics["categories_with_data"] == 3
     assert ("count_verified", "trading") not in store.calls

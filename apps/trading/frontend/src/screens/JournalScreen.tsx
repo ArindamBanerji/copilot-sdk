@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchAnalytics, fetchSubcategoryAnalytics, fetchTradeDetail, fetchTrades, type TradeJournalFilters } from "../api";
 import EarningsInsightCard from "../components/EarningsInsightCard";
 import EvidencePanel from "../components/EvidencePanel";
+import JournalQueryBar from "../components/JournalQueryBar";
 import OptionsFactorPanel from "../components/OptionsFactorPanel";
 import type { AnalyticsResponse, JournalAggregate, TradeJournalEntry, TradesResponse } from "../types";
 
@@ -183,6 +184,8 @@ export default function JournalScreen() {
           </label>
         </div>
       </section>
+
+      <JournalQueryBar />
 
       {loading ? <section className="copilot-card p-6 text-sm trading-muted">Loading trade journal...</section> : null}
       {!loading && error ? (

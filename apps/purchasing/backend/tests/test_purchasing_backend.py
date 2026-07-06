@@ -179,6 +179,7 @@ def test_order_metadata_store_and_retrieve(client):
     metadata = response.json()
     assert metadata["decision-1"]["item"] == "chicken_breast"
     assert metadata["decision-1"]["quantity_lbs"] == 120
+    assert metadata["decision-1"]["provenance"] == "sample"
 
 
 def test_order_metadata_v2_fields(client):
@@ -204,11 +205,12 @@ def test_order_metadata_v2_fields(client):
 
     created = client.post("/api/context/order-metadata", json=payload)
     assert created.status_code == 201
-    assert created.json()["metadata"] == payload
+    expected = {**payload, "provenance": "sample"}
+    assert created.json()["metadata"] == expected
 
     response = client.get("/api/context/order-metadata")
     assert response.status_code == 200
-    assert response.json()["decision-v2"] == payload
+    assert response.json()["decision-v2"] == expected
 
 
 def test_order_metadata_requires_decision_id(client):
@@ -748,7 +750,7 @@ def test_evolution_variants(client):
     assert payload["domain"] == "purchasing"
     assert payload["active_rules"] == []
     assert payload["promoted_rules"] == []
-    assert len(payload["variants"]) == 7
+    assert len(payload["variants"]) == 15
     event_variants = [variant for variant in payload["variants"] if "event_type" in variant]
     configured_variants = [variant for variant in payload["variants"] if "family" in variant]
     assert {variant["event_type"] for variant in event_variants} == {
@@ -760,6 +762,14 @@ def test_evolution_variants(client):
         "WASTE_THRESHOLD_v2",
         "LEAD_TIME_BUFFER_v1",
         "LEAD_TIME_BUFFER_v2",
+        "ORDER_QUANTITY_THRESHOLD_v1",
+        "ORDER_QUANTITY_THRESHOLD_v2",
+        "WEATHER_SENSITIVITY_v1",
+        "WEATHER_SENSITIVITY_v2",
+        "EVENT_LEAD_TIME_v1",
+        "EVENT_LEAD_TIME_v2",
+        "PRICE_MEMORY_ALERT_v1",
+        "PRICE_MEMORY_ALERT_v2",
         "V-PUR-FRIDAY-001",
         "V-PUR-EVENT-001",
         "V-PUR-DAIRY-001",
@@ -767,6 +777,10 @@ def test_evolution_variants(client):
     assert {variant["family"] for variant in configured_variants} == {
         "waste_threshold",
         "lead_time_buffer",
+        "order_quantity_threshold",
+        "weather_sensitivity",
+        "event_lead_time",
+        "price_memory_alert",
     }
     assert all(variant.get("triggered_by") != "fixture" for variant in payload["variants"])
 
@@ -783,6 +797,14 @@ def test_evolution_variants_fresh_store_is_empty(tmp_path: Path, temp_data_dir: 
         "WASTE_THRESHOLD_v2",
         "LEAD_TIME_BUFFER_v1",
         "LEAD_TIME_BUFFER_v2",
+        "ORDER_QUANTITY_THRESHOLD_v1",
+        "ORDER_QUANTITY_THRESHOLD_v2",
+        "WEATHER_SENSITIVITY_v1",
+        "WEATHER_SENSITIVITY_v2",
+        "EVENT_LEAD_TIME_v1",
+        "EVENT_LEAD_TIME_v2",
+        "PRICE_MEMORY_ALERT_v1",
+        "PRICE_MEMORY_ALERT_v2",
     ]
 
 

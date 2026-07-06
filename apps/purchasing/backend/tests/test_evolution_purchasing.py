@@ -18,16 +18,28 @@ def _by_id() -> dict[str, dict]:
 
 
 def test_purchasing_variant_specs_cover_expected_families() -> None:
-    assert len(PURCHASING_VARIANTS) == 4
+    assert len(PURCHASING_VARIANTS) == 12
     assert {variant.id for variant in PURCHASING_VARIANTS} == {
         "WASTE_THRESHOLD_v1",
         "WASTE_THRESHOLD_v2",
         "LEAD_TIME_BUFFER_v1",
         "LEAD_TIME_BUFFER_v2",
+        "ORDER_QUANTITY_THRESHOLD_v1",
+        "ORDER_QUANTITY_THRESHOLD_v2",
+        "WEATHER_SENSITIVITY_v1",
+        "WEATHER_SENSITIVITY_v2",
+        "EVENT_LEAD_TIME_v1",
+        "EVENT_LEAD_TIME_v2",
+        "PRICE_MEMORY_ALERT_v1",
+        "PRICE_MEMORY_ALERT_v2",
     }
     assert {variant.family for variant in PURCHASING_VARIANTS} == {
         "waste_threshold",
         "lead_time_buffer",
+        "order_quantity_threshold",
+        "weather_sensitivity",
+        "event_lead_time",
+        "price_memory_alert",
     }
     assert len({variant.id for variant in PURCHASING_VARIANTS}) == len(PURCHASING_VARIANTS)
 
@@ -41,6 +53,10 @@ def test_purchasing_variants_have_active_and_shadow_per_family() -> None:
     assert statuses == {
         "waste_threshold": {"active", "shadow"},
         "lead_time_buffer": {"active", "shadow"},
+        "order_quantity_threshold": {"active", "shadow"},
+        "weather_sensitivity": {"active", "shadow"},
+        "event_lead_time": {"active", "shadow"},
+        "price_memory_alert": {"active", "shadow"},
     }
 
 
@@ -71,6 +87,58 @@ def test_lead_time_buffer_metadata_is_more_conservative_in_v2() -> None:
     assert v2["supplier_reliability_floor"] > v1["supplier_reliability_floor"]
     for metadata in (v1, v2):
         assert 0.0 < metadata["supplier_reliability_floor"] < 1.0
+
+
+def test_order_quantity_threshold_metadata_loads_pd_dimensions() -> None:
+    variants = _by_id()
+    v1 = variants["ORDER_QUANTITY_THRESHOLD_v1"]["metadata"]
+    v2 = variants["ORDER_QUANTITY_THRESHOLD_v2"]["metadata"]
+
+    assert v1["display_name"] == "How much to adjust before flagging"
+    assert v2["display_name"] == "How much to adjust before flagging"
+    assert v1["par_adjustment_pct"] == 15
+    assert v2["par_adjustment_pct"] == 20
+    assert v1["candidate_par_adjustment_pct"] == [15, 20]
+    assert v2["candidate_par_adjustment_pct"] == [15, 20]
+
+
+def test_weather_sensitivity_metadata_loads_pd_dimensions() -> None:
+    variants = _by_id()
+    v1 = variants["WEATHER_SENSITIVITY_v1"]["metadata"]
+    v2 = variants["WEATHER_SENSITIVITY_v2"]["metadata"]
+
+    assert v1["display_name"] == "Minimum forecast confidence to act on weather"
+    assert v2["display_name"] == "Minimum forecast confidence to act on weather"
+    assert v1["forecast_confidence_min"] == pytest.approx(0.70)
+    assert v2["forecast_confidence_min"] == pytest.approx(0.80)
+    assert v1["candidate_forecast_confidence_min"] == [0.70, 0.80]
+    assert v2["candidate_forecast_confidence_min"] == [0.70, 0.80]
+
+
+def test_event_lead_time_metadata_loads_pd_dimensions() -> None:
+    variants = _by_id()
+    v1 = variants["EVENT_LEAD_TIME_v1"]["metadata"]
+    v2 = variants["EVENT_LEAD_TIME_v2"]["metadata"]
+
+    assert v1["display_name"] == "How far ahead to adjust for events"
+    assert v2["display_name"] == "How far ahead to adjust for events"
+    assert v1["pre_event_days"] == 3
+    assert v2["pre_event_days"] == 5
+    assert v1["candidate_pre_event_days"] == [3, 5]
+    assert v2["candidate_pre_event_days"] == [3, 5]
+
+
+def test_price_memory_alert_metadata_loads_pd_dimensions() -> None:
+    variants = _by_id()
+    v1 = variants["PRICE_MEMORY_ALERT_v1"]["metadata"]
+    v2 = variants["PRICE_MEMORY_ALERT_v2"]["metadata"]
+
+    assert v1["display_name"] == "Price deviation before surfacing memory"
+    assert v2["display_name"] == "Price deviation before surfacing memory"
+    assert v1["deviation_pct"] == 8
+    assert v2["deviation_pct"] == 12
+    assert v1["candidate_deviation_pct"] == [8, 12]
+    assert v2["candidate_deviation_pct"] == [8, 12]
 
 
 def test_purchasing_evolver_config_matches_preset() -> None:
@@ -115,11 +183,23 @@ def test_purchasing_evolution_endpoint_returns_static_variants_without_persisted
     assert {variant["family"] for variant in variants} == {
         "waste_threshold",
         "lead_time_buffer",
+        "order_quantity_threshold",
+        "weather_sensitivity",
+        "event_lead_time",
+        "price_memory_alert",
     }
     assert [variant["id"] for variant in variants] == [
         "WASTE_THRESHOLD_v1",
         "WASTE_THRESHOLD_v2",
         "LEAD_TIME_BUFFER_v1",
         "LEAD_TIME_BUFFER_v2",
+        "ORDER_QUANTITY_THRESHOLD_v1",
+        "ORDER_QUANTITY_THRESHOLD_v2",
+        "WEATHER_SENSITIVITY_v1",
+        "WEATHER_SENSITIVITY_v2",
+        "EVENT_LEAD_TIME_v1",
+        "EVENT_LEAD_TIME_v2",
+        "PRICE_MEMORY_ALERT_v1",
+        "PRICE_MEMORY_ALERT_v2",
     ]
     assert len({variant["id"] for variant in variants}) == len(variants)

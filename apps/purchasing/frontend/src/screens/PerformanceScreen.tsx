@@ -16,6 +16,7 @@ import PaymentTimingPanel from "../components/PaymentTimingPanel";
 import SupplierScorecardPanel from "../components/SupplierScorecardPanel";
 import WasteAlertCard from "../components/WasteAlertCard";
 import WasteCostCard from "../components/WasteCostCard";
+import WeeklyReportPanel from "../components/WeeklyReportPanel";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
 
 function numberOr(value: unknown, fallback: number) {
@@ -106,6 +107,7 @@ export default function PerformanceScreen() {
       </section>
 
       <ChainTransferCard />
+      <WeeklyReportPanel />
       <EconomicDashboardCard />
       <DisruptionRecoveryPanel />
       <PaymentTimingPanel />

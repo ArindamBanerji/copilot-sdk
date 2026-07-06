@@ -1,0 +1,44 @@
+[BACKEND] GRAPH_BACKEND=age -- Client=AGEClient DSN=postgresql://postgres:postgres@localhost... Graph=soc_graph
+[AUTH] SAML disabled -- all routes open
+[STARTUP] BACKEND_PORT=8001 written to .env
+[STARTUP] Backend=AGE | Client=AGEClient | Nodes=13314 | Status=VERIFIED
+[STARTUP] correct_decisions=3713, verified=4863, accuracy=76.4%
+[STARTUP] Evolution shadow index rebuilt: 11 variants
+[STARTUP] Variant registry rebuilt: 10 variants
+[OverrideDetector] ACTIVATED -- 104 correct-override examples loaded.
+[DOMAIN] Active domain: SOC Copilot (soc)
+[DOMAIN] Factors: 6, Actions: 5, Situations: 6
+[GAE] Loaded bootstrap checkpoint (step=5030, drift=0.0097)
+[GAE] ProfileScorer attached (actions=['escalate', 'investigate', 'suppress', 'monitor'], tau=0.1)
+[GAE] LearningState ready: W.shape=(4, 6), step=5030
+[STARTUP] Promotion rollback handler registered
+[STARTUP] Synced decision_count from graph: 5100
+[STARTUP] Verified decision_count from graph: 5100
+[SNAPSHOT] GraphSnapshot initialized: 5100 verified decisions, correct=3713, IKS=93.0, override_rate=0.000
+[AUDIT] Rebuilt 5100 entries from AGE
+[STARTUP] Audit ledger rebuilt: 5100 entries
+[WARMUP] Domain warm-up complete in 0.0s
+[WARMUP] LLM narrator initialized
+[NARRATIVE] Provider initialized: template
+[STATE] Registered reset handler: feedback
+[STATE] Registered reset handler: trust
+[STATE] Registered reset handler: policy
+[STATE] Registered reset handler: audit
+[STATE] Registered reset handler: evolver
+[STATE] Registered reset handler: confidence_history
+[STATE] Registered reset handler: learning_state
+[STATE] Registered reset handler: rl_engine
+[STATE] Registered reset handler: platform_caches
+[STATE] Registered reset handler: baseline_caches
+[STATE] Registered reset handler: servicenow_mock
+[TRUST] Seeded 12 historical trust snapshots for 'travel_login_anomaly' -- current trust=0.23, human_review_required=True
+[TRIAGE] Seeded 15 historical confidence snapshots
+[CONNECTOR] Registry initialized -- 0 connector(s) registered
+[F6] Campaign nodes exist -- skipping startup recorrelation.
+INFO:     127.0.0.1:50839 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50845 - "GET /api/eval/templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50845 - "GET /api/eval/templates/generic.csv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50845 - "POST /api/eval/upload HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:50845 - "POST /api/eval/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50846 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56831 - "GET /health HTTP/1.1" 200 OK

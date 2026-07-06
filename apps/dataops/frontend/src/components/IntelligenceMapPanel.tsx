@@ -198,15 +198,15 @@ export function IntelligenceMapPanel() {
               <title>{`${node.sourceName}: ${node.entityType}, ${node.status}, ${node.recordCount} records`}</title>
               <circle
                 r={node.radius + 10}
-                fill={statusColor(node.status)}
-                opacity={0.12 * node.opacity}
+                fill={trustColor(node.quality)}
+                opacity={0.14 * node.opacity}
               />
               <circle
                 r={node.radius}
-                fill={statusColor(node.status)}
+                fill={trustColor(node.quality)}
                 opacity={node.opacity}
-                stroke="rgba(255,255,255,0.62)"
-                strokeWidth="1.5"
+                stroke={trustStroke(node.quality)}
+                strokeWidth="2"
               />
               <text
                 y={node.radius + 24}
@@ -234,6 +234,7 @@ export function IntelligenceMapPanel() {
             : "Gold-line suggestions appear after combination valuation."}
         </span>
         <span>WebSocket pulsing deferred to DI-7.1</span>
+        <span>Brighter = higher trust</span>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
@@ -512,17 +513,36 @@ function opacityFor(quality: number | null, trustTier: number | null, cacheStatu
   return cacheStatus === "stale" ? 0.52 : 0.62;
 }
 
-function statusColor(status: MapNode["status"]): string {
-  if (status === "healthy") {
+function trustColor(quality: number | null): string {
+  if (quality === null) {
+    return "#94a3b8";
+  }
+  if (quality >= 0.9) {
+    return "#22c55e";
+  }
+  if (quality >= 0.7) {
     return "#34d399";
   }
-  if (status === "degraded") {
+  if (quality >= 0.5) {
     return "#fbbf24";
   }
-  if (status === "offline") {
-    return "#f87171";
+  return "#ef4444";
+}
+
+function trustStroke(quality: number | null): string {
+  if (quality === null) {
+    return "rgba(226,232,240,0.45)";
   }
-  return "#94a3b8";
+  if (quality >= 0.9) {
+    return "rgba(187,247,208,0.9)";
+  }
+  if (quality >= 0.7) {
+    return "rgba(167,243,208,0.75)";
+  }
+  if (quality >= 0.5) {
+    return "rgba(253,230,138,0.78)";
+  }
+  return "rgba(254,202,202,0.7)";
 }
 
 function statusClass(status: MapNode["status"]): string {

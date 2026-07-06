@@ -10,6 +10,7 @@ from typing import Any, Optional
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 SUPPLIERS_PATH = DATA_DIR / "purchasing_suppliers.json"
 ORDERS_PATH = DATA_DIR / "purchasing_orders.json"
+VALID_FIXTURE_PROVENANCE = frozenset({"sample", "demo"})
 
 _supplier_cache: list[dict[str, Any]] | None = None
 _order_cache: list[dict[str, Any]] | None = None
@@ -37,6 +38,25 @@ def reset_purchasing_fixtures() -> None:
     global _supplier_cache, _order_cache
     _supplier_cache = None
     _order_cache = None
+
+
+def write_purchasing_fixture(path: Path, data: dict) -> None:
+    """Write fixture data with provenance enforcement."""
+    for key, record in data.items():
+        if not isinstance(record, dict):
+            continue
+        if "provenance" not in record:
+            raise ValueError(
+                f"Record {key} missing provenance. "
+                "All fixture/demo data must have provenance."
+            )
+        if record["provenance"] not in VALID_FIXTURE_PROVENANCE:
+            raise ValueError(
+                f"Record {key} has invalid provenance {record['provenance']!r}. "
+                "Expected sample or demo."
+            )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
 
 
 def is_sample_data(record: dict) -> bool:

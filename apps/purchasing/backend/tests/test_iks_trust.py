@@ -5,6 +5,8 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
+
 from app.routers.iks import create_iks_router
 from app.routers.trust import DISPLAY_NAMES, EXPECTED_WEIGHT, create_trust_router
 
@@ -105,15 +107,27 @@ def test_trust_returns_all_display_names_and_no_code_names():
     assert response.status_code == 200
     payload = response.json()
     names = [row["display_name"] for row in payload["factors"]]
-    assert names == list(DISPLAY_NAMES.values())
+    canonical_names = list(PurchasingPreset().shape.factor_names)
+    assert names == [DISPLAY_NAMES[name] for name in canonical_names]
     assert not any("expected_demand" in str(row) for row in payload["factors"])
+
+
+def test_trust_labels_follow_canonical_factor_order():
+    response = _client(weights=[[0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]]).get("/api/purchasing/trust")
+
+    assert response.status_code == 200
+    factors = response.json()["factors"]
+    canonical_names = list(PurchasingPreset().shape.factor_names)
+    assert [row["display_name"] for row in factors] == [DISPLAY_NAMES[name] for name in canonical_names]
+    assert factors[-1]["display_name"] == "What They Used to Charge"
+    assert factors[-1]["actual_weight"] == 0.1 / 2.8
 
 
 def test_trust_sets_trust_trap_when_actual_weight_below_half_expected():
     response = _client(weights=[[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.01]]).get("/api/purchasing/trust")
 
     assert response.status_code == 200
-    charge_row = next(row for row in response.json()["factors"] if row["display_name"] == "What They Charge")
+    charge_row = next(row for row in response.json()["factors"] if row["display_name"] == "What They Used to Charge")
     assert charge_row["actual_weight"] < EXPECTED_WEIGHT * 0.5
     assert charge_row["trust_trap"] is True
 

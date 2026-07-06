@@ -21,7 +21,7 @@ class CostImpactResponse(BaseModel):
     food_cost_saved: float
     prep_waste_avoided: float
     price_flags_surfaced: float
-    net_recovered_period: float
+    net_found_period: float
 
 
 class SupplierChangeResponse(BaseModel):
@@ -30,6 +30,9 @@ class SupplierChangeResponse(BaseModel):
     previous_value: float
     current_value: float
     direction: str
+    supplier: str | None = None
+    issue: str | None = None
+    pct: float | None = None
 
 
 class WeeklyReportResponse(BaseModel):
@@ -68,7 +71,7 @@ def create_report_router(domain: str, report_factory: Any, prefix: str | None = 
             "food_cost_saved": cost_impact.get("dollars_found", 0.0),
             "prep_waste_avoided": cost_impact.get("waste_prevented", 0.0),
             "price_flags_surfaced": cost_impact.get("price_variance_flagged", 0.0),
-            "net_recovered_period": cost_impact.get("net_recovered_period", 0.0),
+            "net_found_period": cost_impact.get("net_found_period", 0.0),
         }
         return payload
 

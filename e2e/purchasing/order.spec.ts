@@ -9,7 +9,7 @@ async function gotoOrder(page: Page) {
 }
 
 async function scoreOrder(page: Page) {
-  await expect(page.getByText("Six scorer inputs")).toBeVisible();
+  await expect(page.getByText("Seven scorer inputs")).toBeVisible();
   const scoreButton = page.getByRole("button", { name: "Score This Order" });
   await expect(scoreButton).toBeEnabled();
   const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
@@ -40,11 +40,19 @@ test("cost framing narrative visible", async ({ page }) => {
   await expectAnyText(page, [/Order cost/i, /Stockout estimate/i, /Waste estimate/i, /Risk ratio/i]);
 });
 
-test("six auto-computed factors visible", async ({ page }) => {
+test("seven auto-computed factors visible", async ({ page }) => {
   await gotoOrder(page);
 
-  await expect(page.getByText("Six scorer inputs")).toBeVisible();
-  for (const label of ["Expected demand", "Day of week", "Weather", "Events", "Historical waste", "Supplier lead time"]) {
+  await expect(page.getByText("Seven scorer inputs")).toBeVisible();
+  for (const label of [
+    "Whether They Show Up",
+    "What the Calendar Says",
+    "What the Weather Says",
+    "What Events Change",
+    "What Gets Thrown Away",
+    "When It Shows Up",
+    "What They Used to Charge",
+  ]) {
     await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
   }
 });

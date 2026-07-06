@@ -11,6 +11,8 @@ import pytest
 
 from copilot_sdk.situation import (
     ContextSnapshot,
+    ContextChain,
+    NLRenderer,
     PolicyReference,
     SituationAnalyzer,
     SituationContext,
@@ -19,6 +21,7 @@ from copilot_sdk.situation import (
     TraversalNode,
     TypedIntent,
 )
+from copilot_sdk.graph import GraphTraversalStore, SQLiteGraphStore
 
 
 @dataclass
@@ -399,3 +402,130 @@ def test_s2p_specific_traversal_not_implemented_in_sdk_p33() -> None:
 
     forbidden_terms = ("S2P", "Invoice", "Supplier", "Contract")
     assert not any(any(term in name for term in forbidden_terms) for name in names)
+
+
+def test_context_chain_wraps_situation_context() -> None:
+    context = SituationContext(domain="demo", decision_id="D1")
+
+    chain = ContextChain(
+        context=context,
+        traversal_path=["decision", "entity"],
+        hop_count=1,
+        confidence=0.91,
+        nl_explanation="Decision context.",
+        template_variables={"action": "review"},
+    )
+
+    payload = chain.to_dict()
+    assert payload["context"]["decision_id"] == "D1"
+    assert payload["traversal_path"] == ["decision", "entity"]
+    assert payload["confidence"] == 0.91
+    assert payload["nl_explanation"] == "Decision context."
+
+
+def test_context_chain_allows_pre_render_none() -> None:
+    chain = ContextChain(
+        context=SituationContext(domain="demo"),
+        traversal_path=[],
+        hop_count=0,
+        confidence=0.0,
+        nl_explanation=None,
+        template_variables={},
+    )
+
+    assert chain.to_dict()["nl_explanation"] is None
+
+
+def test_sqlite_query_context_returns_bounded_results(tmp_path) -> None:
+    store = SQLiteGraphStore(tmp_path / "graph.db", domain="demo")
+    decision_id = store.write_decision(
+        "demo",
+        "price_variance",
+        "review",
+        0.8,
+        {"amount_variance_ratio": 0.2},
+        metadata={"entity_id": "INV-1"},
+    )
+    store.link_decision_to_entity(decision_id, "INV-1")
+
+    rows = store.query_context("INV-1", 3)
+
+    assert isinstance(store, GraphTraversalStore)
+    assert rows[0]["node"] == "entity"
+    assert any(row["node"] == "decision" and row["id"] == decision_id for row in rows)
+    assert max(row["depth"] for row in rows) <= 3
+    store.close()
+
+
+def test_sqlite_query_context_respects_max_depth(tmp_path) -> None:
+    store = SQLiteGraphStore(tmp_path / "graph.db", domain="demo")
+    decision_id = store.write_decision(
+        "demo",
+        "price_variance",
+        "review",
+        0.8,
+        {"amount_variance_ratio": 0.2},
+        metadata={"entity_id": "INV-1"},
+    )
+    store.link_decision_to_entity(decision_id, "INV-1")
+
+    rows = store.query_context("INV-1", 1)
+
+    assert max(row["depth"] for row in rows) <= 1
+    store.close()
+
+
+def test_nl_renderer_renders_price_variance_template() -> None:
+    renderer = NLRenderer(
+        {
+            "price_variance": (
+                "{variance_pct}% price delta. {commodity} moved {commodity_delta}% "
+                "in {lookback_days} days. -> {action}. Confidence: {confidence_pct}."
+            )
+        }
+    )
+
+    text = renderer.render(
+        "price_variance",
+        {
+            "variance_pct": 5.2,
+            "commodity": "Copper",
+            "commodity_delta": 4.8,
+            "lookback_days": 30,
+            "action": "hold_for_review",
+            "confidence": 0.91,
+        },
+    )
+
+    assert "5.2% price delta" in text
+    assert "Confidence: 91%" in text
+
+
+def test_nl_renderer_handles_missing_variables_gracefully() -> None:
+    renderer = NLRenderer({"price_variance": "{variance_pct}% price delta on {commodity}."})
+
+    text = renderer.render("price_variance", {})
+
+    assert "unknown% price delta on unknown" in text
+
+
+def test_nl_renderer_accepts_dk_weights() -> None:
+    renderer = NLRenderer({"demo": "DK available: {dk_weights_available}. -> {action}."})
+
+    text = renderer.render("demo", {"action": "review"}, dk_weights={"weights": [1.0]})
+
+    assert text == "DK available: True. -> review."
+
+
+def test_graphstore_base_protocol_keeps_traversal_optional() -> None:
+    assert not hasattr(type("LegacyStore", (), {}), "query_context")
+
+
+def test_analyzer_max_allowed_depth_can_enforce_three() -> None:
+    analyzer = SituationAnalyzer(max_allowed_depth=3)
+
+    with pytest.raises(ValueError, match="max_depth 4 exceeds"):
+        analyzer.analyze_intent(
+            TypedIntent(domain="demo", intent_type="x", verb="explain", subject="thing"),
+            max_depth=4,
+        )

@@ -164,6 +164,33 @@ def demo_locations() -> list[dict[str, Any]]:
     ]
 
 
+def chain_demo_locations(state: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not isinstance(state, dict) or not isinstance(state.get("locations"), dict):
+        return demo_locations()
+    rows = []
+    for location in state["locations"].values():
+        if not isinstance(location, dict):
+            continue
+        reliability = float(location.get("supplier_reliability") or 0.0)
+        waste_pct = float(location.get("waste_pct") or 0.0)
+        rows.append({
+            "id": location.get("location_id"),
+            "name": location.get("name"),
+            "decisions": location.get("decisions"),
+            "accuracy": float(location.get("iks") or 0.0) / 100.0,
+            "iks": location.get("iks"),
+            "food_cost_pct": 0.30 + waste_pct,
+            "conservation": location.get("conservation"),
+            "supplier_spend": {"Sysco": 18000 * reliability, "Fresh Produce": 8000 * reliability},
+            "waste_cost": round(waste_pct * 5000, 2),
+            "waste_rate": waste_pct,
+            "item_prices": {"salmon": round(14.0 + waste_pct * 10, 2)},
+            "supplier_otif": {"Sysco": reliability},
+            "provenance": location.get("provenance", "demo"),
+        })
+    return rows or demo_locations()
+
+
 def _weighted_accuracy(locations: list[dict[str, Any]]) -> float:
     total = sum(int(row.get("decisions") or 0) for row in locations)
     if total <= 0:

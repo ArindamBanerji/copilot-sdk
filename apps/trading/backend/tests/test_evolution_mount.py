@@ -11,6 +11,9 @@ def test_trading_evolution_variants_returns_200(client):
     assert {variant["family"] for variant in payload["variants"]} == {
         "execution_threshold",
         "revenge_cooldown",
+        "alert_threshold",
+        "pattern_sensitivity",
+        "regime_boundary",
     }
     assert {variant["status"] for variant in payload["variants"]} == {"active", "shadow"}
     assert payload["active_rules"] == []

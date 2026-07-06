@@ -122,4 +122,6 @@ def test_di_source_profiles_router_registered_on_main_app(client):
     response = client.get("/api/di/profiles")
 
     assert response.status_code == 200
-    assert response.json() == {"sources": [], "total": 0}
+    payload = response.json()
+    assert payload["total"] == 3
+    assert {source["source_name"] for source in payload["sources"]} == {"airflow", "dbt", "snowflake"}

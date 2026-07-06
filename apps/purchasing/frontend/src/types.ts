@@ -19,7 +19,8 @@ export type PurchasingFactorName =
   | "weather_forecast"
   | "event_flag"
   | "historical_waste"
-  | "supplier_lead_time";
+  | "supplier_lead_time"
+  | "price_memory_index";
 
 export type FactorMap = Record<PurchasingFactorName, number>;
 

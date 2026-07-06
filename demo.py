@@ -9,6 +9,7 @@ Usage:
     python demo.py --playwright     # Start SOC + S2P only (Playwright prereqs)
     python demo.py --soc            # SOC only (requires AGE)
     python demo.py --s2p            # S2P only
+    python demo.py --s2p-pw         # S2P only for Playwright (no browser)
     python demo.py --sdk            # Trading + Purchasing + DataOps only
     python demo.py --dataops        # DataOps only
     python demo.py --stop           # Stop all copilot processes
@@ -43,10 +44,51 @@ KEEPALIVE_PID_FILE = SCRIPT_DIR / ".wsl_keepalive.pid"
 IS_WINDOWS = sys.platform == "win32"
 CREATE_FLAGS = subprocess.CREATE_NEW_CONSOLE if IS_WINDOWS else 0
 
-# AGE connection parameters (Rule #40: Windows-side AGE DSNs use localhost;
-# HTTP/FastAPI URLs use 127.0.0.1.)
-AGE_DSN_SOC = "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres"
-AGE_DSN_DATAOPS = "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres"
+# AGE connection parameters (Rule #40 REVISED June 23, 2026):
+#   - Database DSNs use the WSL2 NAT IP (changes per boot), NOT localhost.
+#   - sslmode=disable required (OS update broke psycopg3 SSL over WSL2 NAT).
+#   - HTTP/FastAPI URLs still use 127.0.0.1.
+#   - PostgreSQL 17; start via: wsl -u root pg_ctlcluster 17 main start
+#   - See standing_note_wsl2_age_fix_june23.md for full diagnostic history.
+
+
+def _resolve_wsl2_ip() -> str:
+    """Resolve the WSL2 NAT IP dynamically (changes per boot).
+
+    Falls back to localhost if WSL isn't available (non-Windows or WSL not installed).
+    The GRAPH_DSN env var overrides this entirely if set.
+    """
+    if not IS_WINDOWS:
+        return "localhost"
+    try:
+        result = subprocess.run(
+            ["wsl", "-u", "root", "hostname", "-I"],
+            capture_output=True, text=True, timeout=5,
+        )
+        ip = result.stdout.strip().split()[0]
+        if ip:
+            return ip
+    except Exception:
+        pass
+    return "localhost"
+
+
+def _build_age_dsn(dbname: str = "soc_copilot") -> str:
+    """Build an AGE DSN using the dynamic WSL2 IP or GRAPH_DSN env override."""
+    env_dsn = os.environ.get("GRAPH_DSN", "").strip()
+    if env_dsn:
+        # Ensure sslmode=disable is present even in env-provided DSNs
+        if "sslmode" not in env_dsn:
+            env_dsn += " sslmode=disable"
+        return env_dsn
+    host = _resolve_wsl2_ip()
+    return f"host={host} port=5433 dbname={dbname} user=postgres password=postgres sslmode=disable"
+
+
+# Resolve once at import time (WSL IP is stable within a boot session)
+_WSL2_IP = _resolve_wsl2_ip()
+AGE_DSN_SOC = _build_age_dsn("soc_copilot")
+AGE_DSN_DATAOPS = _build_age_dsn("soc_copilot")
 SOC_REPO = Path(os.environ.get(
     "CLAUDE_SOC",
     str(SCRIPT_DIR.parent / "gen-ai-roi-demo-v4-v50"),
@@ -66,6 +108,9 @@ COPILOTS = [
         "env": {
             "GRAPH_BACKEND": "age",
             "GRAPH_DSN": AGE_DSN_SOC,
+        },
+        "fe_env": {
+            "VITE_S2P_API_URL": "http://127.0.0.1:8002",
         },
     },
     {
@@ -88,6 +133,12 @@ COPILOTS = [
         "fe_port": 5176,
         "be_path": SCRIPT_DIR / "apps" / "dataops" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "dataops" / "frontend",
+        "requires_age": True,
+        "graph_dsn": AGE_DSN_DATAOPS,
+        "env": {
+            "GRAPH_BACKEND": "age",
+            "GRAPH_DSN": AGE_DSN_DATAOPS,
+        },
     },
     {
         "name": "S2P",
@@ -98,6 +149,9 @@ COPILOTS = [
             str(SCRIPT_DIR.parent / "s2p-copilot"),
         )) / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "s2p" / "frontend",
+        "fe_env": {
+            "VITE_API_URL": "http://127.0.0.1:8002",
+        },
     },
 ]
 
@@ -174,13 +228,15 @@ def verify_wsl2_running() -> bool:
 
 def start_wsl2_postgres() -> bool:
     """Start PostgreSQL inside WSL2 and keep WSL2 alive."""
-    print("  Starting WSL2 + PostgreSQL...")
+    print("  Starting WSL2 + PostgreSQL 17...")
     try:
         # wsl -u root bypasses sudo entirely — no password prompt
+        # pg_ctlcluster 17 main start is required (service postgresql start
+        # only starts the meta-service, not the actual cluster on PG 17).
         result = subprocess.run(
             ["wsl", "-d", "Ubuntu-24.04", "-u", "root", "--",
              "bash", "-c",
-             "service postgresql start 2>/dev/null; sleep 3; "
+             "pg_ctlcluster 17 main start 2>/dev/null; sleep 3; "
              "su -c 'pg_isready -h 127.0.0.1 -p 5433 -q' postgres "
              "&& echo PG_READY || echo PG_FAIL"],
             capture_output=True, text=True, timeout=30,
@@ -268,15 +324,17 @@ def ensure_age_available(dsn: str) -> bool:
     # Whether WSL2 is running or not, try starting PostgreSQL
     if not start_wsl2_postgres():
         print()
-        print("  ╔════════════════════════════════════════════╗")
-        print("  ║  AGE/PostgreSQL is not available.          ║")
-        print("  ║                                            ║")
-        print("  ║  Manual fix (Rule #38):                    ║")
-        print("  ║  1. wsl -d Ubuntu-24.04 -u root            ║")
-        print("  ║  2. service postgresql start                ║")
-        print("  ║  3. Keep that terminal open                ║")
-        print("  ║  4. Re-run demo.py                        ║")
-        print("  ╚════════════════════════════════════════════╝")
+        print("  ╔══════════════════════════════════════════════════════╗")
+        print("  ║  AGE/PostgreSQL is not available.                    ║")
+        print("  ║                                                      ║")
+        print("  ║  Manual fix (Rule #40 revised):                      ║")
+        print("  ║  Admin PS:                                           ║")
+        print("  ║    wsl -u root pg_ctlcluster 17 main start           ║")
+        print("  ║  Regular PS:                                         ║")
+        print("  ║    $ip=(wsl -u root hostname -I).Trim().Split()[0]   ║")
+        print("  ║    $env:GRAPH_DSN=\"host=$ip port=5433 ...\"           ║")
+        print("  ║  Then re-run demo.py                                 ║")
+        print("  ╚══════════════════════════════════════════════════════╝")
         return False
 
     # PostgreSQL reported ready — verify from Windows side
@@ -484,7 +542,8 @@ def cmd_status(selected: list[dict]):
     age_ok = verify_age(AGE_DSN_SOC)
     wsl_ok = verify_wsl2_running()
     print(f"  AGE/PostgreSQL  {'UP ✓' if age_ok else 'DOWN ✗':8s}  "
-          f"WSL2 {'running' if wsl_ok else 'stopped'}")
+          f"WSL2 {'running' if wsl_ok else 'stopped'}  "
+          f"(host={_WSL2_IP})")
     print()
 
     for c in selected:
@@ -551,7 +610,7 @@ def cmd_start(selected: list[dict], args):
     age_needed = [c for c in selected if c.get("requires_age")]
     if age_needed or args.graph:
         dsn = age_needed[0]["graph_dsn"] if age_needed else AGE_DSN_DATAOPS
-        print("Checking AGE/PostgreSQL...")
+        print(f"Checking AGE/PostgreSQL (host={_WSL2_IP})...")
         if not ensure_age_available(dsn):
             print()
             print("Cannot start AGE-dependent copilots. Exiting.")
@@ -670,9 +729,14 @@ def cmd_start(selected: list[dict], args):
             print(f"  ✗ {c['name']}: package.json not found at {fe_path}")
             continue
 
+        fe_env = os.environ.copy()
+        if c.get("fe_env"):
+            fe_env.update(c["fe_env"])
+
         subprocess.Popen(
             ["npx", "vite", "--port", str(fe_port), "--host", "127.0.0.1"],
             cwd=str(fe_path),
+            env=fe_env,
             creationflags=CREATE_FLAGS,
             shell=IS_WINDOWS,
         )
@@ -721,6 +785,8 @@ def cmd_start(selected: list[dict], args):
     print("╔══════════════════════════════════════════════════════╗")
     print("║  Platform Ready                                      ║")
     print("╚══════════════════════════════════════════════════════╝")
+    if any(c.get("requires_age") for c in selected) or args.graph:
+        print(f"  AGE DSN:    host={_WSL2_IP} port=5433 sslmode=disable")
     for c in selected:
         fe_port = c.get("fe_port")
         age_flag = " [AGE]" if c.get("requires_age") else ""
@@ -733,6 +799,17 @@ def cmd_start(selected: list[dict], args):
     print("  Stop:       python demo.py --stop")
     print("  Status:     python demo.py --status")
     print("  Playwright: python demo.py --playwright --no-browser")
+    s2p_selected = any(c["name"] == "S2P" for c in selected)
+    if s2p_selected or args.s2p_pw:
+        print()
+        print("  S2P Playwright (product, port 5177):")
+        print("    cd copilot-sdk/e2e")
+        print("    npx playwright test --config=s2p/playwright.config.ts s2p/ --reporter=list")
+    if args.playwright:
+        print()
+        print("  SOC Playwright (preview, port 5173):")
+        print("    cd gen-ai-roi-demo-v4-v50/frontend")
+        print("    npx playwright test 'tests/e2e/s2p' --reporter=list")
     print()
 
 
@@ -811,6 +888,8 @@ def main():
                         help="SDK copilots only (Trading + Purchasing + DataOps)")
     parser.add_argument("--playwright", action="store_true",
                         help="Playwright prereqs only (SOC + S2P)")
+    parser.add_argument("--s2p-pw", action="store_true",
+                        help="S2P only for Playwright testing (no browser)")
 
     # Options
     parser.add_argument("--graph", action="store_true", help="AGE graph mode for DataOps")
@@ -828,6 +907,9 @@ def main():
     # --- Select copilots ---
     if args.diag_mode:
         args.soc = True
+    if args.s2p_pw:
+        args.s2p = True
+        args.no_browser = True
     individual = args.soc or args.trading or args.purchasing or args.dataops or args.s2p
     group = args.sdk or args.playwright
 

@@ -108,6 +108,7 @@ def _generator(
     scorer: CompoundingScorer,
     *,
     cost_extractor=purchasing_cost_extractor,
+    waste_provider=None,
 ) -> WeeklyReportGenerator:
     return WeeklyReportGenerator(
         graph_store=store,
@@ -115,6 +116,7 @@ def _generator(
         domain=DOMAIN,
         cost_extractor=cost_extractor,
         preset=PurchasingPreset(),
+        waste_provider=waste_provider,
     )
 
 
@@ -263,6 +265,62 @@ def test_cost_extractor_price_variance_uses_preset_index():
     assert result["price_variance_flagged"] == 15.0
 
 
+def test_report_includes_price_memory_index_flags(store: InMemoryGraphStore, scorer: CompoundingScorer):
+    _write_decision(
+        store,
+        decision_id="d-price-memory",
+        action="order_as_planned",
+        price_memory_index=0.2,
+        is_correct=True,
+    )
+
+    report = _generator(store, scorer).generate()
+
+    assert report.cost_impact.price_variance_flagged == 15.0
+    assert report.cost_impact.dollars_found == 15.0
+
+
+def test_report_includes_price_delta_flags(store: InMemoryGraphStore, scorer: CompoundingScorer):
+    _write_decision(
+        store,
+        decision_id="d-price-delta",
+        action="order_as_planned",
+        is_correct=True,
+        context={
+            "supplier_id": "SUP-1",
+            "supplier_name": "Pacific Seafood",
+            "previous_unit_price": 10.0,
+            "current_unit_price": 12.0,
+        },
+    )
+
+    report = _generator(store, scorer).generate()
+
+    assert report.cost_impact.price_variance_flagged == 2.0
+    assert report.cost_impact.dollars_found == 2.0
+
+
+def test_waste_tracker_prevented_value_feeds_weekly_report(store: InMemoryGraphStore, scorer: CompoundingScorer):
+    calls = {"count": 0}
+
+    def waste_provider() -> dict[str, float]:
+        calls["count"] += 1
+        return {"prevented_this_week": 20.0}
+
+    _write_decision(
+        store,
+        decision_id="d-waste",
+        action="order_as_planned",
+        is_correct=True,
+    )
+
+    report = _generator(store, scorer, waste_provider=waste_provider).generate()
+
+    assert calls["count"] == 1
+    assert report.cost_impact.waste_prevented == 20.0
+    assert report.cost_impact.net_found_period == report.cost_impact.net_recovered_period
+
+
 def test_cost_extractor_missing_context(store: InMemoryGraphStore, scorer: CompoundingScorer):
     _write_decision(store, decision_id="d-001", action="skip", is_correct=True, context=None)
 
@@ -345,9 +403,74 @@ def test_period_days_zero_rejected(store: InMemoryGraphStore, scorer: Compoundin
     assert response.status_code == 400
 
 
+def test_report_response_uses_kitchen_net_found_language(store: InMemoryGraphStore, scorer: CompoundingScorer):
+    _write_decision(store, decision_id="d-found", action="order_less", is_correct=True)
+    client = _client(_generator(store, scorer))
+
+    payload = client.get("/api/purchasing/report/weekly").json()
+
+    assert "net_found_period" in payload["cost_impact"]
+    assert "net_recovered_period" not in payload["cost_impact"]
+
+
 def test_supplier_changes_empty(store: InMemoryGraphStore, scorer: CompoundingScorer):
     _write_decision(store, decision_id="d-001", is_correct=True)
 
     report = _generator(store, scorer).generate()
 
+    # requires supplier delta tracking
+    assert report.supplier_changes == []
+
+
+def test_supplier_changes_from_verified_price_delta(store: InMemoryGraphStore, scorer: CompoundingScorer):
+    _write_decision(
+        store,
+        decision_id="d-supplier-delta",
+        action="order_as_planned",
+        is_correct=True,
+        context={
+            "supplier_id": "SUP-1",
+            "supplier_name": "Pacific Seafood",
+            "previous_unit_price": 10.0,
+            "current_unit_price": 11.2,
+        },
+    )
+
+    report = _generator(store, scorer).generate()
+
+    assert len(report.supplier_changes) == 1
+    change = report.supplier_changes[0]
+    assert change.supplier == "Pacific Seafood"
+    assert change.issue == "price_increase"
+    assert change.pct == pytest.approx(12.0)
+
+
+def test_non_purchasing_report_shape_preserved(tmp_path):
+    store = InMemoryGraphStore(domain="dataops")
+
+    class Scorer:
+        def get_phase(self) -> str:
+            return "B"
+
+        def get_alpha(self) -> float:
+            return 0.5
+
+        def trajectory(self):
+            class Trajectory:
+                current_iks = 0.0
+                points = []
+
+            return Trajectory()
+
+    generator = WeeklyReportGenerator(
+        graph_store=store,
+        scorer=Scorer(),
+        domain="dataops",
+        cost_extractor=None,
+    )
+    report = generator.generate()
+
+    assert report.domain == "dataops"
+    assert report.cost_impact.waste_prevented == 0.0
+    assert report.cost_impact.price_variance_flagged == 0.0
     assert report.supplier_changes == []

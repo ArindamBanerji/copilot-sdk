@@ -14,12 +14,14 @@ from app.data_helpers import (
     is_sample_data,
     load_purchasing_orders,
     reset_purchasing_fixtures,
+    write_purchasing_fixture,
 )
 from app.routers.spend_router import qbo_bills_for_spend
 from app.main import SEED_FIXTURE_PATH
 from generators.purchasing_synthetic import (
     SAMPLE_PROVENANCE,
     SEED,
+    VALID_FIXTURE_PROVENANCE,
     generate_orders,
     generate_suppliers,
 )
@@ -91,10 +93,30 @@ def test_all_purchasing_fixtures_have_provenance():
     for path in sorted(DATA_DIR.glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         for label, record in _fixture_records(path.name, data):
-            if record.get("provenance") != SAMPLE_PROVENANCE:
+            if record.get("provenance") not in VALID_FIXTURE_PROVENANCE:
                 missing.append(f"{path.name}:{label}")
 
     assert missing == []
+
+
+def test_valid_fixture_provenance_values():
+    """Provenance must be one of the known non-production values."""
+    for path in sorted(DATA_DIR.glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for label, record in _fixture_records(path.name, data):
+            prov = record.get("provenance")
+            assert prov is not None, f"{path.name}:{label} has no provenance"
+            assert prov in VALID_FIXTURE_PROVENANCE, (
+                f"{path.name}:{label} has unknown provenance '{prov}'. "
+                f"Valid: {VALID_FIXTURE_PROVENANCE}"
+            )
+
+
+def test_write_purchasing_fixture_rejects_missing_provenance(tmp_path):
+    path = tmp_path / "order_metadata.json"
+
+    with pytest.raises(ValueError, match="Record decision-1 missing provenance"):
+        write_purchasing_fixture(path, {"decision-1": {"decision_id": "decision-1"}})
 
 
 def test_is_sample_data():

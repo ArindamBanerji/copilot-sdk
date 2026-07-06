@@ -1,4 +1,5 @@
 import type { Analytics, FactorMap, FingerprintFactor, FingerprintResponse } from "../types";
+import { factorDisplayName } from "../factorDisplay";
 
 interface EngineAssessmentProps {
   factors: FactorMap;
@@ -6,15 +7,6 @@ interface EngineAssessmentProps {
   analytics?: Analytics;
   similarCount: number;
 }
-
-const labels: Record<keyof FactorMap, string> = {
-  expected_demand: "Expected demand",
-  day_of_week: "Day of week",
-  weather_forecast: "Weather",
-  event_flag: "Events",
-  historical_waste: "Historical waste",
-  supplier_lead_time: "Supplier lead time",
-};
 
 function fingerprintWeight(fingerprint: FingerprintResponse | undefined, name: string) {
   const factors = fingerprint?.factors;
@@ -29,7 +21,7 @@ export default function EngineAssessment({ factors, fingerprint, analytics, simi
   const ranked = (Object.keys(factors) as Array<keyof FactorMap>)
     .map((name) => ({
       name,
-      label: labels[name],
+      label: factorDisplayName(name),
       value: factors[name],
       weight: fingerprintWeight(fingerprint, name),
     }))

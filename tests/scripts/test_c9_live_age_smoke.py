@@ -69,8 +69,8 @@ def test_redact_dsn_url_and_key_value_password():
     smoke = load_script()
 
     assert (
-        smoke.redact_dsn("postgresql://postgres:secret@localhost:5433/soc")
-        == "postgresql://postgres:***@localhost:5433/soc"
+        smoke.redact_dsn("postgresql://postgres:secret@localhost:5433/soc?sslmode=disable")
+        == "postgresql://postgres:***@localhost:5433/soc?sslmode=disable"
     )
     assert (
         smoke.redact_dsn("host=localhost password=secret user=postgres")
@@ -82,14 +82,14 @@ def test_database_url_preferred_over_passwordless_graph_dsn():
     smoke = load_script()
 
     dsn, source = smoke.choose_database_url(
-        "postgresql://postgres:secret@localhost:5433/soc",
-        "host=localhost port=5433 dbname=postgres user=postgres",
+        "postgresql://postgres:secret@localhost:5433/soc?sslmode=disable",
+        "host=localhost port=5433 dbname=postgres user=postgres sslmode=disable",
     )
 
-    assert dsn == "postgresql://postgres:secret@localhost:5433/soc"
+    assert dsn == "postgresql://postgres:secret@localhost:5433/soc?sslmode=disable"
     assert "DATABASE_URL" in source
     assert "ignored passwordless GRAPH_DSN" in source
-    assert smoke.graph_dsn_is_passwordless("host=localhost port=5433 dbname=postgres user=postgres")
+    assert smoke.graph_dsn_is_passwordless("host=localhost port=5433 dbname=postgres user=postgres sslmode=disable")
 
 
 def test_readiness_ready_from_complete_synthetic_counts():
@@ -266,7 +266,7 @@ def test_dry_run_json_shape(capsys):
         readback=False,
         readback_only=False,
         graph_name="soc_graph",
-        database_url="postgresql://postgres:secret@localhost:5433/soc",
+        database_url="postgresql://postgres:secret@localhost:5433/soc?sslmode=disable",
         json=True,
         verbose=False,
         dry_run=True,
@@ -290,7 +290,7 @@ def test_main_json_output_is_parseable_and_redacted(capsys):
             "--domain",
             "dataops",
             "--database-url",
-            "postgresql://postgres:secret@localhost:5433/soc",
+            "postgresql://postgres:secret@localhost:5433/soc?sslmode=disable",
             "--json",
         ]
     )
@@ -299,7 +299,7 @@ def test_main_json_output_is_parseable_and_redacted(capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["verdict"] == smoke.READINESS_PARTIAL
     assert payload["domains_requested"] == ["dataops"]
-    assert payload["dsn_redacted"] == "postgresql://postgres:***@localhost:5433/soc"
+    assert payload["dsn_redacted"] == "postgresql://postgres:***@localhost:5433/soc?sslmode=disable"
     assert "secret" not in json.dumps(payload)
 
 
@@ -317,7 +317,7 @@ def test_run_classifies_store_unavailable_as_blocked(monkeypatch):
         readback=True,
         readback_only=False,
         graph_name="soc_graph",
-        database_url="postgresql://postgres:secret@localhost:5433/soc",
+        database_url="postgresql://postgres:secret@localhost:5433/soc?sslmode=disable",
         json=False,
         verbose=False,
         dry_run=False,
@@ -327,7 +327,7 @@ def test_run_classifies_store_unavailable_as_blocked(monkeypatch):
 
     assert summary.verdict == smoke.READINESS_BLOCKED
     assert summary.missing_cells[0]["cell"] == "environment"
-    assert summary.dsn_redacted == "postgresql://postgres:***@localhost:5433/soc"
+    assert summary.dsn_redacted == "postgresql://postgres:***@localhost:5433/soc?sslmode=disable"
 
 
 def test_source_does_not_call_l5_write_methods_directly():

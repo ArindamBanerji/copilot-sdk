@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getExpectedTrustWeights, getTrustInsights, getTrustWeights } from "../api";
+import { factorDisplayName } from "../factorDisplay";
 import type { TrustExpectedWeightsResponse, TrustInsight, TrustWeightsResponse } from "../types";
 
 const FACTORS = [
@@ -14,13 +15,13 @@ const FACTORS = [
 const CATEGORIES = ["protein", "produce", "dairy", "dryGoods", "beverages"];
 
 const FALLBACK_LABELS: Record<string, string> = {
-  expectedDemand: "Demand forecast",
-  dayOfWeek: "Day of week",
-  weatherForecast: "Weather impact",
-  eventFlag: "Event signal",
-  historicalWaste: "Waste history",
-  supplierLeadTime: "Lead time",
-  priceMemoryIndex: "Price memory",
+  expectedDemand: factorDisplayName("expectedDemand"),
+  dayOfWeek: factorDisplayName("dayOfWeek"),
+  weatherForecast: factorDisplayName("weatherForecast"),
+  eventFlag: factorDisplayName("eventFlag"),
+  historicalWaste: factorDisplayName("historicalWaste"),
+  supplierLeadTime: factorDisplayName("supplierLeadTime"),
+  priceMemoryIndex: factorDisplayName("priceMemoryIndex"),
 };
 
 function categoryLabel(category: string) {

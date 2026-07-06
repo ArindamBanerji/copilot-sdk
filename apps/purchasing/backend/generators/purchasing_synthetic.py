@@ -20,6 +20,7 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 SUPPLIERS_PATH = DATA_DIR / "purchasing_suppliers.json"
 ORDERS_PATH = DATA_DIR / "purchasing_orders.json"
 SAMPLE_PROVENANCE = "sample"
+VALID_FIXTURE_PROVENANCE = frozenset({"sample", "demo"})
 
 CATEGORIES = ("protein", "produce", "dairy", "dry_goods", "beverages")
 ACTIONS = ("order_as_planned", "order_more", "order_less", "skip")

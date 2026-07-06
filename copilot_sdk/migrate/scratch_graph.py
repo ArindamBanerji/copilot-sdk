@@ -65,6 +65,8 @@ def _row_value(row: Any, key: str, index: int = 0) -> Any:
 
 
 def _open_ddl_connection(dsn: str) -> psycopg.Connection:
+    if "sslmode" not in dsn:
+        dsn += " sslmode=disable"
     conn = psycopg.connect(dsn, autocommit=True, connect_timeout=10)
     conn.execute("LOAD 'age'")
     conn.execute("SET search_path = ag_catalog, '$user', public")

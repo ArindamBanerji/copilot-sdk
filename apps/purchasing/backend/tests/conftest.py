@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -17,6 +16,7 @@ for path in (BACKEND_ROOT, REPO_ROOT):
         sys.path.insert(0, str(path))
 
 from app import context_router  # noqa: E402
+from app.data_helpers import write_purchasing_fixture  # noqa: E402
 from app.main import create_app  # noqa: E402
 
 
@@ -36,10 +36,7 @@ def temp_data_dir(tmp_path, monkeypatch) -> Path:
             (source_data / filename).read_text(encoding="utf-8"),
             encoding="utf-8",
         )
-    (temp_data / "order_metadata.json").write_text(
-        json.dumps({}, indent=2),
-        encoding="utf-8",
-    )
+    write_purchasing_fixture(temp_data / "order_metadata.json", {})
 
     monkeypatch.setattr(context_router, "_DATA_DIR", temp_data)
     import app.main as main_module

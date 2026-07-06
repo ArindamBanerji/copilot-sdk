@@ -1,0 +1,119 @@
+#< CLIXML
+[2m6:14:00 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:14:02 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/audit/decisions?format=json[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:14:03 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:14:04 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:14:33 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/soc/campaigns[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:16:24 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:16:24 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:16:27 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:16:57 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:16:58 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/audit/decisions?format=json[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:17:00 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:17:00 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:17:29 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:17:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:17:33 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:24:52 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:24:52 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:24:54 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/audit/decisions?format=json[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:24:57 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:25:28 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:25:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:25:58 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:25:59 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:26:01 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/audit/decisions?format=json[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:26:02 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:26:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:26:34 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:26:35 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:27:07 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:27:38 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:27:40 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/audit/decisions?format=json[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:27:41 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:28:10 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:28:12 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/audit/decisions?format=json[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:28:13 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:31:41 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:31:43 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/audit/decisions?format=json[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:31:44 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/confidence-trajectory[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:31:45 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/gae/trust-curve[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04"><Obj S="progress" RefId="0"><TN RefId="0"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N="SourceId">1</I64><PR N="Record"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj></Objs>

@@ -99,6 +99,32 @@ class GraphMissAGEClient:
         return []
 
 
+def test_age_client_constructor_receives_graph_name(monkeypatch, no_graph):
+    calls = []
+
+    class CapturingAGEClient:
+        serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
+
+        def __init__(self, **kwargs):
+            calls.append(kwargs)
+
+    monkeypatch.setenv("AGE_GRAPH_NAME", "dataops_graph")
+
+    client = DataOpsGraphClient(
+        dsn="host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres",
+        fallback_dir=FALLBACK_DIR,
+        age_client_cls=CapturingAGEClient,
+    )
+
+    assert client.is_graph_connected is True
+    assert calls == [
+        {
+            "dsn": "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable",
+            "graph_name": "dataops_graph",
+        }
+    ]
+
+
 @pytest.mark.asyncio
 async def test_fixture_fallback(no_graph):
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)

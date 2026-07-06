@@ -70,9 +70,10 @@ def test_get_polarities_dataops():
 
 def test_get_polarities_s2p():
     pols = get_factor_polarities("s2p")
-    assert len(pols) == 7
+    assert len(pols) == 8
     assert pols["match_status"] == Polarity.POSITIVE
     assert pols["duplicate_score"] == Polarity.NEGATIVE
+    assert pols["environmental_risk"] == Polarity.NEGATIVE
 
 
 def test_unknown_domain_returns_empty():

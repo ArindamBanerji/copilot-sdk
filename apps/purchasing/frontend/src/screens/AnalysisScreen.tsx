@@ -13,16 +13,8 @@ import ProfileArchetype from "../components/ProfileArchetype";
 import ProvenanceBadge from "../components/ProvenanceBadge";
 import TrustRadarPanel from "../components/TrustRadarPanel";
 import WasteCostCard from "../components/WasteCostCard";
+import { factorDisplayName } from "../factorDisplay";
 import type { Analytics, FingerprintFactor, FingerprintResponse } from "../types";
-
-const displayNames: Record<string, string> = {
-  expected_demand: "Expected demand",
-  day_of_week: "Day of week",
-  weather_forecast: "Weather",
-  event_flag: "Events",
-  historical_waste: "Historical waste",
-  supplier_lead_time: "Supplier lead time",
-};
 
 const interpretations: Record<string, string> = {
   historical_waste: "Items with low waste are your edge; high-waste items need guardrails.",
@@ -41,7 +33,7 @@ function toFactorItems(fingerprint?: FingerprintResponse): FactorItem[] {
   if (Array.isArray(factors)) {
     return factors.map((factor: FingerprintFactor) => ({
       name: factor.name,
-      displayName: displayNames[factor.name] ?? factor.displayName ?? factor.name,
+      displayName: factorDisplayName(factor.name),
       weight: Number(factor.weight ?? 0),
       sigma: Number(factor.sigma ?? 0),
       interpretation: interpretations[factor.name] ?? factor.interpretation ?? "Factor precision is still forming.",
@@ -50,7 +42,7 @@ function toFactorItems(fingerprint?: FingerprintResponse): FactorItem[] {
   }
   return Object.entries(factors).map(([name, weight]) => ({
     name,
-    displayName: displayNames[name] ?? name,
+    displayName: factorDisplayName(name),
     weight: Number(weight ?? 0),
     sigma: 0,
     interpretation: interpretations[name] ?? "Factor precision is still forming.",

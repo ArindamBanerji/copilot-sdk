@@ -78,6 +78,6 @@ test("Trust insight cards visible when insights exist", async ({ page, request }
 test("Trust factor labels use kitchen language", async ({ page }) => {
   await gotoAnalysis(page);
   const panel = page.getByTestId("trust-radar-panel");
-  await expect(panel).toContainText("Demand forecast", { timeout: 20_000 });
-  await expect(panel).toContainText("Price memory", { timeout: 20_000 });
+  await expect(panel).toContainText("Whether They Show Up", { timeout: 20_000 });
+  await expect(panel).toContainText("What They Used to Charge", { timeout: 20_000 });
 });

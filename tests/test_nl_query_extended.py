@@ -242,10 +242,11 @@ def test_comparison_missing_timestamp_count_metadata():
 
 def test_comparison_improvement_trend():
     now = _now()
+    this_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     rows = [
-        _decision("this-1", created_at=now - timedelta(days=1)),
-        _decision("this-2", created_at=now - timedelta(days=2)),
-        _decision("last", created_at=(now.replace(day=1) - timedelta(days=1))),
+        _decision("this-1", created_at=this_start + timedelta(hours=1)),
+        _decision("this-2", created_at=this_start + timedelta(hours=2)),
+        _decision("last", created_at=this_start - timedelta(days=1)),
     ]
     result = NLQueryRouter().query("compare this month vs last month", rows)
 

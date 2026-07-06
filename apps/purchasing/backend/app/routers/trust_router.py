@@ -8,20 +8,12 @@ from fastapi import APIRouter
 
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 
+from .factor_display import DISPLAY_NAMES
 
 LEARNING_THRESHOLD = 200
 PROVENANCE_TIER = "real_measured"
 EXPECTED_SOURCE = "preset_default"
-
-FACTOR_LABELS = {
-    "expected_demand": "Demand forecast",
-    "day_of_week": "Day of week",
-    "weather_forecast": "Weather impact",
-    "event_flag": "Event signal",
-    "historical_waste": "Waste history",
-    "supplier_lead_time": "Lead time",
-    "price_memory_index": "Price memory",
-}
+FACTOR_LABELS = DISPLAY_NAMES
 
 EXPECTED_WEIGHTS = {
     "expected_demand": 0.70,

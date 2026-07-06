@@ -6,17 +6,12 @@ from typing import Any
 
 from fastapi import APIRouter
 
+from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 
-DISPLAY_NAMES = {
-    "expected_demand": "Expected Demand",
-    "day_of_week": "Day of Week",
-    "weather_forecast": "Weather Forecast",
-    "event_flag": "Local Events",
-    "historical_waste": "Waste History",
-    "supplier_lead_time": "Whether They Show Up",
-    "price_memory_index": "What They Charge",
-}
-EXPECTED_WEIGHT = 1.0 / len(DISPLAY_NAMES)
+from .factor_display import DISPLAY_NAMES
+
+FACTOR_NAMES = tuple(PurchasingPreset().shape.factor_names)
+EXPECTED_WEIGHT = 1.0 / len(FACTOR_NAMES)
 HERO_NARRATIVE = "The factor you trust most is the one that lies to you."
 
 
@@ -38,9 +33,9 @@ def create_trust_router(graph_store_factory: Any | None = None) -> APIRouter:
 
 def _factor_rows(actual_weights: dict[str, float] | None) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for code_name, display_name in DISPLAY_NAMES.items():
+    for code_name in FACTOR_NAMES:
         row: dict[str, Any] = {
-            "display_name": display_name,
+            "display_name": DISPLAY_NAMES.get(code_name, code_name),
             "expected_weight": EXPECTED_WEIGHT,
         }
         if actual_weights is not None:
@@ -61,7 +56,7 @@ def _actual_weights(provider: Any | None) -> dict[str, float] | None:
     weights = getter()
     if not weights:
         return None
-    factor_names = list(DISPLAY_NAMES)
+    factor_names = list(FACTOR_NAMES)
     totals = {name: 0.0 for name in factor_names}
     rows = 0
     for row in weights:

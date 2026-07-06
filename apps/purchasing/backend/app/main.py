@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -54,6 +54,7 @@ from .routers.trust_router import create_trust_router as create_trust_weights_ro
 from .routers.verify_router import create_verify_router  # noqa: E402
 from .services.auto_order import AutoOrderGate  # noqa: E402
 from .services.audit_export import AuditExportService  # noqa: E402
+from .services.chain_demo_seed import ChainLearningDemo  # noqa: E402
 from .services.disruption_recovery import DisruptionRecoveryService  # noqa: E402
 from .services.par_optimizer import ParLevelOptimizer  # noqa: E402
 from .services.payment_timing import PaymentTimingService  # noqa: E402
@@ -80,6 +81,7 @@ from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
+from copilot_sdk.transfer.chain_transfer import ChainTransfer  # noqa: E402
 
 
 DOMAIN = "purchasing"
@@ -502,6 +504,7 @@ def create_app(
     disruption_recovery_service = DisruptionRecoveryService()
     payment_timing_service = PaymentTimingService()
     audit_export_service = AuditExportService()
+    chain_demo = ChainLearningDemo()
 
     @app.get("/api/purchasing/disruption/status")
     def disruption_status() -> dict[str, Any]:
@@ -530,6 +533,49 @@ def create_app(
     @app.get("/api/purchasing/audit/export/csv")
     def audit_export_csv(period: str = "last_quarter") -> Response:
         return Response(audit_export_service.export_csv_summary(period), media_type="text/csv")
+
+    @app.post("/api/purchasing/demo/chain-seed")
+    def chain_demo_seed() -> dict[str, Any]:
+        state = chain_demo.seed()
+        app.state.purchasing_chain_demo = state
+        return chain_demo.seed_response(state)
+
+    @app.post("/api/purchasing/chain/transfer")
+    def chain_demo_transfer(payload: dict[str, Any], request: Request) -> dict[str, Any]:
+        if "source_location" in payload or "target_locations" in payload:
+            state = getattr(app.state, "purchasing_chain_demo", None)
+            if not isinstance(state, dict):
+                state = chain_demo.seed()
+                app.state.purchasing_chain_demo = state
+            try:
+                return chain_demo.transfer(
+                    state,
+                    source_location=str(payload.get("source_location") or "downtown"),
+                    target_locations=[
+                        str(target)
+                        for target in payload.get("target_locations", ["airport", "suburb", "new"])
+                    ],
+                )
+            except KeyError as exc:
+                raise HTTPException(status_code=404, detail=f"Unknown location: {exc.args[0]}") from exc
+
+        stores = getattr(request.app.state, "purchasing_chain_stores", None)
+        if stores is None:
+            reset_chain_state(request.app.state)
+            stores = request.app.state.purchasing_chain_stores
+        source_key = str(payload.get("source") or "chicago").strip().lower()
+        target_key = str(payload.get("target") or "miami").strip().lower()
+        if source_key not in stores:
+            raise HTTPException(status_code=404, detail=f"Unknown source location: {payload.get('source')}")
+        if target_key not in stores:
+            raise HTTPException(status_code=404, detail=f"Unknown target location: {payload.get('target')}")
+        dry_run = bool(payload.get("dry_run", payload.get("dryRun", True)))
+        result = ChainTransfer().transfer(stores[source_key], stores[target_key], dry_run=dry_run)
+        return {
+            **result,
+            "source_location": stores[source_key].location_id,
+            "target_location": stores[target_key].location_id,
+        }
 
     app.include_router(
         create_scoring_router(
@@ -607,6 +653,7 @@ def create_app(
                 domain="purchasing",
                 cost_extractor=purchasing_cost_extractor,
                 preset=PurchasingPreset(),
+                waste_provider=lambda: WasteTracker(_load_order_rows()).weekly_waste_cost(),
             ),
             prefix="/api/purchasing",
         )
@@ -640,7 +687,8 @@ def create_app(
     def reset_demo_state() -> dict[str, Any]:
         reset_chain_state(app.state)
         reset_event_state(app.state)
-        return {"reset": True, "state": ["chain", "events"]}
+        app.state.purchasing_chain_demo = chain_demo.seed()
+        return {"reset": True, "state": ["chain", "chain_demo", "events"]}
 
     return app
 

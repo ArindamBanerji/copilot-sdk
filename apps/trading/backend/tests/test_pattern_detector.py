@@ -770,6 +770,118 @@ def test_tod_insufficient_bucket():
     assert isinstance(detect_patterns(trades), list)
 
 
+def _friday_afternoon_trades():
+    trades = []
+    trade_id = 1
+    for index in range(80):
+        trades.append(
+            _verified_trade(
+                trade_id,
+                True,
+                entry_time=f"2026-01-{5 + (index % 20):02d}T17:00:00",
+                exit_time=f"2026-01-{5 + (index % 20):02d}T17:10:00",
+                pnl=120.0,
+            )
+        )
+        trade_id += 1
+    for index in range(12):
+        timestamp = datetime(2026, 1, 2, 14, index % 2) + timedelta(days=index * 7)
+        trades.append(
+            _verified_trade(
+                trade_id,
+                index < 2,
+                entry_time=timestamp.isoformat(),
+                exit_time=(timestamp + timedelta(minutes=20)).isoformat(),
+                pnl=120.0 if index < 2 else -200.0,
+            )
+        )
+        trade_id += 1
+    return trades
+
+
+def test_tod_friday_afternoon_window_detected():
+    trades = _friday_afternoon_trades()
+    tod = _pattern_by_name(detect_patterns(trades), "tod_degradation")
+    window_trades = [
+        trade
+        for trade in trades
+        if datetime.fromisoformat(trade["entry_time"]).strftime("%A") == "Friday"
+        and 14 <= datetime.fromisoformat(trade["entry_time"]).hour < 16
+    ]
+    window_times = [datetime.fromisoformat(trade["entry_time"]) for trade in window_trades]
+    span_days = max((max(window_times) - min(window_times)).total_seconds() / 86400.0, 1.0)
+    annualized_count = len(window_trades) / span_days * 252.0
+    expected_annual_cost = round(
+        ((82 / 92) - (2 / 12)) * annualized_count * 200.0,
+        2,
+    )
+
+    assert tod["statistical_test"] == "binomial"
+    assert tod["significant"] is True
+    assert tod["worst_window"] == {
+        "day": "Friday",
+        "window": "2pm-4pm",
+        "accuracy": 0.1667,
+        "baseline_accuracy": 0.8913,
+        "estimated_annual_cost": expected_annual_cost,
+    }
+    assert "Friday 2pm-4pm" in tod["description"]
+
+
+def test_tod_uniform_accuracy_no_window():
+    trades = []
+    trade_id = 1
+    for index in range(30):
+        trades.append(_verified_trade(trade_id, index % 2 == 0, entry_time=f"2026-01-02T14:{index:02d}:00"))
+        trade_id += 1
+        trades.append(_verified_trade(trade_id, index % 2 == 0, entry_time=f"2026-01-03T17:{index:02d}:00"))
+        trade_id += 1
+
+    assert "tod_degradation" not in _names(detect_patterns(trades))
+
+
+def test_tod_heuristic_minimum_five_trades():
+    trades = [_verified_trade(index, True, entry_time=f"2026-01-03T17:{index:02d}:00") for index in range(1, 25)]
+    trades.extend(
+        _verified_trade(100 + index, False, entry_time=f"2026-01-02T14:0{index}:00")
+        for index in range(4)
+    )
+
+    assert "tod_degradation" not in _names(detect_patterns(trades))
+
+
+def test_tod_annual_cost_positive_and_reasonable():
+    tod = _pattern_by_name(detect_patterns(_friday_afternoon_trades()), "tod_degradation")
+
+    assert tod["estimated_annual_cost"] > 0
+    assert tod["estimated_annual_cost"] < 10000
+    assert tod["cost_components"]["avg_loss"] == 200.0
+    assert tod["cost_components"]["annualized_count"] > tod["affected_trade_count"]
+
+
+def test_tod_multiple_bad_windows_surfaced():
+    trades = _friday_afternoon_trades()
+    trade_id = 1000
+    for index in range(10):
+        timestamp = datetime(2026, 1, 3, 19, index % 2) + timedelta(days=index * 7)
+        trades.append(
+            _verified_trade(
+                trade_id,
+                index < 1,
+                entry_time=timestamp.isoformat(),
+                exit_time=(timestamp + timedelta(minutes=20)).isoformat(),
+                pnl=120.0 if index < 1 else -200.0,
+            )
+        )
+        trade_id += 1
+
+    tod = _pattern_by_name(detect_patterns(trades), "tod_degradation")
+
+    windows = {(window["day"], window["window"]) for window in tod["bad_windows"]}
+    assert ("Friday", "2pm-4pm") in windows
+    assert ("Saturday", "7pm-9pm") in windows
+
+
 def test_detect_all_sorted_by_pvalue():
     patterns = [
         pattern

@@ -6,6 +6,7 @@ import NoveltyAlertBanner from "../components/NoveltyAlertBanner";
 import { ProcessContextPanel } from "../components/ProcessContextPanel";
 import { S2PConservationProjection } from "../components/S2PConservationProjection";
 import { S2PReasoningPanel } from "../components/S2PReasoningPanel";
+import { SituationPanel } from "../components/SituationPanel";
 import {
   S2P_ACTIONS,
   S2P_FACTORS,
@@ -137,6 +138,7 @@ export function TriageScreen() {
   const factors = factorMap(score, selected);
   const context = processContext(score, selected);
   const decisionId = score?.decision_id ?? score?.decisionId ?? "";
+  const situationDecisionId = decisionId || null;
   const selectedCategory = String(selected?.category ?? "price_variance");
   const conservationState = conservation?.status ?? (conservation?.passed ? "GREEN" : undefined);
 
@@ -273,6 +275,8 @@ export function TriageScreen() {
               </button>
             </div>
           </article>
+
+          <SituationPanel decisionId={situationDecisionId} hasSelection={Boolean(selected)} />
 
           <EvidenceTemplatePanel invoiceId={invoiceId(selected)} category={selectedCategory} />
 

@@ -242,6 +242,28 @@ class SituationContext:
 
 
 @dataclass(frozen=True)
+class ContextChain:
+    """Rendered traversal chain wrapped around structured situation context."""
+
+    context: SituationContext
+    traversal_path: list[str]
+    hop_count: int
+    confidence: float
+    nl_explanation: str | None = None
+    template_variables: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "context": self.context.to_dict(),
+            "traversal_path": list(self.traversal_path),
+            "hop_count": int(self.hop_count),
+            "confidence": float(self.confidence),
+            "nl_explanation": self.nl_explanation,
+            "template_variables": _json_safe(self.template_variables),
+        }
+
+
+@dataclass(frozen=True)
 class TraversalResult:
     """Traversal result wrapper for callers that need pattern-level metadata."""
 

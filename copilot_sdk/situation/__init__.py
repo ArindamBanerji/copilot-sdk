@@ -3,6 +3,7 @@
 from copilot_sdk.situation.analyzer import SituationAnalyzer
 from copilot_sdk.situation.models import (
     ContextSnapshot,
+    ContextChain,
     PolicyReference,
     SituationContext,
     SituationSignal,
@@ -12,10 +13,14 @@ from copilot_sdk.situation.models import (
     TypedIntent,
 )
 from copilot_sdk.situation.patterns import TraversalPattern
+from copilot_sdk.situation.renderer import NLRenderer, NLRenderResult
 from copilot_sdk.situation.templates import SafeTemplateRenderer, TemplateRenderResult
 
 __all__ = [
+    "ContextChain",
     "ContextSnapshot",
+    "NLRenderer",
+    "NLRenderResult",
     "PolicyReference",
     "SituationAnalyzer",
     "SituationContext",

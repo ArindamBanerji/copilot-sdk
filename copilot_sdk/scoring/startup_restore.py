@@ -82,7 +82,7 @@ def _restore_dk(
     load_dk = getattr(scorer, "load_dk_weights_from_l5", None)
     if callable(load_dk):
         try:
-            status["dk_weights_loaded"] = bool(load_dk(row.get("weight_json")))
+            status["dk_weights_loaded"] = bool(load_dk(_pad_legacy_s2p_dk(domain, scorer, row.get("weight_json"))))
             status["dk_source"] = "l5"
         except Exception as exc:
             active_log.warning("L5 DK startup restore failed for %s: %s", domain, exc)
@@ -133,11 +133,74 @@ def _restore_centroids(
         status["centroid_source"] = "deferred"
         return
     try:
-        status["centroids_loaded"] = bool(load_centroids(rows))
+        status["centroids_loaded"] = bool(load_centroids(_pad_legacy_s2p_centroids(domain, scorer, rows)))
         status["centroid_source"] = "l5" if status["centroids_loaded"] else "missing"
     except Exception as exc:
         active_log.warning("L5 centroid startup restore failed for %s: %s", domain, exc)
         status["centroid_source"] = "error"
+
+
+def _expected_factor_count(scorer: Any) -> int | None:
+    preset = getattr(scorer, "_preset", None)
+    shape = getattr(preset, "shape", None)
+    value = getattr(shape, "n_factors", None)
+    return int(value) if value is not None else None
+
+
+def _pad_legacy_s2p_vector(domain: str, scorer: Any, vector: Any) -> Any:
+    expected = _expected_factor_count(scorer)
+    if domain != "s2p" or expected != 8:
+        return vector
+    try:
+        values = list(vector)
+    except TypeError:
+        return vector
+    if len(values) == 7:
+        return [*values, 0.5]
+    return vector
+
+
+def _pad_legacy_s2p_dk(domain: str, scorer: Any, weight_json: Any) -> Any:
+    expected = _expected_factor_count(scorer)
+    if domain != "s2p" or expected != 8:
+        return weight_json
+    try:
+        rows = list(weight_json)
+    except TypeError:
+        return weight_json
+    padded = []
+    changed = False
+    for row in rows:
+        try:
+            values = list(row)
+        except TypeError:
+            return weight_json
+        if len(values) == 7:
+            padded.append([*values, 1.0])
+            changed = True
+        else:
+            padded.append(row)
+    return padded if changed else weight_json
+
+
+def _pad_legacy_s2p_centroids(domain: str, scorer: Any, rows: Any) -> Any:
+    if domain != "s2p" or _expected_factor_count(scorer) != 8:
+        return rows
+    padded = []
+    changed = False
+    for row in rows:
+        if not isinstance(row, dict):
+            padded.append(row)
+            continue
+        vector = _pad_legacy_s2p_vector(domain, scorer, row.get("vector_json"))
+        if vector is not row.get("vector_json"):
+            updated = dict(row)
+            updated["vector_json"] = vector
+            padded.append(updated)
+            changed = True
+        else:
+            padded.append(row)
+    return padded if changed else rows
 
 
 def _restore_conservation(

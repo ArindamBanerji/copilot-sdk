@@ -1529,7 +1529,12 @@ class InMemoryGraphStore:
             }
         )
 
-    def get_decision_links(self, decision_id: str | None = None) -> list[dict[str, Any]]:
+    def get_decision_links(
+        self,
+        decision_id: str | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        limit_value = _bounded_traversal_limit(limit) if limit is not None else None
         links = [
             {
                 key: value
@@ -1540,7 +1545,119 @@ class InMemoryGraphStore:
             if edge.get("domain") == self.domain
             and (decision_id is None or edge["decision_id"] == decision_id)
         ]
+        if limit_value is not None:
+            links = links[:limit_value]
         return deepcopy(links)
+
+    def query_context(self, entity_id: str, max_depth: int) -> list[dict[str, Any]]:
+        depth = _bounded_traversal_depth(max_depth)
+        root_id = str(entity_id)
+        rows: list[dict[str, Any]] = [
+            {
+                "node": "entity",
+                "id": root_id,
+                "depth": 0,
+                "properties": {"entity_id": root_id, "provenance": "graph_store"},
+            }
+        ]
+        if depth == 0:
+            return rows
+        root_links = self._entity_links(root_id, limit=100)
+        linked_decision_ids = [str(edge["decision_id"]) for edge in root_links]
+        if root_id in self._decisions and root_id not in linked_decision_ids:
+            linked_decision_ids.insert(0, root_id)
+        seen: set[str] = set()
+        seen_entities: set[str] = {root_id}
+        for decision_id in linked_decision_ids[:100]:
+            if decision_id in seen:
+                continue
+            seen.add(decision_id)
+            decision = self._decisions.get(decision_id)
+            if decision is None:
+                continue
+            rows.append(
+                {
+                    "node": "decision",
+                    "id": decision_id,
+                    "depth": 1,
+                    "properties": deepcopy(decision),
+                }
+            )
+            if depth < 2:
+                continue
+            for edge in self.get_decision_links(decision_id, limit=100):
+                if edge.get("decision_id") != decision_id:
+                    continue
+                neighbor_id = str(edge.get("entity_id") or "")
+                if not neighbor_id or neighbor_id in seen_entities:
+                    continue
+                seen_entities.add(neighbor_id)
+                rows.append(
+                    {
+                        "node": "entity",
+                        "id": neighbor_id,
+                        "depth": 2,
+                        "properties": {
+                            "entity_id": neighbor_id,
+                            "edge_type": edge.get("edge_type"),
+                            "provenance": "graph_store",
+                        },
+                    }
+                )
+                if depth < 3:
+                    continue
+                for neighbor_edge in self._entity_links(neighbor_id, limit=100):
+                    neighbor_decision_id = str(neighbor_edge.get("decision_id") or "")
+                    if not neighbor_decision_id or neighbor_decision_id in seen:
+                        continue
+                    neighbor_decision = self._decisions.get(neighbor_decision_id)
+                    if neighbor_decision is None:
+                        continue
+                    seen.add(neighbor_decision_id)
+                    rows.append(
+                        {
+                            "node": "decision",
+                            "id": neighbor_decision_id,
+                            "depth": 3,
+                            "properties": deepcopy(neighbor_decision),
+                        }
+                    )
+        return deepcopy(rows[:100])
+
+    def _entity_links(self, entity_id: str, limit: int = 100) -> list[dict[str, Any]]:
+        limit_value = _bounded_traversal_limit(limit)
+        return [
+            deepcopy(edge)
+            for edge in self._edges
+            if edge.get("domain") == self.domain and str(edge.get("entity_id")) == str(entity_id)
+        ][:limit_value]
+
+    def query_similar(self, entity_id: str, limit: int) -> list[dict[str, Any]]:
+        limit_value = _bounded_traversal_limit(limit)
+        source = self._decisions.get(str(entity_id))
+        if source is None:
+            for edge in self._entity_links(str(entity_id), limit=100):
+                if edge.get("domain") == self.domain and str(edge.get("entity_id")) == str(entity_id):
+                    source = self._decisions.get(str(edge.get("decision_id")))
+                    break
+        if source is None:
+            return []
+        category = str(source.get("category") or "")
+        source_supplier = _decision_supplier(source)
+        matches: list[dict[str, Any]] = []
+        for candidate in self._ordered_decisions():
+            if candidate.get("domain") != source.get("domain"):
+                continue
+            if category and candidate.get("category") != category:
+                continue
+            if candidate.get("decision_id") == source.get("decision_id"):
+                continue
+            if source_supplier and _decision_supplier(candidate) != source_supplier:
+                continue
+            matches.append(deepcopy(candidate))
+            if len(matches) >= limit_value:
+                break
+        return matches
 
     def reset(self) -> None:
         self._decisions.clear()
@@ -1601,3 +1718,32 @@ def _matches_checkpoint_filters(
         if stored_decision_end is None or stored_decision_end > decision_time_end:
             return False
     return True
+
+
+def _bounded_traversal_depth(value: Any) -> int:
+    try:
+        depth = int(value)
+    except (TypeError, ValueError):
+        depth = 3
+    return max(0, min(depth, 3))
+
+
+def _bounded_traversal_limit(value: Any) -> int:
+    try:
+        limit = int(value)
+    except (TypeError, ValueError):
+        limit = 5
+    return max(0, min(limit, 100))
+
+
+def _decision_supplier(decision: dict[str, Any]) -> str:
+    metadata = decision.get("metadata")
+    metadata_dict = metadata if isinstance(metadata, dict) else {}
+    for key in ("supplier_id", "supplier", "supplier_name"):
+        value = decision.get(key)
+        if value not in (None, ""):
+            return str(value)
+        value = metadata_dict.get(key)
+        if value not in (None, ""):
+            return str(value)
+    return ""

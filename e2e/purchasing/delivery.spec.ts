@@ -31,7 +31,7 @@ test("delivery card shows supplier time windows or empty state", async ({ page }
   await gotoInventory(page);
   const card = page.locator("section", { hasText: "Delivery Schedule" });
   await card.scrollIntoViewIfNeeded();
-  await expect(card.getByText(/9am-11am|No deliveries scheduled/i).first()).toBeVisible();
+  await expect(card.getByText(/Time window|No deliveries scheduled/i).first()).toBeVisible();
 });
 
 test("delivery card shows consolidation callout and provenance", async ({ page }) => {

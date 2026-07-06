@@ -29,7 +29,7 @@ def _args(**overrides) -> argparse.Namespace:
         "preseed": False,
         "graph": False,
         "diag_backend_port": 8001,
-        "diag_graph_dsn": "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres",
+        "diag_graph_dsn": "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable",
         "diag_graph_name": "soc_graph_test",
         "diag_contract": Path("scratch/temp/test_contract.json"),
     }
@@ -51,7 +51,7 @@ def _selected_app(tmp_path: Path, *, name: str = "TestApp", requires_age: bool =
         "be_path": backend,
         "fe_path": frontend,
         "requires_age": requires_age,
-        "graph_dsn": "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres",
+        "graph_dsn": "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable",
     }
 
 
@@ -79,7 +79,7 @@ def test_current_public_constants_define_expected_copilots() -> None:
 
 def test_redact_dsn_redacts_password_key_only() -> None:
     redacted = demo.redact_dsn(
-        "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres"
+        "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable"
     )
 
     assert "password=***" in redacted
@@ -249,7 +249,7 @@ def test_cmd_start_age_precheck_blocks_age_only_selection(
     with redirect_stdout(buf):
         demo.cmd_start([_selected_app(tmp_path, requires_age=True)], _args())
 
-    assert ("age", "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres") in calls
+    assert ("age", "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable") in calls
     assert not [call for call in calls if call[0] == "popen"]
     assert "Cannot start AGE-dependent copilots" in buf.getvalue()
 

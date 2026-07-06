@@ -129,6 +129,17 @@ class GraphStore(Protocol):
 
 
 @runtime_checkable
+class GraphTraversalStore(Protocol):
+    """Optional read-only graph traversal extension for bounded context queries."""
+
+    def query_context(self, entity_id: str, max_depth: int) -> list[dict[str, Any]]:
+        ...
+
+    def query_similar(self, entity_id: str, limit: int) -> list[dict[str, Any]]:
+        ...
+
+
+@runtime_checkable
 class ProtocolV2GraphStore(GraphStore, Protocol):
     """Governed-memory GraphStore extension.
 

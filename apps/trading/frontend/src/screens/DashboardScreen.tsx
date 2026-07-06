@@ -12,6 +12,7 @@ import AccuracyByCategory from "../components/AccuracyByCategory";
 import ArchetypeSelector from "../components/ArchetypeSelector";
 import CalendarHeatmap from "../components/CalendarHeatmap";
 import MarketContext from "../components/MarketContext";
+import PatternBadge from "../components/PatternBadge";
 import PortfolioConcentration from "../components/PortfolioConcentration";
 import PortfolioSummary from "../components/PortfolioSummary";
 import RegimePanel from "../components/RegimePanel";
@@ -192,6 +193,7 @@ export default function DashboardScreen({
       <MarketContext snapshot={state.market} />
       <RegimePanel />
       <PortfolioSummary summary={state.analytics?.portfolioSummary} />
+      <PatternBadge />
       <AccuracyByCategory />
 
       <div className="trading-grid trading-grid-3">

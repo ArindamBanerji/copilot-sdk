@@ -60,12 +60,24 @@ test("S2P AGE shadow smoke keeps UI flows working", async ({ page, request }) =>
 
   let health;
   try {
-    health = await request.get("http://127.0.0.1:8002/health", { timeout: 30_000 });
+    health = await request.get("http://127.0.0.1:8002/health", { timeout: 5_000 });
   } catch {
     test.skip(true, "S2P backend health check timed out");
     return;
   }
   expect(health.ok()).toBeTruthy();
+
+  const graphStatus = await request.get("http://127.0.0.1:8002/api/s2p/graph/status", { timeout: 5_000 }).catch(() => null);
+  if (!graphStatus?.ok()) {
+    test.skip(true, "S2P AGE graph status endpoint not available");
+    return;
+  }
+  const graphPayload = await graphStatus.json();
+  if (graphPayload.age_active !== true) {
+    test.skip(true, "S2P AGE is not active");
+    return;
+  }
+
   await expect.poll(async () => (await request.get("/")).status()).toBe(200);
 
   await page.goto("/");

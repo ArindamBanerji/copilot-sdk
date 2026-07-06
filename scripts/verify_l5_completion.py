@@ -9,7 +9,7 @@ Cell breakdown from the DK runtime plan:
 
 Usage:
   python scripts/verify_l5_completion.py
-  python scripts/verify_l5_completion.py --dsn "host=localhost port=5433 ..."
+  python scripts/verify_l5_completion.py --dsn "host=localhost port=5433 ... sslmode=disable"
   python scripts/verify_l5_completion.py --json
 """
 
@@ -18,10 +18,11 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import warnings
 from datetime import datetime
 from typing import Any
 
-DEFAULT_DSN = "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres"
+DEFAULT_DSN = "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable"
 GRAPH_NAME = "soc_graph"
 L5_LABELS = ("L5Centroid", "L5DKWeight", "L5ConservationState")
 
@@ -93,6 +94,12 @@ class L5CompletionProof:
     """Verify all expected L5 completion cells exist and are valid."""
 
     def __init__(self, dsn: str = DEFAULT_DSN):
+        if dsn == DEFAULT_DSN:
+            warnings.warn(
+                "No DSN supplied - using localhost fallback. "
+                "Set --dsn with WSL2 NAT IP per Rule #40.",
+                stacklevel=2,
+            )
         self.dsn = dsn
         self._conn: Any | None = None
 

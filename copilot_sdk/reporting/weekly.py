@@ -23,7 +23,11 @@ class CostImpact:
     dollars_found: float
     waste_prevented: float
     price_variance_flagged: float
-    net_recovered_period: float
+    net_found_period: float
+
+    @property
+    def net_recovered_period(self) -> float:
+        return self.net_found_period
 
 
 @dataclass
@@ -33,6 +37,9 @@ class SupplierChange:
     previous_value: float
     current_value: float
     direction: str
+    supplier: str | None = None
+    issue: str | None = None
+    pct: float | None = None
 
 
 @dataclass
@@ -69,12 +76,14 @@ class WeeklyReportGenerator:
         domain: str,
         cost_extractor: CostExtractor | None = None,
         preset: Any | None = None,
+        waste_provider: Callable[[], float | dict[str, Any]] | None = None,
     ) -> None:
         self._store = graph_store
         self._scorer = scorer
         self._domain = str(domain)
         self._cost_extractor = cost_extractor
         self._preset = preset
+        self._waste_provider = waste_provider
 
     def generate(self, period_days: int = 7) -> WeeklyReport:
         """Generate a report for the last period_days using graph time."""
@@ -117,7 +126,7 @@ class WeeklyReportGenerator:
             conservation_alpha=cons_alpha,
             categories=categories,
             cost_impact=cost_impact,
-            supplier_changes=[],
+            supplier_changes=self._compute_supplier_changes(verified),
             iks_current=iks_current,
             iks_delta=iks_delta,
         )
@@ -178,20 +187,75 @@ class WeeklyReportGenerator:
         return summaries
 
     def _compute_cost_impact(self, verified: list[dict[str, Any]]) -> CostImpact:
+        provider_waste = self._provider_waste_prevented()
         if not self._cost_extractor:
-            return CostImpact(0.0, 0.0, 0.0, 0.0)
+            return CostImpact(provider_waste, provider_waste, 0.0, provider_waste)
 
-        total_waste = 0.0
+        total_waste = provider_waste
         total_variance = 0.0
         for decision in verified:
             try:
                 impact = self._cost_extractor(decision, decision, self._preset)
-                total_waste += float(impact.get("waste_prevented", 0.0))
+                if self._waste_provider is None:
+                    total_waste += float(impact.get("waste_prevented", 0.0))
                 total_variance += float(impact.get("price_variance_flagged", 0.0))
             except Exception:
                 continue
         dollars = total_waste + total_variance
         return CostImpact(dollars, total_waste, total_variance, dollars)
+
+    def _provider_waste_prevented(self) -> float:
+        if self._waste_provider is None:
+            return 0.0
+        try:
+            value = self._waste_provider()
+            if isinstance(value, dict):
+                return abs(float(value.get("prevented_this_week") or 0.0))
+            return abs(float(value))
+        except (TypeError, ValueError):
+            return 0.0
+
+    def _compute_supplier_changes(self, verified: list[dict[str, Any]]) -> list[SupplierChange]:
+        """Find supplier price changes only when verified rows carry real deltas."""
+
+        changes: list[SupplierChange] = []
+        for decision in verified:
+            context = _merged_context(decision, decision)
+            supplier_id = str(
+                decision.get("supplier_id")
+                or context.get("supplier_id")
+                or context.get("vendor_id")
+                or ""
+            )
+            supplier = str(
+                decision.get("supplier")
+                or decision.get("supplier_name")
+                or context.get("supplier")
+                or context.get("supplier_name")
+                or supplier_id
+            )
+            previous_price = _first_float(context, "previous_unit_price", "avg_price", "average_price", "baseline_price")
+            current_price = _first_float(context, "current_unit_price", "current_price", "unit_price")
+            if not supplier_id or previous_price is None or current_price is None or previous_price <= 0:
+                # requires supplier delta tracking
+                continue
+            pct = ((current_price - previous_price) / previous_price) * 100.0
+            if pct < 8.0:
+                continue
+            changes.append(
+                SupplierChange(
+                    supplier_id=supplier_id,
+                    supplier=supplier,
+                    metric="unit_price",
+                    issue="price_increase",
+                    previous_value=round(previous_price, 4),
+                    current_value=round(current_price, 4),
+                    pct=round(pct, 2),
+                    direction="up",
+                )
+            )
+        changes.sort(key=lambda change: change.pct or 0.0, reverse=True)
+        return changes
 
     def _read_conservation(self) -> tuple[str, float, float]:
         try:
@@ -236,12 +300,15 @@ def purchasing_cost_extractor(decision: dict[str, Any], outcome: dict[str, Any],
     }
 
     context = _merged_context(decision, outcome)
+    prevented = _first_float(context, "prevented_this_week", "waste_prevented", "prep_waste_prevented")
+    if prevented is not None:
+        result["waste_prevented"] = max(result["waste_prevented"], abs(prevented))
+
     waste_cost = context.get("waste_cost") or context.get("stockout_revenue_loss")
     if waste_cost is not None:
         try:
             result["waste_prevented"] = abs(float(waste_cost))
             result["dollars_found"] = result["waste_prevented"]
-            return result
         except (TypeError, ValueError):
             pass
 
@@ -259,7 +326,21 @@ def purchasing_cost_extractor(decision: dict[str, Any], outcome: dict[str, Any],
 
     price_memory_index = _get_factor_value(decision, preset, "price_memory_index")
     if price_memory_index is not None and price_memory_index < 0.3:
-        result["price_variance_flagged"] = 15.0
+        result["price_variance_flagged"] = max(result["price_variance_flagged"], 15.0)
+
+    explicit_variance = _first_float(context, "price_variance_flagged", "price_variance", "price_delta")
+    if explicit_variance is not None:
+        result["price_variance_flagged"] = max(result["price_variance_flagged"], abs(explicit_variance))
+
+    previous_price = _first_float(context, "previous_unit_price", "avg_price", "average_price", "baseline_price")
+    current_price = _first_float(context, "current_unit_price", "current_price", "unit_price")
+    if previous_price is not None and current_price is not None and previous_price > 0:
+        pct = ((current_price - previous_price) / previous_price) * 100.0
+        if pct >= 8.0:
+            result["price_variance_flagged"] = max(
+                result["price_variance_flagged"],
+                round(current_price - previous_price, 2),
+            )
 
     result["dollars_found"] = result["waste_prevented"] + result["price_variance_flagged"]
     return result
@@ -312,6 +393,17 @@ def _get_factor_value(decision: dict[str, Any], preset: Any, factor_name: str) -
     if isinstance(factors, dict) and factor_name in factors:
         try:
             return float(factors[factor_name])
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+def _first_float(source: dict[str, Any], *keys: str) -> float | None:
+    for key in keys:
+        if key not in source:
+            continue
+        try:
+            return float(source[key])
         except (TypeError, ValueError):
             return None
     return None

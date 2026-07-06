@@ -20,7 +20,7 @@ def test_s2p_preset_shape_and_penalty_ratio():
     assert preset.name == "s2p"
     assert preset.shape.n_categories == 5
     assert preset.shape.n_actions == 5
-    assert preset.shape.n_factors == 7
+    assert preset.shape.n_factors == 8
     assert preset.penalty_ratio == 5.0
     assert preset.shape.category_names == (
         "price_variance",
@@ -44,15 +44,16 @@ def test_s2p_preset_shape_and_penalty_ratio():
         "payment_terms_impact",
         "commodity_index_correlation",
         "tax_regulatory_compliance",
+        "environmental_risk",
     )
-    assert preset.bootstrap_centroids.shape == (5, 5, 7)
+    assert preset.bootstrap_centroids.shape == (5, 5, 8)
 
 
 def test_from_preset_s2p_works(tmp_path):
     scorer = CompoundingScorer.from_preset("s2p", db_path=str(tmp_path / "s2p.db"))
 
     assert scorer._preset.name == "s2p"
-    assert scorer._preset.shape.tensor_shape == (5, 5, 7)
+    assert scorer._preset.shape.tensor_shape == (5, 5, 8)
     scorer.graph_store.close()
 
 

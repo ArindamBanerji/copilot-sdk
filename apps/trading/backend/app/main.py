@@ -36,7 +36,7 @@ from .routers.evidence import create_evidence_router  # noqa: E402
 from .routers.evolution_router import create_trading_evolution_router  # noqa: E402
 from .routers.execution_router import create_execution_router  # noqa: E402
 from .evolution import get_trading_variants  # noqa: E402
-from .routers.journal import create_journal_router  # noqa: E402
+from .routers.journal import _journal_records, create_journal_router  # noqa: E402
 from .routers.pre_score_router import create_pre_score_router  # noqa: E402
 from .routers.prescore import create_prescore_router  # noqa: E402
 from .routers.promotion_router import create_promotion_engine_router  # noqa: E402
@@ -45,6 +45,7 @@ from .routers.regime_router import create_regime_router as create_regime_classif
 from .routers.social import create_social_router  # noqa: E402
 from .routers.vix_timing import create_vix_timing_router  # noqa: E402
 from .routers.webhook import create_webhook_router  # noqa: E402
+from .services.journal_query import JournalQueryService  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend.archetype_router import create_archetype_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
@@ -339,6 +340,13 @@ def create_app(
     app.include_router(context_router, prefix="/api/context")
     app.include_router(create_evidence_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_journal_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+
+    @app.post("/api/trading/journal/query")
+    def query_journal(payload: dict[str, Any]) -> dict[str, Any]:
+        question = str(payload.get("question") or "")
+        trades = _journal_records(lambda: selected_graph_store_factory(scoring_db), DOMAIN)
+        return JournalQueryService().query(question, trades)
+
     app.include_router(create_analytics_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_correlation_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_execution_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))

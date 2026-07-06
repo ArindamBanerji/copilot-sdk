@@ -27,6 +27,7 @@ export const S2P_FACTORS = [
 export type S2PCategory = (typeof S2P_CATEGORIES)[number];
 export type S2PAction = (typeof S2P_ACTIONS)[number];
 export type S2PFactor = (typeof S2P_FACTORS)[number];
+export type ProvenanceTier = "learned" | "context" | "proven" | "sample";
 
 export const S2P_REASON_CODES = [
   "wrong_category",
@@ -404,6 +405,32 @@ export interface EvidenceTemplateResponse {
   template: string;
   rendered: string;
   variables: Record<string, string | number | boolean | null | undefined>;
+}
+
+export interface ContextChainNode {
+  node: string;
+  id: string;
+  properties: Record<string, unknown>;
+  depth: number;
+  provenance: ProvenanceTier;
+}
+
+export interface SituationResponse {
+  decision_id: string;
+  category: string;
+  context_chain: ContextChainNode[];
+  nl_explanation: string;
+  confidence: number;
+  factors_used: string[];
+  traversal_depth: number;
+  context_available: boolean;
+  warnings: string[];
+  missing_variables: string[];
+  provenance: {
+    nl_explanation: ProvenanceTier;
+    confidence: ProvenanceTier;
+    overall: ProvenanceTier;
+  };
 }
 
 export interface LearnDecisionResponse {

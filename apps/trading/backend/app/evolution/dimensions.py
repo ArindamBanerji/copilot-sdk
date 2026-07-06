@@ -20,6 +20,24 @@ TRADING_VARIANT_DIMENSIONS: list[dict[str, Any]] = [
         "values": ["baseline", "conservative"],
         "default": "baseline",
     },
+    {
+        "name": "alert_threshold",
+        "description": "Controls how long after a loss before revenge patterns flag.",
+        "values": [30, 45, 60],
+        "default": 30,
+    },
+    {
+        "name": "pattern_sensitivity",
+        "description": "Controls behavioral detector sensitivity thresholds.",
+        "values": ["baseline", "sensitive", "conservative"],
+        "default": "baseline",
+    },
+    {
+        "name": "regime_boundary",
+        "description": "Controls VIX thresholds for regime classification.",
+        "values": ["18/28", "20/30", "22/32"],
+        "default": "20/30",
+    },
 ]
 
 

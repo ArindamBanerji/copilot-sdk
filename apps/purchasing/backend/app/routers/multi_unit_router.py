@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
-from app.services.multi_unit import MultiUnitManager, demo_locations
+from app.services.multi_unit import MultiUnitManager, chain_demo_locations
 
 
 def create_multi_unit_router() -> APIRouter:
@@ -12,15 +12,19 @@ def create_multi_unit_router() -> APIRouter:
     service = MultiUnitManager()
 
     @router.get("/dashboard")
-    def dashboard() -> dict:
-        return service.dashboard(demo_locations()).to_dict()
+    def dashboard(request: Request) -> dict:
+        return service.dashboard(_locations(request)).to_dict()
 
     @router.get("/compare")
-    def compare(metric: str = "accuracy") -> dict:
-        return {"locations": service.compare(demo_locations(), metric), "metric": metric, "provenance": "demo"}
+    def compare(request: Request, metric: str = "accuracy") -> dict:
+        return {"locations": service.compare(_locations(request), metric), "metric": metric, "provenance": "demo"}
 
     @router.get("/transfer-opportunities")
-    def transfer_opportunities() -> dict:
-        return {"opportunities": service.find_transfer_opportunities(demo_locations()), "provenance": "demo"}
+    def transfer_opportunities(request: Request) -> dict:
+        return {"opportunities": service.find_transfer_opportunities(_locations(request)), "provenance": "demo"}
 
     return router
+
+
+def _locations(request: Request) -> list[dict]:
+    return chain_demo_locations(getattr(request.app.state, "purchasing_chain_demo", None))
