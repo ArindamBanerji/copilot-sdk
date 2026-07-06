@@ -8,6 +8,7 @@ from typing import Any
 from app.services.delivery_coordinator import DeliveryCoordinator
 from app.services.menu_engineer import MenuEngineer
 from app.services.par_optimizer import ParLevelOptimizer
+from app.services.supplier_signal_publisher import SupplierSignalPublisher
 from app.services.supplier_scorecard import SupplierScorecardService
 from app.services.waste_tracker import WasteTracker
 
@@ -46,12 +47,14 @@ class PurchasingAlertEngine:
         par_optimizer: ParLevelOptimizer | None = None,
         delivery: DeliveryCoordinator | None = None,
         scorecard_service: Any | None = None,
+        signal_publisher: SupplierSignalPublisher | None = None,
     ) -> None:
         self.waste_tracker_cls = waste_tracker_cls
         self.menu_engineer = menu_engineer or MenuEngineer()
         self.par_optimizer = par_optimizer or ParLevelOptimizer()
         self.delivery = delivery or DeliveryCoordinator()
         self.scorecard_service = scorecard_service
+        self.signal_publisher = signal_publisher
 
     def evaluate(
         self,
@@ -106,6 +109,8 @@ class PurchasingAlertEngine:
             trend = str(getattr(card, "trend", "")).lower()
             if trend == "declining" or reliability < 80.0:
                 name = str(getattr(card, "supplier_name", "Supplier"))
+                if self.signal_publisher is not None:
+                    self.signal_publisher.check_and_publish(card)
                 alerts.append(PurchasingAlert("supplier_degradation", "critical", f"{name} reliability is slipping", f"Now {round(reliability)}% on-time. Confirm backup supplier before service.", "P7"))
         return alerts
 

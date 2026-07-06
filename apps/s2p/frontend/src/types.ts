@@ -27,7 +27,7 @@ export const S2P_FACTORS = [
 export type S2PCategory = (typeof S2P_CATEGORIES)[number];
 export type S2PAction = (typeof S2P_ACTIONS)[number];
 export type S2PFactor = (typeof S2P_FACTORS)[number];
-export type ProvenanceTier = "learned" | "context" | "proven" | "sample";
+export type ProvenanceTier = "learned" | "context" | "proven" | "sample" | "signal";
 
 export const S2P_REASON_CODES = [
   "wrong_category",
@@ -287,6 +287,24 @@ export interface ProcessContext {
   root_cause?: string;
   rootCause?: string;
   source?: string;
+  cross_copilot_signal?: CrossCopilotSignal;
+  crossCopilotSignal?: CrossCopilotSignal;
+}
+
+export interface CrossCopilotSignal {
+  source: string;
+  supplier: string;
+  reliability: number;
+  delta: number | null;
+  warning: string;
+  supplier_exception_history?: number;
+  supplierExceptionHistory?: number;
+  supplier_risk_rating?: number;
+  supplierRiskRating?: number;
+  timestamp?: number;
+  ttl_days?: number;
+  ttlDays?: number;
+  provenance: ProvenanceTier;
 }
 
 export interface ScoreInvoiceRequest {
@@ -294,7 +312,9 @@ export interface ScoreInvoiceRequest {
   category: string;
   amount: number;
   supplier_id: string;
+  supplier_name?: string;
   contract_id?: string | null;
+  supplier_risk_rating?: number;
   match_status?: number;
   amount_variance_ratio?: number;
   duplicate_score?: number;

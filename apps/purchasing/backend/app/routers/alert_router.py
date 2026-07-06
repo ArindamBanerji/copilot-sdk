@@ -8,11 +8,16 @@ from typing import Any
 from fastapi import APIRouter
 
 from app.services.alert_engine import PurchasingAlertEngine
+from app.services.supplier_signal_publisher import SupplierSignalPublisher
 
 
-def create_alert_router(conservation_provider: Callable[[], dict[str, Any] | None] | None = None) -> APIRouter:
+def create_alert_router(
+    conservation_provider: Callable[[], dict[str, Any] | None] | None = None,
+    outbox_store: Any | None = None,
+) -> APIRouter:
     router = APIRouter(prefix="/api/purchasing/alerts", tags=["purchasing-alerts"])
-    engine = PurchasingAlertEngine()
+    publisher = SupplierSignalPublisher(outbox_store) if outbox_store is not None else None
+    engine = PurchasingAlertEngine(signal_publisher=publisher)
 
     @router.get("")
     def alerts(severity: str | None = None) -> dict:

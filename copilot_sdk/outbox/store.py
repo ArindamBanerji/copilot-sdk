@@ -165,6 +165,13 @@ class OutboxStore:
             row = self._conn.execute("SELECT count(*) AS n FROM outbox").fetchone()
         return int(row["n"])
 
+    def clear(self) -> None:
+        """Remove all outbox events."""
+
+        with self._lock:
+            self._conn.execute("DELETE FROM outbox")
+            self._conn.commit()
+
     def close(self) -> None:
         """Close the underlying SQLite connection."""
 

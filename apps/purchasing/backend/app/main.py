@@ -48,6 +48,7 @@ from .routers.qbo_router import create_qbo_router  # noqa: E402
 from .routers.par_router import create_par_router  # noqa: E402
 from .routers.queue import create_queue_router  # noqa: E402
 from .routers.scorecard_router import build_iks_summary, create_scorecard_router  # noqa: E402
+from .routers.signal_router import create_signal_router  # noqa: E402
 from .routers.spend_router import create_spend_router  # noqa: E402
 from .routers.trust import create_trust_router  # noqa: E402
 from .routers.trust_router import create_trust_router as create_trust_weights_router  # noqa: E402
@@ -69,6 +70,7 @@ from copilot_sdk.backend import (  # noqa: E402
     create_scoring_router,
     mount_self_computation_router,
 )
+from copilot_sdk.outbox import OutboxStore  # noqa: E402
 from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
@@ -86,6 +88,7 @@ from copilot_sdk.transfer.chain_transfer import ChainTransfer  # noqa: E402
 
 DOMAIN = "purchasing"
 DB_FILENAME = "purchasing.db"
+OUTBOX_DB_FILENAME = "purchasing_outbox.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / DB_FILENAME
 SEED_FIXTURE_PATH = DATA_DIR / "purchasing_seed_v2.json"
@@ -356,6 +359,7 @@ def create_app(
     )
 
     scoring_db = _resolve_scoring_db(db_path)
+    outbox_store = OutboxStore(DATA_DIR / OUTBOX_DB_FILENAME)
     active_graph_config = initialize_purchasing_active_graph_config()
     active_graph_store = create_purchasing_active_graph_store(
         active_graph_config,
@@ -409,6 +413,7 @@ def create_app(
 
     app.state.purchasing_active_graph_config = active_graph_config
     app.state.purchasing_selected_graph_store = scorer_proxy.graph_store
+    app.state.outbox_store = outbox_store
     app.state.l5_startup_status = l5_startup_status
     auto_order_gate = AutoOrderGate()
 
@@ -612,7 +617,12 @@ def create_app(
     app.include_router(create_iks_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_match_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_auto_order_router(auto_order_gate, scorer_proxy))
-    app.include_router(create_alert_router(conservation_provider=_alert_conservation_status))
+    app.include_router(
+        create_alert_router(
+            conservation_provider=_alert_conservation_status,
+            outbox_store=outbox_store,
+        )
+    )
     app.include_router(create_chain_router())
     app.include_router(create_delivery_router())
     app.include_router(create_discovery_router())
@@ -620,6 +630,7 @@ def create_app(
     app.include_router(create_event_router())
     app.include_router(create_pos_router())
     app.include_router(create_qbo_router())
+    app.include_router(create_signal_router(outbox_store))
     app.include_router(create_scorecard_router(lambda: selected_graph_store_factory(scoring_db)))
     fred_key = os.environ.get("FRED_API_KEY", "")
     commodity_source = FREDCommoditySource(api_key=fred_key) if fred_key else None
@@ -687,8 +698,10 @@ def create_app(
     def reset_demo_state() -> dict[str, Any]:
         reset_chain_state(app.state)
         reset_event_state(app.state)
+        if hasattr(app.state, "outbox_store"):
+            app.state.outbox_store.clear()
         app.state.purchasing_chain_demo = chain_demo.seed()
-        return {"reset": True, "state": ["chain", "chain_demo", "events"]}
+        return {"reset": True, "state": ["chain", "chain_demo", "events", "outbox"]}
 
     return app
 

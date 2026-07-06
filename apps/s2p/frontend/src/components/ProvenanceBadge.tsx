@@ -58,6 +58,14 @@ function tierStyle(normalized: string, asOf?: string | null): BadgeStyle {
       badgeClass: "border-dashed border-orange-400 bg-orange-50 text-orange-800",
     };
   }
+  if (normalized === "signal") {
+    return {
+      label: "signal",
+      title: "Cross-copilot signal",
+      markerClass: "bg-fuchsia-600",
+      badgeClass: "border-fuchsia-300 bg-fuchsia-50 text-fuchsia-800",
+    };
+  }
   if (normalized === "live" || normalized === "scraped_external") {
     return {
       label: "░░ External",

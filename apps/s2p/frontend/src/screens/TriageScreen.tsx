@@ -3,6 +3,7 @@ import { fetchConservation, fetchPreviewQueue, learnDecision, scoreInvoice } fro
 import { CentroidExplorer } from "../components/CentroidExplorer";
 import { EvidenceTemplatePanel } from "../components/EvidenceTemplatePanel";
 import NoveltyAlertBanner from "../components/NoveltyAlertBanner";
+import ProvenanceBadge from "../components/ProvenanceBadge";
 import { ProcessContextPanel } from "../components/ProcessContextPanel";
 import { S2PConservationProjection } from "../components/S2PConservationProjection";
 import { S2PReasoningPanel } from "../components/S2PReasoningPanel";
@@ -137,6 +138,7 @@ export function TriageScreen() {
   const action = recommendedAction(score, selected);
   const factors = factorMap(score, selected);
   const context = processContext(score, selected);
+  const crossCopilotSignal = context?.cross_copilot_signal ?? context?.crossCopilotSignal ?? null;
   const decisionId = score?.decision_id ?? score?.decisionId ?? "";
   const situationDecisionId = decisionId || null;
   const selectedCategory = String(selected?.category ?? "price_variance");
@@ -154,6 +156,7 @@ export function TriageScreen() {
       category: selectedCategory,
       amount: Number(selected.amount ?? 0),
       supplier_id: supplierId(selected),
+      supplier_name: supplierName(selected),
     });
     setScore(result);
     const nextAction = recommendedAction(result, selected);
@@ -278,6 +281,8 @@ export function TriageScreen() {
 
           <SituationPanel decisionId={situationDecisionId} hasSelection={Boolean(selected)} />
 
+          {crossCopilotSignal ? <CrossCopilotSignalBanner signal={crossCopilotSignal} /> : null}
+
           <EvidenceTemplatePanel invoiceId={invoiceId(selected)} category={selectedCategory} />
 
           {score ? (
@@ -393,6 +398,33 @@ function Metric({ label, value }: { label: string; value: string | number }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-2 break-words text-sm font-semibold text-slate-950">{value}</p>
     </div>
+  );
+}
+
+function CrossCopilotSignalBanner({
+  signal
+}: {
+  signal: NonNullable<ProcessContext["cross_copilot_signal"]>;
+}) {
+  const delta = typeof signal.delta === "number" ? Math.abs(signal.delta).toFixed(0) : null;
+  const reliability = typeof signal.reliability === "number" ? Math.round(signal.reliability) : null;
+  const supplier = signal.supplier || "supplier";
+  const provenance = signal.provenance || "signal";
+  const message =
+    delta !== null
+      ? `Purchasing flagged ${supplier}: reliability dropped ${delta}pp.`
+      : `Purchasing flagged ${supplier}: reliability ${reliability ?? "unknown"}%.`;
+
+  return (
+    <article className="rounded-md border border-fuchsia-200 bg-fuchsia-50 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-fuchsia-950">Cross-Copilot Signal</h2>
+          <p className="mt-1 text-sm text-fuchsia-900">{message}</p>
+        </div>
+        <ProvenanceBadge source={provenance} />
+      </div>
+    </article>
   );
 }
 
