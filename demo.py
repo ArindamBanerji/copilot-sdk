@@ -785,7 +785,7 @@ def cmd_start(selected: list[dict], args):
     print("╔══════════════════════════════════════════════════════╗")
     print("║  Platform Ready                                      ║")
     print("╚══════════════════════════════════════════════════════╝")
-    if any(c.get("requires_age") for c in selected) or args.graph:
+    if any(c.get("requires_age") for c in selected) or getattr(args, "graph", False):
         print(f"  AGE DSN:    host={_WSL2_IP} port=5433 sslmode=disable")
     for c in selected:
         fe_port = c.get("fe_port")
@@ -800,12 +800,12 @@ def cmd_start(selected: list[dict], args):
     print("  Status:     python demo.py --status")
     print("  Playwright: python demo.py --playwright --no-browser")
     s2p_selected = any(c["name"] == "S2P" for c in selected)
-    if s2p_selected or args.s2p_pw:
+    if s2p_selected or getattr(args, "s2p_pw", False):
         print()
         print("  S2P Playwright (product, port 5177):")
         print("    cd copilot-sdk/e2e")
         print("    npx playwright test --config=s2p/playwright.config.ts s2p/ --reporter=list")
-    if args.playwright:
+    if getattr(args, "playwright", False):
         print()
         print("  SOC Playwright (preview, port 5173):")
         print("    cd gen-ai-roi-demo-v4-v50/frontend")
@@ -907,11 +907,11 @@ def main():
     # --- Select copilots ---
     if args.diag_mode:
         args.soc = True
-    if args.s2p_pw:
+    if getattr(args, "s2p_pw", False):
         args.s2p = True
         args.no_browser = True
     individual = args.soc or args.trading or args.purchasing or args.dataops or args.s2p
-    group = args.sdk or args.playwright
+    group = getattr(args, "sdk", False) or getattr(args, "playwright", False)
 
     if individual or group:
         selected_names = set()
@@ -925,9 +925,9 @@ def main():
             selected_names.add("dataops")
         if args.s2p:
             selected_names.add("s2p")
-        if args.sdk:
+        if getattr(args, "sdk", False):
             selected_names |= SDK_NAMES
-        if args.playwright:
+        if getattr(args, "playwright", False):
             selected_names |= PLAYWRIGHT_NAMES
         selected = [c for c in COPILOTS if c["name"].lower() in selected_names]
     else:
