@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from fastapi import APIRouter
@@ -10,12 +11,26 @@ from app.connectors.mock_qbo import MockQBOConnector
 from copilot_sdk.di.profiler import BaseSourceProfiler
 
 
+def _default_qbo_connector() -> Any:
+    if os.environ.get("QBO_CLIENT_ID"):
+        from app.connectors.qbo_connector import QBOConnector
+
+        return QBOConnector(
+            client_id=os.environ["QBO_CLIENT_ID"],
+            client_secret=os.environ.get("QBO_CLIENT_SECRET", ""),
+            refresh_token=os.environ.get("QBO_REFRESH_TOKEN", ""),
+            realm_id=os.environ.get("QBO_REALM_ID", ""),
+            sandbox=os.environ.get("QBO_SANDBOX", "true").lower() != "false",
+        )
+    return MockQBOConnector()
+
+
 def create_qbo_router(connector: Any | None = None) -> APIRouter:
     """Create read-only QBO endpoints for Purchasing."""
 
     def _connector() -> Any:
         if connector is None:
-            return MockQBOConnector()
+            return _default_qbo_connector()
         if callable(connector) and not hasattr(connector, "fetch"):
             return connector()
         return connector

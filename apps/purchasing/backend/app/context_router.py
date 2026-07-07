@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from dataclasses import asdict
 from datetime import date
 from pathlib import Path
@@ -191,6 +192,12 @@ def _rule_matches_item(rule: dict[str, Any], item: dict[str, Any]) -> bool:
 
 
 def _get_weather() -> dict[str, Any]:
+    use_live = os.environ.get("WEATHER_LIVE", "true").lower() != "false"
+    if use_live:
+        live = asdict(get_weather_factor(use_live=True))
+        if live.get("source") == "live":
+            return live
+
     cache_path = _DATA_DIR / "weather_cache.json"
     if cache_path.exists():
         return _load_json(cache_path)

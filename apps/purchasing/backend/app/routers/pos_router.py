@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from datetime import date, timedelta
 from typing import Any
@@ -14,11 +15,23 @@ from copilot_sdk.di.profiler import BaseSourceProfiler
 ConnectorFactory = Callable[[], Any]
 
 
+def _default_toast_connector() -> Any:
+    if os.environ.get("TOAST_CLIENT_ID"):
+        from app.connectors.toast import ToastConnector
+
+        return ToastConnector(
+            api_key=os.environ["TOAST_CLIENT_ID"],
+            base_url=os.environ.get("TOAST_BASE_URL", "https://api.toasttab.com/v2"),
+            location_id=os.environ.get("TOAST_LOCATION_ID", ""),
+        )
+    return MockToastConnector()
+
+
 def create_pos_router(
     connector_factory: ConnectorFactory | None = None,
 ) -> APIRouter:
     """Create read-only Toast POS endpoints for Purchasing."""
-    factory = connector_factory or MockToastConnector
+    factory = connector_factory or _default_toast_connector
     router = APIRouter(prefix="/api/purchasing", tags=["purchasing-pos"])
 
     @router.get("/pos/today")

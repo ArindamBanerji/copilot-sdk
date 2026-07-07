@@ -43,9 +43,6 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
-from copilot_sdk.connectors.mock_airflow import MockAirflowConnector  # noqa: E402
-from copilot_sdk.connectors.mock_dbt import MockDBTConnector  # noqa: E402
-from copilot_sdk.connectors.mock_snowflake import MockSnowflakeConnector  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.di import AcquisitionAdvisor, BaseSourceProfiler, IntelligenceMapBuilder  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
@@ -90,11 +87,57 @@ def _graph_store(db_path: str | Path):
     return store
 
 
+def _snowflake_connector():
+    if os.environ.get("SNOWFLAKE_ACCOUNT"):
+        from copilot_sdk.connectors.snowflake_meta import SnowflakeMetaConnector
+
+        return SnowflakeMetaConnector(
+            account=os.environ["SNOWFLAKE_ACCOUNT"],
+            user=os.environ.get("SNOWFLAKE_USER", ""),
+            password=os.environ.get("SNOWFLAKE_PASSWORD", ""),
+            database=os.environ.get("SNOWFLAKE_DATABASE", ""),
+            warehouse=os.environ.get("SNOWFLAKE_WAREHOUSE", ""),
+            schema=os.environ.get("SNOWFLAKE_SCHEMA", "PUBLIC"),
+        )
+    from copilot_sdk.connectors.mock_snowflake import MockSnowflakeConnector
+
+    return MockSnowflakeConnector()
+
+
+def _dbt_connector():
+    if os.environ.get("DBT_API_TOKEN"):
+        from copilot_sdk.connectors.dbt_connector import DBTConnector
+
+        return DBTConnector(
+            api_token=os.environ["DBT_API_TOKEN"],
+            account_id=os.environ.get("DBT_ACCOUNT_ID", ""),
+            artifacts_path=os.environ.get("DBT_ARTIFACTS_PATH"),
+        )
+    from copilot_sdk.connectors.mock_dbt import MockDBTConnector
+
+    return MockDBTConnector()
+
+
+def _airflow_connector():
+    if os.environ.get("AIRFLOW_BASE_URL"):
+        from copilot_sdk.connectors.airflow_connector import AirflowConnector
+
+        return AirflowConnector(
+            base_url=os.environ["AIRFLOW_BASE_URL"],
+            username=os.environ.get("AIRFLOW_USER", ""),
+            password=os.environ.get("AIRFLOW_PASSWORD", ""),
+            token=os.environ.get("AIRFLOW_TOKEN", ""),
+        )
+    from copilot_sdk.connectors.mock_airflow import MockAirflowConnector
+
+    return MockAirflowConnector()
+
+
 def _dataops_profiler_registry() -> dict[str, BaseSourceProfiler]:
     return {
-        "airflow": BaseSourceProfiler(MockAirflowConnector()),
-        "dbt": BaseSourceProfiler(MockDBTConnector()),
-        "snowflake": BaseSourceProfiler(MockSnowflakeConnector()),
+        "airflow": BaseSourceProfiler(_airflow_connector()),
+        "dbt": BaseSourceProfiler(_dbt_connector()),
+        "snowflake": BaseSourceProfiler(_snowflake_connector()),
     }
 
 

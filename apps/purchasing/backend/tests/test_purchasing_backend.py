@@ -97,7 +97,7 @@ def test_today_summary(client):
     payload = response.json()
     assert "date" in payload
     assert "day_of_week" in payload
-    assert payload["weather"]["source"] == "cached"
+    assert payload["weather"]["source"] in ("live", "cached")
     assert payload["events"] == []
 
 
@@ -157,7 +157,7 @@ def test_weather(client):
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["source"] == "cached"
+    assert payload["source"] in ("live", "cached")
     assert 0.0 <= payload["weather_factor"] <= 1.0
 
 
