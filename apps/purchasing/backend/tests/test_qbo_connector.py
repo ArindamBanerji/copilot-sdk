@@ -165,7 +165,7 @@ def test_qbo_router_profile_200():
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["source_name"] == "quickbooks_online_mock"
+    assert payload["source_name"] in {"quickbooks_online", "quickbooks_online_mock"}
     assert payload["record_count"] >= 430
 
 

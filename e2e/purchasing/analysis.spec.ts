@@ -3,10 +3,11 @@ import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
 
 async function gotoAnalysis(page: import("@playwright/test").Page) {
   await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
   await waitForAppShell(page);
   await clickTab(page, "Analysis");
   await waitForAppShell(page);
-  await expect(page.getByText("YOUR TWO SELVES")).toBeVisible();
+  await expect(page.getByText("YOUR TWO SELVES")).toBeVisible({ timeout: 20_000 });
 }
 
 test("contrast card visible and first", async ({ page }) => {

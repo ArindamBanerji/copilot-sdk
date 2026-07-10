@@ -94,7 +94,14 @@ function clean(items: string[]): string[] {
 function classifyState(text: string): PanelInfo["state"] {
   const lower = text.toLowerCase();
   if (lower.includes("loading") || lower.includes("fetching")) return "loading";
-  if (lower.includes("unavailable") || lower.includes("error") || lower.includes("failed")) return "error";
+  if (
+    lower.includes("backend unavailable") ||
+    lower.includes("service not connected") ||
+    lower.includes("unable to load") ||
+    lower.includes("request failed") ||
+    lower.includes("failed") ||
+    lower.includes(" error")
+  ) return "error";
   if (lower.includes("no data") || lower.includes("no results") || lower.includes("empty")) return "empty";
   if (text.length > 20) return "data";
   return "unknown";
@@ -184,9 +191,12 @@ async function discoverTabContent(
       .catch(() => 0);
 
     // 6. Classify overall tab state
-    const hasData = detail.panels.some((p) => p.state === "data");
-    const hasError = detail.panels.some((p) => p.state === "error");
+    const dataPanels = detail.panels.filter((p) => p.state === "data").length;
+    const errorPanels = detail.panels.filter((p) => p.state === "error").length;
+    const hasData = dataPanels > 0;
+    const hasError = errorPanels > 0;
     if (hasData && !hasError) detail.state = "populated";
+    else if (dataPanels >= 3 && errorPanels < dataPanels) detail.state = "populated";
     else if (hasData && hasError) detail.state = "partial";
     else if (hasError) detail.state = "error";
     else if (detail.headings.length > 0 || detail.buttons.length > 0) detail.state = "populated";

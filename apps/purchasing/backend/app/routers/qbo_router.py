@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import warnings
 from typing import Any
 
 from fastapi import APIRouter
@@ -13,15 +14,24 @@ from copilot_sdk.di.profiler import BaseSourceProfiler
 
 def _default_qbo_connector() -> Any:
     if os.environ.get("QBO_CLIENT_ID"):
-        from app.connectors.qbo_connector import QBOConnector
+        try:
+            import requests  # noqa: F401
+            from app.connectors.qbo_connector import QBOConnector
 
-        return QBOConnector(
-            client_id=os.environ["QBO_CLIENT_ID"],
-            client_secret=os.environ.get("QBO_CLIENT_SECRET", ""),
-            refresh_token=os.environ.get("QBO_REFRESH_TOKEN", ""),
-            realm_id=os.environ.get("QBO_REALM_ID", ""),
-            sandbox=os.environ.get("QBO_SANDBOX", "true").lower() != "false",
-        )
+            QBOConnector._ensure_live_dependencies()
+            connector = QBOConnector(
+                client_id=os.environ["QBO_CLIENT_ID"],
+                client_secret=os.environ.get("QBO_CLIENT_SECRET", ""),
+                refresh_token=os.environ.get("QBO_REFRESH_TOKEN", ""),
+                realm_id=os.environ.get("QBO_REALM_ID", ""),
+                sandbox=os.environ.get("QBO_SANDBOX", "true").lower() != "false",
+            )
+            connector.validate_connection_config()
+            return connector
+        except ImportError:
+            warnings.warn("QBO_CLIENT_ID set but client library not installed. Using mock.")
+        except Exception as exc:
+            warnings.warn(f"QBO connector failed to initialize: {exc}. Using mock.")
     return MockQBOConnector()
 
 

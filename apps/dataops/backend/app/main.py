@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -69,7 +70,12 @@ DEFAULT_CORS_ORIGINS = (
     "http://localhost:5174,"
     "http://localhost:5175,"
     "http://localhost:5176,"
-    "http://localhost:5177"
+    "http://localhost:5177,"
+    "http://127.0.0.1:5173,"
+    "http://127.0.0.1:5174,"
+    "http://127.0.0.1:5175,"
+    "http://127.0.0.1:5176,"
+    "http://127.0.0.1:5177"
 )
 
 
@@ -89,16 +95,24 @@ def _graph_store(db_path: str | Path):
 
 def _snowflake_connector():
     if os.environ.get("SNOWFLAKE_ACCOUNT"):
-        from copilot_sdk.connectors.snowflake_meta import SnowflakeMetaConnector
+        try:
+            import snowflake.connector  # type: ignore[import-not-found]  # noqa: F401
+            from copilot_sdk.connectors.snowflake_meta import SnowflakeMetaConnector
 
-        return SnowflakeMetaConnector(
-            account=os.environ["SNOWFLAKE_ACCOUNT"],
-            user=os.environ.get("SNOWFLAKE_USER", ""),
-            password=os.environ.get("SNOWFLAKE_PASSWORD", ""),
-            database=os.environ.get("SNOWFLAKE_DATABASE", ""),
-            warehouse=os.environ.get("SNOWFLAKE_WAREHOUSE", ""),
-            schema=os.environ.get("SNOWFLAKE_SCHEMA", "PUBLIC"),
-        )
+            if not all((os.environ.get("SNOWFLAKE_ACCOUNT"), os.environ.get("SNOWFLAKE_USER"), os.environ.get("SNOWFLAKE_PASSWORD"))):
+                raise ValueError("Incomplete Snowflake credentials")
+            return SnowflakeMetaConnector(
+                account=os.environ["SNOWFLAKE_ACCOUNT"],
+                user=os.environ.get("SNOWFLAKE_USER", ""),
+                password=os.environ.get("SNOWFLAKE_PASSWORD", ""),
+                database=os.environ.get("SNOWFLAKE_DATABASE", ""),
+                warehouse=os.environ.get("SNOWFLAKE_WAREHOUSE", ""),
+                schema=os.environ.get("SNOWFLAKE_SCHEMA", "PUBLIC"),
+            )
+        except ImportError:
+            warnings.warn("SNOWFLAKE_ACCOUNT set but client library not installed. Using mock.")
+        except Exception as exc:
+            warnings.warn(f"Snowflake connector failed to initialize: {exc}. Using mock.")
     from copilot_sdk.connectors.mock_snowflake import MockSnowflakeConnector
 
     return MockSnowflakeConnector()
@@ -106,13 +120,20 @@ def _snowflake_connector():
 
 def _dbt_connector():
     if os.environ.get("DBT_API_TOKEN"):
-        from copilot_sdk.connectors.dbt_connector import DBTConnector
+        try:
+            from copilot_sdk.connectors.dbt_connector import DBTConnector
 
-        return DBTConnector(
-            api_token=os.environ["DBT_API_TOKEN"],
-            account_id=os.environ.get("DBT_ACCOUNT_ID", ""),
-            artifacts_path=os.environ.get("DBT_ARTIFACTS_PATH"),
-        )
+            if not os.environ.get("DBT_ACCOUNT_ID") and not os.environ.get("DBT_ARTIFACTS_PATH"):
+                raise ValueError("Incomplete dbt configuration")
+            return DBTConnector(
+                api_token=os.environ["DBT_API_TOKEN"],
+                account_id=os.environ.get("DBT_ACCOUNT_ID", ""),
+                artifacts_path=os.environ.get("DBT_ARTIFACTS_PATH"),
+            )
+        except ImportError:
+            warnings.warn("DBT_API_TOKEN set but client library not installed. Using mock.")
+        except Exception as exc:
+            warnings.warn(f"dbt connector failed to initialize: {exc}. Using mock.")
     from copilot_sdk.connectors.mock_dbt import MockDBTConnector
 
     return MockDBTConnector()
@@ -120,14 +141,21 @@ def _dbt_connector():
 
 def _airflow_connector():
     if os.environ.get("AIRFLOW_BASE_URL"):
-        from copilot_sdk.connectors.airflow_connector import AirflowConnector
+        try:
+            from copilot_sdk.connectors.airflow_connector import AirflowConnector
 
-        return AirflowConnector(
-            base_url=os.environ["AIRFLOW_BASE_URL"],
-            username=os.environ.get("AIRFLOW_USER", ""),
-            password=os.environ.get("AIRFLOW_PASSWORD", ""),
-            token=os.environ.get("AIRFLOW_TOKEN", ""),
-        )
+            if not (os.environ.get("AIRFLOW_USER") or os.environ.get("AIRFLOW_TOKEN")):
+                raise ValueError("Incomplete Airflow credentials")
+            return AirflowConnector(
+                base_url=os.environ["AIRFLOW_BASE_URL"],
+                username=os.environ.get("AIRFLOW_USER", ""),
+                password=os.environ.get("AIRFLOW_PASSWORD", ""),
+                token=os.environ.get("AIRFLOW_TOKEN", ""),
+            )
+        except ImportError:
+            warnings.warn("AIRFLOW_BASE_URL set but client library not installed. Using mock.")
+        except Exception as exc:
+            warnings.warn(f"Airflow connector failed to initialize: {exc}. Using mock.")
     from copilot_sdk.connectors.mock_airflow import MockAirflowConnector
 
     return MockAirflowConnector()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import warnings
 from collections.abc import Callable
 from datetime import date, timedelta
 from typing import Any
@@ -17,13 +18,21 @@ ConnectorFactory = Callable[[], Any]
 
 def _default_toast_connector() -> Any:
     if os.environ.get("TOAST_CLIENT_ID"):
-        from app.connectors.toast import ToastConnector
+        try:
+            import requests  # noqa: F401
+            from app.connectors.toast import ToastConnector
 
-        return ToastConnector(
-            api_key=os.environ["TOAST_CLIENT_ID"],
-            base_url=os.environ.get("TOAST_BASE_URL", "https://api.toasttab.com/v2"),
-            location_id=os.environ.get("TOAST_LOCATION_ID", ""),
-        )
+            if not os.environ.get("TOAST_CLIENT_ID"):
+                raise ValueError("Incomplete Toast credentials")
+            return ToastConnector(
+                api_key=os.environ["TOAST_CLIENT_ID"],
+                base_url=os.environ.get("TOAST_BASE_URL", "https://api.toasttab.com/v2"),
+                location_id=os.environ.get("TOAST_LOCATION_ID", ""),
+            )
+        except ImportError:
+            warnings.warn("TOAST_CLIENT_ID set but client library not installed. Using mock.")
+        except Exception as exc:
+            warnings.warn(f"Toast connector failed to initialize: {exc}. Using mock.")
     return MockToastConnector()
 
 

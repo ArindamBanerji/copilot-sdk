@@ -2,10 +2,17 @@ import { type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, expectAnyText } from "../helpers/ui";
 
+const BACKEND = "http://127.0.0.1:8020";
+
 async function gotoOrder(page: Page) {
   await page.goto("/");
   await clickTab(page, "Order");
   await expect(page.getByRole("heading", { name: "Score the next purchase" })).toBeVisible();
+}
+
+async function resetPurchasingDemo(page: Page) {
+  const response = await page.request.post(`${BACKEND}/api/purchasing/demo/reset`);
+  expect(response.ok(), `demo reset returned ${response.status()}`).toBeTruthy();
 }
 
 async function scoreOrder(page: Page) {
@@ -71,6 +78,7 @@ test("score produces result", async ({ page }) => {
 
 test("confirm shows reward after scoring", async ({ page }) => {
   test.setTimeout(60_000);
+  await resetPurchasingDemo(page);
   await gotoOrder(page);
 
   await scoreOrder(page);
@@ -86,6 +94,7 @@ test("confirm shows reward after scoring", async ({ page }) => {
 
 test("learn response shows reward after confirm", async ({ page }) => {
   test.setTimeout(60_000);
+  await resetPurchasingDemo(page);
   await gotoOrder(page);
 
   await scoreOrder(page);

@@ -15,7 +15,7 @@ function categoryAnalytics(page: Page) {
 }
 
 async function routeJournalAnalytics(page: Page, withEventDriven: boolean) {
-  await page.route("**/api/trading/trades?**", async (route) => {
+  await page.route("**/api/trading/journal/trades?**", async (route) => {
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({

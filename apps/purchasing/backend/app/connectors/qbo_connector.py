@@ -143,8 +143,7 @@ class QBOConnector:
     def test_connection(self) -> dict:
         """Verify OAuth credentials by fetching company info."""
         self._ensure_live_dependencies()
-        if not self._realm_id:
-            return {"connected": False, "company_name": None, "realm_id": self._realm_id}
+        self.validate_connection_config()
         response = self._request("companyinfo/1", params={})
         company = response.get("CompanyInfo", {}) if isinstance(response, dict) else {}
         return {
@@ -158,6 +157,12 @@ class QBOConnector:
         response = payload.get("QueryResponse", {}) if isinstance(payload, dict) else {}
         rows = response.get(result_key, [])
         return rows if isinstance(rows, list) else []
+
+    def validate_connection_config(self) -> None:
+        """Validate live QBO credentials before serving real connector requests."""
+        self._ensure_live_dependencies()
+        if not all((self._client_id, self._client_secret, self._refresh_token, self._realm_id)):
+            raise ValueError("Incomplete QBO credentials")
 
     def _request(self, path: str, params: dict[str, Any]) -> dict:
         self._ensure_live_dependencies()

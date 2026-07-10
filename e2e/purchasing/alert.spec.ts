@@ -30,6 +30,7 @@ test("alerts returns empty when healthy", async ({ page }) => {
 test("alert dashboard card renders on Performance tab", async ({ page }) => {
   await gotoPerformance(page);
   const card = page.locator("section", { hasText: "Active Alerts" });
+  await expect(card).toBeVisible({ timeout: 20_000 });
   await card.scrollIntoViewIfNeeded();
   await expect(card).toBeVisible();
 });
@@ -37,6 +38,7 @@ test("alert dashboard card renders on Performance tab", async ({ page }) => {
 test("alert card shows severity badges", async ({ page }) => {
   await gotoPerformance(page);
   const card = page.locator("section", { hasText: "Active Alerts" });
+  await expect(card).toBeVisible({ timeout: 20_000 });
   await card.scrollIntoViewIfNeeded();
   await expectAnyText(page, [/critical:/i, /warning:/i, /info:/i]);
 });
@@ -44,6 +46,7 @@ test("alert card shows severity badges", async ({ page }) => {
 test("alert card shows recommendations in kitchen language", async ({ page }) => {
   await gotoPerformance(page);
   const card = page.locator("section", { hasText: "Active Alerts" });
+  await expect(card).toBeVisible({ timeout: 20_000 });
   await card.scrollIntoViewIfNeeded();
   await expectAnyText(page, [/Check the last quoted rate/i, /backup supplier/i, /manager review/i]);
 });
@@ -51,6 +54,7 @@ test("alert card shows recommendations in kitchen language", async ({ page }) =>
 test("alert flow verifies severity colors and no jargon", async ({ page }) => {
   await gotoPerformance(page);
   const card = page.locator("section", { hasText: "Active Alerts" });
+  await expect(card).toBeVisible({ timeout: 20_000 });
   await card.scrollIntoViewIfNeeded();
   await expectAnyText(page, [/Price alert/i, /Sysco reliability/i]);
   await expect(card).not.toContainText(/centroid|DK weight|sigma|factor vector|N=/i);

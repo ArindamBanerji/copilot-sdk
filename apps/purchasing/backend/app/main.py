@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +29,6 @@ from .graph_status import (  # noqa: E402
     router as purchasing_graph_status_router,
 )
 from .evolution import get_purchasing_variants  # noqa: E402
-from .connectors.commodity_source import FREDCommoditySource  # noqa: E402
 from .routers.auto_order_router import create_auto_order_router  # noqa: E402
 from .routers.alert_router import create_alert_router  # noqa: E402
 from .routers.chain_router import create_chain_router, reset_chain_state  # noqa: E402
@@ -107,7 +107,12 @@ DEFAULT_CORS_ORIGINS = (
     "http://localhost:5174,"
     "http://localhost:5175,"
     "http://localhost:5176,"
-    "http://localhost:5177"
+    "http://localhost:5177,"
+    "http://127.0.0.1:5173,"
+    "http://127.0.0.1:5174,"
+    "http://127.0.0.1:5175,"
+    "http://127.0.0.1:5176,"
+    "http://127.0.0.1:5177"
 )
 
 
@@ -123,6 +128,19 @@ def _graph_store(db_path: str | Path):
     store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="PUR-")
     store.penalty_ratio = 3.0
     return store
+
+
+def _fred_commodity_source() -> Any | None:
+    if os.environ.get("FRED_API_KEY"):
+        try:
+            from .connectors.commodity_source import FREDCommoditySource
+
+            return FREDCommoditySource(api_key=os.environ["FRED_API_KEY"])
+        except ImportError:
+            warnings.warn("FRED_API_KEY set but client library not installed. Using mock.")
+        except Exception as exc:
+            warnings.warn(f"FRED connector failed to initialize: {exc}. Using mock.")
+    return None
 
 
 def _resolve_scoring_db(db_path: str | Path | None) -> str:
@@ -632,8 +650,7 @@ def create_app(
     app.include_router(create_qbo_router())
     app.include_router(create_signal_router(outbox_store))
     app.include_router(create_scorecard_router(lambda: selected_graph_store_factory(scoring_db)))
-    fred_key = os.environ.get("FRED_API_KEY", "")
-    commodity_source = FREDCommoditySource(api_key=fred_key) if fred_key else None
+    commodity_source = _fred_commodity_source()
     commodity_provider = CommodityDataProvider(source=commodity_source)
     app.include_router(create_spend_router(commodity_provider=commodity_provider))
     app.include_router(create_commodity_router(provider=commodity_provider))

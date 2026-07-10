@@ -113,7 +113,7 @@ function journalQuery(params: TradeJournalFilters = {}): string {
 
 export function fetchTrades(params: TradeJournalFilters = {}): Promise<TradesResponse | null> {
   const query = journalQuery(params);
-  return safeApiGet<TradesResponse>(`/api/trading/trades${query ? `?${query}` : ""}`);
+  return safeApiGet<TradesResponse>(`/api/trading/journal/trades${query ? `?${query}` : ""}`);
 }
 
 export function fetchTradeDetail(tradeId: string): Promise<TradeDetailResponse | null> {

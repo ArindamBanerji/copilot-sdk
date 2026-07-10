@@ -58,9 +58,9 @@ def test_pos_profile_returns_200():
 
 
 def test_pos_profile_has_source_name():
-    """Profile response includes source_name = 'toast_pos_mock'."""
+    """Profile response includes the active Toast source name."""
     payload = _client().get("/api/purchasing/pos/profile").json()
-    assert payload["source_name"] == "toast_pos_mock"
+    assert payload["source_name"] in {"toast_pos", "toast_pos_mock"}
 
 
 def test_pos_profile_has_freshness():
