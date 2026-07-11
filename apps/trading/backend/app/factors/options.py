@@ -6,8 +6,11 @@ They describe options context for explanations and UI surfaces only.
 
 from __future__ import annotations
 
+from datetime import date, datetime
 from math import log
 from typing import Any
+
+from ci_trading.quant import IVRVFactor as QuantIVRVFactor
 
 try:  # pragma: no cover - availability is environment dependent
     import py_vollib  # noqa: F401
@@ -54,7 +57,7 @@ NEUTRAL_TERMS = (
 )
 
 
-class IVRVRatioFactor:
+class _IVRVRatioFactorLegacy:
     """Score implied-volatility richness versus realized volatility."""
 
     def compute(self, context: dict[str, Any]) -> float:
@@ -117,6 +120,44 @@ class IVRVRatioFactor:
             return (None, None)
 
 
+class IVRVRatioFactor:
+    """Model-free IV/RV factor wrapper preserving the existing factor key."""
+
+    def __init__(self) -> None:
+        self._quant = QuantIVRVFactor()
+        self._legacy = _IVRVRatioFactorLegacy()
+
+    def compute(self, context: dict[str, Any]) -> float:
+        ticker = _value(context, "ticker", "symbol", "underlying")
+        quant_context = self._quant_context(context, ticker)
+        if quant_context.get("option_chain") is not None and quant_context.get("ohlc") is not None:
+            return _clamp(self._quant.compute(str(ticker or ""), quant_context))
+
+        if _value(context, "implied_volatility", "iv", "impliedVolatility") is not None or _value(
+            context,
+            "realized_volatility",
+            "rv",
+            "realizedVolatility",
+        ) is not None:
+            return self._legacy.compute(context)
+
+        return _clamp(self._quant.compute(str(ticker or ""), quant_context))
+
+    def _quant_context(self, context: dict[str, Any], ticker: Any) -> dict[str, Any]:
+        quant_context = {
+            "option_chain": _value(context, "option_chain", "optionChain"),
+            "ohlc": _value(context, "ohlc"),
+            "vrp_history": _value(context, "vrp_history", "vrpHistory"),
+        }
+        if quant_context["option_chain"] is not None and quant_context["ohlc"] is not None:
+            return quant_context
+        fetched = _fetch_quant_ivrv_context(ticker)
+        for key, value in fetched.items():
+            if quant_context.get(key) is None:
+                quant_context[key] = value
+        return quant_context
+
+
 class GreeksExposureFactor:
     """Score whether the options greeks match the setup type."""
 
@@ -174,6 +215,73 @@ def compute_options_factors(context: dict[str, Any] | None) -> dict[str, float]:
         except Exception:
             values[name] = 0.5
     return values
+
+
+def _fetch_quant_ivrv_context(ticker: Any) -> dict[str, Any]:
+    if not YFINANCE_AVAILABLE or yf is None or not ticker:
+        return {}
+    try:
+        instrument = yf.Ticker(str(ticker).upper())
+        history = instrument.history(period="90d")
+        if history is None or getattr(history, "empty", False):
+            return {}
+        ohlc = history.rename(columns={column: str(column).lower() for column in history.columns})
+        required = {"open", "high", "low", "close"}
+        if not required.issubset(set(ohlc.columns)):
+            return {}
+        options = getattr(instrument, "options", None) or []
+        if not options:
+            return {"ohlc": ohlc[list(required)]}
+        expiry = str(options[0])
+        chain = instrument.option_chain(expiry)
+        calls = getattr(chain, "calls", None)
+        puts = getattr(chain, "puts", None)
+        option_chain = _option_chain_payload(calls, puts, ohlc, expiry)
+        return {"option_chain": option_chain, "ohlc": ohlc[["open", "high", "low", "close"]]}
+    except Exception:
+        return {}
+
+
+def _option_chain_payload(calls: Any, puts: Any, ohlc: Any, expiry: str) -> dict[str, Any] | None:
+    if calls is None or puts is None:
+        return None
+    try:
+        call_prices = _prices_by_strike(calls)
+        put_prices = _prices_by_strike(puts)
+        strikes = sorted(set(call_prices).intersection(put_prices))
+        if len(strikes) < 3:
+            return None
+        close_values = ohlc["close"].dropna()
+        if close_values.empty:
+            return None
+        expiry_date = datetime.fromisoformat(expiry).date()
+        days_to_expiry = max((expiry_date - date.today()).days, 1)
+        return {
+            "strikes": strikes,
+            "calls": [call_prices[strike] for strike in strikes],
+            "puts": [put_prices[strike] for strike in strikes],
+            "forward": float(close_values.iloc[-1]),
+            "r": 0.0,
+            "T": days_to_expiry / 365.0,
+        }
+    except Exception:
+        return None
+
+
+def _prices_by_strike(frame: Any) -> dict[float, float]:
+    prices: dict[float, float] = {}
+    if "strike" not in frame:
+        return prices
+    for _, row in frame.iterrows():
+        strike = _number(row.get("strike"))
+        price = _number(row.get("lastPrice"))
+        bid = _number(row.get("bid"))
+        ask = _number(row.get("ask"))
+        if (price is None or price <= 0) and bid is not None and ask is not None and bid >= 0 and ask > 0:
+            price = (bid + ask) / 2.0
+        if strike is not None and strike > 0 and price is not None and price > 0:
+            prices[float(strike)] = float(price)
+    return prices
 
 
 def _value(context: dict[str, Any], *keys: str) -> Any:

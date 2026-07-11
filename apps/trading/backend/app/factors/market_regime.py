@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from ci_trading.quant import classify_regime as _quant_classify_regime
+
 from app.factors.base import clamp
 
 
-def classify_regime(vix: float, trend_strength: float = 20.0) -> str:
+def _classify_regime_legacy(vix: float, trend_strength: float = 20.0) -> str:
     if vix > 30:
         return "volatile"
     if vix > 20:
@@ -15,6 +17,21 @@ def classify_regime(vix: float, trend_strength: float = 20.0) -> str:
     if trend_strength > 25:
         return "trending"
     return "ranging"
+
+
+def classify_regime(
+    vix: float,
+    trend_strength: float | None = None,
+    price_history: Any | None = None,
+    vix_history: Any | None = None,
+) -> str:
+    try:
+        result = _quant_classify_regime(vix, trend_strength, price_history, vix_history)
+        if isinstance(result, dict) and result.get("regime"):
+            return str(result["regime"])
+    except Exception:
+        pass
+    return _classify_regime_legacy(vix, 20.0 if trend_strength is None else trend_strength)
 
 
 class MarketRegimeFactor:

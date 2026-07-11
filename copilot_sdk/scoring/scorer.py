@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import json
 import logging
 import sys
@@ -787,8 +788,18 @@ class CompoundingScorer:
 
         q = correct / verified
         theta_min = compute_theta_min(override_rate, verified)
-        if theta_min is not None and q < theta_min:
-            return {
+        dispersion = _conservation_dispersion(self._graph_store)
+        effective_q = q
+        if dispersion is not None and float(dispersion.get("inflation", 0.0)) > 1.3:
+            logger.info(
+                "Conservation dispersion: inflation=%.2f",
+                float(dispersion["inflation"]),
+            )
+            effective_q = max(0.0, q - float(dispersion.get("effective_se", 0.0)))
+        if theta_min is not None and effective_q < theta_min:
+            if dispersion is not None and float(dispersion.get("inflation", 0.0)) > 1.3:
+                dispersion = {**dispersion, "q_conservative": effective_q}
+            result = {
                 "status": "paused",
                 "reason": "conservation_red",
                 "q": q,
@@ -797,6 +808,9 @@ class CompoundingScorer:
                 "correct_count": correct,
                 "override_rate": override_rate,
             }
+            if dispersion is not None:
+                result["dispersion"] = dispersion
+            return result
         return None
 
     def _compute_rl_reward(
@@ -1023,6 +1037,38 @@ class CompoundingScorer:
 def _conservation_counts(store: Any) -> tuple[int, int]:
     verified, correct, _override_rate = _conservation_stats(store)
     return verified, correct
+
+
+def _conservation_dispersion(store: Any) -> dict[str, float] | None:
+    verified_decisions = _verified_decisions(store)
+    if not verified_decisions:
+        return None
+    q_window = [
+        1.0 if _is_correct_decision(decision) else 0.0
+        for decision in verified_decisions[-400:]
+    ]
+    if len(q_window) < 20:
+        return None
+    try:
+        diagnostic = _block_bootstrap_mean_se(q_window)
+    except Exception:
+        return None
+    inflation = float(diagnostic.inflation)
+    effective_se = float(diagnostic.block_se if inflation > 1.3 else diagnostic.iid_se)
+    return {
+        "iid_se": float(diagnostic.iid_se),
+        "block_se": float(diagnostic.block_se),
+        "effective_se": effective_se,
+        "inflation": inflation,
+    }
+
+
+def _block_bootstrap_mean_se(q_window: list[float]) -> Any:
+    quant_root = Path(__file__).resolve().parents[2]
+    if str(quant_root) not in sys.path:
+        sys.path.insert(0, str(quant_root))
+    quant_module = importlib.import_module("ci_trading.quant")
+    return getattr(quant_module, "block_bootstrap_mean_se")(q_window, block=20, n_boot=200)
 
 
 def _conservation_stats(store: Any) -> tuple[int, int, float]:

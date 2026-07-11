@@ -171,6 +171,63 @@ def populate_default_registry() -> ClaimRegistry:
             feature="P83-TRD-PROMOTION-ENGINE",
         )
     )
+    registry.register(
+        ClaimProvenance(
+            claim_id="TRADING-quant-yang-zhang-vol",
+            text=(
+                "Yang-Zhang realized volatility estimator is grounded on "
+                "synthetic oracle and real SPY fixture plausibility"
+            ),
+            tier=Tier.REAL,
+            evidence_ref=(
+                "tests/test_quant.py oracle synthetic GBM; "
+                "tests/test_quant_real_fixture.py::"
+                "test_spy_yang_zhang_vol_real_fixture_plausible over "
+                "tests/fixtures/spy_ohlcv_2024q1.json"
+            ),
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="TRD-QUANT-YANG-ZHANG-VOL",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="TRADING-quant-regime-classifier",
+            text=(
+                "Trading regime classifier is grounded on synthetic oracle "
+                "and real VIX regime-shift fixture"
+            ),
+            tier=Tier.REAL,
+            evidence_ref=(
+                "tests/test_quant.py oracle synthetic fBM; "
+                "tests/test_quant_real_fixture.py::"
+                "test_vix_regime_shift_real_fixture_plausible over "
+                "tests/fixtures/vix_2020q1.json"
+            ),
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="TRD-QUANT-REGIME-CLASSIFIER",
+        )
+    )
+    registry.register(
+        ClaimProvenance(
+            claim_id="TRADING-quant-correlation-monitor",
+            text=(
+                "Correlation concentration monitor is grounded on synthetic "
+                "oracle and real sector-return fixture"
+            ),
+            tier=Tier.REAL,
+            evidence_ref=(
+                "tests/test_quant.py oracle synthetic one-factor model; "
+                "tests/test_quant_real_fixture.py::"
+                "test_sector_correlation_real_fixture_detects_concentration "
+                "over tests/fixtures/sector_returns_60d.json"
+            ),
+            is_magnitude_claim=False,
+            copilot="trading",
+            feature="TRD-QUANT-CORRELATION-MONITOR",
+        )
+    )
 
     registry.register(
         ClaimProvenance(

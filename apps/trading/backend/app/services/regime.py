@@ -7,6 +7,8 @@ import importlib.util
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from ci_trading.quant import classify_regime as _quant_classify_regime
+
 
 YFINANCE_AVAILABLE = importlib.util.find_spec("yfinance") is not None
 yf: Any | None = None
@@ -19,7 +21,8 @@ DEFAULT_VIX = DEFAULT_VIX_RANGING
 DEFAULT_ADX = 20.0
 
 
-def classify_regime(vix: float, trend_strength: float) -> str:
+def _classify_regime_legacy(vix: float, trend_strength: float) -> str:
+    # Legacy: replaced by ci_trading.quant.classify_regime (B28)
     if float(vix) > DEFAULT_VIX_VOLATILE:
         return "volatile"
     if float(vix) > DEFAULT_VIX_RANGING:
@@ -27,6 +30,41 @@ def classify_regime(vix: float, trend_strength: float) -> str:
     if float(trend_strength) > DEFAULT_ADX_TRENDING:
         return "trending"
     return "ranging"
+
+
+def classify_regime(
+    vix: float,
+    trend_strength: float,
+    price_history: Any | None = None,
+    vix_history: Any | None = None,
+) -> str:
+    return str(_classify_regime_details(vix, trend_strength, price_history, vix_history)["regime"])
+
+
+def _classify_regime_details(
+    vix: float,
+    trend_strength: float,
+    price_history: Any | None = None,
+    vix_history: Any | None = None,
+) -> dict[str, Any]:
+    try:
+        result = _quant_classify_regime(
+            float(vix),
+            float(trend_strength),
+            price_history=price_history,
+            vix_history=vix_history,
+        )
+        if isinstance(result, dict) and result.get("regime"):
+            return result
+    except Exception:
+        pass
+    return {
+        "regime": _classify_regime_legacy(vix, trend_strength),
+        "hurst": None,
+        "hurst_regime": None,
+        "vix_percentile": None,
+        "vol_state": None,
+    }
 
 
 def compute_adx(highs: Any, lows: Any, closes: Any, period: int = 14) -> float:
@@ -87,13 +125,23 @@ class RegimeService:
             closes = list(ticker_history["Close"].dropna())
             adx = compute_adx(highs, lows, closes)
             spy_price = float(closes[-1]) if closes else 0.0
+            regime_details = _classify_regime_details(
+                vix,
+                adx,
+                price_history=ticker_history["Close"].dropna(),
+                vix_history=vix_history["Close"].dropna(),
+            )
             payload = {
-                "regime": classify_regime(vix, adx),
+                "regime": regime_details["regime"],
                 "vix": round(vix, 4),
                 "adx": round(float(adx), 4),
                 "spy_price": round(spy_price, 4),
                 "source": "yfinance",
                 "as_of": now.isoformat(),
+                "hurst": regime_details.get("hurst"),
+                "hurst_regime": regime_details.get("hurst_regime"),
+                "vix_percentile": regime_details.get("vix_percentile"),
+                "vol_state": regime_details.get("vol_state"),
             }
             self._cache[cache_key] = (now, payload)
             return dict(payload)
@@ -186,13 +234,18 @@ class RegimeService:
             closes = [row["close"] for row in rows if "close" in row]
             adx = compute_adx(highs, lows, closes)
             spy_price = float(closes[-1]) if closes else 0.0
+            regime_details = _classify_regime_details(float(vix), adx, price_history=closes)
             return {
-                "regime": classify_regime(float(vix), adx),
+                "regime": regime_details["regime"],
                 "vix": round(float(vix), 4),
                 "adx": round(float(adx), 4),
                 "spy_price": round(spy_price, 4),
                 "source": str(getattr(vix_result, "source", "provider")),
                 "as_of": getattr(vix_result, "as_of", None) or now.isoformat(),
+                "hurst": regime_details.get("hurst"),
+                "hurst_regime": regime_details.get("hurst_regime"),
+                "vix_percentile": regime_details.get("vix_percentile"),
+                "vol_state": regime_details.get("vol_state"),
             }
         except Exception:
             return self._default()

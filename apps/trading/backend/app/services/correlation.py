@@ -8,6 +8,8 @@ from datetime import datetime, timedelta, timezone
 from math import isnan
 from typing import Any
 
+from ci_trading.quant import CorrelationMonitor
+
 
 try:
     import numpy as np  # type: ignore
@@ -53,7 +55,10 @@ class CorrelationService:
         pairs = _pairs(valid_tickers, matrix)
         avg_correlation = round(sum(pair["correlation"] for pair in pairs) / len(pairs), 4) if pairs else 0.0
         max_pair = pairs[0] if pairs else None
-        alerts = _alerts(avg_correlation, pairs)
+        quant_alert = self._quant_alert(valid_tickers, returns)
+        alerts = _alerts_legacy(avg_correlation, pairs)
+        if quant_alert is not None:
+            alerts.extend(_quant_recommendation_alerts(quant_alert))
         return {
             "tickers": valid_tickers,
             "matrix": matrix,
@@ -63,6 +68,11 @@ class CorrelationService:
             "alerts": alerts,
             "window_days": self.window_days,
             "source": "yfinance",
+            "rho_bar": _round_or_none(getattr(quant_alert, "rho_bar", None)),
+            "effective_multiplier": _round_or_none(getattr(quant_alert, "effective_multiplier", None)),
+            "n_effective_bets": _round_or_none(getattr(quant_alert, "n_effective_bets", None)),
+            "tail_gap": _round_or_none(getattr(quant_alert, "tail_gap", None)),
+            "recommendations": list(getattr(quant_alert, "recommendations", []) or []),
         }
 
     def _fetch_returns(self, tickers: list[str]) -> dict[str, list[float]] | None:
@@ -156,6 +166,23 @@ class CorrelationService:
             "reason": reason,
         }
 
+    def _quant_alert(self, tickers: list[str], returns: dict[str, list[float]]) -> Any | None:
+        try:
+            import pandas as pd  # type: ignore
+
+            min_len = min(len(returns[ticker]) for ticker in tickers)
+            if min_len < 2:
+                return None
+            frame = pd.DataFrame({
+                ticker: returns[ticker][-min_len:]
+                for ticker in tickers
+            })
+            weights = [1.0 / len(tickers)] * len(tickers)
+            market_returns = frame.mean(axis=1)
+            return CorrelationMonitor().check_correlation(frame, weights, market_returns)
+        except Exception:
+            return None
+
 
 def _extract_tickers(trades: list[dict[str, Any]]) -> list[str]:
     tickers: list[str] = []
@@ -184,7 +211,8 @@ def _pairs(tickers: list[str], matrix: list[list[float]]) -> list[dict[str, Any]
     return sorted(pairs, key=lambda item: abs(float(item["correlation"])), reverse=True)
 
 
-def _alerts(avg_correlation: float, pairs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _alerts_legacy(avg_correlation: float, pairs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    # Legacy: replaced by ci_trading.quant.CorrelationMonitor (B28).
     alerts: list[dict[str, Any]] = []
     if avg_correlation > ALERT_CRITICAL:
         alerts.append({
@@ -209,6 +237,27 @@ def _alerts(avg_correlation: float, pairs: list[dict[str, Any]]) -> list[dict[st
                 "value": round(value, 4),
             })
     return alerts
+
+
+def _quant_recommendation_alerts(quant_alert: Any) -> list[dict[str, Any]]:
+    alerts: list[dict[str, Any]] = []
+    for recommendation in getattr(quant_alert, "recommendations", []) or []:
+        alerts.append({
+            "level": "warning",
+            "message": str(recommendation),
+            "value": _round_or_none(getattr(quant_alert, "effective_multiplier", None)),
+        })
+    return alerts
+
+
+def _round_or_none(value: Any, digits: int = 4) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if number != number or number in (float("inf"), float("-inf")):
+        return None
+    return round(number, digits)
 
 
 def _pct_change(values: list[Any]) -> list[float]:
