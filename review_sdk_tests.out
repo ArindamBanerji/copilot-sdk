@@ -1,0 +1,78 @@
+........................................................................ [  3%]
+........................................................................ [  6%]
+........................................................................ [ 10%]
+........................................................................ [ 13%]
+........................................................................ [ 17%]
+........................................................................ [ 20%]
+.........sss.s.s..sssss.s.s.s.s.s.s...sssssss.sss.sss.sss...ssssssssssss [ 24%]
+s......ss....s.s......ssss.sssss.ssss................................... [ 27%]
+........................................................................ [ 31%]
+........................................................................ [ 34%]
+........................................................................ [ 38%]
+........................................................................ [ 41%]
+........................................................................ [ 45%]
+........................................................................ [ 48%]
+........................................................................ [ 52%]
+........................................................................ [ 55%]
+........................................................................ [ 59%]
+........................................................................ [ 62%]
+........................................................................ [ 66%]
+........................................................................ [ 69%]
+........................................................................ [ 73%]
+........................................................................ [ 76%]
+........................................................................ [ 80%]
+........................................................................ [ 83%]
+........................................................................ [ 87%]
+........................................................................ [ 90%]
+........................................................................ [ 94%]
+........................................................................ [ 97%]
+................................................                         [100%]
+============================== warnings summary ===============================
+..\..\..\proj-envs\python_expts_venv\Lib\site-packages\pytest_freezegun.py:17: 4128 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\pytest_freezegun.py:17: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(pytest.__version__) < LooseVersion('3.6.0'):
+
+tests/test_chain_transfer.py: 17 warnings
+tests/test_cross_copilot_integration.py: 5 warnings
+tests/test_supplier_signal.py: 14 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\purchasing\backend\app\main.py:690: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+tests/test_chain_transfer.py: 17 warnings
+tests/test_cross_copilot_integration.py: 5 warnings
+tests/test_di_router.py: 18 warnings
+tests/test_supplier_signal.py: 14 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\fastapi\applications.py:4495: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+
+tests/test_di_router.py: 18 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\main.py:615: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+tests/test_l5_proof.py: 13 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\tests\test_l5_proof.py:97: UserWarning: No DSN supplied - using localhost fallback. Set --dsn with WSL2 NAT IP per Rule #40.
+    proof = l5.L5CompletionProof()
+
+tests/test_l5_proof.py::test_no_age_graceful
+tests/test_l5_proof.py::test_json_output
+tests/test_l5_proof.py::test_cli_exit_codes
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\scripts\verify_l5_completion.py:330: UserWarning: No DSN supplied - using localhost fallback. Set --dsn with WSL2 NAT IP per Rule #40.
+    proof = L5CompletionProof(dsn=args.dsn)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2002 passed, 62 skipped, 4252 warnings in 219.02s (0:03:39)

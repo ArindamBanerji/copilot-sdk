@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+from pathlib import Path
 from typing import Protocol
 from urllib.parse import urlencode
 from urllib.request import urlopen
@@ -55,6 +57,9 @@ class FREDCommoditySource:
 
     def fetch_category_prices(self, category: str) -> list[dict] | None:
         """GET /fred/series/observations and return last 12 monthly observations."""
+        frozen = self._frozen_prices(category)
+        if frozen is not None:
+            return frozen
         if not self._api_key:
             return None
         series_id = self._series_map.get(category)
@@ -107,3 +112,16 @@ class FREDCommoditySource:
 
     def _unit_for(self, category: str) -> str:
         return "per lb" if category in {"protein", "produce", "dry_goods"} else "per unit"
+
+    def _frozen_prices(self, category: str) -> list[dict] | None:
+        freeze_path = os.environ.get("FRED_FREEZE", "").strip()
+        if not freeze_path:
+            return None
+        try:
+            payload = json.loads(Path(freeze_path).read_text(encoding="utf-8"))
+        except Exception:
+            return None
+        rows = payload.get(category)
+        if not isinstance(rows, list):
+            return None
+        return [dict(row) for row in rows if isinstance(row, dict)]

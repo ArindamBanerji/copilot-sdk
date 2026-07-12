@@ -15,6 +15,8 @@ Usage:
     python demo.py --stop           # Stop all copilot processes
     python demo.py --status         # Show what's running
     python demo.py --preseed        # Pre-seed after start
+    python demo.py --record-mode    # Pre-seed and freeze connectors
+    python demo.py --record-reset   # Reset record state, pre-seed, freeze connectors
     python demo.py --graph          # AGE graph mode for DataOps
     python demo.py --no-browser     # Don't open browser tabs
     python demo.py --kill-all       # Kill all known copilot ports
@@ -29,7 +31,7 @@ import sys
 import time
 import webbrowser
 from pathlib import Path
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -661,6 +663,9 @@ def cmd_start(selected: list[dict], args):
         env = os.environ.copy()
         if c.get("env"):
             env.update(c["env"])
+        if args.preseed and c["name"].lower() == "soc":
+            env["SOC_LEARNING_ENABLED"] = "true"
+            os.environ["SOC_LEARNING_ENABLED"] = "true"
         if args.diag_mode:
             env["PYTHONPATH"] = diag_pythonpath
 
@@ -701,6 +706,10 @@ def cmd_start(selected: list[dict], args):
     # --- Pre-seed ---
     if args.preseed:
         run_preseed(selected)
+    if getattr(args, "record_mode", False):
+        run_connector_freeze()
+        if getattr(args, "record_reset", False):
+            print("Reset complete. Ready to record.")
 
     if args.diag_mode:
         print()
@@ -842,6 +851,13 @@ def run_preseed(selected: list[dict]):
     """Run pre-seeding script."""
     print()
     print("Pre-seeding copilots...")
+    run_deterministic_preseed()
+    soc_selected = any(c["name"].lower() == "soc" for c in selected)
+    soc_preseeded = False
+    if soc_selected and any("be_port" in c for c in selected if c["name"].lower() == "soc"):
+        run_soc_preseed(next(c for c in selected if c["name"].lower() == "soc"))
+        soc_preseeded = True
+
     script = SCRIPT_DIR / "scripts" / "preseed_all_copilots.py"
     if not script.exists():
         print(f"  WARN: Pre-seed script not found: {script}")
@@ -852,6 +868,9 @@ def run_preseed(selected: list[dict]):
     preseed_names = {"trading", "purchasing", "dataops"}
     names = {c["name"].lower() for c in selected if c["name"].lower() in preseed_names}
     if not names:
+        if soc_preseeded:
+            print("  SOC pre-seed complete; no SDK copilots selected for generic pre-seed")
+            return
         print("  No selected copilots support pre-seed; skipping")
         return
     if names != preseed_names:
@@ -863,6 +882,116 @@ def run_preseed(selected: list[dict]):
     except Exception as e:
         print(f"  WARN: Pre-seed failed: {e}")
     print()
+
+
+def run_deterministic_preseed() -> None:
+    """Run deterministic SDK preseed and print stable headline summary."""
+    try:
+        from copilot_sdk.demo.preseed import DemoPreseed, print_summary
+
+        result = DemoPreseed().preseed_all()
+        print_summary(result)
+    except Exception as exc:
+        print(f"  WARN: deterministic preseed failed: {exc}")
+
+
+def run_connector_freeze() -> None:
+    """Freeze external connectors for record mode."""
+    try:
+        from copilot_sdk.demo.connector_freeze import ConnectorFreeze
+
+        paths = ConnectorFreeze(SCRIPT_DIR / ".record_freeze").freeze()
+        print("Record mode active. Connectors frozen.")
+        for name, path in sorted(paths.items()):
+            print(f"  {name}: {path}")
+    except Exception as exc:
+        print(f"  WARN: connector freeze failed: {exc}")
+
+
+def reset_record_state() -> None:
+    """Clear deterministic record-mode state and verify preseed is not cumulative."""
+    import shutil
+
+    try:
+        from copilot_sdk.demo.connector_freeze import ConnectorFreeze
+        from copilot_sdk.demo.preseed import DemoPreseed
+
+        ConnectorFreeze(SCRIPT_DIR / ".record_freeze").unfreeze()
+        shutil.rmtree(SCRIPT_DIR / ".record_freeze", ignore_errors=True)
+        first = DemoPreseed().preseed_all()
+        second = DemoPreseed().preseed_all()
+        first_iks = {name: copilot.iks for name, copilot in first.copilots.items()}
+        second_iks = {name: copilot.iks for name, copilot in second.copilots.items()}
+        if first_iks != second_iks:
+            raise RuntimeError(f"record reset preseed is not deterministic: {first_iks} != {second_iks}")
+        print("  Record state reset verified: deterministic IKS baseline")
+    except Exception as exc:
+        print(f"  WARN: record reset verification failed: {exc}")
+
+
+def _json_request(method: str, url: str, payload: dict | None = None, timeout: int = 10) -> dict:
+    data = None if payload is None else json.dumps(payload).encode("utf-8")
+    headers = {"Accept": "application/json"}
+    if payload is not None:
+        headers["Content-Type"] = "application/json"
+    req = Request(url, data=data, headers=headers, method=method)
+    with urlopen(req, timeout=timeout) as response:
+        text = response.read().decode("utf-8")
+    return json.loads(text) if text else {}
+
+
+def _first_list(payload: dict, keys: tuple[str, ...]) -> list:
+    for key in keys:
+        value = payload.get(key)
+        if isinstance(value, list):
+            return value
+    return []
+
+
+def run_soc_preseed(copilot: dict) -> None:
+    """Enable SOC learning and verify a short live learning preseed."""
+    os.environ["SOC_LEARNING_ENABLED"] = "true"
+    base_url = f"http://127.0.0.1:{copilot['be_port']}"
+    print("  SOC: learning enabled for demo preseed")
+    try:
+        queue = _json_request("GET", f"{base_url}/api/alerts/queue")
+        alerts = _first_list(queue, ("alerts", "items", "queue"))[:20]
+        successes = 0
+        for alert in alerts:
+            alert_id = str(alert.get("alert_id") or alert.get("id") or "")
+            if not alert_id:
+                continue
+            analysis = _json_request("POST", f"{base_url}/api/alert/analyze", {"alert_id": alert_id})
+            decision_id = str(
+                analysis.get("decision_id")
+                or (analysis.get("decision") or {}).get("decision_id")
+                or ""
+            )
+            action = str(
+                analysis.get("action")
+                or (analysis.get("recommendation") or {}).get("action")
+                or (analysis.get("decision") or {}).get("action")
+                or ""
+            )
+            if not decision_id:
+                continue
+            body = {
+                "alert_id": alert_id,
+                "decision_id": decision_id,
+                "outcome": "correct",
+            }
+            if action in {"escalate", "investigate", "suppress", "monitor"}:
+                body["analyst_action"] = action
+            _json_request("POST", f"{base_url}/api/alert/outcome", body)
+            successes += 1
+        health = _json_request("GET", f"{base_url}/api/soc/learning-health")
+        iks = health.get("iks") or health.get("current_iks") or health.get("intelligence_knowledge_score")
+        status = str(health.get("status") or health.get("conservation_status") or "unknown").upper()
+        print(f"  SOC: seeded={successes} iks={iks} conservation={status}")
+        if status == "RED":
+            print("  WARN: SOC conservation is RED after preseed")
+    except Exception as exc:
+        print(f"  WARN: SOC pre-seed failed: {exc}")
 
 
 # --- Main ---
@@ -894,6 +1023,8 @@ def main():
     # Options
     parser.add_argument("--graph", action="store_true", help="AGE graph mode for DataOps")
     parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
+    parser.add_argument("--record-mode", action="store_true", help="Pre-seed and freeze connectors for recording")
+    parser.add_argument("--record-reset", action="store_true", help="Reset record state, pre-seed, and freeze connectors")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")
     parser.add_argument("--diag-mode", action="store_true", help="SOC proof/perf backend-only diagnostic mode")
     parser.add_argument("--diag-graph-name", default="soc_graph_diag_f", help="SOC AGE graph for --diag-mode")
@@ -903,6 +1034,11 @@ def main():
     parser.add_argument("--age-use-pool", action="store_true", help="Set AGE_USE_POOL=true for SOC --diag-mode")
 
     args = parser.parse_args()
+    if args.record_mode or args.record_reset:
+        args.preseed = True
+        args.record_mode = True
+    if args.record_reset:
+        reset_record_state()
 
     # --- Select copilots ---
     if args.diag_mode:

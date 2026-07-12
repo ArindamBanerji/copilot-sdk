@@ -7,6 +7,7 @@ build/
 .env
 
 graphify-out/cache/
+graphify-out/
 e2e/test-results/
 *.db
 *.pid

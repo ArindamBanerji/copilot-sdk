@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
 import urllib.request
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -32,9 +34,29 @@ def get_weather_factor(
     use_live: bool = False,
 ) -> WeatherForecast:
     del date
+    frozen = _frozen_weather()
+    if frozen is not None:
+        return frozen
     if not use_live:
         return _WEATHER_CACHE.get(zip_code, _WEATHER_CACHE["overcast"])
     return _fetch_live_weather(zip_code)
+
+
+def _frozen_weather() -> WeatherForecast | None:
+    freeze_path = os.environ.get("OPENMETEO_FREEZE", "").strip()
+    if not freeze_path:
+        return None
+    try:
+        payload = json.loads(Path(freeze_path).read_text(encoding="utf-8"))
+        return WeatherForecast(
+            temperature_f=float(payload["temperature_f"]),
+            precipitation_prob=float(payload["precipitation_prob"]),
+            wind_mph=float(payload["wind_mph"]),
+            weather_factor=float(payload["weather_factor"]),
+            source=str(payload.get("source") or "live"),
+        )
+    except Exception:
+        return None
 
 
 def _fetch_live_weather(zip_code: str) -> WeatherForecast:
