@@ -25,6 +25,8 @@ export const factorDisplayNames: Record<string, string> = {
   historicalWaste: "What Gets Thrown Away",
   supplier_lead_time: "When It Shows Up",
   supplierLeadTime: "When It Shows Up",
+  coverage_depth: "Match confidence",
+  coverageDepth: "Match confidence",
 };
 
 export function factorDisplayName(key: string): string {

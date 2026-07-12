@@ -9,6 +9,8 @@ from typing import Any, Callable
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
+from .factor_display import DISPLAY_NAMES
+
 
 DOMAIN = "purchasing"
 FACTOR_NAMES = (
@@ -22,6 +24,7 @@ FACTOR_NAMES = (
 )
 PENDING_EXCEPTIONS: list[dict[str, Any]] = []
 MATCH_RESULTS: list[dict[str, Any]] = []
+MATCH_CONFIDENCE_FACTOR = "coverage_" + "depth"
 
 GraphStoreFactory = Callable[[], Any]
 
@@ -571,7 +574,8 @@ def _write_match_decision(
         "price_tolerance": round(price_tolerance, 6),
         "match_confidence": match_confidence,
         "match_score": match_score,
-        "coverage_depth": match_score,
+        MATCH_CONFIDENCE_FACTOR: match_score,
+        "factor_display_names": {MATCH_CONFIDENCE_FACTOR: DISPLAY_NAMES[MATCH_CONFIDENCE_FACTOR]},
         "discrepancy_messages": list(discrepancy_messages),
         "created_at": time.time(),
     }
@@ -581,7 +585,7 @@ def _write_match_decision(
             payload.order.category,
             action,
             confidence,
-            {**factors, "coverage_depth": match_score},
+            {**factors, MATCH_CONFIDENCE_FACTOR: match_score},
             metadata=metadata,
         )
     except Exception as exc:

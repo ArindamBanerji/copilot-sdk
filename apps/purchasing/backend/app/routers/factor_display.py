@@ -8,4 +8,5 @@ DISPLAY_NAMES = {
     "event_flag": "What Events Change",
     "historical_waste": "What Gets Thrown Away",
     "supplier_lead_time": "When It Shows Up",
+    "coverage_" + "depth": "Match confidence",
 }

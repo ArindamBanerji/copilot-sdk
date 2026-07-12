@@ -49,3 +49,5 @@ class DomainPreset(Protocol):
     eta_override: float
     temperature: float
     plateau_config: PlateauConfig | None
+    conservation_recent_window: int
+    conservation_recent_q_threshold: float

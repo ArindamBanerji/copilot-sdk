@@ -1,0 +1,3511 @@
+{
+  "version": "v1",
+  "domain": "trading",
+  "n_train": 400,
+  "n_eval": 100,
+  "n_factors": 10,
+  "generated": "2026-07-11",
+  "frozen": true,
+  "outcomes": [
+    {
+      "decision_id": "bench-0000",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0001",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0002",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0003",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0004",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0005",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0006",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0007",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0008",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0009",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0010",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0011",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0012",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0013",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0014",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0015",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0016",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0017",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0018",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0019",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0020",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0021",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0022",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0023",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0024",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0025",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0026",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0027",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0028",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0029",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0030",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0031",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0032",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0033",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0034",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0035",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0036",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0037",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0038",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0039",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0040",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0041",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0042",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0043",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0044",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0045",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0046",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0047",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0048",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0049",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0050",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0051",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0052",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0053",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0054",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0055",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0056",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0057",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0058",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0059",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0060",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0061",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0062",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0063",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0064",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0065",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0066",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0067",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0068",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0069",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0070",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0071",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0072",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0073",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0074",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0075",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0076",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0077",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0078",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0079",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0080",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0081",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0082",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0083",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0084",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0085",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0086",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0087",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0088",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0089",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0090",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0091",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0092",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0093",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0094",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0095",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0096",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0097",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0098",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0099",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0100",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0101",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0102",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0103",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0104",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0105",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0106",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0107",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0108",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0109",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0110",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0111",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0112",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0113",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0114",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0115",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0116",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0117",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0118",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0119",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0120",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0121",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0122",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0123",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0124",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0125",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0126",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0127",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0128",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0129",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0130",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0131",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0132",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0133",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0134",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0135",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0136",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0137",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0138",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0139",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0140",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0141",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0142",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0143",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0144",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0145",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0146",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0147",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0148",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0149",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0150",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0151",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0152",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0153",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0154",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0155",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0156",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0157",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0158",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0159",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0160",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0161",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0162",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0163",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0164",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0165",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0166",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0167",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0168",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0169",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0170",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0171",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0172",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0173",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0174",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0175",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0176",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0177",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0178",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0179",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0180",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0181",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0182",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0183",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0184",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0185",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0186",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0187",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0188",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0189",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0190",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0191",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0192",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0193",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0194",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0195",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0196",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0197",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0198",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0199",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0200",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0201",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0202",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0203",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0204",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0205",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0206",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0207",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0208",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0209",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0210",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0211",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0212",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0213",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0214",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0215",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0216",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0217",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0218",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0219",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0220",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0221",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0222",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0223",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0224",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0225",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0226",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0227",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0228",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0229",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0230",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0231",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0232",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0233",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0234",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0235",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0236",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0237",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0238",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0239",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0240",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0241",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0242",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0243",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0244",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0245",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0246",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0247",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0248",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0249",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0250",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0251",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0252",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0253",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0254",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0255",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0256",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0257",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0258",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0259",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0260",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0261",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0262",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0263",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0264",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0265",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0266",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0267",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0268",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0269",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0270",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0271",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0272",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0273",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0274",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0275",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0276",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0277",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0278",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0279",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0280",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0281",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0282",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0283",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0284",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0285",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0286",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0287",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0288",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0289",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0290",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0291",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0292",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0293",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0294",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0295",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0296",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0297",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0298",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0299",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0300",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0301",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0302",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0303",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0304",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0305",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0306",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0307",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0308",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0309",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0310",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0311",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0312",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0313",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0314",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0315",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0316",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0317",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0318",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0319",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0320",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0321",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0322",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0323",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0324",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0325",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0326",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0327",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0328",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0329",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0330",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0331",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0332",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0333",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0334",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0335",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0336",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0337",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0338",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0339",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0340",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0341",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0342",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0343",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0344",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0345",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0346",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0347",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0348",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0349",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0350",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0351",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0352",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0353",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0354",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0355",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0356",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0357",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0358",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0359",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0360",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0361",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0362",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0363",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0364",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0365",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0366",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0367",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0368",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0369",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0370",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0371",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0372",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0373",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0374",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0375",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0376",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0377",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0378",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0379",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0380",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0381",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0382",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0383",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0384",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0385",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0386",
+      "split": "train",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0387",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0388",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0389",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0390",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0391",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0392",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0393",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0394",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0395",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0396",
+      "split": "train",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0397",
+      "split": "train",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0398",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0399",
+      "split": "train",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0400",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0401",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0402",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0403",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0404",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0405",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0406",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0407",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0408",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0409",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0410",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0411",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0412",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0413",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0414",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0415",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0416",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0417",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0418",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0419",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0420",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0421",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0422",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0423",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0424",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0425",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0426",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0427",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0428",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0429",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0430",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0431",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0432",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0433",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0434",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0435",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0436",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0437",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0438",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0439",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0440",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0441",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0442",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0443",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0444",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0445",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0446",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0447",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0448",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0449",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0450",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0451",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0452",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0453",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0454",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0455",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0456",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0457",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0458",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0459",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0460",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0461",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0462",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0463",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0464",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0465",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0466",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0467",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0468",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0469",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0470",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0471",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0472",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0473",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0474",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0475",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0476",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0477",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0478",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0479",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0480",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0481",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0482",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0483",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0484",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0485",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0486",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0487",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0488",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0489",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0490",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0491",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0492",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0493",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0494",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0495",
+      "split": "eval",
+      "actual_action": "poor_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0496",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0497",
+      "split": "eval",
+      "actual_action": "skip_recommended",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0498",
+      "split": "eval",
+      "actual_action": "partial_execution",
+      "verified": true,
+      "correct": true
+    },
+    {
+      "decision_id": "bench-0499",
+      "split": "eval",
+      "actual_action": "strong_execution",
+      "verified": true,
+      "correct": true
+    }
+  ]
+}

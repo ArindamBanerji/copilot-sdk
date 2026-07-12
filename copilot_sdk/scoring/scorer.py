@@ -17,6 +17,7 @@ import numpy as np
 
 from copilot_sdk.scoring.config import DomainPreset
 from copilot_sdk.scoring.conflict import JudgmentConflict, detect_conflict
+from copilot_sdk.evidence.provenance import Provenanced
 from copilot_sdk.scoring.fingerprint import FingerprintResult, compute_fingerprint
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
@@ -132,6 +133,7 @@ class CompoundingScorer:
         factors: dict[str, float],
         category: str,
     ) -> tuple[int, dict[str, float], np.ndarray, Any, int, str, list[float]]:
+        _reject_sample_provenance(factors)
         assert category in self._preset.shape.category_names, f"unknown category: {category}"
         unknown = set(factors) - set(self._preset.shape.factor_names)
         assert not unknown, f"unknown factors: {sorted(unknown)}"
@@ -319,6 +321,33 @@ class CompoundingScorer:
 
         after = getattr(self._scorer, "_dk_weights", None)
         if after is None:
+            graph_decisions = _dk_decisions_from_store(self._graph_store, self._preset.shape.n_factors)
+            if len(graph_decisions) >= 2:
+                graph_decision_count = len(graph_decisions)
+                after = CoordinateDescentEstimator().estimate(
+                    graph_decisions,
+                    self._scorer.centroids,
+                    self._preset.shape.n_categories,
+                    self._preset.shape.n_factors,
+                )
+                if float(np.var(np.asarray(after, dtype=np.float64))) < 1e-12:
+                    if graph_decision_count < 200:
+                        logger.warning(
+                            "DK estimation: insufficient decisions (N=%s < 200), using dispersion fallback",
+                            graph_decision_count,
+                        )
+                        after = _dk_factor_dispersion_weights(
+                            graph_decisions,
+                            self._preset.shape.n_categories,
+                            self._preset.shape.n_factors,
+                        )
+                    else:
+                        logger.warning(
+                            "DK estimation: uniform weights at N=%s decisions (genuine no-discrimination signal)",
+                            graph_decision_count,
+                        )
+                setattr(self._scorer, "_dk_weights", after)
+        if after is None:
             return False
         after_array = np.asarray(after, dtype=np.float64).copy()
         if before_array is None:
@@ -503,6 +532,7 @@ class CompoundingScorer:
             is_correct=is_correct,
             metadata=outcome_metadata,
         )
+        self._refresh_dk_after_learn()
         invoice_id = (context or {}).get("invoice_id")
         link_decision_to_entity = getattr(self._graph_store, "link_decision_to_entity", None)
         if invoice_id and callable(link_decision_to_entity):
@@ -778,6 +808,15 @@ class CompoundingScorer:
         )
         return round(iks, 1)
 
+    def _refresh_dk_after_learn(self) -> None:
+        """Refresh DK weights once enough verified decisions exist."""
+        if self.get_verified_count() < 400:
+            return
+        try:
+            self.reestimate_dk_if_due()
+        except Exception as exc:
+            logger.warning("DK re-estimation failed for %s: %s", self._domain, exc)
+
     def _conservation_pause(self) -> dict[str, Any] | None:
         try:
             verified, correct, override_rate = _conservation_stats(self._graph_store)
@@ -787,6 +826,23 @@ class CompoundingScorer:
             return None
 
         q = correct / verified
+        recent_window = max(int(getattr(self._preset, "conservation_recent_window", 100)), 1)
+        recent_q_threshold = float(getattr(self._preset, "conservation_recent_q_threshold", 0.75))
+        recent_quality = _recent_quality(self._graph_store, window=recent_window)
+        if recent_quality is not None:
+            recent_count, recent_q = recent_quality
+            if recent_count >= recent_window and recent_q < recent_q_threshold:
+                return {
+                    "status": "paused",
+                    "reason": "conservation_red",
+                    "q": q,
+                    "theta_min": recent_q_threshold,
+                    "verified_count": verified,
+                    "correct_count": correct,
+                    "override_rate": override_rate,
+                    "recent_q": recent_q,
+                    "recent_window": recent_count,
+                }
         theta_min = compute_theta_min(override_rate, verified)
         dispersion = _conservation_dispersion(self._graph_store)
         effective_q = q
@@ -1040,7 +1096,7 @@ def _conservation_counts(store: Any) -> tuple[int, int]:
 
 
 def _conservation_dispersion(store: Any) -> dict[str, float] | None:
-    verified_decisions = _verified_decisions(store)
+    verified_decisions = _conservation_verified_decisions(store)
     if not verified_decisions:
         return None
     q_window = [
@@ -1071,9 +1127,60 @@ def _block_bootstrap_mean_se(q_window: list[float]) -> Any:
     return getattr(quant_module, "block_bootstrap_mean_se")(q_window, block=20, n_boot=200)
 
 
+def _reject_sample_provenance(factors: dict[str, Any]) -> None:
+    for name, value in factors.items():
+        if isinstance(value, Provenanced) and str(value.source).strip().lower() == "sample":
+            raise ValueError(f"F-22: sample-provenance value cannot enter scoring: {name}")
+
+
+def _dk_decisions_from_store(store: Any, n_dims: int) -> list[tuple[np.ndarray, int, int]]:
+    decisions = _verified_decisions(store) or []
+    output: list[tuple[np.ndarray, int, int]] = []
+    for decision in decisions:
+        if not _is_correct_decision(decision):
+            continue
+        vector = np.asarray(_decision_field(decision, "factor_vector", []), dtype=np.float64)
+        if vector.shape != (n_dims,):
+            continue
+        try:
+            category_index = int(_decision_field(decision, "category_index", 0))
+            action_index = int(_decision_field(decision, "actual_index", _decision_field(decision, "recommended_index", 0)))
+        except (TypeError, ValueError):
+            continue
+        output.append((vector, category_index, action_index))
+    return output
+
+
+def _dk_factor_dispersion_weights(
+    decisions: list[tuple[np.ndarray, int, int]],
+    n_categories: int,
+    n_dims: int,
+) -> np.ndarray:
+    vectors = np.asarray([vector for vector, _category, _action in decisions], dtype=np.float64)
+    if vectors.ndim != 2 or vectors.shape[1] != n_dims:
+        return np.ones((n_categories, n_dims), dtype=np.float64)
+    variances = np.var(vectors, axis=0)
+    mean_variance = float(np.mean(variances))
+    if mean_variance <= 0.0:
+        return np.ones((n_categories, n_dims), dtype=np.float64)
+    weights = np.clip(variances / mean_variance, 0.25, 4.0)
+    return np.tile(weights.reshape(1, n_dims), (n_categories, 1))
+
+
+def _recent_quality(store: Any, *, window: int) -> tuple[int, float] | None:
+    verified_decisions = _conservation_verified_decisions(store)
+    if not verified_decisions:
+        return None
+    recent = verified_decisions[-max(int(window), 1):]
+    if not recent:
+        return None
+    correct = sum(1 for decision in recent if _is_correct_decision(decision))
+    return len(recent), correct / len(recent)
+
+
 def _conservation_stats(store: Any) -> tuple[int, int, float]:
     domain = _store_domain(store)
-    verified_decisions = _verified_decisions(store)
+    verified_decisions = _conservation_verified_decisions(store)
     if verified_decisions is not None:
         verified = len(verified_decisions)
         correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
@@ -1110,6 +1217,17 @@ def _verified_decisions(store: Any) -> list[dict[str, Any]] | None:
     if decisions is None:
         return None
     return [decision for decision in decisions if _is_verified_decision(decision)]
+
+
+def _conservation_verified_decisions(store: Any) -> list[dict[str, Any]] | None:
+    decisions = _verified_decisions(store)
+    if decisions is None:
+        return None
+    return [
+        decision
+        for decision in decisions
+        if not _is_benchmark_decision(decision)
+    ]
 
 
 def _store_domain(store: Any) -> str:
@@ -1199,6 +1317,18 @@ def _is_override_decision(decision: dict[str, Any]) -> bool:
     if actual_action is None or recommended_action is None:
         return False
     return str(actual_action) != str(recommended_action)
+
+
+def _is_benchmark_decision(decision: dict[str, Any]) -> bool:
+    context = decision.get("context")
+    if isinstance(context, dict) and context.get("benchmark") is True:
+        return True
+    metadata = decision.get("outcome_metadata")
+    if isinstance(metadata, dict):
+        nested = metadata.get("context")
+        if isinstance(nested, dict) and nested.get("benchmark") is True:
+            return True
+    return False
 
 
 def _positive_penalty_ratio(value: Any) -> float:
