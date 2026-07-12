@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import math
+import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Protocol
 
+from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.evolution.protocol import EvolutionEvent, EvolutionLedger
 from copilot_sdk.evolution.variant_store import InMemoryVariantStore, VariantSpec, VariantStats
+
+
+logger = logging.getLogger(__name__)
 
 
 class _VariantStatsLike(Protocol):
@@ -35,6 +40,7 @@ class PromptEvolverConfig:
     on_outcome_recorded: Callable[[dict[str, Any]], None] | None = None
     on_promoted: Callable[[dict[str, Any]], None] | None = None
     on_rejected: Callable[[dict[str, Any]], None] | None = None
+    conservation_state_provider: Callable[[], Any] | None = None
 
     def __post_init__(self) -> None:
         self.categories = [str(category) for category in self.categories]
@@ -60,6 +66,7 @@ class PromptVariantEvolver:
         self._config = config or PromptEvolverConfig()
         self._store = store or InMemoryVariantStore()
         self._ledger = ledger
+        self._promotion_gate = DefaultPromotionGate()
 
     @property
     def store(self) -> InMemoryVariantStore:
@@ -141,10 +148,14 @@ class PromptVariantEvolver:
         self._emit_lifecycle_event("shadow_completed", variant_id, payload)
         self._emit_outcome_hook(payload)
 
-    def check_for_promotion(self, family: str | None = None) -> dict | None:
+    def check_for_promotion(
+        self,
+        family: str | None = None,
+        conservation_state: Any = None,
+    ) -> dict | None:
         families = [family] if family is not None else self._families_in_order()
         for family_name in families:
-            result = self._check_family_for_promotion(family_name)
+            result = self._check_family_for_promotion(family_name, conservation_state)
             if result is not None:
                 return result
         return None
@@ -178,7 +189,7 @@ class PromptVariantEvolver:
     def reset_stats(self) -> None:
         self._store.reset_stats_only()
 
-    def _check_family_for_promotion(self, family: str) -> dict | None:
+    def _check_family_for_promotion(self, family: str, conservation_state: Any = None) -> dict | None:
         variants = self._store.get_variants_by_family(family)
         active_variants = [variant for variant in variants if variant.status == "active"]
         if not active_variants:
@@ -202,6 +213,46 @@ class PromptVariantEvolver:
 
         if not candidates:
             return None
+
+        conservation_state = self._resolve_conservation_state(conservation_state)
+        if not self._promotion_gate._is_conservation_safe(conservation_state):
+            _, blocked, blocked_stats, candidate_rate, improvement = max(
+                candidates,
+                key=lambda candidate: (
+                    candidate[4],
+                    candidate[3],
+                    -candidate[0],
+                ),
+            )
+            logger.warning(
+                "Prompt variant promotion blocked: conservation=%s, variant=%s",
+                conservation_state,
+                blocked.id,
+            )
+            result = {
+                "family": family,
+                "promoted": False,
+                "reason": "conservation",
+                "message": "Prompt variant promotion blocked: conservation RED",
+                "candidate_id": blocked.id,
+                "previous_id": active_variant.id,
+                "improvement": improvement,
+                "candidate_rate": candidate_rate,
+                "active_rate": active_rate,
+                "candidate_total": blocked_stats.total,
+            }
+            self._emit_lifecycle_event(
+                "rejected",
+                blocked.id,
+                {
+                    **result,
+                    "variant_id": blocked.id,
+                    "previous_active": active_variant.id,
+                },
+            )
+            if self._config.on_rejected is not None:
+                self._config.on_rejected(dict(result))
+            return result
 
         _, promoted, promoted_stats, candidate_rate, improvement = max(
             candidates,
@@ -235,6 +286,17 @@ class PromptVariantEvolver:
         if self._config.on_promoted is not None:
             self._config.on_promoted(dict(result))
         return result
+
+    def _resolve_conservation_state(self, conservation_state: Any = None) -> Any:
+        if conservation_state is not None:
+            return conservation_state
+        provider = self._config.conservation_state_provider
+        if provider is None:
+            return None
+        try:
+            return provider()
+        except Exception:
+            return None
 
     def _families_in_order(self) -> list[str]:
         families: list[str] = []

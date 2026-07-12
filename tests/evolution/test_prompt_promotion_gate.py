@@ -12,6 +12,9 @@ from copilot_sdk.evolution import (
 import copilot_sdk.evolution.prompt_evolver as prompt_evolver_module
 
 
+GREEN = {"status": "GREEN"}
+
+
 def _variant(
     variant_id: str,
     *,
@@ -53,7 +56,7 @@ def test_promotion_when_candidate_exceeds_threshold():
     _record(evolver, "active-a", 6, 4)
     _record(evolver, "candidate-a", 9, 1)
 
-    result = evolver.check_for_promotion("family-a")
+    result = evolver.check_for_promotion("family-a", conservation_state=GREEN)
 
     assert result["promoted_id"] == "candidate-a"
     assert result["previous_id"] == "active-a"
@@ -88,7 +91,7 @@ def test_promotion_updates_variant_statuses():
     _record(evolver, "active-a", 6, 4)
     _record(evolver, "candidate-a", 9, 1)
 
-    evolver.check_for_promotion("family-a")
+    evolver.check_for_promotion("family-a", conservation_state=GREEN)
 
     assert evolver.store.get_variant("active-a").status == "retired"
     assert evolver.store.get_variant("candidate-a").status == "active"
@@ -99,7 +102,7 @@ def test_promotion_returns_result_dict():
     _record(evolver, "active-a", 6, 4)
     _record(evolver, "candidate-a", 9, 1)
 
-    result = evolver.check_for_promotion("family-a")
+    result = evolver.check_for_promotion("family-a", conservation_state=GREEN)
 
     assert result == {
         "family": "family-a",
@@ -146,7 +149,7 @@ def test_promotion_family_none_checks_all():
     _record(evolver, "active-b", 6, 4)
     _record(evolver, "candidate-b", 9, 1)
 
-    result = evolver.check_for_promotion()
+    result = evolver.check_for_promotion(conservation_state=GREEN)
 
     assert result["family"] == "family-b"
     assert result["promoted_id"] == "candidate-b"
@@ -207,7 +210,7 @@ def test_shadow_thresholds_in_config_not_used_by_simple_promotion():
     _record(evolver, "active-a", 6, 4)
     _record(evolver, "candidate-a", 9, 1)
 
-    assert evolver.check_for_promotion("family-a")["promoted_id"] == "candidate-a"
+    assert evolver.check_for_promotion("family-a", conservation_state=GREEN)["promoted_id"] == "candidate-a"
 
 
 def test_on_promoted_hook_called():
@@ -216,7 +219,7 @@ def test_on_promoted_hook_called():
     _record(evolver, "active-a", 6, 4)
     _record(evolver, "candidate-a", 9, 1)
 
-    evolver.check_for_promotion("family-a")
+    evolver.check_for_promotion("family-a", conservation_state=GREEN)
 
     assert calls[0]["promoted_id"] == "candidate-a"
     assert calls[0]["previous_id"] == "active-a"
@@ -263,7 +266,7 @@ def test_lifecycle_event_emitted_to_ledger():
     _record(evolver, "active-a", 6, 4)
     _record(evolver, "candidate-a", 9, 1)
 
-    evolver.check_for_promotion("family-a")
+    evolver.check_for_promotion("family-a", conservation_state=GREEN)
 
     events = ledger.get_events()
     assert events[0]["event_type"] == "promoted"
