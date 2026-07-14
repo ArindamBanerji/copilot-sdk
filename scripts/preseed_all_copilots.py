@@ -90,7 +90,7 @@ DOMAINS = [
     DomainConfig(
         name="trading",
         env_var="TRADING_URL",
-        default_url="http://localhost:8010",
+        default_url="http://127.0.0.1:8010",
         seed_path=REPO_ROOT / "apps" / "trading" / "backend" / "data" / "trading_seed_v2.json",
         factors=TRADING_FACTORS,
         actions=["strong_execution", "partial_execution", "poor_execution", "skip_recommended"],
@@ -100,7 +100,7 @@ DOMAINS = [
     DomainConfig(
         name="purchasing",
         env_var="PURCHASING_URL",
-        default_url="http://localhost:8020",
+        default_url="http://127.0.0.1:8020",
         seed_path=REPO_ROOT / "apps" / "purchasing" / "backend" / "data" / "purchasing_seed_v2.json",
         factors=PURCHASING_FACTORS,
         actions=["order_as_planned", "order_more", "order_less", "skip"],
@@ -110,7 +110,7 @@ DOMAINS = [
     DomainConfig(
         name="dataops",
         env_var="DATAOPS_URL",
-        default_url="http://localhost:8030",
+        default_url="http://127.0.0.1:8030",
         seed_path=REPO_ROOT / "copilot_sdk" / "scoring" / "presets" / "dataops_seed.json",
         factors=DATAOPS_FACTORS,
         actions=[

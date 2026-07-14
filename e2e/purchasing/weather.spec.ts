@@ -1,5 +1,5 @@
-import { test, expect } from "../fixtures/copilot-fixture";
-import { expectAnyText } from "../helpers/ui";
+﻿import { test, expect } from "../fixtures/copilot-fixture";
+import { expectAnyText, waitForAppShell } from "../helpers/ui";
 
 test("weather endpoint returns forecast data", async ({ page }) => {
   const response = await page.request.get("http://127.0.0.1:8020/api/context/weather");
@@ -10,7 +10,14 @@ test("weather endpoint returns forecast data", async ({ page }) => {
 
 test("weather endpoint returns category risk levels", async ({ page }) => {
   await page.goto("/");
-  await expectAnyText(page, [/Produce/i, /Seafood/i, /Dairy/i, /Dry goods/i]);
+  await waitForAppShell(page, 20_000);
+  const card = page.locator("section", { hasText: "Weather Intelligence" });
+  await expect(card).toBeVisible({ timeout: 20_000 });
+  await expect(card.getByText(/Checking the forecast/i)).toBeHidden({ timeout: 20_000 });
+  await expect(card.getByText(/^Produce$/i)).toBeVisible();
+  await expect(card.getByText(/^Seafood$/i)).toBeVisible();
+  await expect(card.getByText(/^Dairy$/i)).toBeVisible();
+  await expect(card.getByText(/^Dry goods$/i)).toBeVisible();
 });
 
 test("weather impact card renders on dashboard", async ({ page }) => {

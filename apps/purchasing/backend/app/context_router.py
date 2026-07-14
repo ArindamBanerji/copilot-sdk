@@ -196,12 +196,46 @@ def _get_weather() -> dict[str, Any]:
     if use_live:
         live = asdict(get_weather_factor(use_live=True))
         if live.get("source") == "live":
-            return live
+            return _with_weather_risk_levels(live)
 
     cache_path = _DATA_DIR / "weather_cache.json"
     if cache_path.exists():
-        return _load_json(cache_path)
-    return asdict(get_weather_factor(use_live=False))
+        return _with_weather_risk_levels(_load_json(cache_path))
+    return _with_weather_risk_levels(asdict(get_weather_factor(use_live=False)))
+
+
+def _with_weather_risk_levels(payload: dict[str, Any]) -> dict[str, Any]:
+    enriched = dict(payload)
+    condition = _weather_condition(enriched)
+    enriched.setdefault("condition", condition)
+    enriched.setdefault("category_risk_levels", _category_risk_levels(condition))
+    return enriched
+
+
+def _weather_condition(payload: dict[str, Any]) -> str:
+    condition = str(payload.get("condition") or payload.get("forecast") or "").lower()
+    if condition:
+        return condition
+    precipitation = float(payload.get("precipitation_prob") or payload.get("precipitationProb") or 0.0)
+    temperature = float(payload.get("temperature_f") or payload.get("temperatureF") or 70.0)
+    wind = float(payload.get("wind_mph") or payload.get("windMph") or 0.0)
+    if precipitation >= 0.75 or wind >= 45:
+        return "storm"
+    if temperature >= 90:
+        return "heat"
+    if precipitation >= 0.25:
+        return "rain"
+    return "calm"
+
+
+def _category_risk_levels(condition: str) -> dict[str, str]:
+    if condition == "storm":
+        return {"produce": "HIGH", "seafood": "HIGH", "dairy": "MODERATE", "dry_goods": "LOW"}
+    if condition == "heat":
+        return {"produce": "MODERATE", "seafood": "MODERATE", "dairy": "HIGH", "dry_goods": "LOW"}
+    if condition == "rain":
+        return {"produce": "MODERATE", "seafood": "LOW", "dairy": "LOW", "dry_goods": "LOW"}
+    return {"produce": "LOW", "seafood": "LOW", "dairy": "LOW", "dry_goods": "LOW"}
 
 
 @router.get("/today-summary")

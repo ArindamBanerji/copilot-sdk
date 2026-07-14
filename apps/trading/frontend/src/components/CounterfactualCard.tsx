@@ -1,44 +1,115 @@
+import { useEffect, useState } from "react";
+import { postCounterfactual, type CounterfactualResponse } from "../api";
 import type { Analytics } from "../types";
+import ProvenanceBadge from "./ProvenanceBadge";
 
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+// NOTE: This component is duplicated in copilot-sdk/apps/s2p/frontend/src/components/CounterfactualCard.tsx.
+// If you modify this file, update the counterpart.
+// Duplication exists because SDK apps and S2P have separate frontend build pipelines.
+// A shared component library would eliminate this but is out of scope for this batch.
+
+const BASE_FACTORS = {
+  signal_alignment: 0.8,
+  market_regime: 0.7,
+  position_sizing: 0.6,
+  timing_quality: 0.6,
+  risk_reward_actual: 0.7,
+  emotional_indicator: 0.5,
+};
+
+const PERTURBED_FACTORS = {
+  ...BASE_FACTORS,
+  signal_alignment: 0.2,
+};
+
+function score(value: number | undefined): string {
+  return typeof value === "number" ? value.toFixed(2) : "-";
 }
 
-function num(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+function delta(value: number | undefined): string {
+  if (typeof value !== "number") return "-";
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
 }
 
-function pct(value: unknown): string {
-  return typeof value === "number" ? `${(value * 100).toFixed(0)}%` : "-";
-}
+export default function CounterfactualCard(_props: { analytics?: Analytics }) {
+  const [result, setResult] = useState<CounterfactualResponse | null>(null);
+  const [sampleRefusal, setSampleRefusal] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function CounterfactualCard({ analytics }: { analytics?: Analytics }) {
-  const counterfactual = asRecord(analytics?.counterfactual);
-  const tradesSkipped = num(counterfactual.tradesSkipped) ?? num(counterfactual.skippedTradeCount);
-  const dollarsSaved = num(counterfactual.dollarsSaved);
-  const explanation = typeof counterfactual.explanation === "string"
-    ? counterfactual.explanation
-    : typeof counterfactual.scenario === "string"
-      ? counterfactual.scenario
-      : "No counterfactual scenario is available yet.";
+  useEffect(() => {
+    let cancelled = false;
+    postCounterfactual({
+      base_factors: BASE_FACTORS,
+      perturbed_factors: PERTURBED_FACTORS,
+      category: "trend_following",
+    })
+      .then((payload) => {
+        if (!cancelled) setResult(payload);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Counterfactual unavailable");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function trySample() {
+    const payload = await postCounterfactual({
+      base_factors: {
+        ...BASE_FACTORS,
+        signal_alignment: { value: 0.8, provenance: "sample" },
+      },
+      perturbed_factors: PERTURBED_FACTORS,
+      category: "trend_following",
+    });
+    setSampleRefusal(payload.error || "F-22: sample-provenance value cannot enter scoring");
+  }
 
   return (
-    <section className="copilot-card p-4">
-      <h2 className="text-base font-semibold">Counterfactual</h2>
-      <p className="mt-1 text-sm trading-muted">{explanation}</p>
-      <div className="mt-4 grid gap-3 md:grid-cols-4">
-        <Stat label="Dollars saved" value={typeof dollarsSaved === "number" ? `$${dollarsSaved.toLocaleString()}` : "-"} />
-        <Stat label="Trades skipped" value={typeof tradesSkipped === "number" ? String(tradesSkipped) : "-"} />
-        <Stat label="Original win rate" value={pct(counterfactual.originalWinRate)} />
-        <Stat label="Adjusted win rate" value={pct(counterfactual.adjustedWinRate)} />
+    <section className="copilot-card p-4" data-testid="counterfactual-card">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-base font-semibold">What If?</h2>
+        {result && <ProvenanceBadge source={result.provenance || "learned"} />}
       </div>
+      {loading && <p className="mt-3 text-sm trading-muted">Calculating counterfactual...</p>}
+      {!loading && error && <p className="mt-3 text-sm trading-muted">Counterfactual unavailable.</p>}
+      {!loading && !error && (
+        <div className="mt-4 space-y-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <Stat label="Original score" value={score(result?.baseScore)} testId="counterfactual-base-score" />
+            <Stat label="Perturbed score" value={score(result?.perturbedScore)} testId="counterfactual-perturbed-score" />
+            <Stat label="Delta" value={delta(result?.delta)} testId="counterfactual-delta" />
+          </div>
+          <p className="text-sm trading-muted">
+            Changed: signal alignment (0.8 to 0.2)
+          </p>
+          <div className="rounded-md border px-3 py-3" style={{ borderColor: "var(--copilot-border)" }}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">Try feeding sample data</div>
+                <div className="text-sm trading-muted">
+                  {sampleRefusal ? `Refused: ${sampleRefusal}` : "Sample values must be rejected before scoring."}
+                </div>
+              </div>
+              <button type="button" className="trading-button" onClick={() => void trySample()}>
+                Try sample
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, testId }: { label: string; value: string; testId: string }) {
   return (
-    <div className="rounded-md border px-3 py-2" style={{ borderColor: "var(--copilot-border)" }}>
+    <div className="rounded-md border px-3 py-2" data-testid={testId} style={{ borderColor: "var(--copilot-border)" }}>
       <div className="text-xs trading-muted">{label}</div>
       <div className="text-lg font-semibold">{value}</div>
     </div>

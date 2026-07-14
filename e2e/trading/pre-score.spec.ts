@@ -2,7 +2,7 @@ import { type APIRequestContext, type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, collectConsoleErrors, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
 
-const BACKEND = process.env.TRADING_BACKEND || "http://localhost:8010";
+const BACKEND = process.env.TRADING_BACKEND || "http://127.0.0.1:8010";
 
 const factors = {
   signal_alignment: 0.7,

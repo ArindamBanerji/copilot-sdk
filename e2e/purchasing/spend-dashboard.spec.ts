@@ -1,7 +1,7 @@
 import { test, expect } from "../fixtures/copilot-fixture";
 import { waitForAppShell } from "../helpers/ui";
 
-const API_BASE = "http://localhost:8020";
+const API_BASE = "http://127.0.0.1:8020";
 
 test("Spend summary API returns totals", async ({ request }) => {
   const response = await request.get(`${API_BASE}/api/purchasing/spend/summary`);

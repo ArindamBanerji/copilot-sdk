@@ -39,7 +39,7 @@ export default function AcquisitionPanel() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch("http://localhost:8030/api/dataops/di/acquisitions");
+        const response = await fetch("http://127.0.0.1:8030/api/dataops/di/acquisitions");
         if (!response.ok) throw new Error("Acquisition recommendations unavailable");
         const payload = (await response.json()) as AcquisitionResponse;
         if (!cancelled) setData(payload);

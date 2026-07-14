@@ -45,7 +45,7 @@ import type {
   TransferStatusResponse,
 } from "./types";
 
-export const BASE = import.meta.env.VITE_API_URL || "http://localhost:8030";
+export const BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8030";
 
 const ACTION_NAMES = [
   "Auto-approve",

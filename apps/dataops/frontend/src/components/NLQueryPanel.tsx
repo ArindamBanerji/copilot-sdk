@@ -19,7 +19,7 @@ export default function NLQueryPanel() {
     setError(null);
     setResponse(null);
     try {
-      const result = await fetch("http://localhost:8030/api/dataops/query", {
+      const result = await fetch("http://127.0.0.1:8030/api/dataops/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),

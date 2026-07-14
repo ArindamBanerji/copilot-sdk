@@ -35,7 +35,7 @@ test("fingerprint renders factor names", async ({ page }) => {
 test("counterfactual card shows dollar or saved text", async ({ page }) => {
   await gotoAnalysis(page);
 
-  await expect(page.getByText("Counterfactual")).toBeVisible();
+  await expect(page.getByText(/what if/i)).toBeVisible();
   await expectAnyText(page, [/\$\d[\d,]*/, /saved/i, /scenario/i, /No counterfactual/i]);
 });
 

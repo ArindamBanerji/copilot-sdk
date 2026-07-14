@@ -54,6 +54,7 @@ from copilot_sdk.backend import (  # noqa: E402
     create_scoring_router,
     mount_self_computation_router,
 )
+from copilot_sdk.backend.counterfactual_router import create_counterfactual_router  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
@@ -316,6 +317,13 @@ def create_app(
             dk_welford_tracker=dk_welford_tracker,
         ),
         prefix="/api",
+    )
+    app.include_router(
+        create_counterfactual_router(
+            DOMAIN,
+            prefix="/api/trading/score",
+            scorer_provider=lambda: scorer_proxy,
+        )
     )
     app.include_router(create_transfer_router(scorer_proxy))
     app.include_router(create_archetype_router())

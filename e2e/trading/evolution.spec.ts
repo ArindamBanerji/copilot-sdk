@@ -24,7 +24,7 @@ test("active variant endpoint returns object or null", async ({ page }) => {
 
 test("evolution panel renders on Performance tab", async ({ page }) => {
   await openPerformanceTab(page);
-  const heading = page.getByRole("heading", { name: "Agent Evolution" });
+  const heading = page.getByRole("heading", { name: "Agent Evolution", exact: true });
   await heading.scrollIntoViewIfNeeded();
   await expect(heading).toBeVisible();
 });

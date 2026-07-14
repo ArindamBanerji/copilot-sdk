@@ -1,59 +1,60 @@
 {
   "domain": "dataops",
-  "exported_at": "2026-05-28T08:45:13Z",
+  "exported_at": "2026-07-14T02:35:37Z",
   "fingerprint": {
-    "decisions_analyzed": 20,
+    "decisions_analyzed": 308,
     "engine": {
       "gae": "gae.profile_scorer.ProfileScorer",
       "scoring": "copilot_sdk.scoring.CompoundingScorer"
     },
     "factors": [
       {
-        "interpretation": "moderate",
+        "interpretation": "noisy",
         "name": "impact_scope",
-        "sigma": 0.169,
-        "weight": 0.625
+        "sigma": 0.244,
+        "weight": 0.207
+      },
+      {
+        "interpretation": "moderate",
+        "name": "source_reliability",
+        "sigma": 0.111,
+        "weight": 1.0
       },
       {
         "interpretation": "noisy",
-        "name": "source_reliability",
-        "sigma": 0.206,
-        "weight": 0.418
-      },
-      {
-        "interpretation": "moderate",
         "name": "recurrence_frequency",
-        "sigma": 0.157,
-        "weight": 0.726
+        "sigma": 0.347,
+        "weight": 0.102
       },
       {
         "interpretation": "moderate",
         "name": "downstream_urgency",
-        "sigma": 0.17,
-        "weight": 0.619
+        "sigma": 0.15,
+        "weight": 0.549
       },
       {
-        "interpretation": "moderate",
+        "interpretation": "noisy",
         "name": "data_freshness",
-        "sigma": 0.133,
-        "weight": 1.0
+        "sigma": 0.238,
+        "weight": 0.216
       },
       {
         "interpretation": "moderate",
         "name": "business_criticality",
-        "sigma": 0.197,
-        "weight": 0.46
+        "sigma": 0.154,
+        "weight": 0.522
       }
     ],
-    "overall_win_rate": 0.7,
+    "overall_win_rate": 0.737,
     "per_category_precision": {
-      "freshness_violation": 1.0,
-      "pipeline_failure": 0.5,
+      "freshness_violation": 0.833,
+      "pipeline_failure": 0.774,
       "quality_anomaly": 0.5,
-      "schema_change": 0.667,
-      "transform_drift": 1.0,
-      "volume_anomaly": 0.667
-    }
+      "schema_change": 0.677,
+      "transform_drift": 0.667,
+      "volume_anomaly": 0.833
+    },
+    "skipped_decisions": 0
   },
-  "source_url": "http://localhost:8030/api/fingerprint"
+  "source_url": "http://127.0.0.1:8030/api/fingerprint"
 }

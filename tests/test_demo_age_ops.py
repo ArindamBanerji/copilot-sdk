@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 import demo
+from demo import COPILOTS
 
 
 # Removed: the old active graph API surface no longer exists in demo.py.
@@ -37,22 +38,15 @@ def _args(**overrides) -> argparse.Namespace:
     return argparse.Namespace(**values)
 
 
-def _selected_app(tmp_path: Path, *, name: str = "TestApp", requires_age: bool = False) -> dict:
+def _selected_copilot(tmp_path: Path, *, name: str = "Trading") -> dict:
+    source = next(copilot for copilot in COPILOTS if copilot["name"] == name)
     backend = tmp_path / name.lower() / "backend"
     frontend = tmp_path / name.lower() / "frontend"
     (backend / "app").mkdir(parents=True)
     (backend / "app" / "main.py").write_text("# test app\n", encoding="utf-8")
     frontend.mkdir(parents=True)
     (frontend / "package.json").write_text("{}", encoding="utf-8")
-    return {
-        "name": name,
-        "be_port": 9101,
-        "fe_port": 9201,
-        "be_path": backend,
-        "fe_path": frontend,
-        "requires_age": requires_age,
-        "graph_dsn": "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable",
-    }
+    return {**source, "be_path": backend, "fe_path": frontend}
 
 
 def _patch_safe_start(monkeypatch: pytest.MonkeyPatch, calls: list[tuple]) -> None:
@@ -226,7 +220,7 @@ def test_cmd_start_starts_backend_and_frontend_with_mocked_processes(
 ) -> None:
     calls: list[tuple] = []
     _patch_safe_start(monkeypatch, calls)
-    selected = [_selected_app(tmp_path)]
+    selected = [_selected_copilot(tmp_path, name="Trading")]
 
     demo.cmd_start(selected, _args())
 
@@ -244,12 +238,13 @@ def test_cmd_start_age_precheck_blocks_age_only_selection(
     calls: list[tuple] = []
     _patch_safe_start(monkeypatch, calls)
     monkeypatch.setattr(demo, "ensure_age_available", lambda dsn: calls.append(("age", dsn)) or False)
+    selected = [_selected_copilot(tmp_path, name="DataOps")]
 
     buf = io.StringIO()
     with redirect_stdout(buf):
-        demo.cmd_start([_selected_app(tmp_path, requires_age=True)], _args())
+        demo.cmd_start(selected, _args())
 
-    assert ("age", "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable") in calls
+    assert ("age", selected[0]["graph_dsn"]) in calls
     assert not [call for call in calls if call[0] == "popen"]
     assert "Cannot start AGE-dependent copilots" in buf.getvalue()
 
@@ -282,7 +277,7 @@ def test_cmd_start_diag_mode_writes_contract_after_healthy_backend(
         "write_soc_diag_contract",
         lambda **kwargs: calls.append(("write_contract", kwargs)),
     )
-    soc = _selected_app(tmp_path, name="SOC", requires_age=True)
+    soc = _selected_copilot(tmp_path, name="SOC")
     args = _args(
         diag_mode=True,
         age_use_pool=True,
@@ -300,7 +295,14 @@ def test_cmd_start_diag_mode_writes_contract_after_healthy_backend(
     assert write_calls[0][1]["pool_available"] == "true"
 
 
-def test_run_preseed_skips_when_no_supported_copilot(capsys: pytest.CaptureFixture[str]) -> None:
-    demo.run_preseed([{"name": "SOC"}])
+def test_run_preseed_skips_soc_live_preseed_when_no_soc_selected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+    dataops = [c for c in COPILOTS if c["name"] == "DataOps"]
+    monkeypatch.setattr(demo, "run_deterministic_preseed", lambda fail_hard=True: calls.append("deterministic"))
+    monkeypatch.setattr(demo, "run_soc_preseed", lambda copilot: calls.append(f"soc:{copilot['name']}"))
 
-    assert "No selected copilots support pre-seed; skipping" in capsys.readouterr().out
+    demo.run_preseed(dataops)
+
+    assert calls == ["deterministic"]

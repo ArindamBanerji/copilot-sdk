@@ -29,19 +29,19 @@ interface CopilotConfig {
 const COPILOTS: CopilotConfig[] = [
   {
     name: "trading",
-    url: "http://localhost:5174",
+    url: "http://127.0.0.1:5174",
     backendPort: 8010,
     tabs: ["Dashboard", "Log Trade", "Analysis", "Performance"],
   },
   {
     name: "purchasing",
-    url: "http://localhost:5175",
+    url: "http://127.0.0.1:5175",
     backendPort: 8020,
     tabs: ["Dashboard", "Order", "Analysis", "Inventory", "Performance"],
   },
   {
     name: "dataops",
-    url: "http://localhost:5176",
+    url: "http://127.0.0.1:5176",
     backendPort: 8030,
     tabs: ["Dashboard", "Triage", "Insight", "Evidence", "Curve"],
     setupSteps: {
@@ -80,7 +80,7 @@ interface CopilotContent {
 
 async function checkHealth(port: number): Promise<string> {
   try {
-    const resp = await fetch(`http://localhost:${port}/health`);
+    const resp = await fetch(`http://127.0.0.1:${port}/health`);
     const data = await resp.json();
     return `${data.status} (${data.domain || "unknown"})`;
   } catch {

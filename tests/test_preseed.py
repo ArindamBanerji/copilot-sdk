@@ -13,8 +13,18 @@ from copilot_sdk.scoring.verification.weather import get_weather_factor
 
 
 @pytest.fixture(scope="module")
-def preseed_result():
-    return DemoPreseed(seed=20260711).preseed_all()
+def preseed_result(tmp_path_factory):
+    previous_path = os.environ.get("TRADING_EVOLUTION_LOG_PATH")
+    os.environ["TRADING_EVOLUTION_LOG_PATH"] = str(
+        tmp_path_factory.mktemp("preseed") / "evolution_log.json"
+    )
+    try:
+        return DemoPreseed(seed=20260711).preseed_all()
+    finally:
+        if previous_path is None:
+            os.environ.pop("TRADING_EVOLUTION_LOG_PATH", None)
+        else:
+            os.environ["TRADING_EVOLUTION_LOG_PATH"] = previous_path
 
 
 def test_preseed_deterministic(preseed_result) -> None:

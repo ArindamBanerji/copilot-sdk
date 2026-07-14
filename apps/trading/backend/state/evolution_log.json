@@ -1,0 +1,48 @@
+{
+  "provenance": "learned",
+  "rejected_variants": [
+    {
+      "detail": "conservation gate not GREEN",
+      "provenance": "learned",
+      "reason": "conservation",
+      "tested_at": "2026-07-11T00:01:00Z",
+      "variant_id": "TRADING_AE_v1"
+    },
+    {
+      "detail": "conservation gate not GREEN",
+      "provenance": "learned",
+      "reason": "conservation",
+      "tested_at": "2026-07-11T00:02:00Z",
+      "variant_id": "TRADING_AE_v2"
+    },
+    {
+      "detail": "conservation gate not GREEN",
+      "provenance": "learned",
+      "reason": "conservation",
+      "tested_at": "2026-07-11T00:03:00Z",
+      "variant_id": "TRADING_AE_v3"
+    },
+    {
+      "detail": "conservation gate not GREEN",
+      "provenance": "learned",
+      "reason": "conservation",
+      "tested_at": "2026-07-11T00:04:00Z",
+      "variant_id": "TRADING_AE_v4"
+    },
+    {
+      "detail": "conservation gate not GREEN",
+      "provenance": "learned",
+      "reason": "conservation",
+      "tested_at": "2026-07-11T00:05:00Z",
+      "variant_id": "TRADING_AE_v5"
+    }
+  ],
+  "rejection_breakdown": {
+    "conservation": 5,
+    "correctness_floor": 0,
+    "variance_stability": 0
+  },
+  "total_promoted": 0,
+  "total_rejected": 5,
+  "total_tested": 5
+}

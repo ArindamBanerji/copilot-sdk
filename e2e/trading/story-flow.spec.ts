@@ -10,13 +10,13 @@ function panelByHeading(page: Page, heading: string | RegExp): Locator {
 }
 
 async function gotoDashboard(page: Page) {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
   await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i]);
 }
 
 async function gotoLogTrade(page: Page) {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
   await clickTab(page, "Log Trade");
   await waitForAppShell(page);
@@ -24,7 +24,7 @@ async function gotoLogTrade(page: Page) {
 }
 
 async function gotoAnalysis(page: Page) {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
   await clickTab(page, "Analysis");
   await waitForAppShell(page);
@@ -32,7 +32,7 @@ async function gotoAnalysis(page: Page) {
 }
 
 async function gotoPerformance(page: Page) {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
   await clickTab(page, "Performance");
   await waitForAppShell(page);

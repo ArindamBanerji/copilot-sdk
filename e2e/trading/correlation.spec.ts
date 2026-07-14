@@ -3,7 +3,7 @@ import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, collectConsoleErrors, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
 
 async function gotoAnalysis(page: Page) {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
   await clickTab(page, "Analysis");
   await waitForAppShell(page);

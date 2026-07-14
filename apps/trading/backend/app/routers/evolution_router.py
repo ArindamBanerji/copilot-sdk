@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+import os
+from pathlib import Path
 from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException
@@ -11,9 +14,17 @@ from copilot_sdk.backend.conservation_router import _check_payload, _state_count
 from copilot_sdk.scoring.evolution import EvolutionProposal, ScorerEvolution
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
-from app.services.trading_evolver import TradingAgentEvolver, create_default_trading_evolver
+from app.services.trading_evolver import (
+    MAX_VARIANCE_PP,
+    MIN_IMPROVEMENT_PP,
+    MIN_SHADOW_BATCHES,
+    TradingAgentEvolver,
+    create_default_trading_evolver,
+)
 
 GraphStoreFactory = Callable[[], Any]
+DEFAULT_REJECTION_LOG_PATH = Path(__file__).resolve().parents[2] / "state" / "evolution_log.json"
+REJECTION_LOG_ENV = "TRADING_EVOLUTION_LOG_PATH"
 
 
 class ShadowTestRequest(BaseModel):
@@ -41,6 +52,7 @@ def create_trading_evolution_router(
     domain: str = "trading",
 ) -> APIRouter:
     router = APIRouter(prefix="/api/trading/evolution", tags=["trading-evolution"])
+    use_persisted_rejections = evolver is None
     service = evolver or create_default_trading_evolver()
     parameter_service = ScorerEvolution("trading")
     parameter_config = _default_parameter_config()
@@ -60,6 +72,41 @@ def create_trading_evolution_router(
             normalized = kind.strip().lower()
             log = [entry for entry in log if str(entry.get("kind", "")).lower() == normalized]
         return log
+
+    @router.get("/rejection-summary")
+    def rejection_summary() -> dict[str, Any]:
+        persisted = _load_persisted_rejection_summary() if use_persisted_rejections else None
+        entries = _merge_rejection_entries(
+            _trading_rejection_entries(service),
+            persisted.get("rejected_variants", []) if persisted else [],
+        )
+        promoted = [
+            entry for entry in service.evolution_log()
+            if str(entry.get("status", "")).lower() == "promoted"
+        ]
+        tested = [
+            entry for entry in service.evolution_log()
+            if int(entry.get("batches") or 0) > 0
+        ]
+        breakdown = {
+            "correctness_floor": 0,
+            "conservation": 0,
+            "variance_stability": 0,
+        }
+        for entry in entries:
+            reason = str(entry.get("reason") or "")
+            if reason in breakdown:
+                breakdown[reason] += 1
+        persisted_tested = int(persisted.get("total_tested") or 0) if persisted else 0
+        persisted_promoted = int(persisted.get("total_promoted") or 0) if persisted else 0
+        return {
+            "total_tested": max(len(tested), persisted_tested),
+            "total_promoted": max(len(promoted), persisted_promoted),
+            "total_rejected": len(entries),
+            "rejection_breakdown": breakdown,
+            "rejected_variants": entries[:10],
+            "provenance": "learned",
+        }
 
     @router.get("/active")
     def active_variant() -> dict[str, Any]:
@@ -198,3 +245,82 @@ def _demo_decisions() -> list[dict[str, Any]]:
             "baseline_correct": index >= 5,
         })
     return rows
+
+
+def _trading_rejection_entries(service: TradingAgentEvolver) -> list[dict[str, Any]]:
+    rejected: list[dict[str, Any]] = []
+    for entry in service.evolution_log():
+        variant_id = str(entry.get("variant_id") or "")
+        if not variant_id or str(entry.get("status", "")).lower() == "promoted":
+            continue
+        batches = int(entry.get("batches") or 0)
+        if batches < MIN_SHADOW_BATCHES:
+            continue
+        check = service.check_promotion(variant_id)
+        if check.get("promotable"):
+            continue
+        reason = _canonical_rejection_reason(str(check.get("reason") or ""))
+        rejected.append({
+            "variant_id": variant_id,
+            "reason": reason,
+            "detail": _rejection_detail(reason, check, entry),
+            "tested_at": entry.get("created_at"),
+        })
+    return rejected
+
+
+def _rejection_log_path() -> Path:
+    configured = os.environ.get(REJECTION_LOG_ENV)
+    return Path(configured) if configured else DEFAULT_REJECTION_LOG_PATH
+
+
+def _load_persisted_rejection_summary(path: Path | None = None) -> dict[str, Any] | None:
+    log_path = path or _rejection_log_path()
+    if not log_path.exists():
+        return None
+    try:
+        payload = json.loads(log_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    return payload
+
+
+def _merge_rejection_entries(
+    live_entries: list[dict[str, Any]],
+    persisted_entries: list[Any],
+) -> list[dict[str, Any]]:
+    merged: dict[str, dict[str, Any]] = {}
+    for raw_entry in [*persisted_entries, *live_entries]:
+        if not isinstance(raw_entry, dict):
+            continue
+        variant_id = str(raw_entry.get("variant_id") or raw_entry.get("variantId") or "")
+        if not variant_id:
+            continue
+        merged[variant_id] = {
+            "variant_id": variant_id,
+            "reason": str(raw_entry.get("reason") or "correctness_floor"),
+            "detail": str(raw_entry.get("detail") or "promotion gate rejected variant"),
+            "tested_at": raw_entry.get("tested_at") or raw_entry.get("created_at"),
+        }
+    return list(merged.values())
+
+
+def _canonical_rejection_reason(reason: str) -> str:
+    mapping = {
+        "insufficient_improvement": "correctness_floor",
+        "conservation_not_green": "conservation",
+        "unstable_improvement": "variance_stability",
+    }
+    return mapping.get(reason, "correctness_floor")
+
+
+def _rejection_detail(reason: str, check: dict[str, Any], entry: dict[str, Any]) -> str:
+    if reason == "correctness_floor":
+        improvement = float(entry.get("avg_improvement_pp") or 0.0)
+        return f"improvement {improvement:.1f}pp < floor {MIN_IMPROVEMENT_PP:.1f}pp"
+    if reason == "conservation":
+        return "conservation gate not GREEN"
+    variance = float(check.get("variance_pp") or 0.0)
+    return f"variance {variance:.1f}pp >= threshold {MAX_VARIANCE_PP:.1f}pp"

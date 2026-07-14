@@ -1,7 +1,7 @@
 import { test, expect } from "../fixtures/copilot-fixture";
 import { collectConsoleErrors, clickTab, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
 
-const BACKEND = process.env.PURCHASING_BACKEND || "http://localhost:8020";
+const BACKEND = process.env.PURCHASING_BACKEND || "http://127.0.0.1:8020";
 const states = ["INSTRUMENT_VALIDATED", "ACCUMULATING", "MEASURED"];
 
 async function gotoPanel(page: import("@playwright/test").Page) {

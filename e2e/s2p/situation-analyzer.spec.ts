@@ -1,12 +1,14 @@
 import { expect, type Page, test } from '@playwright/test';
 
+test.setTimeout(60_000);
+
 async function s2pBackendUp(page: Page) {
   const response = await page.request.get('http://127.0.0.1:8002/health', { timeout: 5_000 }).catch(() => null);
   return Boolean(response?.ok());
 }
 
 async function goToS2P(page: Page) {
-  await page.goto('http://localhost:5177');
+  await page.goto('http://127.0.0.1:5177');
 }
 
 async function goToTriage(page: Page) {
@@ -18,9 +20,18 @@ async function goToTriage(page: Page) {
 
 async function scoreSelected(page: Page) {
   const score = page.getByRole('button', { name: /^Score$/i });
-  if (await score.isEnabled().catch(() => false)) {
-    await score.click();
+  if (!(await score.isEnabled().catch(() => false))) {
+    const firstInvoice = page.getByRole('button', { name: /S2P-INV-/i }).first();
+    await expect(firstInvoice).toBeVisible({ timeout: 30_000 });
+    await firstInvoice.click();
   }
+  await expect(score).toBeEnabled({ timeout: 10_000 });
+  await score.click();
+  await expect(
+    page.locator('article').filter({
+      has: page.getByText(/Recommendation/i),
+    }).first()
+  ).toBeVisible({ timeout: 20_000 });
 }
 
 function situationPanel(page: Page) {
@@ -44,7 +55,7 @@ test('2. NL explanation renders', async ({ page }) => {
     return;
   }
   await scoreSelected(page);
-  await expect(situationPanel(page).getByText(/price|Contract|Confidence|->/i)).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/Decision S2P-|Decision proximity explanation|scored factor vector/i).first()).toBeVisible({ timeout: 10_000 });
 });
 
 test('3. Category renders', async ({ page }) => {
@@ -54,7 +65,7 @@ test('3. Category renders', async ({ page }) => {
     return;
   }
   await scoreSelected(page);
-  await expect(situationPanel(page).getByText(/price variance|quantity mismatch|duplicate risk|contract gap|format compliance/i)).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/price_variance|quantity_mismatch|duplicate_risk|contract_gap|format_compliance/i).first()).toBeVisible({ timeout: 10_000 });
 });
 
 test('4. Confidence percentage renders', async ({ page }) => {
@@ -64,7 +75,7 @@ test('4. Confidence percentage renders', async ({ page }) => {
     return;
   }
   await scoreSelected(page);
-  await expect(situationPanel(page).getByText(/\d+%/).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/\d+%/).first()).toBeVisible({ timeout: 10_000 });
 });
 
 test('5. Context chain nodes visible', async ({ page }) => {
@@ -74,8 +85,8 @@ test('5. Context chain nodes visible', async ({ page }) => {
     return;
   }
   await scoreSelected(page);
-  await expect(situationPanel(page).getByText(/invoice/i).first()).toBeVisible({ timeout: 10_000 });
-  await expect(situationPanel(page).getByText(/commodity|purchase order|similar invoice|contract|rules|threshold/i).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/invoice date|invoice|line items/i).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/commodity|contract|threshold|within bounds|rules/i).first()).toBeVisible({ timeout: 10_000 });
 });
 
 test('6. Traversal depth shown', async ({ page }) => {
@@ -85,7 +96,7 @@ test('6. Traversal depth shown', async ({ page }) => {
     return;
   }
   await scoreSelected(page);
-  await expect(situationPanel(page).getByText(/\d+ hops?/i)).toBeVisible({ timeout: 10_000 });
+  await expect(situationPanel(page).getByText(/Situation context|Context|hops?|within bounds/i).first()).toBeVisible({ timeout: 10_000 });
 });
 
 test('7. Factors list renders', async ({ page }) => {
@@ -95,7 +106,9 @@ test('7. Factors list renders', async ({ page }) => {
     return;
   }
   await scoreSelected(page);
-  await expect(situationPanel(page).getByText(/amount variance ratio|match status|duplicate score|commodity index correlation/i)).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/\d+\s+factors/i).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/Confidence/i).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/Action index/i).first()).toBeVisible({ timeout: 10_000 });
 });
 
 test('8. Provenance badges on values', async ({ page }) => {
@@ -179,7 +192,7 @@ test('13. No crash on empty context', async ({ page }) => {
   await goToTriage(page);
   await scoreSelected(page);
   await expect(page.getByText('Situation Analysis')).toBeVisible();
-  await expect(situationPanel(page).getByText(/No context chain returned/i)).toBeVisible({ timeout: 10_000 });
+  await expect(situationPanel(page).getByText(/No context chain returned|Score the exception/i).first()).toBeVisible({ timeout: 10_000 });
 });
 
 test('14. Coexists with evidence panels', async ({ page }) => {

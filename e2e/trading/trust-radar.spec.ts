@@ -2,7 +2,7 @@ import { type APIRequestContext, type Locator, type Page } from "@playwright/tes
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
 
-const BACKEND = process.env.TRADING_BACKEND || "http://localhost:8010";
+const BACKEND = process.env.TRADING_BACKEND || "http://127.0.0.1:8010";
 
 const FACTOR_NAMES = [
   "signal_alignment",
@@ -51,7 +51,7 @@ async function fetchTrust(request: APIRequestContext, query = ""): Promise<Trust
 }
 
 async function gotoDashboard(page: Page) {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
   await clickTab(page, "Dashboard");
   await waitForAppShell(page);
@@ -66,7 +66,7 @@ function trustPanel(page: Page): Locator {
 }
 
 async function gotoAnalysis(page: Page): Promise<Locator> {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page);
   await clickTab(page, "Analysis");
   await waitForAppShell(page);
@@ -134,7 +134,7 @@ test.describe("Trust Radar - spot checks", () => {
   });
 
   test("Click on Analysis tab loads trust section", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForAppShell(page);
     await clickTab(page, "Analysis");
     await waitForAppShell(page);

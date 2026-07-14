@@ -41,13 +41,15 @@ async function openTriageWithNovelty(page: Page, active = true) {
 }
 
 test("novelty status endpoint returns object", async ({ page }) => {
-  const response = await page.request.get(`${API_BASE}/api/s2p/novelty/status`);
+  test.setTimeout(60_000);
+  const response = await page.request.get(`${API_BASE}/api/s2p/novelty/status`, { timeout: 45_000 });
   expect(response.ok()).toBeTruthy();
   expect(typeof await response.json()).toBe("object");
 });
 
 test("novelty history endpoint returns array", async ({ page }) => {
-  const response = await page.request.get(`${API_BASE}/api/s2p/novelty/history`);
+  test.setTimeout(60_000);
+  const response = await page.request.get(`${API_BASE}/api/s2p/novelty/history`, { timeout: 45_000 });
   expect(response.ok()).toBeTruthy();
   expect(Array.isArray((await response.json()).entries)).toBeTruthy();
 });

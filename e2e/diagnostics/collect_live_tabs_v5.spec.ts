@@ -150,7 +150,7 @@ async function discoverTabContent(
         if (!title || title.trim().length < 2 || title.trim().length > 80) continue;
 
         // Panel content state
-        const content = await sec.textContent({ timeout: 500 }).catch(() => "");
+        const content = (await sec.textContent({ timeout: 500 }).catch(() => "")) ?? "";
         const state = classifyState(content);
 
         // Buttons inside this panel
@@ -263,7 +263,7 @@ test.describe("Deep Live Tab Discovery v5", () => {
         // S2P Preview: check for known S2P panels
         if (tabLabel === "S2P Preview" && detail.clicked) {
           try {
-            const body = await page.locator("body").textContent({ timeout: 3000 });
+            const body = (await page.locator("body").textContent({ timeout: 3000 })) ?? "";
             for (const kw of S2P_PREVIEW_KEYWORDS) {
               if (body.toLowerCase().includes(kw.toLowerCase())) {
                 result.s2pPreviewPanels.push(kw);

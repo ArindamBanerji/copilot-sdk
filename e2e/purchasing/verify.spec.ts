@@ -2,7 +2,7 @@ import type { APIRequestContext, Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, waitForAppShell } from "../helpers/ui";
 
-const API_BASE = "http://localhost:8020";
+const API_BASE = "http://127.0.0.1:8020";
 const PURCHASING_FACTORS = {
   expected_demand: 0.72,
   day_of_week: 0.2,

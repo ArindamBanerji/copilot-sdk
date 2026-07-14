@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -15,6 +17,7 @@ from copilot_sdk.scoring.scorer import CompoundingScorer
 
 DEFAULT_SEED = 20260711
 MIN_DEMO_IKS = 25.0
+TRADING_REJECTION_LOG_ENV = "TRADING_EVOLUTION_LOG_PATH"
 
 
 @dataclass
@@ -112,10 +115,13 @@ class DemoPreseed:
             {
                 "variant_id": f"TRADING_AE_v{i}",
                 "reason": "conservation",
+                "detail": "conservation gate not GREEN",
+                "tested_at": f"2026-07-11T00:0{i}:00Z",
                 "provenance": "learned",
             }
             for i in range(1, 6)
         ]
+        self._persist_trading_rejections(result)
         return result
 
     def preseed_purchasing(self) -> CopilotPreseedResult:
@@ -284,6 +290,45 @@ class DemoPreseed:
             jitter = float(self.rng.uniform(0.0, 0.03))
             values[name] = round(min(0.95, baseline + jitter), 4)
         return values
+
+    def _persist_trading_rejections(self, result: CopilotPreseedResult) -> None:
+        log_path = _trading_rejection_log_path()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        breakdown = {
+            "correctness_floor": 0,
+            "conservation": 0,
+            "variance_stability": 0,
+        }
+        for variant in result.rejected_variants:
+            reason = str(variant.get("reason") or "")
+            if reason in breakdown:
+                breakdown[reason] += 1
+        payload = {
+            "total_tested": len(result.rejected_variants),
+            "total_promoted": 0,
+            "total_rejected": len(result.rejected_variants),
+            "rejection_breakdown": breakdown,
+            "rejected_variants": result.rejected_variants,
+            "provenance": "learned",
+        }
+        log_path.write_text(
+            json.dumps(payload, sort_keys=True, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+
+def _trading_rejection_log_path() -> Path:
+    configured = os.environ.get(TRADING_REJECTION_LOG_ENV)
+    if configured:
+        return Path(configured)
+    return (
+        Path(__file__).resolve().parents[2]
+        / "apps"
+        / "trading"
+        / "backend"
+        / "state"
+        / "evolution_log.json"
+    )
 
 
 def run_preseed(seed: int = DEFAULT_SEED) -> DemoPreseedResult:

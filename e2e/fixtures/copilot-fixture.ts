@@ -1,4 +1,4 @@
-import { test as base, expect } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 
 const BACKEND_PORTS = {
   trading: 8010,
@@ -13,6 +13,12 @@ function isCopilotProject(name: string): name is CopilotProject {
 }
 
 export const test = base.extend<{ backendHealth: void }>({
+  page: async ({ page }, use) => {
+    const originalGoto = page.goto.bind(page);
+    page.goto = ((url: Parameters<Page["goto"]>[0], options?: Parameters<Page["goto"]>[1]) =>
+      originalGoto(url, { waitUntil: "domcontentloaded", ...options })) as Page["goto"];
+    await use(page);
+  },
   backendHealth: [
     async ({ request }, use, testInfo) => {
       const projectName = testInfo.project.name;
@@ -21,7 +27,7 @@ export const test = base.extend<{ backendHealth: void }>({
       }
 
       const port = BACKEND_PORTS[projectName];
-      const healthUrl = `http://localhost:${port}/health`;
+      const healthUrl = `http://127.0.0.1:${port}/health`;
       let responseText = "";
 
       for (let attempt = 0; attempt < 3; attempt++) {
@@ -44,7 +50,7 @@ export const test = base.extend<{ backendHealth: void }>({
         }
       }
 
-      const base = `http://localhost:${port}`;
+      const base = `http://127.0.0.1:${port}`;
       await Promise.all([
         request.get(`${base}/api/fingerprint`, { timeout: 5_000 }).catch(() => {}),
         request.get(`${base}/api/conservation/status`, { timeout: 5_000 }).catch(() => {}),

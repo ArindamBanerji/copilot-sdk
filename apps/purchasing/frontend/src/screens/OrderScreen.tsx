@@ -414,6 +414,7 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
         reasonCode,
         notes: reasonCode === "other" ? reasonNotes : undefined,
       });
+      setVerifyResult(verified);
       await saveOrderMetadata({
         decisionId,
         item: currentItem.name,
@@ -438,7 +439,6 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
         reward: verified.reward ?? undefined,
         createdAt: new Date().toISOString(),
       });
-      setVerifyResult(verified);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Unable to confirm order");
     } finally {

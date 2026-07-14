@@ -93,7 +93,7 @@ test.describe("Live Tab Discovery", () => {
 
           // S2P Preview: check for S2P panels
           if (tabLabel === "S2P Preview") {
-            const pageText = await page.locator("body").textContent().catch(() => "");
+            const pageText = (await page.locator("body").textContent().catch(() => "")) ?? "";
             for (const kw of S2P_PREVIEW_KEYWORDS) {
               if (pageText.toLowerCase().includes(kw.toLowerCase())) {
                 result.s2pPreviewPanels.push(kw);

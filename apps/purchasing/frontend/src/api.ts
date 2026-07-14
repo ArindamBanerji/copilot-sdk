@@ -51,7 +51,7 @@ import type {
   Weather,
 } from "./types";
 
-export const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8020";
+export const BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8020";
 
 type JsonValue =
   | null
@@ -186,15 +186,16 @@ export async function fetchWeatherRisk(): Promise<WeatherRiskResponse> {
   const heat = condition.includes("heat") || condition.includes("hot") || temperature >= 90;
   const rain = condition.includes("rain") || precip >= 0.25;
   const categoryScores = weatherCategoryScores(storm ? "storm" : heat ? "heat" : rain ? "rain" : "normal");
+  const categoryRiskLevels = weather.categoryRiskLevels as Record<string, string> | undefined;
   return {
     forecast: [
       { label: "Today", condition: condition || "calm", risk: scoreToRisk(Math.min(...Object.values(categoryScores))), source: weather.source ?? "OpenMeteo" },
     ],
     categoryRisk: {
-      produce: scoreToRisk(categoryScores.produce),
-      seafood: scoreToRisk(categoryScores.seafood),
-      dairy: scoreToRisk(categoryScores.dairy),
-      dryGoods: scoreToRisk(categoryScores.dryGoods),
+      produce: categoryRiskLevels?.produce ?? scoreToRisk(categoryScores.produce),
+      seafood: categoryRiskLevels?.seafood ?? scoreToRisk(categoryScores.seafood),
+      dairy: categoryRiskLevels?.dairy ?? scoreToRisk(categoryScores.dairy),
+      dryGoods: categoryRiskLevels?.dryGoods ?? scoreToRisk(categoryScores.dryGoods),
     },
     alert: storm
       ? "Storm forecast tomorrow. Seafood risk HIGH. Consider reducing salmon order by 20%."

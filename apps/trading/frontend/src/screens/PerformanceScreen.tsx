@@ -14,6 +14,7 @@ import EvolutionControlsPanel from "../components/EvolutionControlsPanel";
 import EvolutionPanel from "../components/EvolutionPanel";
 import ExecutionQualityCard from "../components/ExecutionQualityCard";
 import PromotionDashboard from "../components/PromotionDashboard";
+import RejectionMomentPanel from "../components/RejectionMomentPanel";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
 import StrategySafetyBreakdownPanel from "../components/StrategySafetyBreakdownPanel";
@@ -129,6 +130,7 @@ export default function PerformanceScreen() {
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <StrategySafetyBreakdownPanel />
       <PromotionDashboard />
+      <RejectionMomentPanel />
       <TransferPanel />
       <EvolutionPanel />
       <EvolutionControlsPanel />

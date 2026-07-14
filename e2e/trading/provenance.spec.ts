@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { clickTab, waitForAppShell } from "../helpers/ui";
 
 test.beforeEach(async ({ request }) => {
-  const response = await request.get("http://localhost:8010/health", { timeout: 5_000 }).catch(() => null);
+  const response = await request.get("http://127.0.0.1:8010/health", { timeout: 5_000 }).catch(() => null);
   test.skip(!response?.ok(), "Trading backend not running");
 });
 

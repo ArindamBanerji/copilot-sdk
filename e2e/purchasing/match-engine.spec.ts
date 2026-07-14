@@ -1,7 +1,7 @@
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, waitForAppShell } from "../helpers/ui";
 
-const API_BASE = "http://localhost:8020";
+const API_BASE = "http://127.0.0.1:8020";
 
 test("Match queue API returns results", async ({ request }) => {
   const response = await request.get(`${API_BASE}/api/purchasing/match/queue`);

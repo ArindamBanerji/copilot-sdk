@@ -1,8 +1,8 @@
 {
   "domain": "trading",
-  "exported_at": "2026-05-28T08:03:23Z",
+  "exported_at": "2026-07-14T02:35:20Z",
   "fingerprint": {
-    "decisions_analyzed": 40,
+    "decisions_analyzed": 234,
     "engine": {
       "gae": "gae.profile_scorer.ProfileScorer",
       "scoring": "copilot_sdk.scoring.CompoundingScorer"
@@ -11,53 +11,72 @@
       {
         "interpretation": "moderate",
         "name": "signal_alignment",
-        "sigma": 0.172,
-        "weight": 0.003
+        "sigma": 0.149,
+        "weight": 0.066
       },
       {
-        "interpretation": "moderate",
+        "interpretation": "noisy",
         "name": "market_regime",
-        "sigma": 0.176,
-        "weight": 0.003
+        "sigma": 0.285,
+        "weight": 0.018
       },
       {
         "interpretation": "moderate",
         "name": "position_sizing",
-        "sigma": 0.109,
-        "weight": 0.008
+        "sigma": 0.2,
+        "weight": 0.037
       },
       {
         "interpretation": "clean",
         "name": "timing_quality",
-        "sigma": 0.034,
-        "weight": 0.089
+        "sigma": 0.038,
+        "weight": 1.0
       },
       {
         "interpretation": "moderate",
         "name": "risk_reward_actual",
-        "sigma": 0.15,
-        "weight": 0.004
+        "sigma": 0.182,
+        "weight": 0.044
       },
       {
         "interpretation": "moderate",
         "name": "emotional_indicator",
-        "sigma": 0.106,
-        "weight": 0.009
+        "sigma": 0.131,
+        "weight": 0.086
+      },
+      {
+        "interpretation": "moderate",
+        "name": "signal_confidence",
+        "sigma": 0.159,
+        "weight": 0.058
       },
       {
         "interpretation": "clean",
-        "name": "signal_confidence",
-        "sigma": 0.01,
-        "weight": 1.0
+        "name": "options_delta_exposure",
+        "sigma": 0.088,
+        "weight": 0.191
+      },
+      {
+        "interpretation": "clean",
+        "name": "options_iv_percentile",
+        "sigma": 0.097,
+        "weight": 0.157
+      },
+      {
+        "interpretation": "moderate",
+        "name": "options_gamma_risk",
+        "sigma": 0.104,
+        "weight": 0.136
       }
     ],
-    "overall_win_rate": 0.625,
+    "overall_win_rate": 0.679,
     "per_category_precision": {
-      "crypto_spot": 0.333,
-      "equity_long": 0.667,
-      "etf": 0.833,
-      "options": 0.5
-    }
+      "event_driven": 0.25,
+      "income_strategy": 0.5,
+      "scalp_intraday": 0.789,
+      "trend_following": 0.737
+    },
+    "skipped_decisions": 40
   },
-  "source_url": "http://localhost:8010/api/fingerprint"
+  "source_url": "http://127.0.0.1:8010/api/fingerprint"
 }

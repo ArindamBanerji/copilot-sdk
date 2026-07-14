@@ -1,7 +1,7 @@
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, waitForAppShell } from "../helpers/ui";
 
-const API_BASE = "http://localhost:8020";
+const API_BASE = "http://127.0.0.1:8020";
 
 async function gotoAnalysis(page: import("@playwright/test").Page) {
   await page.goto("/");
@@ -57,11 +57,7 @@ test("Trust radar chart visible or learning state shown", async ({ page }) => {
   await gotoAnalysis(page);
   const chart = page.getByTestId("trust-radar-chart");
   const learning = page.getByTestId("trust-learning-state");
-  if (await chart.count()) {
-    await expect(chart).toBeVisible({ timeout: 20_000 });
-  } else {
-    await expect(learning).toBeVisible({ timeout: 20_000 });
-  }
+  await expect(chart.or(learning)).toBeVisible({ timeout: 20_000 });
 });
 
 test("Trust insight cards visible when insights exist", async ({ page, request }) => {

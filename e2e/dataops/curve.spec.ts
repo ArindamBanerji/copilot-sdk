@@ -47,6 +47,6 @@ test("SC-11 centroid timeline chart renders", async ({ page }) => {
 test("SC-11 centroid timeline chart or empty history state renders", async ({ page }) => {
   await gotoCurve(page);
 
-  await expectAnyText(page, [/centroid/i, /factor weight/i, /timeline/i, /No centroid history yet/i, /evolution/i]);
-  await expectAnyText(page, [/Score some alerts to see learning/i, /checkpoints/i, /Centroid History/i]);
+  await expect(page.locator("main")).toContainText(/No centroid history yet|Centroid History|Centroid Evolution/i);
+  await expect(page.locator("main")).toContainText(/Score some alerts to see learning|checkpoints|verified decisions/i);
 });

@@ -30,8 +30,8 @@ function expectNoActionableConsoleErrors(errors: string[]) {
 
 async function openFirstAlert(page: Page): Promise<boolean> {
   await page.goto("/");
-  await expect(page.getByText("Alert Root Causes")).toBeVisible();
-  const alertSection = page.locator("section", { hasText: "Alert Root Causes" });
+  const alertSection = dataopsPanel(page, "Alert Root Causes");
+  await expect(alertSection).toBeVisible({ timeout: 30_000 });
   const triageButtons = alertSection.getByRole("button", { name: "Triage" });
   if ((await triageButtons.count()) === 0) {
     return false;
@@ -44,7 +44,7 @@ async function openFirstAlert(page: Page): Promise<boolean> {
 
 async function openKnownSystemAlert(page: Page): Promise<boolean> {
   await page.goto("/");
-  await expect(page.getByText("Alert Root Causes")).toBeVisible();
+  await expect(dataopsPanel(page, "Alert Root Causes")).toBeVisible({ timeout: 30_000 });
   const group = page.getByRole("button", { name: /SAP S\/4HANA|billing|warehouse/i });
   if ((await group.count()) > 0) {
     await group.first().click();
@@ -72,7 +72,7 @@ test("full triage lifecycle: dashboard, alert, score, confirm, back", async ({ p
   await learnResponse;
   await expectAnyText(page, [/system learned/i, /Reward/i, /IKS delta/i]);
   await page.getByRole("button", { name: "Back to Dashboard" }).click();
-  await expect(page.getByText("Alert Root Causes")).toBeVisible();
+  await expect(dataopsPanel(page, "Alert Root Causes")).toBeVisible({ timeout: 30_000 });
 });
 
 test("score learn cycle preserves visible IKS and reward state", async ({ page }) => {

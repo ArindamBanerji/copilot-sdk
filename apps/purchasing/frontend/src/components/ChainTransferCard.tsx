@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { executeChainTransfer, fetchChainStatus, validateChainTransfer, type ChainStatusResponse } from "../api";
 import ProvenanceBadge from "./ProvenanceBadge";
 
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8020";
+const BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8020";
 
 type DemoTransferResult = {
   before?: Record<string, { iks?: number }>;

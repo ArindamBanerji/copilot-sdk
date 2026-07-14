@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchConservation, fetchPreviewQueue, learnDecision, scoreInvoice } from "../api";
 import { CentroidExplorer } from "../components/CentroidExplorer";
+import CounterfactualCard from "../components/CounterfactualCard";
 import { EvidenceTemplatePanel } from "../components/EvidenceTemplatePanel";
 import NoveltyAlertBanner from "../components/NoveltyAlertBanner";
 import ProvenanceBadge from "../components/ProvenanceBadge";
@@ -282,6 +283,8 @@ export function TriageScreen() {
           <SituationPanel decisionId={situationDecisionId} hasSelection={Boolean(selected)} />
 
           {crossCopilotSignal ? <CrossCopilotSignalBanner signal={crossCopilotSignal} /> : null}
+
+          <CounterfactualCard />
 
           <EvidenceTemplatePanel invoiceId={invoiceId(selected)} category={selectedCategory} />
 

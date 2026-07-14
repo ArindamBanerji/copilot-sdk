@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const FRONTEND = process.env.TRADING_FRONTEND || "http://localhost:5174";
-const BACKEND = process.env.TRADING_BACKEND || "http://localhost:8010";
+const FRONTEND = process.env.TRADING_FRONTEND || "http://127.0.0.1:5174";
+const BACKEND = process.env.TRADING_BACKEND || "http://127.0.0.1:8010";
 const REGIME_TEXT = /Trending market|Ranging market|Volatile market/i;
 const RAW_REGIMES = ["trending", "ranging", "volatile"];
 

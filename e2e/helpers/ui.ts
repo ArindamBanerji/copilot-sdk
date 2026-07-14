@@ -19,10 +19,14 @@ export async function clickTab(page: Page, name: string | RegExp) {
 export async function waitForAppShell(page: Page, timeout = 15_000) {
   await page.waitForLoadState("domcontentloaded", { timeout });
   await expect(page.locator("main")).not.toBeEmpty({ timeout });
+  await expect(page.locator("main")).not.toContainText(
+    /^P?PaperLoading (analysis|performance|dashboard|journal|trade detail)\.\.\.$/i,
+    { timeout },
+  );
 }
 
 export async function gotoTab(page: Page, tabName: string, timeout = 15_000) {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await waitForAppShell(page, timeout);
   await clickTab(page, tabName);
   await waitForAppShell(page, timeout);

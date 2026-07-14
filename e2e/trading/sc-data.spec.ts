@@ -1,10 +1,12 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
+import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
 
 async function gotoAnalysis(page: import("@playwright/test").Page) {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await waitForAppShell(page);
   await clickTab(page, "Analysis");
-  await expect(page.getByText("YOUR TWO SELVES")).toBeVisible();
+  await waitForAppShell(page);
+  await expect(page.getByText("YOUR TWO SELVES")).toBeVisible({ timeout: 20_000 });
 }
 
 test("SC genealogy shows live data or empty state", async ({ page }) => {

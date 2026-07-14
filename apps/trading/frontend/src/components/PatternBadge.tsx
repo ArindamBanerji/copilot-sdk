@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PatternDetectionResponse } from "../types";
 
-const PATTERN_URL = "http://localhost:8010/api/context/patterns";
+const PATTERN_URL = "http://127.0.0.1:8010/api/context/patterns";
 
 function patternLabel(name: string): string {
   return name

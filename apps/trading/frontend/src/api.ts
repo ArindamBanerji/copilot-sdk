@@ -31,7 +31,7 @@ import type {
   VIXTimingResponse,
 } from "./types";
 
-export const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8010";
+export const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8010";
 
 type JsonObject = Record<string, unknown>;
 
@@ -642,6 +642,51 @@ export function rollbackEvolution(param: string): Promise<{ rolledBack?: boolean
   return apiPost<{ rolledBack?: boolean; parameter?: string }>("/api/trading/evolution/rollback", {
     parameter: param,
   });
+}
+
+export interface RejectedVariant {
+  variantId?: string;
+  reason?: string;
+  detail?: string;
+  testedAt?: string;
+}
+
+export interface RejectionSummaryResponse {
+  totalTested?: number;
+  totalPromoted?: number;
+  totalRejected?: number;
+  rejectionBreakdown?: Record<string, number>;
+  rejectedVariants?: RejectedVariant[];
+  provenance?: string;
+}
+
+export function fetchRejectionSummary(): Promise<RejectionSummaryResponse | null> {
+  return safeApiGet<RejectionSummaryResponse>("/api/trading/evolution/rejection-summary");
+}
+
+export interface CounterfactualResponse {
+  baseScore?: number;
+  perturbedScore?: number;
+  delta?: number;
+  perturbedFactor?: string;
+  baseAction?: string;
+  perturbedAction?: string;
+  provenance?: string;
+  error?: string;
+  rejected?: boolean;
+}
+
+export async function postCounterfactual(payload: unknown): Promise<CounterfactualResponse> {
+  const response = await fetch(`${API_BASE}/api/trading/score/counterfactual`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const body = normalizeKeys<CounterfactualResponse>(await response.json());
+  if (!response.ok && !body.rejected) {
+    throw new Error(body.error || `POST /api/trading/score/counterfactual failed with ${response.status}`);
+  }
+  return body;
 }
 
 export interface TransferOpportunity {

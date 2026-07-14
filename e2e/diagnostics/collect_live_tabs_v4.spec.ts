@@ -126,7 +126,7 @@ test.describe("Live Tab Discovery v4", () => {
         // S2P Preview: check for known S2P panels
         if (tabLabel === "S2P Preview" && info.clicked) {
           try {
-            const body = await page.locator("body").textContent({ timeout: 3000 });
+            const body = (await page.locator("body").textContent({ timeout: 3000 })) ?? "";
             for (const kw of S2P_PREVIEW_KEYWORDS) {
               if (body.toLowerCase().includes(kw.toLowerCase())) {
                 result.s2pPreviewPanels.push(kw);

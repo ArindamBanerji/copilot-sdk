@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8010";
+const BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8010";
 
 type JournalQueryResult = {
   query?: string;

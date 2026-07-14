@@ -5,6 +5,8 @@ async function gotoEvidence(page: import("@playwright/test").Page) {
   await page.goto("/");
   await clickTab(page, "Evidence");
   await expectAnyText(page, [/AgentEvolver Impact/i, /Loading evolution evidence/i]);
+  await expect(page.getByText(/Loading evolution evidence/i)).toBeHidden({ timeout: 20_000 });
+  await expect(page.getByText("AgentEvolver Impact")).toBeVisible({ timeout: 20_000 });
 }
 
 test("AE impact panel visible", async ({ page }) => {

@@ -26,7 +26,10 @@ test("full trade lifecycle: log, score, confirm, dashboard", async ({ page }) =>
   await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
 
   await fillTrade(page);
-  const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
+  const scoreResponse = page.waitForResponse(
+    (response) => response.url().includes("/api/score") && response.request().method() === "POST",
+    { timeout: 30_000 },
+  );
   await page.getByRole("button", { name: "Score This Trade" }).click();
   await scoreResponse;
 
@@ -142,7 +145,7 @@ test("analysis reflects pre-seeded data", async ({ page }) => {
   await waitForAppShell(page);
 
   await expect(page.getByText("YOUR TWO SELVES")).toBeVisible();
-  await expect(page.getByText("Counterfactual")).toBeVisible();
+  await expect(page.getByTestId("counterfactual-card")).toBeVisible();
   await expectAnyText(page, [/Fingerprint/i, /Research Impact/i, /Risk Management/i, /\d+(\.\d+)?%/]);
 });
 

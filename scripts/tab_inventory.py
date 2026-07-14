@@ -468,7 +468,7 @@ def smoke_test_api(
             results[path] = "SKIP (no ID mapping)"
             continue
 
-        url = f"http://localhost:{port}{actual_path}"
+        url = f"http://127.0.0.1:{port}{actual_path}"
         try:
             req = urllib.request.Request(url, method="GET")
             with urllib.request.urlopen(req, timeout=5) as resp:
@@ -527,7 +527,7 @@ const {{ chromium }} = require('playwright');
     const OUT = {json.dumps(out_posix)};
     const browser = await chromium.launch();
     const page = await browser.newPage({{ viewport: {{ width: 1280, height: 900 }} }});
-    await page.goto('http://localhost:{port}', {{ waitUntil: 'networkidle', timeout: 15000 }});
+    await page.goto('http://127.0.0.1:{port}', {{ waitUntil: 'networkidle', timeout: 15000 }});
     await page.waitForTimeout(2000);
 
     // Screenshot initial state

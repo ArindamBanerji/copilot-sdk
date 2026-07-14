@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 async function goToS2P(page: Page) {
-  await page.goto('http://localhost:5177');
+  await page.goto('http://127.0.0.1:5177');
   await expect(page.getByText(/S2P Copilot|Dashboard/i).first()).toBeVisible({ timeout: 10_000 });
 }
 
