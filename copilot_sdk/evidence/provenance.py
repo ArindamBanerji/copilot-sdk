@@ -7,6 +7,14 @@ from typing import Generic, TypeVar
 
 T = TypeVar("T")
 
+SUPPORTED_PROVENANCE_SOURCES = (
+    "proven",
+    "sample",
+    "scraped_external",
+    "learned",
+    "simulated",
+)
+
 
 @dataclass(frozen=True)
 class Provenanced(Generic[T]):

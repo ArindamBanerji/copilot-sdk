@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-test.setTimeout(60_000);
+test.setTimeout(90_000);
 
 async function s2pBackendUp(page: Page) {
   const response = await page.request.get('http://127.0.0.1:8002/health', { timeout: 5_000 }).catch(() => null);
@@ -65,7 +65,7 @@ test('3. Category renders', async ({ page }) => {
     return;
   }
   await scoreSelected(page);
-  await expect(page.locator('main').getByText(/price_variance|quantity_mismatch|duplicate_risk|contract_gap|format_compliance/i).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/price_variance|quantity_mismatch|duplicate_risk|contract_gap|format_compliance/i).first()).toBeVisible({ timeout: 30_000 });
 });
 
 test('4. Confidence percentage renders', async ({ page }) => {

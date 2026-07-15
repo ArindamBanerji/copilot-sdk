@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -42,10 +43,13 @@ from .routers.prescore import create_prescore_router  # noqa: E402
 from .routers.promotion_router import create_promotion_engine_router  # noqa: E402
 from .routers.regime import create_regime_router  # noqa: E402
 from .routers.regime_router import create_regime_router as create_regime_classifier_router  # noqa: E402
+from .routers.regime_status import create_regime_status_router  # noqa: E402
 from .routers.social import create_social_router  # noqa: E402
 from .routers.vix_timing import create_vix_timing_router  # noqa: E402
 from .routers.webhook import create_webhook_router  # noqa: E402
 from .services.journal_query import JournalQueryService  # noqa: E402
+from .services.regime_monitor import RegimeMonitor  # noqa: E402
+from .services.regime_scoring import TradingRegimeScorerProxy, build_regime_context  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend.archetype_router import create_archetype_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
@@ -138,12 +142,17 @@ def _build_seed_context(entry: dict[str, Any]) -> dict[str, float]:
 
 def _seed_metadata(entry: dict[str, Any], sequence: int, scored_factors: dict[str, float]) -> dict[str, Any]:
     metadata = {key: value for key, value in entry.items() if key != "factors"}
+    regime_context = build_regime_context(scored_factors, metadata)
     metadata.update({
         "seed_domain": DOMAIN,
         "seed_index": sequence,
         "seed_id": entry.get("trade_id") or entry.get("ticker") or str(sequence),
         "source_seed_index": sequence,
         "scored_factors": dict(scored_factors),
+        "regime_metadata": {
+            **regime_context,
+            "tagged_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        },
     })
     return metadata
 
@@ -274,7 +283,10 @@ def create_app(
         _bundle_path = Path(demo_bundle_path)
     seed_graph_store = _graph_store(scoring_db)
     startup_state = {"seeded": False, "restored": False}
-    scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, selected_graph_store_factory)
+    base_scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, selected_graph_store_factory)
+    trading_preset = TradingPreset()
+    regime_monitor = RegimeMonitor(config=trading_preset)
+    scorer_proxy = TradingRegimeScorerProxy(base_scorer_proxy, regime_monitor)
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
         "dk_source": "cold-start",
@@ -308,6 +320,7 @@ def create_app(
 
     app.state.trading_active_graph_config = active_graph_config
     app.state.trading_selected_graph_store = scorer_proxy.graph_store
+    app.state.trading_regime_monitor = regime_monitor
     app.state.l5_startup_status = l5_startup_status
     app.include_router(
         create_scoring_router(
@@ -338,6 +351,7 @@ def create_app(
         create_trading_evolution_router(
             graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
             domain=DOMAIN,
+            regime_break_provider=lambda: regime_monitor.is_regime_break,
         )
     )
 
@@ -377,8 +391,15 @@ def create_app(
             domain=DOMAIN,
         )
     )
-    app.include_router(create_regime_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(
+        create_regime_router(
+            lambda: selected_graph_store_factory(scoring_db),
+            domain=DOMAIN,
+            regime_break_provider=lambda: regime_monitor.is_regime_break,
+        )
+    )
     app.include_router(create_regime_classifier_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(create_regime_status_router(regime_monitor))
     app.include_router(create_social_router(scorer_proxy))
     app.include_router(create_vix_timing_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(
@@ -407,6 +428,24 @@ def create_app(
             "status": "ok",
             "domain": DOMAIN,
             "engine": "copilot_sdk.scoring + gae.profile_scorer",
+        }
+
+    @app.get("/api/trading/fingerprint")
+    def trading_fingerprint() -> dict[str, Any]:
+        fingerprint = scorer_proxy.fingerprint()
+        factors = [
+            {
+                "name": str(getattr(factor, "name", "")),
+                "weight": float(getattr(factor, "weight", 0.0)),
+            }
+            for factor in getattr(fingerprint, "factors", [])
+        ]
+        dominant = max(factors, key=lambda item: item["weight"], default=None)
+        return {
+            "domain": DOMAIN,
+            "factors": factors,
+            "dominant_factor": dominant["name"] if dominant else None,
+            "provenance": "learned",
         }
 
     return app

@@ -711,6 +711,24 @@ def create_app(
             "iks_verified_count": iks["verified_count"],
         }
 
+    @app.get("/api/purchasing/fingerprint")
+    def purchasing_fingerprint() -> dict[str, Any]:
+        fingerprint = scorer_proxy.fingerprint()
+        factors = [
+            {
+                "name": str(getattr(factor, "name", "")),
+                "weight": float(getattr(factor, "weight", 0.0)),
+            }
+            for factor in getattr(fingerprint, "factors", [])
+        ]
+        dominant = max(factors, key=lambda item: item["weight"], default=None)
+        return {
+            "domain": DOMAIN,
+            "factors": factors,
+            "dominant_factor": dominant["name"] if dominant else None,
+            "provenance": "learned",
+        }
+
     @app.post("/api/purchasing/demo/reset")
     def reset_demo_state() -> dict[str, Any]:
         reset_chain_state(app.state)

@@ -32,6 +32,7 @@ def create_regime_router(
     *,
     domain: str = "trading",
     service_factory: ServiceFactory = _regime_service,
+    regime_break_provider: Callable[[], bool] | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/trading", tags=["trading-regime"])
 
@@ -44,7 +45,11 @@ def create_regime_router(
         return {
             "current": current,
             "accuracy_by_category": accuracy,
-            "recommendations": _regime_recommendations(str(current.get("regime") or "ranging"), accuracy),
+            "recommendations": _regime_recommendations(
+                str(current.get("regime") or "ranging"),
+                accuracy,
+                regime_break_active=_regime_break_active(regime_break_provider),
+            ),
         }
 
     @router.get("/regime/detail")
@@ -54,7 +59,7 @@ def create_regime_router(
         current = service.get_current_regime()
         accuracy = service.get_regime_accuracy(trades)
         conservation = _conservation_status(graph_store_factory)
-        return RegimeRecommender().recommend(
+        payload = RegimeRecommender().recommend(
             str(current.get("regime") or "ranging"),
             accuracy,
             conservation_status=conservation,
@@ -62,6 +67,19 @@ def create_regime_router(
             current=current,
             previous_regime=previous_regime,
         )
+        if _regime_break_active(regime_break_provider):
+            payload = dict(payload)
+            sizing = payload.get("sizing_recommendation")
+            if isinstance(sizing, dict):
+                payload["sizing_recommendation"] = {
+                    **sizing,
+                    "action": "paused",
+                    "suggested_size_multiplier": 0.0,
+                    "max_size_multiplier": 0.0,
+                    "paused": True,
+                    "reason": "regime_break_active",
+                }
+        return payload
 
     return router
 
@@ -69,6 +87,8 @@ def create_regime_router(
 def _regime_recommendations(
     current_regime: str,
     accuracy: dict[str, dict[str, float]],
+    *,
+    regime_break_active: bool = False,
 ) -> list[dict[str, Any]]:
     recommendations: list[dict[str, Any]] = []
     for category, regimes in accuracy.items():
@@ -76,7 +96,9 @@ def _regime_recommendations(
         baseline = sum(values) / len(values) if values else 0.5
         current_accuracy = float(regimes.get(current_regime, 0.5))
         delta = current_accuracy - baseline
-        if delta > 0.05:
+        if regime_break_active:
+            action = "hold"
+        elif delta > 0.05:
             action = "increase"
         elif delta < -0.10:
             action = "reduce"
@@ -93,6 +115,15 @@ def _regime_recommendations(
             }
         )
     return sorted(recommendations, key=lambda item: item["accuracy"], reverse=True)
+
+
+def _regime_break_active(provider: Callable[[], bool] | None) -> bool:
+    if provider is None:
+        return False
+    try:
+        return bool(provider())
+    except Exception:
+        return False
 
 
 def _conservation_status(graph_store_factory: GraphStoreFactory | None) -> dict[str, Any] | None:

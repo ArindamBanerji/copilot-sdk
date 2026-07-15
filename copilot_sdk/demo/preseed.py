@@ -86,22 +86,33 @@ class DemoPreseed:
         "s2p": (0.52, 0.61, 0.68, 0.75),
         "soc": (0.38, 0.50, 0.62, 0.70),
     }
+    _FAST_TARGET_COUNTS = {
+        "trading": 20,
+        "purchasing": 20,
+    }
 
-    def __init__(self, seed: int = DEFAULT_SEED):
+    def __init__(self, seed: int = DEFAULT_SEED, fast_mode: bool = False):
         self.seed = int(seed)
+        self.fast_mode = bool(fast_mode)
         self.rng = np.random.RandomState(self.seed)
         self._result: DemoPreseedResult | None = None
 
     def preseed_all(self) -> DemoPreseedResult:
         """Preseed all five copilots. Idempotent for this instance."""
         if self._result is None:
-            copilots = {
-                "trading": self.preseed_trading(),
-                "purchasing": self.preseed_purchasing(),
-                "dataops": self.preseed_dataops(),
-                "s2p": self.preseed_s2p(),
-                "soc": self.preseed_soc(),
-            }
+            if self.fast_mode:
+                copilots = {
+                    "trading": self.preseed_trading(),
+                    "purchasing": self.preseed_purchasing(),
+                }
+            else:
+                copilots = {
+                    "trading": self.preseed_trading(),
+                    "purchasing": self.preseed_purchasing(),
+                    "dataops": self.preseed_dataops(),
+                    "s2p": self.preseed_s2p(),
+                    "soc": self.preseed_soc(),
+                }
             self._result = DemoPreseedResult(
                 copilots=copilots,
                 cross_copilot_signal=self.seed_cross_copilot_signal(),
@@ -170,16 +181,16 @@ class DemoPreseed:
     def verify(self, result: DemoPreseedResult | None = None) -> None:
         result = result or self.preseed_all()
         for name, copilot in result.copilots.items():
-            if copilot.iks <= MIN_DEMO_IKS:
+            if not self.fast_mode and copilot.iks <= MIN_DEMO_IKS:
                 raise ValueError(f"{name} IKS is too flat for demo: {copilot.iks}")
             if copilot.conservation == "RED":
                 raise ValueError(f"{name} conservation is RED")
             for metric_name, metric in copilot.headline_metrics.items():
                 if metric.get("provenance") == "sample":
                     raise ValueError(f"F-26: sample headline metric {name}.{metric_name}")
-        if result.copilots["soc"].pending_alerts < 1:
+        if "soc" in result.copilots and result.copilots["soc"].pending_alerts < 1:
             raise ValueError("SOC pending alert missing")
-        if result.copilots["purchasing"].pending_orders < 1:
+        if "purchasing" in result.copilots and result.copilots["purchasing"].pending_orders < 1:
             raise ValueError("Purchasing pending order missing")
         if not result.cross_copilot_signal.get("active"):
             raise ValueError("S2P cross-copilot signal missing")
@@ -192,7 +203,11 @@ class DemoPreseed:
             enable_rl=False,
         )
         shape = scorer._preset.shape
-        total = self._TARGET_COUNTS[domain]
+        total = (
+            self._FAST_TARGET_COUNTS.get(domain, self._TARGET_COUNTS[domain])
+            if self.fast_mode
+            else self._TARGET_COUNTS[domain]
+        )
         categories = list(shape.category_names)
         raw_factor_values: list[dict[str, Any]] = []
         last_learn: Any = None

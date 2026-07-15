@@ -34,12 +34,16 @@ def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, An
         total_decisions=counts["total_decisions"],
         penalty_ratio=counts["penalty_ratio"],
     )
-    return {
+    payload = {
         "engine": ENGINE_STATUS,
         "domain": domain,
         **counts,
         **check_payload(check),
     }
+    adjuster = getattr(state, "conservation_status_adjuster", None)
+    if callable(adjuster):
+        return adjuster(payload)
+    return payload
 
 
 def compute_conservation_metrics(state: Any, domain: str | None = None) -> dict[str, object]:

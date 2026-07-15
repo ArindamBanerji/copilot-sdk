@@ -12,6 +12,7 @@ import type {
   PrescoreRequest,
   PrescoreResponse,
   RegimeDetailResponse,
+  RegimeStatusResponse,
   PromotionResponse,
   RegimeResponse,
   ScoreResponse,
@@ -209,6 +210,10 @@ export function getRegimePerformance(): Promise<RegimePerformanceResponse> {
 
 export function getRegimeRecommendation(): Promise<RegimeRecommendationResponse> {
   return apiGet<RegimeRecommendationResponse>("/api/trading/regime/recommendation");
+}
+
+export function getRegimeStatus(): Promise<RegimeStatusResponse | null> {
+  return safeApiGet<RegimeStatusResponse>("/api/trading/regime-status");
 }
 
 export interface CohortExperiment {

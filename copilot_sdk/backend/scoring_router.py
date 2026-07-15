@@ -17,6 +17,7 @@ from copilot_sdk.backend.conservation_utils import compute_conservation_metrics
 from copilot_sdk.backend.models import (
     FingerprintResponse,
     LearnResponse,
+    MeasurementStateResponse,
     ScoreResponse,
     ScoringHealthResponse,
     ScoringHistoryResponse,
@@ -27,6 +28,7 @@ from copilot_sdk.scoring.dk_persistence import (
     DKWelfordTracker,
     persist_dk_after_reestimate,
 )
+from copilot_sdk.scoring.measurement_state import compute_measurement_state
 
 
 ENGINE = {
@@ -205,6 +207,22 @@ def create_scoring_router(
             get_all = getattr(store, "get_all_decisions", None)
             decisions = get_all(store_domain) if callable(get_all) else []
         return {"engine": ENGINE, "decisions": _json_safe(decisions)}
+
+    def measurement_payload() -> dict[str, Any]:
+        scorer = get_scorer()
+        payload = compute_measurement_state(scorer).to_dict()
+        payload["engine"] = ENGINE
+        return payload
+
+    @router.get("/measurement-state", response_model=MeasurementStateResponse)
+    def measurement_state() -> dict[str, Any]:
+        return measurement_payload()
+
+    @router.get("/{copilot}/measurement-state", response_model=MeasurementStateResponse)
+    def prefixed_measurement_state(copilot: str) -> dict[str, Any]:
+        if copilot != domain:
+            raise HTTPException(status_code=404, detail=f"Unknown copilot: {copilot}")
+        return measurement_payload()
 
     return router
 

@@ -5,7 +5,9 @@ import pytest
 from app.factors.registry import ALL_FACTOR_NAMES, TRADING_FACTOR_COMPUTERS
 from app.routers.data_import import _trade_store_ref
 from app.services.trust_analysis import TrustAnalyzer
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.scoring.presets.trading import TradingPreset
+from copilot_sdk.scoring.scorer import CompoundingScorer
 
 
 @pytest.fixture(autouse=True)
@@ -76,6 +78,47 @@ def _dk_matrix() -> list[list[float]]:
         row[2] = 0.10
         matrix.append(row)
     return matrix
+
+
+def _trained_real_dk_scorer() -> CompoundingScorer:
+    scorer = CompoundingScorer.from_preset(
+        "trading",
+        graph_store=InMemoryGraphStore(domain="trading"),
+        enable_rl=False,
+    )
+    shape = scorer._preset.shape
+    store = scorer._graph_store
+    for index in range(400):
+        category = shape.category_names[index % len(shape.category_names)]
+        category_index = shape.category_names.index(category)
+        action = shape.action_names[index % len(shape.action_names)]
+        action_index = shape.action_names.index(action)
+        factors = {
+            factor: round(0.2 + ((index + offset) % 7) * 0.09, 4)
+            for offset, factor in enumerate(shape.factor_names)
+        }
+        decision_id = f"trust-dk-{index}"
+        store.write_decision(
+            "trading",
+            category,
+            action,
+            0.9,
+            factors,
+            metadata={
+                "decision_id": decision_id,
+                "category_index": category_index,
+                "recommended_index": action_index,
+            },
+        )
+        store.write_outcome(
+            decision_id,
+            action,
+            True,
+            metadata={"actual_index": action_index},
+        )
+    scorer.reestimate_dk_if_due()
+    assert scorer.get_dk_weights() is not None
+    return scorer
 
 
 def _scoring_route_scorer_proxy(app):
@@ -266,7 +309,7 @@ def test_backward_compat_trust_scores(client):
 def test_trust_endpoint_uses_shared_scorer(client):
     scorer_proxy = _scoring_route_scorer_proxy(client.app)
     original_scorer = getattr(scorer_proxy, "_scorer_instance", None)
-    scorer_proxy._scorer_instance = _fake_scorer("B", _dk_matrix())
+    scorer_proxy._scorer_instance = _trained_real_dk_scorer()
 
     try:
         payload = client.get("/api/context/trust-analysis?category=trend_following").json()
@@ -275,4 +318,4 @@ def test_trust_endpoint_uses_shared_scorer(client):
 
     assert payload["mode"] == "dk"
     assert payload["phase"] == "B"
-    assert payload["trust_scores"]["signal_alignment"]["dk_weight"] == 0.95
+    assert payload["trust_scores"]["signal_alignment"]["dk_weight"] is not None

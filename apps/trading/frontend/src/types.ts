@@ -445,6 +445,12 @@ export interface ScoreResponse {
   probabilities: number[];
   category: string;
   factors?: Record<string, number>;
+  regimeContext?: {
+    regime?: string;
+    hurst?: NullableNumber;
+    volState?: string | null;
+    vixPercentile?: NullableNumber;
+  };
   actionNames: string[];
 }
 
@@ -560,6 +566,16 @@ export interface ConservationState {
   autoResolveRate?: number;
   alpha?: number;
   [key: string]: unknown;
+}
+
+export interface RegimeStatusResponse {
+  currentRegime?: string | null;
+  previousRegime?: string | null;
+  regimeBreakActive: boolean;
+  decisionsInNewRegime: number;
+  decisionsToStabilize: number;
+  autonomyLevel: "normal" | "restricted";
+  restrictions: string[];
 }
 
 export interface CategoryConservation {

@@ -10,6 +10,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import random
+import logging
 from statistics import pstdev
 from typing import Any, Callable
 
@@ -25,6 +26,7 @@ MAX_MULTIPLIER = 2.0
 
 
 TRADING_FACTOR_NAMES = list(TradingPreset().shape.factor_names)
+log = logging.getLogger(__name__)
 
 
 def _now_iso() -> str:
@@ -164,6 +166,7 @@ class TradingAgentEvolver:
     store_factory: Callable[[], Any]
     factor_names: list[str] | tuple[str, ...] = field(default_factory=lambda: list(TRADING_FACTOR_NAMES))
     conservation_provider: Callable[[], Any] = _default_conservation_state
+    regime_break_provider: Callable[[], bool] = lambda: False
 
     def __post_init__(self) -> None:
         self._baseline = self.baseline_scorer
@@ -260,6 +263,13 @@ class TradingAgentEvolver:
         return deepcopy(result)
 
     def check_promotion(self, variant_id: str) -> dict[str, Any]:
+        if self.regime_break_provider():
+            log.warning("AE promotion deferred: regime break active")
+            return {
+                "promotable": False,
+                "promoted": False,
+                "reason": "regime_break_deferred",
+            }
         results = list(self._results.get(str(variant_id), []))
         batches = len(results)
         if batches < MIN_SHADOW_BATCHES:

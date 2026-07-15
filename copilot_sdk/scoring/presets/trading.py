@@ -86,6 +86,18 @@ class TradingPreset:
         return 400
 
     @property
+    def regime_tightening_multiplier(self) -> float:
+        return 1.3
+
+    @property
+    def regime_break_window(self) -> int:
+        return 10
+
+    @property
+    def regime_stabilize_after(self) -> int:
+        return 20
+
+    @property
     def plateau_config(self) -> PlateauConfig:
         # C*A=20; window=round(10*sqrt((C*A)/20))=10; cooldown=5*window.
         return PlateauConfig(

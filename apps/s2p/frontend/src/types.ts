@@ -350,6 +350,19 @@ export interface ScoreInvoiceResponse {
   activeVariant?: S2PVariantSummary | null;
   auto_approve?: AutoApproveDecision | null;
   autoApprove?: AutoApproveDecision | null;
+  threshold_decision?: ThresholdDecision | null;
+  thresholdDecision?: ThresholdDecision | null;
+}
+
+export interface ThresholdDecision {
+  decision: "REJECT" | "APPROVE" | string;
+  reason: string;
+  cost_of_error?: string;
+  costOfError?: string;
+  price_variance_pct?: number;
+  priceVariancePct?: number;
+  threshold_pct?: number;
+  thresholdPct?: number;
 }
 
 export interface AutoApproveDecision {

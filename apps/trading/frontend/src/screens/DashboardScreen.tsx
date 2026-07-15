@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
+import DayZeroCard from "../../../../../copilot_sdk/frontend/components/DayZeroCard";
 import {
   API_BASE,
   getAnalytics,
@@ -15,6 +16,7 @@ import MarketContext from "../components/MarketContext";
 import PatternBadge from "../components/PatternBadge";
 import PortfolioConcentration from "../components/PortfolioConcentration";
 import PortfolioSummary from "../components/PortfolioSummary";
+import ProvenanceBadge from "../components/ProvenanceBadge";
 import RegimePanel from "../components/RegimePanel";
 import ThesisBreakdown from "../components/ThesisBreakdown";
 import TradeCard from "../components/TradeCard";
@@ -190,6 +192,11 @@ export default function DashboardScreen({
       ) : null}
 
       <ArchetypeSelector />
+      <DayZeroCard
+        apiBase={API_BASE}
+        copilot="trading"
+        renderProvenance={(source) => <ProvenanceBadge source={source} />}
+      />
       <MarketContext snapshot={state.market} />
       <RegimePanel />
       <PortfolioSummary summary={state.analytics?.portfolioSummary} />

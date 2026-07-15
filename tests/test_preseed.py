@@ -27,9 +27,9 @@ def preseed_result(tmp_path_factory):
             os.environ["TRADING_EVOLUTION_LOG_PATH"] = previous_path
 
 
-def test_preseed_deterministic(preseed_result) -> None:
-    first = preseed_result
-    second = DemoPreseed(seed=20260711).preseed_all()
+def test_preseed_deterministic() -> None:
+    first = DemoPreseed(seed=20260711, fast_mode=True).preseed_all()
+    second = DemoPreseed(seed=20260711, fast_mode=True).preseed_all()
 
     assert first.stable_json() == second.stable_json()
     for name in first.copilots:

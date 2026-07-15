@@ -6,6 +6,7 @@ import { EvidenceTemplatePanel } from "../components/EvidenceTemplatePanel";
 import NoveltyAlertBanner from "../components/NoveltyAlertBanner";
 import ProvenanceBadge from "../components/ProvenanceBadge";
 import { ProcessContextPanel } from "../components/ProcessContextPanel";
+import RuleVsReasoningPanel from "../components/RuleVsReasoningPanel";
 import { S2PConservationProjection } from "../components/S2PConservationProjection";
 import { S2PReasoningPanel } from "../components/S2PReasoningPanel";
 import { SituationPanel } from "../components/SituationPanel";
@@ -281,6 +282,8 @@ export function TriageScreen() {
           </article>
 
           <SituationPanel decisionId={situationDecisionId} hasSelection={Boolean(selected)} />
+
+          {score ? <RuleVsReasoningPanel score={score} /> : null}
 
           {crossCopilotSignal ? <CrossCopilotSignalBanner signal={crossCopilotSignal} /> : null}
 

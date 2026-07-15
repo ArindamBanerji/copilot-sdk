@@ -17,6 +17,10 @@ export default function ProvenanceBadge({ source, asOf }: ProvenanceBadgeProps) 
   const label =
     normalized === "live" || normalized === "scraped_external"
       ? "░░ External"
+      : normalized === "instrument"
+        ? "Instrument"
+      : normalized === "accumulating"
+        ? "Accumulating"
       : normalized === "real_measured" || normalized === "learned" || normalized === "verified"
         ? "██ Learned"
       : normalized === "cached"
@@ -25,6 +29,10 @@ export default function ProvenanceBadge({ source, asOf }: ProvenanceBadgeProps) 
   const title =
     normalized === "live" || normalized === "scraped_external"
       ? "Real external context (░░) - real data, not yet customer-specific"
+      : normalized === "instrument"
+        ? "Instrument calibrated - no measured magnitude claimed yet"
+      : normalized === "accumulating"
+        ? "Verified decisions are accumulating - magnitude withheld until measured"
       : normalized === "real_measured" || normalized === "learned" || normalized === "verified"
         ? "Learned from your decisions (██) - measured, not synthesized"
         : normalized === "cached"
@@ -33,6 +41,10 @@ export default function ProvenanceBadge({ source, asOf }: ProvenanceBadgeProps) 
   const color =
     normalized === "live" || normalized === "scraped_external"
       ? "bg-emerald-500"
+      : normalized === "instrument"
+        ? "bg-slate-500"
+      : normalized === "accumulating"
+        ? "bg-amber-500"
       : normalized === "real_measured" || normalized === "learned" || normalized === "verified"
         ? "bg-blue-500"
       : normalized === "cached"

@@ -50,10 +50,13 @@ def create_trading_evolution_router(
     evolver: TradingAgentEvolver | None = None,
     graph_store_factory: GraphStoreFactory | None = None,
     domain: str = "trading",
+    regime_break_provider: Callable[[], bool] | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/trading/evolution", tags=["trading-evolution"])
     use_persisted_rejections = evolver is None
     service = evolver or create_default_trading_evolver()
+    if regime_break_provider is not None:
+        service.regime_break_provider = regime_break_provider
     parameter_service = ScorerEvolution("trading")
     parameter_config = _default_parameter_config()
 

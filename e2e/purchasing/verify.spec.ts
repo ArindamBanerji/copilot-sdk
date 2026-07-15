@@ -1,17 +1,9 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
+import { PURCHASING_FACTORS } from "../fixtures/purchasing-factors";
 import { clickTab, waitForAppShell } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
-const PURCHASING_FACTORS = {
-  expected_demand: 0.72,
-  day_of_week: 0.2,
-  weather_forecast: 0.35,
-  event_flag: 0.1,
-  historical_waste: 0.18,
-  supplier_lead_time: 0.45,
-  price_memory_index: 0.5,
-};
 const ACTIONS = ["order_as_planned", "order_more", "order_less", "skip"];
 
 async function scoreDecision(request: APIRequestContext) {

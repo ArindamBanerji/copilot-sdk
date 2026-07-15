@@ -25,13 +25,32 @@ def classify_regime(
     price_history: Any | None = None,
     vix_history: Any | None = None,
 ) -> str:
+    return str(classify_regime_context(vix, trend_strength, price_history, vix_history)["regime"])
+
+
+def classify_regime_context(
+    vix: float,
+    trend_strength: float | None = None,
+    price_history: Any | None = None,
+    vix_history: Any | None = None,
+) -> dict[str, Any]:
     try:
         result = _quant_classify_regime(vix, trend_strength, price_history, vix_history)
         if isinstance(result, dict) and result.get("regime"):
-            return str(result["regime"])
+            return {
+                "regime": str(result["regime"]),
+                "hurst": result.get("hurst"),
+                "vol_state": result.get("vol_state"),
+                "vix_percentile": result.get("vix_percentile"),
+            }
     except Exception:
         pass
-    return _classify_regime_legacy(vix, 20.0 if trend_strength is None else trend_strength)
+    return {
+        "regime": _classify_regime_legacy(vix, 20.0 if trend_strength is None else trend_strength),
+        "hurst": None,
+        "vol_state": None,
+        "vix_percentile": None,
+    }
 
 
 class MarketRegimeFactor:

@@ -82,6 +82,19 @@ class ScoringHistoryResponse(BaseModel):
     decisions: list[dict[str, Any]]
 
 
+class MeasurementStateResponse(BaseModel):
+    state: str
+    decisions_verified: int
+    decisions_needed: int
+    arms_measured: int
+    arms_total: int
+    accuracy: float | None
+    iks: float | None
+    message: str
+    provenance: str
+    engine: dict[str, str]
+
+
 class ConservationStatusResponse(BaseModel):
     engine: dict[str, str]
     domain: str

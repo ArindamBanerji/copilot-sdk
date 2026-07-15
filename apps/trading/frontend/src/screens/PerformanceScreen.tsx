@@ -14,6 +14,7 @@ import EvolutionControlsPanel from "../components/EvolutionControlsPanel";
 import EvolutionPanel from "../components/EvolutionPanel";
 import ExecutionQualityCard from "../components/ExecutionQualityCard";
 import PromotionDashboard from "../components/PromotionDashboard";
+import RegimeStatusPanel from "../components/RegimeStatusPanel";
 import RejectionMomentPanel from "../components/RejectionMomentPanel";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
@@ -128,6 +129,7 @@ export default function PerformanceScreen() {
       <CentroidTimeline />
       <AuditTrail />
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
+      <RegimeStatusPanel />
       <StrategySafetyBreakdownPanel />
       <PromotionDashboard />
       <RejectionMomentPanel />
