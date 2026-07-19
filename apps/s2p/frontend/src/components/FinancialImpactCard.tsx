@@ -17,10 +17,13 @@ function label(value: string): string {
 
 export function FinancialImpactCard() {
   const [impact, setImpact] = useState<FinancialImpactSummaryResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!expanded) return;
     let cancelled = false;
+    setLoading(true);
     fetchFinancialImpact()
       .then((response) => {
         if (!cancelled) setImpact(response ?? null);
@@ -31,7 +34,7 @@ export function FinancialImpactCard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [expanded]);
 
   const breakdown = impact?.by_category ?? {};
   const total = impact?.net_savings ?? impact?.total_recovered;
@@ -56,11 +59,19 @@ export function FinancialImpactCard() {
           <p className="mt-1 text-sm text-slate-500">Receipt-backed recovery and at-risk exposure from verified outcomes.</p>
         </div>
         <p className="text-2xl font-semibold text-slate-950">
-          {loading ? "Loading..." : formatCurrency(total)}
+          {expanded && loading ? "Loading..." : expanded ? formatCurrency(total) : "On demand"}
         </p>
       </div>
 
-      {loading ? null : impact ? (
+      {!expanded ? (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="mt-4 text-sm font-semibold text-amber-700 hover:text-amber-800"
+        >
+          View details
+        </button>
+      ) : loading ? null : impact ? (
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           {cards.map(([name, item]) => {
             return (

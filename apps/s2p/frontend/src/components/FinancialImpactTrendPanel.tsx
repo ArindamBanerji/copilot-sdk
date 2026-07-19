@@ -13,10 +13,13 @@ function formatCurrency(value?: number): string {
 
 export function FinancialImpactTrendPanel() {
   const [trend, setTrend] = useState<FinancialImpactTrendResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!expanded) return;
     let cancelled = false;
+    setLoading(true);
     fetchFinancialImpactTrend()
       .then((response) => {
         if (!cancelled) setTrend(response ?? null);
@@ -27,7 +30,7 @@ export function FinancialImpactTrendPanel() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [expanded]);
 
   const points = trend?.points ?? [];
 
@@ -40,11 +43,19 @@ export function FinancialImpactTrendPanel() {
           <p className="mt-1 text-sm text-slate-500">Receipt-backed recovered value across the current analysis window.</p>
         </div>
         <p className="text-sm font-semibold text-slate-700">
-          {loading ? "Loading..." : `${points.length}/${trend?.window_weeks ?? 12} weeks`}
+          {expanded && loading ? "Loading..." : expanded ? `${points.length}/${trend?.window_weeks ?? 12} weeks` : "On demand"}
         </p>
       </div>
 
-      {loading ? null : trend && points.length ? (
+      {!expanded ? (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="mt-4 text-sm font-semibold text-amber-700 hover:text-amber-800"
+        >
+          View details
+        </button>
+      ) : loading ? null : trend && points.length ? (
         <div className="mt-4 space-y-2">
           {points.slice(-6).map((point) => (
             <div key={point.week} className="grid grid-cols-[80px_1fr_auto] items-center gap-3">

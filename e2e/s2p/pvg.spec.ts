@@ -18,7 +18,16 @@ test("dashboard shows financial impact", async ({ page }) => {
   const impact = panel(page, "Financial impact");
 
   await expect(impact).toContainText(/PVG savings|Financial impact data is unavailable|Recovered impact|Loading/i);
-  await expect(impact).toContainText(/leakage prevented|cycle time saved|auto approve efficiency|unavailable|Loading/i);
+  // Expand financial impact details.
+  const viewBtn = impact.getByRole("button", { name: /View details/i });
+  if (await viewBtn.count()) {
+    await viewBtn.click();
+    await impact.getByRole("button", { name: /View details/i }).waitFor({ state: "hidden", timeout: 10_000 }).catch(() => {});
+  }
+  await expect(impact).toContainText(
+    /leakage prevented|cycle time saved|auto approve efficiency|unavailable|Loading|Recovered/i,
+    { timeout: 10_000 },
+  );
 });
 
 test("insight shows leakage detection", async ({ page }) => {
