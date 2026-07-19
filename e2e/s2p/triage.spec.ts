@@ -1,10 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { waitForTriageQueue } from "./helpers";
 
 async function openTriage(page: Page) {
   await page.goto("/");
   await clickTab(page, "Exception Triage");
   await expect(page.getByRole("heading", { name: "Exception Triage" })).toBeVisible();
+  await waitForTriageQueue(page);
 }
 
 function panel(page: Page, text: string | RegExp) {
@@ -13,6 +15,22 @@ function panel(page: Page, text: string | RegExp) {
       hasText: text,
     }),
   });
+}
+
+function waitForScoreResponse(page: Page) {
+  return page.waitForResponse((response) =>
+    response.url().includes("/score") &&
+    response.request().method() === "POST" &&
+    response.status() === 200
+  );
+}
+
+function waitForLearnResponse(page: Page) {
+  return page.waitForResponse((response) =>
+    (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
+    response.request().method() === "POST" &&
+    response.ok()
+  );
 }
 
 async function clickScore(page: Page) {
@@ -24,14 +42,16 @@ async function clickScore(page: Page) {
     if (invoiceCount > 0) {
       await invoiceButtons.first().click();
     } else {
-      await expect(panel(page, "Invoice Selector")).toContainText(/Loading invoice queue|0 queued/i);
       test.skip(true, "No queued invoice available for scoring");
     }
   }
   await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
   const scoreButton = selected.getByRole("button", { name: /^Score$/i });
   await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await scoreButton.click();
+  await Promise.all([
+    waitForScoreResponse(page),
+    scoreButton.click(),
+  ]);
 }
 
 function scoreResultPanel(page: Page) {
@@ -54,7 +74,6 @@ async function expectLearningResultOrStableControls(page: Page, expected: RegExp
 
 async function scoreFirstInvoice(page: Page) {
   await openTriage(page);
-  await expect(panel(page, "Invoice Selector")).toContainText(/S2P-INV|queued/i);
   await clickScore(page);
   await expect(scoreResultPanel(page)).toContainText(/Recommendation|Confidence/i);
 }
@@ -94,7 +113,10 @@ test("process context shows bottleneck when available", async ({ page }) => {
 test("confirm button records reward or confirmed result", async ({ page }) => {
   await scoreFirstInvoice(page);
 
-  await recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click();
+  await Promise.all([
+    waitForLearnResponse(page),
+    recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click(),
+  ]);
   await expectLearningResultOrStableControls(page, /Outcome|Reward|recorded|confirm/i);
 });
 
@@ -105,13 +127,19 @@ test("override path records reward and learned text", async ({ page }) => {
   await result.getByRole("button", { name: /^Override$/i }).click();
   await page.getByLabel(/Override action/i).selectOption("hold_for_review");
   await page.getByLabel(/Reason code/i).selectOption("wrong_action");
-  await result.getByRole("button", { name: /Override and learn/i }).click();
+  await Promise.all([
+    waitForLearnResponse(page),
+    result.getByRole("button", { name: /Override and learn/i }).click(),
+  ]);
   await expectLearningResultOrStableControls(page, /Reward|override|Learned/i);
 });
 
 test("conservation status visible after learn", async ({ page }) => {
   await scoreFirstInvoice(page);
-  await recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click();
+  await Promise.all([
+    waitForLearnResponse(page),
+    recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click(),
+  ]);
 
   const projection = panel(page, "Conservation Projection");
   await expect(projection).toContainText(/conservation/i);

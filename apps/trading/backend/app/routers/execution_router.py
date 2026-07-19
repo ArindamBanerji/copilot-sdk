@@ -5,10 +5,11 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any, Callable
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from app.routers.data_import import _trade_store_ref
 from app.services.execution_analysis import ExecutionAnalyzer
+from copilot_sdk.state.cached_static import cached_static
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -41,7 +42,8 @@ def create_execution_router(
         return records
 
     @router.get("/analysis")
-    def analysis() -> dict[str, Any]:
+    @cached_static("execution")
+    def analysis(request: Request) -> dict[str, Any]:
         return asdict(analyzer.analyze(_trades()))
 
     @router.get("/summary")

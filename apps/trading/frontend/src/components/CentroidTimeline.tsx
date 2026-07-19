@@ -5,18 +5,20 @@ import type { CentroidCheckpoint, SelfCentroidHistoryResponse } from "../types";
 export default function CentroidTimeline() {
   const [data, setData] = useState<SelfCentroidHistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const checkpoints = Array.isArray(data?.checkpoints) ? data.checkpoints : [];
+  const rows = useMemo(() => buildRows(checkpoints), [checkpoints]);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(false);
     fetchCentroidHistory(50)
       .then((payload) => {
         if (!cancelled) setData(payload);
       })
-      .catch(() => {
-        if (!cancelled) setError(true);
+      .catch((loadError) => {
+        console.debug("centroid timeline unavailable", loadError);
+        if (!cancelled) setError("Centroid timeline unavailable.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -25,9 +27,6 @@ export default function CentroidTimeline() {
       cancelled = true;
     };
   }, []);
-
-  const checkpoints = Array.isArray(data?.checkpoints) ? data.checkpoints : [];
-  const rows = useMemo(() => buildRows(checkpoints), [checkpoints]);
 
   return (
     <section className="copilot-card p-5">

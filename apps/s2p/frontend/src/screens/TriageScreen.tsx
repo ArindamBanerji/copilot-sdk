@@ -101,6 +101,7 @@ export function TriageScreen() {
   const [overrideReason, setOverrideReason] = useState<S2PReasonCode | "">("");
   const [submitError, setSubmitError] = useState("");
   const [conservation, setConservation] = useState<ConservationStatus | null>(null);
+  const [conservationLoading, setConservationLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [scoring, setScoring] = useState(false);
   const [learning, setLearning] = useState(false);
@@ -124,9 +125,13 @@ export function TriageScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchConservation().then((data) => {
-      if (!cancelled) setConservation(data);
-    });
+    fetchConservation()
+      .then((data) => {
+        if (!cancelled) setConservation(data);
+      })
+      .finally(() => {
+        if (!cancelled) setConservationLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -194,7 +199,7 @@ export function TriageScreen() {
   }
 
   return (
-    <section className="space-y-6">
+    <section data-screen-ready={String(queue !== null && !loading)} className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Invoice exception workflow</p>
         <h1 className="mt-1 text-3xl font-semibold text-slate-950">Exception Triage</h1>
@@ -211,7 +216,7 @@ export function TriageScreen() {
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-slate-950">Invoice Selector</h2>
             <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-              {queue?.total ?? 0} queued
+              {queue !== null ? `${queue.total ?? invoices.length} queued` : ""}
             </span>
           </div>
           {loading ? (
@@ -391,7 +396,7 @@ export function TriageScreen() {
             </article>
           ) : null}
 
-          <S2PConservationProjection />
+          <S2PConservationProjection status={conservation} loading={conservationLoading} />
         </div>
       </div>
     </section>

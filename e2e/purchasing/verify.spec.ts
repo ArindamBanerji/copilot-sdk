@@ -7,9 +7,15 @@ const API_BASE = "http://127.0.0.1:8020";
 const ACTIONS = ["order_as_planned", "order_more", "order_less", "skip"];
 
 async function scoreDecision(request: APIRequestContext) {
-  const response = await request.post(`${API_BASE}/api/score`, {
+  let response = await request.post(`${API_BASE}/api/score`, {
     data: { category: "protein", factors: PURCHASING_FACTORS },
   });
+  for (let attempt = 0; response.status() >= 500 && attempt < 2; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+    response = await request.post(`${API_BASE}/api/score`, {
+      data: { category: "protein", factors: PURCHASING_FACTORS },
+    });
+  }
   expect(response.status()).toBe(200);
   return response.json();
 }

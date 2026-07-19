@@ -57,5 +57,5 @@ test("execution card shows savings estimate when multiple brokers", async ({ pag
     });
   });
   await gotoPerformance(page);
-  await expect(executionCard(page).getByText(/Annual savings estimate/i)).toBeVisible({ timeout: 15_000 });
+  await expect(executionCard(page).getByText(/^Annual savings estimate:/i)).toBeVisible({ timeout: 15_000 });
 });

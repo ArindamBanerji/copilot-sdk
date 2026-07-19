@@ -9,8 +9,10 @@ import hashlib
 import math
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
+from copilot_sdk.scoring.mutation_lock import serialize_mutation
+from copilot_sdk.state.cached_static import cached_static
 
 
 TRADING_CATEGORIES = (
@@ -37,6 +39,7 @@ TRADING_FACTORS = (
 )
 DEFAULT_CATEGORY = "trend_following"
 HISTORY_LIMIT = 100
+_WEBHOOK_HISTORY: deque[dict[str, Any]] = deque(maxlen=HISTORY_LIMIT)
 
 
 class TradingViewWebhookRequest(BaseModel):
@@ -75,9 +78,10 @@ class TradingViewWebhookRequest(BaseModel):
 
 def create_webhook_router(scorer_proxy: Any) -> APIRouter:
     router = APIRouter(prefix="/api/trading/webhook", tags=["trading-webhook"])
-    history: deque[dict[str, Any]] = deque(maxlen=HISTORY_LIMIT)
+    history = _WEBHOOK_HISTORY
 
     @router.post("/tradingview")
+    @serialize_mutation("trading", event="score")
     def tradingview_webhook(request: TradingViewWebhookRequest) -> dict[str, Any]:
         received_at = _now()
         category = _normalize_category(request.category, request.strategy)
@@ -123,7 +127,8 @@ def create_webhook_router(scorer_proxy: Any) -> APIRouter:
         return _json_safe(response)
 
     @router.get("/history")
-    def webhook_history() -> list[dict[str, Any]]:
+    @cached_static("webhook-history")
+    def webhook_history(request: Request) -> list[dict[str, Any]]:
         return list(history)
 
     @router.get("/config")
@@ -167,6 +172,41 @@ def create_webhook_router(scorer_proxy: Any) -> APIRouter:
         return tradingview_webhook(request)
 
     return router
+
+
+def compute_webhook_status() -> dict[str, Any]:
+    history = list(_WEBHOOK_HISTORY)
+    last_alert = history[0] if history else None
+    fast = [
+        alert for alert in history
+        if _number(alert.get("time_to_trade_seconds") or alert.get("timeToTradeSeconds")) is not None
+        and _number(alert.get("time_to_trade_seconds") or alert.get("timeToTradeSeconds")) < 300
+    ]
+    slow = [
+        alert for alert in history
+        if _number(alert.get("time_to_trade_seconds") or alert.get("timeToTradeSeconds")) is not None
+        and _number(alert.get("time_to_trade_seconds") or alert.get("timeToTradeSeconds")) > 1800
+    ]
+    return {
+        "total_alerts": len(history),
+        "correlated_trades": len([alert for alert in history if alert.get("scored")]),
+        "last_alert": last_alert,
+        "last_received": last_alert.get("received_at") if isinstance(last_alert, dict) else None,
+        "fast_accuracy": _speed_accuracy(fast),
+        "slow_accuracy": _speed_accuracy(slow),
+        "health": "active" if history else "waiting",
+    }
+
+
+def _speed_accuracy(alerts: list[dict[str, Any]]) -> float | None:
+    labeled = [
+        alert for alert in alerts
+        if isinstance(alert.get("is_correct", alert.get("isCorrect")), bool)
+    ]
+    if not labeled:
+        return None
+    correct = len([alert for alert in labeled if bool(alert.get("is_correct", alert.get("isCorrect")))])
+    return round(correct / len(labeled), 4)
 
 
 def map_tradingview_factors(indicators: dict[str, Any] | None) -> dict[str, float]:

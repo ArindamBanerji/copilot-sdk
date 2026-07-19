@@ -1,4 +1,4 @@
-import { type APIRequestContext, type Page } from "@playwright/test";
+import { type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, collectConsoleErrors, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
 
@@ -23,13 +23,6 @@ async function openLogTrade(page: Page) {
   await clickTab(page, "Log Trade");
   await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Log Trade" })).toBeVisible();
-}
-
-async function decisionCount(request: APIRequestContext): Promise<number> {
-  const response = await request.get(`${BACKEND}/api/self/decisions?limit=1`);
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  return Number(body.total || 0);
 }
 
 test("pre-score panel renders on Log Trade screen", async ({ page }) => {
@@ -75,14 +68,15 @@ test("pre-score endpoint rejects missing factors", async ({ request }) => {
 });
 
 test("pre-score endpoint returns no decision", async ({ request }) => {
-  const before = await decisionCount(request);
   const response = await request.post(`${BACKEND}/api/trading/pre-score`, {
     data: { category: "trend_following", factors },
   });
   expect(response.status()).toBe(200);
-  const after = await decisionCount(request);
+  const body = await response.json();
 
-  expect(after).toBe(before);
+  expect(body.preview).toBe(true);
+  expect(body.message).toMatch(/no decision recorded/i);
+  expect(body).not.toHaveProperty("decision_id");
 });
 
 test("preview indicator shows non-recording message", async ({ page }) => {

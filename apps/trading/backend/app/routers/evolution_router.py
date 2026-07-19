@@ -7,12 +7,14 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from copilot_sdk.backend.conservation_router import _check_payload, _state_counts
 from copilot_sdk.scoring.evolution import EvolutionProposal, ScorerEvolution
+from copilot_sdk.scoring.mutation_lock import serialize_mutation
 from copilot_sdk.scoring.presets.trading import TradingPreset
+from copilot_sdk.state.cached_static import cached_static
 
 from app.services.trading_evolver import (
     MAX_VARIANCE_PP,
@@ -61,7 +63,7 @@ def create_trading_evolution_router(
     parameter_config = _default_parameter_config()
 
     @router.get("/log")
-    def evolution_log(kind: str | None = None) -> list[dict[str, Any]]:
+    def evolution_log(request: Request, kind: str | None = None) -> list[dict[str, Any]]:
         variant_entries = [
             {"kind": "variant", **entry}
             for entry in service.evolution_log()
@@ -77,7 +79,8 @@ def create_trading_evolution_router(
         return log
 
     @router.get("/rejection-summary")
-    def rejection_summary() -> dict[str, Any]:
+    @cached_static("rejection-summary")
+    def rejection_summary(request: Request) -> dict[str, Any]:
         persisted = _load_persisted_rejection_summary() if use_persisted_rejections else None
         entries = _merge_rejection_entries(
             _trading_rejection_entries(service),
@@ -139,10 +142,12 @@ def create_trading_evolution_router(
         }
 
     @router.post("/generate")
+    @serialize_mutation(domain, event="evolution")
     def generate_variant() -> dict[str, Any]:
         return service.generate_variant()
 
     @router.post("/shadow-test")
+    @serialize_mutation(domain, event="evolution")
     def shadow_test(request: ShadowTestRequest) -> dict[str, Any]:
         variant = request.variant
         if variant is None:
@@ -157,10 +162,12 @@ def create_trading_evolution_router(
         return service.shadow_test(variant, decisions, batch_size=request.batch_size)
 
     @router.post("/promote")
+    @serialize_mutation(domain, event="evolution")
     def promote(request: PromoteRequest) -> dict[str, Any]:
         return service.promote(request.variant_id)
 
     @router.post("/apply")
+    @serialize_mutation(domain, event="evolution")
     def apply_proposal(request: ApplyProposalRequest) -> dict[str, Any]:
         proposal = parameter_service.find_proposal(request.proposal_id)
         if proposal is None:
@@ -177,6 +184,7 @@ def create_trading_evolution_router(
         }
 
     @router.post("/rollback")
+    @serialize_mutation(domain, event="evolution")
     def rollback_parameter(request: RollbackRequest) -> dict[str, Any]:
         rolled_back = parameter_service.rollback(request.parameter, parameter_config)
         return {

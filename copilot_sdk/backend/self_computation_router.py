@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 
 from copilot_sdk.backend.models import (
     AccuracyByCategoryResponse,
@@ -28,6 +28,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
 
     @router.get("/centroid-history", response_model=CentroidHistoryResponse)
     def centroid_history(
+        request: Request,
         limit: int = Query(50, ge=1, le=500),
         checkpoint_time_start: str | None = None,
         checkpoint_time_end: str | None = None,
@@ -49,6 +50,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
 
     @router.get("/accuracy-by-category", response_model=AccuracyByCategoryResponse)
     def accuracy_by_category(
+        request: Request,
         threshold: float = Query(0.70, ge=0.0, le=1.0),
     ) -> dict[str, Any]:
         verified = _gs().get_verified_decisions(_domain())
@@ -83,6 +85,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
 
     @router.get("/decisions", response_model=SelfDecisionsResponse)
     def decisions(
+        request: Request,
         category: str | None = None,
         action: str | None = None,
         limit: int = Query(50, ge=1, le=500),
@@ -106,6 +109,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
 
     @router.get("/audit-trail")
     def audit_trail(
+        request: Request,
         decision_id: str | None = None,
         limit: int = Query(20, ge=1, le=100),
     ) -> dict[str, Any]:

@@ -58,11 +58,15 @@ function delta(n?: number): string {
 export default function CounterfactualCard() {
   const [result, setResult] = useState<CounterfactualResponse | null>(null);
   const [sampleRefusal, setSampleRefusal] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (!expanded) return;
     let cancelled = false;
+    setLoading(true);
+    setError(false);
     postCounterfactual({
       base_factors: BASE_FACTORS,
       perturbed_factors: PERTURBED_FACTORS,
@@ -80,7 +84,7 @@ export default function CounterfactualCard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [expanded]);
 
   async function trySample() {
     const payload = await postCounterfactual({
@@ -103,9 +107,19 @@ export default function CounterfactualCard() {
         </div>
         {result ? <ProvenanceBadge source={result.provenance || "learned"} /> : null}
       </div>
-      {loading ? <p className="mt-3 text-sm text-slate-500">Calculating counterfactual...</p> : null}
-      {!loading && error ? <p className="mt-3 text-sm text-slate-500">Counterfactual unavailable.</p> : null}
-      {!loading && !error ? (
+      {!expanded ? (
+        <button
+          type="button"
+          className="mt-4 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900"
+          onClick={() => setExpanded(true)}
+        >
+          View counterfactual
+        </button>
+      ) : loading ? (
+        <p className="mt-3 text-sm text-slate-500">Calculating counterfactual...</p>
+      ) : error ? (
+        <p className="mt-3 text-sm text-slate-500">Counterfactual unavailable.</p>
+      ) : (
         <div className="mt-4 space-y-4">
           <div className="grid gap-3 md:grid-cols-3">
             <Metric label="Original score" value={value(result?.base_score)} />
@@ -124,7 +138,7 @@ export default function CounterfactualCard() {
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </article>
   );
 }

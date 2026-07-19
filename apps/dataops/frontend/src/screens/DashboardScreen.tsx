@@ -136,7 +136,7 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
   }
 
   if (error) {
-    return <DashboardFrame message={error} tone="error" />;
+    return <DashboardFrame message={error} tone="error" ready />;
   }
 
   const conservation = state.conservation;
@@ -146,7 +146,7 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
   const provenanceSource = sourceFrom(state.alerts[0]) ?? "sample";
 
   return (
-    <div className="grid gap-5">
+    <div data-screen-ready="true" className="grid gap-5">
       <EnterpriseHealthBar />
       <div className="flex flex-wrap items-center gap-2">
         <TransferBadge apiBase={BASE} />
@@ -270,9 +270,10 @@ function UngroupedAlerts({
   );
 }
 
-function DashboardFrame({ message, tone = "muted" }: { message: string; tone?: "muted" | "error" }) {
+function DashboardFrame({ message, tone = "muted", ready = false }: { message: string; tone?: "muted" | "error"; ready?: boolean }) {
   return (
     <div
+      data-screen-ready={String(ready)}
       className="copilot-card p-6 text-sm"
       style={{ color: tone === "error" ? "var(--copilot-danger)" : "var(--copilot-text-muted)" }}
     >

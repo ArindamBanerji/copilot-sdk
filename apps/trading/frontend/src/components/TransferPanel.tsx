@@ -15,8 +15,8 @@ function label(value?: string): string {
 }
 
 export default function TransferPanel() {
+  const [cachedStatus, setCachedStatus] = useState<TransferStatusResponse | null>(null);
   const [opportunities, setOpportunities] = useState<TransferOpportunitiesResponse | null>(null);
-  const [status, setStatus] = useState<TransferStatusResponse | null>(null);
   const [selected, setSelected] = useState<TransferMappingSummary | null>(null);
   const [dryRun, setDryRun] = useState(true);
   const [result, setResult] = useState<TransferExecuteResponse | null>(null);
@@ -27,15 +27,16 @@ export default function TransferPanel() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([fetchTransferOpportunities(), fetchTransferStatus().catch(() => null)])
+    Promise.all([fetchTransferOpportunities(), fetchTransferStatus()])
       .then(([nextOpportunities, nextStatus]) => {
         if (cancelled) return;
         setOpportunities(nextOpportunities);
-        setStatus(nextStatus);
+        setCachedStatus(nextStatus);
         const transfers = nextOpportunities.availableTransfers || [];
         setSelected(transfers.find((item) => item.target === "trading") || transfers[0] || null);
       })
       .catch((loadError) => {
+        console.debug("TransferPanel fetch failed", loadError);
         if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Transfer data unavailable");
       })
       .finally(() => {
@@ -59,6 +60,7 @@ export default function TransferPanel() {
     try {
       setResult(await executeTransfer(selected.source, selected.target, dryRun));
     } catch (executeError) {
+      console.debug("TransferPanel execute failed", executeError);
       setError(executeError instanceof Error ? executeError.message : "Transfer failed");
     } finally {
       setExecuting(false);
@@ -77,7 +79,7 @@ export default function TransferPanel() {
           <p className="mt-1 text-sm trading-muted">Warm-start candidate patterns from compatible copilots.</p>
         </div>
         <div className="rounded-full border px-3 py-1 text-xs" style={{ borderColor: "var(--copilot-border)" }}>
-          {status?.warmStarted ? `Warm-started from ${label(status.sourceCopilot)}` : "No active transfer"}
+          {cachedStatus?.warmStarted ? `Warm-started from ${label(cachedStatus.sourceCopilot)}` : "No active transfer"}
         </div>
       </div>
 

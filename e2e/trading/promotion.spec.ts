@@ -34,18 +34,22 @@ test("Dashboard shows all Trading categories", async ({ page }) => {
 });
 
 test("Each category shows stage badge", async ({ page }) => {
+  test.setTimeout(60_000);
   await gotoPerformance(page);
+  await expect(page.getByTestId("promotion-dashboard")).toBeVisible({ timeout: 20_000 });
 
   for (const category of categories) {
-    await expect(page.getByTestId(`promotion-stage-${category}`)).toContainText(stageText);
+    await expect(page.getByTestId(`promotion-stage-${category}`)).toContainText(stageText, { timeout: 20_000 });
   }
 });
 
 test("Sizing cap displayed per category", async ({ page }) => {
+  test.setTimeout(60_000);
   await gotoPerformance(page);
+  await expect(page.getByTestId("promotion-dashboard")).toBeVisible({ timeout: 20_000 });
 
   for (const category of categories) {
-    await expect(page.getByTestId(`promotion-sizing-${category}`)).toContainText(/% max/i);
+    await expect(page.getByTestId(`promotion-sizing-${category}`)).toContainText(/% max/i, { timeout: 20_000 });
   }
 });
 

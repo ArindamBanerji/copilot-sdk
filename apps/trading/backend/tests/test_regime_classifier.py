@@ -212,7 +212,9 @@ def test_regime_endpoint_current() -> None:
     response = _client().get("/api/trading/regime/current")
 
     assert response.status_code == 200
-    assert response.json()["regime"] in {"trending", "ranging", "volatile"}
+    payload = response.json()
+    assert payload["regime"] in {"trending", "ranging", "volatile"}
+    assert 0 <= payload["hurst"] <= 1
 
 
 def test_regime_endpoint_history() -> None:

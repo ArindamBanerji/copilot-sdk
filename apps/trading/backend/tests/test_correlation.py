@@ -206,6 +206,8 @@ def test_correlation_no_trades_returns_insufficient(client):
     payload = client.get("/api/trading/correlation").json()
 
     assert payload["source"] == "insufficient_data"
+    assert payload["day_zero"] is True
+    assert payload["decisions_until_measured"] == 30
 
 
 def test_correlation_endpoint_window_param(client, monkeypatch):

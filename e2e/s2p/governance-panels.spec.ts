@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { clickTab } from "../helpers/ui";
+import { clickTab, waitForAppShell } from "../helpers/ui";
 
 async function mockComplianceApis(page: Page) {
   await page.route("**/api/s2p/governance/compliance-screening", async (route) => {
@@ -99,14 +99,18 @@ async function mockRationalizationApis(page: Page) {
 async function openEvidence(page: Page) {
   await mockComplianceApis(page);
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Evidence");
+  await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
 }
 
 async function openSuppliers(page: Page) {
   await mockRationalizationApis(page);
   await page.goto("/");
+  await waitForAppShell(page);
   await clickTab(page, "Suppliers");
+  await waitForAppShell(page);
   await expect(page.getByRole("heading", { name: "Suppliers" })).toBeVisible();
 }
 

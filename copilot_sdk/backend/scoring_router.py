@@ -10,7 +10,7 @@ from dataclasses import asdict, is_dataclass
 from typing import Any, Callable
 
 import numpy as np
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from copilot_sdk.backend.conservation_utils import compute_conservation_metrics
@@ -29,6 +29,9 @@ from copilot_sdk.scoring.dk_persistence import (
     persist_dk_after_reestimate,
 )
 from copilot_sdk.scoring.measurement_state import compute_measurement_state
+from copilot_sdk.scoring.mutation_lock import mutation_lock_scope
+from copilot_sdk.state.invalidation import apply_cache_invalidation_event
+from copilot_sdk.state.cached_static import cached_static
 
 
 ENGINE = {
@@ -87,100 +90,107 @@ def create_scoring_router(
 
     @router.post("/score", response_model=ScoreResponse)
     def score(request: ScoreRequest) -> dict[str, Any]:
-        scorer = get_scorer()
-        try:
-            result = _score_with_optional_metadata(scorer, request)
-        except AssertionError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        payload = _json_safe(result)
-        payload["engine"] = ENGINE
-        return payload
+        with mutation_lock_scope(domain):
+            scorer = get_scorer()
+            try:
+                result = _score_with_optional_metadata(scorer, request)
+            except AssertionError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+            payload = _json_safe(result)
+            payload["engine"] = ENGINE
+            payload = _score_response_payload(payload)
+            apply_cache_invalidation_event(domain, "score")
+            return payload
 
     @router.post("/learn", response_model=LearnResponse)
     def learn(request: LearnRequest) -> dict[str, Any]:
-        scorer = get_scorer()
-        try:
-            decision = _get_decision(scorer, request.decision_id)
-            is_correct = request.actual_action == decision.get("recommended_action")
-            reward = _signed_reward(
+        with mutation_lock_scope(domain):
+            scorer = get_scorer()
+            try:
+                decision = _get_decision(scorer, request.decision_id)
+                is_correct = request.actual_action == decision.get("recommended_action")
+                reward = _signed_reward(
+                    domain=domain,
+                    scorer=scorer,
+                    decision=decision,
+                    outcome=request.outcome,
+                    context=request.context or {},
+                    is_correct=is_correct,
+                )
+                previous_reward = _previous_reward(request.context or {})
+                category = _decision_category(decision)
+                pre_centroid = _read_centroid_for_l5(
+                    scorer,
+                    category=category,
+                    action=request.actual_action,
+                    logger=log,
+                )
+                result = scorer.learn(
+                    request.decision_id,
+                    request.actual_action,
+                    request.outcome,
+                )
+            except KeyError as exc:
+                raise HTTPException(status_code=404, detail=f"Unknown decision: {request.decision_id}") from exc
+            except AssertionError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+            payload = _json_safe(result)
+            _shape_learn_payload(
+                payload,
+                request=request,
+                decision=decision,
+            )
+            payload["reward"] = reward
+            payload["previous_reward"] = previous_reward
+            payload["reward_multiplier"] = _reward_multiplier(reward, previous_reward)
+            payload["engine"] = ENGINE
+            _persist_centroid_l5(
                 domain=domain,
                 scorer=scorer,
-                decision=decision,
-                outcome=request.outcome,
-                context=request.context or {},
-                is_correct=is_correct,
-            )
-            previous_reward = _previous_reward(request.context or {})
-            category = _decision_category(decision)
-            pre_centroid = _read_centroid_for_l5(
-                scorer,
+                explicit_learning_store=learning_store,
                 category=category,
-                action=request.actual_action,
+                actual_action=request.actual_action,
+                caused_by_decision_id=request.decision_id,
+                pre_centroid=pre_centroid,
+                persistence_lock=l5_centroid_lock,
                 logger=log,
             )
-            result = scorer.learn(
-                request.decision_id,
-                request.actual_action,
-                request.outcome,
+            _persist_conservation_state_l5(
+                domain=domain,
+                scorer=scorer,
+                explicit_learning_store=learning_store,
+                caused_by_decision_id=request.decision_id,
+                persistence_lock=l5_conservation_lock,
             )
-        except KeyError as exc:
-            raise HTTPException(status_code=404, detail=f"Unknown decision: {request.decision_id}") from exc
-        except AssertionError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-        payload = _json_safe(result)
-        _shape_learn_payload(
-            payload,
-            request=request,
-            decision=decision,
-        )
-        payload["reward"] = reward
-        payload["previous_reward"] = previous_reward
-        payload["reward_multiplier"] = _reward_multiplier(reward, previous_reward)
-        payload["engine"] = ENGINE
-        _persist_centroid_l5(
-            domain=domain,
-            scorer=scorer,
-            explicit_learning_store=learning_store,
-            category=category,
-            actual_action=request.actual_action,
-            caused_by_decision_id=request.decision_id,
-            pre_centroid=pre_centroid,
-            persistence_lock=l5_centroid_lock,
-            logger=log,
-        )
-        _persist_conservation_state_l5(
-            domain=domain,
-            scorer=scorer,
-            explicit_learning_store=learning_store,
-            caused_by_decision_id=request.decision_id,
-            persistence_lock=l5_conservation_lock,
-        )
-        _persist_dk_state_l5(
-            domain=domain,
-            scorer=scorer,
-            explicit_learning_store=learning_store,
-            decision=decision,
-            actual_action=request.actual_action,
-            payload=payload,
+            _persist_dk_state_l5(
+                domain=domain,
+                scorer=scorer,
+                explicit_learning_store=learning_store,
+                decision=decision,
+                actual_action=request.actual_action,
+                payload=payload,
                 welford_tracker=active_dk_welford_tracker,
-            persistence_lock=l5_dk_lock,
-        )
-        return payload
+                persistence_lock=l5_dk_lock,
+            )
+            apply_cache_invalidation_event(domain, "learn")
+            return payload
 
     @router.get("/fingerprint", response_model=FingerprintResponse)
-    def fingerprint() -> dict[str, Any]:
+    @cached_static("fingerprint", copilot=domain)
+    def fingerprint(request: Request) -> dict[str, Any]:
         scorer = get_scorer()
         payload = _json_safe(scorer.fingerprint())
         payload["engine"] = ENGINE
         return payload
 
     @router.get("/trajectory", response_model=TrajectoryResponse)
-    def trajectory() -> dict[str, Any]:
+    @cached_static("trajectory", copilot=domain)
+    def trajectory(request: Request) -> dict[str, Any]:
         scorer = get_scorer()
         payload = _json_safe(scorer.trajectory())
         payload["engine"] = ENGINE
@@ -196,7 +206,8 @@ def create_scoring_router(
         }
 
     @router.get("/history", response_model=ScoringHistoryResponse)
-    def history() -> dict[str, Any]:
+    @cached_static("history-summary", copilot=domain)
+    def history(request: Request) -> dict[str, Any]:
         scorer = get_scorer()
         store = _scorer_data_store(scorer)
         store_domain = _store_domain(store, domain)
@@ -215,7 +226,8 @@ def create_scoring_router(
         return payload
 
     @router.get("/measurement-state", response_model=MeasurementStateResponse)
-    def measurement_state() -> dict[str, Any]:
+    @cached_static("measurement-state", copilot=domain)
+    def measurement_state(request: Request) -> dict[str, Any]:
         return measurement_payload()
 
     @router.get("/{copilot}/measurement-state", response_model=MeasurementStateResponse)
@@ -685,5 +697,43 @@ def _json_safe(value: Any) -> Any:
     if isinstance(value, np.integer):
         return int(value)
     if isinstance(value, np.floating):
-        return float(value)
+        number = float(value)
+        return number if math.isfinite(number) else 0.0
+    if isinstance(value, float):
+        return value if math.isfinite(value) else 0.0
     return value
+
+
+def _score_response_payload(payload: Any) -> dict[str, Any]:
+    normalized = _json_safe(payload)
+    if not isinstance(normalized, dict):
+        normalized = {}
+    try:
+        return ScoreResponse.model_validate(normalized).model_dump()
+    except Exception as exc:
+        log.warning("ScoreResponse validation failed after normalization: %s", exc)
+
+    probabilities = normalized.get("probabilities")
+    if not isinstance(probabilities, list):
+        probabilities = [_number(normalized.get("confidence", 0.0))]
+
+    factors = normalized.get("factors")
+    if not isinstance(factors, dict):
+        factors = {}
+
+    engine = normalized.get("engine")
+    if not isinstance(engine, dict):
+        engine = ENGINE
+
+    fallback = {
+        **normalized,
+        "decision_id": str(normalized.get("decision_id") or "unknown"),
+        "action": str(normalized.get("action") or "unknown"),
+        "action_index": int(_number(normalized.get("action_index", 0))),
+        "confidence": _number(normalized.get("confidence", 0.0)),
+        "probabilities": [_number(item) for item in probabilities],
+        "category": str(normalized.get("category") or "unknown"),
+        "factors": {str(key): _number(value) for key, value in factors.items()},
+        "engine": {str(key): str(value) for key, value in engine.items()},
+    }
+    return ScoreResponse.model_validate(fallback).model_dump()

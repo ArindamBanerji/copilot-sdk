@@ -52,7 +52,7 @@ export default function EvidenceScreen() {
   }
 
   return (
-    <div className="grid gap-4">
+    <div data-screen-ready="true" className="grid gap-4">
       {error ? <Frame message={error} tone="error" /> : null}
       <CohortStatusPanel />
       <CrossSystemPanel />
@@ -71,7 +71,7 @@ export default function EvidenceScreen() {
 
 function Frame({ message, tone = "muted" }: { message: string; tone?: "muted" | "error" }) {
   return (
-    <section className="copilot-card p-6 text-sm" style={{ color: tone === "error" ? "var(--copilot-danger)" : "var(--copilot-text-muted)" }}>
+    <section data-screen-ready="false" className="copilot-card p-6 text-sm" style={{ color: tone === "error" ? "var(--copilot-danger)" : "var(--copilot-text-muted)" }}>
       {message}
     </section>
   );

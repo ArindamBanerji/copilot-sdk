@@ -8,24 +8,8 @@ function label(value: string | null | undefined): string {
 
 export default function RegimeStatusPanel() {
   const [status, setStatus] = useState<RegimeStatusResponse | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    getRegimeStatus()
-      .then((payload) => {
-        if (!cancelled) {
-          setStatus(payload);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setStatus(null);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const active = status?.regimeBreakActive === true;
   const progress = useMemo(() => {
@@ -34,9 +18,27 @@ export default function RegimeStatusPanel() {
     return Math.min(100, Math.round((current / total) * 100));
   }, [status]);
 
-  if (!status) {
-    return null;
-  }
+  useEffect(() => {
+    let cancelled = false;
+    getRegimeStatus()
+      .then((payload) => {
+        if (!cancelled) setStatus(payload);
+      })
+      .catch((loadError) => {
+        console.debug("regime status unavailable", loadError);
+        if (!cancelled) setError("Regime status unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) return <div className="h-24 animate-pulse rounded-md bg-white/10" />;
+  if (error) return <div className="text-sm text-red-500">{error}</div>;
+  if (!status) return null;
 
   return (
     <section

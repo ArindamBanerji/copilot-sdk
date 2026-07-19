@@ -5,13 +5,15 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Callable
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
+from app.factors.market_regime import classify_regime_context
 from app.services.regime import DEFAULT_ADX, DEFAULT_VIX, compute_adx
 from app.services.regime_classifier import RegimeClassifier, RegimePerformanceMapper
 from app.services.regime_history import RegimeHistory
 from copilot_sdk.backend.conservation_router import _check_payload, _state_counts
 from copilot_sdk.scoring.presets.trading import TradingPreset
+from copilot_sdk.state.cached_static import cached_static
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -44,7 +46,8 @@ def create_regime_router(
     regime_classifier = classifier or RegimeClassifier()
 
     @router.get("/current")
-    def current_regime() -> dict[str, Any]:
+    @cached_static("regime-current")
+    def current_regime(request: Request) -> dict[str, Any]:
         payload = _current_market(provider_factory(), regime_classifier)
         regime_history.record(
             str(payload["regime"]),
@@ -55,11 +58,12 @@ def create_regime_router(
         return payload
 
     @router.get("/history")
-    def regime_history_endpoint(days: int = 90) -> list[dict[str, Any]]:
+    def regime_history_endpoint(request: Request, days: int = 90) -> list[dict[str, Any]]:
         return regime_history.history(days)
 
     @router.get("/performance")
-    def regime_performance() -> dict[str, Any]:
+    @cached_static("regime-performance")
+    def regime_performance(request: Request) -> dict[str, Any]:
         current = _current_market(provider_factory(), regime_classifier)
         conservation = _conservation_status(graph_store_factory, domain) or {}
         store = graph_store_factory() if graph_store_factory is not None else None
@@ -102,13 +106,16 @@ def _current_market(provider: Any, classifier: RegimeClassifier) -> dict[str, An
         ohlcv_result = provider.get_ohlcv("SPY", "1mo")
         vix = vix_result.value if vix_result is not None and vix_result.value is not None else DEFAULT_VIX
         rows = ohlcv_result.value if ohlcv_result is not None else None
-        adx = _adx_from_rows(rows if isinstance(rows, list) else None)
+        market_rows = rows if isinstance(rows, list) else None
+        adx = _adx_from_rows(market_rows)
         payload = classifier.classify_with_confidence(float(vix), adx)
+        payload.update(_quant_regime_fields(float(vix), adx, market_rows))
         payload["timestamp"] = getattr(vix_result, "as_of", None) or now
         payload["source"] = getattr(vix_result, "source", "provider")
         return payload
     except Exception:
         payload = classifier.classify_with_confidence(DEFAULT_VIX, DEFAULT_ADX)
+        payload.update(_quant_regime_fields(DEFAULT_VIX, DEFAULT_ADX, None))
         payload["timestamp"] = now
         payload["source"] = "default"
         return payload
@@ -121,6 +128,26 @@ def _adx_from_rows(rows: list[dict[str, Any]] | None) -> float:
     lows = [row["low"] for row in rows if isinstance(row, dict) and "low" in row]
     closes = [row["close"] for row in rows if isinstance(row, dict) and "close" in row]
     return float(compute_adx(highs, lows, closes))
+
+
+def _quant_regime_fields(vix: float, adx: float, rows: list[dict[str, Any]] | None) -> dict[str, Any]:
+    closes = [row["close"] for row in rows or [] if isinstance(row, dict) and "close" in row]
+    details = classify_regime_context(vix, adx, price_history=closes)
+    return {
+        "hurst": _bounded_hurst(details.get("hurst")),
+        "vol_state": details.get("vol_state"),
+        "vix_percentile": details.get("vix_percentile"),
+    }
+
+
+def _bounded_hurst(value: Any) -> float:
+    try:
+        hurst = float(value)
+    except (TypeError, ValueError):
+        return 0.5
+    if 0.0 <= hurst <= 1.0:
+        return round(hurst, 4)
+    return 0.5
 
 
 def _conservation_status(

@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { fetchConservation } from "../api";
 import type { ConservationStatus } from "../types";
 
 function pct(value?: number): string {
@@ -7,23 +5,13 @@ function pct(value?: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
-export function S2PConservationProjection() {
-  const [status, setStatus] = useState<ConservationStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchConservation()
-      .then((data) => {
-        if (!cancelled) setStatus(data);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+export function S2PConservationProjection({
+  status,
+  loading,
+}: {
+  status: ConservationStatus | null;
+  loading: boolean;
+}) {
 
   const verified = status?.verified_decisions ?? status?.verifiedDecisions ?? status?.verified_count ?? status?.verifiedCount;
   const penalty = status?.penalty_ratio ?? status?.penaltyRatio ?? 5;

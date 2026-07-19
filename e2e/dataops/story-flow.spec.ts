@@ -112,8 +112,8 @@ test("Act 5 TRANSFER: transfer panel shows all three statuses", async ({ page })
   const transfer = panelByHeading(page, "Pattern Transfer Status");
   await expect(transfer).toBeVisible();
   const summary = transfer.locator("div").filter({ hasText: /Total transfers/i }).filter({ hasText: /Cumulative savings/i });
-  await expect(summary.getByText(/Active/i).first()).toBeVisible();
-  await expect(summary.getByText(/Monitoring/i).first()).toBeVisible();
+  await expect(summary.getByText(/^Active$/i).first()).toBeVisible();
+  await expect(summary.getByText(/^Monitoring$/i).first()).toBeVisible();
 
   const activeCard = transfer.locator("section").filter({ hasText: /TRF-001/i });
   const monitoringCard = transfer.locator("section").filter({ hasText: /TRF-002/i });

@@ -369,6 +369,67 @@ export interface CorrelationResponse {
   windowDays?: number;
   source?: string;
   reason?: string;
+  rhoBar?: NullableNumber;
+  effectiveMultiplier?: NullableNumber;
+  nEffectiveBets?: NullableNumber;
+  tailGap?: NullableNumber;
+  recommendations?: string[];
+  nDecisions?: number;
+  dayZero?: boolean;
+  decisionsUntilMeasured?: number;
+  provenance?: string;
+}
+
+export interface VolSharpeResponse {
+  naiveSharpe?: NullableNumber;
+  adjustedSharpe?: NullableNumber;
+  inflation?: NullableNumber;
+  nDecisions?: number;
+  provenance?: string;
+  substantiation?: string;
+  dayZero?: boolean;
+  decisionsUntilMeasured?: number;
+}
+
+export interface VrpAttributionResponse {
+  lowTailCapturePct?: NullableNumber;
+  highTailLossRatio?: NullableNumber;
+  totalVrpDecisions?: number;
+  highTailDecisions?: number;
+  lowTailDecisions?: number;
+  provenance?: string;
+  substantiation?: string;
+  dayZero?: boolean;
+  decisionsUntilMeasured?: number;
+}
+
+export interface RegimeVrpCell {
+  regime?: string;
+  nDecisions?: number;
+  currentVrp?: NullableNumber;
+  percentile?: NullableNumber;
+  band?: string;
+}
+
+export interface RegimeVrpResponse {
+  regimes?: Record<string, RegimeVrpCell>;
+  nDecisions?: number;
+  provenance?: string;
+  substantiation?: string;
+  dayZero?: boolean;
+  decisionsUntilMeasured?: number;
+}
+
+export interface DispersionFollowResponse {
+  signalsFired?: number;
+  followed?: number;
+  skipped?: number;
+  followRate?: NullableNumber;
+  skippedValue?: NullableNumber;
+  provenance?: string;
+  substantiation?: string;
+  dayZero?: boolean;
+  decisionsUntilMeasured?: number;
 }
 
 export interface VIXTimingCell {

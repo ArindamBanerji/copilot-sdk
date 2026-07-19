@@ -88,9 +88,20 @@ async function openTriage(page: Page) {
   await expect(page.getByRole("heading", { name: "Exception Triage" })).toBeVisible();
 }
 
+function waitForScoreResponse(page: Page) {
+  return page.waitForResponse((response) =>
+    response.url().includes("/score") &&
+    response.request().method() === "POST" &&
+    response.status() === 200
+  );
+}
+
 async function score(page: Page) {
   await openTriage(page);
-  await page.getByRole("button", { name: /^Score$/i }).click();
+  await Promise.all([
+    waitForScoreResponse(page),
+    page.getByRole("button", { name: /^Score$/i }).click(),
+  ]);
 }
 
 test("Signal banner visible when cross_copilot_signal is in context", async ({ page }) => {

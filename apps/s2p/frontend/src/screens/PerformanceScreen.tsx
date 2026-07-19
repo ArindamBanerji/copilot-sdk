@@ -22,7 +22,7 @@ export function PerformanceScreen() {
   }, []);
 
   return (
-    <section className="space-y-6">
+    <section data-screen-ready="true" className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Operating loop</p>
         <h1 className="mt-1 text-3xl font-semibold text-slate-950">Performance</h1>

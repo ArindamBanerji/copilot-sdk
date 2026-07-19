@@ -136,32 +136,33 @@ function isOptionsContext(form: TradeFormState): boolean {
 export default function LogTradeScreen() {
   const [form, setForm] = useState<TradeFormState>(initialForm);
   const [ticker, setTicker] = useState<TickerData | undefined>();
-  const [market, setMarket] = useState<MarketSnapshot | undefined>();
-  const [fingerprint, setFingerprint] = useState<FingerprintResponse | undefined>();
-  const [analytics, setAnalytics] = useState<Analytics | undefined>();
+  const [market, setMarket] = useState<MarketSnapshot | null>(null);
+  const [fingerprint, setFingerprint] = useState<FingerprintResponse | null>(null);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [score, setScore] = useState<ScoreResponse | undefined>();
   const [evidenceReady, setEvidenceReady] = useState(false);
   const [similar, setSimilar] = useState<SimilarTrade[]>([]);
   const [similarCount, setSimilarCount] = useState(0);
   const [rewardLine, setRewardLine] = useState<RewardLine | undefined>();
   const [iksDelta, setIksDelta] = useState<number | undefined>();
+  const [initialReady, setInitialReady] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([getMarketSnapshot(), getFingerprint(), getAnalytics()])
-      .then(([marketPayload, fingerprintPayload, analyticsPayload]) => {
-        if (!cancelled) {
-          setMarket(marketPayload);
-          setFingerprint(fingerprintPayload);
-          setAnalytics(analyticsPayload);
-        }
+      .then(([nextMarket, nextFingerprint, nextAnalytics]) => {
+        if (cancelled) return;
+        setMarket(nextMarket);
+        setFingerprint(nextFingerprint);
+        setAnalytics(nextAnalytics);
       })
-      .catch(() => {
-        if (!cancelled) {
-          setStatus("Using form-only context until backend context is reachable.");
-        }
+      .catch((loadError) => {
+        console.debug("log trade context unavailable", loadError);
+      })
+      .finally(() => {
+        if (!cancelled) setInitialReady(true);
       });
     return () => {
       cancelled = true;
@@ -193,7 +194,7 @@ export default function LogTradeScreen() {
       position_sizing: computeTechnicalSignal(ticker),
       timing_quality: clamp(sizing.exposurePct / 100, 0, 1),
       risk_reward_actual: timeframeFactor(form.timeframe),
-      emotional_indicator: computeMarketRegime(market),
+      emotional_indicator: computeMarketRegime(market ?? undefined),
     }),
     [form.signal_alignment, form.researchChecklist, form.timeframe, market, sizing.exposurePct, ticker],
   );
@@ -309,7 +310,7 @@ export default function LogTradeScreen() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-screen-ready={String(initialReady)} className="flex flex-col gap-4">
       <div>
         <h2 className="text-2xl font-semibold">Log Trade</h2>
         <p className="text-sm trading-muted">Score a trade with research, sizing, market context, and similar setups.</p>
@@ -401,7 +402,7 @@ export default function LogTradeScreen() {
 
       {score ? (
         <>
-          <EngineAssessment factors={factors} fingerprint={fingerprint} analytics={analytics} similarCount={similarCount} />
+          <EngineAssessment factors={factors} fingerprint={fingerprint ?? undefined} analytics={analytics ?? undefined} similarCount={similarCount} />
           <SimilarTradesPanel similar={similar} count={similarCount} />
           <ScoreResultCard
             result={score}
@@ -418,7 +419,7 @@ export default function LogTradeScreen() {
               action: getSimilarAction(trade),
               correct: trade.isCorrect,
             }))}
-            fingerprint={fingerprint}
+            fingerprint={fingerprint ?? undefined}
             factorValues={factors}
             actionNames={score.actionNames?.length ? score.actionNames : tradingActionNames}
             factorNames={tradingFactorNames}

@@ -20,22 +20,20 @@ export default function ArchetypeSelector() {
   const [currentName, setCurrentName] = useState("default");
   const [detail, setDetail] = useState<ArchetypeDetail | null>(null);
   const [applied, setApplied] = useState<ArchetypeApplyResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    Promise.all([fetchArchetypes("trading"), fetchCurrentArchetype().catch(() => ({ current: "default" }))])
-      .then(([payload, current]) => {
+    Promise.all([fetchArchetypes("trading"), fetchCurrentArchetype()])
+      .then(([nextItems, current]) => {
         if (cancelled) return;
-        setItems(payload);
+        setItems(nextItems);
         setCurrentName(current.current || "default");
-        const first = payload[0]?.name || "";
-        setSelectedName(first);
       })
       .catch((loadError) => {
+        console.debug("archetypes unavailable", loadError);
         if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Archetypes unavailable");
       })
       .finally(() => {
@@ -45,6 +43,12 @@ export default function ArchetypeSelector() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectedName && items.length) {
+      setSelectedName(items[0]?.name || "");
+    }
+  }, [items, selectedName]);
 
   useEffect(() => {
     if (!selectedName) {
@@ -57,6 +61,7 @@ export default function ArchetypeSelector() {
         if (!cancelled) setDetail(payload);
       })
       .catch((loadError) => {
+        console.debug("ArchetypeSelector detail fetch failed", loadError);
         if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Archetype detail unavailable");
       });
     return () => {
@@ -80,6 +85,7 @@ export default function ArchetypeSelector() {
       setApplied(payload);
       setCurrentName(payload.current || payload.archetype || selectedName);
     } catch (applyError) {
+      console.debug("ArchetypeSelector apply failed", applyError);
       setError(applyError instanceof Error ? applyError.message : "Apply failed");
     } finally {
       setApplying(false);
@@ -104,7 +110,9 @@ export default function ArchetypeSelector() {
         </span>
       </div>
 
-      {error ? <p className="mt-3 text-sm text-red-300">{error}</p> : null}
+      {error ? (
+        <p className="mt-3 text-sm text-red-300">{error}</p>
+      ) : null}
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,280px)_1fr]">
         <div>

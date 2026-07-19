@@ -18,6 +18,7 @@ export async function clickTab(page: Page, name: string | RegExp) {
 
 export async function waitForAppShell(page: Page, timeout = 15_000) {
   await page.waitForLoadState("domcontentloaded", { timeout });
+  await page.locator("main").waitFor({ state: "attached", timeout });
   await expect(page.locator("main")).not.toBeEmpty({ timeout });
   await expect(page.locator("main")).not.toContainText(
     /^P?PaperLoading (analysis|performance|dashboard|journal|trade detail)\.\.\.$/i,
@@ -30,6 +31,14 @@ export async function gotoTab(page: Page, tabName: string, timeout = 15_000) {
   await waitForAppShell(page, timeout);
   await clickTab(page, tabName);
   await waitForAppShell(page, timeout);
+}
+
+export async function waitForScreenReady(page: Page, timeout = 15_000) {
+  await page.locator('[data-screen-ready="true"]').first().waitFor({ state: "attached", timeout });
+}
+
+export async function navigateToTab(page: Page, tabName: string) {
+  await clickTab(page, tabName);
 }
 
 export async function expectAnyText(

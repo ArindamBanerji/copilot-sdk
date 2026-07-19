@@ -146,7 +146,7 @@ export function SuppliersScreen() {
   const activeDecliningIds = decliningIds.size > 0 ? decliningIds : fallbackDecliningIds;
 
   return (
-    <section className="space-y-6">
+    <section data-screen-ready="true" className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Supplier memory</p>
         <h1 className="mt-1 text-3xl font-semibold text-slate-950">Suppliers</h1>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getRegimeCurrent,
   getRegimeHistory,
@@ -59,6 +59,10 @@ function trendText(value: number | null | undefined): string {
   return "Choppy trend";
 }
 
+function hurstText(value: number | null | undefined): string {
+  return typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) : "-";
+}
+
 function categoryLabel(category: string): string {
   return category.replace(/_/g, " ");
 }
@@ -78,44 +82,6 @@ export default function RegimePanel() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setLoadError(false);
-    let sawError = false;
-
-    try {
-      setCurrent(await getRegimeCurrent());
-    } catch (error) {
-      sawError = true;
-      console.debug("Regime current unavailable", error);
-    }
-
-    try {
-      setHistory(ensureArray(await getRegimeHistory(90)));
-    } catch (error) {
-      sawError = true;
-      console.debug("Regime history unavailable", error);
-      setHistory([]);
-    }
-
-    try {
-      setPerformance(await getRegimePerformance());
-    } catch (error) {
-      sawError = true;
-      console.debug("Regime performance unavailable", error);
-      setPerformance(null);
-    }
-
-    setLoadError(sawError);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    void load();
-    window.addEventListener("focus", load);
-    return () => window.removeEventListener("focus", load);
-  }, [load]);
-
   const regime = String(current?.regime || performance?.currentRegime || "ranging").toLowerCase();
   const categories = useMemo(
     () => Object.keys(performance?.perRegimeAccuracy || {}).sort(),
@@ -124,6 +90,28 @@ export default function RegimePanel() {
   const historyRows = ensureArray(history).slice(0, 30).reverse();
   const recommendation =
     performance?.recommendation || "Score more verified trades before changing regime sizing.";
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getRegimeCurrent(), getRegimeHistory(), getRegimePerformance()])
+      .then(([nextCurrent, nextHistory, nextPerformance]) => {
+        if (cancelled) return;
+        setCurrent(nextCurrent);
+        setHistory(nextHistory);
+        setPerformance(nextPerformance);
+        setLoadError(false);
+      })
+      .catch((error) => {
+        console.debug("regime panel unavailable", error);
+        if (!cancelled) setLoadError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section data-testid="regime-panel" className="copilot-card p-5">
@@ -150,7 +138,7 @@ export default function RegimePanel() {
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-4">
+      <div className="mt-5 grid gap-3 md:grid-cols-5">
         <div className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
           <div className="text-xs uppercase tracking-wide trading-muted">Confidence</div>
           <div data-testid="regime-confidence" className="mt-1 text-2xl font-semibold">
@@ -164,6 +152,10 @@ export default function RegimePanel() {
         <div className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
           <div className="text-xs uppercase tracking-wide trading-muted">Trend</div>
           <div className="mt-1 text-lg font-semibold">{loading ? "-" : trendText(current?.adx)}</div>
+        </div>
+        <div className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
+          <div className="text-xs uppercase tracking-wide trading-muted">Hurst persistence</div>
+          <div data-testid="regime-hurst" className="mt-1 text-lg font-semibold">{loading ? "-" : hurstText(current?.hurst)}</div>
         </div>
         <div className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
           <div className="text-xs uppercase tracking-wide trading-muted">Updated</div>

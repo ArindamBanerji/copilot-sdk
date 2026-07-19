@@ -81,12 +81,12 @@ export default function PerformanceScreen() {
   const managed = analytics?.aeImpact?.managedByRules;
 
   if (loading) {
-    return <section className="purchase-card">Loading performance...</section>;
+    return <section data-screen-ready="false" className="purchase-card">Loading performance...</section>;
   }
 
   if (error) {
     return (
-      <section className="purchase-card error-card">
+      <section data-screen-ready="true" className="purchase-card error-card">
         <p className="purchase-kicker">Performance unavailable</p>
         <p>{error}</p>
       </section>
@@ -94,7 +94,7 @@ export default function PerformanceScreen() {
   }
 
   return (
-    <div className="purchase-stack performance-screen">
+    <div data-screen-ready="true" className="purchase-stack performance-screen">
       <section className="purchase-card">
         <p className="purchase-kicker">Performance</p>
         <h1 className="purchase-title">20 orders to learn what takes 11 years of gut instinct.</h1>

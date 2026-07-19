@@ -27,6 +27,7 @@ ALERT_WARNING = 0.6
 ALERT_CRITICAL = 0.8
 DEFAULT_WINDOW = 20
 MAX_TICKERS = 20
+MIN_MEASURED_TRADES = 30
 
 
 class CorrelationService:
@@ -36,20 +37,21 @@ class CorrelationService:
 
     def compute(self, trades: list[dict[str, Any]]) -> dict[str, Any]:
         tickers = _extract_tickers(trades)
+        measurement = _measurement_fields(len(trades))
         if len(tickers) < 2:
-            return self._insufficient(tickers, "At least two tickers are required for correlation monitoring.")
+            return self._insufficient(tickers, "At least two tickers are required for correlation monitoring.", measurement)
         if self._provider is None and (not YFINANCE_AVAILABLE or _yfinance_module() is None):
-            return self._insufficient(tickers, "yfinance is unavailable.")
+            return self._insufficient(tickers, "yfinance is unavailable.", measurement)
         if not NUMPY_AVAILABLE or np is None:
-            return self._insufficient(tickers, "numpy is unavailable.")
+            return self._insufficient(tickers, "numpy is unavailable.", measurement)
 
         returns = self._fetch_returns(tickers)
         if not returns or len(returns) < 2:
-            return self._insufficient(tickers, "Insufficient price history for correlation monitoring.")
+            return self._insufficient(tickers, "Insufficient price history for correlation monitoring.", measurement)
 
         valid_tickers = [ticker for ticker in tickers if ticker in returns]
         if len(valid_tickers) < 2:
-            return self._insufficient(valid_tickers, "Fewer than two tickers have valid return history.")
+            return self._insufficient(valid_tickers, "Fewer than two tickers have valid return history.", measurement)
 
         matrix = self._compute_matrix(valid_tickers, returns)
         pairs = _pairs(valid_tickers, matrix)
@@ -73,6 +75,7 @@ class CorrelationService:
             "n_effective_bets": _round_or_none(getattr(quant_alert, "n_effective_bets", None)),
             "tail_gap": _round_or_none(getattr(quant_alert, "tail_gap", None)),
             "recommendations": list(getattr(quant_alert, "recommendations", []) or []),
+            **measurement,
         }
 
     def _fetch_returns(self, tickers: list[str]) -> dict[str, list[float]] | None:
@@ -153,7 +156,7 @@ class CorrelationService:
             matrix.append(values)
         return matrix
 
-    def _insufficient(self, tickers: list[str], reason: str) -> dict[str, Any]:
+    def _insufficient(self, tickers: list[str], reason: str, measurement: dict[str, Any]) -> dict[str, Any]:
         return {
             "tickers": tickers,
             "matrix": [],
@@ -164,6 +167,7 @@ class CorrelationService:
             "window_days": self.window_days,
             "source": "insufficient_data",
             "reason": reason,
+            **measurement,
         }
 
     def _quant_alert(self, tickers: list[str], returns: dict[str, list[float]]) -> Any | None:
@@ -196,6 +200,15 @@ def _extract_tickers(trades: list[dict[str, Any]]) -> list[str]:
         if len(tickers) >= MAX_TICKERS:
             break
     return tickers
+
+
+def _measurement_fields(n_trades: int) -> dict[str, Any]:
+    return {
+        "n_decisions": n_trades,
+        "day_zero": n_trades < MIN_MEASURED_TRADES,
+        "decisions_until_measured": max(0, MIN_MEASURED_TRADES - n_trades),
+        "provenance": "real_measured" if n_trades >= MIN_MEASURED_TRADES else "accumulating",
+    }
 
 
 def _pairs(tickers: list[str], matrix: list[list[float]]) -> list[dict[str, Any]]:

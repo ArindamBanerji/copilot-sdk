@@ -1,6 +1,7 @@
 interface ProvenanceBadgeProps {
   source: string;
   asOf?: string | null;
+  market?: boolean;
 }
 
 function cachedAge(asOf?: string | null): string {
@@ -12,11 +13,11 @@ function cachedAge(asOf?: string | null): string {
   return ` (${hours}h ago)`;
 }
 
-export default function ProvenanceBadge({ source, asOf }: ProvenanceBadgeProps) {
+export default function ProvenanceBadge({ source, asOf, market = false }: ProvenanceBadgeProps) {
   const normalized = source.toLowerCase();
   const label =
     normalized === "live" || normalized === "scraped_external"
-      ? "░░ External"
+      ? "Market data: live external"
       : normalized === "instrument"
         ? "Instrument"
       : normalized === "accumulating"
@@ -25,6 +26,8 @@ export default function ProvenanceBadge({ source, asOf }: ProvenanceBadgeProps) 
         ? "██ Learned"
       : normalized === "cached"
         ? `Market data: cached${cachedAge(asOf)}`
+        : market
+          ? "Market data: sample"
         : "Sample";
   const title =
     normalized === "live" || normalized === "scraped_external"
@@ -52,7 +55,7 @@ export default function ProvenanceBadge({ source, asOf }: ProvenanceBadgeProps) 
         : "bg-slate-400";
 
   return (
-    <div className="mt-1 inline-flex items-center gap-2 text-xs trading-muted" title={title}>
+    <div data-testid="provenance-badge" className="mt-1 inline-flex items-center gap-2 text-xs trading-muted" title={title}>
       <span className={`h-2 w-2 rounded-full ${color}`} aria-hidden="true" />
       <span>{label}</span>
     </div>

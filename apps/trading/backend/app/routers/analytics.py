@@ -7,9 +7,14 @@ from itertools import combinations
 from statistics import mean
 from typing import Any, Callable
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
+from app.analytics.dispersion_follow import compute_dispersion_follow_rate
+from app.analytics.regime_vrp import compute_regime_vrp
+from app.analytics.vol_sharpe import compute_clustering_adjusted_sharpe
+from app.analytics.vrp_attribution import compute_vrp_attribution
 from copilot_sdk.scoring.presets.trading import TradingPreset
+from copilot_sdk.state.cached_static import cached_static
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -81,6 +86,30 @@ def create_analytics_router(
             "transfer_opportunities": _transfer_opportunities(category_accuracy, similar),
             "source": "graphstore",
         }
+
+    @router.get("/analytics/vol-sharpe")
+    @cached_static("vol-sharpe")
+    def vol_sharpe(request: Request) -> dict[str, Any]:
+        decisions = _verified_decisions(graph_store_factory, domain)
+        return compute_clustering_adjusted_sharpe(decisions)
+
+    @router.get("/analytics/vrp-attribution")
+    @cached_static("vrp-attribution")
+    def vrp_attribution(request: Request) -> dict[str, Any]:
+        decisions = _verified_decisions(graph_store_factory, domain)
+        return compute_vrp_attribution(decisions)
+
+    @router.get("/analytics/regime-vrp")
+    @cached_static("regime-vrp")
+    def regime_vrp(request: Request) -> dict[str, Any]:
+        decisions = _verified_decisions(graph_store_factory, domain)
+        return compute_regime_vrp(decisions)
+
+    @router.get("/analytics/dispersion-follow")
+    @cached_static("dispersion-follow")
+    def dispersion_follow(request: Request) -> dict[str, Any]:
+        decisions = _verified_decisions(graph_store_factory, domain)
+        return compute_dispersion_follow_rate(decisions)
 
     return router
 

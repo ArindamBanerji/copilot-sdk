@@ -140,12 +140,12 @@ export default function InventoryScreen() {
   const evolutionVariants = useMemo(() => variants.map(toEvolutionVariant), [variants]);
 
   if (loading) {
-    return <section className="purchase-card">Loading inventory...</section>;
+    return <section data-screen-ready="false" className="purchase-card">Loading inventory...</section>;
   }
 
   if (error) {
     return (
-      <section className="purchase-card error-card">
+      <section data-screen-ready="true" className="purchase-card error-card">
         <p className="purchase-kicker">Inventory unavailable</p>
         <p>{error}</p>
       </section>
@@ -153,7 +153,7 @@ export default function InventoryScreen() {
   }
 
   return (
-    <div className="purchase-stack inventory-screen">
+    <div data-screen-ready="true" className="purchase-stack inventory-screen">
       <EvolutionPanel variants={evolutionVariants} title="System Improvements" />
       <RuleGenealogyTree />
       <RuleLifecyclePanel />

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { getCohortStatus, type CohortExperiment, type CohortStatusResponse } from "../api";
+import { getCohortStatus } from "../api";
+import type { CohortExperiment, CohortStatusResponse } from "../api";
 
 const FALLBACK_STATUS: CohortStatusResponse = {
   state: "INSTRUMENT_VALIDATED",
@@ -16,28 +17,21 @@ const FALLBACK_STATUS: CohortStatusResponse = {
 };
 
 export default function CohortStatusPanel() {
-  const [status, setStatus] = useState<CohortStatusResponse>(FALLBACK_STATUS);
+  const [data, setData] = useState<CohortStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const status = data || FALLBACK_STATUS;
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     getCohortStatus()
       .then((payload) => {
-        if (!cancelled) {
-          setStatus(payload);
-        }
+        if (!cancelled) setData(payload);
       })
-      .catch((error) => {
-        console.debug("cohort status fetch failed", error);
-        if (!cancelled) {
-          setStatus(FALLBACK_STATUS);
-        }
+      .catch((loadError) => {
+        console.debug("cohort status unavailable", loadError);
       })
       .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;

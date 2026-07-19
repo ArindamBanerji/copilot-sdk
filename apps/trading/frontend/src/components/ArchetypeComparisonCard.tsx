@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchArchetype, fetchCurrentArchetype, type ArchetypeDetail } from "../api";
+import { fetchArchetype, type ArchetypeDetail } from "../api";
 import ProvenanceBadge from "./ProvenanceBadge";
 
 const GENERIC_ACCURACY = 0.5;
@@ -21,13 +21,16 @@ export default function ArchetypeComparisonCard({ currentName }: { currentName?:
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchCurrentArchetype()
-      .then((payload) => {
-        const nextName = payload.current || currentName || "default";
-        if (!cancelled) setName(nextName);
-        if (nextName === "default") return null;
-        return fetchArchetype(nextName);
-      })
+    const nextName = currentName || "default";
+    setName(nextName);
+    if (nextName === "default") {
+      setDetail(null);
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+    fetchArchetype(nextName)
       .then((payload) => {
         if (!cancelled) setDetail(payload);
       })

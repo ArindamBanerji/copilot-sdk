@@ -85,12 +85,12 @@ export default function AnalysisScreen() {
   const factors = useMemo(() => toFactorItems(fingerprint), [fingerprint]);
 
   if (loading) {
-    return <section className="purchase-card">Loading analysis...</section>;
+    return <section data-screen-ready="false" className="purchase-card">Loading analysis...</section>;
   }
 
   if (error) {
     return (
-      <section className="purchase-card error-card">
+      <section data-screen-ready="true" className="purchase-card error-card">
         <p className="purchase-kicker">Analysis unavailable</p>
         <p>{error}</p>
       </section>
@@ -98,7 +98,7 @@ export default function AnalysisScreen() {
   }
 
   return (
-    <div className="purchase-stack analysis-screen">
+    <div data-screen-ready="true" className="purchase-stack analysis-screen">
       <div className="flex flex-wrap items-center justify-end gap-2">
         <ProvenanceBadge
           source={String(

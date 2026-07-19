@@ -18,6 +18,14 @@ async function goToTriage(page: Page) {
   await expect(situationPanel(page).getByRole('heading', { name: 'Situation Analysis', exact: true })).toBeVisible({ timeout: 10_000 });
 }
 
+function waitForScoreResponse(page: Page) {
+  return page.waitForResponse((response) =>
+    response.url().includes('/score') &&
+    response.request().method() === 'POST' &&
+    response.status() === 200
+  );
+}
+
 async function scoreSelected(page: Page) {
   const score = page.getByRole('button', { name: /^Score$/i });
   if (!(await score.isEnabled().catch(() => false))) {
@@ -26,10 +34,13 @@ async function scoreSelected(page: Page) {
     await firstInvoice.click();
   }
   await expect(score).toBeEnabled({ timeout: 10_000 });
-  await score.click();
+  await Promise.all([
+    waitForScoreResponse(page),
+    score.click(),
+  ]);
   await expect(
-    page.locator('article').filter({
-      has: page.getByText(/Recommendation/i),
+    page.locator('article', { hasText: /Recommendation/i }).filter({
+      has: page.getByText(/^Action index$/i),
     }).first()
   ).toBeVisible({ timeout: 20_000 });
 }
@@ -107,8 +118,8 @@ test('7. Factors list renders', async ({ page }) => {
   }
   await scoreSelected(page);
   await expect(page.locator('main').getByText(/\d+\s+factors/i).first()).toBeVisible({ timeout: 10_000 });
-  await expect(page.locator('main').getByText(/Confidence/i).first()).toBeVisible({ timeout: 10_000 });
-  await expect(page.locator('main').getByText(/Action index/i).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/^Confidence$/i).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('main').getByText(/^Action index$/i).first()).toBeVisible({ timeout: 10_000 });
 });
 
 test('8. Provenance badges on values', async ({ page }) => {
@@ -130,7 +141,7 @@ test('9. Heading renders when no exception selected', async ({ page }) => {
   });
   await goToTriage(page);
   await expect(page.getByText('Situation Analysis')).toBeVisible();
-  await expect(situationPanel(page).getByText(/Select an exception/i)).toBeVisible();
+  await expect(situationPanel(page).getByText(/^Select an exception to begin\.$/i)).toBeVisible();
 });
 
 test('10. Graceful when backend unavailable', async ({ page }) => {

@@ -73,6 +73,9 @@ export default function JournalScreen() {
         if (!trades || !analytics) {
           setError("Trade journal is unavailable.");
         }
+      } catch (loadError) {
+        console.debug("trade journal unavailable", loadError);
+        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Trade journal is unavailable.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -113,7 +116,7 @@ export default function JournalScreen() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-screen-ready={String(!loading)} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold">Trade Journal</h2>

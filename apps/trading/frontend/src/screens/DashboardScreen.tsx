@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import DayZeroCard from "../../../../../copilot_sdk/frontend/components/DayZeroCard";
 import {
@@ -6,8 +6,8 @@ import {
   getAnalytics,
   getHistory,
   getMarketSnapshot,
-  getTicker,
   getTradeMetadata,
+  getTicker,
 } from "../api";
 import AccuracyByCategory from "../components/AccuracyByCategory";
 import ArchetypeSelector from "../components/ArchetypeSelector";
@@ -30,11 +30,13 @@ import type {
 } from "../types";
 
 interface DashboardState {
-  analytics?: Analytics;
-  history: TradeHistoryDecision[];
-  metadata: Record<string, TradeMetadata>;
-  market?: MarketSnapshot;
   tickers: Record<string, TickerData>;
+}
+
+interface TickerPanelProps {
+  metadata: Record<string, TradeMetadata>;
+  disabled: boolean;
+  onTickers: (tickers: Record<string, TickerData>) => void;
 }
 
 function getDecisionId(decision: TradeHistoryDecision): string | undefined {
@@ -80,35 +82,15 @@ function scrollToArchetypes() {
   document.getElementById("archetype-select")?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-export default function DashboardScreen({
-  onSelectTrade,
-  onLogTrade,
-}: {
-  onSelectTrade: (tradeId: string) => void;
-  onLogTrade: () => void;
-}) {
-  const [state, setState] = useState<DashboardState>({
-    history: [],
-    metadata: {},
-    tickers: {},
-  });
-  const [loading, setLoading] = useState(true);
+function TickerPanel({ metadata, disabled, onTickers }: TickerPanelProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      setLoading(true);
       setError(null);
       try {
-        const [analytics, history, metadata, market] = await Promise.all([
-          getAnalytics(),
-          getHistory(),
-          getTradeMetadata(),
-          getMarketSnapshot(),
-        ]);
-
         const openTickers = Array.from(
           new Set(
             Object.values(metadata)
@@ -121,51 +103,102 @@ export default function DashboardScreen({
           openTickers.map(async (ticker) => [ticker, await getTicker(ticker)] as const),
         );
         if (!cancelled) {
-          setState({
-            analytics,
-            history,
-            metadata,
-            market,
-            tickers: Object.fromEntries(tickerPairs),
-          });
+          onTickers(Object.fromEntries(tickerPairs));
         }
       } catch (loadError) {
+        console.debug("dashboard ticker context unavailable", loadError);
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Dashboard load failed");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
+          setError(loadError instanceof Error ? loadError.message : "Ticker context unavailable");
+          onTickers({});
         }
       }
     }
 
-    void load();
+    if (!disabled) {
+      void load();
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [metadata, disabled, onTickers]);
+
+  if (!error) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-md border px-3 py-2 text-sm trading-muted" style={{ borderColor: "var(--copilot-border)" }}>
+      Ticker context unavailable: {error}
+    </div>
+  );
+}
+
+export default function DashboardScreen({
+  onSelectTrade,
+  onLogTrade,
+}: {
+  onSelectTrade: (tradeId: string) => void;
+  onLogTrade: () => void;
+}) {
+  const [analytics, setAnalytics] = useState<Analytics | undefined>();
+  const [history, setHistory] = useState<TradeHistoryDecision[]>([]);
+  const [metadata, setMetadata] = useState<Record<string, TradeMetadata>>({});
+  const [market, setMarket] = useState<MarketSnapshot | undefined>();
+  const [state, setState] = useState<DashboardState>({
+    tickers: {},
+  });
+  const [loading, setLoading] = useState(true);
+  const [tabError, setTabError] = useState<string | null>(null);
+  const updateTickers = useCallback((tickers: Record<string, TickerData>) => {
+    setState({ tickers });
+  }, []);
+
+  const joinedTrades = useMemo(
+    () => joinTrades(history, metadata, state.tickers),
+    [history, metadata, state.tickers],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([getAnalytics(), getHistory(), getTradeMetadata(), getMarketSnapshot()])
+      .then(([nextAnalytics, nextHistory, nextMetadata, nextMarket]) => {
+        if (cancelled) return;
+        setAnalytics(nextAnalytics);
+        setHistory(nextHistory);
+        setMetadata(nextMetadata);
+        setMarket(nextMarket);
+        setTabError(null);
+      })
+      .catch((loadError) => {
+        console.debug("dashboard data unavailable", loadError);
+        if (!cancelled) {
+          setTabError(loadError instanceof Error ? loadError.message : "Dashboard unavailable");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const joinedTrades = useMemo(
-    () => joinTrades(state.history, state.metadata, state.tickers),
-    [state.history, state.metadata, state.tickers],
-  );
-
   if (loading) {
-    return <div className="copilot-card p-8 text-sm trading-muted">Loading trading dashboard...</div>;
+    return <div data-screen-ready="false" className="copilot-card p-8 text-sm trading-muted">Loading trading dashboard...</div>;
   }
 
-  if (error) {
+  if (tabError) {
     return (
-      <div className="copilot-card p-8">
+      <div data-screen-ready="true" className="copilot-card p-8">
         <h2 className="text-base font-semibold">Dashboard unavailable</h2>
-        <p className="mt-2 text-sm trading-muted">{error}</p>
+        <p className="mt-2 text-sm trading-muted">{tabError}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-screen-ready="true" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold">Dashboard</h2>
@@ -197,38 +230,39 @@ export default function DashboardScreen({
         copilot="trading"
         renderProvenance={(source) => <ProvenanceBadge source={source} />}
       />
-      <MarketContext snapshot={state.market} />
+      <MarketContext snapshot={market} />
+      <TickerPanel metadata={metadata} disabled={loading} onTickers={updateTickers} />
       <RegimePanel />
-      <PortfolioSummary summary={state.analytics?.portfolioSummary} />
+      <PortfolioSummary summary={analytics?.portfolioSummary} />
       <PatternBadge />
       <AccuracyByCategory />
 
       <div className="trading-grid trading-grid-3">
         <PortfolioConcentration
-          concentration={state.analytics?.portfolioConcentration}
-          categoryCounts={state.analytics?.categoryCounts}
+          concentration={analytics?.portfolioConcentration}
+          categoryCounts={analytics?.categoryCounts}
         />
-        <ThesisBreakdown breakdown={state.analytics?.thesisBreakdown} />
+        <ThesisBreakdown breakdown={analytics?.thesisBreakdown} />
         <div className="copilot-card p-4">
           <h2 className="text-base font-semibold">Dataset</h2>
           <div className="mt-4 grid gap-3">
             <div>
               <div className="text-xs trading-muted">Total trades</div>
-              <div className="trading-stat-value">{state.analytics?.totalTrades ?? joinedTrades.length}</div>
+              <div className="trading-stat-value">{analytics?.totalTrades ?? joinedTrades.length}</div>
             </div>
             <div>
               <div className="text-xs trading-muted">Open positions</div>
-              <div className="trading-stat-value">{state.analytics?.openPositions ?? 0}</div>
+              <div className="trading-stat-value">{analytics?.openPositions ?? 0}</div>
             </div>
             <div>
               <div className="text-xs trading-muted">Source</div>
-              <div className="text-sm font-semibold">{state.analytics?.source || "backend"}</div>
+              <div className="text-sm font-semibold">{analytics?.source || "backend"}</div>
             </div>
           </div>
         </div>
       </div>
 
-      <CalendarHeatmap trades={joinedTrades} calendar={state.analytics?.calendarHeatmap} />
+      <CalendarHeatmap trades={joinedTrades} calendar={analytics?.calendarHeatmap} />
 
       <DecisionHistory
         title="Decision History"

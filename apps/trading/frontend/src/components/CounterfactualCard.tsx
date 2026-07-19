@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { postCounterfactual, type CounterfactualResponse } from "../api";
+import { apiGet, postCounterfactual, type CounterfactualResponse } from "../api";
 import type { Analytics } from "../types";
 import ProvenanceBadge from "./ProvenanceBadge";
 
@@ -33,22 +33,19 @@ function delta(value: number | undefined): string {
 
 export default function CounterfactualCard(_props: { analytics?: Analytics }) {
   const [result, setResult] = useState<CounterfactualResponse | null>(null);
-  const [sampleRefusal, setSampleRefusal] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sampleRefusal, setSampleRefusal] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    postCounterfactual({
-      base_factors: BASE_FACTORS,
-      perturbed_factors: PERTURBED_FACTORS,
-      category: "trend_following",
-    })
+    apiGet<CounterfactualResponse>("/api/trading/score/counterfactual/default")
       .then((payload) => {
         if (!cancelled) setResult(payload);
       })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Counterfactual unavailable");
+      .catch((loadError) => {
+        console.debug("counterfactual unavailable", loadError);
+        if (!cancelled) setError("Counterfactual unavailable.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

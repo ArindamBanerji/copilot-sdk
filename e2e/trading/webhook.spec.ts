@@ -41,6 +41,39 @@ test("signal card shows alert count or empty state", async ({ page }) => {
 });
 
 test("signal card shows accuracy by speed when data exists", async ({ page }) => {
+  const webhookPayload = {
+    total_alerts: 1,
+    correlated_trades: 1,
+    last_alert: {
+      signal_id: "sig-1",
+      ticker: "AAPL",
+      signal_type: "breakout",
+      received_at: "2026-06-23T12:00:00Z",
+      time_to_trade_seconds: 240,
+      is_correct: true,
+      scored: { recommended_action: "strong_execution" },
+    },
+    last_received: "2026-06-23T12:00:00Z",
+    fast_accuracy: 1,
+    slow_accuracy: null,
+    health: "active",
+  };
+  await page.route("**/api/trading/tab-state?**", async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...payload,
+        "webhook-history": {
+          data: webhookPayload,
+          error: null,
+          status: "ready",
+        },
+      }),
+    });
+  });
   await page.route("**/api/trading/webhook/history", async (route) => {
     await route.fulfill({
       contentType: "application/json",

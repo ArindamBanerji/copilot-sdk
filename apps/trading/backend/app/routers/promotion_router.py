@@ -5,13 +5,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.services.promotion_engine import PromotionEngine
 from app.services.promotion_state import PromotionStateStore
 from copilot_sdk.backend.conservation_router import _check_payload, _state_counts
+from copilot_sdk.scoring.mutation_lock import serialize_mutation
 from copilot_sdk.scoring.presets.trading import TradingPreset
+from copilot_sdk.state.cached_static import cached_static
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -58,7 +60,8 @@ def create_promotion_engine_router(
         )
 
     @router.get("/dashboard")
-    def dashboard() -> list[dict[str, Any]]:
+    @cached_static("promotion")
+    def dashboard(request: Request) -> list[dict[str, Any]]:
         return _engine().dashboard()
 
     @router.get("/{category}")
@@ -67,6 +70,7 @@ def create_promotion_engine_router(
         return _engine().evaluate(category)
 
     @router.post("/{category}/promote")
+    @serialize_mutation(domain, event="evolution")
     def promote(category: str, request: PromoteRequest) -> dict[str, Any]:
         _ensure_category(category, categories)
         try:
@@ -75,6 +79,7 @@ def create_promotion_engine_router(
             raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     @router.post("/{category}/demote")
+    @serialize_mutation(domain, event="evolution")
     def demote(category: str, request: DemoteRequest) -> dict[str, Any]:
         _ensure_category(category, categories)
         return _engine().demote(category, reason=request.reason)

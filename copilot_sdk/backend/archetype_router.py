@@ -26,7 +26,7 @@ def create_archetype_router() -> APIRouter:
     router = APIRouter(prefix="/api/archetypes", tags=["Archetypes"])
 
     @router.get("")
-    def list_archetypes(domain: str | None = None) -> list[dict[str, Any]]:
+    def list_archetypes(request: Request, domain: str | None = None) -> list[dict[str, Any]]:
         rows = [_archetype_summary(name) for name in ArchetypeGenerator.list_archetypes()]
         if domain:
             wanted = str(domain).strip().lower()

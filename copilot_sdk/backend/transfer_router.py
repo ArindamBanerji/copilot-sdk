@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from copilot_sdk.backend.transfer import (
@@ -16,6 +16,8 @@ from copilot_sdk.backend.transfer import (
 from copilot_sdk.transfer import TransferPattern
 from copilot_sdk.transfer.category_mappings import get_mapping, list_available_transfers
 from copilot_sdk.transfer.registry import SharedPatternRegistry
+from copilot_sdk.scoring.mutation_lock import serialize_mutation
+from copilot_sdk.state.cached_static import cached_static
 
 
 class TransferExecuteRequest(BaseModel):
@@ -32,13 +34,20 @@ def create_transfer_router(
 ) -> APIRouter:
     router = APIRouter(prefix="/api/transfer", tags=["Transfer"])
 
+    def _cache_domain() -> str:
+        if warm_start_info is not None or fingerprint_base_path is not None:
+            return "__uncached__"
+        return _own_domain(scorer)
+
     @router.get("/status")
-    def transfer_status() -> dict[str, Any]:
+    @cached_static("transfer-status", copilot=_cache_domain)
+    def transfer_status(request: Request) -> dict[str, Any]:
         info = _find_warm_start_info(scorer, warm_start_info)
         return _normalize_transfer_status(info)
 
     @router.get("/opportunities")
-    def transfer_opportunities() -> dict[str, Any]:
+    @cached_static("transfer", copilot=_cache_domain)
+    def transfer_opportunities(request: Request) -> dict[str, Any]:
         own_domain = _own_domain(scorer)
         fingerprints, warnings = load_fingerprints_with_warnings(fingerprint_base_path)
         own_fingerprint = fingerprints.get(own_domain)
@@ -64,6 +73,7 @@ def create_transfer_router(
         }
 
     @router.post("/execute")
+    @serialize_mutation(lambda *args, **kwargs: _own_domain(scorer), event="transfer")
     def transfer_execute(request: TransferExecuteRequest) -> dict[str, Any]:
         source_domain = _clean_domain(request.source_domain)
         target_domain = _clean_domain(request.target_domain)

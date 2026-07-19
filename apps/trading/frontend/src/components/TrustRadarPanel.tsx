@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getTrustAnalysis } from "../api";
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -8,7 +9,6 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { getTrustAnalysis } from "../api";
 import type { TrustAnalysisResponse, TrustScore } from "../types";
 
 const neutralScore: TrustScore = {
@@ -61,36 +61,33 @@ function heroText(data: TrustAnalysisResponse): string | null {
 export default function TrustRadarPanel() {
   const [data, setData] = useState<TrustAnalysisResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [unavailable, setUnavailable] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const unavailable = Boolean(error) || !data;
   const [selectedCategory, setSelectedCategory] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    getTrustAnalysis()
-      .then((response) => {
-        if (cancelled) return;
-        setData(response);
-        setUnavailable(!response);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setUnavailable(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const implemented = useMemo(() => new Set(data?.implemented ?? []), [data]);
   const factors = useMemo(() => (data ? scoreRows(data, selectedCategory) : []), [data, selectedCategory]);
   const isDkMode = data?.mode === "dk";
   const insight = data ? heroText(data) : null;
   const topSignal = selectedCategory ? scoreName(factors[0]) : data?.topSignal || scoreName(factors[0]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getTrustAnalysis()
+      .then((payload) => {
+        if (!cancelled) setData(payload);
+      })
+      .catch((loadError) => {
+        console.debug("trust analysis unavailable", loadError);
+        if (!cancelled) setError("Trust analysis unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (loading) {
     return (

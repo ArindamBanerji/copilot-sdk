@@ -7,6 +7,7 @@ import { EarlyWarningPanel } from "../components/EarlyWarningPanel";
 import { FactorFingerprintPanel } from "../components/FactorFingerprintPanel";
 import { LeakageDetectionPanel } from "../components/LeakageDetectionPanel";
 import { ProcessSignalsPanel } from "../components/ProcessSignalsPanel";
+import ProcessFusionPanel from "../components/ProcessFusionPanel";
 import { SimilarInvoicesPanel } from "../components/SimilarInvoicesPanel";
 import type { InvoiceException, PreviewQueueResponse } from "../types";
 
@@ -42,7 +43,7 @@ export function InsightScreen() {
   );
 
   return (
-    <section className="space-y-6">
+    <section data-screen-ready="true" className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Invoice intelligence</p>
         <h1 className="mt-1 text-3xl font-semibold text-slate-950">Insight</h1>
@@ -74,6 +75,7 @@ export function InsightScreen() {
         <SimilarInvoicesPanel invoiceId={invoiceId(selected)} />
       </div>
       <CrossGraphInsightCard />
+      <ProcessFusionPanel />
       <EarlyWarningPanel />
       <LeakageDetectionPanel />
       <ProcessSignalsPanel supplierId={supplierId(selected)} />

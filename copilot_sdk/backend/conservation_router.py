@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any, Callable
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from copilot_sdk.backend.conservation_utils import (
@@ -18,6 +18,7 @@ from copilot_sdk.backend.models import (
     ConservationStatusResponse,
     ConservationWhatIfResponse,
 )
+from copilot_sdk.state.cached_static import cached_static
 
 
 from gae.calibration import check_conservation, compute_theta_min
@@ -39,7 +40,8 @@ def create_conservation_router(
     router = APIRouter()
 
     @router.get("/conservation/status", response_model=ConservationStatusResponse)
-    def status() -> dict[str, Any]:
+    @cached_static("conservation", copilot=domain)
+    def status(request: Request) -> dict[str, Any]:
         state = _resolve_state(state_provider)
         return compute_conservation_status_payload(domain, state)
 

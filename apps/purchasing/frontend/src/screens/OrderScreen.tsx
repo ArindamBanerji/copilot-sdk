@@ -456,11 +456,11 @@ export default function OrderScreen({ selectedItem }: OrderScreenProps) {
     : undefined;
 
   if (loading) {
-    return <section className="purchase-card">Loading order workflow...</section>;
+    return <section data-screen-ready="false" className="purchase-card">Loading order workflow...</section>;
   }
 
   return (
-    <div className="purchase-stack order-screen">
+    <div data-screen-ready="true" className="purchase-stack order-screen">
       {error && (
         <section className="purchase-card error-card">
           <p className="purchase-kicker">Order workflow issue</p>

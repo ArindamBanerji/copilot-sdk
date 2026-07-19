@@ -315,7 +315,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
 
   if (!selectedAlertId) {
     return (
-      <section className="copilot-card p-6">
+      <section data-screen-ready="true" className="copilot-card p-6">
         <button type="button" className="copilot-button-secondary mb-4 px-3 py-2 text-sm" onClick={onBack}>
           Back to Dashboard
         </button>
@@ -328,11 +328,11 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
   }
 
   if (loading) {
-    return <TriageFrame onBack={onBack} message="Loading alert graph context..." />;
+    return <TriageFrame onBack={onBack} message="Loading alert graph context..." ready={false} />;
   }
 
   return (
-    <div className="grid gap-4">
+    <div data-screen-ready="true" className="grid gap-4">
       <section className="copilot-card p-5">
         <div className="mb-4 flex items-center justify-between gap-4">
           <button type="button" className="copilot-button-secondary px-3 py-2 text-sm" onClick={onBack}>
@@ -464,9 +464,9 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
   );
 }
 
-function TriageFrame({ onBack, message }: { onBack: () => void; message: string }) {
+function TriageFrame({ onBack, message, ready = false }: { onBack: () => void; message: string; ready?: boolean }) {
   return (
-    <section className="copilot-card p-6">
+    <section data-screen-ready={String(ready)} className="copilot-card p-6">
       <button type="button" className="copilot-button-secondary mb-4 px-3 py-2 text-sm" onClick={onBack}>
         Back to Dashboard
       </button>

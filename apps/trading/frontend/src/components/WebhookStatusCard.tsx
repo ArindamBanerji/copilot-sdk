@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchWebhookStatus, type WebhookStatusResponse } from "../api";
+import { fetchWebhookStatus } from "../api";
+import type { WebhookStatusResponse } from "../api";
 
 function pct(value: number | null | undefined): string {
   return typeof value === "number" ? `${Math.round(value * 100)}%` : "-";
@@ -28,19 +29,17 @@ export default function WebhookStatusCard() {
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const payload = await fetchWebhookStatus();
+    fetchWebhookStatus()
+      .then((payload) => {
         if (!cancelled) setStatus(payload);
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Signal integration unavailable");
-      } finally {
+      })
+      .catch((loadError) => {
+        console.debug("webhook status unavailable", loadError);
+        if (!cancelled) setError("Webhook status unavailable.");
+      })
+      .finally(() => {
         if (!cancelled) setLoading(false);
-      }
-    }
-    void load();
+      });
     return () => {
       cancelled = true;
     };

@@ -4,16 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from app.services.regime_monitor import RegimeMonitor
+from copilot_sdk.state.cached_static import cached_static
 
 
 def create_regime_status_router(monitor: RegimeMonitor) -> APIRouter:
     router = APIRouter(prefix="/api/trading", tags=["trading-regime-status"])
 
     @router.get("/regime-status")
-    def regime_status() -> dict[str, Any]:
+    @cached_static("regime-status")
+    def regime_status(request: Request) -> dict[str, Any]:
         status = monitor.status()
         restrictions = []
         if status.regime_break_active:

@@ -6,15 +6,20 @@ import CorrelationPanel from "../components/CorrelationPanel";
 import CounterfactualCard from "../components/CounterfactualCard";
 import DayOfWeekChart from "../components/DayOfWeekChart";
 import DecisionExplorer from "../components/DecisionExplorer";
+import DispersionFollowCard from "../components/DispersionFollowCard";
 import PatternDetectionPanel from "../components/PatternDetectionPanel";
 import ProfileArchetype from "../components/ProfileArchetype";
 import RegimeChart from "../components/RegimeChart";
 import RegimePanel from "../components/RegimePanel";
+import RegimeVRPCard from "../components/RegimeVRPCard";
 import ResearchImpactChart from "../components/ResearchImpactChart";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
 import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
+import TailBetsCard from "../components/TailBetsCard";
 import TrustRadarPanel from "../components/TrustRadarPanel";
+import VolSharpeCard from "../components/VolSharpeCard";
+import VRPAttributionCard from "../components/VRPAttributionCard";
 import type { Analytics, FingerprintResponse } from "../types";
 
 const displayNames: Record<string, string> = {
@@ -58,45 +63,39 @@ export default function AnalysisScreen() {
   const [fingerprint, setFingerprint] = useState<FingerprintResponse | undefined>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const factors = useMemo(() => factorItems(fingerprint), [fingerprint]);
 
   useEffect(() => {
     let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const [analyticsPayload, fingerprintPayload] = await Promise.all([getAnalytics(), getFingerprint()]);
+    setLoading(true);
+    Promise.all([getAnalytics(), getFingerprint()])
+      .then(([nextAnalytics, nextFingerprint]) => {
+        if (cancelled) return;
+        setAnalytics(nextAnalytics);
+        setFingerprint(nextFingerprint);
+        setError(null);
+      })
+      .catch((loadError) => {
+        console.debug("analysis data unavailable", loadError);
         if (!cancelled) {
-          setAnalytics(analyticsPayload);
-          setFingerprint(fingerprintPayload);
+          setError(loadError instanceof Error ? loadError.message : "Analysis unavailable");
         }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Analysis load failed");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const factors = useMemo(() => factorItems(fingerprint), [fingerprint]);
-
   if (loading) {
-    return <div className="copilot-card p-8 text-sm trading-muted">Loading analysis...</div>;
+    return <div data-screen-ready="false" className="copilot-card p-8 text-sm trading-muted">Loading analysis...</div>;
   }
 
   if (error) {
     return (
-      <section className="copilot-card p-6">
+      <section data-screen-ready="true" className="copilot-card p-6">
         <h2 className="text-xl font-semibold">Analysis unavailable</h2>
         <p className="mt-2 text-sm trading-muted">{error}</p>
       </section>
@@ -104,7 +103,7 @@ export default function AnalysisScreen() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-screen-ready="true" className="flex flex-col gap-4">
       <TrustRadarPanel />
       <RegimePanel />
       <PatternDetectionPanel />
@@ -118,6 +117,13 @@ export default function AnalysisScreen() {
         decisionsAnalyzed={fingerprint?.decisionsAnalyzed}
       />
       <DecisionExplorer />
+      <div className="grid gap-4 xl:grid-cols-2" data-testid="vol-analytics-grid">
+        <VolSharpeCard />
+        <VRPAttributionCard />
+        <RegimeVRPCard />
+        <DispersionFollowCard />
+        <TailBetsCard />
+      </div>
       <CorrelationPanel />
       <CounterfactualCard analytics={analytics} />
       <DayOfWeekChart analytics={analytics} />

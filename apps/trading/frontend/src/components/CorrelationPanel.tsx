@@ -80,27 +80,28 @@ export default function CorrelationPanel() {
   const [payload, setPayload] = useState<CorrelationResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      const response = await fetchCorrelation();
-      if (!cancelled) {
-        setPayload(response);
-        setLoading(false);
-      }
-    }
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const tickers = useMemo(() => payload?.tickers || [], [payload]);
   const pairs = useMemo(() => payload?.pairs || [], [payload]);
   const alerts = useMemo(() => payload?.alerts || [], [payload]);
   const matrix = payload?.matrix || [];
   const insufficient = payload?.source === "insufficient_data";
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchCorrelation()
+      .then((data) => {
+        if (!cancelled) setPayload(data);
+      })
+      .catch((loadError) => {
+        console.debug("correlation monitor unavailable", loadError);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className="copilot-card p-5">

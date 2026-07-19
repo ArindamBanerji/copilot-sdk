@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { getPatterns } from "../api";
 import type { PatternDetectionResponse } from "../types";
-
-const PATTERN_URL = "http://127.0.0.1:8010/api/context/patterns";
 
 function patternLabel(name: string): string {
   return name
@@ -13,25 +12,8 @@ function patternLabel(name: string): string {
 
 export default function PatternBadge() {
   const [data, setData] = useState<PatternDetectionResponse | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(PATTERN_URL)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload: PatternDetectionResponse | null) => {
-        if (!cancelled) {
-          setData(payload);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setData(null);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const patterns = data?.patterns ?? [];
   const count = data?.totalPatternsDetected ?? patterns.length;
@@ -40,9 +22,27 @@ export default function PatternBadge() {
     [patterns],
   );
 
-  if (!data || count <= 0) {
-    return null;
-  }
+  useEffect(() => {
+    let cancelled = false;
+    getPatterns()
+      .then((payload) => {
+        if (!cancelled) setData(payload);
+      })
+      .catch((loadError) => {
+        console.debug("pattern badge unavailable", loadError);
+        if (!cancelled) setError("Pattern badge unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) return <div className="h-10 w-40 animate-pulse rounded-md bg-white/10" />;
+  if (error) return <div className="text-sm text-red-500">{error}</div>;
+  if (!data || count <= 0) return null;
 
   const isActive = patterns.some((pattern) => Number(pattern.severity ?? 0) >= 0.5);
   const tone = isActive

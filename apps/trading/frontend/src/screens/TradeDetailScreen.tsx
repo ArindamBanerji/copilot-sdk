@@ -136,12 +136,12 @@ export default function TradeDetailScreen({
   }
 
   if (loading) {
-    return <div className="copilot-card p-8 text-sm trading-muted">Loading trade detail...</div>;
+    return <div data-screen-ready="false" className="copilot-card p-8 text-sm trading-muted">Loading trade detail...</div>;
   }
 
   if (error) {
     return (
-      <section className="copilot-card p-6">
+      <section data-screen-ready="true" className="copilot-card p-6">
         <button type="button" className="copilot-button-secondary px-3 py-2 text-sm" onClick={onBack}>
           Back to Dashboard
         </button>
@@ -160,7 +160,7 @@ export default function TradeDetailScreen({
     : undefined;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-screen-ready="true" className="flex flex-col gap-4">
       <section className="copilot-card p-5">
         <button type="button" className="copilot-button-secondary px-3 py-2 text-sm" onClick={onBack}>
           Back to Dashboard
@@ -231,7 +231,7 @@ export default function TradeDetailScreen({
 
 function EmptyState({ onBack, message }: { onBack: () => void; message: string }) {
   return (
-    <section className="copilot-card p-6">
+    <section data-screen-ready="true" className="copilot-card p-6">
       <button type="button" className="copilot-button-secondary px-3 py-2 text-sm" onClick={onBack}>
         Back to Dashboard
       </button>

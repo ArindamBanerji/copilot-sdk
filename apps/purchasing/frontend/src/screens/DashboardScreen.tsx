@@ -150,12 +150,12 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
   );
 
   if (loading) {
-    return <section className="purchase-card">Loading purchasing dashboard...</section>;
+    return <section data-screen-ready="false" className="purchase-card">Loading purchasing dashboard...</section>;
   }
 
   if (error) {
     return (
-      <section className="purchase-card">
+      <section data-screen-ready="true" className="purchase-card">
         <p className="purchase-kicker">Dashboard unavailable</p>
         <h1 className="purchase-title">Purchasing data could not load</h1>
         <p className="purchase-muted">{error}</p>
@@ -164,7 +164,7 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
   }
 
   return (
-    <div className="purchase-stack dashboard-screen">
+    <div data-screen-ready="true" className="purchase-stack dashboard-screen">
       <div className="flex flex-wrap items-center justify-end gap-2">
         <ProvenanceBadge source={state.today?.weather?.source ?? "scraped_external"} />
       </div>

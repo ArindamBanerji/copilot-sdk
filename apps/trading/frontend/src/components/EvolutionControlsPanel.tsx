@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   applyEvolutionProposal,
   fetchEvolutionActive,
@@ -7,6 +7,7 @@ import {
   rollbackEvolution,
   type ParameterEvolutionActive,
   type ParameterEvolutionProposal,
+  type ParameterEvolutionProposalResponse,
 } from "../api";
 import ProvenanceBadge from "./ProvenanceBadge";
 
@@ -42,53 +43,50 @@ export default function EvolutionControlsPanel() {
     conservationState: "GREEN",
     bounds: {},
   });
-  const [proposals, setProposals] = useState<ParameterEvolutionProposal[]>([]);
-  const [proposalNote, setProposalNote] = useState<string>("");
-  const [proposalProvenance, setProposalProvenance] = useState<string>("");
+  const [proposalPayload, setProposalPayload] = useState<ParameterEvolutionProposalResponse | ParameterEvolutionProposal[] | null>(null);
   const [history, setHistory] = useState<ParameterEvolutionProposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function load() {
-    setLoading(true);
-    setError(null);
-    try {
-      const [activePayload, proposalPayload, historyPayload] = await Promise.all([
-        fetchEvolutionActive(),
-        fetchEvolutionProposalResponse(),
-        fetchParameterEvolutionLog(),
-      ]);
-      const proposalList = Array.isArray(proposalPayload) ? proposalPayload : proposalPayload.proposals ?? [];
-      setActive(activePayload);
-      setProposals(proposalList.filter((entry) => !entry.kind || entry.kind === "parameter"));
-      setProposalNote(Array.isArray(proposalPayload) ? "" : proposalPayload.note ?? "");
-      setProposalProvenance(Array.isArray(proposalPayload) ? "" : proposalPayload.provenance ?? "");
-      setHistory(historyPayload.filter((entry) => !entry.kind || entry.kind === "parameter"));
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Parameter evolution load failed");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void load();
-  }, []);
+  const proposalList = Array.isArray(proposalPayload) ? proposalPayload : proposalPayload?.proposals ?? [];
+  const proposals = proposalList.filter((entry) => !entry.kind || entry.kind === "parameter");
+  const proposalNote = Array.isArray(proposalPayload) ? "" : proposalPayload?.note ?? "";
+  const proposalProvenance = Array.isArray(proposalPayload) ? "" : proposalPayload?.provenance ?? "";
 
   const state = active.conservationState ?? "GREEN";
   const adjustments = useMemo(() => Object.entries(active.parameterAdjustments ?? {}), [active]);
   const bounds = useMemo(() => Object.entries(active.bounds ?? {}), [active]);
   const canApply = state === "GREEN";
 
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    Promise.all([fetchEvolutionActive(), fetchEvolutionProposalResponse(), fetchParameterEvolutionLog()])
+      .then(([nextActive, nextProposals, nextHistory]) => {
+        setActive(nextActive);
+        setProposalPayload(nextProposals);
+        setHistory(nextHistory.filter((entry) => entry.kind === "parameter"));
+      })
+      .catch((loadError) => {
+        console.debug("parameter evolution unavailable", loadError);
+        setError("Parameter evolution unavailable.");
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
   async function onApply(id: string) {
     if (!id) return;
     await applyEvolutionProposal(id);
-    await load();
+    load();
   }
 
   async function onRollback(parameter: string) {
     await rollbackEvolution(parameter);
-    await load();
+    load();
   }
 
   return (

@@ -5,9 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from app.services.cohort_status import CohortStatusService
+from copilot_sdk.state.cached_static import cached_static
 
 
 def create_cohort_status_router(
@@ -17,7 +18,8 @@ def create_cohort_status_router(
     router = APIRouter(prefix="/api/trading", tags=["cohort-status"])
 
     @router.get("/cohort-status")
-    def get_cohort_status() -> dict[str, Any]:
+    @cached_static("cohort-status")
+    def get_cohort_status(request: Request) -> dict[str, Any]:
         store = graph_store_factory() if graph_store_factory is not None else None
         return CohortStatusService(
             graph_store=store,

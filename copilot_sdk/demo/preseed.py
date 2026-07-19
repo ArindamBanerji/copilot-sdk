@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from dataclasses import dataclass, field
@@ -13,11 +14,27 @@ import numpy as np
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.outbox.models import OutboxEventType, SupplierReliabilitySignal
 from copilot_sdk.scoring.scorer import CompoundingScorer
+from copilot_sdk.state import get_tab_state_cache
 
 
 DEFAULT_SEED = 20260711
 MIN_DEMO_IKS = 25.0
 TRADING_REJECTION_LOG_ENV = "TRADING_EVOLUTION_LOG_PATH"
+
+
+def _warm_tab_state_caches(copilots: dict[str, Any]) -> None:
+    async def warm_all() -> None:
+        for copilot in copilots:
+            cache = get_tab_state_cache(copilot)
+            if cache is not None:
+                await cache.warm_up()
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        asyncio.run(warm_all())
+    else:
+        loop.create_task(warm_all())
 
 
 @dataclass
@@ -118,6 +135,7 @@ class DemoPreseed:
                 cross_copilot_signal=self.seed_cross_copilot_signal(),
             )
             self.verify(self._result)
+            _warm_tab_state_caches(self._result.copilots)
         return self._result
 
     def preseed_trading(self) -> CopilotPreseedResult:

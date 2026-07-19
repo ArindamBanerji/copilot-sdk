@@ -565,6 +565,31 @@ export interface ProcessSignalsResponse {
   source?: string | null;
 }
 
+export interface ProcessFusionResponse {
+  where: {
+    bottleneck: string;
+    activity: string;
+    avg_duration_hours: number;
+    vs_benchmark_hours: number;
+  };
+  what: {
+    pattern: string;
+    exception_rate: number;
+    vs_org_rate: number;
+  };
+  why: {
+    root_cause: string;
+    situation_analysis: string;
+  };
+  which_decision: {
+    recommendation: string;
+    estimated_impact: string;
+    provenance: string;
+    confidence: number;
+  };
+  ingest_summary?: Record<string, unknown>;
+}
+
 export interface AuditTrailDecision {
   decision_id?: string;
   decisionId?: string;

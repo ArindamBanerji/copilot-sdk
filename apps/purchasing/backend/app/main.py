@@ -652,6 +652,7 @@ def create_app(
     app.include_router(create_scorecard_router(lambda: selected_graph_store_factory(scoring_db)))
     commodity_source = _fred_commodity_source()
     commodity_provider = CommodityDataProvider(source=commodity_source)
+    commodity_provider.warm_cache()
     app.include_router(create_spend_router(commodity_provider=commodity_provider))
     app.include_router(create_commodity_router(provider=commodity_provider))
     app.include_router(create_menu_router())

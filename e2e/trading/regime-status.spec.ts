@@ -3,6 +3,30 @@ import { expect, test, type Page } from "@playwright/test";
 const FRONTEND = process.env.TRADING_FRONTEND || "http://127.0.0.1:5174";
 
 async function mockRegimeStatus(page: Page) {
+  await page.route("**/api/trading/tab-state?**", async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...payload,
+        "regime-status": {
+          data: {
+            current_regime: "volatile",
+            previous_regime: "trending",
+            regime_break_active: true,
+            decisions_in_new_regime: 5,
+            decisions_to_stabilize: 20,
+            autonomy_level: "restricted",
+            restrictions: ["theta_min tightened 30%", "AE promotions deferred"],
+          },
+          error: null,
+          status: "ready",
+        },
+      }),
+    });
+  });
   await page.route("**/api/trading/regime-status", async (route) => {
     await route.fulfill({
       status: 200,

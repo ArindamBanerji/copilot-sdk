@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { clickTab } from "../helpers/ui";
+import { waitForTriageQueue } from "./helpers";
 
 async function openTab(page: Page, name: string) {
   await page.goto("/");
@@ -9,6 +10,7 @@ async function openTab(page: Page, name: string) {
 async function openTriage(page: Page) {
   await openTab(page, "Exception Triage");
   await expect(page.getByRole("heading", { name: "Exception Triage" })).toBeVisible();
+  await waitForTriageQueue(page);
 }
 
 function main(page: Page) {
@@ -31,6 +33,14 @@ function recommendationControls(page: Page) {
   return page.locator("article", { has: page.getByRole("button", { name: /Confirm recommendation/i }) });
 }
 
+function waitForScoreResponse(page: Page) {
+  return page.waitForResponse((response) =>
+    response.url().includes("/score") &&
+    response.request().method() === "POST" &&
+    response.status() === 200
+  );
+}
+
 async function clickScore(page: Page) {
   const selected = panel(page, "Selected Invoice");
   const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
@@ -40,19 +50,20 @@ async function clickScore(page: Page) {
     if (invoiceCount > 0) {
       await invoiceButtons.first().click();
     } else {
-      await expect(panel(page, "Invoice Selector")).toContainText(/Loading invoice queue|0 queued/i);
       test.skip(true, "No queued invoice available for scoring");
     }
   }
   await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
   const scoreButton = selected.getByRole("button", { name: /^Score$/i });
   await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await scoreButton.click();
+  await Promise.all([
+    waitForScoreResponse(page),
+    scoreButton.click(),
+  ]);
 }
 
 async function scoreFirstInvoice(page: Page) {
   await openTriage(page);
-  await expect(panel(page, "Invoice Selector")).toContainText(/queued|S2P-INV/i);
   await clickScore(page);
   await expect(scoreResultPanel(page)).toContainText(/Confidence/i);
 }

@@ -21,6 +21,22 @@ function recommendationControls(page: Page) {
   return page.locator("article", { has: page.getByRole("button", { name: /Confirm recommendation/i }) });
 }
 
+function waitForScoreResponse(page: Page) {
+  return page.waitForResponse((response) =>
+    response.url().includes("/score") &&
+    response.request().method() === "POST" &&
+    response.status() === 200
+  );
+}
+
+function waitForLearnResponse(page: Page) {
+  return page.waitForResponse((response) =>
+    (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
+    response.request().method() === "POST" &&
+    response.ok()
+  );
+}
+
 async function ensureSelectedInvoice(page: Page) {
   const selected = panel(page, "Selected Invoice");
   if (!(await selected.getByText(/Supplier|Amount|Category/i).count())) {
@@ -51,7 +67,10 @@ async function scoreFirstInvoice(page: Page) {
   const selected = panel(page, "Selected Invoice");
   const scoreButton = selected.getByRole("button", { name: /^Score$/i });
   await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await scoreButton.click();
+  await Promise.all([
+    waitForScoreResponse(page),
+    scoreButton.click(),
+  ]);
   await expect(scoreResultPanel(page)).toContainText(/Recommendation|Confidence/i);
 }
 
@@ -88,7 +107,10 @@ test("S2P AGE shadow smoke keeps UI flows working", async ({ page, request }) =>
 
   await scoreFirstInvoice(page);
   await expect(scoreResultPanel(page)).toContainText(/auto approve|hold for review|escalate to buyer|flag leakage|refer to specialist/i);
-  await recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click();
+  await Promise.all([
+    waitForLearnResponse(page),
+    recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click(),
+  ]);
   await expectLearningResultOrStableControls(page);
 
   await clickTab(page, "Dashboard");

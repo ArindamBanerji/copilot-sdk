@@ -30,7 +30,7 @@ export default function MarketContext({ snapshot }: { snapshot?: MarketSnapshot 
         <div>
           <h2 className="text-base font-semibold">Market Context</h2>
           <p className="text-sm trading-muted">{snapshot?.source || "Cached context"}</p>
-          {provenance?.source ? <ProvenanceBadge source={provenance.source} asOf={provenanceAsOf} /> : null}
+          {provenance?.source ? <ProvenanceBadge source={provenance.source} asOf={provenanceAsOf} market /> : null}
         </div>
         {snapshot?.asOf ? <span className="text-xs trading-muted">{snapshot.asOf}</span> : null}
       </div>

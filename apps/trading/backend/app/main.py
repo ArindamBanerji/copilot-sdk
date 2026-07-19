@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -42,6 +42,7 @@ from .routers.pre_score_router import create_pre_score_router  # noqa: E402
 from .routers.prescore import create_prescore_router  # noqa: E402
 from .routers.promotion_router import create_promotion_engine_router  # noqa: E402
 from .routers.regime import create_regime_router  # noqa: E402
+from .routers.regime_analytics import create_regime_analytics_router  # noqa: E402
 from .routers.regime_router import create_regime_router as create_regime_classifier_router  # noqa: E402
 from .routers.regime_status import create_regime_status_router  # noqa: E402
 from .routers.social import create_social_router  # noqa: E402
@@ -50,6 +51,8 @@ from .routers.webhook import create_webhook_router  # noqa: E402
 from .services.journal_query import JournalQueryService  # noqa: E402
 from .services.regime_monitor import RegimeMonitor  # noqa: E402
 from .services.regime_scoring import TradingRegimeScorerProxy, build_regime_context  # noqa: E402
+from .state import create_trading_tab_state_cache  # noqa: E402
+from .state.compute_helpers import compute_counterfactual_default  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend.archetype_router import create_archetype_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
@@ -66,6 +69,7 @@ from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
+from copilot_sdk.state import cached_static, create_invalidation_header_middleware, create_tab_state_router  # noqa: E402
 
 
 DOMAIN = "trading"
@@ -261,6 +265,7 @@ def create_app(
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Invalidated-Urls"],
     )
 
     scoring_db = _resolve_scoring_db(db_path)
@@ -287,6 +292,11 @@ def create_app(
     trading_preset = TradingPreset()
     regime_monitor = RegimeMonitor(config=trading_preset)
     scorer_proxy = TradingRegimeScorerProxy(base_scorer_proxy, regime_monitor)
+    tab_state_cache = create_trading_tab_state_cache(
+        scorer_provider=lambda: scorer_proxy,
+        graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
+        regime_monitor=regime_monitor,
+    )
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
         "dk_source": "cold-start",
@@ -321,7 +331,9 @@ def create_app(
     app.state.trading_active_graph_config = active_graph_config
     app.state.trading_selected_graph_store = scorer_proxy.graph_store
     app.state.trading_regime_monitor = regime_monitor
+    app.state.trading_tab_state_cache = tab_state_cache
     app.state.l5_startup_status = l5_startup_status
+    app.middleware("http")(create_invalidation_header_middleware(DOMAIN))
     app.include_router(
         create_scoring_router(
             DOMAIN,
@@ -374,6 +386,24 @@ def create_app(
         trades = _journal_records(lambda: selected_graph_store_factory(scoring_db), DOMAIN)
         return JournalQueryService().query(question, trades)
 
+    @app.get("/api/trading/score/counterfactual/default")
+    @cached_static("counterfactual-default")
+    def default_counterfactual(request: Request) -> dict[str, Any]:
+        return compute_counterfactual_default(scorer_proxy)
+
+    @app.get("/api/trading/correlation/config")
+    @cached_static("correlation-config")
+    def correlation_config(request: Request) -> dict[str, int]:
+        return {"window": 20}
+
+    @app.get("/api/trading/iks")
+    @cached_static("iks")
+    def trading_iks(request: Request) -> dict[str, float]:
+        compute_iks = getattr(scorer_proxy, "_compute_iks", None)
+        if callable(compute_iks):
+            return {"iks": float(compute_iks())}
+        return {"iks": 0.0}
+
     app.include_router(create_analytics_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_correlation_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_execution_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
@@ -399,6 +429,7 @@ def create_app(
         )
     )
     app.include_router(create_regime_classifier_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(create_regime_analytics_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_regime_status_router(regime_monitor))
     app.include_router(create_social_router(scorer_proxy))
     app.include_router(create_vix_timing_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
@@ -411,6 +442,7 @@ def create_app(
     app.include_router(create_broker_router(), prefix="/api/broker", tags=["broker"])
     app.include_router(data_import_router)
     app.include_router(trading_graph_status_router)
+    app.include_router(create_tab_state_router(tab_state_cache))
 
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:

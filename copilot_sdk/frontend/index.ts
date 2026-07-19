@@ -45,3 +45,13 @@ export type { TransferBadgeProps } from "./TransferBadge";
 
 export { default as FactorContributionChart } from "./FactorContributionChart";
 export type { ContributionEntry, FactorContributionChartProps } from "./FactorContributionChart";
+
+export {
+  TabDataProvider,
+  useDerivedData,
+  useTabData,
+  type TabDataEnvelope,
+  type TabDataProviderProps,
+  type UseDerivedDataResult,
+  type UseTabDataResult,
+} from "./providers";

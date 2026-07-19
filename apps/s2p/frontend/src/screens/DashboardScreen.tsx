@@ -44,7 +44,7 @@ export function DashboardScreen() {
   const firstInvoice = recent[0];
 
   return (
-    <section className="space-y-6">
+    <section data-screen-ready="true" className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Source-to-Pay</p>
         <h1 className="mt-1 text-3xl font-semibold text-slate-950">Dashboard</h1>

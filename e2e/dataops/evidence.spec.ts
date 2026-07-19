@@ -116,9 +116,9 @@ test("operational rules panel shows governed rule statuses", async ({ page }) =>
 
   const rules = page.locator("section", { hasText: "Operational Rules" }).first();
   await expect(rules).toBeVisible();
-  await expect(rules.getByText(/proposed/i).first()).toBeVisible();
-  await expect(rules.getByText(/shadow/i).first()).toBeVisible();
-  await expect(rules.getByText(/promoted/i).first()).toBeVisible();
-  await expect(rules.getByText(/scheduling/i).first()).toBeVisible();
+  await expect(rules.getByText(/^\d+\s+Proposed$/i).first()).toBeVisible();
+  await expect(rules.getByText(/^\d+\s+Shadow$/i).first()).toBeVisible();
+  await expect(rules.getByText(/^\d+\s+Promoted$/i).first()).toBeVisible();
+  await expect(rules.getByText(/^Scheduling Rule$/i).first()).toBeVisible();
   await expect(rules.getByText(/quality|resource|memory|off-peak/i).first()).toBeVisible();
 });

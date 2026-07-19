@@ -4,6 +4,7 @@ import type {
   ConservationBreakdownResponse,
   ConservationState,
   CorrelationResponse,
+  DispersionFollowResponse,
   EvidenceResponse,
   FingerprintResponse,
   LearnResponse,
@@ -12,6 +13,7 @@ import type {
   PrescoreRequest,
   PrescoreResponse,
   RegimeDetailResponse,
+  RegimeVrpResponse,
   RegimeStatusResponse,
   PromotionResponse,
   RegimeResponse,
@@ -30,6 +32,8 @@ import type {
   TrajectoryResponse,
   TrustAnalysisResponse,
   VIXTimingResponse,
+  VolSharpeResponse,
+  VrpAttributionResponse,
 } from "./types";
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8010";
@@ -54,7 +58,7 @@ export function normalizeKeys<T = unknown>(value: unknown): T {
   return value as T;
 }
 
-async function apiGet<T>(path: string): Promise<T> {
+export async function apiGet<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`);
   if (!response.ok) {
     throw new Error(`GET ${path} failed with ${response.status}`);
@@ -62,7 +66,7 @@ async function apiGet<T>(path: string): Promise<T> {
   return normalizeKeys<T>(await response.json());
 }
 
-async function safeApiGet<T>(path: string): Promise<T | null> {
+export async function safeApiGet<T>(path: string): Promise<T | null> {
   try {
     return await apiGet<T>(path);
   } catch {
@@ -149,6 +153,7 @@ export function fetchRegimeDetail(): Promise<RegimeDetailResponse | null> {
 export interface RegimeCurrentResponse {
   regime?: "trending" | "ranging" | "volatile" | string;
   confidence?: number;
+  hurst?: number | null;
   vix?: number;
   adx?: number;
   nearBoundary?: boolean;
@@ -331,6 +336,22 @@ export function promoteCategory(
 export function fetchCorrelation(window = 20): Promise<CorrelationResponse | null> {
   const params = new URLSearchParams({ window: String(window) });
   return safeApiGet<CorrelationResponse>(`/api/trading/correlation?${params.toString()}`);
+}
+
+export function fetchVolSharpe(): Promise<VolSharpeResponse> {
+  return apiGet<VolSharpeResponse>("/api/trading/analytics/vol-sharpe");
+}
+
+export function fetchVrpAttribution(): Promise<VrpAttributionResponse> {
+  return apiGet<VrpAttributionResponse>("/api/trading/analytics/vrp-attribution");
+}
+
+export function fetchRegimeVrp(): Promise<RegimeVrpResponse> {
+  return apiGet<RegimeVrpResponse>("/api/trading/analytics/regime-vrp");
+}
+
+export function fetchDispersionFollow(): Promise<DispersionFollowResponse> {
+  return apiGet<DispersionFollowResponse>("/api/trading/analytics/dispersion-follow");
 }
 
 export function fetchVIXTiming(): Promise<VIXTimingResponse | null> {

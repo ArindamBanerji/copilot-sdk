@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from fastapi.encoders import jsonable_encoder
 
-from app.services.commodity_data_provider import (
+from app.connectors.commodity_provider import (
     COMMODITY_CATEGORIES,
     CommodityDataProvider,
 )

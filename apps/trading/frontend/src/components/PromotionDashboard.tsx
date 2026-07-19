@@ -74,25 +74,25 @@ export default function PromotionDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [promoting, setPromoting] = useState<string | null>(null);
 
-  async function load() {
-    setLoading(true);
-    setError(null);
-    try {
-      setRows(sortRows(await getPromotionDashboard()));
-    } catch (loadError) {
-      console.debug("Promotion dashboard unavailable", loadError);
-      setRows([]);
-      setError("Promotion dashboard is unavailable.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const categories = useMemo(() => sortRows(rows), [rows]);
 
   useEffect(() => {
-    void load();
+    let cancelled = false;
+    getPromotionDashboard()
+      .then((payload) => {
+        if (!cancelled) setRows(payload);
+      })
+      .catch((loadError) => {
+        console.debug("promotion pipeline unavailable", loadError);
+        if (!cancelled) setError("Promotion pipeline unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
-
-  const categories = useMemo(() => sortRows(rows), [rows]);
 
   async function onPromote(row: PromotionDetailResponse) {
     const category = String(row.category || "");
@@ -101,7 +101,7 @@ export default function PromotionDashboard() {
     setError(null);
     try {
       await promoteCategory(category);
-      await load();
+      setRows(await getPromotionDashboard());
     } catch (promoteError) {
       console.debug("Promotion request rejected", promoteError);
       setError("Promotion is not ready yet.");

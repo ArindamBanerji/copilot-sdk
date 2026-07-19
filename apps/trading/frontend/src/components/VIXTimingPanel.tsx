@@ -47,25 +47,26 @@ export default function VIXTimingPanel() {
   const [payload, setPayload] = useState<VIXTimingResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const matrix = payload?.matrix || {};
+  const recommendations = useMemo(() => payload?.recommendations || [], [payload]);
+  const hasAnalysis = Number(payload?.totalAnalyzed || 0) > 0;
+
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      setLoading(true);
-      const response = await fetchVIXTiming();
-      if (!cancelled) {
-        setPayload(response);
-        setLoading(false);
-      }
-    }
-    void load();
+    fetchVIXTiming()
+      .then((data) => {
+        if (!cancelled) setPayload(data);
+      })
+      .catch((loadError) => {
+        console.debug("vix timing unavailable", loadError);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const matrix = payload?.matrix || {};
-  const recommendations = useMemo(() => payload?.recommendations || [], [payload]);
-  const hasAnalysis = Number(payload?.totalAnalyzed || 0) > 0;
 
   return (
     <section className="copilot-card p-5">

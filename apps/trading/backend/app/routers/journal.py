@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse
 
 from app.routers.data_import import _trade_store_ref
 from app.services.subcategory import get_subcategory
+from copilot_sdk.scoring.mutation_lock import serialize_mutation
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -86,6 +87,7 @@ def create_journal_router(
         return JSONResponse(status_code=404, content={"error": "Trade not found"})
 
     @router.post("/journal/entry")
+    @serialize_mutation(domain, event="score")
     def create_manual_entry(
         request: Request,
         payload: dict[str, Any] = Body(...),
@@ -122,6 +124,7 @@ def create_journal_router(
         return JSONResponse(status_code=201, content={"entry_id": entry_id, "created": True})
 
     @router.put("/journal/entry/{entry_id}/reflection", response_model=None)
+    @serialize_mutation(domain, event="metadata_update")
     def update_reflection(
         entry_id: str,
         request: Request,
@@ -137,6 +140,7 @@ def create_journal_router(
         return {"entry_id": entry_id, "updated": True, "reflection": reflection}
 
     @router.put("/journal/entry/{entry_id}/tags", response_model=None)
+    @serialize_mutation(domain, event="metadata_update")
     def update_tags(
         entry_id: str,
         request: Request,

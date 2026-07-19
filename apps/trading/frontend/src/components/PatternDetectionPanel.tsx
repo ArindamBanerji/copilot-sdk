@@ -95,25 +95,22 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
 export default function PatternDetectionPanel() {
   const [data, setData] = useState<PatternDetectionResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [unavailable, setUnavailable] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const unavailable = Boolean(error) || !data;
 
   useEffect(() => {
     let cancelled = false;
-
     getPatterns()
-      .then((response) => {
-        if (cancelled) return;
-        setData(response);
-        setUnavailable(!response);
+      .then((payload) => {
+        if (!cancelled) setData(payload);
       })
-      .catch(() => {
-        if (cancelled) return;
-        setUnavailable(true);
+      .catch((loadError) => {
+        console.debug("pattern detection unavailable", loadError);
+        if (!cancelled) setError("Pattern detection unavailable.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-
     return () => {
       cancelled = true;
     };

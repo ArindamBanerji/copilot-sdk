@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from app.routers.journal import _journal_records
 from app.services.regime import RegimeService
 from app.services.regime_recommender import RegimeRecommender
 from copilot_sdk.backend.conservation_router import _check_payload, _state_counts
+from copilot_sdk.state.cached_static import cached_static
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -37,7 +38,8 @@ def create_regime_router(
     router = APIRouter(prefix="/api/trading", tags=["trading-regime"])
 
     @router.get("/regime")
-    def current_regime() -> dict[str, Any]:
+    @cached_static("regime")
+    def current_regime(request: Request) -> dict[str, Any]:
         service = service_factory()
         trades = _journal_records(graph_store_factory, domain)
         current = service.get_current_regime()

@@ -12,6 +12,8 @@ from fastapi import APIRouter, HTTPException, Request, status
 from app.routers.data_import import _trade_store_ref
 from app.services.pattern_detector import detect_patterns
 from app.services.trust_analysis import TrustAnalyzer
+from copilot_sdk.state.cached_static import cached_static
+from copilot_sdk.scoring.mutation_lock import serialize_mutation
 from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
@@ -292,7 +294,8 @@ def _conservation_category_row(
 
 
 @router.get("/market-snapshot")
-def market_snapshot() -> dict[str, Any]:
+@cached_static("market-snapshot")
+def market_snapshot(request: Request) -> dict[str, Any]:
     result = _market_provider().get_market_snapshot()
     if isinstance(result.value, dict):
         return _market_snapshot_response(result.value, _provenance_payload(result))
@@ -335,7 +338,8 @@ def portfolio_summary() -> dict[str, Any]:
 
 
 @router.get("/analytics")
-def analytics() -> dict[str, Any]:
+@cached_static("analytics")
+def analytics(request: Request) -> dict[str, Any]:
     payload = _load_json_optional("analytics_cache.json")
     if isinstance(payload, dict):
         return payload
@@ -355,7 +359,8 @@ def trust_analysis(request: Request, category: str | None = None) -> dict[str, A
 
 
 @router.get("/patterns")
-def behavioral_patterns() -> dict[str, Any]:
+@cached_static("patterns")
+def behavioral_patterns(request: Request) -> dict[str, Any]:
     trades = [_as_trade_dict(trade) for trade in list(_trade_store_ref)]
     trades = [trade for trade in trades if trade]
     if not trades:
@@ -466,6 +471,7 @@ def similar_trades(
 
 
 @router.post("/trade-metadata", status_code=status.HTTP_201_CREATED)
+@serialize_mutation("trading", event="metadata_update")
 def save_trade_metadata(payload: dict[str, Any]) -> dict[str, Any]:
     decision_id = payload.get("decision_id")
     if not decision_id:
@@ -479,5 +485,6 @@ def save_trade_metadata(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.get("/trade-metadata")
-def get_trade_metadata() -> dict[str, Any]:
+@cached_static("trade-metadata")
+def get_trade_metadata(request: Request) -> dict[str, Any]:
     return _load_json_optional("trade_metadata.json") or {}

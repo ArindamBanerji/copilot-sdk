@@ -32,10 +32,12 @@ async function gotoSafetyPanel(page: Page): Promise<Locator> {
 }
 
 async function expectSafetyDataOrUnavailable(panel: Locator, populatedPattern: RegExp) {
-  const populated = panel.getByText(populatedPattern);
-  const unavailable = panel.getByText(/not available right now/i);
-  const empty = panel.getByText(/No strategy categories are available yet/i);
-  await expect(populated.first().or(unavailable.first()).or(empty.first())).toBeVisible();
+  await expect(async () => {
+    const populated = await panel.getByText(populatedPattern).first().isVisible();
+    const unavailable = await panel.getByText(/not available right now/i).first().isVisible();
+    const empty = await panel.getByText(/No strategy categories are available yet/i).first().isVisible();
+    expect(populated || unavailable || empty).toBe(true);
+  }).toPass({ timeout: 10_000 });
 }
 
 test("Performance screen shows Strategy Safety Breakdown panel", async ({ page }) => {

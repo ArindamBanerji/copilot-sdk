@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchRejectionSummary, type RejectionSummaryResponse } from "../api";
+import { fetchRejectionSummary } from "../api";
+import type { RejectionSummaryResponse } from "../api";
 import ProvenanceBadge from "./ProvenanceBadge";
 
 // NOTE: This component is duplicated in gen-ai-roi-demo-v4-v50/frontend/src/components/RejectionMomentPanel.tsx.
@@ -24,8 +25,9 @@ export default function RejectionMomentPanel() {
       .then((payload) => {
         if (!cancelled) setSummary(payload);
       })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Rejection summary unavailable");
+      .catch((loadError) => {
+        console.debug("rejection summary unavailable", loadError);
+        if (!cancelled) setError("Rejection summary unavailable.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

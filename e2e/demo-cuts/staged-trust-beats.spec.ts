@@ -15,7 +15,11 @@ test.describe.serial("Staged Trust Beats", () => {
     test.skip(!(await isBackendHealthy(page.request, SOC)), "SOC backend is not running");
     await openCopilotTab(page, SOC, /Compounding|Decision Economics/i);
 
-    await page.getByRole("button", { name: /Simulate Failure/i }).click();
+    const panel = page.getByTestId("staged-trust-panel");
+    await expect(panel).toBeVisible({ timeout: 20000 });
+    const simulateFailure = panel.getByRole("button", { name: /Simulate Failure/i });
+    await expect(simulateFailure).toBeEnabled({ timeout: 20000 });
+    await simulateFailure.click({ force: true });
     await expectAnyText(page, [/AMBER/i, /degraded/i, /blocked/i, /paused/i], 20000);
   });
 

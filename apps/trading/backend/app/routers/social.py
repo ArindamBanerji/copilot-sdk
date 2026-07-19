@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.services.trader_profiles import TraderProfileService
+from copilot_sdk.scoring.mutation_lock import serialize_mutation
 
 
 class ScoreAsRequest(BaseModel):
@@ -66,6 +67,7 @@ def create_social_router(scorer_proxy: Any) -> APIRouter:
         return trader_profile(trader_id)
 
     @router.post("/score-as")
+    @serialize_mutation("trading", event="score")
     def score_as(request: ScoreAsRequest) -> dict[str, Any]:
         trader_id = _normalize_trader(request.trader_id)
         try:

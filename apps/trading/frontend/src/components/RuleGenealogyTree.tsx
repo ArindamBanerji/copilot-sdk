@@ -1,35 +1,36 @@
-import { useEffect, useState } from "react";
-import { getEvolutionHistory, getEvolutionVariants } from "../api";
-import type { EvolutionHistoryEvent, EvolutionVariant } from "../api";
+import { useEffect, useMemo, useState } from "react";
+import { getEvolutionHistory, getEvolutionVariants, type EvolutionHistoryEvent, type EvolutionVariant } from "../api";
 
 type LoadState = "loading" | "ready" | "error";
 
 export default function RuleGenealogyTree() {
-  const [status, setStatus] = useState<LoadState>("loading");
   const [variants, setVariants] = useState<EvolutionVariant[]>([]);
   const [events, setEvents] = useState<EvolutionHistoryEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const status: LoadState = loading ? "loading" : error ? "error" : "ready";
+
+  const lineage = buildLineage(variants, events);
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([getEvolutionVariants(), getEvolutionHistory()])
-      .then(([nextVariants, history]) => {
-        if (!cancelled) {
-          setVariants(nextVariants);
-          setEvents(history.events ?? []);
-          setStatus("ready");
-        }
+      .then(([nextVariants, nextHistory]) => {
+        if (cancelled) return;
+        setVariants(nextVariants);
+        setEvents(nextHistory.events || []);
       })
-      .catch(() => {
-        if (!cancelled) {
-          setStatus("error");
-        }
+      .catch((loadError) => {
+        console.debug("rule genealogy unavailable", loadError);
+        if (!cancelled) setError("Rule genealogy unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const lineage = buildLineage(variants, events);
 
   return (
     <section className="copilot-card p-5">

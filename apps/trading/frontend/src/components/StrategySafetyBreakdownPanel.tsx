@@ -81,25 +81,19 @@ function CategoryRow({ category }: { category: CategoryConservation }) {
 export default function StrategySafetyBreakdownPanel() {
   const [data, setData] = useState<ConservationBreakdownResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-
     getConservationBreakdown()
-      .then((response) => {
-        if (cancelled) return;
-        setData(response);
-        setUnavailable(!response);
+      .then((payload) => {
+        if (!cancelled) setData(payload);
       })
-      .catch(() => {
-        if (cancelled) return;
-        setUnavailable(true);
+      .catch((loadError) => {
+        console.debug("strategy safety breakdown unavailable", loadError);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-
     return () => {
       cancelled = true;
     };
@@ -114,7 +108,7 @@ export default function StrategySafetyBreakdownPanel() {
     );
   }
 
-  if (unavailable || !data) {
+  if (!data) {
     return (
       <section className="copilot-card p-5">
         <h2 className="text-base font-semibold">Strategy Safety Breakdown</h2>

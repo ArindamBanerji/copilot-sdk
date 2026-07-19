@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchActiveVariant, fetchEvolutionLog, type TradingEvolutionLogEntry } from "../api";
+import { fetchActiveVariant, fetchEvolutionActive, fetchEvolutionLog, type ParameterEvolutionActive, type TradingEvolutionLogEntry } from "../api";
 import ProvenanceBadge from "./ProvenanceBadge";
 
 function variantId(entry?: TradingEvolutionLogEntry | null): string {
@@ -28,42 +28,33 @@ function resultSafe(result: NonNullable<TradingEvolutionLogEntry["results"]>[num
 
 export default function EvolutionPanel() {
   const [log, setLog] = useState<TradingEvolutionLogEntry[]>([]);
-  const [active, setActive] = useState<TradingEvolutionLogEntry | null>(null);
+  const [activeState, setActiveState] = useState<ParameterEvolutionActive | null>(null);
+  const [activeVariant, setActiveVariant] = useState<TradingEvolutionLogEntry | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const [logPayload, activePayload] = await Promise.all([
-          fetchEvolutionLog(),
-          fetchActiveVariant(),
-        ]);
-        if (!cancelled) {
-          setLog(logPayload.filter((entry) => !entry.kind || entry.kind === "variant"));
-          setActive(activePayload);
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Evolution load failed");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
+    Promise.all([fetchEvolutionLog(), fetchEvolutionActive(), fetchActiveVariant()])
+      .then(([nextLog, nextActive, nextVariant]) => {
+        if (cancelled) return;
+        setLog(nextLog.filter((entry) => !entry.kind || entry.kind === "variant"));
+        setActiveState(nextActive);
+        setActiveVariant(nextVariant);
+      })
+      .catch((loadError) => {
+        console.debug("evolution state unavailable", loadError);
+        if (!cancelled) setError("Evolution state unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  const active = activeState?.variant ?? activeVariant ?? log.find((entry) => String(entry.status || "").toLowerCase() === "promoted") ?? null;
   const latest = active ?? log[0] ?? null;
   const latestResults = latest?.results ?? [];
   const conservationGreen = latestResults.length === 0 || latestResults.every(resultSafe);

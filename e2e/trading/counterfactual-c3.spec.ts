@@ -21,7 +21,7 @@ test("counterfactual shows delta", async ({ page }) => {
   await page.getByRole("button", { name: /Analysis/i }).click();
   await expect(page.locator("main")).not.toContainText(/Loading analysis/i, { timeout: 20_000 });
   const card = page.getByTestId("counterfactual-card");
-  await expect(card.getByText(/Delta/i)).toBeVisible({ timeout: 20_000 });
+  await expect(card.getByText(/^Delta$/i)).toBeVisible({ timeout: 20_000 });
   await expect(card.getByTestId("counterfactual-delta").getByText(/[+-]?\d+\.\d{2}/)).toBeVisible();
 });
 

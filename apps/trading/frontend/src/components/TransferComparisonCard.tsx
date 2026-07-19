@@ -19,22 +19,6 @@ export default function TransferComparisonCard() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([fetchTransferStatus().catch(() => null), getAnalytics().catch(() => null)])
-      .then(([nextStatus, nextAnalytics]) => {
-        if (cancelled) return;
-        setStatus(nextStatus);
-        setAnalytics(nextAnalytics);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const postTransferAccuracy = useMemo(() => {
     if (typeof status?.sourceAccuracy === "number") return status.sourceAccuracy;
     const winRate = analytics?.portfolioSummary?.winRate;
@@ -44,22 +28,27 @@ export default function TransferComparisonCard() {
 
   const weeksSaved = Math.max(0, Math.round((postTransferAccuracy - BASELINE_ACCURACY) / WEEKLY_IMPROVEMENT));
 
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([fetchTransferStatus(), getAnalytics()])
+      .then(([nextStatus, nextAnalytics]) => {
+        if (cancelled) return;
+        setStatus(nextStatus);
+        setAnalytics(nextAnalytics);
+      })
+      .catch((loadError) => {
+        console.debug("transfer comparison unavailable", loadError);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   if (loading) {
     return <div className="mt-4 rounded-md border p-3 text-sm trading-muted" style={{ borderColor: "var(--copilot-border)" }}>Loading transfer impact...</div>;
-  }
-
-  if (!status?.warmStarted) {
-    return (
-      <div className="mt-4 rounded-md border p-3 text-sm" style={{ borderColor: "var(--copilot-border)" }}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-semibold">Transfer Impact</h3>
-            <p className="mt-1 trading-muted">No transfers applied yet.</p>
-          </div>
-          <ProvenanceBadge source="default" />
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -67,12 +56,16 @@ export default function TransferComparisonCard() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold">Transfer Impact</h3>
-          <p className="mt-1 trading-muted">
-            Source: {label(status.sourceCopilot)} ({pct(status.sourceAccuracy ?? 0.84)} accuracy)
-          </p>
+          {status?.warmStarted ? (
+            <p className="mt-1 trading-muted">
+              Source: {label(status.sourceCopilot)} ({pct(status.sourceAccuracy ?? 0.84)} accuracy)
+            </p>
+          ) : (
+            <p className="mt-1 trading-muted">No transfers applied yet. Showing generic baseline comparison.</p>
+          )}
           <p className="trading-muted">Target: Trading</p>
         </div>
-        <ProvenanceBadge source={status.provenance || "transfer"} />
+        <ProvenanceBadge source={status?.provenance || "transfer"} />
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
@@ -83,7 +76,7 @@ export default function TransferComparisonCard() {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <Fact label="Estimated calibration saved" value={`~${weeksSaved} weeks`} />
-        <Fact label="Categories transferred" value={String(status.categoriesTransferred ?? status.patternsTransferred ?? 0)} />
+        <Fact label="Categories transferred" value={String(status?.categoriesTransferred ?? status?.patternsTransferred ?? 0)} />
       </div>
     </div>
   );

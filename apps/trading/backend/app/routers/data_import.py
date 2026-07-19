@@ -11,6 +11,7 @@ from app.brokers import get_broker
 from app.connectors.alpaca_connector import AlpacaConnector
 from app.connectors.csv_connector import CSVConnector
 from app.models.trade import NormalizedTrade
+from copilot_sdk.scoring.mutation_lock import serialize_mutation
 
 _provider: Any | None = None
 VALID_CSV_PRESETS = {"alpaca", "robinhood", "thinkorswim", "webull"}
@@ -83,6 +84,7 @@ def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
 
     # Demo in-memory storage. Production should replace this with GraphStore-backed persistence.
     @router.post("/import/csv")
+    @serialize_mutation("trading", event="reset")
     def import_csv(payload: Any = Body(..., media_type="text/csv")) -> dict[str, Any]:
         text, options = _decode_csv_payload(payload)
         preset = options.get("preset") or options.get("broker_preset")
@@ -113,6 +115,7 @@ def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
         }
 
     @router.post("/import/broker")
+    @serialize_mutation("trading", event="reset")
     def import_broker(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
         broker_name = str(payload.get("broker") or "").strip().lower()
         if broker_name not in {"ibkr", "alpaca"}:
@@ -194,6 +197,7 @@ def create_data_import_router() -> tuple[APIRouter, list[NormalizedTrade]]:
         }
 
     @router.post("/market/refresh")
+    @serialize_mutation("trading", event="market_data_refresh")
     def refresh_market() -> dict[str, Any]:
         provider = _market_provider()
         provider.refresh()

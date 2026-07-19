@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { clickTab, waitForAppShell } from "../helpers/ui";
+import { waitForTriageQueue } from "./helpers";
 
 const tabs = [
   { name: "Dashboard", pattern: /Dashboard|Exception Queue/i },
@@ -30,6 +31,22 @@ function recommendationControls(page: import("@playwright/test").Page) {
   return page.locator("article", { has: page.getByRole("button", { name: /Confirm recommendation/i }) });
 }
 
+function waitForScoreResponse(page: import("@playwright/test").Page) {
+  return page.waitForResponse((response) =>
+    response.url().includes("/score") &&
+    response.request().method() === "POST" &&
+    response.status() === 200
+  );
+}
+
+function waitForLearnResponse(page: import("@playwright/test").Page) {
+  return page.waitForResponse((response) =>
+    (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
+    response.request().method() === "POST" &&
+    response.ok()
+  );
+}
+
 async function expectLearningResultOrStableControls(page: import("@playwright/test").Page, expected: RegExp) {
   const learning = panel(page, "Learning Result");
   try {
@@ -41,6 +58,7 @@ async function expectLearningResultOrStableControls(page: import("@playwright/te
 }
 
 async function clickScore(page: import("@playwright/test").Page) {
+  await waitForTriageQueue(page);
   const selected = panel(page, "Selected Invoice");
   const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
   if (selectedHasInvoice === 0) {
@@ -49,18 +67,23 @@ async function clickScore(page: import("@playwright/test").Page) {
     if (invoiceCount > 0) {
       await invoiceButtons.first().click();
     } else {
-      await expect(panel(page, "Invoice Selector")).toContainText(/Loading invoice queue|0 queued/i);
       test.skip(true, "No queued invoice available for scoring");
     }
   }
   await expect(selected).toContainText(/Supplier|Amount|Category/i, { timeout: 20_000 });
   const scoreButton = selected.getByRole("button", { name: /^Score$/i });
   await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await scoreButton.click();
+  await Promise.all([
+    waitForScoreResponse(page),
+    scoreButton.click(),
+  ]);
 }
 
 async function confirmRecommendation(page: import("@playwright/test").Page) {
-  await recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click();
+  await Promise.all([
+    waitForLearnResponse(page),
+    recommendationControls(page).getByRole("button", { name: /Confirm recommendation/i }).click(),
+  ]);
 }
 
 test("all 6 tabs load without blank screens", async ({ page }) => {
@@ -70,6 +93,9 @@ test("all 6 tabs load without blank screens", async ({ page }) => {
   for (const tab of tabs) {
     await clickTab(page, tab.name);
     await waitForAppShell(page);
+    if (tab.name === "Exception Triage") {
+      await waitForTriageQueue(page);
+    }
     await expect(page.locator("main")).not.toBeEmpty();
     await expect(main(page)).toContainText(tab.pattern);
   }

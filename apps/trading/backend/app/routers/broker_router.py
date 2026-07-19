@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.brokers import BrokerError, BrokerProtocol, OrderRequest, OrderSide, get_broker
+from copilot_sdk.scoring.mutation_lock import serialize_mutation
 
 
 BrokerFactory = Callable[[str], BrokerProtocol]
@@ -203,6 +204,7 @@ def create_broker_router(broker_factory: BrokerFactory = get_broker) -> APIRoute
         }
 
     @router.post("/orders")
+    @serialize_mutation("trading", event="market_data_refresh")
     def broker_place_order(request: BrokerOrderRequest, broker: str | None = None) -> dict[str, Any]:
         broker_name = _broker_name(broker)
         resolved, error = _resolve_broker(broker_name, broker_factory)
@@ -257,6 +259,7 @@ def create_broker_router(broker_factory: BrokerFactory = get_broker) -> APIRoute
         }
 
     @router.post("/sync")
+    @serialize_mutation("trading", event="market_data_refresh")
     def broker_sync(broker: str | None = None) -> dict[str, Any]:
         broker_name = _broker_name(broker)
         return {

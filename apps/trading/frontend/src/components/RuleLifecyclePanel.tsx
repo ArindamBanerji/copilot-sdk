@@ -1,38 +1,39 @@
 import { useEffect, useState } from "react";
-import { getEvolutionHistory, getEvolutionVariants, getPromotedEvolutionRules } from "../api";
-import type { EvolutionHistoryEvent, EvolutionVariant } from "../api";
+import { getEvolutionHistory, getEvolutionVariants, getPromotedEvolutionRules, type EvolutionHistoryEvent, type EvolutionVariant } from "../api";
 
 const states = ["proposed", "shadow", "promoted", "rejected"];
 type LoadState = "loading" | "ready" | "error";
 
 export default function RuleLifecyclePanel() {
-  const [status, setStatus] = useState<LoadState>("loading");
   const [variants, setVariants] = useState<EvolutionVariant[]>([]);
   const [events, setEvents] = useState<EvolutionHistoryEvent[]>([]);
   const [promoted, setPromoted] = useState<EvolutionVariant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const status: LoadState = loading ? "loading" : error ? "error" : "ready";
+
+  const lifecycleItems = buildLifecycle(variants, events, promoted);
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([getEvolutionVariants(), getEvolutionHistory(), getPromotedEvolutionRules()])
-      .then(([nextVariants, history, nextPromoted]) => {
-        if (!cancelled) {
-          setVariants(nextVariants);
-          setEvents(history.events ?? []);
-          setPromoted(nextPromoted);
-          setStatus("ready");
-        }
+      .then(([nextVariants, nextHistory, nextPromoted]) => {
+        if (cancelled) return;
+        setVariants(nextVariants);
+        setEvents(nextHistory.events || []);
+        setPromoted(nextPromoted);
       })
-      .catch(() => {
-        if (!cancelled) {
-          setStatus("error");
-        }
+      .catch((loadError) => {
+        console.debug("rule lifecycle unavailable", loadError);
+        if (!cancelled) setError("Rule lifecycle unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const lifecycleItems = buildLifecycle(variants, events, promoted);
 
   return (
     <section className="copilot-card p-5">

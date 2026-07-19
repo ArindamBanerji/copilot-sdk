@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 
 from app.routers.journal import _journal_records
 from app.services.correlation import DEFAULT_WINDOW, CorrelationService
@@ -32,7 +32,7 @@ def create_correlation_router(
     router = APIRouter(prefix="/api/trading", tags=["trading-correlation"])
 
     @router.get("/correlation")
-    def correlation(window: int = Query(default=DEFAULT_WINDOW, ge=2, le=252)) -> dict[str, Any]:
+    def correlation(request: Request, window: int = Query(default=DEFAULT_WINDOW, ge=2, le=252)) -> dict[str, Any]:
         trades = _journal_records(graph_store_factory, domain)
         return _correlation_service(window).compute(trades)
 

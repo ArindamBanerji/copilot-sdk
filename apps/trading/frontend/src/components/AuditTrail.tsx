@@ -3,21 +3,20 @@ import { fetchAuditTrail } from "../api";
 import type { AuditTrailEntry, SelfAuditTrailResponse } from "../types";
 
 export default function AuditTrail() {
-  const [data, setData] = useState<SelfAuditTrailResponse | null>(null);
   const [expanded, setExpanded] = useState("");
+  const [data, setData] = useState<SelfAuditTrailResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(false);
-    fetchAuditTrail(undefined, 50)
+    fetchAuditTrail(undefined, 20)
       .then((payload) => {
         if (!cancelled) setData(payload);
       })
-      .catch(() => {
-        if (!cancelled) setError(true);
+      .catch((loadError) => {
+        console.debug("audit trail unavailable", loadError);
+        if (!cancelled) setError("Audit trail unavailable.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

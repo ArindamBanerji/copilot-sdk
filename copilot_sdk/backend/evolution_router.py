@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 
 from copilot_sdk.evolution import (
     AgentEvolver,
@@ -17,6 +17,7 @@ from copilot_sdk.backend.models import (
     EvolutionPromotedResponse,
     EvolutionVariantsResponse,
 )
+from copilot_sdk.state.cached_static import cached_static
 
 
 def create_evolution_router(
@@ -76,7 +77,8 @@ def create_evolution_router(
         }
 
     @router.get("/promoted", response_model=EvolutionPromotedResponse)
-    def promoted() -> dict[str, Any]:
+    @cached_static("evolution-promoted", copilot=domain)
+    def promoted(request: Request) -> dict[str, Any]:
         evolver = _get_evolver()
         return {
             "domain": domain,

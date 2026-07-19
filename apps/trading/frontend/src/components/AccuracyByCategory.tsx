@@ -5,18 +5,17 @@ import type { CategoryAccuracy, SelfAccuracyByCategoryResponse } from "../types"
 export default function AccuracyByCategory() {
   const [data, setData] = useState<SelfAccuracyByCategoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(false);
     fetchAccuracyByCategory()
       .then((payload) => {
         if (!cancelled) setData(payload);
       })
-      .catch(() => {
-        if (!cancelled) setError(true);
+      .catch((loadError) => {
+        console.debug("category accuracy unavailable", loadError);
+        if (!cancelled) setError("Category accuracy unavailable.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

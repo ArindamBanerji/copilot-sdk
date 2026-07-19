@@ -14,6 +14,7 @@ import EvolutionControlsPanel from "../components/EvolutionControlsPanel";
 import EvolutionPanel from "../components/EvolutionPanel";
 import ExecutionQualityCard from "../components/ExecutionQualityCard";
 import PromotionDashboard from "../components/PromotionDashboard";
+import RegimeAnalyticsPanel from "../components/RegimeAnalyticsPanel";
 import RegimeStatusPanel from "../components/RegimeStatusPanel";
 import RejectionMomentPanel from "../components/RejectionMomentPanel";
 import RiskManagementCard from "../components/RiskManagementCard";
@@ -44,41 +45,6 @@ export default function PerformanceScreen() {
   const [conservation, setConservation] = useState<ConservationState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const [trajectoryPayload, analyticsPayload, conservationPayload] = await Promise.all([
-          getTrajectory(),
-          getAnalytics(),
-          getConservationStatus().catch(() => null),
-        ]);
-        if (!cancelled) {
-          setTrajectory(trajectoryPayload);
-          setAnalytics(analyticsPayload);
-          setConservation(conservationPayload);
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Performance load failed");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const points = useMemo(() => normalizePoints(trajectory), [trajectory]);
   const lastPoint = points.length ? points[points.length - 1] : undefined;
   const currentIks = trajectory?.currentIks ?? trajectory?.iks ?? lastPoint?.iks ?? 0;
@@ -93,13 +59,38 @@ export default function PerformanceScreen() {
       }
     : null;
 
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([getAnalytics(), getTrajectory(), getConservationStatus()])
+      .then(([nextAnalytics, nextTrajectory, nextConservation]) => {
+        if (cancelled) return;
+        setAnalytics(nextAnalytics);
+        setTrajectory(nextTrajectory);
+        setConservation(nextConservation);
+        setError(null);
+      })
+      .catch((loadError) => {
+        console.debug("performance data unavailable", loadError);
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : "Performance unavailable");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   if (loading) {
-    return <div className="copilot-card p-8 text-sm trading-muted">Loading performance...</div>;
+    return <div data-screen-ready="false" className="copilot-card p-8 text-sm trading-muted">Loading performance...</div>;
   }
 
   if (error) {
     return (
-      <section className="copilot-card p-6">
+      <section data-screen-ready="true" className="copilot-card p-6">
         <h2 className="text-xl font-semibold">Performance unavailable</h2>
         <p className="mt-2 text-sm trading-muted">{error}</p>
       </section>
@@ -107,7 +98,7 @@ export default function PerformanceScreen() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-screen-ready="true" className="flex flex-col gap-4">
       <section className="copilot-card p-4">
         <h2 className="text-base font-semibold">Performance Summary</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-4">
@@ -130,6 +121,7 @@ export default function PerformanceScreen() {
       <AuditTrail />
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <RegimeStatusPanel />
+      <RegimeAnalyticsPanel />
       <StrategySafetyBreakdownPanel />
       <PromotionDashboard />
       <RejectionMomentPanel />

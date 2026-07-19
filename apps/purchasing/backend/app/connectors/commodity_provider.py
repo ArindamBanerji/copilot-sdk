@@ -1,7 +1,9 @@
-"""Commodity data provider with live -> cached -> fixture provenance cascade."""
+"""Commodity data provider with cache-first provenance cascade."""
 
 from __future__ import annotations
 
+import os
+import threading
 import time
 from typing import Any
 
@@ -15,11 +17,12 @@ class CommodityDataProvider:
     """Real commodity prices with cache cascade.
 
     Cascade:
-      live -> cached -> fixture
+      fresh cached -> single-flight live -> stale cached -> fixture
 
     Provenance:
       live: scraped_external
-      cached: scraped_external_cached
+      frozen: scraped_external_frozen
+      stale cached: scraped_external_cached
       fixture: sample
     """
 
@@ -35,30 +38,30 @@ class CommodityDataProvider:
         self._cache: dict[str, Any] = {}
         self._cache_time: dict[str, float] = {}
         self._ttl = max(float(cache_ttl_hours), 0.0) * 3600.0
+        self._flight_guard = threading.Lock()
+        self._flight_locks: dict[str, threading.Lock] = {}
+        self._flight_events: dict[str, threading.Event] = {}
+        self._flight_results: dict[str, dict[str, Any] | None] = {}
 
     def get_commodity_prices(self, category: str = "all") -> dict[str, Any]:
         """Return commodity price rows with explicit provenance labels."""
-        live = self._fetch_live(category)
-        if live:
-            self._cache[category] = live
-            self._cache_time[category] = time.time()
-            return {
-                **live,
-                "provenance": "scraped_external",
-                "source": _source_name(self._source),
-            }
-
         cached = self._cached(category)
         if cached is not None:
-            age_hours = (time.time() - self._cache_time[category]) / 3600.0
-            return {
-                **cached,
-                "provenance": "scraped_external_cached",
-                "source": f"{_source_name(self._source)}_cached",
-                "cache_age_hours": age_hours,
-            }
+            return cached
 
-        return self._load_fixture(category)
+        live = self._fetch_with_single_flight(category)
+        if live is not None:
+            return live
+
+        stale = self._stale_cached(category)
+        if stale is not None:
+            self._cache_time[category] = time.time()
+            return stale
+
+        fixture = self._load_fixture(category)
+        self._cache[category] = dict(fixture)
+        self._cache_time[category] = time.time()
+        return fixture
 
     def get_category_prices(self, category: str) -> Provenanced[list[dict] | None]:
         """Router-compatible commodity prices for one food category."""
@@ -108,6 +111,14 @@ class CommodityDataProvider:
             self._cache_time.clear()
         return Provenanced(value=True, source="local", label="cache refreshed")
 
+    def warm_cache(self) -> None:
+        """Pre-populate cache for all commodity categories."""
+        for category in COMMODITY_CATEGORIES:
+            try:
+                self.get_commodity_prices(category)
+            except Exception:
+                pass
+
     def _get_price_index_payload(self, category: str) -> dict[str, Any]:
         payload = self.get_commodity_prices(category)
         prices = [
@@ -142,6 +153,54 @@ class CommodityDataProvider:
             return None
         return {"prices": [dict(row) for row in rows], "category": category}
 
+    def _fetch_with_single_flight(self, category: str) -> dict[str, Any] | None:
+        with self._flight_guard:
+            lock = self._flight_locks.setdefault(category, threading.Lock())
+            acquired = lock.acquire(blocking=False)
+            if acquired:
+                event = threading.Event()
+                self._flight_events[category] = event
+                self._flight_results[category] = None
+            else:
+                event = self._flight_events.get(category)
+
+        if not acquired:
+            if event is not None:
+                event.wait(timeout=5.0)
+                result = self._flight_results.get(category)
+                if result is not None:
+                    return dict(result)
+            return None
+
+        try:
+            live = self._fetch_live(category)
+            if not live:
+                self._flight_results[category] = None
+                return None
+            payload = self._live_payload(live)
+            self._cache[category] = dict(payload)
+            self._cache_time[category] = time.time()
+            self._flight_results[category] = dict(payload)
+            return dict(payload)
+        except Exception:
+            self._flight_results[category] = None
+            return None
+        finally:
+            event.set()
+            lock.release()
+
+    def _live_payload(self, live: dict[str, Any]) -> dict[str, Any]:
+        provenance = (
+            "scraped_external_frozen"
+            if os.environ.get("FRED_FREEZE", "").strip()
+            else "scraped_external"
+        )
+        return {
+            **live,
+            "provenance": provenance,
+            "source": _source_name(self._source),
+        }
+
     def _cached(self, category: str) -> dict[str, Any] | None:
         if category not in self._cache:
             return None
@@ -150,7 +209,19 @@ class CommodityDataProvider:
         age = time.time() - self._cache_time.get(category, 0.0)
         if age >= self._ttl:
             return None
-        return dict(self._cache[category])
+        cached = dict(self._cache[category])
+        cached["cache_age_hours"] = age / 3600.0
+        return cached
+
+    def _stale_cached(self, category: str) -> dict[str, Any] | None:
+        if category not in self._cache:
+            return None
+        age_hours = (time.time() - self._cache_time.get(category, 0.0)) / 3600.0
+        cached = dict(self._cache[category])
+        cached["provenance"] = "scraped_external_cached"
+        cached["source"] = f"{_source_name(self._source)}_cached"
+        cached["cache_age_hours"] = age_hours
+        return cached
 
     def _load_fixture(self, category: str) -> dict[str, Any]:
         if category == "all":

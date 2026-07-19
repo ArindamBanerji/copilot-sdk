@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchExecutionSummary, type ExecutionSummaryResponse } from "../api";
+import { fetchExecutionAnalysis } from "../api";
+import type { ExecutionSummaryResponse } from "../api";
 
 function money(value: number | null | undefined): string {
   return typeof value === "number" ? `$${Math.round(value).toLocaleString()}` : "$0";
@@ -20,19 +21,17 @@ export default function ExecutionQualityCard() {
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const payload = await fetchExecutionSummary();
+    fetchExecutionAnalysis()
+      .then((payload) => {
         if (!cancelled) setSummary(payload);
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Execution data unavailable");
-      } finally {
+      })
+      .catch((loadError) => {
+        console.debug("execution quality unavailable", loadError);
+        if (!cancelled) setError("Execution quality unavailable.");
+      })
+      .finally(() => {
         if (!cancelled) setLoading(false);
-      }
-    }
-    void load();
+      });
     return () => {
       cancelled = true;
     };

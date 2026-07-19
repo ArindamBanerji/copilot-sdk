@@ -12,6 +12,7 @@ from typing import Any
 from app.factors.market_regime import classify_regime_context
 from app.services.regime import DEFAULT_ADX, DEFAULT_VIX
 from app.services.regime_monitor import RegimeMonitor
+from copilot_sdk.state import invalidate_cache_event
 
 log = logging.getLogger(__name__)
 
@@ -56,6 +57,7 @@ class TradingRegimeScorerProxy:
                 self._monitor.previous_regime,
                 self._monitor.current_regime,
             )
+            invalidate_cache_event("trading", "regime_break")
         tagged_metadata = dict(metadata or {})
         tagged_metadata["regime_metadata"] = {
             **regime_context,

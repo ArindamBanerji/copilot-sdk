@@ -33,6 +33,7 @@ import type {
   PerformanceSummaryResponse,
   PerformanceTrajectoryResponse,
   ProcessSignalsResponse,
+  ProcessFusionResponse,
   PreviewQueueResponse,
   PreviewSuppliersResponse,
   RuleLifecycleResponse,
@@ -234,6 +235,13 @@ export async function fetchS2PProcessSignals(supplierId?: string): Promise<Proce
   if (supplierId) params.set("supplier_id", supplierId);
   const suffix = params.toString() ? `?${params.toString()}` : "";
   return apiGet<ProcessSignalsResponse>(`/api/s2p/insight/process-signals${suffix}`).catch(() => null);
+}
+
+export async function fetchProcessFusion(events: Array<Record<string, unknown>>): Promise<ProcessFusionResponse | null> {
+  return apiPost<ProcessFusionResponse>("/api/s2p/enterprise/process-fusion", events).catch((error) => {
+    console.debug("Process fusion fetch failed", error);
+    return null;
+  });
 }
 
 export async function getEarlyWarnings(): Promise<EarlyWarningResponse | null> {
