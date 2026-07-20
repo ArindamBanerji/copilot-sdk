@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TransferBadge } from "../../../../../copilot_sdk/frontend";
+import { DayZeroCard, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import { API_URL, getPreviewConservation, getPreviewQueue } from "../api";
 import { AutoApprovePanel } from "../components/AutoApprovePanel";
 import { ConservationMiniGauge } from "../components/ConservationMiniGauge";
@@ -56,6 +56,8 @@ export function DashboardScreen() {
           <TransferBadge apiBase={API_URL} />
         </div>
       </div>
+
+      <DayZeroCard apiBase={API_URL} copilot="s2p" />
 
       <div className="grid gap-4 md:grid-cols-2">
         <article className="copilot-card p-5">

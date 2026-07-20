@@ -11,6 +11,13 @@ function num(value: number | null | undefined): string {
   return typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) : "-";
 }
 
+function classificationText(value: VrpAttributionResponse["classification"]): string {
+  if (value === "edge") return "Edge";
+  if (value === "insurance") return "Insurance";
+  if (value === "neutral") return "Neutral";
+  return "Accumulating";
+}
+
 export default function VRPAttributionCard() {
   const [payload, setPayload] = useState<VrpAttributionResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,24 +52,46 @@ export default function VRPAttributionCard() {
           <p className="text-sm uppercase tracking-wide trading-muted">V2 volatility diagnostic</p>
           <h2 className="mt-1 text-xl font-semibold">VRP Edge or Insurance</h2>
         </div>
-        <ProvenanceBadge source={payload?.provenance || "accumulating"} />
+        <ProvenanceBadge source={payload?.provenance || payload?.status || "instrument_validated"} />
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div>
+          <div className="text-xs uppercase tracking-wide trading-muted">Average IV-RV spread</div>
+          <div className="text-2xl font-semibold">{num(payload?.vrpSpreadMean)}</div>
+        </div>
+        <div>
+          <div className="text-xs uppercase tracking-wide trading-muted">Current IV-RV spread</div>
+          <div className="text-2xl font-semibold">{num(payload?.vrpSpreadCurrent)}</div>
+        </div>
+        <div data-testid="vrp-classification">
+          <div className="text-xs uppercase tracking-wide trading-muted">Reading</div>
+          <div className="text-2xl font-semibold">{classificationText(payload?.classification)}</div>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div><div className="text-xs uppercase tracking-wide trading-muted">Average implied volatility</div><div className="text-lg font-semibold">{num(payload?.ivMean)}</div></div>
+        <div><div className="text-xs uppercase tracking-wide trading-muted">Average realized volatility</div><div className="text-lg font-semibold">{num(payload?.rvMean)}</div></div>
+        <div><div className="text-xs uppercase tracking-wide trading-muted">Eligible observations</div><div className="text-lg font-semibold">{payload?.nEligible ?? 0}</div></div>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div>
           <div className="text-xs uppercase tracking-wide trading-muted">Low-tail capture</div>
-          <div className="text-2xl font-semibold">{pct(payload?.dayZero ? null : payload?.lowTailCapturePct)}</div>
+          <div className="text-2xl font-semibold">{pct(payload?.tailAttribution?.dayZero ? null : payload?.tailAttribution?.lowTailCapturePct)}</div>
         </div>
         <div>
           <div className="text-xs uppercase tracking-wide trading-muted">High-tail loss ratio</div>
-          <div className="text-2xl font-semibold">{num(payload?.dayZero ? null : payload?.highTailLossRatio)}x</div>
+          <div className="text-2xl font-semibold">{num(payload?.tailAttribution?.dayZero ? null : payload?.tailAttribution?.highTailLossRatio)}x</div>
         </div>
         <div>
           <div className="text-xs uppercase tracking-wide trading-muted">VRP decisions</div>
-          <div className="text-2xl font-semibold">{payload?.totalVrpDecisions ?? 0}</div>
+          <div className="text-2xl font-semibold">{payload?.tailAttribution?.totalVrpDecisions ?? 0}</div>
         </div>
       </div>
-      {payload?.dayZero ? (
-        <p className="mt-3 text-sm trading-muted">Awaiting {payload.decisionsUntilMeasured ?? 0} more decisions before measured magnitude.</p>
+      {payload?.tailAttribution?.dayZero ? (
+        <p className="mt-3 text-sm trading-muted">Awaiting {payload.tailAttribution.decisionsUntilMeasured ?? 0} more tail decisions before measured magnitude.</p>
+      ) : null}
+      {payload?.status === "instrument_validated" ? (
+        <p className="mt-3 text-sm trading-muted">Insufficient volatility data. Add implied and realized volatility when logging a trade.</p>
       ) : null}
       <p className="mt-3 text-xs trading-muted">Diagnostic only. Substantiation: {payload?.substantiation || "T-O"}.</p>
     </section>

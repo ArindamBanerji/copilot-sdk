@@ -381,17 +381,51 @@ export interface CorrelationResponse {
 }
 
 export interface VolSharpeResponse {
-  naiveSharpe?: NullableNumber;
-  adjustedSharpe?: NullableNumber;
+  naiveQualityScore?: NullableNumber;
+  qualityAdjustedScore?: NullableNumber;
   inflation?: NullableNumber;
   nDecisions?: number;
   provenance?: string;
   substantiation?: string;
   dayZero?: boolean;
   decisionsUntilMeasured?: number;
+  status?: string;
+  overallQualityScore?: NullableNumber;
+  overallQualityAdjusted?: NullableNumber;
+  minDecisionsPerCluster?: number;
+  source?: string;
+  clusters?: VolSharpeCluster[];
+}
+
+export interface VolSharpeCluster {
+  clusterId: string;
+  nDecisions: number;
+  meanReturn?: NullableNumber;
+  stdReturn?: NullableNumber;
+  riskAdjustedQuality?: NullableNumber;
+  status: string;
 }
 
 export interface VrpAttributionResponse {
+  provenance?: string;
+  substantiation?: string;
+  dayZero?: boolean;
+  decisionsUntilMeasured?: number;
+  status?: string;
+  vrpSpreadMean?: NullableNumber;
+  vrpSpreadCurrent?: NullableNumber;
+  classification?: "edge" | "insurance" | "neutral" | null;
+  ivMean?: NullableNumber;
+  rvMean?: NullableNumber;
+  nEligible?: number;
+  nExcludedMissingIvRv?: number;
+  minObservations?: number;
+  source?: string;
+  analyticsProvenance?: string;
+  tailAttribution?: TailAttributionResponse;
+}
+
+export interface TailAttributionResponse {
   lowTailCapturePct?: NullableNumber;
   highTailLossRatio?: NullableNumber;
   totalVrpDecisions?: number;

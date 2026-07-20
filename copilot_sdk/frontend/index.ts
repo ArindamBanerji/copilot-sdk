@@ -43,6 +43,9 @@ export type {
 export { default as TransferBadge } from "./TransferBadge";
 export type { TransferBadgeProps } from "./TransferBadge";
 
+export { default as DayZeroCard } from "./components/DayZeroCard";
+export type { DayZeroCardProps, MeasurementStateName, MeasurementStatus } from "./components/DayZeroCard";
+
 export { default as FactorContributionChart } from "./FactorContributionChart";
 export type { ContributionEntry, FactorContributionChartProps } from "./FactorContributionChart";
 

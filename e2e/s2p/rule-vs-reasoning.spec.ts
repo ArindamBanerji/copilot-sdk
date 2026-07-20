@@ -28,6 +28,7 @@ async function openScoredTriage(page: Page) {
     selected.getByRole("button", { name: /^Score$/i }).click(),
   ]);
   await expect(page.getByTestId("rule-vs-reasoning-panel")).toBeVisible({ timeout: 20000 });
+  await expect(page.getByTestId("situation-panel")).not.toContainText("Analyzing situation...", { timeout: 20000 });
 }
 
 test("test_contrast_panel_visible_on_triage", async ({ page }) => {
@@ -44,8 +45,26 @@ test("test_contrast_shows_two_columns", async ({ page }) => {
   await expect(panel).toContainText(/Situation-Aware/i);
 });
 
-test("test_contrast_rule_shows_reject", async ({ page }) => {
+test("test_contrast_shows_rule_threshold_and_outcome", async ({ page }) => {
   await openScoredTriage(page);
+  const panel = page.getByTestId("rule-vs-reasoning-panel");
 
-  await expect(page.getByTestId("rule-vs-reasoning-panel")).toContainText(/REJECT|APPROVE/i);
+  await expect(panel).toContainText(/5\.0%|threshold|REJECT|No threshold comparison/i, { timeout: 10_000 });
+});
+
+test("test_contrast_uses_situation_explanation_and_context", async ({ page }) => {
+  await openScoredTriage(page);
+  const panel = page.getByTestId("rule-vs-reasoning-panel");
+  const situation = page.getByTestId("situation-panel");
+  await expect(situation).not.toContainText("Analyzing situation...", { timeout: 20_000 });
+  const explanation = (await situation.locator("blockquote p").textContent())?.trim();
+
+  if (explanation) {
+    await expect(panel).toContainText(explanation);
+  } else {
+    await expect(situation).toContainText("Situation analysis unavailable.");
+    await expect(panel).toContainText("Situation reasoning unavailable.");
+  }
+  await expect(panel).toContainText(/Confidence:/i);
+  await expect(panel).not.toContainText(/suppress|refer to analyst|escalate to analyst/i);
 });

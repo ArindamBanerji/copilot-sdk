@@ -21,10 +21,11 @@ export interface MeasurementStatus {
 export interface DayZeroCardProps {
   apiBase?: string;
   copilot?: string;
+  demoMode?: boolean;
   renderProvenance?: (source: string) => React.ReactNode;
 }
 
-const FALLBACK_STATUS: MeasurementStatus = {
+const DAY_ZERO_STATUS: MeasurementStatus = {
   state: "instrument_validated",
   decisionsVerified: 0,
   decisionsNeeded: 30,
@@ -36,13 +37,24 @@ const FALLBACK_STATUS: MeasurementStatus = {
   provenance: "instrument",
 };
 
+const FALLBACK_STATUS: MeasurementStatus = {
+  state: "error",
+  accuracy: null,
+  iks: null,
+  message: "Unable to load measurement state",
+  provenance: "unavailable",
+};
+
 export default function DayZeroCard({
   apiBase = "",
   copilot = "trading",
+  demoMode = false,
   renderProvenance,
 }: DayZeroCardProps) {
   const [status, setStatus] = useState<MeasurementStatus>(FALLBACK_STATUS);
   const [loading, setLoading] = useState(true);
+  const [showDayZero, setShowDayZero] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,15 +85,16 @@ export default function DayZeroCard({
     return () => {
       cancelled = true;
     };
-  }, [apiBase, copilot]);
+  }, [apiBase, copilot, retryToken]);
 
-  const state = status.state || "instrument_validated";
-  const decisionsVerified = numberOr(status.decisionsVerified ?? status.decisions_verified, 0);
-  const decisionsNeeded = numberOr(status.decisionsNeeded ?? status.decisions_needed, 30);
-  const armsMeasured = numberOr(status.armsMeasured ?? status.arms_measured, 0);
-  const armsTotal = numberOr(status.armsTotal ?? status.arms_total, 0);
+  const displayedStatus = showDayZero ? DAY_ZERO_STATUS : status;
+  const state = displayedStatus.state || "error";
+  const decisionsVerified = numberOr(displayedStatus.decisionsVerified ?? displayedStatus.decisions_verified, 0);
+  const decisionsNeeded = numberOr(displayedStatus.decisionsNeeded ?? displayedStatus.decisions_needed, 30);
+  const armsMeasured = numberOr(displayedStatus.armsMeasured ?? displayedStatus.arms_measured, 0);
+  const armsTotal = numberOr(displayedStatus.armsTotal ?? displayedStatus.arms_total, 0);
   const kMin = decisionsVerified + decisionsNeeded;
-  const provenance = status.provenance || provenanceFor(state);
+  const provenance = displayedStatus.provenance || provenanceFor(state);
   const progress = useMemo(() => {
     if (kMin <= 0) return 0;
     return Math.max(0, Math.min(100, (decisionsVerified / kMin) * 100));
@@ -94,11 +107,25 @@ export default function DayZeroCard({
           <p className="text-xs uppercase tracking-wide trading-muted">Day-Zero Honesty</p>
           <h2 className="mt-1 text-base font-semibold">{headingFor(state, loading)}</h2>
         </div>
-        {renderProvenance ? renderProvenance(provenance) : <DefaultBadge source={provenance} />}
+        <div className="flex items-center gap-2">
+          {demoMode && status.state === "measured" ? (
+            <button
+              type="button"
+              data-testid="day-zero-toggle"
+              onClick={() => setShowDayZero((current) => !current)}
+              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+            >
+              {showDayZero ? "Show measured view" : "Show day-zero view"}
+            </button>
+          ) : null}
+          {state !== "error" ? (renderProvenance ? renderProvenance(provenance) : <DefaultBadge source={provenance} />) : null}
+        </div>
       </div>
 
-      {state === "measured" ? (
-        <MeasuredBody status={status} decisionsVerified={decisionsVerified} />
+      {state === "error" ? (
+        <ErrorBody onRetry={() => setRetryToken((current) => current + 1)} />
+      ) : state === "measured" ? (
+        <MeasuredBody status={displayedStatus} decisionsVerified={decisionsVerified} />
       ) : state === "accumulating" ? (
         <AccumulatingBody
           armsMeasured={armsMeasured}
@@ -111,7 +138,9 @@ export default function DayZeroCard({
         <InstrumentBody />
       )}
 
-      <p className="mt-3 text-xs trading-muted">{loading ? "Checking measurement state..." : status.message}</p>
+      {state !== "error" ? (
+        <p className="mt-3 text-xs trading-muted">{loading && !showDayZero ? "Checking measurement state..." : displayedStatus.message}</p>
+      ) : null}
     </section>
   );
 }
@@ -121,7 +150,23 @@ function InstrumentBody() {
     <div className="mt-3 grid gap-2 text-sm">
       <p>The scoring engine is deployed and responding. Factors configured.</p>
       <p className="font-semibold">Awaiting first verified decision.</p>
+      <p className="font-semibold">No magnitude claims yet.</p>
       <p className="trading-muted">This is what honest looks like on day one. No fake numbers.</p>
+    </div>
+  );
+}
+
+function ErrorBody({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="mt-3 grid gap-3 text-sm">
+      <p className="font-semibold">Unable to load measurement state.</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="w-fit rounded border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+      >
+        Retry
+      </button>
     </div>
   );
 }
@@ -185,12 +230,14 @@ function DefaultBadge({ source }: { source: string }) {
 
 function headingFor(state: string, loading: boolean): string {
   if (loading) return "Measurement State";
+  if (state === "error") return "Measurement State Unavailable";
   if (state === "measured") return "Measured";
   if (state === "accumulating") return "Accumulating Evidence";
   return "Instrument Calibrated";
 }
 
 function provenanceFor(state: string): string {
+  if (state === "error") return "unavailable";
   if (state === "measured") return "real_measured";
   if (state === "accumulating") return "accumulating";
   return "instrument";

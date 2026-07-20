@@ -140,26 +140,40 @@ class DecisionsSummaryResponse(FlexibleModel):
 
 
 class VolSharpeResponse(FlexibleModel):
-    naive_sharpe: float | None = None
-    adjusted_sharpe: float | None = None
+    naive_quality_score: float | None = None
+    quality_adjusted_score: float | None = None
     inflation: float | None = None
     n_decisions: int | None = None
     decisions_until_measured: int | None = None
     day_zero: bool | None = None
     provenance: str | None = None
     substantiation: Any = None
+    status: str | None = None
+    overall_quality_score: float | None = None
+    overall_quality_adjusted: float | None = None
+    clusters: list[dict[str, Any]] = []
+    min_decisions_per_cluster: int | None = None
+    source: str | None = None
+    analytics_provenance: str | None = None
 
 
 class VrpAttributionResponse(FlexibleModel):
-    low_tail_capture_pct: float | None = None
-    high_tail_loss_ratio: float | None = None
-    total_vrp_decisions: int | None = None
-    high_tail_decisions: int | None = None
-    low_tail_decisions: int | None = None
     provenance: str | None = None
     substantiation: Any = None
     day_zero: bool | None = None
     decisions_until_measured: int | None = None
+    status: str | None = None
+    vrp_spread_mean: float | None = None
+    vrp_spread_current: float | None = None
+    classification: str | None = None
+    iv_mean: float | None = None
+    rv_mean: float | None = None
+    n_eligible: int | None = None
+    n_excluded_missing_iv_rv: int | None = None
+    min_observations: int | None = None
+    source: str | None = None
+    analytics_provenance: str | None = None
+    tail_attribution: dict[str, Any] | None = None
 
 
 class RegimeVrpResponse(FlexibleModel):

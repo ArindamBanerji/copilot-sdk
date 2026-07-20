@@ -36,9 +36,11 @@ function factorList(data: SituationResponse): string {
 export function SituationPanel({
   decisionId,
   hasSelection = false,
+  onSituationChange,
 }: {
   decisionId: string | null;
   hasSelection?: boolean;
+  onSituationChange?: (data: SituationResponse | null, loading: boolean) => void;
 }) {
   const [data, setData] = useState<SituationResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -49,21 +51,25 @@ export function SituationPanel({
       setData(null);
       setError(false);
       setLoading(false);
+      onSituationChange?.(null, false);
       return;
     }
     let cancelled = false;
     setLoading(true);
     setError(false);
+    onSituationChange?.(null, true);
     fetchSituation(decisionId)
       .then((response) => {
         if (cancelled) return;
         setData(response);
         setError(!response);
+        onSituationChange?.(response, false);
       })
       .catch(() => {
         if (!cancelled) {
           setData(null);
           setError(true);
+          onSituationChange?.(null, false);
         }
       })
       .finally(() => {
@@ -72,7 +78,7 @@ export function SituationPanel({
     return () => {
       cancelled = true;
     };
-  }, [decisionId]);
+  }, [decisionId, onSituationChange]);
 
   const chain = useMemo(() => data?.context_chain ?? [], [data]);
 

@@ -63,10 +63,59 @@ class TradingRegimeScorerProxy:
             **regime_context,
             "tagged_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         }
+        _tag_analytics_metadata(tagged_metadata)
         result = self._scorer_proxy.score(factors, category, metadata=tagged_metadata)
         payload = asdict(result) if is_dataclass(result) else dict(result)
         payload["regime_context"] = dict(regime_context)
         return payload
+
+
+def _tag_analytics_metadata(metadata: dict[str, Any]) -> None:
+    """Persist read-side analytics inputs without changing scorer factors."""
+    analytics = dict(metadata.get("analytics") or {})
+    regime_metadata = metadata.get("regime_metadata")
+    regime = regime_metadata.get("regime") if isinstance(regime_metadata, dict) else None
+    if regime:
+        analytics["cluster_id"] = f"regime:{regime}"
+        analytics["cluster_method"] = "regime_v1"
+
+    implied_raw = _analytics_input(metadata, "implied_volatility", "iv", "impliedVolatility")
+    realized_raw = _analytics_input(metadata, "realized_volatility", "rv", "realizedVolatility")
+    implied = _normalize_volatility(implied_raw)
+    realized = _normalize_volatility(realized_raw)
+    if implied is not None:
+        analytics["implied_vol"] = implied
+        analytics["implied_vol_raw"] = float(implied_raw)
+    if realized is not None:
+        analytics["realized_vol"] = realized
+        analytics["realized_vol_raw"] = float(realized_raw)
+    if implied is not None or realized is not None:
+        analytics["vol_unit"] = "annualized_decimal"
+        analytics["iv_rv_source"] = "request_input"
+
+    metadata["analytics"] = analytics
+
+
+def _analytics_input(metadata: dict[str, Any], *keys: str) -> Any:
+    containers = (metadata, metadata.get("context"), metadata.get("options"))
+    for container in containers:
+        if not isinstance(container, dict):
+            continue
+        for key in keys:
+            if key in container:
+                return container.get(key)
+    return None
+
+
+def _normalize_volatility(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number) or number < 0:
+        return None
+    # Inputs in [0, 1] are annualized decimals; values above 1 are percentages.
+    return number / 100.0 if number > 1.0 else number
 
 
 def build_regime_context(

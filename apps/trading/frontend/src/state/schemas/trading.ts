@@ -150,8 +150,8 @@ export interface DecisionsSummaryResponse {
 }
 
 export interface VolSharpeResponse {
-  naiveSharpe?: number;
-  adjustedSharpe?: number;
+  naiveQualityScore?: number;
+  qualityAdjustedScore?: number;
   inflation?: number;
   nDecisions?: number;
   decisionsUntilMeasured?: number;
@@ -162,6 +162,15 @@ export interface VolSharpeResponse {
 }
 
 export interface VrpAttributionResponse {
+  provenance?: string;
+  substantiation?: unknown;
+  dayZero?: boolean;
+  decisionsUntilMeasured?: number;
+  tailAttribution?: TailAttributionResponse;
+  [key: string]: unknown;
+}
+
+export interface TailAttributionResponse {
   lowTailCapturePct?: number;
   highTailLossRatio?: number;
   totalVrpDecisions?: number;
@@ -171,7 +180,6 @@ export interface VrpAttributionResponse {
   substantiation?: unknown;
   dayZero?: boolean;
   decisionsUntilMeasured?: number;
-  [key: string]: unknown;
 }
 
 export interface RegimeVrpResponse {

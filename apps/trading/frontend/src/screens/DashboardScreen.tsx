@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
-import DayZeroCard from "../../../../../copilot_sdk/frontend/components/DayZeroCard";
+import { DayZeroCard, DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import {
   API_BASE,
   getAnalytics,
@@ -228,6 +227,7 @@ export default function DashboardScreen({
       <DayZeroCard
         apiBase={API_BASE}
         copilot="trading"
+        demoMode={import.meta.env.VITE_DEMO_PRESEED === "true"}
         renderProvenance={(source) => <ProvenanceBadge source={source} />}
       />
       <MarketContext snapshot={market} />

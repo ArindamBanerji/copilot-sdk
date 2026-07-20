@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
+import { DayZeroCard, DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import {
   BASE,
   getAnalytics,
@@ -168,6 +168,7 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
       <div className="flex flex-wrap items-center justify-end gap-2">
         <ProvenanceBadge source={state.today?.weather?.source ?? "scraped_external"} />
       </div>
+      <DayZeroCard apiBase={BASE} copilot="purchasing" />
       <SpendSummaryPanel />
       <WeatherImpactCard />
       <CommodityPricePanel />

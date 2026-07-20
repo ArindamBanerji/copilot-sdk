@@ -363,6 +363,7 @@ export interface ThresholdDecision {
   priceVariancePct?: number;
   threshold_pct?: number;
   thresholdPct?: number;
+  provenance?: "sample" | "live" | string;
 }
 
 export interface AutoApproveDecision {

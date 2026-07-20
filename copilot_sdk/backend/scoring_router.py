@@ -239,6 +239,25 @@ def create_scoring_router(
     return router
 
 
+def create_measurement_state_router(
+    domain: str,
+    scorer_factory: Callable[[], Any],
+) -> APIRouter:
+    """Create a router that exposes only a domain's measurement state."""
+
+    router = APIRouter()
+
+    @router.get("/{copilot}/measurement-state", response_model=MeasurementStateResponse)
+    def prefixed_measurement_state(copilot: str) -> dict[str, Any]:
+        if copilot != domain:
+            raise HTTPException(status_code=404, detail=f"Unknown copilot: {copilot}")
+        payload = compute_measurement_state(scorer_factory()).to_dict()
+        payload["engine"] = ENGINE
+        return payload
+
+    return router
+
+
 def _score_with_optional_metadata(scorer: Any, request: ScoreRequest) -> Any:
     metadata = request.metadata or None
     score = scorer.score

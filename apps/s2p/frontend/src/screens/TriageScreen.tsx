@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchConservation, fetchPreviewQueue, learnDecision, scoreInvoice } from "../api";
 import { CentroidExplorer } from "../components/CentroidExplorer";
 import CounterfactualCard from "../components/CounterfactualCard";
@@ -22,7 +22,8 @@ import {
   type ProcessContext,
   type S2PAction,
   type S2PReasonCode,
-  type ScoreInvoiceResponse
+  type ScoreInvoiceResponse,
+  type SituationResponse,
 } from "../types";
 
 function invoiceId(invoice?: InvoiceException | null): string {
@@ -95,6 +96,8 @@ export function TriageScreen() {
   const [queue, setQueue] = useState<PreviewQueueResponse | null>(null);
   const [selectedId, setSelectedId] = useState("");
   const [score, setScore] = useState<ScoreInvoiceResponse | null>(null);
+  const [situation, setSituation] = useState<SituationResponse | null>(null);
+  const [situationLoading, setSituationLoading] = useState(false);
   const [learnResult, setLearnResult] = useState<LearnDecisionResponse | null>(null);
   const [overrideAction, setOverrideAction] = useState<S2PAction>("hold_for_review");
   const [overrideOpen, setOverrideOpen] = useState(false);
@@ -150,6 +153,10 @@ export function TriageScreen() {
   const situationDecisionId = decisionId || null;
   const selectedCategory = String(selected?.category ?? "price_variance");
   const conservationState = conservation?.status ?? (conservation?.passed ? "GREEN" : undefined);
+  const handleSituationChange = useCallback((data: SituationResponse | null, nextLoading: boolean) => {
+    setSituation(data);
+    setSituationLoading(nextLoading);
+  }, []);
 
   async function handleScore() {
     if (!selected) return;
@@ -158,6 +165,8 @@ export function TriageScreen() {
     setSubmitError("");
     setOverrideOpen(false);
     setOverrideReason("");
+    setSituation(null);
+    setSituationLoading(false);
     const result = await scoreInvoice({
       event_id: invoiceId(selected),
       category: selectedCategory,
@@ -235,6 +244,8 @@ export function TriageScreen() {
                     onClick={() => {
                       setSelectedId(id);
                       setScore(null);
+                      setSituation(null);
+                      setSituationLoading(false);
                       setLearnResult(null);
                       setOverrideOpen(false);
                       setOverrideReason("");
@@ -286,9 +297,22 @@ export function TriageScreen() {
             </div>
           </article>
 
-          <SituationPanel decisionId={situationDecisionId} hasSelection={Boolean(selected)} />
+          <SituationPanel
+            decisionId={situationDecisionId}
+            hasSelection={Boolean(selected)}
+            onSituationChange={handleSituationChange}
+          />
 
-          {score ? <RuleVsReasoningPanel score={score} /> : null}
+          {score ? (
+            <RuleVsReasoningPanel
+              score={score}
+              situationExplanation={situation?.nl_explanation ?? null}
+              situationConfidence={situation?.confidence ?? null}
+              situationSources={situation?.context_chain.map((node) => node.node || node.id || "context") ?? null}
+              situationProvenance={situation?.provenance.overall ?? null}
+              situationLoading={situationLoading}
+            />
+          ) : null}
 
           {crossCopilotSignal ? <CrossCopilotSignalBanner signal={crossCopilotSignal} /> : null}
 
