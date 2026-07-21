@@ -158,6 +158,13 @@ export interface VolSharpeResponse {
   dayZero?: boolean;
   provenance?: string;
   substantiation?: unknown;
+  status?: string;
+  overallQualityScore?: number;
+  overallQualityAdjusted?: number;
+  clusters?: Record<string, unknown>[];
+  minDecisionsPerCluster?: number;
+  source?: string;
+  analyticsProvenance?: string;
   [key: string]: unknown;
 }
 
@@ -166,20 +173,19 @@ export interface VrpAttributionResponse {
   substantiation?: unknown;
   dayZero?: boolean;
   decisionsUntilMeasured?: number;
-  tailAttribution?: TailAttributionResponse;
+  status?: string;
+  vrpSpreadMean?: number;
+  vrpSpreadCurrent?: number;
+  classification?: string;
+  ivMean?: number;
+  rvMean?: number;
+  nEligible?: number;
+  nExcludedMissingIvRv?: number;
+  minObservations?: number;
+  source?: string;
+  analyticsProvenance?: string;
+  tailAttribution?: Record<string, unknown>;
   [key: string]: unknown;
-}
-
-export interface TailAttributionResponse {
-  lowTailCapturePct?: number;
-  highTailLossRatio?: number;
-  totalVrpDecisions?: number;
-  highTailDecisions?: number;
-  lowTailDecisions?: number;
-  provenance?: string;
-  substantiation?: unknown;
-  dayZero?: boolean;
-  decisionsUntilMeasured?: number;
 }
 
 export interface RegimeVrpResponse {

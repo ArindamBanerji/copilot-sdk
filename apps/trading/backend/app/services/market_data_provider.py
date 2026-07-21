@@ -27,6 +27,8 @@ class CacheEntry:
     data: object
     as_of: str
     expires_at: datetime
+    origin_source: str
+    origin_label: str | None = None
 
 
 class MarketDataProvider:
@@ -113,6 +115,25 @@ class MarketDataProvider:
             self._backoff_delay.clear()
         return Provenanced(value=True, source="local", label="cache refreshed", as_of=now_iso())
 
+    def origin_provenance(self, key: str, result: Provenanced) -> Provenanced:
+        """Return the data origin for a cached result without changing cache semantics.
+
+        Public provider calls label a cache hit as ``cached``.  Response
+        payloads, however, must describe where the underlying evidence came
+        from consistently across a fresh read and an immediate cache hit.
+        """
+        if result.source != "cached":
+            return result
+        entry = self._cache.get(key)
+        if entry is None:
+            return result
+        return Provenanced(
+            value=result.value,
+            source=entry.origin_source,
+            label=entry.origin_label,
+            as_of=result.as_of,
+        )
+
     def _resolve(self, key: str, fetch_fn: Callable[[], Any]) -> Provenanced:
         """Three-tier cascade. Every exit returns Provenanced."""
         entry = self._cache.get(key)
@@ -128,6 +149,7 @@ class MarketDataProvider:
                         data=data,
                         as_of=timestamp,
                         expires_at=now_utc() + self._ttl_duration(),
+                        origin_source=self._source.provenance_tier,
                     )
                     self._clear_backoff(key)
                     return Provenanced(

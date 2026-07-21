@@ -296,9 +296,16 @@ def _conservation_category_row(
 @router.get("/market-snapshot")
 @cached_static("market-snapshot")
 def market_snapshot(request: Request) -> dict[str, Any]:
-    result = _market_provider().get_market_snapshot()
+    provider = _market_provider()
+    result = provider.get_market_snapshot()
     if isinstance(result.value, dict):
-        return _market_snapshot_response(result.value, _provenance_payload(result))
+        origin_provenance = getattr(provider, "origin_provenance", None)
+        provenance_result = (
+            origin_provenance("market_snapshot", result)
+            if callable(origin_provenance)
+            else result
+        )
+        return _market_snapshot_response(result.value, _provenance_payload(provenance_result))
 
     # JSON cache remains as the fixture fallback reference when live/provider data is unavailable.
     payload = _load_json_optional("market_snapshot.json")
