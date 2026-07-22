@@ -412,6 +412,12 @@ def test_scratch_l3_verifies_live_not_scratch(tmp_path, monkeypatch):
     l3_graphs = []
 
     class FakeConn:
+        def commit(self):
+            pass
+
+        def rollback(self):
+            pass
+
         def close(self):
             pass
 
