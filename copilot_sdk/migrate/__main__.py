@@ -23,7 +23,17 @@ def build_parser() -> argparse.ArgumentParser:
     sqlite_to_age.add_argument("--age-dsn", required=True)
     sqlite_to_age.add_argument("--graph-name", default="soc_graph")
     sqlite_to_age.add_argument("--dry-run", action="store_true")
-    sqlite_to_age.add_argument("--batch-size", type=int, default=50)
+    sqlite_to_age.add_argument(
+        "--all-decisions",
+        action="store_true",
+        help="Include pending decisions; default migrates verified decisions only.",
+    )
+    sqlite_to_age.add_argument("--batch-size", type=int, default=1000)
+    sqlite_to_age.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume from the domain checkpoint file if it is in progress.",
+    )
     sqlite_to_age.add_argument("--no-verify", action="store_true")
     sqlite_to_age.add_argument(
         "--use-scratch-graph",
@@ -49,6 +59,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             batch_size=args.batch_size,
             verify=not args.no_verify,
             use_scratch=args.use_scratch_graph,
+            all_decisions=args.all_decisions,
+            resume=args.resume,
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         if result.get("status") == "FAIL":
