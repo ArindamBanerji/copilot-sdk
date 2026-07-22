@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import logging
+import json
 from datetime import datetime, timezone
+from pathlib import Path
+from threading import Lock
 from typing import Any, Callable, TypeVar, cast
 
 from copilot_sdk.graph.enrichment import (
@@ -19,37 +22,86 @@ _T = TypeVar("_T")
 
 
 class DualWriteStore(GraphStore):
-    """Read from primary; write primary first and quarantine secondary failures."""
+    """Read from primary and best-effort write to secondary.
+
+    ``write_governed_decision`` is required for identity-preserving dual
+    writes. ``write_decision`` is deliberately primary-only because its
+    generated identifier cannot be safely shared with a secondary store.
+    The lock protects concurrent failure-log append, inspection, and flush;
+    persistence provides crash recovery only, not a durable replay outbox.
+    """
 
     def __init__(
         self,
         primary: GraphStore,
         secondary: GraphStore,
         logger: logging.Logger | None = None,
+        max_failures: int = 10_000,
+        failure_log_path: str | None = None,
     ) -> None:
-        # The wrapper exposes Protocol V2 writes as well as GraphStore.  Keep
-        # the public constructor GraphStore-compatible for factory callers.
+        if max_failures < 1:
+            raise ValueError("max_failures must be at least 1")
+        if not isinstance(primary, ProtocolV2GraphStore):
+            raise TypeError("primary must implement ProtocolV2GraphStore")
+        if not isinstance(secondary, ProtocolV2GraphStore):
+            raise TypeError("secondary must implement ProtocolV2GraphStore")
         self.primary = cast(ProtocolV2GraphStore, primary)
         self.secondary = cast(ProtocolV2GraphStore, secondary)
         self.logger = logger or logging.getLogger(__name__)
-        self._secondary_failures: list[dict[str, Any]] = []
+        self.max_failures = max_failures
+        self._failure_lock = Lock()
+        self._secondary_failures = self._load_failure_log(failure_log_path) if failure_log_path else []
+        self._trim_failures()
 
     @property
     def secondary_failures(self) -> list[dict[str, Any]]:
-        return list(self._secondary_failures)
+        with self._failure_lock:
+            return list(self._secondary_failures)
 
     @property
     def secondary_failure_count(self) -> int:
-        return len(self._secondary_failures)
+        with self._failure_lock:
+            return len(self._secondary_failures)
 
     def flush_secondary_failures(self) -> list[dict[str, Any]]:
-        failures = list(self._secondary_failures)
-        self._secondary_failures.clear()
-        return failures
+        with self._failure_lock:
+            failures = list(self._secondary_failures)
+            self._secondary_failures.clear()
+            return failures
+
+    @classmethod
+    def _load_failure_log(cls, path: str) -> list[dict[str, Any]]:
+        log_path = Path(path)
+        if not log_path.exists():
+            return []
+        payload = json.loads(log_path.read_text(encoding="utf-8"))
+        if not isinstance(payload, list) or not all(isinstance(entry, dict) for entry in payload):
+            raise ValueError(f"failure log must contain a JSON list of objects: {log_path}")
+        return [dict(entry) for entry in payload]
+
+    def persist_failures(self, path: str) -> None:
+        """Persist the bounded failure log for later diagnostic recovery."""
+        log_path = Path(path)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary_path = log_path.with_name(f"{log_path.name}.tmp")
+        with self._failure_lock:
+            payload = list(self._secondary_failures)
+        temporary_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+        temporary_path.replace(log_path)
+
+    def _trim_failures(self) -> None:
+        with self._failure_lock:
+            excess = len(self._secondary_failures) - self.max_failures
+            if excess <= 0:
+                return
+            del self._secondary_failures[:excess]
+        self.logger.warning("secondary failure log dropped %d oldest entries (max_failures=%d)", excess, self.max_failures)
 
     @staticmethod
     def _args_summary(args: tuple[object, ...], kwargs: dict[str, object]) -> dict[str, object]:
         summary: dict[str, object] = {"arg_count": len(args), "keyword_names": sorted(kwargs)}
+        if args:
+            summary["first_arg"] = str(args[0])
         for key in ("domain", "decision_id", "observation_id", "receipt_intent_id", "checkpoint_id", "event_id"):
             if key in kwargs:
                 summary[key] = str(kwargs[key])
@@ -71,8 +123,29 @@ class DualWriteStore(GraphStore):
             "args": self._args_summary(args, kwargs),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        self._secondary_failures.append(entry)
+        with self._failure_lock:
+            self._secondary_failures.append(entry)
+        self._trim_failures()
         self.logger.warning("%s operation=%s error=%s", entry["status"], operation, entry["error"])
+
+    def _record_secondary_skip(
+        self,
+        operation: str,
+        args: tuple[object, ...],
+        kwargs: dict[str, object],
+        reason: str,
+    ) -> None:
+        entry: dict[str, object] = {
+            "operation": operation,
+            "status": "SKIPPED",
+            "reason": reason,
+            "args": self._args_summary(args, kwargs),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        with self._failure_lock:
+            self._secondary_failures.append(entry)
+        self._trim_failures()
+        self.logger.warning("%s skipped on secondary - use write_governed_decision for dual-write identity preservation.", operation)
 
     def _write(
         self,
@@ -90,13 +163,14 @@ class DualWriteStore(GraphStore):
         return result
 
     def write_decision(self, domain: str, category: str, action: str, confidence: float, factors: dict[str, Any], metadata: dict[str, Any] | None = None) -> str:
-        return self._write(
+        result = self.primary.write_decision(domain, category, action, confidence, factors, metadata)
+        self._record_secondary_skip(
             "write_decision",
-            lambda: self.primary.write_decision(domain, category, action, confidence, factors, metadata),
-            lambda: self.secondary.write_decision(domain, category, action, confidence, factors, metadata),
             (domain, category, action, confidence, factors),
             {"metadata": metadata},
+            "identity_mismatch_risk",
         )
+        return result
 
     def write_outcome(self, decision_id: str, actual_action: str, is_correct: bool, metadata: dict[str, Any] | None = None) -> None:
         self._write("write_outcome", lambda: self.primary.write_outcome(decision_id, actual_action, is_correct, metadata), lambda: self.secondary.write_outcome(decision_id, actual_action, is_correct, metadata), (decision_id, actual_action, is_correct), {"metadata": metadata})

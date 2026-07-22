@@ -46,7 +46,10 @@ def test_write_decision_returns_primary_identity_and_forwards_arguments():
     dual = DualWriteStore(primary, secondary)
     result = dual.write_decision("trading", "cat", "buy", 0.8, {"x": 1}, {"source": "test"})
     assert result == "primary-id"
-    assert primary.calls[0] == secondary.calls[0]
+    assert primary.count("write_decision") == 1
+    assert secondary.count("write_decision") == 0
+    assert dual.secondary_failures[0]["status"] == "SKIPPED"
+    assert dual.secondary_failures[0]["reason"] == "identity_mismatch_risk"
 
 
 def test_write_outcome_calls_both_and_returns_none():
@@ -72,7 +75,6 @@ def test_all_protocol_write_methods_delegate_to_both_endpoints():
     primary, secondary = _pair()
     dual = DualWriteStore(primary, secondary)
     calls = {
-        "write_decision": lambda: dual.write_decision("trading", "cat", "buy", 0.8, {}),
         "write_outcome": lambda: dual.write_outcome("d1", "buy", True),
         "write_governed_decision": lambda: dual.write_governed_decision("d1", "trading", "cat", 0, "buy", 0, 0.8, [], [], []),
         "write_observation": lambda: dual.write_observation("o1", "trading", "cat", "buy", 0.8, "route", "scorer", "schema"),
@@ -175,7 +177,59 @@ def test_concurrent_domain_writes_reach_both_endpoints_with_their_domains():
     with ThreadPoolExecutor(max_workers=2) as executor:
         list(executor.map(lambda domain: dual.write_decision(domain, "cat", "buy", 0.8, {}), ["trading", "purchasing"]))
     assert {args[0] for name, args, _ in primary.calls if name == "write_decision"} == {"trading", "purchasing"}
-    assert {args[0] for name, args, _ in secondary.calls if name == "write_decision"} == {"trading", "purchasing"}
+    assert secondary.count("write_decision") == 0
+
+
+def test_write_decision_logs_identity_preserving_skip(caplog):
+    primary, secondary = _pair()
+    dual = DualWriteStore(primary, secondary)
+    with caplog.at_level("WARNING"):
+        assert dual.write_decision("trading", "cat", "buy", 0.8, {}) == "primary-id"
+    assert "write_decision skipped on secondary" in caplog.text
+
+
+def test_governed_decision_and_outcome_use_same_identity_on_both_stores():
+    primary, secondary = _pair()
+    dual = DualWriteStore(primary, secondary)
+    dual.write_governed_decision("shared-id", "trading", "cat", 2, "buy", 1, 0.8, [0.2, 0.8], [1.0], ["x"], "score", "scorer", "preset", "schema", {"trace": "t"})
+    dual.write_outcome("shared-id", "buy", True, {"verified_at": 1.0})
+    governed_primary = next(call for call in primary.calls if call[0] == "write_governed_decision")
+    governed_secondary = next(call for call in secondary.calls if call[0] == "write_governed_decision")
+    outcome_primary = next(call for call in primary.calls if call[0] == "write_outcome")
+    outcome_secondary = next(call for call in secondary.calls if call[0] == "write_outcome")
+    assert governed_primary == governed_secondary
+    assert outcome_primary == outcome_secondary
+    assert governed_secondary[1][0] == outcome_secondary[1][0] == "shared-id"
+
+
+def test_failure_log_is_bounded_fifo_and_warns(caplog):
+    primary, secondary = _pair(secondary_failures={"write_outcome": RuntimeError("age down")})
+    dual = DualWriteStore(primary, secondary, max_failures=3)
+    with caplog.at_level("WARNING"):
+        for index in range(5):
+            dual.write_outcome(f"d{index}", "buy", True)
+    assert [entry["args"]["first_arg"] for entry in dual.secondary_failures] == ["d2", "d3", "d4"]
+    assert "dropped 1 oldest entries" in caplog.text
+
+
+def test_failure_log_persists_and_loads(tmp_path):
+    primary, secondary = _pair(secondary_failures={"write_outcome": RuntimeError("age down")})
+    log_path = tmp_path / "secondary_failures.json"
+    dual = DualWriteStore(primary, secondary)
+    dual.write_outcome("d1", "buy", True)
+    dual.persist_failures(str(log_path))
+    restored = DualWriteStore(*_pair(), failure_log_path=str(log_path))
+    assert restored.secondary_failures == dual.secondary_failures
+
+
+def test_constructor_rejects_store_without_protocol_v2_methods():
+    class PlainGraphStore:
+        def write_decision(self, domain, category, action, confidence, factors, metadata=None):
+            return "legacy-id"
+
+    primary, _ = _pair()
+    with pytest.raises(TypeError, match="secondary must implement ProtocolV2GraphStore"):
+        DualWriteStore(primary, PlainGraphStore())
 
 
 def test_new_wrapper_has_no_secondary_failures():
