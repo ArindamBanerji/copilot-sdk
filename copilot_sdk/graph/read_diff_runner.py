@@ -1,0 +1,176 @@
+"""Semantic read comparison for GraphStore migration and dual-write checks."""
+
+from __future__ import annotations
+
+import json
+import logging
+from dataclasses import dataclass, field
+from typing import Any
+
+from copilot_sdk.graph.protocol import GraphStore
+
+
+_COMPARE_FIELDS = (
+    "decision_id",
+    "domain",
+    "category",
+    "category_index",
+    "recommended_action",
+    "recommended_index",
+    "confidence",
+    "factor_vector",
+    "probabilities",
+    "status",
+    "metadata",
+    "created_at",
+    "is_correct",
+    "actual_action",
+)
+
+
+@dataclass
+class DiffReport:
+    """Structured result of a primary/secondary GraphStore comparison."""
+
+    domain: str
+    primary_count: int = 0
+    secondary_count: int = 0
+    count_match: bool = False
+    primary_correct: int = 0
+    secondary_correct: int = 0
+    correct_match: bool = False
+    primary_total: int = 0
+    secondary_total: int = 0
+    total_match: bool = False
+    missing_in_secondary: list[str] = field(default_factory=list)
+    missing_in_primary: list[str] = field(default_factory=list)
+    field_mismatches: list[dict[str, Any]] = field(default_factory=list)
+    passed: bool = False
+
+    def summary(self) -> str:
+        outcome = "PASS" if self.passed else "FAIL"
+        return (
+            f"{outcome} domain={self.domain} verified={self.primary_count}/{self.secondary_count} "
+            f"correct={self.primary_correct}/{self.secondary_correct} "
+            f"total={self.primary_total}/{self.secondary_total} "
+            f"missing_secondary={len(self.missing_in_secondary)} "
+            f"missing_primary={len(self.missing_in_primary)} "
+            f"field_mismatches={len(self.field_mismatches)}"
+        )
+
+
+def _decoded_json(value: Any) -> Any:
+    if not isinstance(value, str):
+        return value
+    try:
+        return json.loads(value)
+    except (TypeError, ValueError):
+        return value
+
+
+def _values_match(primary_value: Any, secondary_value: Any) -> bool:
+    """Compare values with JSON normalization and a small float tolerance."""
+    primary_value = _decoded_json(primary_value)
+    secondary_value = _decoded_json(secondary_value)
+    if primary_value is None and secondary_value is None:
+        return True
+    if isinstance(primary_value, (int, float)) and not isinstance(primary_value, bool):
+        if isinstance(secondary_value, (int, float)) and not isinstance(secondary_value, bool):
+            return abs(float(primary_value) - float(secondary_value)) <= 1e-6
+    if isinstance(primary_value, dict) and isinstance(secondary_value, dict):
+        return primary_value == secondary_value
+    if isinstance(primary_value, list) and isinstance(secondary_value, list):
+        return len(primary_value) == len(secondary_value) and all(
+            _values_match(left, right) for left, right in zip(primary_value, secondary_value)
+        )
+    return bool(primary_value == secondary_value)
+
+
+def _normalized_decision(decision: dict[str, Any]) -> dict[str, Any]:
+    """Flatten optional outcome containers into the common comparison shape."""
+    normalized = dict(decision)
+    for container_key in ("outcome", "outcome_metadata"):
+        container = normalized.get(container_key)
+        if isinstance(container, dict):
+            for field in ("actual_action", "actual_index", "is_correct", "verified_at"):
+                normalized.setdefault(field, container.get(field))
+    return normalized
+
+
+class ReadDiffRunner:
+    """Compares read outputs from two GraphStore implementations."""
+
+    def __init__(
+        self,
+        primary: GraphStore,
+        secondary: GraphStore,
+        domain: str,
+        logger: logging.Logger | None = None,
+    ) -> None:
+        self.primary = primary
+        self.secondary = secondary
+        self.domain = domain
+        self.logger = logger or logging.getLogger(__name__)
+
+    def run_diff(self) -> DiffReport:
+        """Run count and verified-decision comparisons for this domain."""
+        report = DiffReport(domain=self.domain)
+        report.primary_count = self.primary.count_verified(self.domain)
+        report.secondary_count = self.secondary.count_verified(self.domain)
+        report.count_match = report.primary_count == report.secondary_count
+
+        report.primary_correct = self.primary.count_correct(self.domain)
+        report.secondary_correct = self.secondary.count_correct(self.domain)
+        report.correct_match = report.primary_correct == report.secondary_correct
+
+        report.primary_total = self.primary.count_decisions(self.domain)
+        report.secondary_total = self.secondary.count_decisions(self.domain)
+        report.total_match = report.primary_total == report.secondary_total
+
+        if report.count_match:
+            primary_map = {
+                (str(decision.get("domain", self.domain)), str(decision["decision_id"])): _normalized_decision(decision)
+                for decision in self.primary.get_verified_decisions(self.domain)
+            }
+            secondary_map = {
+                (str(decision.get("domain", self.domain)), str(decision["decision_id"])): _normalized_decision(decision)
+                for decision in self.secondary.get_verified_decisions(self.domain)
+            }
+            report.missing_in_secondary = [
+                decision_id
+                for domain, decision_id in primary_map
+                if (domain, decision_id) not in secondary_map
+            ]
+            report.missing_in_primary = [
+                decision_id
+                for domain, decision_id in secondary_map
+                if (domain, decision_id) not in primary_map
+            ]
+
+            for key, primary_decision in primary_map.items():
+                secondary_decision = secondary_map.get(key)
+                if secondary_decision is None:
+                    continue
+                for field in _COMPARE_FIELDS:
+                    primary_value = primary_decision.get(field)
+                    secondary_value = secondary_decision.get(field)
+                    if not _values_match(primary_value, secondary_value):
+                        report.field_mismatches.append(
+                            {
+                                "decision_id": key[1],
+                                "field": field,
+                                "primary": primary_value,
+                                "secondary": secondary_value,
+                            }
+                        )
+
+        report.passed = (
+            report.count_match
+            and report.correct_match
+            and report.total_match
+            and not report.missing_in_secondary
+            and not report.missing_in_primary
+            and not report.field_mismatches
+        )
+        self.logger.info(report.summary())
+        return report

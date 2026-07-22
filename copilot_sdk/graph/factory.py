@@ -13,7 +13,7 @@ from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
 logger = logging.getLogger(__name__)
 
-_VALID_BACKENDS = {"sqlite", "age"}
+_VALID_BACKENDS = {"sqlite", "age", "dual_write"}
 
 
 def _env_value(env: Mapping[str, str], key: str) -> str | None:
@@ -145,6 +145,45 @@ def create_graph_store(
             sqlite_path,
             domain=selected_domain,
         )
+
+    if selected_backend == "dual_write":
+        sqlite_path = _resolve_sqlite_path(
+            db_path=db_path,
+            domain=selected_domain,
+            env=env_map,
+        )
+        primary = SQLiteGraphStore(sqlite_path, domain=selected_domain)
+        selected_dsn = _resolve_aliased_env(env_map, "GRAPH_DSN", "AGE_DSN", dsn)
+        if not selected_dsn or not str(selected_dsn).strip():
+            logger.warning(
+                "GRAPH_BACKEND=dual_write has no GRAPH_DSN; falling back to SQLite for domain=%s",
+                selected_domain,
+            )
+            return primary
+        selected_graph = _resolve_aliased_env(
+            env_map,
+            "GRAPH_NAME",
+            "AGE_GRAPH_NAME",
+            graph_name,
+        )
+        if selected_graph is None:
+            selected_graph = _env_value(env_map, "GRAPH_DOMAIN")
+        selected_graph = _validate_age_graph_name(
+            selected_graph,
+            test_mode=test_mode,
+            read_only_soc_projection=read_only_soc_projection,
+        )
+        from copilot_sdk.graph.dual_write_store import DualWriteStore
+
+        adapter_cls = _load_age_adapter()
+        secondary = cast(GraphStore, adapter_cls(dsn=str(selected_dsn), graph_name=selected_graph))
+        logger.info(
+            "creating dual-write GraphStore for domain=%s path=%s graph_name=%s",
+            selected_domain,
+            sqlite_path,
+            selected_graph,
+        )
+        return DualWriteStore(primary, secondary)
 
     if not selected_domain.strip():
         raise ValueError("AGE graph backend requires explicit non-blank domain")
