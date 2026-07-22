@@ -3261,3 +3261,54 @@ def test_outbox_quarantine_recorded(sqlite_store):
     assert quarantine["reason"] == "payload_hash_conflict"
     assert quarantine["resolved_at"] is None
     assert quarantine["resolution"] is None
+
+
+def test_write_outcome_domain_is_optional_and_scopes_sqlite_store(sqlite_store):
+    """Explicit domain succeeds; omitted domain keeps the v1 call path working."""
+    _write_governed_decision(sqlite_store, "OUTCOME-DOMAIN", domain="test")
+    sqlite_store.write_outcome("OUTCOME-DOMAIN", "approve", True, domain="test")
+    assert sqlite_store.get_decision("OUTCOME-DOMAIN")["status"] == "confirmed"
+
+    _write_governed_decision(sqlite_store, "OUTCOME-LEGACY", domain="test")
+    sqlite_store.write_outcome("OUTCOME-LEGACY", "approve", True)
+    assert sqlite_store.get_decision("OUTCOME-LEGACY")["status"] == "confirmed"
+
+
+def test_age_write_outcome_compound_domain_identity(age_store):
+    """A shared decision ID updates only the explicitly selected AGE domain."""
+    decision_id = f"OUTCOME-COMPOUND-{uuid.uuid4().hex}"
+    first_domain = f"pytest_protocol_v2_first_{uuid.uuid4().hex}"
+    second_domain = f"pytest_protocol_v2_second_{uuid.uuid4().hex}"
+    _write_governed_decision(age_store, decision_id, domain=first_domain)
+    _write_governed_decision(age_store, decision_id, domain=second_domain)
+
+    age_store.write_outcome(decision_id, "approve", True, domain=first_domain)
+    first = next(decision for decision in age_store.get_decisions(first_domain) if decision["decision_id"] == decision_id)
+    second = next(decision for decision in age_store.get_decisions(second_domain) if decision["decision_id"] == decision_id)
+    assert first["status"] == "confirmed"
+    assert second["status"] == "pending"
+
+    outcome_rows = age_store._store._run_query(
+        f"""
+        MATCH (o:Outcome {{decision_id: {age_store._store._S(decision_id)}}})
+        RETURN o.domain AS domain, count(o) AS cnt
+        """
+    )
+    assert outcome_rows == [{"domain": first_domain, "cnt": 1}]
+
+    edge_rows = age_store._store._run_query(
+        f"""
+        MATCH (d:Decision {{decision_id: {age_store._store._S(decision_id)}}})-[:HAS_OUTCOME]->(o:Outcome {{decision_id: {age_store._store._S(decision_id)}}})
+        RETURN d.domain AS decision_domain, o.domain AS outcome_domain, count(o) AS cnt
+        """
+    )
+    assert edge_rows == [{"decision_domain": first_domain, "outcome_domain": first_domain, "cnt": 1}]
+
+    other_edge_rows = age_store._store._run_query(
+        f"""
+        MATCH (d:Decision {{decision_id: {age_store._store._S(decision_id)}}})-[:HAS_OUTCOME]->(o:Outcome)
+        WHERE d.domain = {age_store._store._S(second_domain)}
+        RETURN count(o) AS cnt
+        """
+    )
+    assert other_edge_rows == [{"cnt": 0}]

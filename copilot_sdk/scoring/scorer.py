@@ -531,6 +531,7 @@ class CompoundingScorer:
             actual_action=actual_action,
             is_correct=is_correct,
             metadata=outcome_metadata,
+            domain=self._domain,
         )
         self._refresh_dk_after_learn()
         invoice_id = (context or {}).get("invoice_id")

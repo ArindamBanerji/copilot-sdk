@@ -350,6 +350,7 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: SQLiteGraphStore
                     str(decision_id),
                     actual_action=str(action),
                     is_correct=bool(entry["is_correct"]),
+                    domain=DOMAIN,
                     metadata={
                         "actual_index": 0,
                         "context": {

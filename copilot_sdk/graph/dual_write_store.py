@@ -172,8 +172,11 @@ class DualWriteStore(GraphStore):
         )
         return result
 
-    def write_outcome(self, decision_id: str, actual_action: str, is_correct: bool, metadata: dict[str, Any] | None = None) -> None:
-        self._write("write_outcome", lambda: self.primary.write_outcome(decision_id, actual_action, is_correct, metadata), lambda: self.secondary.write_outcome(decision_id, actual_action, is_correct, metadata), (decision_id, actual_action, is_correct), {"metadata": metadata})
+    def write_outcome(self, decision_id: str, actual_action: str, is_correct: bool, metadata: dict[str, Any] | None = None, domain: str | None = None) -> None:
+        if domain is None:
+            self._write("write_outcome", lambda: self.primary.write_outcome(decision_id, actual_action, is_correct, metadata), lambda: self.secondary.write_outcome(decision_id, actual_action, is_correct, metadata), (decision_id, actual_action, is_correct), {"metadata": metadata})
+            return
+        self._write("write_outcome", lambda: self.primary.write_outcome(decision_id, actual_action, is_correct, metadata, domain), lambda: self.secondary.write_outcome(decision_id, actual_action, is_correct, metadata, domain), (decision_id, actual_action, is_correct), {"metadata": metadata, "domain": domain})
 
     def write_governed_decision(self, decision_id: str, domain: str, category: str, category_index: int, recommended_action: str, recommended_index: int, confidence: float, probabilities: list[float], factor_vector: list[float], factor_names: list[str], source: str = "score", scorer_version: str = "", preset_version: str = "", factor_schema_version: str = "", metadata: dict[str, Any] | None = None) -> None:
         self._write("write_governed_decision", lambda: self.primary.write_governed_decision(decision_id, domain, category, category_index, recommended_action, recommended_index, confidence, probabilities, factor_vector, factor_names, source, scorer_version, preset_version, factor_schema_version, metadata), lambda: self.secondary.write_governed_decision(decision_id, domain, category, category_index, recommended_action, recommended_index, confidence, probabilities, factor_vector, factor_names, source, scorer_version, preset_version, factor_schema_version, metadata), (decision_id, domain, category, category_index, recommended_action, recommended_index, confidence, probabilities, factor_vector, factor_names), {"source": source, "scorer_version": scorer_version, "preset_version": preset_version, "factor_schema_version": factor_schema_version, "metadata": metadata})

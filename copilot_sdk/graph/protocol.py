@@ -33,6 +33,7 @@ class GraphStore(Protocol):
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
+        domain: str | None = None,
     ) -> None:
         ...
 

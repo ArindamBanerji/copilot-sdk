@@ -1111,20 +1111,27 @@ class SQLiteGraphStore:
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
+        domain: str | None = None,
     ) -> None:
         meta = dict(metadata or {})
         status = "confirmed" if is_correct else "overridden"
         def persist() -> None:
-            row = self.connection.execute(
-                "SELECT domain FROM decisions WHERE decision_id = ?",
-                (decision_id,),
-            ).fetchone()
+            if domain is None:
+                row = self.connection.execute(
+                    "SELECT domain FROM decisions WHERE decision_id = ?",
+                    (decision_id,),
+                ).fetchone()
+            else:
+                row = self.connection.execute(
+                    "SELECT domain FROM decisions WHERE decision_id = ? AND domain = ?",
+                    (decision_id, domain),
+                ).fetchone()
             if row is None:
                 raise KeyError(decision_id)
-            domain = str(row["domain"] or self.domain)
+            outcome_domain = str(row["domain"] or self.domain)
             existing = self.connection.execute(
-                "SELECT 1 FROM outcomes WHERE decision_id = ?",
-                (decision_id,),
+                "SELECT 1 FROM outcomes WHERE decision_id = ? AND domain = ?",
+                (decision_id, outcome_domain),
             ).fetchone()
             if existing is not None:
                 raise ValueError(f"outcome already exists for decision_id: {decision_id}")
@@ -1137,7 +1144,7 @@ class SQLiteGraphStore:
                 """,
                 (
                     decision_id,
-                    domain,
+                    outcome_domain,
                     actual_action,
                     int(meta.get("actual_index", 0)),
                     1 if is_correct else 0,
@@ -1146,8 +1153,8 @@ class SQLiteGraphStore:
                 ),
             )
             cursor = self.connection.execute(
-                "UPDATE decisions SET status = ? WHERE decision_id = ?",
-                (status, decision_id),
+                "UPDATE decisions SET status = ? WHERE decision_id = ? AND domain = ?",
+                (status, decision_id, outcome_domain),
             )
             if cursor.rowcount != 1:
                 raise RuntimeError(f"failed to update decision status for {decision_id}")
@@ -1184,10 +1191,10 @@ class SQLiteGraphStore:
                     created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (
-                    observation_id,
-                    domain,
-                    category,
+            (
+                observation_id,
+                domain,
+                category,
                     recommended_action,
                     float(confidence),
                     source_route,
