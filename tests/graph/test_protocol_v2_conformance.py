@@ -3437,6 +3437,73 @@ def test_age_write_outcome_compound_domain_identity(age_store):
     assert other_edge_rows == [{"cnt": 0}]
 
 
+def test_age_get_all_decisions_is_unbounded(age_store):
+    """get_all_decisions must not inherit get_decisions' 400-row limit."""
+    domain = age_store.protocol_v2_test_domain
+    decision_ids = [f"ALL-{index}-{uuid.uuid4().hex[:8]}" for index in range(5)]
+    for index, decision_id in enumerate(decision_ids):
+        _write_governed_decision(age_store, decision_id, domain=domain, created_at=float(index))
+
+    assert [row["decision_id"] for row in age_store.get_all_decisions(domain)] == decision_ids
+
+
+def test_age_get_all_decisions_is_ordered(age_store):
+    """AGE full-history reads match SQLite's created_at ordering."""
+    domain = age_store.protocol_v2_test_domain
+    expected = [
+        f"ORDER-EARLY-{uuid.uuid4().hex[:8]}",
+        f"ORDER-MIDDLE-{uuid.uuid4().hex[:8]}",
+        f"ORDER-LATE-{uuid.uuid4().hex[:8]}",
+    ]
+    for decision_id, created_at in zip(reversed(expected), (30.0, 20.0, 10.0)):
+        _write_governed_decision(age_store, decision_id, domain=domain, created_at=created_at)
+
+    assert [row["decision_id"] for row in age_store.get_all_decisions(domain)] == expected
+
+
+def test_age_get_decisions_respects_limit(age_store):
+    """The bounded reader remains bounded after adding deterministic ordering."""
+    domain = age_store.protocol_v2_test_domain
+    for index in range(5):
+        _write_governed_decision(
+            age_store,
+            f"LIMIT-{index}-{uuid.uuid4().hex[:8]}",
+            domain=domain,
+            created_at=float(index),
+        )
+
+    assert len(age_store.get_decisions(domain, limit=2)) == 2
+
+
+def test_age_get_decisions_default_limit(age_store):
+    """The default 400-row cap still returns all rows below that threshold."""
+    domain = age_store.protocol_v2_test_domain
+    for index in range(3):
+        _write_governed_decision(
+            age_store,
+            f"DEFAULT-{index}-{uuid.uuid4().hex[:8]}",
+            domain=domain,
+            created_at=float(index),
+        )
+
+    assert len(age_store.get_decisions(domain)) == 3
+
+
+def test_age_get_verified_decisions_is_ordered(age_store):
+    """Verified AGE reads are unbounded and ordered by decision creation time."""
+    domain = age_store.protocol_v2_test_domain
+    expected = [
+        f"VERIFIED-EARLY-{uuid.uuid4().hex[:8]}",
+        f"VERIFIED-MIDDLE-{uuid.uuid4().hex[:8]}",
+        f"VERIFIED-LATE-{uuid.uuid4().hex[:8]}",
+    ]
+    for decision_id, created_at in zip(reversed(expected), (30.0, 20.0, 10.0)):
+        _write_governed_decision(age_store, decision_id, domain=domain, created_at=created_at)
+        age_store.write_outcome(decision_id, "approve", True, domain=domain)
+
+    assert [row["decision_id"] for row in age_store.get_verified_decisions(domain)] == expected
+
+
 @pytest.mark.age
 def test_age_write_outcome_domain_preserves_status_transition(age_store):
     """A domain-scoped outcome confirms its pending Decision and keeps its domain."""
