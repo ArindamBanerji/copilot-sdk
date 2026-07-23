@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from dataclasses import asdict
 from typing import Sequence
 
 from .sqlite_to_age import _default_source_path, run_migration
@@ -41,6 +42,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Write to a scratch graph, verify, then copy to live.",
     )
 
+    reconcile_archive = subparsers.add_parser(
+        "reconcile_archive",
+        help="Mark AGE Decisions archived when SQLite has archived their IDs.",
+    )
+    reconcile_archive.add_argument("--domain", required=True)
+    reconcile_archive.add_argument("--source", required=True)
+    reconcile_archive.add_argument("--age-dsn", required=True)
+    reconcile_archive.add_argument("--graph-name", default="soc_graph")
+    reconcile_archive.add_argument("--dry-run", action="store_true")
+    reconcile_archive.add_argument("--batch-size", type=int, default=100)
+
     return parser
 
 
@@ -67,6 +79,30 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"Migration failed: {result.get('fail_reason', 'unknown failure')}")
             sys.exit(1)
         sys.exit(0)
+
+    if args.command == "reconcile_archive":
+        from ci_platform.graph.age_graph_store import AGEGraphStore
+        from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+        from copilot_sdk.migrate.reconcile_archive import ArchiveReconciler
+
+        sqlite_store = SQLiteGraphStore(args.source, domain=args.domain)
+        age_store = AGEGraphStore(dsn=args.age_dsn, graph_name=args.graph_name)
+        try:
+            reconciler = ArchiveReconciler(sqlite_store, age_store, args.domain)
+            result = reconciler.reconcile(batch_size=args.batch_size, dry_run=args.dry_run)
+            if result["status"] == "PASS" and not args.dry_run:
+                verification = reconciler.verify()
+                result["verification"] = {
+                    name: asdict(report) for name, report in verification.items()
+                }
+                if not all(report.passed for report in verification.values()):
+                    result["status"] = "FAIL"
+                    result["fail_reason"] = "Active or history read-diff verification failed"
+            print(json.dumps(result, indent=2, sort_keys=True))
+            sys.exit(0 if result["status"] == "PASS" else 1)
+        finally:
+            sqlite_store.close()
+            age_store.close()
 
     parser.print_help()
     return 1

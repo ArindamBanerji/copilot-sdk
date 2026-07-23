@@ -1880,6 +1880,17 @@ class SQLiteGraphStore:
         ).fetchall()
         return [self._decision_from_row(row) for row in rows]
 
+    def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT * FROM decisions_archive
+            WHERE domain = ?
+            ORDER BY created_at ASC, decision_id ASC
+            """,
+            (str(domain),),
+        ).fetchall()
+        return [self._archived_decision_from_row(row) for row in rows]
+
     def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
         rows = self.connection.execute(
             """
@@ -3028,6 +3039,31 @@ class SQLiteGraphStore:
             }
         )
         return data
+
+    @staticmethod
+    def _archived_decision_from_row(row: sqlite3.Row) -> dict[str, Any]:
+        """Normalize the denormalized SQLite archive row for history reads."""
+        actual_index = row["actual_index"]
+        is_correct = row["is_correct"]
+        verified_at = row["verified_at"]
+        return {
+            "decision_id": row["decision_id"],
+            "domain": row["domain"],
+            "category": row["category"],
+            "category_index": int(row["category_index"]),
+            "recommended_action": row["recommended_action"],
+            "recommended_index": int(row["recommended_index"]),
+            "confidence": float(row["confidence"]),
+            "factor_vector": _from_json(row["factor_vector_json"]),
+            "probabilities": _from_json(row["probabilities_json"]),
+            "created_at": float(row["created_at"]),
+            "actual_action": row["actual_action"],
+            "actual_index": int(actual_index) if actual_index is not None else None,
+            "is_correct": bool(is_correct) if is_correct is not None else None,
+            "verified_at": float(verified_at) if verified_at is not None else None,
+            "archived_at": float(row["archived_at"]),
+            "archive_reason": row["archive_reason"],
+        }
 
     def _entity_enrichment_record_from_row(self, row: sqlite3.Row) -> EntityEnrichmentRecord:
         value = ProvenancedValue.from_storage_dict(

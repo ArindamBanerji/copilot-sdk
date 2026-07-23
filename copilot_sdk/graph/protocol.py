@@ -51,6 +51,10 @@ class GraphStore(Protocol):
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
         ...
 
+    def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]:
+        """Return every archived Decision for one domain in archive order."""
+        ...
+
     def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
         ...
 

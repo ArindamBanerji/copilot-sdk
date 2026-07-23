@@ -16,7 +16,7 @@ from copilot_sdk.graph.protocol import GraphStore
 # migration bookkeeping, metadata serialization, or timestamps.  AGE may
 # return verified_at/context only inside an Outcome container, so those are
 # deliberately excluded from this cross-store contract.
-COMPARE_FIELDS = (
+ACTIVE_COMPARE_FIELDS = (
     "decision_id",
     "domain",
     "category",
@@ -31,12 +31,32 @@ COMPARE_FIELDS = (
 
 VERIFIED_COMPARE_FIELDS = ("actual_action", "actual_index", "is_correct")
 
+HISTORY_COMPARE_FIELDS = (
+    "decision_id",
+    "domain",
+    "category",
+    "category_index",
+    "recommended_action",
+    "recommended_index",
+    "confidence",
+    "factor_vector",
+    "probabilities",
+    "created_at",
+    "actual_action",
+    "actual_index",
+    "is_correct",
+    "verified_at",
+    "archived_at",
+    "archive_reason",
+)
+
 
 @dataclass
 class DiffReport:
     """Structured result of a primary/secondary GraphStore comparison."""
 
     domain: str
+    mode: str = "active"
     primary_count: int = 0
     secondary_count: int = 0
     count_match: bool = False
@@ -46,6 +66,9 @@ class DiffReport:
     primary_total: int = 0
     secondary_total: int = 0
     total_match: bool = False
+    primary_archive_count: int = 0
+    secondary_archive_count: int = 0
+    archive_count_match: bool = False
     missing_in_secondary: list[str] = field(default_factory=list)
     missing_in_primary: list[str] = field(default_factory=list)
     field_mismatches: list[dict[str, Any]] = field(default_factory=list)
@@ -53,8 +76,16 @@ class DiffReport:
 
     def summary(self) -> str:
         outcome = "PASS" if self.passed else "FAIL"
+        if self.mode == "history":
+            return (
+                f"{outcome} mode=history domain={self.domain} "
+                f"archived={self.primary_archive_count}/{self.secondary_archive_count} "
+                f"missing_secondary={len(self.missing_in_secondary)} "
+                f"missing_primary={len(self.missing_in_primary)} "
+                f"field_mismatches={len(self.field_mismatches)}"
+            )
         return (
-            f"{outcome} domain={self.domain} verified={self.primary_count}/{self.secondary_count} "
+            f"{outcome} mode=active domain={self.domain} verified={self.primary_count}/{self.secondary_count} "
             f"correct={self.primary_correct}/{self.secondary_correct} "
             f"total={self.primary_total}/{self.secondary_total} "
             f"missing_secondary={len(self.missing_in_secondary)} "
@@ -121,19 +152,56 @@ class ReadDiffRunner:
         return self.compare_all()
 
     def compare_all(self, domain: str | None = None) -> DiffReport:
-        """Compare count parity and every active Decision in ``domain``."""
+        """Backward-compatible alias for :meth:`compare_active`."""
+        return self.compare_active(domain)
+
+    def compare_active(self, domain: str | None = None) -> DiffReport:
+        """Compare active count parity and every active Decision in ``domain``."""
         target_domain = domain or self.domain
-        return self._compare(target_domain)
+        return self._compare_active(target_domain)
 
     def compare_sample(self, domain: str | None = None, n: int = 100) -> DiffReport:
+        """Backward-compatible alias for :meth:`compare_active_sample`."""
+        return self.compare_active_sample(domain, n=n)
+
+    def compare_active_sample(self, domain: str | None = None, n: int = 100) -> DiffReport:
         """Compare count parity and a random sample of up to ``n`` Decisions."""
         if n < 0:
             raise ValueError("sample size must be non-negative")
         target_domain = domain or self.domain
-        return self._compare(target_domain, sample_size=n)
+        return self._compare_active(target_domain, sample_size=n)
 
-    def _compare(self, domain: str, sample_size: int | None = None) -> DiffReport:
-        report = DiffReport(domain=domain)
+    def compare_history(
+        self, domain: str | None = None, compare_archived_at: bool = False
+    ) -> DiffReport:
+        """Compare archive history without invoking active D2 count methods."""
+        target_domain = domain or self.domain
+        report = DiffReport(domain=target_domain, mode="history")
+        primary_archived = self.primary.get_archived_decisions(target_domain)
+        secondary_archived = self.secondary.get_archived_decisions(target_domain)
+        primary_map = self._decision_map(primary_archived, target_domain)
+        secondary_map = self._decision_map(secondary_archived, target_domain)
+        report.primary_archive_count = len(primary_archived)
+        report.secondary_archive_count = len(secondary_archived)
+        report.archive_count_match = (
+            report.primary_archive_count == report.secondary_archive_count
+        )
+        self._populate_id_differences(report, primary_map, secondary_map)
+        history_fields = HISTORY_COMPARE_FIELDS if compare_archived_at else tuple(
+            field for field in HISTORY_COMPARE_FIELDS if field != "archived_at"
+        )
+        self._compare_fields(report, primary_map, secondary_map, history_fields)
+        report.passed = (
+            report.archive_count_match
+            and not report.missing_in_secondary
+            and not report.missing_in_primary
+            and not report.field_mismatches
+        )
+        self.logger.info(report.summary())
+        return report
+
+    def _compare_active(self, domain: str, sample_size: int | None = None) -> DiffReport:
+        report = DiffReport(domain=domain, mode="active")
         report.primary_count = self.primary.count_verified(domain)
         report.secondary_count = self.secondary.count_verified(domain)
         report.count_match = report.primary_count == report.secondary_count
@@ -165,33 +233,13 @@ class ReadDiffRunner:
                 primary_map = {key: decision for key, decision in primary_map.items() if key in sample_keys}
                 secondary_map = {key: decision for key, decision in secondary_map.items() if key in sample_keys}
 
-            report.missing_in_secondary = [
-                decision_id
-                for domain, decision_id in primary_map
-                if (domain, decision_id) not in secondary_map
-            ]
-            report.missing_in_primary = [
-                decision_id
-                for domain, decision_id in secondary_map
-                if (domain, decision_id) not in primary_map
-            ]
+            self._populate_id_differences(report, primary_map, secondary_map)
+            self._compare_fields(report, primary_map, secondary_map, ACTIVE_COMPARE_FIELDS)
 
             for key, primary_decision in primary_map.items():
                 secondary_decision = secondary_map.get(key)
                 if secondary_decision is None:
                     continue
-                for field in COMPARE_FIELDS:
-                    primary_value = primary_decision.get(field)
-                    secondary_value = secondary_decision.get(field)
-                    if not _values_match(primary_value, secondary_value):
-                        report.field_mismatches.append(
-                            {
-                                "decision_id": key[1],
-                                "field": field,
-                                "primary": primary_value,
-                                "secondary": secondary_value,
-                            }
-                        )
                 if self._is_verified(primary_decision) or self._is_verified(secondary_decision):
                     for field in VERIFIED_COMPARE_FIELDS:
                         # AGE's optional Outcome merge does not guarantee every
@@ -221,6 +269,47 @@ class ReadDiffRunner:
         )
         self.logger.info(report.summary())
         return report
+
+    @staticmethod
+    def _populate_id_differences(
+        report: DiffReport,
+        primary_map: dict[tuple[str, str], dict[str, Any]],
+        secondary_map: dict[tuple[str, str], dict[str, Any]],
+    ) -> None:
+        report.missing_in_secondary = [
+            decision_id
+            for domain, decision_id in primary_map
+            if (domain, decision_id) not in secondary_map
+        ]
+        report.missing_in_primary = [
+            decision_id
+            for domain, decision_id in secondary_map
+            if (domain, decision_id) not in primary_map
+        ]
+
+    @staticmethod
+    def _compare_fields(
+        report: DiffReport,
+        primary_map: dict[tuple[str, str], dict[str, Any]],
+        secondary_map: dict[tuple[str, str], dict[str, Any]],
+        fields: tuple[str, ...],
+    ) -> None:
+        for key, primary_decision in primary_map.items():
+            secondary_decision = secondary_map.get(key)
+            if secondary_decision is None:
+                continue
+            for field in fields:
+                primary_value = primary_decision.get(field)
+                secondary_value = secondary_decision.get(field)
+                if not _values_match(primary_value, secondary_value):
+                    report.field_mismatches.append(
+                        {
+                            "decision_id": key[1],
+                            "field": field,
+                            "primary": primary_value,
+                            "secondary": secondary_value,
+                        }
+                    )
 
     @staticmethod
     def _decision_map(

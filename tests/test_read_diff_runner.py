@@ -14,6 +14,7 @@ class ReadStore:  # MOCK-OK: read-only GraphStore comparison boundary fixture.
         verified: int | None = None,
         correct: int | None = None,
         total: int | None = None,
+        archived_decisions: list[dict[str, Any]] | None = None,
     ) -> None:
         self.decisions = decisions
         self.verified_decisions = (
@@ -28,8 +29,10 @@ class ReadStore:  # MOCK-OK: read-only GraphStore comparison boundary fixture.
         self.verified = len(self.verified_decisions) if verified is None else verified
         self.correct = self.verified if correct is None else correct
         self.total = len(decisions) if total is None else total
+        self.archived_decisions = list(archived_decisions or [])
         self.verified_calls = 0
         self.all_calls = 0
+        self.archived_calls = 0
 
     def count_verified(self, domain: str) -> int:
         return self.verified
@@ -47,6 +50,10 @@ class ReadStore:  # MOCK-OK: read-only GraphStore comparison boundary fixture.
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
         self.all_calls += 1
         return list(self.decisions)
+
+    def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]:
+        self.archived_calls += 1
+        return list(self.archived_decisions)
 
 
 def _decision(decision_id: str, **overrides: Any) -> dict[str, Any]:
@@ -72,6 +79,20 @@ def _decision(decision_id: str, **overrides: Any) -> dict[str, Any]:
 
 def _run(primary: ReadStore, secondary: ReadStore):
     return ReadDiffRunner(primary, secondary, "trading").run_diff()
+
+
+def _archived(decision_id: str, **overrides: Any) -> dict[str, Any]:
+    fields: dict[str, Any] = {
+        "created_at": 1.0,
+        "actual_index": 0,
+        "verified_at": 2.0,
+        "archived_at": 3.0,
+        "archive_reason": "retention_window",
+    }
+    fields.update(overrides)
+    decision = _decision(decision_id, **fields)
+    decision.pop("status", None)
+    return decision
 
 
 def test_counts_match_passes():
@@ -228,3 +249,114 @@ def test_run_diff_remains_a_compare_all_alias():
     report = ReadDiffRunner(ReadStore(decisions), ReadStore(decisions), "trading").run_diff()
     assert report.passed is True
     assert report.primary_total == 2
+
+
+def test_compare_active_all_matching_decisions_passes() -> None:
+    decisions = [
+        *[_decision(f"verified-{index}") for index in range(5)],
+        *[_decision(f"pending-{index}", status="pending") for index in range(5)],
+    ]
+
+    report = ReadDiffRunner(ReadStore(decisions), ReadStore(decisions), "trading").compare_active()
+
+    assert report.mode == "active"
+    assert report.passed is True
+    assert report.primary_total == 10
+
+
+def test_compare_active_count_mismatch_fails() -> None:
+    report = ReadDiffRunner(
+        ReadStore([_decision("d1")], total=2), ReadStore([_decision("d1")], total=1), "trading"
+    ).compare_active()
+
+    assert report.mode == "active"
+    assert report.passed is False
+    assert report.total_match is False
+
+
+def test_compare_active_confidence_mismatch_is_reported() -> None:
+    report = ReadDiffRunner(
+        ReadStore([_decision("d1")]), ReadStore([_decision("d1", confidence=0.4)]), "trading"
+    ).compare_active()
+
+    assert report.passed is False
+    assert any(mismatch["field"] == "confidence" for mismatch in report.field_mismatches)
+
+
+def test_compare_history_matching_archives_passes() -> None:
+    archived = [_archived(f"a{index}", created_at=float(index)) for index in range(5)]
+
+    report = ReadDiffRunner(
+        ReadStore([], archived_decisions=archived), ReadStore([], archived_decisions=archived), "trading"
+    ).compare_history()
+
+    assert report.mode == "history"
+    assert report.passed is True
+    assert report.primary_archive_count == 5
+
+
+def test_compare_history_archive_count_mismatch_fails() -> None:
+    report = ReadDiffRunner(
+        ReadStore([], archived_decisions=[_archived("a1"), _archived("a2")]),
+        ReadStore([], archived_decisions=[_archived("a1")]),
+        "trading",
+    ).compare_history()
+
+    assert report.passed is False
+    assert report.archive_count_match is False
+    assert report.missing_in_secondary == ["a2"]
+
+
+def test_compare_history_ignores_archived_at_by_default() -> None:
+    report = ReadDiffRunner(
+        ReadStore([], archived_decisions=[_archived("a1", archived_at=1.0)]),
+        ReadStore([], archived_decisions=[_archived("a1", archived_at=999.0)]),
+        "trading",
+    ).compare_history()
+
+    assert report.passed is True
+
+
+def test_compare_history_compares_archived_at_when_requested() -> None:
+    report = ReadDiffRunner(
+        ReadStore([], archived_decisions=[_archived("a1", archived_at=1.0)]),
+        ReadStore([], archived_decisions=[_archived("a1", archived_at=999.0)]),
+        "trading",
+    ).compare_history(compare_archived_at=True)
+
+    assert report.passed is False
+    assert any(mismatch["field"] == "archived_at" for mismatch in report.field_mismatches)
+
+
+def test_compare_all_is_compare_active_alias() -> None:
+    decisions = [_decision("d1")]
+    runner = ReadDiffRunner(ReadStore(decisions), ReadStore(decisions), "trading")
+
+    report = runner.compare_all()
+
+    assert report.mode == "active"
+    assert report.passed is True
+
+
+def test_compare_active_sample_matches_requested_sample() -> None:
+    decisions = [_decision(f"d{index}") for index in range(10)]
+
+    report = ReadDiffRunner(ReadStore(decisions), ReadStore(decisions), "trading").compare_active_sample(n=3)
+
+    assert report.mode == "active"
+    assert report.passed is True
+
+
+def test_active_and_history_reports_are_independent_gates() -> None:
+    active = [_decision("d1")]
+    runner = ReadDiffRunner(
+        ReadStore(active, archived_decisions=[_archived("a1")]),
+        ReadStore(active, archived_decisions=[]),
+        "trading",
+    )
+
+    active_report = runner.compare_active()
+    history_report = runner.compare_history()
+
+    assert active_report.passed is True
+    assert history_report.passed is False

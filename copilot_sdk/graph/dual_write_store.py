@@ -145,6 +145,8 @@ class DualWriteStore(GraphStore):
             self._secondary_failures.append(entry)
         self._trim_failures()
         self.logger.warning("%s operation=%s error=%s", entry["status"], operation, entry["error"])
+        if operation == "write_governed_decision" and args:
+            self.logger.warning("DUAL_WRITE secondary FAIL: %s: %s", args[0], entry["error"])
         if not unsupported:
             self._append_outbox_entry(operation, args, kwargs, str(entry["error"]))
 
@@ -308,7 +310,15 @@ class DualWriteStore(GraphStore):
         self._write("write_outcome", lambda: self.primary.write_outcome(decision_id, actual_action, is_correct, metadata, domain), lambda: self.secondary.write_outcome(decision_id, actual_action, is_correct, metadata, domain), (decision_id, actual_action, is_correct), {"metadata": metadata, "domain": domain})
 
     def write_governed_decision(self, decision_id: str, domain: str, category: str, category_index: int, recommended_action: str, recommended_index: int, confidence: float, probabilities: list[float], factor_vector: list[float], factor_names: list[str], source: str = "score", scorer_version: str = "", preset_version: str = "", factor_schema_version: str = "", metadata: dict[str, Any] | None = None) -> None:
-        self._write("write_governed_decision", lambda: self.primary.write_governed_decision(decision_id, domain, category, category_index, recommended_action, recommended_index, confidence, probabilities, factor_vector, factor_names, source, scorer_version, preset_version, factor_schema_version, metadata), lambda: self.secondary.write_governed_decision(decision_id, domain, category, category_index, recommended_action, recommended_index, confidence, probabilities, factor_vector, factor_names, source, scorer_version, preset_version, factor_schema_version, metadata), (decision_id, domain, category, category_index, recommended_action, recommended_index, confidence, probabilities, factor_vector, factor_names), {"source": source, "scorer_version": scorer_version, "preset_version": preset_version, "factor_schema_version": factor_schema_version, "metadata": metadata})
+        def write_primary() -> None:
+            self.primary.write_governed_decision(decision_id, domain, category, category_index, recommended_action, recommended_index, confidence, probabilities, factor_vector, factor_names, source, scorer_version, preset_version, factor_schema_version, metadata)
+            self.logger.info("DUAL_WRITE primary OK: %s", decision_id)
+
+        def write_secondary() -> None:
+            self.secondary.write_governed_decision(decision_id, domain, category, category_index, recommended_action, recommended_index, confidence, probabilities, factor_vector, factor_names, source, scorer_version, preset_version, factor_schema_version, metadata)
+            self.logger.info("DUAL_WRITE secondary OK: %s", decision_id)
+
+        self._write("write_governed_decision", write_primary, write_secondary, (decision_id, domain, category, category_index, recommended_action, recommended_index, confidence, probabilities, factor_vector, factor_names), {"source": source, "scorer_version": scorer_version, "preset_version": preset_version, "factor_schema_version": factor_schema_version, "metadata": metadata})
 
     def write_observation(self, observation_id: str, domain: str, category: str, recommended_action: str, confidence: float, source_route: str, scorer_version: str, factor_schema_version: str, entity_id: str | None = None, factor_vector: list[float] | None = None, factor_names: list[str] | None = None, metadata: dict[str, Any] | None = None) -> None:
         self._write("write_observation", lambda: self.primary.write_observation(observation_id, domain, category, recommended_action, confidence, source_route, scorer_version, factor_schema_version, entity_id, factor_vector, factor_names, metadata), lambda: self.secondary.write_observation(observation_id, domain, category, recommended_action, confidence, source_route, scorer_version, factor_schema_version, entity_id, factor_vector, factor_names, metadata), (observation_id, domain, category, recommended_action, confidence, source_route, scorer_version, factor_schema_version), {"entity_id": entity_id, "factor_vector": factor_vector, "factor_names": factor_names, "metadata": metadata})
@@ -341,6 +351,7 @@ class DualWriteStore(GraphStore):
     def get_decision(self, decision_id: str) -> dict[str, Any] | None: return self.primary.get_decision(decision_id)
     def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict[str, Any]]: return self.primary.get_decisions(domain, category, limit)
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_all_decisions(domain)
+    def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_archived_decisions(domain)
     def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_verified_decisions(domain)
     def count_verified(self, domain: str) -> int: return self.primary.count_verified(domain)
     def count_correct(self, domain: str) -> int: return self.primary.count_correct(domain)

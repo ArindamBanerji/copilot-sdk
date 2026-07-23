@@ -1385,6 +1385,38 @@ class InMemoryGraphStore:
     def count_archived(self, domain: str) -> int:
         return sum(1 for row in self._archive if row.get("domain") == domain)
 
+    def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]:
+        records: list[dict[str, Any]] = []
+        for archived in self._archive:
+            if archived.get("domain") != str(domain):
+                continue
+            decision = archived["decision"]
+            outcome = archived.get("outcome") or {}
+            actual_index = outcome.get("actual_index")
+            is_correct = outcome.get("is_correct")
+            verified_at = outcome.get("verified_at")
+            records.append(
+                {
+                    "decision_id": decision["decision_id"],
+                    "domain": decision["domain"],
+                    "category": decision["category"],
+                    "category_index": int(decision["category_index"]),
+                    "recommended_action": decision["recommended_action"],
+                    "recommended_index": int(decision["recommended_index"]),
+                    "confidence": float(decision["confidence"]),
+                    "factor_vector": [float(value) for value in decision["factor_vector"]],
+                    "probabilities": [float(value) for value in decision["probabilities"]],
+                    "created_at": float(decision["created_at"]),
+                    "actual_action": outcome.get("actual_action"),
+                    "actual_index": int(actual_index) if actual_index is not None else None,
+                    "is_correct": bool(is_correct) if is_correct is not None else None,
+                    "verified_at": float(verified_at) if verified_at is not None else None,
+                    "archived_at": float(archived["archived_at"]),
+                    "archive_reason": archived["archive_reason"],
+                }
+            )
+        return sorted(records, key=lambda record: (record["created_at"], record["decision_id"]))
+
     def archive_decisions(
         self,
         domain: str,
