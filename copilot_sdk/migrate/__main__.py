@@ -29,6 +29,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Include pending decisions; default migrates verified decisions only.",
     )
+    sqlite_to_age.add_argument(
+        "--include-archived",
+        action="store_true",
+        help="Also migrate decisions_archive as directly archived AGE Decisions.",
+    )
     sqlite_to_age.add_argument("--batch-size", type=int, default=1000)
     sqlite_to_age.add_argument(
         "--resume",
@@ -72,6 +77,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             verify=not args.no_verify,
             use_scratch=args.use_scratch_graph,
             all_decisions=args.all_decisions,
+            include_archived=args.include_archived,
             resume=args.resume,
         )
         print(json.dumps(result, indent=2, sort_keys=True))

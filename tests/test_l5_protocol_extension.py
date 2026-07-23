@@ -84,6 +84,9 @@ def test_l5_methods_are_not_added_to_graphstore_or_protocol_v2() -> None:
 
 def test_minimal_graphstore_does_not_need_l5_methods() -> None:
     class MinimalGraphStore:
+        def __init__(self):
+            self._archive = []
+
         def write_decision(self, domain, category, action, confidence, factors, metadata=None):
             return "DEC-1"
 
@@ -98,6 +101,9 @@ def test_minimal_graphstore_does_not_need_l5_methods() -> None:
 
         def get_all_decisions(self, domain):
             return []
+
+        def get_archived_decisions(self, domain):
+            return list(self._archive)
 
         def get_verified_decisions(self, domain):
             return []

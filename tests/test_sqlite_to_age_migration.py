@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 import re
+import json
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,7 @@ from copilot_sdk.migrate.sqlite_to_age import (
     _default_source_path,
     _read_outcomes,
     _read_migration_records,
+    _read_archive_migration_records,
     _read_verified_decisions,
     _transform_decision,
     _verify_level1,
@@ -72,6 +74,30 @@ CREATE TABLE decision_entity_edges (
 )
 """
 
+ARCHIVE_SCHEMA = """
+CREATE TABLE decisions_archive (
+    archive_id INTEGER PRIMARY KEY,
+    decision_id TEXT,
+    domain TEXT,
+    category TEXT,
+    category_index INTEGER,
+    factors_json TEXT,
+    factor_vector_json TEXT,
+    recommended_action TEXT,
+    recommended_index INTEGER,
+    confidence REAL,
+    probabilities_json TEXT,
+    created_at REAL,
+    actual_action TEXT,
+    actual_index INTEGER,
+    is_correct INTEGER,
+    verified_at REAL,
+    context_json TEXT,
+    archived_at REAL,
+    archive_reason TEXT
+)
+"""
+
 
 def _make_db(tmp_path: Path, *, with_outcomes: bool = True) -> Path:
     db_path = tmp_path / "source.db"
@@ -106,6 +132,28 @@ def _make_db(tmp_path: Path, *, with_outcomes: bool = True) -> Path:
     conn.commit()
     conn.close()
     return db_path
+
+
+def _add_archive_rows(db_path: Path, rows: list[tuple]) -> None:
+    conn = sqlite3.connect(db_path)
+    conn.execute(ARCHIVE_SCHEMA)
+    conn.executemany(
+        "INSERT INTO decisions_archive VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        rows,
+    )
+    conn.commit()
+    conn.close()
+
+
+def _archive_row(
+    archive_id: int, decision_id: str, *, actual_action: str | None = "buy", is_correct: int | None = 1
+) -> tuple:
+    return (
+        archive_id, decision_id, "trading", "archive_cat", 7, "{}", "[7.0]", "buy", 0,
+        0.7, '{"buy": 1}', float(archive_id), actual_action, 0 if actual_action else None,
+        is_correct, 100.0 + archive_id if actual_action else None, "{}" if actual_action else None,
+        200.0 + archive_id, "retention_window",
+    )
 
 
 class FakeCursor:
@@ -1047,3 +1095,142 @@ def test_topology_verification_rejects_decisions_without_outcomes(tmp_path):
     assert {item["element"] for item in result["mismatches"]} == {"Outcome", "HAS_OUTCOME"}
     assert result["mismatches"][0]["expected"] == 4
     assert result["mismatches"][0]["actual"] == 0
+
+
+def test_include_archived_writes_final_archived_decisions_and_outcomes(tmp_path):
+    db_path = _make_db(tmp_path)
+    _add_archive_rows(
+        db_path,
+        [
+            _archive_row(1, "a-confirmed", is_correct=1),
+            _archive_row(2, "a-overridden", is_correct=0),
+            _archive_row(3, "a-pending", actual_action=None, is_correct=None),
+        ],
+    )
+    with sqlite3.connect(db_path) as source:
+        records = _read_archive_migration_records(source, "trading")
+    age = TopologyConn()
+    result = _write_batch(age, records, "graph")
+    queries = "\n".join(age.queries)
+
+    assert result == {"written": 3, "skipped": 0, "errors": 0}
+    assert queries.count("CREATE (d:Decision") == 3
+    assert queries.count("CREATE (o:Outcome") == 2
+    assert queries.count("HAS_OUTCOME") == 2
+    assert "archived: true" in queries
+    assert "archived_at: 201.0" in queries
+    assert "archive_reason: 'retention_window'" in queries
+    assert "migration_origin: 'decisions_archive'" in queries
+
+
+def test_include_archived_without_all_decisions_excludes_active_pending(tmp_path):
+    db_path = _make_db(tmp_path)
+    _add_archive_rows(db_path, [_archive_row(1, "a1"), _archive_row(2, "a2", actual_action=None, is_correct=None)])
+
+    active = _read_migration_records(str(db_path), "trading", all_decisions=False)
+    with sqlite3.connect(db_path) as source:
+        archived = _read_archive_migration_records(source, "trading")
+
+    assert {record["decision"]["decision_id"] for record in active} == {"d1", "d2", "d4", "d5"}
+    assert {record["decision"]["decision_id"] for record in archived} == {"a1", "a2"}
+
+
+def test_archive_status_is_derived_from_inline_outcome(tmp_path):
+    db_path = _make_db(tmp_path)
+    _add_archive_rows(
+        db_path,
+        [
+            _archive_row(1, "confirmed", is_correct=1),
+            _archive_row(2, "overridden", is_correct=0),
+            _archive_row(3, "pending", actual_action=None, is_correct=None),
+        ],
+    )
+    with sqlite3.connect(db_path) as source:
+        records = _read_archive_migration_records(source, "trading")
+
+    statuses = {record["decision"]["decision_id"]: record["decision"]["status"] for record in records}
+    assert statuses == {"confirmed": "confirmed", "overridden": "overridden", "pending": "pending"}
+    assert all(record["decision"].get("archived") is True for record in records)
+
+
+def test_malformed_archive_outcome_fails_before_writing(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    _add_archive_rows(db_path, [_archive_row(1, "broken", actual_action="buy", is_correct=None)])
+    age = TopologyConn()
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: age)
+
+    result = run_migration("trading", str(db_path), "dsn", "graph", include_archived=True, verify=False)
+
+    assert result["status"] == "FAIL"
+    assert result["fail_reason"] == "1 write errors"
+    assert "broken" not in {node["decision_id"] for node in age.nodes if node["label"] == "Decision"}
+
+
+def test_active_archive_id_overlap_fails_before_connecting(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    _add_archive_rows(db_path, [_archive_row(1, "d1")])
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._connect_age",
+        lambda *args: (_ for _ in ()).throw(AssertionError("overlap must fail before AGE connection")),
+    )
+
+    result = run_migration("trading", str(db_path), "dsn", "graph", include_archived=True, verify=False)
+
+    assert result["status"] == "FAIL"
+    assert "d1" in result["fail_reason"]
+
+
+def test_archive_phase_resume_starts_after_completed_active_phase(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    _add_archive_rows(db_path, [_archive_row(1, "a1")])
+    age = FakeConn()
+    calls: list[str] = []
+
+    def interrupt_archive(_conn, batch, _graph):
+        phase = batch[0].get("phase", "active")
+        calls.append(phase)
+        if phase == "archive" and calls.count("archive") == 1:
+            raise RuntimeError("interrupt archive")
+        return {"written": len(batch), "skipped": 0, "errors": 0}
+
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: age)
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._write_batch", interrupt_archive)
+    first = run_migration(
+        "trading", str(db_path), "dsn", "graph", all_decisions=True,
+        include_archived=True, verify=False, batch_size=100,
+    )
+    checkpoint = json.loads((tmp_path / "trading_migration_checkpoint.json").read_text(encoding="utf-8"))
+    assert first["status"] == "FAIL"
+    assert checkpoint["phase"] == "active"
+    assert checkpoint["active_last_rowid"] > 0
+
+    second = run_migration(
+        "trading", str(db_path), "dsn", "graph", all_decisions=True,
+        include_archived=True, verify=False, batch_size=100, resume=True,
+    )
+    assert second["status"] == "PASS"
+    assert calls == ["active", "archive", "archive"]
+
+
+def test_full_history_resume_reports_already_complete(tmp_path, monkeypatch):
+    db_path = _make_db(tmp_path)
+    _add_archive_rows(db_path, [_archive_row(1, "a1")])
+    monkeypatch.setattr("copilot_sdk.migrate.sqlite_to_age._connect_age", lambda *args: FakeConn())
+
+    first = run_migration("trading", str(db_path), "dsn", "graph", all_decisions=True, include_archived=True, verify=False)
+    second = run_migration("trading", str(db_path), "dsn", "graph", all_decisions=True, include_archived=True, verify=False, resume=True)
+
+    assert first["status"] == "PASS"
+    assert second["status"] == "PASS"
+    assert second["already_complete"] is True
+
+
+def test_cli_include_archived_passes_flag(monkeypatch):
+    received: dict = {}
+    monkeypatch.setattr(migrate_main, "run_migration", lambda **kwargs: received.update(kwargs) or {"status": "PASS"})
+
+    with pytest.raises(SystemExit) as exc_info:
+        migrate_main.main(["sqlite_to_age", "--domain", "trading", "--age-dsn", "host=localhost", "--include-archived"])
+
+    assert exc_info.value.code == 0
+    assert received["include_archived"] is True

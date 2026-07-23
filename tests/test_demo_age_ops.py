@@ -27,6 +27,7 @@ def _args(**overrides) -> argparse.Namespace:
         "diag_mode": False,
         "age_use_pool": False,
         "no_browser": True,
+        "no_reseed": False,
         "preseed": False,
         "graph": False,
         "diag_backend_port": 8001,

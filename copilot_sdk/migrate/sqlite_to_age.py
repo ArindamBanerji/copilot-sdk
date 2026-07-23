@@ -8,6 +8,7 @@ migrated and is re-derived from the ordered decision log.
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import math
 import os
@@ -235,6 +236,91 @@ def _read_migration_records(
     return records
 
 
+def _read_archive_migration_records(
+    conn: sqlite3.Connection, domain: str
+) -> list[dict[str, Any]]:
+    """Read denormalized SQLite archive rows as final archived AGE topology."""
+    domain = _validated_domain(domain)
+    conn.row_factory = sqlite3.Row
+    columns = _table_columns(conn, "decisions_archive")
+    if not columns:
+        return []
+    if "archive_id" not in columns:
+        raise ValueError("decisions_archive requires archive_id for resumable migration ordering")
+    rows = [
+        dict(row)
+        for row in conn.execute(
+            "SELECT * FROM decisions_archive WHERE domain = ? ORDER BY archive_id ASC",
+            (domain,),
+        ).fetchall()
+    ]
+    migration_ts = time.time()
+    records: list[dict[str, Any]] = []
+    for row in rows:
+        decision_id = str(row.get("decision_id") or "")
+        actual_action = row.get("actual_action")
+        is_correct = row.get("is_correct")
+        if actual_action is not None and is_correct is None:
+            records.append(
+                {
+                    "archive_id": int(row["archive_id"]),
+                    "decision": {"decision_id": decision_id, "domain": domain},
+                    "error": "malformed archived outcome: actual_action is set but is_correct is NULL",
+                    "phase": "archive",
+                }
+            )
+            continue
+        has_outcome = actual_action is not None
+        status = "pending" if not has_outcome else ("confirmed" if _as_bool(is_correct) else "overridden")
+        decision = {
+            key: row.get(key)
+            for key in DECISION_COLUMNS
+            if key != "status" and key in row
+        }
+        decision["status"] = status
+        props = _migration_decision_properties(decision, domain, migration_ts)
+        props.update(
+            {
+                "archived": True,
+                "archived_at": _as_float(row.get("archived_at")),
+                "archive_reason": _as_text(row.get("archive_reason"), "retention_window"),
+                "archive_status": "archived",
+                "archived_from_status": status,
+                "migration_origin": "decisions_archive",
+            }
+        )
+        outcome = (
+            {
+                key: row.get(key)
+                for key in OUTCOME_COLUMNS
+                if key not in {"decision_id", "domain"} and key in row
+            }
+            if has_outcome
+            else None
+        )
+        records.append(
+            {
+                "archive_id": int(row["archive_id"]),
+                "decision": props,
+                "outcome": outcome,
+                "checkpoints": [],
+                "receipts": [],
+                "archived": True,
+                "phase": "archive",
+            }
+        )
+    return records
+
+
+def _source_manifest(records: list[dict[str, Any]], cursor_key: str) -> str:
+    """Stable source identity for safe phase-aware resume validation."""
+    values = [
+        (int(record[cursor_key]), str(record.get("decision", {}).get("decision_id", "")))
+        for record in records
+    ]
+    return hashlib.sha256(json.dumps(values, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
 def _as_text(value: Any, default: str = "") -> str:
     return default if value is None else str(value)
 
@@ -315,7 +401,8 @@ def _age_level1_summary(
 ) -> dict[str, Any]:
     cypher = (
         f"MATCH (d:Decision {{domain: {_S(domain)}}}) "
-        "WHERE d.status IN ['confirmed', 'overridden'] "
+        "WHERE (d.archived IS NULL OR d.archived <> true) "
+        "AND d.status IN ['confirmed', 'overridden'] "
         "RETURN count(d) AS cnt, min(d.created_at) AS first_created_at, "
         "max(d.created_at) AS last_created_at"
     )
@@ -399,6 +486,26 @@ def _verify_topology(
         "mismatches": mismatches,
         "sample_failures": sample_failures,
     }
+
+
+def _verify_archive_topology(
+    records: list[dict[str, Any]], conn: psycopg.Connection, graph_name: str, domain: str
+) -> dict[str, Any]:
+    """Verify migration-tagged archived Decision/Outcome/edge topology."""
+    archived_records = [record for record in records if record.get("archived") and not record.get("error")]
+    expected = _topology_expected(archived_records)
+    domain_literal = _S(domain)
+    archived_where = " AND d.archived = true"
+    actual = {
+        "Decision": _age_topology_count(conn, graph_name, f"MATCH (d:Decision {{domain: {domain_literal}, migration_source: 'sqlite'}}) WHERE d.archived = true RETURN count(d) AS cnt"),
+        "Outcome": _age_topology_count(conn, graph_name, f"MATCH (d:Decision {{domain: {domain_literal}, migration_source: 'sqlite'}})-[:HAS_OUTCOME]->(o:Outcome {{domain: {domain_literal}, migration_source: 'sqlite'}}) WHERE d.archived = true RETURN count(DISTINCT o) AS cnt"),
+        "HAS_OUTCOME": _age_topology_count(conn, graph_name, f"MATCH (d:Decision {{domain: {domain_literal}, migration_source: 'sqlite'}})-[r:HAS_OUTCOME]->(:Outcome) WHERE d.archived = true RETURN count(r) AS cnt"),
+    }
+    mismatches = [
+        {"element": element, "expected": expected[element], "actual": actual[element]}
+        for element in actual if actual[element] != expected[element]
+    ]
+    return {"passed": not mismatches, "expected": {key: expected[key] for key in actual}, "actual": actual, "mismatches": mismatches}
 
 
 def _age_decision_by_id(
@@ -580,11 +687,14 @@ def _read_checkpoint(path: Path) -> dict[str, Any] | None:
         ) from exc
 
 
-def _checkpoint_identity(source_db: str, graph_name: str, all_decisions: bool) -> dict[str, Any]:
+def _checkpoint_identity(
+    source_db: str, graph_name: str, all_decisions: bool, include_archived: bool = False
+) -> dict[str, Any]:
     return {
         "source_db_path": str(Path(source_db).resolve()),
         "graph_name": graph_name,
         "all_decisions": bool(all_decisions),
+        "include_archived": bool(include_archived),
     }
 
 
@@ -599,16 +709,35 @@ def _checkpoint_payload(
     decisions_written: int,
     outcomes_written: int,
     status: str,
+    include_archived: bool = False,
+    phase: str = "active",
+    active_last_rowid: int | None = None,
+    archive_last_archive_id: int | None = None,
+    active_decisions_written: int | None = None,
+    archived_decisions_written: int | None = None,
+    active_outcomes_written: int | None = None,
+    archived_outcomes_written: int | None = None,
+    active_source_manifest_hash: str | None = None,
+    archive_source_manifest_hash: str | None = None,
 ) -> dict[str, Any]:
     return {
         "domain": domain,
-        **_checkpoint_identity(source_db, graph_name, all_decisions),
+        **_checkpoint_identity(source_db, graph_name, all_decisions, include_archived),
         "last_rowid": last_rowid,
         "batch_number": batch_number,
         "decisions_written": decisions_written,
         "outcomes_written": outcomes_written,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "status": status,
+        "phase": phase,
+        "active_last_rowid": last_rowid if active_last_rowid is None else active_last_rowid,
+        "archive_last_archive_id": 0 if archive_last_archive_id is None else archive_last_archive_id,
+        "active_decisions_written": decisions_written if active_decisions_written is None else active_decisions_written,
+        "archived_decisions_written": 0 if archived_decisions_written is None else archived_decisions_written,
+        "active_outcomes_written": outcomes_written if active_outcomes_written is None else active_outcomes_written,
+        "archived_outcomes_written": 0 if archived_outcomes_written is None else archived_outcomes_written,
+        "active_source_manifest_hash": active_source_manifest_hash,
+        "archive_source_manifest_hash": archive_source_manifest_hash,
     }
 
 
@@ -651,6 +780,91 @@ def _verify_level1(
         and _float_equal(age_summary["last_created_at"], sqlite_summary["last_created_at"])
     )
     return {"passed": passed, "details": {"sqlite": sqlite_summary, "age": age_summary}}
+
+
+def _verify_archive_level1(
+    db_path: str, conn: psycopg.Connection, graph_name: str, domain: str
+) -> dict[str, Any]:
+    """Level 1 archive parity: source archive rows equal archived AGE Decisions."""
+    with sqlite3.connect(db_path) as source_conn:
+        source_columns = _table_columns(source_conn, "decisions_archive")
+        sqlite_count = (
+            int(source_conn.execute("SELECT COUNT(*) FROM decisions_archive WHERE domain = ?", (domain,)).fetchone()[0])
+            if source_columns else 0
+        )
+    cypher = (
+        f"MATCH (d:Decision {{domain: {_S(domain)}, migration_source: 'sqlite'}}) "
+        "WHERE d.archived = true RETURN count(d) AS cnt"
+    )
+    age_count = _age_topology_count(conn, graph_name, cypher)
+    return {"passed": sqlite_count == age_count, "details": {"sqlite": sqlite_count, "age": age_count}}
+
+
+def _verify_archive_level2(
+    conn: psycopg.Connection, graph_name: str, archive_records: list[dict[str, Any]], sample_size: int = 10
+) -> dict[str, Any]:
+    """Sample archived Decision/Outcome fields without treating history as active D2."""
+    valid = [record for record in archive_records if not record.get("error")]
+    if len(valid) > sample_size:
+        valid = random.Random(0).sample(valid, sample_size)
+    mismatches: list[dict[str, Any]] = []
+    for record in valid:
+        decision = record["decision"]
+        decision_id = str(decision["decision_id"])
+        domain = str(decision["domain"])
+        cypher = f"""
+            MATCH (d:Decision {{domain: {_S(domain)}, decision_id: {_S(decision_id)}}})
+            WHERE d.archived = true
+            OPTIONAL MATCH (d)-[:HAS_OUTCOME]->(o:Outcome)
+            RETURN d.category AS category, d.recommended_action AS recommended_action,
+                d.confidence AS confidence, d.factor_vector AS factor_vector,
+                d.probabilities AS probabilities, d.archived_at AS archived_at,
+                d.archive_reason AS archive_reason, o.actual_action AS actual_action,
+                o.actual_index AS actual_index, o.is_correct AS is_correct,
+                o.verified_at AS verified_at
+        """
+        row = conn.execute(
+            _age_sql(
+                graph_name, cypher,
+                "category agtype, recommended_action agtype, confidence agtype, factor_vector agtype, "
+                "probabilities agtype, archived_at agtype, archive_reason agtype, actual_action agtype, "
+                "actual_index agtype, is_correct agtype, verified_at agtype",
+            )
+        ).fetchone()
+        if row is None:
+            mismatches.append({"decision_id": decision_id, "field": "missing_archived_age_decision"})
+            continue
+        field_names = (
+            "category", "recommended_action", "confidence", "factor_vector", "probabilities",
+            "archived_at", "archive_reason", "actual_action", "actual_index", "is_correct", "verified_at",
+        )
+        values = [
+            normalize_agtype_value(_row_value(row, field_name, index))
+            for index, field_name in enumerate(field_names)
+        ]
+        outcome = record.get("outcome") or {}
+        checks = {
+            "category": values[0] == decision.get("category"),
+            "recommended_action": values[1] == decision.get("recommended_action"),
+            "confidence": _float_equal(values[2], decision.get("confidence")),
+            "factor_vector": _compare_json(str(decision.get("factor_vector")), str(values[3])),
+            "probabilities": _compare_json(str(decision.get("probabilities")), str(values[4])),
+            "archived_at": _float_equal(values[5], decision.get("archived_at")),
+            "archive_reason": values[6] == decision.get("archive_reason"),
+        }
+        if outcome:
+            checks.update(
+                {
+                    "actual_action": values[7] == outcome.get("actual_action"),
+                    "actual_index": values[8] == outcome.get("actual_index"),
+                    "is_correct": _as_bool(values[9]) == _as_bool(outcome.get("is_correct")),
+                    "verified_at": _float_equal(values[10], outcome.get("verified_at")),
+                }
+            )
+        for field, passed in checks.items():
+            if not passed:
+                mismatches.append({"decision_id": decision_id, "field": field})
+    return {"passed": not mismatches, "details": {"sample_size": len(valid), "mismatches": mismatches}}
 
 
 def _json_equal(left: Any, right: Any, float_tol: float) -> bool:
@@ -731,6 +945,7 @@ def run_migration(
     verify_l3: bool = False,
     preset_config: Any = None,
     all_decisions: bool = False,
+    include_archived: bool = False,
     resume: bool = False,
     checkpoint_file: str | None = None,
 ) -> dict[str, Any]:
@@ -762,7 +977,7 @@ def run_migration(
             "fail_reason": str(exc),
         }
     if existing_checkpoint:
-        identity = _checkpoint_identity(source_db, graph_name, all_decisions)
+        identity = _checkpoint_identity(source_db, graph_name, all_decisions, include_archived)
         if existing_checkpoint.get("domain") != domain:
             return {
                 "status": "FAIL", "domain": domain, "source": source_db,
@@ -778,16 +993,37 @@ def run_migration(
                 "graph_name": graph_name, "checkpoint_file": str(checkpoint),
                 "fail_reason": f"Checkpoint was created for graph '{existing_checkpoint.get('graph_name')}' but current target is '{graph_name}'. Delete the checkpoint file to start fresh.",
             }
-        for key in ("source_db_path", "all_decisions"):
-            if existing_checkpoint.get(key) != identity[key]:
+        for key in ("source_db_path", "all_decisions", "include_archived"):
+            checkpoint_value = existing_checkpoint.get(key, False if key == "include_archived" else None)
+            if checkpoint_value != identity[key]:
                 return {
                     "status": "FAIL", "domain": domain, "source": source_db,
                     "graph_name": graph_name, "checkpoint_file": str(checkpoint),
                     "fail_reason": f"Checkpoint {key} does not match this migration. Delete the checkpoint file to start fresh.",
                 }
-    transformed = _read_migration_records(source_db, domain, all_decisions=all_decisions)
-    verified_records = [record for record in transformed if record["decision"]["status"] in _VERIFIED_STATUSES]
-    pending_records = [record for record in transformed if record["decision"]["status"] == "pending"]
+    active_records = _read_migration_records(source_db, domain, all_decisions=all_decisions)
+    with sqlite3.connect(source_db) as source_conn:
+        archive_records = _read_archive_migration_records(source_conn, domain) if include_archived else []
+    active_ids = {str(record.get("decision", {}).get("decision_id")) for record in active_records}
+    archive_ids = {str(record.get("decision", {}).get("decision_id")) for record in archive_records}
+    overlap = sorted((active_ids & archive_ids) - {""})
+    if overlap:
+        return {
+            "status": "FAIL", "domain": domain, "source": source_db, "graph_name": graph_name,
+            "fail_reason": f"decision IDs appear in both active and archive tables: {', '.join(overlap)}",
+        }
+    transformed = [*active_records, *archive_records]
+    verified_records = [record for record in active_records if record["decision"].get("status") in _VERIFIED_STATUSES]
+    pending_records = [record for record in active_records if record["decision"].get("status") == "pending"]
+    active_manifest = _source_manifest(active_records, "rowid")
+    archive_manifest = _source_manifest(archive_records, "archive_id")
+    if existing_checkpoint:
+        if existing_checkpoint.get("active_source_manifest_hash") not in (None, active_manifest):
+            return {"status": "FAIL", "domain": domain, "source": source_db, "graph_name": graph_name,
+                    "fail_reason": "Checkpoint active source manifest does not match this migration."}
+        if existing_checkpoint.get("archive_source_manifest_hash") not in (None, archive_manifest):
+            return {"status": "FAIL", "domain": domain, "source": source_db, "graph_name": graph_name,
+                    "fail_reason": "Checkpoint archive source manifest does not match this migration."}
     if not transformed:
         # Preserve the established dry-run contract: it is a preflight for a
         # non-empty verified source, whereas a real direct-write migration of
@@ -808,8 +1044,13 @@ def run_migration(
             "all_decisions": bool(all_decisions), "write": {"written": 0, "skipped": 0, "errors": 0},
             "batches": 0, "checkpoint_file": str(checkpoint), "empty_source": True,
         }
-    first_created_at = transformed[0]["decision"]["created_at"]
-    last_created_at = transformed[-1]["decision"]["created_at"]
+    created_values = [
+        record.get("decision", {}).get("created_at")
+        for record in transformed
+        if record.get("decision", {}).get("created_at") is not None
+    ]
+    first_created_at = min(created_values) if created_values else None
+    last_created_at = max(created_values) if created_values else None
     result: dict[str, Any] = {
         "status": "PASS",
         "source": source_db,
@@ -818,6 +1059,8 @@ def run_migration(
         "verified_count": len(verified_records),
         "pending_count": len(pending_records),
         "all_decisions": bool(all_decisions),
+        "include_archived": bool(include_archived),
+        "archived_count": len(archive_records),
         "first_created_at": first_created_at,
         "last_created_at": last_created_at,
         "dry_run": bool(dry_run),
@@ -829,11 +1072,6 @@ def run_migration(
         result.update({"already_complete": True, "batches": int(existing_checkpoint.get("batch_number", 0))})
         logger.info("Migration already complete for domain %s: %s", domain, checkpoint)
         return result
-    if existing_checkpoint:
-        last_rowid = int(existing_checkpoint.get("last_rowid", 0))
-        transformed = [record for record in transformed if int(record["rowid"]) > last_rowid]
-        result["resumed_from_rowid"] = last_rowid
-
     if dry_run:
         result["sample"] = transformed[: min(3, len(transformed))]
         print(json.dumps(result, indent=2, sort_keys=True))
@@ -868,52 +1106,75 @@ def run_migration(
                 return result
 
         completed_batches = int(existing_checkpoint.get("batch_number", 0)) if existing_checkpoint else 0
-        outcomes_written = int(existing_checkpoint.get("outcomes_written", 0)) if existing_checkpoint else 0
-        for start in range(0, len(transformed), batch_size):
-            batch = transformed[start : start + batch_size]
-            batch_number = completed_batches + 1
-            try:
-                setattr(conn, "_migration_defer_commit", True)
-                batch_result = _write_batch(conn, batch, write_graph)
-                if batch_result["errors"]:
+        active_last_rowid = int(existing_checkpoint.get("active_last_rowid", existing_checkpoint.get("last_rowid", 0))) if existing_checkpoint else 0
+        archive_last_archive_id = int(existing_checkpoint.get("archive_last_archive_id", 0)) if existing_checkpoint else 0
+        active_decisions_written = int(existing_checkpoint.get("active_decisions_written", existing_checkpoint.get("decisions_written", 0))) if existing_checkpoint else 0
+        archived_decisions_written = int(existing_checkpoint.get("archived_decisions_written", 0)) if existing_checkpoint else 0
+        active_outcomes_written = int(existing_checkpoint.get("active_outcomes_written", existing_checkpoint.get("outcomes_written", 0))) if existing_checkpoint else 0
+        archived_outcomes_written = int(existing_checkpoint.get("archived_outcomes_written", 0)) if existing_checkpoint else 0
+        phase_specs: list[tuple[str, list[dict[str, Any]], str]] = [("active", active_records, "rowid")]
+        if include_archived:
+            phase_specs.append(("archive", archive_records, "archive_id"))
+        for phase, phase_records, cursor_key in phase_specs:
+            cursor = active_last_rowid if phase == "active" else archive_last_archive_id
+            remaining = [record for record in phase_records if int(record[cursor_key]) > cursor]
+            for start in range(0, len(remaining), batch_size):
+                batch = remaining[start : start + batch_size]
+                batch_number = completed_batches + 1
+                try:
+                    setattr(conn, "_migration_defer_commit", True)
+                    batch_result = _write_batch(conn, batch, write_graph)
+                    if batch_result["errors"]:
+                        conn.rollback()
+                        result["status"] = "FAIL"
+                        result["fail_reason"] = f"{batch_result['errors']} write errors"
+                        result["write"] = totals
+                        return result
+                    conn.commit()
+                except Exception as exc:
                     conn.rollback()
                     result["status"] = "FAIL"
-                    result["fail_reason"] = f"{batch_result['errors']} write errors"
+                    result["fail_reason"] = f"batch {batch_number} failed: {type(exc).__name__}: {exc}"
                     result["write"] = totals
+                    logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
                     return result
-                conn.commit()
-            except Exception as exc:
-                conn.rollback()
-                result["status"] = "FAIL"
-                result["fail_reason"] = f"batch {batch_number} failed: {type(exc).__name__}: {exc}"
-                result["write"] = totals
-                logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
-                return result
-            finally:
-                setattr(conn, "_migration_defer_commit", False)
-            for key in totals:
-                totals[key] += int(batch_result[key])
-            outcomes_in_batch = sum(1 for record in batch if record.get("outcome") is not None)
-            outcomes_written += outcomes_in_batch
-            completed_batches = batch_number
-            last_rowid = int(batch[-1]["rowid"])
-            _write_checkpoint(
-                checkpoint,
-                _checkpoint_payload(
-                    domain=domain, source_db=source_db, graph_name=graph_name,
-                    all_decisions=all_decisions, last_rowid=last_rowid,
-                    batch_number=completed_batches, decisions_written=totals["written"],
-                    outcomes_written=outcomes_written, status="in_progress",
-                ),
-            )
-            logger.info(
-                "Batch %s: wrote %s decisions, %s outcomes (rowid %s to %s)",
-                batch_number,
-                batch_result["written"],
-                outcomes_in_batch,
-                batch[0]["rowid"],
-                last_rowid,
-            )
+                finally:
+                    setattr(conn, "_migration_defer_commit", False)
+                for key in totals:
+                    totals[key] += int(batch_result[key])
+                outcomes_in_batch = sum(1 for record in batch if record.get("outcome") is not None)
+                completed_batches = batch_number
+                if phase == "active":
+                    active_last_rowid = int(batch[-1][cursor_key])
+                    active_decisions_written += int(batch_result["written"])
+                    active_outcomes_written += outcomes_in_batch
+                else:
+                    archive_last_archive_id = int(batch[-1][cursor_key])
+                    archived_decisions_written += int(batch_result["written"])
+                    archived_outcomes_written += outcomes_in_batch
+                _write_checkpoint(
+                    checkpoint,
+                    _checkpoint_payload(
+                        domain=domain, source_db=source_db, graph_name=graph_name,
+                        all_decisions=all_decisions, include_archived=include_archived,
+                        last_rowid=active_last_rowid, active_last_rowid=active_last_rowid,
+                        archive_last_archive_id=archive_last_archive_id, phase=phase,
+                        batch_number=completed_batches, decisions_written=totals["written"],
+                        outcomes_written=active_outcomes_written + archived_outcomes_written,
+                        active_decisions_written=active_decisions_written,
+                        archived_decisions_written=archived_decisions_written,
+                        active_outcomes_written=active_outcomes_written,
+                        archived_outcomes_written=archived_outcomes_written,
+                        active_source_manifest_hash=active_manifest,
+                        archive_source_manifest_hash=archive_manifest,
+                        status="in_progress",
+                    ),
+                )
+                logger.info(
+                    "Batch %s (%s): wrote %s decisions, %s outcomes",
+                    batch_number, phase, batch_result["written"], outcomes_in_batch,
+                )
+        outcomes_written = active_outcomes_written + archived_outcomes_written
         result["write"] = totals
         result["batches"] = completed_batches
         if totals["errors"] > 0:
@@ -929,14 +1190,37 @@ def run_migration(
                 result["fail_reason"] = f"Level 1 verification failed: {level1['details']}"
                 logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
                 return result
+            if include_archived:
+                archive_level1 = _verify_archive_level1(source_db, conn, write_graph, domain)
+                result["verification"]["archive_level1"] = archive_level1
+                if not archive_level1["passed"]:
+                    result["status"] = "FAIL"
+                    result["fail_reason"] = f"Archive Level 1 verification failed: {archive_level1['details']}"
+                    logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
+                    return result
 
-            topology = _verify_topology(transformed, conn, write_graph, domain)
+            topology = _verify_topology(active_records, conn, write_graph, domain)
             result["verification"]["topology"] = topology
             if not topology["passed"]:
                 result["status"] = "FAIL"
                 result["fail_reason"] = f"Topology verification failed: {topology}"
                 logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
                 return result
+            if include_archived:
+                archive_topology = _verify_archive_topology(archive_records, conn, write_graph, domain)
+                result["verification"]["archive_topology"] = archive_topology
+                if not archive_topology["passed"]:
+                    result["status"] = "FAIL"
+                    result["fail_reason"] = f"Archive topology verification failed: {archive_topology}"
+                    logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
+                    return result
+                archive_level2 = _verify_archive_level2(conn, write_graph, archive_records)
+                result["verification"]["archive_level2"] = archive_level2
+                if not archive_level2["passed"]:
+                    result["status"] = "FAIL"
+                    result["fail_reason"] = f"Archive Level 2 verification failed: {archive_level2['details']}"
+                    logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
+                    return result
 
             level2 = _verify_level2(source_db, conn, write_graph, domain)
             result["verification"]["level2"] = level2
@@ -1002,10 +1286,20 @@ def run_migration(
             checkpoint,
             _checkpoint_payload(
                 domain=domain, source_db=source_db, graph_name=graph_name,
-                all_decisions=all_decisions,
-                last_rowid=int(transformed[-1]["rowid"]) if transformed else int(existing_checkpoint.get("last_rowid", 0)) if existing_checkpoint else 0,
+                all_decisions=all_decisions, include_archived=include_archived,
+                last_rowid=active_last_rowid,
+                active_last_rowid=active_last_rowid,
+                archive_last_archive_id=archive_last_archive_id,
+                phase="complete",
                 batch_number=completed_batches, decisions_written=totals["written"],
-                outcomes_written=outcomes_written, status="complete",
+                outcomes_written=outcomes_written,
+                active_decisions_written=active_decisions_written,
+                archived_decisions_written=archived_decisions_written,
+                active_outcomes_written=active_outcomes_written,
+                archived_outcomes_written=archived_outcomes_written,
+                active_source_manifest_hash=active_manifest,
+                archive_source_manifest_hash=archive_manifest,
+                status="complete",
             ),
         )
         logger.info(

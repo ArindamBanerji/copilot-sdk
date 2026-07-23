@@ -155,6 +155,9 @@ def test_receipt_shape_and_defaults():
 
 
 class DefaultGraphStore(GraphStore):
+    def __init__(self):
+        self._archive = []
+
     def write_decision(self, domain, category, action, confidence, factors, metadata=None):
         return "DEC-1"
 
@@ -169,6 +172,9 @@ class DefaultGraphStore(GraphStore):
 
     def get_all_decisions(self, domain):
         return []
+
+    def get_archived_decisions(self, domain):
+        return list(self._archive)
 
     def get_verified_decisions(self, domain):
         return []

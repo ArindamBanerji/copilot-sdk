@@ -38,6 +38,7 @@ class MinimalGraphStore:
         self.domain = "test"
         self.decisions = {}
         self.outcomes = {}
+        self._archive = []
 
     def write_decision(self, domain, category, action, confidence, factors, metadata=None):
         decision_id = str((metadata or {}).get("decision_id") or "decision-1")
@@ -53,7 +54,7 @@ class MinimalGraphStore:
         }
         return decision_id
 
-    def write_outcome(self, decision_id, actual_action, is_correct, metadata=None):
+    def write_outcome(self, decision_id, actual_action, is_correct, metadata=None, domain=None):
         self.outcomes[decision_id] = {
             "actual_action": actual_action,
             "is_correct": bool(is_correct),
@@ -105,6 +106,9 @@ class MinimalGraphStore:
 
     def get_all_decisions(self, domain):
         return self.get_decisions(domain, category=None, limit=len(self.decisions))
+
+    def get_archived_decisions(self, domain):
+        return list(self._archive)
 
     def archive_old_decisions(self, domain, keep_recent=800):
         return 0

@@ -8,6 +8,9 @@ from copilot_sdk.graph import GraphStore, InMemoryGraphStore, SQLiteGraphStore
 
 
 class MinimalStore:
+    def __init__(self):
+        self._archive = []
+
     def write_decision(self, *args, **kwargs):
         return "decision-1"
 
@@ -31,6 +34,9 @@ class MinimalStore:
 
     def get_all_decisions(self, domain):
         return []
+
+    def get_archived_decisions(self, domain):
+        return list(self._archive)
 
     def save_centroids(self, *args, **kwargs):
         return None
