@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -45,16 +46,17 @@ def _restore(store: Any, bundle: dict[str, Any], domain: str) -> bool | None:
         LOGGER.error("Demo bundle domain mismatch: expected %s, got %s", domain, bundle_domain)
         return False
 
+    sqlite_store = _sqlite_restore_store(store)
     threshold = int(bundle.get("min_decisions_to_skip", DEFAULT_MIN_DECISIONS_TO_SKIP))
     try:
-        current = int(store.count_decisions(domain))
+        current = int(sqlite_store.count_decisions(domain))
     except Exception:
         current = 0
     if current >= threshold:
         return False
 
-    connection = _sqlite_connection(store)
-    lock = getattr(store, "_lock", None)
+    connection = _sqlite_connection(sqlite_store)
+    lock = getattr(sqlite_store, "_lock", None)
     if connection is None or lock is None or not hasattr(lock, "__enter__"):
         LOGGER.warning("Demo bundle restore requires a direct-write SQLiteGraphStore")
         return False
@@ -134,7 +136,11 @@ def _restore(store: Any, bundle: dict[str, Any], domain: str) -> bool | None:
         LOGGER.exception("Demo bundle restore failed for domain %s", domain)
         return False
 
-    return rows_written > 0
+    restored = rows_written > 0
+    backend = os.getenv("GRAPH_BACKEND", "").strip().lower()
+    if restored and backend in {"age", "dual_write"}:
+        LOGGER.info("Bundle restored to SQLite. AGE migration required for graph parity.")
+    return restored
 
 
 def _sqlite_connection(store: Any) -> Any | None:
@@ -149,6 +155,12 @@ def _sqlite_connection(store: Any) -> Any | None:
     if not all(hasattr(connection, name) for name in ("execute", "commit", "rollback")):
         return None
     return connection
+
+
+def _sqlite_restore_store(store: Any) -> Any:
+    """Use the SQLite primary when bundle restore receives a dual-write store."""
+    primary = getattr(store, "primary", None)
+    return primary if primary is not None else store
 
 
 def _rowcount(cursor: Any) -> int:

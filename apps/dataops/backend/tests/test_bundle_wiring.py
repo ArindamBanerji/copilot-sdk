@@ -42,6 +42,26 @@ def test_domain_demo_bundle_restores_into_tmp_sqlite_store(tmp_path: Path) -> No
         store.close()
 
 
+def test_bundle_restore_returns_true_for_age_backend(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("GRAPH_BACKEND", "age")
+    store = SQLiteGraphStore(str(tmp_path / "age_bundle.db"), domain=DOMAIN, decision_id_prefix="DOPS-")
+    try:
+        assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN) is True
+    finally:
+        store.close()
+
+
+def test_bundle_restore_still_writes_sqlite_for_age_backend(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("GRAPH_BACKEND", "age")
+    path = tmp_path / "age_bundle.db"
+    store = SQLiteGraphStore(str(path), domain=DOMAIN, decision_id_prefix="DOPS-")
+    try:
+        assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN) is True
+        assert store.count_decisions(DOMAIN) == 200
+    finally:
+        store.close()
+
+
 def test_demo_bundle_restore_skips_in_memory_store() -> None:
     store = InMemoryGraphStore(domain=DOMAIN)
     assert restore_bundle_if_empty(store, _bundle_path(), domain=DOMAIN) is False

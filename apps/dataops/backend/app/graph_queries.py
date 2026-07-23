@@ -67,7 +67,12 @@ class DataOpsGraphClient:
         self._serializer = self._fixture_serializer
         self.last_query: str | None = None
 
-        graph_dsn = dsn if dsn is not None else os.getenv("GRAPH_DSN")
+        graph_dsn = os.getenv("DATAOPS_ACTIVE_AGE_DSN") or dsn or os.getenv("GRAPH_DSN")
+        graph_name = (
+            os.getenv("DATAOPS_ACTIVE_AGE_GRAPH")
+            or os.getenv("AGE_GRAPH_NAME")
+            or "soc_graph"
+        )
         if graph_dsn and "sslmode" not in graph_dsn:
             graph_dsn += " sslmode=disable"
         if age_client is not None:
@@ -78,7 +83,7 @@ class DataOpsGraphClient:
             cls = age_client_cls or _load_age_client_class()
             if cls is not None:
                 try:
-                    self._age_client = cls(dsn=graph_dsn, graph_name=os.getenv("AGE_GRAPH_NAME", "soc_graph"))
+                    self._age_client = cls(dsn=graph_dsn, graph_name=graph_name)
                     self._serializer = getattr(cls, "serialize_for_age", self._fixture_serializer)
                     self._graph_connected = True
                 except Exception:
@@ -97,6 +102,7 @@ class DataOpsGraphClient:
         rows = await self._run_graph(
             """
             MATCH (system:PipelineSystem)
+            WHERE system.domain = {self._serialize("dataops")}
             OPTIONAL MATCH (upstream:PipelineSystem)-[:FEEDS]->(system)
             OPTIONAL MATCH (system)-[:FEEDS]->(downstream:PipelineSystem)
             RETURN system, count(DISTINCT upstream) AS upstream_count,
@@ -122,6 +128,7 @@ class DataOpsGraphClient:
         rows = await self._run_graph(
             """
             MATCH (alert:DataQualityAlert)
+            WHERE alert.domain = {self._serialize("dataops")}
             OPTIONAL MATCH (alert)-[:AFFECTS]->(system:PipelineSystem)
             RETURN alert, system
             ORDER BY alert.alert_id
@@ -143,6 +150,7 @@ class DataOpsGraphClient:
         rows = await self._run_graph(
             f"""
             MATCH (system:PipelineSystem {{name: {literal}}})
+            WHERE system.domain = {self._serialize("dataops")}
             OPTIONAL MATCH (upstream:PipelineSystem)-[:FEEDS]->(system)
             OPTIONAL MATCH (system)-[:FEEDS]->(downstream:PipelineSystem)
             RETURN system, count(DISTINCT upstream) AS upstream_count,
@@ -180,6 +188,7 @@ class DataOpsGraphClient:
         rows = await self._run_graph(
             f"""
             MATCH (alert:DataQualityAlert {{alert_id: {self._serialize(alert_id)}}})-[:AFFECTS]->(system:PipelineSystem)
+            WHERE alert.domain = {self._serialize("dataops")}
             OPTIONAL MATCH (parent:PipelineSystem)-[:FEEDS]->(child:PipelineSystem)
             RETURN system, collect(DISTINCT {{parent: parent.name, child: child.name,
                    child_sla: child.sla_minutes,
@@ -317,6 +326,7 @@ class DataOpsGraphClient:
         rows = await self._run_graph(
             f"""
             MATCH (alert:DataQualityAlert {{alert_id: {self._serialize(alert_id)}}})
+            WHERE alert.domain = {self._serialize("dataops")}
             OPTIONAL MATCH (alert)-[:AFFECTS]->(system:PipelineSystem)
             RETURN alert, system
             """
@@ -441,6 +451,7 @@ class DataOpsGraphClient:
         rows = await self._run_graph(
             f"""
             MATCH (system:PipelineSystem {{name: {self._serialize(system_name)}}})
+            WHERE system.domain = {self._serialize("dataops")}
             OPTIONAL MATCH (system)-[:FEEDS*1..4]->(downstream:PipelineSystem)
             RETURN count(DISTINCT downstream) AS downstream_count
             """
@@ -459,6 +470,7 @@ class DataOpsGraphClient:
         rows = await self._run_graph(
             f"""
             MATCH (system:PipelineSystem {{name: {self._serialize(system_name)}}})
+            WHERE system.domain = {self._serialize("dataops")}
             OPTIONAL MATCH (system)-[:FEEDS*0..4]->(downstream:PipelineSystem)
             RETURN min(downstream.sla_minutes) AS min_sla
             """
@@ -478,7 +490,8 @@ class DataOpsGraphClient:
         rows = await self._run_graph(
             f"""
             MATCH (alert:DataQualityAlert)-[:AFFECTS]->(system:PipelineSystem {{name: {self._serialize(system_name)}}})
-            WHERE alert.category = {self._serialize(category)}
+            WHERE alert.domain = {self._serialize("dataops")}
+              AND alert.category = {self._serialize(category)}
             RETURN count(alert) AS prior_count
             """
         )

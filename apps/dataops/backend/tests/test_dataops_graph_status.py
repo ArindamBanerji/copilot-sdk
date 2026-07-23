@@ -301,9 +301,10 @@ def test_active_store_constructs_with_factory_after_guards():
     ]
 
 
-def test_operational_graph_client_source_does_not_reference_dataops_active_env():
+def test_operational_graph_client_source_prefers_dataops_active_env():
     source = Path("apps/dataops/backend/app/graph_queries.py").read_text(encoding="utf-8")
-    assert "DATAOPS_ACTIVE" not in source
+    assert "DATAOPS_ACTIVE_AGE_DSN" in source
+    assert "DATAOPS_ACTIVE_AGE_GRAPH" in source
 
 
 def test_dataops_active_source_uses_only_dataops_active_prefix():
@@ -313,9 +314,9 @@ def test_dataops_active_source_uses_only_dataops_active_prefix():
     assert "PURCHASING_ACTIVE" not in source
 
 
-def test_main_does_not_depend_on_graph_factory_for_dataops_active_wiring():
+def test_main_uses_graph_factory_for_dataops_wiring():
     source = Path("apps/dataops/backend/app/main.py").read_text(encoding="utf-8")
-    assert "copilot_sdk.graph.factory" not in source
+    assert "from copilot_sdk.graph.factory import create_graph_store" in source
 
 
 def _active_client(
@@ -436,6 +437,7 @@ class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
+        domain: str | None = None,
     ) -> None:
         if decision_id not in self.decisions:
             raise KeyError(decision_id)

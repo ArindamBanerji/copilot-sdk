@@ -125,6 +125,43 @@ def test_age_client_constructor_receives_graph_name(monkeypatch, no_graph):
     ]
 
 
+def test_dataops_graph_client_uses_active_config(monkeypatch, no_graph):
+    calls = []
+
+    class CapturingAGEClient:
+        serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
+
+        def __init__(self, **kwargs):
+            calls.append(kwargs)
+
+    monkeypatch.setenv("DATAOPS_ACTIVE_AGE_DSN", "host=active port=5433 dbname=dataops")
+    monkeypatch.setenv("DATAOPS_ACTIVE_AGE_GRAPH", "governed_copilot_graph")
+    monkeypatch.setenv("GRAPH_DSN", "host=generic port=5433 dbname=generic")
+
+    DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client_cls=CapturingAGEClient)
+
+    assert calls == [{"dsn": "host=active port=5433 dbname=dataops sslmode=disable", "graph_name": "governed_copilot_graph"}]
+
+
+def test_dataops_graph_client_falls_back_to_generic(monkeypatch, no_graph):
+    calls = []
+
+    class CapturingAGEClient:
+        serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
+
+        def __init__(self, **kwargs):
+            calls.append(kwargs)
+
+    monkeypatch.delenv("DATAOPS_ACTIVE_AGE_DSN", raising=False)
+    monkeypatch.delenv("DATAOPS_ACTIVE_AGE_GRAPH", raising=False)
+    monkeypatch.setenv("GRAPH_DSN", "host=generic port=5433 dbname=generic")
+    monkeypatch.setenv("AGE_GRAPH_NAME", "generic_graph")
+
+    DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client_cls=CapturingAGEClient)
+
+    assert calls == [{"dsn": "host=generic port=5433 dbname=generic sslmode=disable", "graph_name": "generic_graph"}]
+
+
 @pytest.mark.asyncio
 async def test_fixture_fallback(no_graph):
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
