@@ -469,6 +469,11 @@ class InMemoryGraphStore:
         }
         return decision_id
 
+    def generate_decision_id(self, domain: str) -> str:
+        """Return a bare unique ID for the in-memory protocol test store."""
+        _ = domain
+        return uuid.uuid4().hex[:12]
+
     def write_governed_decision(
         self,
         decision_id: str,
@@ -539,8 +544,11 @@ class InMemoryGraphStore:
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
+        domain: str | None = None,
     ) -> None:
         if decision_id not in self._decisions:
+            raise KeyError(decision_id)
+        if domain is not None and self._decisions[decision_id].get("domain") != domain:
             raise KeyError(decision_id)
         if decision_id in self._outcomes:
             raise ValueError(f"outcome already exists for decision_id: {decision_id}")

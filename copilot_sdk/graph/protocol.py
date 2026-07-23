@@ -148,6 +148,13 @@ class ProtocolV2GraphStore(GraphStore, Protocol):
     can still satisfy the narrow runtime persistence contract structurally.
     """
 
+    def generate_decision_id(self, domain: str) -> str:
+        """Generate a unique, prefix-bearing decision ID for this domain.
+
+        The returned ID is suitable for ``write_governed_decision``.
+        """
+        ...
+
     def write_governed_decision(
         self,
         decision_id: str,

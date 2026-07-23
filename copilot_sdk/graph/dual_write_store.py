@@ -172,6 +172,10 @@ class DualWriteStore(GraphStore):
         )
         return result
 
+    def generate_decision_id(self, domain: str) -> str:
+        """Use the primary store as the identity authority during dual-write."""
+        return self.primary.generate_decision_id(domain)
+
     def write_outcome(self, decision_id: str, actual_action: str, is_correct: bool, metadata: dict[str, Any] | None = None, domain: str | None = None) -> None:
         if domain is None:
             self._write("write_outcome", lambda: self.primary.write_outcome(decision_id, actual_action, is_correct, metadata), lambda: self.secondary.write_outcome(decision_id, actual_action, is_correct, metadata), (decision_id, actual_action, is_correct), {"metadata": metadata})

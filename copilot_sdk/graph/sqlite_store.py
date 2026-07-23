@@ -959,7 +959,7 @@ class SQLiteGraphStore:
         metadata: dict[str, Any] | None = None,
     ) -> str:
         meta = dict(metadata or {})
-        decision_id = str(meta.get("decision_id") or uuid.uuid4().hex[:12])
+        decision_id = str(meta.get("decision_id") or self.generate_decision_id(domain))
         if self._decision_id_prefix and not decision_id.startswith(self._decision_id_prefix):
             decision_id = f"{self._decision_id_prefix}{decision_id}"
         entity_id = str(meta.get("entity_id") or decision_id)
@@ -1009,6 +1009,14 @@ class SQLiteGraphStore:
             return decision_id
 
         return str(self._run_write(persist))
+
+    def generate_decision_id(self, domain: str) -> str:
+        """Return a unique ID using this store's configured prefix policy."""
+        _ = domain
+        raw_id = uuid.uuid4().hex[:12]
+        if self._decision_id_prefix:
+            return f"{self._decision_id_prefix}{raw_id}"
+        return raw_id
 
     def write_governed_decision(
         self,
