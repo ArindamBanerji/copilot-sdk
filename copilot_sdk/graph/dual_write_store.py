@@ -67,7 +67,9 @@ class DualWriteStore(GraphStore):
         self._outbox_health_timestamp: str | None = None
         self._secondary_failures = self._load_failure_log(failure_log_path) if failure_log_path else []
         self._trim_failures()
-        self._durable_outbox = DurableOutbox(outbox_path) if outbox_path else None
+        self._outbox = DurableOutbox(outbox_path) if outbox_path else None
+        # Retain the previous private name for existing diagnostics and tests.
+        self._durable_outbox = self._outbox
 
     @property
     def secondary_failures(self) -> list[dict[str, Any]]:

@@ -32,7 +32,8 @@ def test_dual_write_with_dsn_constructs_wrapper(monkeypatch, tmp_path):
         graph_name="dual_write_test",
     )
     assert isinstance(store, DualWriteStore)
-    assert store._durable_outbox is not None
+    assert store._outbox is not None
+    assert (tmp_path / "trading_dual_write_outbox.db").is_file()
     store.close()
 
 
