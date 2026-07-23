@@ -26,6 +26,14 @@ class RecordingEndpoint:  # MOCK-OK: protocol delegation boundary spy for durabl
         return call
 
 
+class FailingDurableOutbox:  # MOCK-OK: forces the durable-storage failure boundary.
+    def append(self, *args: object, **kwargs: object) -> int:
+        raise OSError("disk full")
+
+    def unresolved_count(self) -> int:
+        return 0
+
+
 def _governed_write(store: DualWriteStore, decision_id: str = "DEC-1") -> None:
     store.write_governed_decision(
         decision_id,
@@ -106,6 +114,12 @@ def test_replay_failure_marks_entry_failed(tmp_path):
 
     assert (report.replayed, report.failed, report.remaining) == (0, 1, 0)
     assert _row_status(tmp_path / "secondary_outbox.db", row_id) == "failed"
+    assert store.outbox_empty() is False
+
+    store._durable_outbox.quarantine_failed(row_id)
+
+    assert _row_status(tmp_path / "secondary_outbox.db", row_id) == "quarantined"
+    assert store.outbox_empty() is True
 
 
 def test_multiple_entries_replay_independently(tmp_path):
@@ -137,6 +151,22 @@ def test_outbox_empty_after_replay(tmp_path):
     store.replay_outbox()
 
     assert store.outbox_empty() is True
+
+
+def test_outbox_counts_pending_failed_and_unresolved_entries(tmp_path):
+    outbox = DurableOutbox(str(tmp_path / "outbox.db"))
+    pending_id = outbox.append("write_outcome", "trading", {"args": ["DEC-pending"], "kwargs": {}}, "down")
+    failed_id = outbox.append("write_outcome", "trading", {"args": ["DEC-failed"], "kwargs": {}}, "down")
+    outbox.mark_failed(failed_id, "still down")
+
+    assert outbox.pending_count() == 1
+    assert outbox.failed_count() == 1
+    assert outbox.unresolved_count() == 2
+    outbox.quarantine_failed(failed_id)
+    assert outbox.unresolved_count() == 1
+    outbox.mark_replayed(pending_id)
+    assert outbox.unresolved_count() == 0
+    outbox.close()
 
 
 def test_outcome_payload_contains_every_replay_argument(tmp_path):
@@ -193,3 +223,21 @@ def test_without_outbox_path_failures_remain_in_memory_only():
     assert store.secondary_failure_count == 1
     with pytest.raises(RuntimeError, match="durable outbox is not configured"):
         store.replay_outbox()
+
+
+def test_outbox_append_failure_latches_flip_gate_until_reset(tmp_path):
+    secondary = RecordingEndpoint()
+    secondary.fail_operations.add("write_governed_decision")
+    store, _ = _store(tmp_path, secondary)
+    store._durable_outbox = FailingDurableOutbox()  # type: ignore[assignment]
+
+    _governed_write(store, "DEC-health")
+
+    assert store.outbox_empty() is False
+    assert store.outbox_health()["healthy"] is False
+    assert "OSError: disk full" in str(store.outbox_health()["last_error"])
+
+    store.reset_outbox_health()
+
+    assert store.outbox_health()["healthy"] is True
+    assert store.outbox_empty() is True

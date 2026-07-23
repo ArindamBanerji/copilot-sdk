@@ -61,6 +61,10 @@ class DualWriteStore(GraphStore):
         self.logger = logger or logging.getLogger(__name__)
         self.max_failures = max_failures
         self._failure_lock = Lock()
+        self._outbox_health_lock = Lock()
+        self._outbox_healthy = True
+        self._outbox_last_error: str | None = None
+        self._outbox_health_timestamp: str | None = None
         self._secondary_failures = self._load_failure_log(failure_log_path) if failure_log_path else []
         self._trim_failures()
         self._durable_outbox = DurableOutbox(outbox_path) if outbox_path else None
@@ -182,11 +186,33 @@ class DualWriteStore(GraphStore):
                 error=error,
             )
         except Exception as outbox_error:
-            self.logger.error(
-                "SECONDARY_OUTBOX_APPEND_FAILURE operation=%s error=%s",
+            message = f"{type(outbox_error).__name__}: {outbox_error}"
+            with self._outbox_health_lock:
+                self._outbox_healthy = False
+                self._outbox_last_error = message
+                self._outbox_health_timestamp = datetime.now(timezone.utc).isoformat()
+            self.logger.critical(
+                "Durable outbox append failed — secondary writes may be lost. "
+                "Flip gate will fail until resolved. operation=%s error=%s",
                 operation,
-                outbox_error,
+                message,
             )
+
+    def outbox_health(self) -> dict[str, object]:
+        """Return flip-gate health for durable secondary-write persistence."""
+        with self._outbox_health_lock:
+            return {
+                "healthy": self._outbox_healthy,
+                "last_error": self._outbox_last_error,
+                "timestamp": self._outbox_health_timestamp,
+            }
+
+    def reset_outbox_health(self) -> None:
+        """Clear a health latch after the operator repairs durable storage."""
+        with self._outbox_health_lock:
+            self._outbox_healthy = True
+            self._outbox_last_error = None
+            self._outbox_health_timestamp = None
 
     def replay_outbox(self, secondary: GraphStore | None = None) -> ReplayReport:
         """Replay pending secondary writes directly, without rewriting primary data."""
@@ -215,8 +241,15 @@ class DualWriteStore(GraphStore):
         )
 
     def outbox_empty(self) -> bool:
-        """Whether the durable replay gate has no pending secondary writes."""
-        return self._durable_outbox is None or self._durable_outbox.pending_count() == 0
+        """Whether the flip gate has no unresolved write or outbox-health failure.
+
+        Failed entries remain blocking until explicitly replayed or quarantined.
+        """
+        with self._outbox_health_lock:
+            healthy = self._outbox_healthy
+        return healthy and (
+            self._durable_outbox is None or self._durable_outbox.unresolved_count() == 0
+        )
 
     def _record_secondary_skip(
         self,

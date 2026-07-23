@@ -81,6 +81,18 @@ class DurableOutbox:
             ).fetchone()
         return int(row["count"] if row is not None else 0)
 
+    def failed_count(self) -> int:
+        """Return terminal failures requiring replay or explicit quarantine."""
+        with self._lock:
+            row = self._connection.execute(
+                "SELECT count(*) AS count FROM secondary_outbox WHERE status = 'failed'"
+            ).fetchone()
+        return int(row["count"] if row is not None else 0)
+
+    def unresolved_count(self) -> int:
+        """Return entries that block a graph-read flip."""
+        return self.pending_count() + self.failed_count()
+
     def get_pending(self, limit: int = 100) -> list[dict[str, Any]]:
         if limit < 1:
             raise ValueError("limit must be at least 1")
@@ -110,6 +122,15 @@ class DurableOutbox:
             self._connection.execute(
                 "UPDATE secondary_outbox SET status = 'failed', error = ? WHERE id = ?",
                 (error, row_id),
+            )
+            self._connection.commit()
+
+    def quarantine_failed(self, row_id: int) -> None:
+        """Explicitly resolve a reviewed failed entry without replaying it."""
+        with self._lock:
+            self._connection.execute(
+                "UPDATE secondary_outbox SET status = 'quarantined' WHERE id = ? AND status = 'failed'",
+                (row_id,),
             )
             self._connection.commit()
 
