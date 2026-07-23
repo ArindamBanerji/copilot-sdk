@@ -12,8 +12,18 @@ from typing import Any
 
 import pytest
 
+from copilot_sdk.graph.projection import (
+    AGEProjection,
+    ProjectionRegistry,
+    classify_domain_context,
+    normalize_projection_node,
+    parse_projection_json,
+    project_decision,
+    project_factor_vector,
+    project_outcome,
+)
 
-DEFAULT_SOC_AGE_DSN = "postgresql://localhost:5432/soc_copilot"
+
 SOC_FACTOR_SCHEMA_VERSION = "soc_factor_schema_v1"
 EXPECTED_SOC_FACTORS = [
     "privileged_identity_context",
@@ -43,6 +53,8 @@ class ReadOnlySOCProjectionClient:
             sys.path.insert(0, str(ci_platform_path))
         from ci_platform.graph.age_client import AGEClient  # noqa: PLC0415
 
+        self.dsn = dsn
+        self.graph_name = graph_name
         self._client = AGEClient(dsn=dsn, graph_name=graph_name)
 
     def query(self, cypher: str) -> list[dict[str, Any]]:
@@ -53,18 +65,12 @@ class ReadOnlySOCProjectionClient:
 
 @pytest.fixture()
 def soc_projection_client() -> ReadOnlySOCProjectionClient:
-    if os.getenv("SOC_PROJECTION_INTEGRATION") != "1":
-        pytest.skip("SOC_PROJECTION_INTEGRATION=1 required for read-only SOC AGE projection tests")
-    dsn = os.getenv("SOC_AGE_DSN", "").strip()
-    graph_name = os.getenv("SOC_AGE_GRAPH", "").strip()
+    if os.getenv("AGE_INTEGRATION") != "1":
+        pytest.skip("AGE_INTEGRATION=1 required for read-only SOC AGE projection tests")
+    dsn = os.getenv("AGE_TEST_DSN", "").strip()
+    graph_name = "soc_graph"
     if not dsn:
-        pytest.skip("SOC_AGE_DSN is required for read-only SOC AGE projection tests")
-    if dsn == DEFAULT_SOC_AGE_DSN:
-        pytest.skip("SOC_AGE_DSN must not use the default unproxied Windows DSN")
-    if not graph_name:
-        pytest.skip("SOC_AGE_GRAPH is required for read-only SOC AGE projection tests")
-    if graph_name != "soc_graph":
-        pytest.skip("SOC projection gate targets soc_graph in read-only mode")
+        pytest.skip("AGE_TEST_DSN is required for read-only SOC AGE projection tests")
 
     client = ReadOnlySOCProjectionClient(dsn=dsn, graph_name=graph_name)
     try:
@@ -75,17 +81,7 @@ def soc_projection_client() -> ReadOnlySOCProjectionClient:
 
 
 def _node(row: dict[str, Any], key: str) -> dict[str, Any]:
-    value = row.get(key) or {}
-    return value if isinstance(value, dict) else {}
-
-
-def _json_value(value: Any) -> Any:
-    if isinstance(value, str):
-        try:
-            return json.loads(value)
-        except json.JSONDecodeError:
-            return value
-    return value
+    return normalize_projection_node(row.get(key))
 
 
 def _repo_root() -> Path:
@@ -120,137 +116,6 @@ def _factor_names_hash(factor_names: list[str]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def _project_factor_vector(decision: dict[str, Any]) -> dict[str, Any]:
-    factor_names = _load_soc_factors_from_source()
-    assert factor_names == EXPECTED_SOC_FACTORS, "SOC_FACTORS drifted from the accepted projection schema"
-
-    vector = _json_value(decision.get("factor_vector"))
-    assert isinstance(vector, list), "Decision.factor_vector must parse as a list"
-    assert vector, "Decision.factor_vector must not be empty"
-    assert all(isinstance(value, (int, float)) for value in vector), "Decision.factor_vector must be numeric"
-    assert len(vector) == len(factor_names), (
-        f"Decision.factor_vector length {len(vector)} does not match SOC_FACTORS length {len(factor_names)}"
-    )
-
-    graph_factor_names = _json_value(decision.get("factor_names"))
-    if graph_factor_names is not None:
-        assert graph_factor_names == factor_names, "Decision.factor_names conflicts with SOC_FACTORS"
-
-    graph_schema_version = decision.get("factor_schema_version")
-    if graph_schema_version is not None:
-        assert graph_schema_version == SOC_FACTOR_SCHEMA_VERSION, (
-            "Decision.factor_schema_version conflicts with projection schema"
-        )
-
-    computed_hash = _factor_names_hash(factor_names)
-    graph_hash = decision.get("factor_names_hash")
-    if graph_hash is not None:
-        assert graph_hash == computed_hash, "Decision.factor_names_hash conflicts with ordered SOC_FACTORS hash"
-
-    return {
-        "factor_names": factor_names,
-        "factor_schema_version": SOC_FACTOR_SCHEMA_VERSION,
-        "shape": [len(factor_names)],
-        "factor_names_hash": computed_hash,
-        "values": vector,
-    }
-
-
-def _first_present(node: dict[str, Any], keys: tuple[str, ...]) -> Any:
-    for key in keys:
-        value = node.get(key)
-        if value not in (None, ""):
-            return value
-    return None
-
-
-def _normalize_domain(value: Any) -> str | None:
-    if value is None:
-        return None
-    normalized = str(value).strip().lower()
-    return normalized or None
-
-
-def _classify_dataops_context(node: dict[str, Any], label: str) -> dict[str, Any]:
-    explicit_domain = _normalize_domain(
-        _first_present(node, ("domain", "source_domain", "owner_domain"))
-    )
-    entity_type = _first_present(node, ("entity_type", "system_type", "node_type", "type"))
-    stable_key = _first_present(
-        node,
-        (
-            "data_quality_alert_id",
-            "alert_id",
-            "pipeline_id",
-            "system_id",
-            "entity_id",
-            "id",
-            "name",
-        ),
-    )
-    provenance = _first_present(
-        node,
-        ("owner_copilot", "created_by", "source_domain", "owner_domain", "producer", "source_system"),
-    )
-
-    if (
-        explicit_domain in DATAOPS_ALLOWED_DOMAINS
-        and entity_type
-        and stable_key
-        and provenance
-    ):
-        return {
-            "status": DATAOPS_CANONICAL,
-            "domain": explicit_domain,
-            "entity_type": str(entity_type),
-            "natural_key": str(stable_key),
-            "label": label,
-            "is_soc_alert_context": False,
-        }
-
-    return {
-        "status": DATAOPS_BLOCKED,
-        "domain": explicit_domain,
-        "entity_type": str(entity_type) if entity_type else None,
-        "natural_key": str(stable_key) if stable_key else None,
-        "label": label,
-        "is_soc_alert_context": False,
-    }
-
-
-def _project_decision(decision: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "decision_id": decision.get("decision_id") or decision.get("id") or decision.get("alert_id"),
-        "domain": decision.get("domain") or "soc",
-        "category": decision.get("category") or decision.get("alert_category"),
-        "recommended_action": decision.get("recommended_action") or decision.get("action") or decision.get("outcome"),
-        "status_basis": {
-            "status": decision.get("status"),
-            "outcome": decision.get("outcome"),
-            "correct": decision.get("correct"),
-        },
-        "created_at": decision.get("created_at")
-        or decision.get("timestamp")
-        or decision.get("timestamp_epoch"),
-    }
-
-
-def _project_outcome(decision: dict[str, Any]) -> dict[str, Any]:
-    correct = decision.get("correct")
-    if correct is True:
-        status = "confirmed"
-    elif correct is False:
-        status = "overridden"
-    else:
-        status = "verified"
-    return {
-        "decision_id": decision.get("decision_id") or decision.get("id") or decision.get("alert_id"),
-        "actual_action": decision.get("outcome"),
-        "is_correct": correct,
-        "status": status,
-    }
-
-
 def test_soc_factor_schema_source_of_truth_is_stable():
     """SOC factor schema projection uses the accepted ordered SOC_FACTORS list."""
     factor_names = _load_soc_factors_from_source()
@@ -267,7 +132,7 @@ def test_soc_decision_projection_returns_canonical_decision(soc_projection_clien
     rows = soc_projection_client.query("MATCH (d:Decision) RETURN d LIMIT 1")
     assert rows, "soc_graph has no Decision rows to project"
 
-    projected = _project_decision(_node(rows[0], "d"))
+    projected = project_decision(_node(rows[0], "d"), default_domain="soc")
 
     assert projected["decision_id"]
     assert projected["domain"] == "soc"
@@ -289,9 +154,10 @@ def test_soc_outcome_projection_from_embedded_fields(soc_projection_client):
     if not rows:
         pytest.skip("soc_graph has no embedded Decision outcome/correct fields to project")
 
-    projected = _project_outcome(_node(rows[0], "d"))
+    decision = _node(rows[0], "d")
+    projected = project_outcome(decision)
 
-    assert projected["decision_id"]
+    assert decision.get("decision_id") or decision.get("id") or decision.get("alert_id")
     assert projected["actual_action"] is not None or projected["is_correct"] is not None
     assert projected["status"] in {"verified", "confirmed", "overridden"}
 
@@ -310,7 +176,12 @@ def test_soc_factor_vector_projection_from_embedded_decision_property(soc_projec
         pytest.skip("soc_graph has no Decision.factor_vector values to project")
 
     decision = _node(rows[0], "d")
-    projected = _project_factor_vector(decision)
+    projected = project_factor_vector(
+        decision,
+        factor_names=_load_soc_factors_from_source(),
+        factor_schema_version=SOC_FACTOR_SCHEMA_VERSION,
+        factor_names_hash=_factor_names_hash(EXPECTED_SOC_FACTORS),
+    )
 
     assert projected["factor_names"] == EXPECTED_SOC_FACTORS
     assert projected["factor_schema_version"] == SOC_FACTOR_SCHEMA_VERSION
@@ -344,7 +215,11 @@ def test_soc_dataops_context_requires_explicit_domain_partition(soc_projection_c
         pytest.skip("soc_graph has no DataQualityAlert/PipelineSystem rows to partition")
 
     classifications = [
-        _classify_dataops_context(_node(row, "n"), str(row.get("label") or "unknown"))
+        classify_domain_context(
+            _node(row, "n"),
+            str(row.get("label") or "unknown"),
+            allowed_domains=DATAOPS_ALLOWED_DOMAINS,
+        )
         for row in rows
     ]
 
@@ -359,11 +234,13 @@ def test_soc_dataops_context_requires_explicit_domain_partition(soc_projection_c
         else:
             assert classification["domain"] != "soc"
 
-    label_only = _classify_dataops_context({}, "DataQualityAlert")
+    label_only = classify_domain_context({}, "DataQualityAlert", allowed_domains=DATAOPS_ALLOWED_DOMAINS)
     assert label_only["status"] == DATAOPS_BLOCKED
-    source_only = _classify_dataops_context({"source": "pipeline-monitor"}, "PipelineSystem")
+    source_only = classify_domain_context(
+        {"source": "pipeline-monitor"}, "PipelineSystem", allowed_domains=DATAOPS_ALLOWED_DOMAINS
+    )
     assert source_only["status"] == DATAOPS_BLOCKED
-    soc_domain = _classify_dataops_context(
+    soc_domain = classify_domain_context(
         {
             "domain": "soc",
             "entity_type": "pipeline_system",
@@ -371,6 +248,7 @@ def test_soc_dataops_context_requires_explicit_domain_partition(soc_projection_c
             "owner_copilot": "soc",
         },
         "PipelineSystem",
+        allowed_domains=DATAOPS_ALLOWED_DOMAINS,
     )
     assert soc_domain["status"] == DATAOPS_BLOCKED
 
@@ -442,3 +320,34 @@ def test_soc_shadow_decision_not_automatically_observation(soc_projection_client
     shadow_count = int(rows[0]["cnt"]) if rows else 0
     assert shadow_count >= 0
     pytest.skip("ShadowDecision-to-Observation mapping intentionally deferred; do not auto-promote")
+
+
+def test_projection_count_matches_conformance_count(soc_projection_client):
+    """The read-only SOC projection uses the same active V semantics as AGEGraphStore."""
+    repo_root = Path(__file__).resolve().parents[2]
+    ci_platform_path = repo_root.parent / "ci-platform"
+    if str(ci_platform_path) not in sys.path:
+        sys.path.insert(0, str(ci_platform_path))
+    from ci_platform.graph import AGEGraphStoreAdapter  # noqa: PLC0415
+
+    projection = AGEProjection(soc_projection_client.dsn, soc_projection_client.graph_name, "soc")
+    store = AGEGraphStoreAdapter(dsn=soc_projection_client.dsn, graph_name=soc_projection_client.graph_name)
+    try:
+        assert projection.count_verified() == store.count_verified("soc")
+    finally:
+        store.close()
+
+
+def test_projection_registry_is_closed():
+    """Projection patterns are immutable and every pattern is documented."""
+    assert set(ProjectionRegistry.PATTERNS) == {
+        "decision_verified",
+        "decision_with_outcome",
+        "factor_vector",
+        "count_verified",
+        "count_correct",
+        "profile_snapshot",
+    }
+    assert all(pattern.description and pattern.query_template and pattern.returns for pattern in ProjectionRegistry.PATTERNS.values())
+    with pytest.raises(TypeError):
+        ProjectionRegistry.PATTERNS["new_pattern"] = ProjectionRegistry.PATTERNS["count_verified"]  # type: ignore[index]
