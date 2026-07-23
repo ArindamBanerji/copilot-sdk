@@ -330,6 +330,77 @@ def _age_level1_summary(
     }
 
 
+def _topology_expected(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return source-derived topology counts for the selected migration domain."""
+    valid_records = [record for record in records if not record.get("error")]
+    verified_ids = [
+        str(record["decision"]["decision_id"])
+        for record in valid_records
+        if record.get("outcome") is not None
+    ]
+    return {
+        "Decision": len(valid_records),
+        "Outcome": len(verified_ids),
+        "HAS_OUTCOME": len(verified_ids),
+        "CentroidCheckpoint": sum(len(record.get("checkpoints", [])) for record in valid_records),
+        "EvidenceReceipt": sum(len(record.get("receipts", [])) for record in valid_records),
+        "verified_ids": verified_ids,
+    }
+
+
+def _age_topology_count(conn: psycopg.Connection, graph_name: str, cypher: str) -> int:
+    row = conn.execute(_age_sql(graph_name, cypher, "cnt agtype")).fetchone()
+    return int(normalize_agtype_value(_row_value(row, "cnt", 0)) or 0)
+
+
+def _verify_topology(
+    records: list[dict[str, Any]],
+    conn: psycopg.Connection,
+    graph_name: str,
+    domain: str,
+) -> dict[str, Any]:
+    """Verify migration-tagged node/edge topology before field comparison."""
+    expected = _topology_expected(records)
+    domain_literal = _S(domain)
+    actual = {
+        "Decision": _age_topology_count(conn, graph_name, f"MATCH (d:Decision {{domain: {domain_literal}, migration_source: 'sqlite'}}) RETURN count(d) AS cnt"),
+        "Outcome": _age_topology_count(conn, graph_name, f"MATCH (o:Outcome {{domain: {domain_literal}, migration_source: 'sqlite'}}) RETURN count(o) AS cnt"),
+        "HAS_OUTCOME": _age_topology_count(conn, graph_name, f"MATCH (d:Decision {{domain: {domain_literal}, migration_source: 'sqlite'}})-[r:HAS_OUTCOME]->(o:Outcome {{domain: {domain_literal}, migration_source: 'sqlite'}}) RETURN count(r) AS cnt"),
+        "CentroidCheckpoint": _age_topology_count(conn, graph_name, f"MATCH (c:CentroidCheckpoint {{domain: {domain_literal}, migration_source: 'sqlite'}}) RETURN count(c) AS cnt"),
+        "EvidenceReceipt": _age_topology_count(conn, graph_name, f"MATCH (r:EvidenceReceipt {{domain: {domain_literal}, migration_source: 'sqlite'}}) RETURN count(r) AS cnt"),
+    }
+    mismatches = [
+        {"element": element, "expected": expected[element], "actual": actual[element]}
+        for element in actual
+        if actual[element] != expected[element]
+    ]
+    sample_failures: list[dict[str, Any]] = []
+    for decision_id in expected["verified_ids"][:10]:
+        row = conn.execute(
+            _age_sql(
+                graph_name,
+                f"MATCH (d:Decision {{domain: {domain_literal}, decision_id: {_S(decision_id)}, migration_source: 'sqlite'}}) "
+                "OPTIONAL MATCH (d)-[r:HAS_OUTCOME]->(o:Outcome) "
+                "RETURN count(DISTINCT o) AS outcomes, count(r) AS edges",
+                "outcomes agtype, edges agtype",
+            )
+        ).fetchone()
+        outcomes = int(normalize_agtype_value(_row_value(row, "outcomes", 0)) or 0)
+        edges = int(normalize_agtype_value(_row_value(row, "edges", 1)) or 0)
+        if outcomes != 1 or edges != 1:
+            sample_failures.append(
+                {"decision_id": decision_id, "expected_outcomes": 1, "actual_outcomes": outcomes,
+                 "expected_edges": 1, "actual_edges": edges}
+            )
+    return {
+        "passed": not mismatches and not sample_failures,
+        "expected": {key: value for key, value in expected.items() if key != "verified_ids"},
+        "actual": actual,
+        "mismatches": mismatches,
+        "sample_failures": sample_failures,
+    }
+
+
 def _age_decision_by_id(
     conn: psycopg.Connection,
     graph_name: str,
@@ -692,6 +763,15 @@ def run_migration(
         }
     if existing_checkpoint:
         identity = _checkpoint_identity(source_db, graph_name, all_decisions)
+        if existing_checkpoint.get("domain") != domain:
+            return {
+                "status": "FAIL", "domain": domain, "source": source_db,
+                "graph_name": graph_name, "checkpoint_file": str(checkpoint),
+                "fail_reason": (
+                    f"Checkpoint domain '{existing_checkpoint.get('domain')}' does not match "
+                    f"current domain '{domain}'. Delete checkpoint to start fresh."
+                ),
+            }
         if existing_checkpoint.get("graph_name") != identity["graph_name"]:
             return {
                 "status": "FAIL", "domain": domain, "source": source_db,
@@ -847,6 +927,14 @@ def run_migration(
             if not level1["passed"]:
                 result["status"] = "FAIL"
                 result["fail_reason"] = f"Level 1 verification failed: {level1['details']}"
+                logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
+                return result
+
+            topology = _verify_topology(transformed, conn, write_graph, domain)
+            result["verification"]["topology"] = topology
+            if not topology["passed"]:
+                result["status"] = "FAIL"
+                result["fail_reason"] = f"Topology verification failed: {topology}"
                 logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
                 return result
 

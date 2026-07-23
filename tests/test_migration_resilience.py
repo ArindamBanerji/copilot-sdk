@@ -278,6 +278,24 @@ def test_resume_rejects_checkpoint_from_different_graph(tmp_path, monkeypatch):
     assert "Checkpoint was created for graph 'graph' but current target is 'other_graph'" in result["fail_reason"]
 
 
+def test_resume_rejects_checkpoint_from_different_domain(tmp_path, monkeypatch):
+    path = _source_db(tmp_path, total=2)
+    conn = TransactionTopologyConn()
+    _run(monkeypatch, path, conn, batch_size=1)
+
+    result = migration.run_migration(
+        "purchasing", str(path), "dsn", "graph", all_decisions=True,
+        verify=False, resume=True,
+        checkpoint_file=str(migration._checkpoint_path(path, "trading")),
+    )
+
+    assert result["status"] == "FAIL"
+    assert result["fail_reason"] == (
+        "Checkpoint domain 'trading' does not match current domain 'purchasing'. "
+        "Delete checkpoint to start fresh."
+    )
+
+
 def test_corrupt_checkpoint_reports_recoverable_migration_failure(tmp_path, monkeypatch):
     path = _source_db(tmp_path, total=2)
     checkpoint_path = migration._checkpoint_path(path, "trading")

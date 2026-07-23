@@ -17,6 +17,7 @@ from copilot_sdk.migrate.sqlite_to_age import (
     _transform_decision,
     _verify_level1,
     _verify_level2,
+    _verify_topology,
     _write_batch,
     run_migration,
 )
@@ -425,6 +426,10 @@ def test_l2_failure_fails_migration(tmp_path, monkeypatch):
         lambda *args: {"passed": True, "details": {"reason": "ok"}},
     )
     monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_topology",
+        lambda *args: {"passed": True, "expected": {}, "actual": {}, "mismatches": [], "sample_failures": []},
+    )
+    monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._verify_level2",
         lambda *args: {"passed": False, "details": {"mismatches": [{"decision_id": "d1"}]}},
     )
@@ -457,6 +462,10 @@ def test_scratch_migration_verifies_then_copies_to_live(tmp_path, monkeypatch):
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._verify_level1",
         lambda db, conn, graph, domain: calls.append(("l1", graph)) or {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_topology",
+        lambda records, conn, graph, domain: calls.append(("topology", graph)) or {"passed": True, "expected": {}, "actual": {}, "mismatches": [], "sample_failures": []},
     )
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._verify_level2",
@@ -563,6 +572,10 @@ def test_scratch_retained_on_copy_failure(tmp_path, monkeypatch):
         lambda *args: {"passed": True, "details": {}},
     )
     monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_topology",
+        lambda *args: {"passed": True, "expected": {}, "actual": {}, "mismatches": [], "sample_failures": []},
+    )
+    monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._verify_level2",
         lambda *args: {"passed": True, "details": {}},
     )
@@ -602,6 +615,10 @@ def test_scratch_retained_on_copy_write_errors(tmp_path, monkeypatch):
         lambda *args: {"passed": True, "details": {}},
     )
     monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_topology",
+        lambda *args: {"passed": True, "expected": {}, "actual": {}, "mismatches": [], "sample_failures": []},
+    )
+    monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._verify_level2",
         lambda *args: {"passed": True, "details": {}},
     )
@@ -639,6 +656,10 @@ def test_scratch_dropped_on_copy_success(tmp_path, monkeypatch):
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._verify_level1",
         lambda *args: {"passed": True, "details": {}},
+    )
+    monkeypatch.setattr(
+        "copilot_sdk.migrate.sqlite_to_age._verify_topology",
+        lambda *args: {"passed": True, "expected": {}, "actual": {}, "mismatches": [], "sample_failures": []},
     )
     monkeypatch.setattr(
         "copilot_sdk.migrate.sqlite_to_age._verify_level2",
@@ -979,3 +1000,50 @@ def test_behavioral_topology_and_governed_property_shape(tmp_path):
     assert governed_fields <= set(props)
     assert props["source"] == "migration"  # Expected difference from live source="score".
     assert props["migration_source"] == "sqlite"  # Migration-only provenance.
+
+
+class TopologyVerificationConn:
+    """AGE count boundary for topology-verification behavior."""
+
+    def __init__(self, counts: dict[str, int]) -> None:
+        self.counts = counts
+
+    def execute(self, query):
+        if "count(DISTINCT o) AS outcomes" in query:
+            return FakeCursor((1, 1))
+        for label in ("HAS_OUTCOME", "CentroidCheckpoint", "EvidenceReceipt", "Outcome", "Decision"):
+            if label in query:
+                return FakeCursor((self.counts.get(label, 0),))
+        raise AssertionError(f"unexpected topology query: {query}")
+
+
+def test_topology_verification_passes_for_decision_outcome_edge_parity(tmp_path):
+    records = _read_migration_records(str(_make_db(tmp_path)), "trading", all_decisions=True)
+    result = _verify_topology(
+        records,
+        TopologyVerificationConn(
+            {"Decision": 6, "Outcome": 4, "HAS_OUTCOME": 4, "CentroidCheckpoint": 0, "EvidenceReceipt": 0}
+        ),
+        "graph",
+        "trading",
+    )
+
+    assert result["passed"] is True
+    assert result["actual"] == result["expected"]
+
+
+def test_topology_verification_rejects_decisions_without_outcomes(tmp_path):
+    records = _read_migration_records(str(_make_db(tmp_path)), "trading", all_decisions=True)
+    result = _verify_topology(
+        records,
+        TopologyVerificationConn(
+            {"Decision": 6, "Outcome": 0, "HAS_OUTCOME": 0, "CentroidCheckpoint": 0, "EvidenceReceipt": 0}
+        ),
+        "graph",
+        "trading",
+    )
+
+    assert result["passed"] is False
+    assert {item["element"] for item in result["mismatches"]} == {"Outcome", "HAS_OUTCOME"}
+    assert result["mismatches"][0]["expected"] == 4
+    assert result["mismatches"][0]["actual"] == 0
