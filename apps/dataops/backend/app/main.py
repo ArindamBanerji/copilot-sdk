@@ -543,7 +543,9 @@ def create_app(
     def _run_startup_seed_once() -> None:
         if not startup_state["seeded"]:
             startup_state["seeded"] = True
-            if scoring_db != ":memory:":
+            if os.environ.get("DEMO_NO_RESEED") == "1":
+                print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
+            elif scoring_db != ":memory:":
                 if _bundle_path is not False:
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
                 _auto_seed_if_needed(seed_graph_store)

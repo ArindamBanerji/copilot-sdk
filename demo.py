@@ -771,7 +771,9 @@ def cmd_start(selected: list[dict], args):
         env = os.environ.copy()
         if c.get("env"):
             env.update(c["env"])
-        if args.preseed and c["name"].lower() == "soc":
+        if args.no_reseed:
+            env["DEMO_NO_RESEED"] = "1"
+        if args.preseed and not args.no_reseed and c["name"].lower() == "soc":
             # SOC learning is enabled ONLY in the SOC backend's environment,
             # not in the launcher process. This prevents the env var from
             # leaking to subsequent demo.py runs in the same terminal.
@@ -814,7 +816,7 @@ def cmd_start(selected: list[dict], args):
         )
 
     # --- Pre-seed (AFTER backends are healthy) ---
-    if args.preseed:
+    if args.preseed and not args.no_reseed:
         run_preseed(selected, fail_hard=True)
     if getattr(args, "record_mode", False):
         if getattr(args, "record_reset", False):
@@ -1173,6 +1175,11 @@ def main():
     parser.add_argument("--record-reset", action="store_true", help="Reset record state, pre-seed, and freeze connectors")
     parser.add_argument("--verify", action="store_true", help="Check platform state (IKS, conservation, pending items)")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")
+    parser.add_argument(
+        "--no-reseed",
+        action="store_true",
+        help="Start backends without bundle restore or fixture seeding",
+    )
     parser.add_argument("--diag-mode", action="store_true", help="SOC proof/perf backend-only diagnostic mode")
     parser.add_argument("--diag-graph-name", default="soc_graph_diag_f", help="SOC AGE graph for --diag-mode")
     parser.add_argument("--diag-backend-port", type=int, default=8001, help="SOC backend port for --diag-mode")
@@ -1181,6 +1188,10 @@ def main():
     parser.add_argument("--age-use-pool", action="store_true", help="Set AGE_USE_POOL=true for SOC --diag-mode")
 
     args = parser.parse_args()
+
+    if args.no_reseed and args.record_reset:
+        print("ERROR: --no-reseed and --record-reset are mutually exclusive.")
+        sys.exit(1)
 
     # --record-mode and --record-reset imply --preseed
     if args.record_mode or args.record_reset:
@@ -1233,6 +1244,9 @@ def main():
     elif args.verify:
         cmd_verify(selected)
     elif args.preseed_only:
+        if args.no_reseed:
+            print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
+            return
         # Backends must already be running — just preseed
         print()
         print("Pre-seeding (backends assumed running)...")

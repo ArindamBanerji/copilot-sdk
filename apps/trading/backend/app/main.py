@@ -323,7 +323,9 @@ def create_app(
     def _run_startup_seed_once() -> None:
         if not startup_state["seeded"]:
             startup_state["seeded"] = True
-            if active_graph_store is not None:
+            if os.environ.get("DEMO_NO_RESEED") == "1":
+                print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
+            elif active_graph_store is not None:
                 print(f"[{DOMAIN}] auto-seed skipped while active AGE is enabled")
             else:
                 if _bundle_path is not False:
