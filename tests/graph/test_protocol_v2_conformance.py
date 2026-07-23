@@ -9,9 +9,11 @@ import uuid
 from pathlib import Path
 
 import numpy as np
+import psycopg
 import pytest
 
 from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.migrate.sqlite_to_age import run_migration
 from copilot_sdk.scoring import CompoundingScorer
 
 
@@ -26,7 +28,6 @@ GENERIC_AGE_ROLLBACK_PENDING = pytest.mark.skip(
         "reset mid-failure needs safe live failure injection"
     )
 )
-MIGRATION_PENDING = pytest.mark.skip(reason="SQLite-to-AGE migration replay implementation pending")
 DEFAULT_AGE_DSN = "postgresql://localhost:5432/soc_copilot"
 
 
@@ -99,6 +100,101 @@ def _write_governed_decision(
         factor_schema_version="slice-1",
         metadata={"created_at": created_at},
     )
+
+
+def _create_migration_source(
+    db_path: Path,
+    domain: str,
+    decision_ids: list[str],
+    *,
+    checkpoint_decision_id: str | None = None,
+    receipt_decision_id: str | None = None,
+) -> None:
+    """Create a minimal real SQLite source compatible with the migration reader."""
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE decisions (
+                decision_id TEXT PRIMARY KEY, domain TEXT, category TEXT,
+                category_index INTEGER, factors_json TEXT, factor_vector_json TEXT,
+                recommended_action TEXT, recommended_index INTEGER, confidence REAL,
+                probabilities_json TEXT, status TEXT, created_at REAL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE outcomes (
+                decision_id TEXT PRIMARY KEY, domain TEXT, actual_action TEXT,
+                actual_index INTEGER, is_correct INTEGER, verified_at REAL,
+                context_json TEXT
+            )
+            """
+        )
+        conn.executemany(
+            "INSERT INTO decisions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                (
+                    decision_id,
+                    domain,
+                    "category_a",
+                    0,
+                    '{"factor_a": 0.5}',
+                    "[0.5]",
+                    "approve",
+                    0,
+                    0.8,
+                    '{"approve": 0.8}',
+                    "confirmed",
+                    float(index + 1),
+                )
+                for index, decision_id in enumerate(decision_ids)
+            ],
+        )
+        conn.executemany(
+            "INSERT INTO outcomes VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [
+                (decision_id, domain, "approve", 0, 1, float(index + 100), "{}")
+                for index, decision_id in enumerate(decision_ids)
+            ],
+        )
+        if checkpoint_decision_id is not None:
+            conn.execute(
+                """
+                CREATE TABLE centroid_checkpoints (
+                    checkpoint_id TEXT, domain TEXT, decision_id TEXT,
+                    category TEXT, centroids_json TEXT, verified_count INTEGER,
+                    created_at REAL
+                )
+                """
+            )
+            conn.execute(
+                "INSERT INTO centroid_checkpoints VALUES (?, ?, ?, ?, ?, ?, ?)",
+                ("checkpoint-1", domain, checkpoint_decision_id, "category_a", "{}", 1, 10.0),
+            )
+        if receipt_decision_id is not None:
+            conn.execute(
+                """
+                CREATE TABLE evidence_receipts (
+                    receipt_intent_id TEXT, domain TEXT, decision_id TEXT,
+                    chain_index INTEGER, canonical_payload_json TEXT, created_at REAL
+                )
+                """
+            )
+            conn.execute(
+                "INSERT INTO evidence_receipts VALUES (?, ?, ?, ?, ?, ?)",
+                ("receipt-1", domain, receipt_decision_id, 0, "{}", 11.0),
+            )
+
+
+def _create_disposable_migration_graph(dsn: str) -> tuple[psycopg.Connection, str]:
+    """Create a graph isolated from the configured Protocol v2 test graph."""
+    graph_name = f"protocol_v2_test_migration_{uuid.uuid4().hex[:8]}"
+    conn = psycopg.connect(dsn, autocommit=True)
+    conn.execute("LOAD 'age'")
+    conn.execute("SET search_path = ag_catalog, '$user', public")
+    conn.execute(f"SELECT create_graph('{graph_name}')")
+    return conn, graph_name
 
 
 def _age_outcome_count(age_store, decision_id: str) -> int:
@@ -2915,11 +3011,38 @@ def test_concurrent_cross_domain():
     pass
 
 
-@MIGRATION_PENDING
-def test_migration_replay():
+@pytest.mark.age
+def test_migration_replay(tmp_path, age_store):
     """SQLite-to-AGE replay preserves canonical counts and links."""
     # Protocol v2 invariant: migration is replay-safe and idempotent.
-    pass
+    domain = f"pytest_protocol_v2_migration_{uuid.uuid4().hex[:8]}"
+    source_db = tmp_path / "migration.sqlite"
+    _create_migration_source(source_db, domain, [f"migration-{index}" for index in range(5)])
+    dsn = os.environ["AGE_TEST_DSN"]
+    graph_conn, graph_name = _create_disposable_migration_graph(dsn)
+    store = type(age_store)(dsn=dsn, graph_name=graph_name)
+    try:
+        first = run_migration(domain, str(source_db), dsn, graph_name, batch_size=2, verify=False)
+        assert first["status"] == "PASS"
+        assert first["write"]["written"] == 5
+        assert store.count_decisions(domain) == 5
+        assert _age_domain_outcome_count(store, domain) == 5
+        edge_rows = store._store._run_query(
+            f"MATCH ()-[r:HAS_OUTCOME]->() WHERE r.domain = {store._store._S(domain)} RETURN count(r) AS cnt"
+        )
+        assert edge_rows == [{"cnt": 5}]
+
+        replay = run_migration(domain, str(source_db), dsn, graph_name, batch_size=2, verify=False)
+        assert replay["status"] == "PASS"
+        assert store.count_decisions(domain) == 5
+        assert _age_domain_outcome_count(store, domain) == 5
+        assert store._store._run_query(
+            f"MATCH ()-[r:HAS_OUTCOME]->() WHERE r.domain = {store._store._S(domain)} RETURN count(r) AS cnt"
+        ) == [{"cnt": 5}]
+    finally:
+        store.close()
+        graph_conn.execute(f"SELECT drop_graph('{graph_name}', true)")
+        graph_conn.close()
 
 
 def test_v1_scorer_compatibility(tmp_path):
@@ -3312,3 +3435,86 @@ def test_age_write_outcome_compound_domain_identity(age_store):
         """
     )
     assert other_edge_rows == [{"cnt": 0}]
+
+
+@pytest.mark.age
+def test_age_write_outcome_domain_preserves_status_transition(age_store):
+    """A domain-scoped outcome confirms its pending Decision and keeps its domain."""
+    domain = age_store.protocol_v2_test_domain
+    decision_id = f"OUTCOME-TRANSITION-{uuid.uuid4().hex[:8]}"
+    _write_governed_decision(age_store, decision_id, domain=domain)
+
+    age_store.write_outcome(decision_id, "approve", True, domain=domain)
+
+    decision = age_store.get_decision(decision_id)
+    outcome = _age_get_outcome(age_store, decision_id)
+    assert decision is not None
+    assert decision["status"] == "confirmed"
+    assert outcome is not None
+    assert outcome["domain"] == domain
+
+
+@pytest.mark.age
+def test_age_migration_source_tag_is_counted_in_active_v(age_store):
+    """Confirmed SQLite-migrated Decisions are active verified evidence."""
+    domain = age_store.protocol_v2_test_domain
+    decision_id = f"MIGRATION-V-{uuid.uuid4().hex[:8]}"
+    store = age_store._store
+    store._run_query(
+        f"""
+        CREATE (d:Decision {{
+            decision_id: {store._S(decision_id)}, domain: {store._S(domain)},
+            status: 'confirmed', migration_source: 'sqlite'
+        }})
+        CREATE (o:Outcome {{
+            decision_id: {store._S(decision_id)}, domain: {store._S(domain)}, is_correct: true
+        }})
+        CREATE (d)-[:HAS_OUTCOME {{decision_id: {store._S(decision_id)}, domain: {store._S(domain)}}}]->(o)
+        RETURN 1 AS created
+        """
+    )
+
+    assert age_store.count_verified(domain) == 1
+    assert age_store.count_verified_decisions(domain) == 1
+
+
+@pytest.mark.age
+def test_age_checkpoint_receipt_per_decision_isolation(tmp_path, age_store):
+    """Migrated checkpoints and receipts link only to their originating Decision."""
+    domain = age_store.protocol_v2_test_domain
+    decision_one = f"ISOLATION-ONE-{uuid.uuid4().hex[:8]}"
+    decision_two = f"ISOLATION-TWO-{uuid.uuid4().hex[:8]}"
+    source_db = tmp_path / "isolation.sqlite"
+    _create_migration_source(
+        source_db,
+        domain,
+        [decision_one, decision_two],
+        checkpoint_decision_id=decision_one,
+        receipt_decision_id=decision_two,
+    )
+
+    result = run_migration(
+        domain,
+        str(source_db),
+        os.environ["AGE_TEST_DSN"],
+        os.environ["AGE_TEST_GRAPH"],
+        verify=False,
+    )
+    assert result["status"] == "PASS"
+    store = age_store._store
+    checkpoint_edges = store._run_query(
+        f"""
+        MATCH (d:Decision)-[:HAS_CENTROID_CHECKPOINT]->(c:CentroidCheckpoint)
+        WHERE d.domain = {store._S(domain)}
+        RETURN d.decision_id AS decision_id, c.decision_id AS checkpoint_decision_id, count(c) AS cnt
+        """
+    )
+    receipt_edges = store._run_query(
+        f"""
+        MATCH (d:Decision)-[:EMITTED_RECEIPT]->(r:EvidenceReceipt)
+        WHERE d.domain = {store._S(domain)}
+        RETURN d.decision_id AS decision_id, r.decision_id AS receipt_decision_id, count(r) AS cnt
+        """
+    )
+    assert checkpoint_edges == [{"decision_id": decision_one, "checkpoint_decision_id": decision_one, "cnt": 1}]
+    assert receipt_edges == [{"decision_id": decision_two, "receipt_decision_id": decision_two, "cnt": 1}]
