@@ -95,11 +95,19 @@ def _validate_age_graph_name(
     *,
     test_mode: bool,
     read_only_soc_projection: bool,
+    domain: str | None = None,
+    shared_graph_authorization: str | None = None,
 ) -> str:
     graph = str(graph_name or "").strip()
     if not graph:
         raise ValueError("AGE graph backend requires explicit non-blank GRAPH_NAME")
-    if graph == "soc_graph":
+    authorized_pair = f"{domain}:{graph}" if domain else ""
+    authorized_pairs = {
+        pair.strip()
+        for pair in str(shared_graph_authorization or "").split(",")
+        if pair.strip()
+    }
+    if graph == "soc_graph" and authorized_pair not in authorized_pairs:
         raise ValueError("soc_graph is forbidden for generic GraphStore factory contexts")
     if graph.startswith("protocol_v2_test") and not test_mode:
         raise ValueError("protocol_v2_test* AGE graphs require test_mode=True")
@@ -117,6 +125,7 @@ def create_graph_store(
     env: Mapping[str, str] | None = None,
     test_mode: bool = False,
     read_only_soc_projection: bool = False,
+    shared_graph_authorization: str | None = None,
 ) -> GraphStore:
     """Create a GraphStore without changing default SQLite behavior.
 
@@ -174,10 +183,29 @@ def create_graph_store(
         )
         if selected_graph is None:
             selected_graph = _env_value(env_map, "GRAPH_DOMAIN")
+        dual_write_authorization = (
+            shared_graph_authorization
+            if shared_graph_authorization is not None
+            else _env_value(env_map, "SHARED_GRAPH_AUTHORIZED")
+        )
+        if str(selected_graph or "").strip() == "soc_graph":
+            required_pair = f"{selected_domain}:soc_graph"
+            authorized_pairs = {
+                pair.strip()
+                for pair in str(dual_write_authorization or "").split(",")
+                if pair.strip()
+            }
+            if required_pair not in authorized_pairs:
+                primary.close()
+                raise ValueError(
+                    f"soc_graph requires SHARED_GRAPH_AUTHORIZED={required_pair}"
+                )
         selected_graph = _validate_age_graph_name(
             selected_graph,
             test_mode=test_mode,
             read_only_soc_projection=read_only_soc_projection,
+            domain=selected_domain,
+            shared_graph_authorization=dual_write_authorization,
         )
         from copilot_sdk.graph.dual_write_store import DualWriteStore
 
@@ -208,6 +236,8 @@ def create_graph_store(
         selected_graph,
         test_mode=test_mode,
         read_only_soc_projection=read_only_soc_projection,
+        domain=selected_domain,
+        shared_graph_authorization=shared_graph_authorization,
     )
 
     adapter_cls = _load_age_adapter()

@@ -61,6 +61,11 @@ def _generic_graph_env_present(source: Mapping[str, str]) -> bool:
     return any(source.get(key) not in (None, "") for key in GENERIC_GRAPH_ENV_KEYS)
 
 
+def _shared_graph_is_authorized(authorization: str | None, *, domain: str, graph: str) -> bool:
+    """Require an exact writer-domain/graph authorization pair."""
+    return str(authorization or "").strip() == f"{domain}:{graph}"
+
+
 @dataclass(frozen=True)
 class TradingActiveGraphConfig:
     requested_backend: str = "sqlite"
@@ -68,6 +73,7 @@ class TradingActiveGraphConfig:
     graph: str | None = None
     domain: str = DOMAIN
     test_mode: bool = False
+    shared_graph_authorization: str | None = None
     ignored_generic_graph_env: bool = False
 
     @classmethod
@@ -80,6 +86,7 @@ class TradingActiveGraphConfig:
             graph=source.get("TRADING_ACTIVE_AGE_GRAPH"),
             domain=(source.get("TRADING_ACTIVE_AGE_DOMAIN") or DOMAIN).strip(),
             test_mode=_parse_bool(source.get("TRADING_ACTIVE_AGE_TEST_MODE"), default=False),
+            shared_graph_authorization=source.get("TRADING_SHARED_GRAPH_AUTHORIZED"),
             ignored_generic_graph_env=_generic_graph_env_present(source),
         )
         config.validate(source)
@@ -112,8 +119,15 @@ class TradingActiveGraphConfig:
             )
 
         graph = self.graph.strip()
-        if graph == "soc_graph":
-            raise TradingActiveGraphConfigError("Trading active AGE must not target soc_graph")
+        soc_graph_authorized = _shared_graph_is_authorized(
+            self.shared_graph_authorization,
+            domain=self.domain,
+            graph=graph,
+        )
+        if graph == "soc_graph" and not soc_graph_authorized:
+            raise TradingActiveGraphConfigError(
+                "soc_graph requires TRADING_SHARED_GRAPH_AUTHORIZED=trading:soc_graph"
+            )
         if self.test_mode:
             if not graph.startswith("protocol_v2_test"):
                 raise TradingActiveGraphConfigError(
@@ -124,7 +138,7 @@ class TradingActiveGraphConfig:
             raise TradingActiveGraphConfigError(
                 "protocol_v2_test* graphs require TRADING_ACTIVE_AGE_TEST_MODE=1"
             )
-        if graph not in ALLOWED_PRODUCT_AGE_GRAPHS:
+        if graph not in ALLOWED_PRODUCT_AGE_GRAPHS and not soc_graph_authorized:
             raise TradingActiveGraphConfigError(
                 "Trading active AGE product graph must be reviewed and allow-listed"
             )
@@ -141,6 +155,7 @@ class TradingActiveGraphConfig:
             "graph": self.graph,
             "domain": self.domain,
             "test_mode": self.test_mode,
+            "shared_graph_authorization": self.shared_graph_authorization,
             "ignored_generic_graph_env": self.ignored_generic_graph_env,
         }
 
@@ -238,7 +253,15 @@ def create_trading_active_graph_store(
     if _parse_bool(os.environ.get("TRADING_SHADOW_AGE"), default=False):
         raise TradingActiveGraphConfigError("TRADING_SHADOW_AGE=1 conflicts with active AGE")
     config.validate({"TRADING_ACTIVE_GRAPH_BACKEND": "age"})
-    if config.graph_kind() != "test":
+    shared_soc_graph = (
+        config.graph is not None
+        and _shared_graph_is_authorized(
+            config.shared_graph_authorization,
+            domain=config.domain,
+            graph=config.graph.strip(),
+        )
+    )
+    if config.graph_kind() != "test" and not shared_soc_graph:
         raise TradingActiveGraphConfigError(
             "Trading product AGE writes remain blocked; use protocol_v2_test* test mode"
         )
@@ -247,15 +270,21 @@ def create_trading_active_graph_store(
         from copilot_sdk.graph.factory import create_graph_store
 
         factory = create_graph_store
-    store = factory(
-        backend="age",
-        domain=config.domain,
-        dsn=config.dsn,
-        graph_name=config.graph,
-        env={},
-        test_mode=config.test_mode,
+    factory_args = {
+        "backend": "age",
+        "domain": config.domain,
+        "dsn": config.dsn,
+        "graph_name": config.graph,
+        "env": {},
+        "test_mode": config.test_mode,
+    }
+    if shared_soc_graph:
+        factory_args["shared_graph_authorization"] = config.shared_graph_authorization
+    store = factory(**factory_args)
+    return TradingActiveAGEGraphStore(
+        store,
+        active_phase="shared_graph" if shared_soc_graph else "test_mode",
     )
-    return TradingActiveAGEGraphStore(store, active_phase="test_mode")
 
 
 def build_trading_graph_status(app_state: Any) -> dict[str, Any]:
@@ -271,7 +300,14 @@ def build_trading_graph_status(app_state: Any) -> dict[str, Any]:
     product_graph_allowed = (
         None
         if not requested_age or graph_kind != "product"
-        else str(config.graph).strip() in ALLOWED_PRODUCT_AGE_GRAPHS
+        else (
+            str(config.graph).strip() in ALLOWED_PRODUCT_AGE_GRAPHS
+            or _shared_graph_is_authorized(
+                config.shared_graph_authorization,
+                domain=config.domain,
+                graph=str(config.graph).strip(),
+            )
+        )
     )
     return {
         "active_backend": "age" if age_active else "sqlite",

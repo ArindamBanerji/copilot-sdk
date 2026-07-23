@@ -13,6 +13,8 @@ from app.graph_status import (
     create_trading_active_graph_store,
 )
 from app.main import create_app
+from app.main import _graph_store
+from copilot_sdk.graph import SQLiteGraphStore
 
 
 TRADING_FACTORS = {
@@ -184,6 +186,47 @@ def test_product_like_config_validates_but_store_construction_is_blocked():
     assert config.graph_kind() == "product"
     with pytest.raises(TradingActiveGraphConfigError, match="product AGE writes remain blocked"):
         create_trading_active_graph_store(config, store_factory=lambda **_: FakeAGEStore())
+
+
+def test_shared_soc_graph_requires_exact_trading_authorization():
+    config = TradingActiveGraphConfig.from_env(
+        {
+            "TRADING_ACTIVE_GRAPH_BACKEND": "age",
+            "TRADING_ACTIVE_AGE_DSN": "postgresql://example/product",
+            "TRADING_ACTIVE_AGE_GRAPH": "soc_graph",
+            "TRADING_ACTIVE_AGE_DOMAIN": "trading",
+            "TRADING_ACTIVE_AGE_TEST_MODE": "0",
+            "TRADING_SHARED_GRAPH_AUTHORIZED": "trading:soc_graph",
+        }
+    )
+    active = create_trading_active_graph_store(config, store_factory=lambda **_: FakeAGEStore())
+    assert isinstance(active, TradingActiveAGEGraphStore)
+    assert active.active_phase == "shared_graph"
+
+
+@pytest.mark.parametrize("authorization", [None, "soc:soc_graph"])
+def test_shared_soc_graph_rejects_missing_or_wrong_domain_authorization(authorization):
+    env = {
+        "TRADING_ACTIVE_GRAPH_BACKEND": "age",
+        "TRADING_ACTIVE_AGE_DSN": "postgresql://example/product",
+        "TRADING_ACTIVE_AGE_GRAPH": "soc_graph",
+        "TRADING_ACTIVE_AGE_DOMAIN": "trading",
+        "TRADING_ACTIVE_AGE_TEST_MODE": "0",
+    }
+    if authorization is not None:
+        env["TRADING_SHARED_GRAPH_AUTHORIZED"] = authorization
+    with pytest.raises(TradingActiveGraphConfigError, match="TRADING_SHARED_GRAPH_AUTHORIZED=trading:soc_graph"):
+        TradingActiveGraphConfig.from_env(env)
+
+
+def test_generic_graph_backend_age_still_downgrades_to_sqlite(monkeypatch, tmp_path):
+    _clear_active_env(monkeypatch)
+    monkeypatch.setenv("GRAPH_BACKEND", "age")
+    store = _graph_store(tmp_path / "trading.db")
+    try:
+        assert isinstance(store, SQLiteGraphStore)
+    finally:
+        store.close()
 
 
 def test_active_age_status_redacts_dsn_and_reports_test_mode(
@@ -412,6 +455,7 @@ def _clear_active_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "TRADING_ACTIVE_AGE_GRAPH",
         "TRADING_ACTIVE_AGE_DOMAIN",
         "TRADING_ACTIVE_AGE_TEST_MODE",
+        "TRADING_SHARED_GRAPH_AUTHORIZED",
         "TRADING_SHADOW_AGE",
         "GRAPH_BACKEND",
         "GRAPH_DSN",
