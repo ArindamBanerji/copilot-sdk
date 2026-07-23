@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import re
 
 import numpy as np
 import pytest
@@ -15,6 +16,129 @@ from copilot_sdk.migrate.verify_state import (
     replay_decisions,
     verify_level3,
 )
+
+
+class FakeConn:  # MOCK-OK: in-memory AGE boundary double for migration Cypher topology.
+    """Minimal committed/uncommitted AGE model for migration verification tests."""
+
+    _NODE_MARKERS = {
+        "CREATE (d:Decision": "Decision",
+        "CREATE (o:Outcome": "Outcome",
+        "CREATE (c:CentroidCheckpoint": "CentroidCheckpoint",
+        "CREATE (r:EvidenceReceipt": "EvidenceReceipt",
+    }
+
+    def __init__(self) -> None:
+        self.nodes: list[dict[str, str | None]] = []
+        self.edges: list[dict[str, str | None]] = []
+        self._pending_nodes: list[dict[str, str | None]] = []
+        self._pending_edges: list[dict[str, str | None]] = []
+        self._last_row: tuple[int, ...] | None = None
+        self._last_rows: list[tuple[int, ...]] = []
+        self.queries: list[str] = []
+        self.commit_count = 0
+        self.rollback_count = 0
+        self.closed = False
+
+    @staticmethod
+    def _literal(query: str, name: str) -> str | None:
+        match = re.search(rf"{name}: '((?:\\\\'|[^'])*)'", query)
+        return match.group(1).replace("\\'", "'") if match else None
+
+    def _topology_count(self, label: str, query: str) -> int:
+        domain = self._literal(query, "domain")
+        return sum(
+            node["label"] == label
+            and node["domain"] == domain
+            and node["migration_source"] == "sqlite"
+            for node in self.nodes
+        )
+
+    def execute(self, query: str) -> FakeConn:
+        """Handle the constrained MATCH/CREATE/count patterns emitted by the writer."""
+        self.queries.append(query)
+        self._last_row = None
+        self._last_rows = []
+
+        if "MATCH (d:Decision" in query and "RETURN d" in query:
+            # The migration's MATCH-before-CREATE idempotency check sees no
+            # existing node in these fresh test graphs.
+            return self
+
+        for marker, label in self._NODE_MARKERS.items():
+            if marker in query:
+                self._pending_nodes.append(
+                    {
+                        "label": label,
+                        "domain": self._literal(query, "domain"),
+                        "decision_id": self._literal(query, "decision_id"),
+                        "migration_source": self._literal(query, "migration_source"),
+                    }
+                )
+                return self
+
+        edge_match = re.search(r"CREATE \(d\)-\[:([A-Z_]+)", query)
+        if edge_match:
+            self._pending_edges.append(
+                {
+                    "label": edge_match.group(1),
+                    "domain": self._literal(query, "domain"),
+                    "decision_id": self._literal(query, "decision_id"),
+                }
+            )
+            return self
+
+        if "RETURN count(DISTINCT o) AS outcomes, count(r) AS edges" in query:
+            domain = self._literal(query, "domain")
+            decision_id = self._literal(query, "decision_id")
+            outcome_count = sum(
+                node["label"] == "Outcome"
+                and node["domain"] == domain
+                and node["decision_id"] == decision_id
+                for node in self.nodes
+            )
+            edge_count = sum(
+                edge["label"] == "HAS_OUTCOME"
+                and edge["domain"] == domain
+                and edge["decision_id"] == decision_id
+                for edge in self.edges
+            )
+            self._last_row = (outcome_count, edge_count)
+            return self
+
+        if "RETURN count(r) AS cnt" in query and "HAS_OUTCOME" in query:
+            domain = self._literal(query, "domain")
+            self._last_row = (
+                sum(edge["label"] == "HAS_OUTCOME" and edge["domain"] == domain for edge in self.edges),
+            )
+            return self
+
+        for label in self._NODE_MARKERS.values():
+            if f"MATCH ({label[0].lower()}:" in query and "RETURN count(" in query:
+                self._last_row = (self._topology_count(label, query),)
+                return self
+        return self
+
+    def fetchone(self) -> tuple[int, ...] | None:
+        return self._last_row
+
+    def fetchall(self) -> list[tuple[int, ...]]:
+        return self._last_rows
+
+    def commit(self) -> None:
+        self.nodes.extend(self._pending_nodes)
+        self.edges.extend(self._pending_edges)
+        self._pending_nodes.clear()
+        self._pending_edges.clear()
+        self.commit_count += 1
+
+    def rollback(self) -> None:
+        self._pending_nodes.clear()
+        self._pending_edges.clear()
+        self.rollback_count += 1
+
+    def close(self) -> None:
+        self.closed = True
 
 
 def _decision(
@@ -366,24 +490,8 @@ def test_run_migration_level3_failure_gates_result(tmp_path, monkeypatch):
 
     db_path = _make_db(tmp_path)
 
-    class FakeConn:
-        def execute(self, query):
-            return self
-
-        def fetchone(self):
-            return None
-
-        def commit(self):
-            pass
-
-        def rollback(self):
-            pass
-
-        def close(self):
-            pass
-
-    monkeypatch.setattr(sqlite_to_age, "_connect_age", lambda *args: FakeConn())
-    monkeypatch.setattr(sqlite_to_age, "_write_batch", lambda *args: {"written": 4, "skipped": 0, "errors": 0})
+    conn = FakeConn()
+    monkeypatch.setattr(sqlite_to_age, "_connect_age", lambda *args: conn)
     monkeypatch.setattr(sqlite_to_age, "_verify_level1", lambda *args: {"passed": True, "details": {}})
     monkeypatch.setattr(sqlite_to_age, "_verify_level2", lambda *args: {"passed": True, "details": {}})
     monkeypatch.setattr(
@@ -411,20 +519,10 @@ def test_scratch_l3_verifies_live_not_scratch(tmp_path, monkeypatch):
     db_path = _make_db(tmp_path)
     l3_graphs = []
 
-    class FakeConn:
-        def commit(self):
-            pass
-
-        def rollback(self):
-            pass
-
-        def close(self):
-            pass
-
-    monkeypatch.setattr(sqlite_to_age, "_connect_age", lambda *args: FakeConn())
+    conn = FakeConn()
+    monkeypatch.setattr(sqlite_to_age, "_connect_age", lambda *args: conn)
     monkeypatch.setattr(sqlite_to_age, "create_scratch_graph", lambda dsn, domain: "scratch_graph")
     monkeypatch.setattr(sqlite_to_age, "verify_scratch_clean", lambda conn, graph: True)
-    monkeypatch.setattr(sqlite_to_age, "_write_batch", lambda *args: {"written": 4, "skipped": 0, "errors": 0})
     monkeypatch.setattr(sqlite_to_age, "_verify_level1", lambda *args: {"passed": True, "details": {}})
     monkeypatch.setattr(sqlite_to_age, "_verify_level2", lambda *args: {"passed": True, "details": {}})
     monkeypatch.setattr(sqlite_to_age, "copy_to_live", lambda *args: {"written": 4, "skipped": 0, "errors": 0})

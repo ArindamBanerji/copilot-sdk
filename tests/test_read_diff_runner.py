@@ -10,15 +10,26 @@ class ReadStore:  # MOCK-OK: read-only GraphStore comparison boundary fixture.
         self,
         decisions: list[dict[str, Any]],
         *,
+        verified_decisions: list[dict[str, Any]] | None = None,
         verified: int | None = None,
         correct: int | None = None,
         total: int | None = None,
     ) -> None:
         self.decisions = decisions
-        self.verified = len(decisions) if verified is None else verified
+        self.verified_decisions = (
+            [
+                decision
+                for decision in decisions
+                if decision.get("status") in {"confirmed", "overridden"}
+            ]
+            if verified_decisions is None
+            else verified_decisions
+        )
+        self.verified = len(self.verified_decisions) if verified is None else verified
         self.correct = self.verified if correct is None else correct
-        self.total = self.verified if total is None else total
+        self.total = len(decisions) if total is None else total
         self.verified_calls = 0
+        self.all_calls = 0
 
     def count_verified(self, domain: str) -> int:
         return self.verified
@@ -31,6 +42,10 @@ class ReadStore:  # MOCK-OK: read-only GraphStore comparison boundary fixture.
 
     def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
         self.verified_calls += 1
+        return list(self.verified_decisions)
+
+    def get_all_decisions(self, domain: str) -> list[dict[str, Any]]:
+        self.all_calls += 1
         return list(self.decisions)
 
 
@@ -143,3 +158,73 @@ def test_all_match_summary_contains_pass():
 
 def test_empty_stores_pass():
     assert _run(ReadStore([]), ReadStore([])).passed is True
+
+
+def test_compare_all_compares_verified_and_pending_decisions():
+    decisions = [
+        *[_decision(f"verified-{index}") for index in range(5)],
+        *[_decision(f"pending-{index}", status="pending") for index in range(5)],
+    ]
+    report = ReadDiffRunner(ReadStore(decisions), ReadStore(decisions), "trading").compare_all()
+    assert report.passed is True
+    assert report.primary_total == 10
+    assert report.primary_count == 5
+
+
+def test_compare_sample_compares_requested_number_of_decisions():
+    decisions = [_decision(f"d{index}") for index in range(10)]
+    report = ReadDiffRunner(ReadStore(decisions), ReadStore(decisions), "trading").compare_sample(n=3)
+    assert report.passed is True
+    assert report.primary_total == 10
+
+
+def test_metadata_mismatch_is_ignored():
+    assert _run(
+        ReadStore([_decision("d1", metadata={"key": "value"})]),
+        ReadStore([_decision("d1", metadata="{}")]),
+    ).passed is True
+
+
+def test_created_at_mismatch_is_ignored():
+    assert _run(
+        ReadStore([_decision("d1", created_at=1.0)]),
+        ReadStore([_decision("d1", created_at=999.0)]),
+    ).passed is True
+
+
+def test_migration_source_mismatch_is_ignored():
+    assert _run(
+        ReadStore([_decision("d1")]),
+        ReadStore([_decision("d1", migration_source="sqlite", migration_ts=123.0)]),
+    ).passed is True
+
+
+def test_actual_index_mismatch_is_reported_when_present_on_both_sides():
+    report = _run(
+        ReadStore([_decision("d1", actual_index=0)]),
+        ReadStore([_decision("d1", actual_index=1)]),
+    )
+    assert any(mismatch["field"] == "actual_index" for mismatch in report.field_mismatches)
+
+
+def test_actual_index_is_skipped_when_one_store_does_not_return_it():
+    primary = _decision("d1", actual_index=0)
+    secondary = _decision("d1")
+    secondary.pop("actual_index", None)
+    assert _run(ReadStore([primary]), ReadStore([secondary])).passed is True
+
+
+def test_compare_all_uses_get_all_decisions():
+    decisions = [_decision("d1"), _decision("pending", status="pending")]
+    primary = ReadStore(decisions)
+    secondary = ReadStore(decisions)
+    report = ReadDiffRunner(primary, secondary, "trading").compare_all()
+    assert report.passed is True
+    assert primary.all_calls == secondary.all_calls == 1
+
+
+def test_run_diff_remains_a_compare_all_alias():
+    decisions = [_decision("d1"), _decision("pending", status="pending")]
+    report = ReadDiffRunner(ReadStore(decisions), ReadStore(decisions), "trading").run_diff()
+    assert report.passed is True
+    assert report.primary_total == 2

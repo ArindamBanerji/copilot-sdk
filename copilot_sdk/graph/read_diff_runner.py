@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import json
 import logging
+import random
 from dataclasses import dataclass, field
 from typing import Any
 
 from copilot_sdk.graph.protocol import GraphStore
 
 
-_COMPARE_FIELDS = (
+# These are semantic Decision fields common to SQLite and AGE return values.
+# Do not compare storage-format fields (for example ``factors_json``),
+# migration bookkeeping, metadata serialization, or timestamps.  AGE may
+# return verified_at/context only inside an Outcome container, so those are
+# deliberately excluded from this cross-store contract.
+COMPARE_FIELDS = (
     "decision_id",
     "domain",
     "category",
@@ -21,11 +27,9 @@ _COMPARE_FIELDS = (
     "factor_vector",
     "probabilities",
     "status",
-    "metadata",
-    "created_at",
-    "is_correct",
-    "actual_action",
 )
+
+VERIFIED_COMPARE_FIELDS = ("actual_action", "actual_index", "is_correct")
 
 
 @dataclass
@@ -113,29 +117,54 @@ class ReadDiffRunner:
         self.logger = logger or logging.getLogger(__name__)
 
     def run_diff(self) -> DiffReport:
-        """Run count and verified-decision comparisons for this domain."""
-        report = DiffReport(domain=self.domain)
-        report.primary_count = self.primary.count_verified(self.domain)
-        report.secondary_count = self.secondary.count_verified(self.domain)
+        """Backward-compatible alias for :meth:`compare_all`."""
+        return self.compare_all()
+
+    def compare_all(self, domain: str | None = None) -> DiffReport:
+        """Compare count parity and every active Decision in ``domain``."""
+        target_domain = domain or self.domain
+        return self._compare(target_domain)
+
+    def compare_sample(self, domain: str | None = None, n: int = 100) -> DiffReport:
+        """Compare count parity and a random sample of up to ``n`` Decisions."""
+        if n < 0:
+            raise ValueError("sample size must be non-negative")
+        target_domain = domain or self.domain
+        return self._compare(target_domain, sample_size=n)
+
+    def _compare(self, domain: str, sample_size: int | None = None) -> DiffReport:
+        report = DiffReport(domain=domain)
+        report.primary_count = self.primary.count_verified(domain)
+        report.secondary_count = self.secondary.count_verified(domain)
         report.count_match = report.primary_count == report.secondary_count
 
-        report.primary_correct = self.primary.count_correct(self.domain)
-        report.secondary_correct = self.secondary.count_correct(self.domain)
+        report.primary_correct = self.primary.count_correct(domain)
+        report.secondary_correct = self.secondary.count_correct(domain)
         report.correct_match = report.primary_correct == report.secondary_correct
 
-        report.primary_total = self.primary.count_decisions(self.domain)
-        report.secondary_total = self.secondary.count_decisions(self.domain)
+        report.primary_total = self.primary.count_decisions(domain)
+        report.secondary_total = self.secondary.count_decisions(domain)
         report.total_match = report.primary_total == report.secondary_total
 
         if report.count_match:
-            primary_map = {
-                (str(decision.get("domain", self.domain)), str(decision["decision_id"])): _normalized_decision(decision)
-                for decision in self.primary.get_verified_decisions(self.domain)
-            }
-            secondary_map = {
-                (str(decision.get("domain", self.domain)), str(decision["decision_id"])): _normalized_decision(decision)
-                for decision in self.secondary.get_verified_decisions(self.domain)
-            }
+            primary_map = self._decision_map(self.primary.get_all_decisions(domain), domain)
+            secondary_map = self._decision_map(self.secondary.get_all_decisions(domain), domain)
+            self._merge_verified_fields(
+                primary_map,
+                self.primary.get_verified_decisions(domain),
+                domain,
+            )
+            self._merge_verified_fields(
+                secondary_map,
+                self.secondary.get_verified_decisions(domain),
+                domain,
+            )
+
+            if sample_size is not None:
+                sample_keys = set(random.sample(list(primary_map), min(sample_size, len(primary_map))))
+                primary_map = {key: decision for key, decision in primary_map.items() if key in sample_keys}
+                secondary_map = {key: decision for key, decision in secondary_map.items() if key in sample_keys}
+
             report.missing_in_secondary = [
                 decision_id
                 for domain, decision_id in primary_map
@@ -151,7 +180,7 @@ class ReadDiffRunner:
                 secondary_decision = secondary_map.get(key)
                 if secondary_decision is None:
                     continue
-                for field in _COMPARE_FIELDS:
+                for field in COMPARE_FIELDS:
                     primary_value = primary_decision.get(field)
                     secondary_value = secondary_decision.get(field)
                     if not _values_match(primary_value, secondary_value):
@@ -163,6 +192,24 @@ class ReadDiffRunner:
                                 "secondary": secondary_value,
                             }
                         )
+                if self._is_verified(primary_decision) or self._is_verified(secondary_decision):
+                    for field in VERIFIED_COMPARE_FIELDS:
+                        # AGE's optional Outcome merge does not guarantee every
+                        # verified field at top level.  Compare only values both
+                        # adapters explicitly return.
+                        if field not in primary_decision or field not in secondary_decision:
+                            continue
+                        primary_value = primary_decision[field]
+                        secondary_value = secondary_decision[field]
+                        if not _values_match(primary_value, secondary_value):
+                            report.field_mismatches.append(
+                                {
+                                    "decision_id": key[1],
+                                    "field": field,
+                                    "primary": primary_value,
+                                    "secondary": secondary_value,
+                                }
+                            )
 
         report.passed = (
             report.count_match
@@ -174,3 +221,35 @@ class ReadDiffRunner:
         )
         self.logger.info(report.summary())
         return report
+
+    @staticmethod
+    def _decision_map(
+        decisions: list[dict[str, Any]], domain: str
+    ) -> dict[tuple[str, str], dict[str, Any]]:
+        return {
+            (str(decision.get("domain", domain)), str(decision["decision_id"])): _normalized_decision(decision)
+            for decision in decisions
+        }
+
+    @classmethod
+    def _merge_verified_fields(
+        cls,
+        decisions: dict[tuple[str, str], dict[str, Any]],
+        verified_decisions: list[dict[str, Any]],
+        domain: str,
+    ) -> None:
+        for verified in verified_decisions:
+            key = (str(verified.get("domain", domain)), str(verified["decision_id"]))
+            decision = decisions.get(key)
+            if decision is None:
+                continue
+            normalized = _normalized_decision(verified)
+            for field in VERIFIED_COMPARE_FIELDS:
+                if field in normalized:
+                    decision[field] = normalized[field]
+
+    @staticmethod
+    def _is_verified(decision: dict[str, Any]) -> bool:
+        return decision.get("status") in {"confirmed", "overridden"} or (
+            decision.get("status") is None and decision.get("outcome") is not None
+        )
