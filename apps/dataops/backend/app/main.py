@@ -47,6 +47,7 @@ from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.di import AcquisitionAdvisor, BaseSourceProfiler, IntelligenceMapBuilder  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
+from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
@@ -88,8 +89,18 @@ def _cors_origins() -> list[str]:
 
 
 def _graph_store(db_path: str | Path):
-    store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="DOPS-")
-    store.penalty_ratio = 10.0
+    # Active AGE configuration is owned by DATAOPS_ACTIVE_*; generic AGE
+    # settings remain deliberately ignored by the graph-status contract.
+    backend = os.environ.get("GRAPH_BACKEND", "sqlite").strip().lower()
+    if backend == "age":
+        backend = "sqlite"
+    store = create_graph_store(
+        backend=backend,
+        domain=DOMAIN,
+        db_path=str(db_path),
+        decision_id_prefix="DOPS-",
+    )
+    setattr(store, "penalty_ratio", 10.0)
     return store
 
 

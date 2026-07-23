@@ -467,6 +467,7 @@ class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
+        domain: str | None = None,
     ) -> None:
         if decision_id not in self.decisions:
             raise KeyError(decision_id)

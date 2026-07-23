@@ -111,6 +111,7 @@ def create_graph_store(
     backend: str | None = None,
     domain: str | None = None,
     db_path: str | Path | None = None,
+    decision_id_prefix: str = "",
     dsn: str | None = None,
     graph_name: str | None = None,
     env: Mapping[str, str] | None = None,
@@ -144,6 +145,7 @@ def create_graph_store(
         return SQLiteGraphStore(
             sqlite_path,
             domain=selected_domain,
+            decision_id_prefix=decision_id_prefix,
         )
 
     if selected_backend == "dual_write":
@@ -152,7 +154,11 @@ def create_graph_store(
             domain=selected_domain,
             env=env_map,
         )
-        primary = SQLiteGraphStore(sqlite_path, domain=selected_domain)
+        primary = SQLiteGraphStore(
+            sqlite_path,
+            domain=selected_domain,
+            decision_id_prefix=decision_id_prefix,
+        )
         selected_dsn = _resolve_aliased_env(env_map, "GRAPH_DSN", "AGE_DSN", dsn)
         if not selected_dsn or not str(selected_dsn).strip():
             logger.warning(

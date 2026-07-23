@@ -75,6 +75,7 @@ from copilot_sdk.backend.conservation_utils import compute_conservation_status_p
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
+from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
 from copilot_sdk.reporting.weekly import (  # noqa: E402
     WeeklyReportGenerator,
     purchasing_cost_extractor,
@@ -125,8 +126,18 @@ def _cors_origins() -> list[str]:
 
 
 def _graph_store(db_path: str | Path):
-    store = SQLiteGraphStore(str(db_path), domain=DOMAIN, decision_id_prefix="PUR-")
-    store.penalty_ratio = 3.0
+    # Active AGE configuration is owned by PURCHASING_ACTIVE_*; generic AGE
+    # settings remain deliberately ignored by the graph-status contract.
+    backend = os.environ.get("GRAPH_BACKEND", "sqlite").strip().lower()
+    if backend == "age":
+        backend = "sqlite"
+    store = create_graph_store(
+        backend=backend,
+        domain=DOMAIN,
+        db_path=str(db_path),
+        decision_id_prefix="PUR-",
+    )
+    setattr(store, "penalty_ratio", 3.0)
     return store
 
 
