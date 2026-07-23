@@ -361,7 +361,10 @@ class _PausedStore:
         actual_action: str,
         is_correct: bool,
         metadata: dict | None = None,
+        domain: str | None = None,
     ) -> None:
+        if domain is not None and domain != self.domain:
+            raise KeyError(f"unknown domain: {domain}")
         if self.outcome is not None:
             raise ValueError(f"outcome already exists for decision_id: {decision_id}")
         meta = metadata or {}

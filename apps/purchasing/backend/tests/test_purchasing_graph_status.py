@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -409,8 +410,46 @@ class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
         self.outcomes: dict[str, list[dict[str, Any]]] = {}
         self.centroids: list[dict[str, Any]] = []
 
-    def write_governed_decision(self, **kwargs: Any) -> None:
-        decision_id = str(kwargs["decision_id"])
+    def generate_decision_id(self, domain: str) -> str:
+        assert domain == self.domain
+        return uuid.uuid4().hex[:12]
+
+    def write_governed_decision(
+        self,
+        decision_id: str,
+        domain: str,
+        category: str,
+        category_index: int,
+        recommended_action: str,
+        recommended_index: int,
+        confidence: float,
+        probabilities: list[float],
+        factor_vector: list[float],
+        factor_names: list[str],
+        source: str = "score",
+        scorer_version: str = "",
+        preset_version: str = "",
+        factor_schema_version: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        assert domain == self.domain
+        kwargs = {
+            "decision_id": decision_id,
+            "domain": domain,
+            "category": category,
+            "category_index": category_index,
+            "recommended_action": recommended_action,
+            "recommended_index": recommended_index,
+            "confidence": confidence,
+            "probabilities": probabilities,
+            "factor_vector": factor_vector,
+            "factor_names": factor_names,
+            "source": source,
+            "scorer_version": scorer_version,
+            "preset_version": preset_version,
+            "factor_schema_version": factor_schema_version,
+            "metadata": metadata,
+        }
         if decision_id in self.decisions and self.decisions[decision_id] != kwargs:
             raise ValueError("conflicting decision")
         self.decisions[decision_id] = {
@@ -435,6 +474,7 @@ class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
+        domain: str | None = None,
     ) -> None:
         if decision_id not in self.decisions:
             raise KeyError(decision_id)

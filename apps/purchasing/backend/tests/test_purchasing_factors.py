@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import uuid
 from datetime import date, timedelta
+from typing import Any
 
 import pytest
 
@@ -191,8 +193,45 @@ class CapturingAGEStore:
     def __init__(self) -> None:
         self.decision: dict | None = None
 
-    def write_governed_decision(self, **kwargs) -> None:
-        self.decision = kwargs
+    def generate_decision_id(self, domain: str) -> str:
+        assert domain == "purchasing"
+        return uuid.uuid4().hex[:12]
+
+    def write_governed_decision(
+        self,
+        decision_id: str,
+        domain: str,
+        category: str,
+        category_index: int,
+        recommended_action: str,
+        recommended_index: int,
+        confidence: float,
+        probabilities: list[float],
+        factor_vector: list[float],
+        factor_names: list[str],
+        source: str = "score",
+        scorer_version: str = "",
+        preset_version: str = "",
+        factor_schema_version: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self.decision = {
+            "decision_id": decision_id,
+            "domain": domain,
+            "category": category,
+            "category_index": category_index,
+            "recommended_action": recommended_action,
+            "recommended_index": recommended_index,
+            "confidence": confidence,
+            "probabilities": probabilities,
+            "factor_vector": factor_vector,
+            "factor_names": factor_names,
+            "source": source,
+            "scorer_version": scorer_version,
+            "preset_version": preset_version,
+            "factor_schema_version": factor_schema_version,
+            "metadata": metadata,
+        }
 
 
 class FixedQueueScore:

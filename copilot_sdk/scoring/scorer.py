@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib
 import json
 import logging
+import os
 import sys
 import time
 import uuid
@@ -22,7 +23,7 @@ from copilot_sdk.scoring.fingerprint import FingerprintResult, compute_fingerpri
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
 from copilot_sdk.evolution.protocol import EvolutionStore
-from copilot_sdk.graph.protocol import GraphStore
+from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
 
 
 def _ensure_gae_path() -> None:
@@ -43,6 +44,18 @@ from gae.profile_scorer import (  # noqa: E402
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_governed_writes(governed_writes: bool | None) -> bool:
+    """Resolve the construction-time governed-write feature gate.
+
+    ``None`` means use the process default; an explicit ``False`` always
+    overrides ``SCORER_GOVERNED_WRITES``.  This keeps the legacy raw-write
+    path available for callers that need to opt out during rollout.
+    """
+    if governed_writes is not None:
+        return bool(governed_writes)
+    return os.environ.get("SCORER_GOVERNED_WRITES", "").strip() == "1"
 
 
 def compute_theta_min(alpha: float, verified: int | float) -> float | None:
@@ -106,6 +119,7 @@ class CompoundingScorer:
         exploration_policy: Any | None = None,
         evolve: bool = False,
         consolidation_enabled: bool = False,
+        governed_writes: bool | None = None,
     ):
         self._preset = preset
         self._scorer = scorer
@@ -119,6 +133,12 @@ class CompoundingScorer:
         self._evolve_count = 0
         self._last_conflict: JudgmentConflict | None = None
         self._consolidation_enabled = bool(consolidation_enabled)
+        self._governed_writes = _resolve_governed_writes(governed_writes)
+        if self._governed_writes and not isinstance(graph_store, ProtocolV2GraphStore):
+            raise TypeError(
+                "Governed writes require a Protocol V2 graph store. "
+                "Ensure GRAPH_BACKEND supports V2."
+            )
         self._batch_decision_count = 0
         self._batch_decision_time_start: str | None = None
         self._batch_decision_time_end: str | None = None
@@ -177,6 +197,7 @@ class CompoundingScorer:
         evolve: bool = False,
         consolidation_enabled: bool = False,
         enable_rl: bool = True,
+        governed_writes: bool | None = None,
     ) -> "CompoundingScorer":
         if domain not in PRESET_REGISTRY:
             available = ", ".join(sorted(PRESET_REGISTRY)) or "(none)"
@@ -238,6 +259,7 @@ class CompoundingScorer:
             exploration_policy=exploration_policy,
             evolve=evolve,
             consolidation_enabled=consolidation_enabled,
+            governed_writes=governed_writes,
         )
 
     def score(
@@ -255,7 +277,11 @@ class CompoundingScorer:
             action,
             probabilities,
         ) = self._predict(factors, category)
-        decision_id = uuid.uuid4().hex[:12]
+        if self._governed_writes:
+            governed_store = cast(ProtocolV2GraphStore, self._graph_store)
+            decision_id = governed_store.generate_decision_id(self._domain)
+        else:
+            decision_id = uuid.uuid4().hex[:12]
         decision_metadata = dict(metadata or {})
         decision_metadata.update({
             "decision_id": decision_id,
@@ -267,15 +293,34 @@ class CompoundingScorer:
             "created_at": time.time(),
         })
         decision_metadata.setdefault("entity_id", decision_id)
-        stored_id = self._graph_store.write_decision(
-            self._domain,
-            category=category,
-            action=action,
-            confidence=float(gae_result.confidence),
-            factors=factor_values,
-            metadata=decision_metadata,
-        )
-        decision_id = stored_id
+        if self._governed_writes:
+            governed_store.write_governed_decision(
+                decision_id=decision_id,
+                domain=self._domain,
+                category=category,
+                category_index=category_index,
+                recommended_action=action,
+                recommended_index=action_index,
+                confidence=float(gae_result.confidence),
+                probabilities=probabilities,
+                factor_vector=factor_vector.tolist(),
+                factor_names=list(self._preset.shape.factor_names),
+                source="compounding_scorer",
+                scorer_version="copilot_sdk.compounding_scorer.v1",
+                preset_version=f"{self._preset.name}.v1",
+                factor_schema_version=f"{self._preset.name}.factor_schema.v1",
+                metadata=decision_metadata,
+            )
+        else:
+            stored_id = self._graph_store.write_decision(
+                self._domain,
+                category=category,
+                action=action,
+                confidence=float(gae_result.confidence),
+                factors=factor_values,
+                metadata=decision_metadata,
+            )
+            decision_id = stored_id
 
         return ScoreResult(
             decision_id=decision_id,
