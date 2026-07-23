@@ -32,6 +32,7 @@ def test_dual_write_with_dsn_constructs_wrapper(monkeypatch, tmp_path):
         graph_name="dual_write_test",
     )
     assert isinstance(store, DualWriteStore)
+    assert store._durable_outbox is not None
     store.close()
 
 
@@ -48,6 +49,7 @@ def test_dual_write_without_dsn_falls_back_to_sqlite(monkeypatch, tmp_path, capl
 def test_sqlite_backend_is_unchanged(tmp_path):
     store = create_graph_store(backend="sqlite", domain="trading", db_path=tmp_path / "trading.db")
     assert isinstance(store, SQLiteGraphStore)
+    assert not hasattr(store, "_durable_outbox")
     store.close()
 
 

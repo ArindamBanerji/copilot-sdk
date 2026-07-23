@@ -217,7 +217,8 @@ def create_graph_store(
             sqlite_path,
             selected_graph,
         )
-        return DualWriteStore(primary, secondary)
+        outbox_path = Path(sqlite_path).parent / f"{selected_domain}_dual_write_outbox.db"
+        return DualWriteStore(primary, secondary, outbox_path=str(outbox_path))
 
     if not selected_domain.strip():
         raise ValueError("AGE graph backend requires explicit non-blank domain")

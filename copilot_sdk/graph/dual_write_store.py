@@ -16,9 +16,19 @@ from copilot_sdk.graph.enrichment import (
     ProvenancedValue,
 )
 from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
+from copilot_sdk.graph.outbox import DurableOutbox
 
 
 _T = TypeVar("_T")
+
+
+class ReplayReport:
+    """Outcome of replaying every pending durable secondary-write entry."""
+
+    def __init__(self, replayed: int, failed: int, remaining: int) -> None:
+        self.replayed = replayed
+        self.failed = failed
+        self.remaining = remaining
 
 
 class DualWriteStore(GraphStore):
@@ -28,7 +38,7 @@ class DualWriteStore(GraphStore):
     writes. ``write_decision`` is deliberately primary-only because its
     generated identifier cannot be safely shared with a secondary store.
     The lock protects concurrent failure-log append, inspection, and flush;
-    persistence provides crash recovery only, not a durable replay outbox.
+    ``outbox_path`` optionally persists failed secondary writes for replay.
     """
 
     def __init__(
@@ -38,6 +48,7 @@ class DualWriteStore(GraphStore):
         logger: logging.Logger | None = None,
         max_failures: int = 10_000,
         failure_log_path: str | None = None,
+        outbox_path: str | None = None,
     ) -> None:
         if max_failures < 1:
             raise ValueError("max_failures must be at least 1")
@@ -52,6 +63,7 @@ class DualWriteStore(GraphStore):
         self._failure_lock = Lock()
         self._secondary_failures = self._load_failure_log(failure_log_path) if failure_log_path else []
         self._trim_failures()
+        self._durable_outbox = DurableOutbox(outbox_path) if outbox_path else None
 
     @property
     def secondary_failures(self) -> list[dict[str, Any]]:
@@ -127,6 +139,84 @@ class DualWriteStore(GraphStore):
             self._secondary_failures.append(entry)
         self._trim_failures()
         self.logger.warning("%s operation=%s error=%s", entry["status"], operation, entry["error"])
+        if not unsupported:
+            self._append_outbox_entry(operation, args, kwargs, str(entry["error"]))
+
+    @staticmethod
+    def _outbox_domain(operation: str, args: tuple[object, ...], kwargs: dict[str, object]) -> str | None:
+        domain = kwargs.get("domain")
+        if isinstance(domain, str):
+            return domain
+        if operation == "write_outcome":
+            return None
+        domain_positions = {
+            "write_governed_decision": 1,
+            "write_observation": 1,
+            "write_conservation_status": 1,
+            "write_fingerprint": 1,
+            "write_centroid_checkpoint": 1,
+            "write_evolution_event": 1,
+            "link_entity": 3,
+            "append_evidence_receipt": 1,
+        }
+        position = domain_positions.get(operation, 0)
+        candidate = args[position] if len(args) > position else None
+        if isinstance(candidate, str):
+            return candidate
+        return None
+
+    def _append_outbox_entry(
+        self,
+        operation: str,
+        args: tuple[object, ...],
+        kwargs: dict[str, object],
+        error: str,
+    ) -> None:
+        if self._durable_outbox is None:
+            return
+        try:
+            self._durable_outbox.append(
+                operation=operation,
+                domain=self._outbox_domain(operation, args, kwargs),
+                payload={"args": list(args), "kwargs": kwargs},
+                error=error,
+            )
+        except Exception as outbox_error:
+            self.logger.error(
+                "SECONDARY_OUTBOX_APPEND_FAILURE operation=%s error=%s",
+                operation,
+                outbox_error,
+            )
+
+    def replay_outbox(self, secondary: GraphStore | None = None) -> ReplayReport:
+        """Replay pending secondary writes directly, without rewriting primary data."""
+        if self._durable_outbox is None:
+            raise RuntimeError("durable outbox is not configured; provide outbox_path")
+        target = cast(ProtocolV2GraphStore, secondary) if secondary is not None else self.secondary
+        replayed = 0
+        failed = 0
+        while pending_entries := self._durable_outbox.get_pending():
+            for entry in pending_entries:
+                payload = entry["payload"]
+                try:
+                    operation = str(entry["operation"])
+                    method = getattr(target, operation)
+                    method(*payload["args"], **payload["kwargs"])
+                except Exception as exc:
+                    self._durable_outbox.mark_failed(int(entry["id"]), f"{type(exc).__name__}: {exc}")
+                    failed += 1
+                else:
+                    self._durable_outbox.mark_replayed(int(entry["id"]))
+                    replayed += 1
+        return ReplayReport(
+            replayed=replayed,
+            failed=failed,
+            remaining=self._durable_outbox.pending_count(),
+        )
+
+    def outbox_empty(self) -> bool:
+        """Whether the durable replay gate has no pending secondary writes."""
+        return self._durable_outbox is None or self._durable_outbox.pending_count() == 0
 
     def _record_secondary_skip(
         self,
@@ -246,5 +336,7 @@ class DualWriteStore(GraphStore):
             self.secondary.close()
         except Exception as exc:
             self._record_secondary_failure("close", (), {}, exc)
+        if self._durable_outbox is not None:
+            self._durable_outbox.close()
         if primary_error is not None:
             raise primary_error
