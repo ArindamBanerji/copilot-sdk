@@ -1199,7 +1199,8 @@ def run_migration(
                     logger.error("SQLite to AGE migration failed: %s", result["fail_reason"])
                     return result
 
-            topology = _verify_topology(active_records, conn, write_graph, domain)
+            topology_records = active_records + archive_records if include_archived else active_records
+            topology = _verify_topology(topology_records, conn, write_graph, domain)
             result["verification"]["topology"] = topology
             if not topology["passed"]:
                 result["status"] = "FAIL"

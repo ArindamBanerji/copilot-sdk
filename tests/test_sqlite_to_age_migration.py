@@ -1097,6 +1097,33 @@ def test_topology_verification_rejects_decisions_without_outcomes(tmp_path):
     assert result["mismatches"][0]["actual"] == 0
 
 
+def test_topology_verification_includes_active_and_archived_records(tmp_path):
+    db_path = _make_db(tmp_path)
+    _add_archive_rows(
+        db_path,
+        [
+            _archive_row(1, "a-confirmed", is_correct=1),
+            _archive_row(2, "a-overridden", is_correct=0),
+            _archive_row(3, "a-pending", actual_action=None, is_correct=None),
+        ],
+    )
+    active_records = _read_migration_records(str(db_path), "trading", all_decisions=True)
+    with sqlite3.connect(db_path) as source:
+        archive_records = _read_archive_migration_records(source, "trading")
+
+    result = _verify_topology(
+        active_records + archive_records,
+        TopologyVerificationConn(
+            {"Decision": 9, "Outcome": 6, "HAS_OUTCOME": 6, "CentroidCheckpoint": 0, "EvidenceReceipt": 0}
+        ),
+        "graph",
+        "trading",
+    )
+
+    assert result["passed"] is True
+    assert result["expected"] == result["actual"]
+
+
 def test_include_archived_writes_final_archived_decisions_and_outcomes(tmp_path):
     db_path = _make_db(tmp_path)
     _add_archive_rows(
