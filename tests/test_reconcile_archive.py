@@ -161,10 +161,13 @@ def test_checkpoint_resume_completes_remaining_batches(tmp_path: Path) -> None:
 def test_reconcile_is_idempotent(tmp_path: Path) -> None:
     reconciler = _reconciler(tmp_path, ["d1", "d2"], {"d1": None, "d2": None})
     first = reconciler.reconcile()
+    reconciler.checkpoint_file.unlink()
     second = reconciler.reconcile()
 
     assert first["reconciled"] == 2
-    assert second["reconciled"] == 2
+    assert second["reconciled"] == 0
+    assert second["already_archived"] == 2
+    assert second["not_found_in_age"] == 0
     assert reconciler.age_store.states == {"d1": True, "d2": True}
 
 
