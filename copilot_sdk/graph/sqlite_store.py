@@ -1838,11 +1838,15 @@ class SQLiteGraphStore:
             raise RuntimeError("outbox enqueue did not produce an outbox_id")
         return int(outbox_id)
 
-    def get_decision(self, decision_id: str) -> dict[str, Any] | None:
-        row = self.connection.execute(
-            "SELECT * FROM decisions WHERE decision_id = ?",
-            (decision_id,),
-        ).fetchone()
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
+        if domain is None:
+            row = self.connection.execute(
+                "SELECT * FROM decisions WHERE decision_id = ?", (decision_id,)
+            ).fetchone()
+        else:
+            row = self.connection.execute(
+                "SELECT * FROM decisions WHERE decision_id = ? AND domain = ?", (decision_id, domain)
+            ).fetchone()
         if row is None:
             return None
         return self._decision_from_row(row)

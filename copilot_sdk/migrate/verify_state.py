@@ -78,8 +78,10 @@ class _ReplayGraphStore:
     def add_decision(self, decision: dict[str, Any]) -> None:
         self._decisions[str(decision["decision_id"])] = dict(decision)
 
-    def get_decision(self, decision_id: str) -> dict[str, Any] | None:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
         decision = self._decisions.get(str(decision_id))
+        if decision is not None and domain is not None and decision.get("domain") != domain:
+            return None
         return None if decision is None else dict(decision)
 
     def write_outcome(
@@ -88,9 +90,12 @@ class _ReplayGraphStore:
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
+        domain: str | None = None,
     ) -> None:
         meta = dict(metadata or {})
         decision = self._decisions[str(decision_id)]
+        if domain is not None and decision.get("domain") != domain:
+            raise KeyError(decision_id)
         self._outcomes[str(decision_id)] = {
             "decision_id": str(decision_id),
             "domain": self.domain,

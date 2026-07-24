@@ -102,7 +102,7 @@ class FakeStore:  # MOCK-OK: response model fixture store, no conservation behav
     def save(self, decision: dict[str, Any]) -> None:
         self.decisions[decision["decision_id"]] = decision
 
-    def get_decision(self, decision_id: str) -> dict[str, Any] | None:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
         return self.decisions.get(decision_id)
 
     def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict[str, Any]]:

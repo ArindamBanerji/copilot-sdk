@@ -37,7 +37,7 @@ class GraphStore(Protocol):
     ) -> None:
         ...
 
-    def get_decision(self, decision_id: str) -> dict[str, Any] | None:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
         ...
 
     def get_decisions(

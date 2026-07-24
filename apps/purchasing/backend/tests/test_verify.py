@@ -280,7 +280,7 @@ class _FakeStore:
         self.verified = 0
         self.correct = 0
 
-    def get_decision(self, decision_id: str) -> dict | None:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict | None:
         if decision_id == self.decision["decision_id"]:
             return dict(self.decision)
         return None
@@ -345,7 +345,7 @@ class _PausedStore:
         }
         self.outcome: dict | None = None
 
-    def get_decision(self, decision_id: str) -> dict | None:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict | None:
         if decision_id == self.decision["decision_id"]:
             return dict(self.decision)
         return None

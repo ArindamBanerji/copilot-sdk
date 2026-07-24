@@ -501,7 +501,7 @@ class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
             "metadata": dict(kwargs.get("metadata") or {}),
         }
 
-    def get_decision(self, decision_id: str) -> dict[str, Any] | None:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
         decision = self.decisions.get(decision_id)
         return dict(decision) if decision is not None else None
 

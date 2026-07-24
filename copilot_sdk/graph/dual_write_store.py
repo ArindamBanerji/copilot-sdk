@@ -348,7 +348,7 @@ class DualWriteStore(GraphStore):
         return self._write("append_evidence_receipt", lambda: self.primary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), lambda: self.secondary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), (receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route), {"metadata": metadata})
 
     # Reads are intentionally primary-only.
-    def get_decision(self, decision_id: str) -> dict[str, Any] | None: return self.primary.get_decision(decision_id)
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None: return self.primary.get_decision(decision_id, domain)
     def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict[str, Any]]: return self.primary.get_decisions(domain, category, limit)
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_all_decisions(domain)
     def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_archived_decisions(domain)

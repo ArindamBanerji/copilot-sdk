@@ -93,7 +93,7 @@ def test_minimal_graphstore_does_not_need_l5_methods() -> None:
         def write_outcome(self, decision_id, actual_action, is_correct, metadata=None):
             return None
 
-        def get_decision(self, decision_id):
+        def get_decision(self, decision_id, domain=None):
             return None
 
         def get_decisions(self, domain, category=None, limit=400):

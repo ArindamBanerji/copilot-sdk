@@ -62,7 +62,7 @@ class MinimalGraphStore:
         }
         return None
 
-    def get_decision(self, decision_id):
+    def get_decision(self, decision_id, domain=None):
         decision = self.decisions.get(decision_id)
         if decision is None:
             return None

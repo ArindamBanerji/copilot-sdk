@@ -32,7 +32,7 @@ class FakeGraphStore:
         self.read_calls: list[str] = []
         self.write_calls: list[str] = []
 
-    def get_decision(self, decision_id: str) -> dict[str, Any] | None:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
         self.read_calls.append(decision_id)
         return self.decision if self.decision.get("decision_id") == decision_id else None
 

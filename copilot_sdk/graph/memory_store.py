@@ -888,8 +888,10 @@ class InMemoryGraphStore:
             return "already_applied"
         return "conflict"
 
-    def get_decision(self, decision_id: str) -> dict[str, Any] | None:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
         decision = self._decisions.get(decision_id)
+        if decision is not None and domain is not None and decision.get("domain") != domain:
+            return None
         return deepcopy(decision) if decision is not None else None
 
     def get_decisions(

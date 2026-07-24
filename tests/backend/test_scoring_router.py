@@ -82,7 +82,7 @@ class FakeStore:  # MOCK-OK: scoring router contract fixture, no production cons
     def save(self, decision: dict) -> None:
         self.decisions[decision["decision_id"]] = decision
 
-    def get_decision(self, decision_id: str) -> dict:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict:
         if decision_id not in self.decisions:
             raise KeyError(decision_id)
         return self.decisions[decision_id]
@@ -496,7 +496,7 @@ class ConcurrentGraphStore:
             },
         }
 
-    def get_decision(self, decision_id: str) -> dict[str, object] | None:
+    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, object] | None:
         return self.decisions.get(decision_id)
 
     def count_verified(self, domain: str) -> int:

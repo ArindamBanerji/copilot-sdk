@@ -280,6 +280,7 @@ class CompoundingScorer:
         if self._governed_writes:
             governed_store = cast(ProtocolV2GraphStore, self._graph_store)
             decision_id = governed_store.generate_decision_id(self._domain)
+            logger.info("GOVERNED_SCORE: id=%s store=%s", decision_id, type(self._graph_store).__name__)
         else:
             decision_id = uuid.uuid4().hex[:12]
         decision_metadata = dict(metadata or {})
@@ -515,7 +516,7 @@ class CompoundingScorer:
         consolidate: bool = False,
         context: dict[str, Any] | None = None,
     ) -> LearnResult | dict[str, Any]:
-        decision = self._graph_store.get_decision(decision_id)
+        decision = self._graph_store.get_decision(decision_id, domain=self._domain)
         if decision is None:
             raise KeyError(decision_id)
         assert actual_action in self._preset.shape.action_names, f"unknown action: {actual_action}"
