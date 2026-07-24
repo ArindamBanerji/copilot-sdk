@@ -169,6 +169,12 @@ class TradingActiveAGEGraphStore:
         self._store = store
         self.active_phase = active_phase
 
+    def generate_decision_id(self, domain: str) -> str:
+        """Trading active AGE IDs use TRD- prefix."""
+        import uuid
+
+        return f"TRD-{uuid.uuid4().hex[:12]}"
+
     def write_decision(
         self,
         domain: str,

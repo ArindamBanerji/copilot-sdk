@@ -189,7 +189,6 @@ def create_scoring_router(
         return payload
 
     @router.get("/trajectory", response_model=TrajectoryResponse)
-    @cached_static("trajectory", copilot=domain)
     def trajectory(request: Request) -> dict[str, Any]:
         scorer = get_scorer()
         payload = _json_safe(scorer.trajectory())
