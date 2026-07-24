@@ -62,6 +62,11 @@ def _generic_graph_env_present(source: Mapping[str, str]) -> bool:
     return any(source.get(key) not in (None, "") for key in GENERIC_GRAPH_ENV_KEYS)
 
 
+def _shared_graph_is_authorized(authorization: str | None, *, domain: str, graph: str) -> bool:
+    """Require the exact writer-domain/shared-graph authorization pair."""
+    return str(authorization or "").strip() == f"{domain}:{graph}"
+
+
 @dataclass(frozen=True)
 class DataOpsActiveGraphConfig:
     requested_backend: str = "sqlite"
@@ -70,6 +75,7 @@ class DataOpsActiveGraphConfig:
     domain: str = DOMAIN
     test_mode: bool = False
     live_age_test: bool = False
+    shared_graph_authorization: str | None = None
     ignored_generic_graph_env: bool = False
 
     @classmethod
@@ -83,6 +89,7 @@ class DataOpsActiveGraphConfig:
             domain=(source.get("DATAOPS_ACTIVE_AGE_DOMAIN") or DOMAIN).strip(),
             test_mode=_parse_bool(source.get("DATAOPS_ACTIVE_AGE_TEST_MODE"), default=False),
             live_age_test=_parse_bool(source.get("DATAOPS_ACTIVE_LIVE_AGE_TEST"), default=False),
+            shared_graph_authorization=source.get("DATAOPS_SHARED_GRAPH_AUTHORIZED"),
             ignored_generic_graph_env=_generic_graph_env_present(source),
         )
         config.validate(source)
@@ -111,8 +118,13 @@ class DataOpsActiveGraphConfig:
             )
 
         graph = self.graph.strip()
-        if graph == "soc_graph":
-            raise DataOpsActiveGraphConfigError("DataOps active AGE must not target soc_graph")
+        soc_graph_authorized = _shared_graph_is_authorized(
+            self.shared_graph_authorization, domain=self.domain, graph=graph
+        )
+        if graph == "soc_graph" and not soc_graph_authorized:
+            raise DataOpsActiveGraphConfigError(
+                "soc_graph requires DATAOPS_SHARED_GRAPH_AUTHORIZED=dataops:soc_graph"
+            )
         if self.test_mode:
             if not graph.startswith("protocol_v2_test"):
                 raise DataOpsActiveGraphConfigError(
@@ -123,11 +135,11 @@ class DataOpsActiveGraphConfig:
             raise DataOpsActiveGraphConfigError(
                 "protocol_v2_test* graphs require DATAOPS_ACTIVE_AGE_TEST_MODE=1"
             )
-        if graph not in ALLOWED_PRODUCT_AGE_GRAPHS:
+        if graph not in ALLOWED_PRODUCT_AGE_GRAPHS and not soc_graph_authorized:
             raise DataOpsActiveGraphConfigError(
                 "DataOps active AGE product graph must be reviewed and allow-listed"
             )
-        if not self.live_age_test:
+        if not self.live_age_test and not soc_graph_authorized:
             raise DataOpsActiveGraphConfigError(
                 "DataOps product AGE writes remain blocked; use protocol_v2_test* test mode"
             )
@@ -145,6 +157,7 @@ class DataOpsActiveGraphConfig:
             "domain": self.domain,
             "test_mode": self.test_mode,
             "live_age_test": self.live_age_test,
+            "shared_graph_authorization": self.shared_graph_authorization,
             "ignored_generic_graph_env": self.ignored_generic_graph_env,
         }
 
@@ -157,6 +170,11 @@ class DataOpsActiveAGEGraphStore:
     def __init__(self, store: Any, *, active_phase: str = "test_mode") -> None:
         self._store = store
         self.active_phase = active_phase
+
+    def generate_decision_id(self, domain: str) -> str:
+        """DataOps active AGE IDs use the DOPS- prefix."""
+        import uuid
+        return f"DOPS-{uuid.uuid4().hex[:12]}"
 
     def write_decision(
         self,
@@ -240,7 +258,13 @@ def create_dataops_active_graph_store(
     if config.requested_backend != "age":
         return None
     config.validate({"DATAOPS_ACTIVE_GRAPH_BACKEND": "age"})
-    if config.graph_kind() != "test" and not config.live_age_test:
+    shared_soc_graph = (
+        config.graph is not None
+        and _shared_graph_is_authorized(
+            config.shared_graph_authorization, domain=config.domain, graph=config.graph.strip()
+        )
+    )
+    if config.graph_kind() != "test" and not config.live_age_test and not shared_soc_graph:
         raise DataOpsActiveGraphConfigError(
             "DataOps product AGE writes remain blocked; use protocol_v2_test* test mode"
         )
@@ -249,15 +273,14 @@ def create_dataops_active_graph_store(
         from copilot_sdk.graph.factory import create_graph_store
 
         factory = create_graph_store
-    store = factory(
-        backend="age",
-        domain=config.domain,
-        dsn=config.dsn,
-        graph_name=config.graph,
-        env={},
-        test_mode=config.test_mode,
-    )
-    phase = "test_mode" if config.graph_kind() == "test" else "live_age_test"
+    factory_args = {
+        "backend": "age", "domain": config.domain, "dsn": config.dsn,
+        "graph_name": config.graph, "env": {}, "test_mode": config.test_mode,
+    }
+    if shared_soc_graph:
+        factory_args["shared_graph_authorization"] = config.shared_graph_authorization
+    store = factory(**factory_args)
+    phase = "shared_graph" if shared_soc_graph else ("test_mode" if config.graph_kind() == "test" else "live_age_test")
     return DataOpsActiveAGEGraphStore(store, active_phase=phase)
 
 

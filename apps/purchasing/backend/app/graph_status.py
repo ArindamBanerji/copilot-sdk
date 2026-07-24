@@ -63,6 +63,11 @@ def _generic_graph_env_present(source: Mapping[str, str]) -> bool:
     return any(source.get(key) not in (None, "") for key in GENERIC_GRAPH_ENV_KEYS)
 
 
+def _shared_graph_is_authorized(authorization: str | None, *, domain: str, graph: str) -> bool:
+    """Require the exact writer-domain/shared-graph authorization pair."""
+    return str(authorization or "").strip() == f"{domain}:{graph}"
+
+
 @dataclass(frozen=True)
 class PurchasingActiveGraphConfig:
     requested_backend: str = "sqlite"
@@ -70,6 +75,7 @@ class PurchasingActiveGraphConfig:
     graph: str | None = None
     domain: str = DOMAIN
     test_mode: bool = False
+    shared_graph_authorization: str | None = None
     ignored_generic_graph_env: bool = False
 
     @classmethod
@@ -88,6 +94,7 @@ class PurchasingActiveGraphConfig:
                 source.get("PURCHASING_ACTIVE_AGE_TEST_MODE"),
                 default=False,
             ),
+            shared_graph_authorization=source.get("PURCHASING_SHARED_GRAPH_AUTHORIZED"),
             ignored_generic_graph_env=_generic_graph_env_present(source),
         )
         config.validate(source)
@@ -122,8 +129,13 @@ class PurchasingActiveGraphConfig:
             )
 
         graph = self.graph.strip()
-        if graph == "soc_graph":
-            raise PurchasingActiveGraphConfigError("Purchasing active AGE must not target soc_graph")
+        soc_graph_authorized = _shared_graph_is_authorized(
+            self.shared_graph_authorization, domain=self.domain, graph=graph
+        )
+        if graph == "soc_graph" and not soc_graph_authorized:
+            raise PurchasingActiveGraphConfigError(
+                "soc_graph requires PURCHASING_SHARED_GRAPH_AUTHORIZED=purchasing:soc_graph"
+            )
         if self.test_mode:
             if not graph.startswith("protocol_v2_test"):
                 raise PurchasingActiveGraphConfigError(
@@ -134,7 +146,7 @@ class PurchasingActiveGraphConfig:
             raise PurchasingActiveGraphConfigError(
                 "protocol_v2_test* graphs require PURCHASING_ACTIVE_AGE_TEST_MODE=1"
             )
-        if graph not in ALLOWED_PRODUCT_AGE_GRAPHS:
+        if graph not in ALLOWED_PRODUCT_AGE_GRAPHS and not soc_graph_authorized:
             raise PurchasingActiveGraphConfigError(
                 "Purchasing active AGE product graph must be reviewed and allow-listed"
             )
@@ -151,6 +163,7 @@ class PurchasingActiveGraphConfig:
             "graph": self.graph,
             "domain": self.domain,
             "test_mode": self.test_mode,
+            "shared_graph_authorization": self.shared_graph_authorization,
             "ignored_generic_graph_env": self.ignored_generic_graph_env,
         }
 
@@ -163,6 +176,11 @@ class PurchasingActiveAGEGraphStore:
     def __init__(self, store: Any, *, active_phase: str = "test_mode") -> None:
         self._store = store
         self.active_phase = active_phase
+
+    def generate_decision_id(self, domain: str) -> str:
+        """Purchasing active AGE IDs use the PUR- prefix."""
+        import uuid
+        return f"PUR-{uuid.uuid4().hex[:12]}"
 
     def write_decision(
         self,
@@ -293,7 +311,13 @@ def create_purchasing_active_graph_store(
             "PURCHASING_SHADOW_AGE=1 conflicts with active AGE"
         )
     config.validate({"PURCHASING_ACTIVE_GRAPH_BACKEND": "age"})
-    if config.graph_kind() != "test":
+    shared_soc_graph = (
+        config.graph is not None
+        and _shared_graph_is_authorized(
+            config.shared_graph_authorization, domain=config.domain, graph=config.graph.strip()
+        )
+    )
+    if config.graph_kind() != "test" and not shared_soc_graph:
         raise PurchasingActiveGraphConfigError(
             "Purchasing product AGE writes remain blocked; use protocol_v2_test* test mode"
         )
@@ -302,15 +326,14 @@ def create_purchasing_active_graph_store(
         from copilot_sdk.graph.factory import create_graph_store
 
         factory = create_graph_store
-    store = factory(
-        backend="age",
-        domain=config.domain,
-        dsn=config.dsn,
-        graph_name=config.graph,
-        env={},
-        test_mode=config.test_mode,
-    )
-    return PurchasingActiveAGEGraphStore(store, active_phase="test_mode")
+    factory_args = {
+        "backend": "age", "domain": config.domain, "dsn": config.dsn,
+        "graph_name": config.graph, "env": {}, "test_mode": config.test_mode,
+    }
+    if shared_soc_graph:
+        factory_args["shared_graph_authorization"] = config.shared_graph_authorization
+    store = factory(**factory_args)
+    return PurchasingActiveAGEGraphStore(store, active_phase="shared_graph" if shared_soc_graph else "test_mode")
 
 
 def build_purchasing_graph_status(app_state: Any) -> dict[str, Any]:

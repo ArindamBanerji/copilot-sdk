@@ -538,3 +538,21 @@ class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
 
     def close(self) -> None:
         return None
+
+
+def test_shared_graph_authorization_requires_exact_purchasing_pair() -> None:
+    base = {
+        "PURCHASING_ACTIVE_GRAPH_BACKEND": "age",
+        "PURCHASING_ACTIVE_AGE_DSN": "postgresql://example/shared",
+        "PURCHASING_ACTIVE_AGE_GRAPH": "soc_graph",
+        "PURCHASING_ACTIVE_AGE_DOMAIN": "purchasing",
+    }
+    with pytest.raises(PurchasingActiveGraphConfigError, match="PURCHASING_SHARED_GRAPH_AUTHORIZED"):
+        PurchasingActiveGraphConfig.from_env(base)
+
+    config = PurchasingActiveGraphConfig.from_env(
+        {**base, "PURCHASING_SHARED_GRAPH_AUTHORIZED": "purchasing:soc_graph"}
+    )
+    active = create_purchasing_active_graph_store(config, store_factory=lambda **_: FakeAGEStore())
+    assert isinstance(active, PurchasingActiveAGEGraphStore)
+    assert active.generate_decision_id("purchasing").startswith("PUR-")

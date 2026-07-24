@@ -559,3 +559,21 @@ class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
 
     def close(self) -> None:
         return None
+
+
+def test_shared_graph_authorization_requires_exact_dataops_pair() -> None:
+    base = {
+        "DATAOPS_ACTIVE_GRAPH_BACKEND": "age",
+        "DATAOPS_ACTIVE_AGE_DSN": "postgresql://example/shared",
+        "DATAOPS_ACTIVE_AGE_GRAPH": "soc_graph",
+        "DATAOPS_ACTIVE_AGE_DOMAIN": "dataops",
+    }
+    with pytest.raises(DataOpsActiveGraphConfigError, match="DATAOPS_SHARED_GRAPH_AUTHORIZED"):
+        DataOpsActiveGraphConfig.from_env(base)
+
+    config = DataOpsActiveGraphConfig.from_env(
+        {**base, "DATAOPS_SHARED_GRAPH_AUTHORIZED": "dataops:soc_graph"}
+    )
+    active = create_dataops_active_graph_store(config, store_factory=lambda **_: FakeAGEStore())
+    assert isinstance(active, DataOpsActiveAGEGraphStore)
+    assert active.generate_decision_id("dataops").startswith("DOPS-")
