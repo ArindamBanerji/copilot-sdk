@@ -8,6 +8,7 @@ import random
 from dataclasses import dataclass, field
 from typing import Any
 
+from copilot_sdk.graph.dual_write_store import DualWriteStore
 from copilot_sdk.graph.protocol import GraphStore
 
 
@@ -142,6 +143,11 @@ class ReadDiffRunner:
         domain: str,
         logger: logging.Logger | None = None,
     ) -> None:
+        if isinstance(primary, DualWriteStore) or isinstance(secondary, DualWriteStore):
+            raise TypeError(
+                "ReadDiffRunner requires two concrete stores, not DualWriteStore. "
+                "Pass primary and secondary stores directly."
+            )
         self.primary = primary
         self.secondary = secondary
         self.domain = domain

@@ -131,6 +131,7 @@ class ArchiveReconciler:
             f"""
             MATCH (d:Decision)
             WHERE {age._domain_clause(self.domain)}
+              AND (d.archived IS NULL OR d.archived = false)
               AND d.decision_id IN {literal_ids}
             RETURN d.decision_id AS decision_id, d.archived AS archived
             """

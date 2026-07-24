@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
+
+from copilot_sdk.graph.dual_write_store import DualWriteStore
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.graph.read_diff_runner import ReadDiffRunner
 
 
@@ -79,6 +83,13 @@ def _decision(decision_id: str, **overrides: Any) -> dict[str, Any]:
 
 def _run(primary: ReadStore, secondary: ReadStore):
     return ReadDiffRunner(primary, secondary, "trading").run_diff()
+
+
+def test_runner_rejects_dual_write_store_operand() -> None:
+    dual = DualWriteStore(InMemoryGraphStore(), InMemoryGraphStore())
+
+    with pytest.raises(TypeError, match="requires two concrete stores"):
+        ReadDiffRunner(dual, InMemoryGraphStore(), "trading")
 
 
 def _archived(decision_id: str, **overrides: Any) -> dict[str, Any]:

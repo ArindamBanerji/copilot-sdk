@@ -6,6 +6,8 @@ from threading import Lock
 import pytest
 
 from copilot_sdk.graph.dual_write_store import DualWriteStore
+from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
 
 class RecordingEndpoint:  # MOCK-OK: protocol delegation boundary spy.
@@ -146,6 +148,27 @@ def test_lifecycle_calls_both_endpoints():
     assert primary.count("archive_decisions") == secondary.count("archive_decisions") == 1
     assert primary.count("archive_old_decisions") == secondary.count("archive_old_decisions") == 1
     assert primary.count("domain_scoped_reset") == secondary.count("domain_scoped_reset") == 1
+
+
+def test_retention_archives_identical_ids_in_both_concrete_stores(tmp_path):
+    domain = "trading"
+    primary = SQLiteGraphStore(tmp_path / "trading.db", domain=domain)
+    secondary = InMemoryGraphStore(domain=domain)
+    dual = DualWriteStore(primary, secondary)
+    try:
+        for index in range(802):
+            dual.write_governed_decision(
+                f"TRD-{index:04}", domain, "trend", 0, "buy", 0, 0.8,
+                [0.8, 0.2], [float(index)], ["factor"], metadata={"created_at": float(index)},
+            )
+
+        assert dual.archive_old_decisions(domain, keep_recent=800) == 2
+        assert primary.count_decisions(domain) == secondary.count_decisions(domain) == 800
+        assert [row["decision_id"] for row in primary.get_archived_decisions(domain)] == [
+            row["decision_id"] for row in secondary.get_archived_decisions(domain)
+        ] == ["TRD-0000", "TRD-0001"]
+    finally:
+        dual.close()
 
 
 def test_lifecycle_secondary_failure_is_recorded_not_propagated():
