@@ -331,6 +331,16 @@ def _as_int(value: Any, default: int = 0) -> int:
     return int(value)
 
 
+def _optional_int_equal(left: Any, right: Any) -> bool:
+    """Compare optional integer fields across SQLite and AGE representations."""
+    if left is None or right is None:
+        return left is right
+    try:
+        return int(left) == int(right)
+    except (TypeError, ValueError):
+        return False
+
+
 def _as_float(value: Any, default: float = 0.0) -> float:
     if value is None:
         return default
@@ -856,7 +866,7 @@ def _verify_archive_level2(
             checks.update(
                 {
                     "actual_action": values[7] == outcome.get("actual_action"),
-                    "actual_index": values[8] == outcome.get("actual_index"),
+                    "actual_index": _optional_int_equal(values[8], outcome.get("actual_index")),
                     "is_correct": _as_bool(values[9]) == _as_bool(outcome.get("is_correct")),
                     "verified_at": _float_equal(values[10], outcome.get("verified_at")),
                 }

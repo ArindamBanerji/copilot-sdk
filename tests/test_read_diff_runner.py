@@ -6,7 +6,7 @@ import pytest
 
 from copilot_sdk.graph.dual_write_store import DualWriteStore
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
-from copilot_sdk.graph.read_diff_runner import ReadDiffRunner
+from copilot_sdk.graph.read_diff_runner import ReadDiffRunner, _values_match
 
 
 class ReadStore:  # MOCK-OK: read-only GraphStore comparison boundary fixture.
@@ -371,3 +371,15 @@ def test_active_and_history_reports_are_independent_gates() -> None:
 
     assert active_report.passed is True
     assert history_report.passed is False
+
+
+def test_identical_bare_hex_ids_that_look_like_exponents_match() -> None:
+    assert _values_match("70584e140919", "70584e140919") is True
+
+
+def test_different_bare_hex_ids_do_not_match() -> None:
+    assert _values_match("70584e140919", "70584e140918") is False
+
+
+def test_json_encoded_list_strings_are_still_normalized() -> None:
+    assert _values_match("[0.125, 0.82]", [0.125, 0.82]) is True

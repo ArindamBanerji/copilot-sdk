@@ -770,7 +770,8 @@ def cmd_start(selected: list[dict], args):
         # Build environment with copilot-specific vars
         env = os.environ.copy()
         if c.get("env"):
-            env.update(c["env"])
+            for key, value in c["env"].items():
+                env.setdefault(key, value)
         if args.no_reseed:
             env["DEMO_NO_RESEED"] = "1"
         if args.preseed and not args.no_reseed and c["name"].lower() == "soc":

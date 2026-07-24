@@ -98,6 +98,13 @@ class DiffReport:
 def _decoded_json(value: Any) -> Any:
     if not isinstance(value, str):
         return value
+    # Bare identifiers (especially IDs containing ``e``) must remain strings.
+    # Python's JSON decoder accepts values such as ``70584e140919`` as an
+    # enormous-exponent float (``inf``), which can make ``inf`` vs ``inf`` fail
+    # the numeric tolerance comparison because ``inf - inf`` is ``nan``.
+    stripped = value.lstrip()
+    if not stripped or stripped[0] not in '{["':
+        return value
     try:
         return json.loads(value)
     except (TypeError, ValueError):
@@ -106,6 +113,9 @@ def _decoded_json(value: Any) -> Any:
 
 def _values_match(primary_value: Any, secondary_value: Any) -> bool:
     """Compare values with JSON normalization and a small float tolerance."""
+    if isinstance(primary_value, str) and isinstance(secondary_value, str):
+        if primary_value == secondary_value:
+            return True
     primary_value = _decoded_json(primary_value)
     secondary_value = _decoded_json(secondary_value)
     if primary_value is None and secondary_value is None:
