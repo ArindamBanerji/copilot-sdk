@@ -11,6 +11,7 @@ from typing import Any, Mapping
 
 from ci_platform.graph.age_client import AGEClient
 from ci_platform.graph.agtype import normalize_agtype_value
+from copilot_sdk.config import GraphConfig
 
 
 _SAFE_DOMAIN_RE = re.compile(r"^[a-zA-Z0-9_-]{1,200}$")
@@ -204,9 +205,15 @@ def classify_domain_context(
 class AGEProjection:
     """Read-only projection from a shared AGE graph for one safe domain."""
 
-    def __init__(self, dsn: str, graph_name: str, domain: str) -> None:
+    def __init__(self, dsn: str | None = None, graph_name: str | None = None, domain: str = "") -> None:
         if not _SAFE_DOMAIN_RE.fullmatch(domain):
             raise ValueError(f"unsupported graph domain: {domain}")
+        if dsn is None or graph_name is None:
+            config = GraphConfig.load(domain)
+            dsn = dsn or config.dsn
+            graph_name = graph_name or config.graph
+        if not dsn or not graph_name:
+            raise ValueError(f"GraphConfig for {domain!r} must provide DSN and graph name")
         self.dsn = dsn
         self.graph_name = graph_name
         self.domain = domain

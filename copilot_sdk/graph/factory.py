@@ -1,4 +1,4 @@
-"""GraphStore factory with SQLite defaults and guarded AGE opt-in."""
+"""GraphStore factory with fail-closed configuration-driven AGE selection."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from typing import Mapping, cast
 
+from copilot_sdk.config import GraphConfig, GraphConfigError
 from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
@@ -24,7 +25,12 @@ def _env_value(env: Mapping[str, str], key: str) -> str | None:
 
 
 def _normalize_backend(value: str | None) -> str:
-    backend = str(value or "sqlite").strip().lower()
+    if value is None or not str(value).strip():
+        raise GraphConfigError(
+            "graph backend is required; pass backend explicitly or provide a domain "
+            "for GraphConfig resolution"
+        )
+    backend = str(value).strip().lower()
     if backend not in _VALID_BACKENDS:
         raise ValueError(
             f"invalid graph backend {value!r}; expected one of {sorted(_VALID_BACKENDS)}"
@@ -126,18 +132,38 @@ def create_graph_store(
     test_mode: bool = False,
     read_only_soc_projection: bool = False,
     shared_graph_authorization: str | None = None,
+    profile: str = "production",
 ) -> GraphStore:
-    """Create a GraphStore without changing default SQLite behavior.
+    """Create a GraphStore.
 
-    ``GRAPH_BACKEND`` defaults to ``sqlite``. AGE requires explicit DSN and graph
-    name, and refuses unsafe graph names before constructing the adapter.
+    With no explicit backend, DSN, or graph, the domain's typed GraphConfig is
+    authoritative. Explicit arguments remain available for tests and migration
+    tooling. AGE and dual-write configurations fail before store construction
+    when their required connection settings are absent.
     """
 
     env_map: Mapping[str, str] = os.environ if env is None else env
-    selected_backend = _normalize_backend(
-        backend if backend is not None else _env_value(env_map, "GRAPH_BACKEND")
-    )
-    selected_domain = str(domain or "graph")
+    config: GraphConfig | None = None
+    config_driven = backend is None and dsn is None and graph_name is None
+    if config_driven:
+        if not domain:
+            raise GraphConfigError(
+                "create_graph_store requires domain when backend, dsn, and graph "
+                "are not explicitly provided"
+            )
+        config = GraphConfig.load(domain, profile=profile)
+        selected_backend = _normalize_backend(config.backend)
+        selected_domain = config.domain
+        dsn = config.dsn
+        graph_name = config.graph
+        if shared_graph_authorization is None:
+            shared_graph_authorization = config.authorized
+        test_mode = test_mode or config.active_test_mode
+    else:
+        selected_backend = _normalize_backend(
+            backend if backend is not None else _env_value(env_map, "GRAPH_BACKEND")
+        )
+        selected_domain = str(domain or "graph")
     _validate_graph_domain(env_map, selected_domain)
 
     if selected_backend == "sqlite":
@@ -170,11 +196,11 @@ def create_graph_store(
         )
         selected_dsn = _resolve_aliased_env(env_map, "GRAPH_DSN", "AGE_DSN", dsn)
         if not selected_dsn or not str(selected_dsn).strip():
-            logger.warning(
-                "GRAPH_BACKEND=dual_write has no GRAPH_DSN; falling back to SQLite for domain=%s",
-                selected_domain,
+            primary.close()
+            raise GraphConfigError(
+                "dual_write backend requires an AGE DSN; set GRAPH_DSN or "
+                f"{selected_domain.upper()}_ACTIVE_AGE_DSN"
             )
-            return primary
         selected_graph = _resolve_aliased_env(
             env_map,
             "GRAPH_NAME",

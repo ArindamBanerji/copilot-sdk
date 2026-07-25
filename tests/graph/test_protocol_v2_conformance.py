@@ -3048,7 +3048,7 @@ def test_migration_replay(tmp_path, age_store):
 def test_v1_scorer_compatibility(tmp_path):
     """CompoundingScorer.score continues to work with v1 write_decision."""
     # Protocol v2 invariant: Protocol v2 is additive, not breaking.
-    scorer = CompoundingScorer.from_preset("s2p", db_path=str(tmp_path / "s2p.sqlite"))
+    scorer = CompoundingScorer.from_preset("s2p", db_path=str(tmp_path / "s2p.sqlite"), profile="test")
     try:
         factors = {name: 0.5 for name in scorer._preset.shape.factor_names}
         category = scorer._preset.shape.category_names[0]

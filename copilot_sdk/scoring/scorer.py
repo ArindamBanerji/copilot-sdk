@@ -198,7 +198,10 @@ class CompoundingScorer:
         consolidation_enabled: bool = False,
         enable_rl: bool = True,
         governed_writes: bool | None = None,
+        profile: str = "production",
     ) -> "CompoundingScorer":
+        if profile not in {"production", "test", "development"}:
+            raise ValueError("profile must be 'production', 'test', or 'development'")
         if domain not in PRESET_REGISTRY:
             available = ", ".join(sorted(PRESET_REGISTRY)) or "(none)"
             raise ValueError(f"Unknown preset {domain!r}. Available presets: {available}")
@@ -210,7 +213,16 @@ class CompoundingScorer:
             data_dir.mkdir(parents=True, exist_ok=True)
             db_path = str(data_dir / f"{domain}.db")
 
-        if graph_store is None:
+        if graph_store is None and profile == "production":
+            raise RuntimeError(
+                "Production scorer requires an injected GraphStore. "
+                "Use create_graph_store() or pass graph_store explicitly."
+            )
+        if graph_store is None and profile == "test":
+            from copilot_sdk.graph.memory_store import InMemoryGraphStore
+
+            graph_store = InMemoryGraphStore(domain=preset.name)
+        elif graph_store is None:
             from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
             graph_store = SQLiteGraphStore(db_path, domain=preset.name)

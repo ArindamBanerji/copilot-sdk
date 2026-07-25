@@ -76,7 +76,7 @@ def test_protocol_write_decision_is_domain_first():
     ]
 
 
-def test_protocol_write_outcome_has_no_domain_parameter():
+def test_protocol_write_outcome_accepts_optional_domain_parameter():
     signature = inspect.signature(GraphStore.write_outcome)
 
     assert list(signature.parameters) == [
@@ -85,7 +85,9 @@ def test_protocol_write_outcome_has_no_domain_parameter():
         "actual_action",
         "is_correct",
         "metadata",
+        "domain",
     ]
+    assert signature.parameters["domain"].default is None
 
 
 def test_protocol_queries_are_domain_scoped():
