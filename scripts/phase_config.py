@@ -5,21 +5,41 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from uuid import uuid4
 from pathlib import Path
 from typing import Any
 
 SDK_ROOT = Path(__file__).resolve().parent.parent
 
+
+def _default_score_payload(*, category: str, factors: dict[str, float], cycle_num: int) -> dict[str, Any]:
+    """Build the shared SDK score request used by non-S2P copilots."""
+    return {"category": category, "factors": factors}
+
+
+def _s2p_score_payload(*, category: str, factors: dict[str, float], cycle_num: int) -> dict[str, Any]:
+    """Build the procurement-event request required by S2P's score route."""
+    return {
+        "event_id": f"GATE-{uuid4().hex[:8]}",
+        "category": category,
+        "amount": 5000.0,
+        "supplier_id": f"SUP-{cycle_num:04d}",
+        "supplier_risk_rating": 0.5,
+    }
+
 COPILOT_CONFIG: dict[str, dict[str, Any]] = {
-    "trading": {"prefix": "TRD-", "db_path": SDK_ROOT / "apps/trading/backend/data/trading.db", "port": 8010},
-    "purchasing": {"prefix": "PUR-", "db_path": SDK_ROOT / "apps/purchasing/backend/data/purchasing.db", "port": 8020},
-    "dataops": {"prefix": "DOPS-", "db_path": SDK_ROOT / "apps/dataops/backend/data/dataops.db", "port": 8030},
+    "trading": {"prefix": "TRD-", "db_path": SDK_ROOT / "apps/trading/backend/data/trading.db", "port": 8010, "score_path": "/api/score", "learn_path": "/api/learn", "score_payload_fn": _default_score_payload},
+    "purchasing": {"prefix": "PUR-", "db_path": SDK_ROOT / "apps/purchasing/backend/data/purchasing.db", "port": 8020, "score_path": "/api/score", "learn_path": "/api/learn", "score_payload_fn": _default_score_payload},
+    "dataops": {"prefix": "DOPS-", "db_path": SDK_ROOT / "apps/dataops/backend/data/dataops.db", "port": 8030, "score_path": "/api/score", "learn_path": "/api/learn", "score_payload_fn": _default_score_payload},
     "s2p": {
         "prefix": "S2P-",
         "db_path": os.path.abspath(
             os.path.join(SDK_ROOT, "..", "s2p-copilot", "backend", "app", "data", "s2p.db")
         ),
         "port": 8002,
+        "score_path": "/api/s2p/score",
+        "learn_path": "/api/learn",
+        "score_payload_fn": _s2p_score_payload,
     },
 }
 

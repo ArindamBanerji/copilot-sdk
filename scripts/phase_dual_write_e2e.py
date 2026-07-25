@@ -13,10 +13,11 @@ def main() -> None:
     store=SQLiteGraphStore(cfg["db_path"], domain=cfg["domain"], decision_id_prefix=cfg["prefix"]); baseline=store.count_decisions(cfg["domain"]); store.close()
     scored=[]
     for index in range(args.count):
-        response=httpx.post(f"{cfg['api_base']}/api/score", json={"category":categories[index%len(categories)],"factors":factors}, timeout=10)
+        score_payload=cfg['score_payload_fn'](category=categories[index%len(categories)], factors=factors, cycle_num=index + 1)
+        response=httpx.post(f"{cfg['api_base']}{cfg['score_path']}", json=score_payload, timeout=10)
         response.raise_for_status(); data=response.json(); scored.append((data["decision_id"], data["action"]))
     for index,(decision_id,action) in enumerate(scored[:2]):
-        response=httpx.post(f"{cfg['api_base']}/api/learn",json={"decision_id":decision_id,"actual_action":action,"outcome":"confirmed" if index==0 else "overridden"},timeout=10)
+        response=httpx.post(f"{cfg['api_base']}{cfg['learn_path']}",json={"decision_id":decision_id,"actual_action":action,"outcome":"confirmed" if index==0 else "overridden"},timeout=10)
         response.raise_for_status()
     time.sleep(.5)
     store=SQLiteGraphStore(cfg["db_path"], domain=cfg["domain"], decision_id_prefix=cfg["prefix"]); delta=store.count_decisions(cfg["domain"])-baseline; store.close()

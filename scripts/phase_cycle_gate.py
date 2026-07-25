@@ -13,11 +13,13 @@ def main() -> None:
         while state['completed'] < args.cycles:
             scored=[]
             for offset in range(3):
-                response=httpx.post(f"{cfg['api_base']}/api/score",json={"category":categories[(state['completed']*3+offset)%len(categories)],"factors":factors},timeout=10); response.raise_for_status(); data=response.json()
+                category=categories[(state['completed']*3+offset)%len(categories)]
+                payload=cfg['score_payload_fn'](category=category, factors=factors, cycle_num=state['completed'] + 1)
+                response=httpx.post(f"{cfg['api_base']}{cfg['score_path']}",json=payload,timeout=10); response.raise_for_status(); data=response.json()
                 if not data['decision_id'].startswith(cfg['prefix']): raise RuntimeError(f"unexpected ID prefix: {data['decision_id']}")
                 scored.append((data['decision_id'],data['action']))
             for index,(decision_id,action) in enumerate(scored[:2]):
-                response=httpx.post(f"{cfg['api_base']}/api/learn",json={"decision_id":decision_id,"actual_action":action,"outcome":"confirmed" if index==0 else "overridden"},timeout=10); response.raise_for_status()
+                response=httpx.post(f"{cfg['api_base']}{cfg['learn_path']}",json={"decision_id":decision_id,"actual_action":action,"outcome":"confirmed" if index==0 else "overridden"},timeout=10); response.raise_for_status()
             time.sleep(.25)
             for decision_id,_ in scored:
                 cur.execute(f"SELECT * FROM cypher('{cfg['graph_name']}', $$ MATCH (d:Decision {{domain:'{cfg['domain']}', decision_id:'{decision_id}'}}) RETURN count(d) $$) AS (c agtype)")
