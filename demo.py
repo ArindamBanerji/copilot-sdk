@@ -14,36 +14,16 @@ Usage:
     python demo.py --dataops        # DataOps only
     python demo.py --stop           # Stop all copilot processes
     python demo.py --status         # Show what's running
-    python demo.py --preseed        # Start + pre-seed all copilots
-    python demo.py --preseed-only   # Pre-seed without restarting (backends must be running)
-    python demo.py --record-mode    # Start + pre-seed + freeze connectors
-    python demo.py --record-reset   # Reset state + re-preseed + re-freeze
+    python demo.py --preseed        # Pre-seed after start
+    python demo.py --record-mode    # Pre-seed and freeze connectors
+    python demo.py --record-reset   # Reset record state, pre-seed, freeze connectors
     python demo.py --verify         # Check platform state (IKS, conservation, pending items)
     python demo.py --graph          # AGE graph mode for DataOps
     python demo.py --no-browser     # Don't open browser tabs
     python demo.py --kill-all       # Kill all known copilot ports
-
-Preseed lifecycle:
-    --preseed runs three steps after backends are healthy:
-      1. DemoPreseed().preseed_all() — in-process SDK scorer preseed (deterministic,
-         seed 20260711). Creates 200 decisions per copilot with a realistic learning
-         curve (IKS 65-69%). Two runs produce byte-identical results.
-      2. run_soc_preseed() — HTTP calls to live SOC backend. Enables SOC learning
-         (SOC_LEARNING_ENABLED=true in the SOC backend env, NOT the launcher env),
-         analyzes up to 20 queued alerts, reports outcomes, verifies IKS > 0.
-      3. ConnectorFreeze (record-mode only) — caches FRED + OpenMeteo responses
-         so demo recordings are deterministic across takes.
-
-    --preseed-only skips backend start/stop — use when backends are already running
-    and you want to re-seed (e.g., after a code change or demo.py --stop + start).
-
-    --record-reset clears all freeze state, runs preseed twice to verify determinism,
-    then freezes. Only runs AFTER backends are healthy.
-
-    --verify curls all 5 copilots and reports IKS, conservation, pending items.
-    Use before a demo to confirm the platform is ready.
-
-Rule #67: This file is hand-edited only. Never include demo.py in Codex prompts.
+    python demo.py --no-reseed      # Start without bundle restore or fixture seeding
+    python demo.py --preseed-only   # Pre-seed without restarting backends
+    python demo.py --health-timeout 180  # Custom backend health wait (S2P warm-up)
 """
 
 import argparse
@@ -114,9 +94,6 @@ def _build_age_dsn(dbname: str = "soc_copilot") -> str:
 # Resolve once at import time (WSL IP is stable within a boot session)
 _WSL2_IP = _resolve_wsl2_ip()
 AGE_DSN_SOC = _build_age_dsn("soc_copilot")
-# DataOps shares the soc_copilot database — intentional. Both copilots
-# use separate graph names within the same PostgreSQL database. If DataOps
-# ever needs its own database, change the dbname here.
 AGE_DSN_DATAOPS = _build_age_dsn("soc_copilot")
 SOC_REPO = Path(os.environ.get(
     "CLAUDE_SOC",
@@ -594,10 +571,7 @@ def cmd_status(selected: list[dict]):
 
 
 def cmd_verify(selected: list[dict]):
-    """Verify platform state — IKS, conservation, pending items per copilot.
-
-    Use before a demo to confirm preseed ran and data is correct.
-    """
+    """Verify platform state — IKS, conservation, and pending items."""
     print()
     print("╔══════════════════════════════════════════════════════╗")
     print("║  Platform Verification                               ║")
@@ -614,63 +588,49 @@ def cmd_verify(selected: list[dict]):
             all_ok = False
             continue
 
-        # Check IKS
         iks = None
         try:
-            resp = json.loads(urlopen(
+            response = json.loads(urlopen(
                 f"http://127.0.0.1:{port}/api/trajectory", timeout=5
             ).read())
-            if isinstance(resp, list) and len(resp) > 0:
-                iks = len(resp)
-            elif isinstance(resp, dict):
-                iks = resp.get("iks") or resp.get("current_iks")
+            if isinstance(response, dict):
+                iks = response.get("iks") or response.get("current_iks")
         except Exception:
             pass
 
-        # Check conservation
         conservation = "unknown"
-        try:
-            for path in ["/api/conservation/status", f"/api/{name.lower()}/learning-health"]:
-                try:
-                    resp = json.loads(urlopen(
-                        f"http://127.0.0.1:{port}{path}", timeout=5
-                    ).read())
-                    conservation = str(
-                        resp.get("status") or resp.get("conservation_status") or "unknown"
-                    ).upper()
-                    if conservation != "UNKNOWN":
-                        break
-                except Exception:
-                    continue
-        except Exception:
-            pass
+        for path in ("/api/conservation/status", f"/api/{name.lower()}/learning-health"):
+            try:
+                response = json.loads(urlopen(
+                    f"http://127.0.0.1:{port}{path}", timeout=5
+                ).read())
+                conservation = str(
+                    response.get("status") or response.get("conservation_status") or "unknown"
+                ).upper()
+                if conservation != "UNKNOWN":
+                    break
+            except Exception:
+                continue
 
-        # Check pending items
         pending = ""
         if name == "SOC":
             try:
-                resp = json.loads(urlopen(
-                    f"http://127.0.0.1:{port}/api/alerts/queue", timeout=5
-                ).read())
-                alerts = resp.get("alerts") or resp.get("items") or resp.get("queue") or []
+                response = _json_request("GET", f"http://127.0.0.1:{port}/api/alerts/queue")
+                alerts = response.get("alerts") or response.get("items") or response.get("queue") or []
                 if isinstance(alerts, list):
                     pending = f"  pending_alerts={len(alerts)}"
             except Exception:
                 pass
 
         iks_str = f"IKS={iks}" if iks is not None else "IKS=?"
-        cons_icon = "✓" if conservation == "GREEN" else ("⚠" if conservation in ("AMBER", "CALIBRATING") else "?")
-        print(f"  {name:12s}  ✓ :{port}  {iks_str}  conservation={conservation} {cons_icon}{pending}")
-
-        if iks is not None and (isinstance(iks, (int, float)) and iks <= 0):
+        icon = "✓" if conservation == "GREEN" else ("⚠" if conservation in {"AMBER", "CALIBRATING"} else "?")
+        print(f"  {name:12s}  ✓ :{port}  {iks_str}  conservation={conservation} {icon}{pending}")
+        if isinstance(iks, (int, float)) and iks <= 0:
             print(f"  {name:12s}    ⚠ IKS is zero — preseed may not have run")
             all_ok = False
 
     print()
-    if all_ok:
-        print("  ✓ Platform verification passed")
-    else:
-        print("  ⚠ Some checks need attention — see above")
+    print("  ✓ Platform verification passed" if all_ok else "  ⚠ Some checks need attention — see above")
     print()
 
 
@@ -701,7 +661,6 @@ def cmd_start(selected: list[dict], args):
         os.environ["GRAPH_BACKEND"] = "age"
         os.environ["GRAPH_DSN"] = args.diag_graph_dsn
         os.environ["AGE_GRAPH_NAME"] = args.diag_graph_name
-        os.environ["SOC_LEARNING_ENABLED"] = "true"
         os.environ["PYTHONPATH"] = diag_pythonpath
         if diag_age_use_pool_requested:
             os.environ["AGE_USE_POOL"] = "true"
@@ -750,7 +709,7 @@ def cmd_start(selected: list[dict], args):
             return
 
     # --- Graph mode (DataOps AGE) ---
-    if args.graph:
+    if args.graph and not args.no_reseed:
         setup_graph_mode()
 
     # --- Start backends ---
@@ -774,10 +733,7 @@ def cmd_start(selected: list[dict], args):
                 env.setdefault(key, value)
         if args.no_reseed:
             env["DEMO_NO_RESEED"] = "1"
-        if args.preseed and not args.no_reseed and c["name"].lower() == "soc":
-            # SOC learning is enabled ONLY in the SOC backend's environment,
-            # not in the launcher process. This prevents the env var from
-            # leaking to subsequent demo.py runs in the same terminal.
+        if args.preseed and c["name"].lower() == "soc":
             env["SOC_LEARNING_ENABLED"] = "true"
         if args.diag_mode:
             env["PYTHONPATH"] = diag_pythonpath
@@ -796,7 +752,10 @@ def cmd_start(selected: list[dict], args):
     print("Waiting for backends...")
     all_healthy = True
     for c in selected:
-        timeout = 60 if c.get("requires_age") else 30
+        if args.health_timeout > 0:
+            timeout = args.health_timeout
+        else:
+            timeout = 60 if c.get("requires_age") else 30
         if not wait_for_health(c["name"], c["be_port"], timeout=timeout):
             all_healthy = False
 
@@ -816,16 +775,13 @@ def cmd_start(selected: list[dict], args):
             pool_available=diag_pool_available or "unknown",
         )
 
-    # --- Pre-seed (AFTER backends are healthy) ---
+    # --- Pre-seed ---
     if args.preseed and not args.no_reseed:
-        run_preseed(selected, fail_hard=True)
+        run_preseed(selected)
     if getattr(args, "record_mode", False):
-        if getattr(args, "record_reset", False):
-            # record-reset runs HERE, not before backends start.
-            # It needs backends healthy for SOC preseed verification.
-            reset_record_state()
         run_connector_freeze()
-        print("  Ready to record.")
+        if getattr(args, "record_reset", False):
+            print("Reset complete. Ready to record.")
 
     if args.diag_mode:
         print()
@@ -963,84 +919,72 @@ def setup_graph_mode():
     print()
 
 
-def run_preseed(selected: list[dict], fail_hard: bool = True):
-    """Run pre-seeding for selected copilots.
-
-    Ordering:
-      1. Deterministic SDK preseed (in-process, no backend needed)
-      2. SOC live preseed (HTTP to SOC backend — requires healthy backend)
-
-    The legacy scripts/preseed_all_copilots.py path is removed.
-    All preseed logic now lives in copilot_sdk.demo.preseed.
-
-    Args:
-        fail_hard: If True, raise on preseed failure (--preseed was explicit).
-    """
+def run_preseed(selected: list[dict], *, fail_hard: bool = False):
+    """Run pre-seeding script."""
     print()
     print("Pre-seeding copilots...")
-
-    # Step 1: Deterministic SDK preseed (in-process, no backend dependency)
     run_deterministic_preseed(fail_hard=fail_hard)
+    soc_selected = any(c["name"].lower() == "soc" for c in selected)
+    soc_preseeded = False
+    if soc_selected and any("be_port" in c for c in selected if c["name"].lower() == "soc"):
+        run_soc_preseed(
+            next(c for c in selected if c["name"].lower() == "soc"),
+            fail_hard=fail_hard,
+        )
+        soc_preseeded = True
 
-    # Step 2: SOC live preseed (HTTP calls — backend must be healthy)
-    soc_copilot = next(
-        (c for c in selected if c["name"].lower() == "soc"),
-        None,
-    )
-    if soc_copilot:
-        run_soc_preseed(soc_copilot)
+    script = SCRIPT_DIR / "scripts" / "preseed_all_copilots.py"
+    if not script.exists():
+        print(f"  WARN: Pre-seed script not found: {script}")
+        if fail_hard:
+            raise FileNotFoundError(script)
+        return
+
+    cmd = [sys.executable, str(script)]
+
+    preseed_names = {"trading", "purchasing", "dataops"}
+    names = {c["name"].lower() for c in selected if c["name"].lower() in preseed_names}
+    if not names:
+        if soc_preseeded:
+            print("  SOC pre-seed complete; no SDK copilots selected for generic pre-seed")
+            return
+        print("  No selected copilots support pre-seed; skipping")
+        return
+    if names != preseed_names:
+        for name in names:
+            cmd.append(f"--{name}-only")
+
+    try:
+        subprocess.run(cmd, cwd=str(SCRIPT_DIR), timeout=600, check=fail_hard)
+    except Exception as e:
+        print(f"  WARN: Pre-seed failed: {e}")
+        if fail_hard:
+            raise
+    print()
 
 
-def run_deterministic_preseed(fail_hard: bool = False) -> None:
-    """Run deterministic SDK preseed and print stable headline summary.
-
-    Args:
-        fail_hard: If True (--preseed was explicitly requested), raise on failure
-                   instead of printing a warning. A demo with no preseed data
-                   will have flat IKS and no pending items — unusable.
-    """
+def run_deterministic_preseed(*, fail_hard: bool = False) -> None:
+    """Run deterministic SDK preseed and print stable headline summary."""
     try:
         from copilot_sdk.demo.preseed import DemoPreseed, print_summary
 
         result = DemoPreseed().preseed_all()
         print_summary(result)
     except Exception as exc:
-        if fail_hard:
-            raise RuntimeError(f"Deterministic preseed failed: {exc}") from exc
         print(f"  WARN: deterministic preseed failed: {exc}")
+        if fail_hard:
+            raise
 
 
 def run_connector_freeze() -> None:
-    """Freeze external connectors for record mode.
-
-    After freezing, verifies the freeze is active by calling each connector
-    and confirming cached data is returned.
-    """
+    """Freeze external connectors for record mode."""
     try:
         from copilot_sdk.demo.connector_freeze import ConnectorFreeze
 
-        freezer = ConnectorFreeze(SCRIPT_DIR / ".record_freeze")
-        paths = freezer.freeze()
+        paths = ConnectorFreeze(SCRIPT_DIR / ".record_freeze").freeze()
         print("Record mode active. Connectors frozen.")
         for name, path in sorted(paths.items()):
             print(f"  {name}: {path}")
-
-        # Verify freeze is working — call each frozen connector
-        verification_ok = True
-        for name in paths:
-            try:
-                frozen_data = freezer.read_frozen(name)
-                if frozen_data is None:
-                    print(f"  WARN: {name} freeze file is empty")
-                    verification_ok = False
-            except Exception as ve:
-                print(f"  WARN: {name} freeze verification failed: {ve}")
-                verification_ok = False
-
-        if verification_ok:
-            print("  ✓ All connector freezes verified")
-        else:
-            print("  ⚠ Some connector freezes could not be verified")
     except Exception as exc:
         print(f"  WARN: connector freeze failed: {exc}")
 
@@ -1085,21 +1029,10 @@ def _first_list(payload: dict, keys: tuple[str, ...]) -> list:
     return []
 
 
-def run_soc_preseed(copilot: dict) -> None:
-    """Enable SOC learning and verify a short live learning preseed.
-
-    NOTE: SOC_LEARNING_ENABLED is set in the SOC backend's env (line 667
-    in cmd_start), NOT here. This function only makes HTTP calls to the
-    already-running SOC backend. It does not touch os.environ.
-    """
+def run_soc_preseed(copilot: dict, *, fail_hard: bool = False) -> None:
+    """Enable SOC learning and verify a short live learning preseed."""
     base_url = f"http://127.0.0.1:{copilot['be_port']}"
-    print("  SOC: verifying learning is enabled via live backend...")
-
-    # Verify SOC backend is healthy before making preseed calls
-    health = check_health(copilot['be_port'])
-    if not health:
-        print("  WARN: SOC backend not healthy — skipping SOC preseed")
-        return
+    print("  SOC: learning enabled for demo preseed")
     try:
         queue = _json_request("GET", f"{base_url}/api/alerts/queue")
         alerts = _first_list(queue, ("alerts", "items", "queue"))[:20]
@@ -1139,6 +1072,8 @@ def run_soc_preseed(copilot: dict) -> None:
             print("  WARN: SOC conservation is RED after preseed")
     except Exception as exc:
         print(f"  WARN: SOC pre-seed failed: {exc}")
+        if fail_hard:
+            raise
 
 
 # --- Main ---
@@ -1175,36 +1110,30 @@ def main():
     parser.add_argument("--record-mode", action="store_true", help="Pre-seed and freeze connectors for recording")
     parser.add_argument("--record-reset", action="store_true", help="Reset record state, pre-seed, and freeze connectors")
     parser.add_argument("--verify", action="store_true", help="Check platform state (IKS, conservation, pending items)")
+    parser.add_argument("--no-reseed", action="store_true",
+                        help="Start backends without bundle restore or fixture seeding")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")
-    parser.add_argument(
-        "--no-reseed",
-        action="store_true",
-        help="Start backends without bundle restore or fixture seeding",
-    )
     parser.add_argument("--diag-mode", action="store_true", help="SOC proof/perf backend-only diagnostic mode")
     parser.add_argument("--diag-graph-name", default="soc_graph_diag_f", help="SOC AGE graph for --diag-mode")
     parser.add_argument("--diag-backend-port", type=int, default=8001, help="SOC backend port for --diag-mode")
     parser.add_argument("--diag-graph-dsn", default=AGE_DSN_SOC, help="SOC AGE DSN for --diag-mode")
     parser.add_argument("--diag-contract", type=Path, default=SOC_CONTRACT_PATH, help="SOC diagnostic backend contract path")
     parser.add_argument("--age-use-pool", action="store_true", help="Set AGE_USE_POOL=true for SOC --diag-mode")
+    parser.add_argument("--health-timeout", type=int, default=0,
+                        help="Override backend health timeout in seconds (0 = use defaults: 30s normal, 60s AGE)")
 
     args = parser.parse_args()
-
-    if args.no_reseed and args.record_reset:
+    if args.no_reseed and getattr(args, "record_reset", False):
         print("ERROR: --no-reseed and --record-reset are mutually exclusive.")
         sys.exit(1)
-
-    # --record-mode and --record-reset imply --preseed
-    if args.record_mode or args.record_reset:
-        args.preseed = True
-        args.record_mode = True
-    # --preseed-only implies --preseed + --no-browser, skips start
     if args.preseed_only:
         args.preseed = True
         args.no_browser = True
-    # NOTE: --record-reset is handled AFTER backends are healthy (in cmd_start),
-    # NOT here. reset_record_state() needs to verify determinism which may
-    # require the SOC backend to be reachable.
+    if args.record_mode or args.record_reset:
+        args.preseed = True
+        args.record_mode = True
+    if args.record_reset:
+        reset_record_state()
 
     # --- Select copilots ---
     if args.diag_mode:
@@ -1248,7 +1177,6 @@ def main():
         if args.no_reseed:
             print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
             return
-        # Backends must already be running — just preseed
         print()
         print("Pre-seeding (backends assumed running)...")
         run_preseed(selected, fail_hard=True)

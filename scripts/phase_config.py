@@ -14,7 +14,13 @@ COPILOT_CONFIG: dict[str, dict[str, Any]] = {
     "trading": {"prefix": "TRD-", "db_path": SDK_ROOT / "apps/trading/backend/data/trading.db", "port": 8010},
     "purchasing": {"prefix": "PUR-", "db_path": SDK_ROOT / "apps/purchasing/backend/data/purchasing.db", "port": 8020},
     "dataops": {"prefix": "DOPS-", "db_path": SDK_ROOT / "apps/dataops/backend/data/dataops.db", "port": 8030},
-    "s2p": {"prefix": "S2P-", "db_path": Path.home() / ".ci-platform/s2p/s2p.db", "port": 8002},
+    "s2p": {
+        "prefix": "S2P-",
+        "db_path": os.path.abspath(
+            os.path.join(SDK_ROOT, "..", "s2p-copilot", "backend", "app", "data", "s2p.db")
+        ),
+        "port": 8002,
+    },
 }
 
 
