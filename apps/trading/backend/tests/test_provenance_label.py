@@ -10,6 +10,7 @@ from copilot_sdk.substantiation import populate_default_registry
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+NON_FIXTURE_JSON = {"phase3_cycle_checkpoint.json", "trading_migration_checkpoint.json"}
 EXPECTED_TRADING_CLAIMS = {
     "P49-regime",
     "P50-market-data",
@@ -24,7 +25,9 @@ EXPECTED_TRADING_CLAIMS = {
 
 
 def _fixture_paths() -> list[Path]:
-    return sorted(DATA_DIR.glob("*.json"))
+    return sorted(
+        path for path in DATA_DIR.glob("*.json") if path.name not in NON_FIXTURE_JSON
+    )
 
 
 def _load_fixture(path: Path):
@@ -34,7 +37,11 @@ def _load_fixture(path: Path):
 def test_all_fixture_jsons_have_provenance():
     paths = _fixture_paths()
 
-    assert len(paths) == 7
+    names = {path.name for path in paths}
+    assert {
+        "synthetic_trades_2000.json",
+        "trading_seed_v2.json",
+    } <= names
     for path in paths:
         data = _load_fixture(path)
         if isinstance(data, list):

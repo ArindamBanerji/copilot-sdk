@@ -9,6 +9,7 @@ import re
 
 from fastapi import APIRouter, Request
 
+from copilot_sdk.config import GraphConfig, GraphConfigError
 from app.factors import compute_factors
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 
@@ -68,6 +69,51 @@ def _shared_graph_is_authorized(authorization: str | None, *, domain: str, graph
     return str(authorization or "").strip() == f"{domain}:{graph}"
 
 
+_GRAPH_CONFIG_ENV_KEYS = (
+    "GRAPH_BACKEND", "GRAPH_DSN", "AGE_DSN", "GRAPH_NAME", "AGE_GRAPH_NAME",
+    "GRAPH_DOMAIN", "PURCHASING_ACTIVE_GRAPH_BACKEND", "PURCHASING_ACTIVE_AGE_DSN",
+    "PURCHASING_ACTIVE_AGE_GRAPH", "PURCHASING_ACTIVE_AGE_DOMAIN",
+    "PURCHASING_ACTIVE_AGE_TEST_MODE", "PURCHASING_SHADOW_AGE",
+    "PURCHASING_SHARED_GRAPH_AUTHORIZED",
+    "CI_ALLOW_SQLITE_FALLBACK",
+)
+
+
+def _load_purchasing_graph_config(env: Mapping[str, str] | None) -> GraphConfig:
+    """Load production config fail-closed, or an isolated compatibility mapping for tests."""
+    if env is None:
+        return GraphConfig.load("purchasing")
+
+    previous = {key: os.environ.get(key) for key in _GRAPH_CONFIG_ENV_KEYS}
+    try:
+        for key in _GRAPH_CONFIG_ENV_KEYS:
+            os.environ.pop(key, None)
+        os.environ.update(env)
+        profile = "production"
+        if "PURCHASING_ACTIVE_GRAPH_BACKEND" not in env:
+            os.environ["PURCHASING_ACTIVE_GRAPH_BACKEND"] = "sqlite"
+            os.environ["CI_ALLOW_SQLITE_FALLBACK"] = "1"
+            profile = "development"
+        if os.environ.get("PURCHASING_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age":
+            if not os.environ.get("PURCHASING_ACTIVE_AGE_DSN", "").strip():
+                raise GraphConfigError(
+                    "PURCHASING_ACTIVE_AGE_DSN is required when PURCHASING_ACTIVE_GRAPH_BACKEND=age"
+                )
+            if not os.environ.get("PURCHASING_ACTIVE_AGE_GRAPH", "").strip():
+                raise GraphConfigError(
+                    "PURCHASING_ACTIVE_AGE_GRAPH is required when PURCHASING_ACTIVE_GRAPH_BACKEND=age"
+                )
+            if "PURCHASING_ACTIVE_AGE_DOMAIN" in env and not env.get("PURCHASING_ACTIVE_AGE_DOMAIN", "").strip():
+                raise GraphConfigError("PURCHASING_ACTIVE_AGE_DOMAIN must not be blank")
+        return GraphConfig.load("purchasing", profile=profile)
+    finally:
+        for key in _GRAPH_CONFIG_ENV_KEYS:
+            os.environ.pop(key, None)
+        for key, value in previous.items():
+            if value is not None:
+                os.environ[key] = value
+
+
 @dataclass(frozen=True)
 class PurchasingActiveGraphConfig:
     requested_backend: str = "sqlite"
@@ -84,17 +130,22 @@ class PurchasingActiveGraphConfig:
         env: Mapping[str, str] | None = None,
     ) -> "PurchasingActiveGraphConfig":
         source = os.environ if env is None else env
-        backend = (source.get("PURCHASING_ACTIVE_GRAPH_BACKEND") or "sqlite").strip().lower()
+        try:
+            graph_config = _load_purchasing_graph_config(env)
+        except GraphConfigError as exc:
+            message = str(exc)
+            if message.startswith("invalid backend"):
+                message = "PURCHASING_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'"
+            raise PurchasingActiveGraphConfigError(message) from exc
         config = cls(
-            requested_backend=backend,
-            dsn=source.get("PURCHASING_ACTIVE_AGE_DSN"),
-            graph=source.get("PURCHASING_ACTIVE_AGE_GRAPH"),
-            domain=(source.get("PURCHASING_ACTIVE_AGE_DOMAIN") or DOMAIN).strip(),
-            test_mode=_parse_bool(
-                source.get("PURCHASING_ACTIVE_AGE_TEST_MODE"),
-                default=False,
+            requested_backend=graph_config.backend,
+            dsn=graph_config.dsn,
+            graph=graph_config.graph,
+            domain=graph_config.domain,
+            test_mode=graph_config.active_test_mode,
+            shared_graph_authorization=(
+                graph_config.authorized if graph_config.graph.strip() == "soc_graph" else None
             ),
-            shared_graph_authorization=source.get("PURCHASING_SHARED_GRAPH_AUTHORIZED"),
             ignored_generic_graph_env=_generic_graph_env_present(source),
         )
         config.validate(source)
@@ -134,7 +185,7 @@ class PurchasingActiveGraphConfig:
         )
         if graph == "soc_graph" and not soc_graph_authorized:
             raise PurchasingActiveGraphConfigError(
-                "soc_graph requires PURCHASING_SHARED_GRAPH_AUTHORIZED=purchasing:soc_graph"
+                "soc_graph authorization is derived from the purchasing domain and graph"
             )
         if self.test_mode:
             if not graph.startswith("protocol_v2_test"):

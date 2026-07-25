@@ -33,6 +33,7 @@ TRADING_FACTORS = {
 
 def test_graph_status_default_sqlite(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     _clear_active_env(monkeypatch)
+    _configure_explicit_sqlite(tmp_path, monkeypatch)
     client = TestClient(create_app(db_path=tmp_path / "trading.db", demo_bundle_path=False))
 
     response = client.get("/api/trading/graph/status")
@@ -51,6 +52,7 @@ def test_graph_status_default_sqlite(tmp_path: Path, monkeypatch: pytest.MonkeyP
 
 def test_graph_status_ignores_generic_graph_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     _clear_active_env(monkeypatch)
+    _configure_explicit_sqlite(tmp_path, monkeypatch)
     monkeypatch.setenv("GRAPH_BACKEND", "age")
     monkeypatch.setenv("GRAPH_DSN", "postgresql://postgres:secret@example/db")
     monkeypatch.setenv("GRAPH_NAME", "protocol_v2_test")
@@ -113,7 +115,7 @@ def test_graph_status_ignores_generic_graph_env(tmp_path: Path, monkeypatch: pyt
                 "TRADING_ACTIVE_AGE_DOMAIN": "trading",
                 "TRADING_ACTIVE_AGE_TEST_MODE": "1",
             },
-            "soc_graph",
+            "protocol_v2_test",
         ),
         (
             {
@@ -205,7 +207,7 @@ def test_shared_soc_graph_requires_exact_trading_authorization():
 
 
 @pytest.mark.parametrize("authorization", [None, "soc:soc_graph"])
-def test_shared_soc_graph_rejects_missing_or_wrong_domain_authorization(authorization):
+def test_shared_soc_graph_uses_derived_authorization(authorization):
     env = {
         "TRADING_ACTIVE_GRAPH_BACKEND": "age",
         "TRADING_ACTIVE_AGE_DSN": "postgresql://example/product",
@@ -215,8 +217,8 @@ def test_shared_soc_graph_rejects_missing_or_wrong_domain_authorization(authoriz
     }
     if authorization is not None:
         env["TRADING_SHARED_GRAPH_AUTHORIZED"] = authorization
-    with pytest.raises(TradingActiveGraphConfigError, match="TRADING_SHARED_GRAPH_AUTHORIZED=trading:soc_graph"):
-        TradingActiveGraphConfig.from_env(env)
+    config = TradingActiveGraphConfig.from_env(env)
+    assert config.shared_graph_authorization == "trading:soc_graph"
 
 
 def test_generic_graph_backend_age_still_downgrades_to_sqlite(monkeypatch, tmp_path):
@@ -343,6 +345,7 @@ def test_rollback_to_sqlite_proves_no_hidden_reconciliation(
     assert active_score["decision_id"] in fake.decisions
 
     _clear_active_env(monkeypatch)
+    _configure_explicit_sqlite(tmp_path, monkeypatch)
     sqlite_db = tmp_path / "rollback.sqlite"
     sqlite_client = TestClient(create_app(db_path=sqlite_db, demo_bundle_path=False))
     sqlite_score = _score(sqlite_client)
@@ -437,6 +440,29 @@ def _active_config() -> TradingActiveGraphConfig:
             "TRADING_ACTIVE_AGE_TEST_MODE": "1",
         }
     )
+
+
+def _configure_explicit_sqlite(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Opt these SQLite-focused tests into an explicit SQLite profile."""
+    config_path = tmp_path / "graph_config.toml"
+    config_path.write_text(
+        """[defaults]
+backend = \"sqlite\"
+expected_backend = \"sqlite\"
+dsn = \"\"
+graph = \"soc_graph\"
+
+[copilot.trading]
+domain = \"trading\"
+backend = \"sqlite\"
+expected_backend = \"sqlite\"
+prefix = \"TRD-\"
+graph = \"soc_graph\"
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("TRADING_ACTIVE_GRAPH_BACKEND", "sqlite")
 
 
 def _set_active_age_env(monkeypatch: pytest.MonkeyPatch, *, dsn: str = "postgresql://example/test") -> None:

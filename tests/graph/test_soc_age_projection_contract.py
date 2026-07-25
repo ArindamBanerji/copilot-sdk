@@ -129,7 +129,9 @@ def test_soc_factor_schema_source_of_truth_is_stable():
 
 def test_soc_decision_projection_returns_canonical_decision(soc_projection_client):
     """Current SOC Decision rows can be read as canonical Decision projections."""
-    rows = soc_projection_client.query("MATCH (d:Decision) RETURN d LIMIT 1")
+    rows = soc_projection_client.query(
+        "MATCH (d:Decision) WHERE d.domain = 'soc' RETURN d LIMIT 1"
+    )
     assert rows, "soc_graph has no Decision rows to project"
 
     projected = project_decision(_node(rows[0], "d"), default_domain="soc")

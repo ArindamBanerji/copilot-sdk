@@ -9,6 +9,8 @@ from uuid import uuid4
 from pathlib import Path
 from typing import Any
 
+from copilot_sdk.config import GraphConfig
+
 SDK_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -49,18 +51,25 @@ def add_domain_argument(parser: argparse.ArgumentParser) -> None:
 
 
 def get_config(domain: str | None = None) -> dict[str, Any]:
-    """Return paths and runtime settings for ``domain`` without mutating env."""
+    """Return paths and typed graph settings for ``domain`` without mutating env."""
     selected = domain or os.environ.get("MIGRATION_DOMAIN", "trading")
     if selected not in COPILOT_CONFIG:
         print(f"ERROR: unknown domain '{selected}'. Valid: {', '.join(sorted(COPILOT_CONFIG))}")
         raise SystemExit(1)
+    graph_config = GraphConfig.load(selected)
     cfg = dict(COPILOT_CONFIG[selected])
     configured_path = os.environ.get("MIGRATION_SQLITE_PATH")
     cfg.update(
         domain=selected,
+        prefix=graph_config.prefix,
+        port=graph_config.port if graph_config.port is not None else cfg["port"],
+        backend=graph_config.backend,
+        expected_backend=graph_config.expected_backend,
+        graph_name=graph_config.graph,
+        authorized=graph_config.authorized,
+        sources=dict(graph_config.sources),
         db_path=str(Path(configured_path) if configured_path else cfg["db_path"]),
-        age_dsn=os.environ.get("GRAPH_DSN", os.environ.get("AGE_DSN", "")),
-        graph_name=os.environ.get("GRAPH_NAME", os.environ.get("AGE_GRAPH_NAME", "soc_graph")),
+        age_dsn=graph_config.dsn or os.environ.get("GRAPH_DSN", os.environ.get("AGE_DSN", "")),
         api_base=os.environ.get(f"{selected.upper()}_API_BASE", f"http://127.0.0.1:{cfg['port']}"),
     )
     cfg["checkpoint_path"] = str(Path(cfg["db_path"]).parent / "phase_cycle_checkpoint.json")
@@ -79,6 +88,7 @@ def scoring_shape(domain: str) -> tuple[list[str], dict[str, float]]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     add_domain_argument(parser)
+    parser.add_argument("--print-config", action="store_true", help="Print resolved config with DSN redacted")
     args = parser.parse_args()
     config = get_config(args.domain)
     config["age_dsn"] = "<configured>" if config["age_dsn"] else "<unset>"

@@ -37,6 +37,8 @@ import webbrowser
 from pathlib import Path
 from urllib.request import Request, urlopen
 
+from copilot_sdk.config import GraphConfig
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
@@ -95,6 +97,26 @@ def _build_age_dsn(dbname: str = "soc_copilot") -> str:
 _WSL2_IP = _resolve_wsl2_ip()
 AGE_DSN_SOC = _build_age_dsn("soc_copilot")
 AGE_DSN_DATAOPS = _build_age_dsn("soc_copilot")
+
+
+def _load_launcher_graph_config(domain: str, runtime_dsn: str) -> GraphConfig:
+    """Load typed launcher config while keeping DSNs resolved at runtime."""
+    had_previous = "GRAPH_DSN" in os.environ
+    previous = os.environ.get("GRAPH_DSN")
+    if not previous:
+        os.environ["GRAPH_DSN"] = runtime_dsn
+    try:
+        return GraphConfig.load(domain)
+    finally:
+        if had_previous:
+            os.environ["GRAPH_DSN"] = previous or ""
+        else:
+            os.environ.pop("GRAPH_DSN", None)
+
+
+_SOC_GRAPH_CONFIG = _load_launcher_graph_config("soc", AGE_DSN_SOC)
+_DATAOPS_GRAPH_CONFIG = _load_launcher_graph_config("dataops", AGE_DSN_DATAOPS)
+
 SOC_REPO = Path(os.environ.get(
     "CLAUDE_SOC",
     str(SCRIPT_DIR.parent / "gen-ai-roi-demo-v4-v50"),
@@ -112,8 +134,10 @@ COPILOTS = [
         "requires_age": True,
         "graph_dsn": AGE_DSN_SOC,
         "env": {
-            "GRAPH_BACKEND": "age",
+            "GRAPH_BACKEND": _SOC_GRAPH_CONFIG.backend,
             "GRAPH_DSN": AGE_DSN_SOC,
+            "GRAPH_NAME": _SOC_GRAPH_CONFIG.graph,
+            "GRAPH_DOMAIN": _SOC_GRAPH_CONFIG.domain,
         },
         "fe_env": {
             "VITE_S2P_API_URL": "http://127.0.0.1:8002",
@@ -142,8 +166,10 @@ COPILOTS = [
         "requires_age": True,
         "graph_dsn": AGE_DSN_DATAOPS,
         "env": {
-            "GRAPH_BACKEND": "age",
+            "GRAPH_BACKEND": _DATAOPS_GRAPH_CONFIG.backend,
             "GRAPH_DSN": AGE_DSN_DATAOPS,
+            "GRAPH_NAME": _DATAOPS_GRAPH_CONFIG.graph,
+            "GRAPH_DOMAIN": _DATAOPS_GRAPH_CONFIG.domain,
         },
     },
     {

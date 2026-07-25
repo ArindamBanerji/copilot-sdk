@@ -1,0 +1,76 @@
+[defaults]
+backend = "sqlite"
+expected_backend = "sqlite"
+dsn = ""
+graph = "soc_graph"
+age_test_mode = false
+
+[copilot.soc]
+domain = "soc"
+backend = "age"
+expected_backend = "age"
+prefix = "SOC-"
+graph = "soc_graph"
+port = 8001
+
+[copilot.trading]
+domain = "trading"
+backend = "age"
+expected_backend = "age"
+prefix = "TRD-"
+graph = "soc_graph"
+active_test_mode = false
+shadow_age = false
+port = 8010
+
+[copilot.purchasing]
+domain = "purchasing"
+backend = "age"
+expected_backend = "age"
+prefix = "PUR-"
+graph = "soc_graph"
+active_test_mode = false
+shadow_age = false
+port = 8020
+
+[copilot.dataops]
+domain = "dataops"
+backend = "age"
+expected_backend = "age"
+prefix = "DOPS-"
+graph = "soc_graph"
+active_test_mode = false
+live_age_test = false
+port = 8030
+
+[copilot.s2p]
+domain = "s2p"
+backend = "age"
+expected_backend = "age"
+prefix = "S2P-"
+graph = "soc_graph"
+active_test_mode = false
+shadow_age = false
+port = 8002
+
+[soc]
+neo4j_uri = ""
+neo4j_user = "neo4j"
+neo4j_password = ""
+cors_origins = []
+narrative_provider = "template"
+
+[test]
+scratch_graph_prefix = "soc_graph_test_"
+age_integration = false
+age_d2_live_gate = false
+
+[test.s2p]
+live_age = false
+parallel_age = false
+shadow_live_age = false
+
+[phase]
+domain = "trading"
+sqlite_path = ""
+api_base = ""

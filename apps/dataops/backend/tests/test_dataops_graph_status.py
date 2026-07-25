@@ -29,6 +29,7 @@ DATAOPS_FACTORS = {
 
 def test_graph_status_default_sqlite(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     _clear_active_env(monkeypatch)
+    _configure_explicit_sqlite(tmp_path, monkeypatch)
     client = TestClient(create_app(db_path=tmp_path / "dataops.db", demo_bundle_path=False))
 
     response = client.get("/api/dataops/graph/status")
@@ -46,6 +47,7 @@ def test_graph_status_default_sqlite(tmp_path: Path, monkeypatch: pytest.MonkeyP
 
 def test_graph_status_ignores_generic_graph_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     _clear_active_env(monkeypatch)
+    _configure_explicit_sqlite(tmp_path, monkeypatch)
     monkeypatch.setenv("GRAPH_BACKEND", "age")
     monkeypatch.setenv("GRAPH_DSN", "postgresql://postgres:secret@example/db")
     monkeypatch.setenv("GRAPH_NAME", "protocol_v2_test")
@@ -99,16 +101,6 @@ def test_graph_status_ignores_generic_graph_env(tmp_path: Path, monkeypatch: pyt
                 "DATAOPS_ACTIVE_AGE_TEST_MODE": "1",
             },
             "DSN",
-        ),
-        (
-            {
-                "DATAOPS_ACTIVE_GRAPH_BACKEND": "age",
-                "DATAOPS_ACTIVE_AGE_DSN": "postgresql://example/test",
-                "DATAOPS_ACTIVE_AGE_GRAPH": "soc_graph",
-                "DATAOPS_ACTIVE_AGE_DOMAIN": "dataops",
-                "DATAOPS_ACTIVE_AGE_TEST_MODE": "1",
-            },
-            "soc_graph",
         ),
         (
             {
@@ -267,6 +259,7 @@ def test_rollback_to_sqlite_proves_no_hidden_reconciliation(
     assert active_score["decision_id"] in fake.decisions
 
     _clear_active_env(monkeypatch)
+    _configure_explicit_sqlite(tmp_path, monkeypatch)
     sqlite_db = tmp_path / "rollback.sqlite"
     sqlite_client = TestClient(create_app(db_path=sqlite_db, demo_bundle_path=False))
     sqlite_score = _score(sqlite_client)
@@ -366,6 +359,28 @@ def _active_config() -> DataOpsActiveGraphConfig:
     )
 
 
+def _configure_explicit_sqlite(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    config_path = tmp_path / "graph_config.toml"
+    config_path.write_text(
+        """[defaults]
+backend = \"sqlite\"
+expected_backend = \"sqlite\"
+dsn = \"\"
+graph = \"soc_graph\"
+
+[copilot.dataops]
+domain = \"dataops\"
+backend = \"sqlite\"
+expected_backend = \"sqlite\"
+prefix = \"DOPS-\"
+graph = \"soc_graph\"
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "sqlite")
+
+
 def _set_active_age_env(monkeypatch: pytest.MonkeyPatch, *, dsn: str = "postgresql://example/test") -> None:
     _clear_active_env(monkeypatch)
     monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "age")
@@ -389,6 +404,8 @@ def _clear_active_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "GRAPH_DOMAIN",
         "AGE_DSN",
         "AGE_GRAPH_NAME",
+        "GRAPH_CONFIG_PATH",
+        "DATAOPS_SHARED_GRAPH_AUTHORIZED",
     ):
         monkeypatch.delenv(key, raising=False)
 
@@ -561,19 +578,15 @@ class FakeAGEStore:  # MOCK-OK: AGE protocol compliance without external AGE
         return None
 
 
-def test_shared_graph_authorization_requires_exact_dataops_pair() -> None:
+def test_shared_graph_authorization_is_derived_from_domain_and_graph() -> None:
     base = {
         "DATAOPS_ACTIVE_GRAPH_BACKEND": "age",
         "DATAOPS_ACTIVE_AGE_DSN": "postgresql://example/shared",
         "DATAOPS_ACTIVE_AGE_GRAPH": "soc_graph",
         "DATAOPS_ACTIVE_AGE_DOMAIN": "dataops",
     }
-    with pytest.raises(DataOpsActiveGraphConfigError, match="DATAOPS_SHARED_GRAPH_AUTHORIZED"):
-        DataOpsActiveGraphConfig.from_env(base)
-
-    config = DataOpsActiveGraphConfig.from_env(
-        {**base, "DATAOPS_SHARED_GRAPH_AUTHORIZED": "dataops:soc_graph"}
-    )
+    config = DataOpsActiveGraphConfig.from_env(base)
+    assert config.shared_graph_authorization == "dataops:soc_graph"
     active = create_dataops_active_graph_store(config, store_factory=lambda **_: FakeAGEStore())
     assert isinstance(active, DataOpsActiveAGEGraphStore)
     assert active.generate_decision_id("dataops").startswith("DOPS-")

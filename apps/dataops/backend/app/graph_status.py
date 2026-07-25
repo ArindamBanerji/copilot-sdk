@@ -9,6 +9,7 @@ import re
 
 from fastapi import APIRouter, Request
 
+from copilot_sdk.config import GraphConfig, GraphConfigError
 from copilot_sdk.scoring.presets.dataops import DataOpsPreset
 
 
@@ -67,6 +68,50 @@ def _shared_graph_is_authorized(authorization: str | None, *, domain: str, graph
     return str(authorization or "").strip() == f"{domain}:{graph}"
 
 
+_GRAPH_CONFIG_ENV_KEYS = (
+    "GRAPH_BACKEND", "GRAPH_DSN", "AGE_DSN", "GRAPH_NAME", "AGE_GRAPH_NAME",
+    "GRAPH_DOMAIN", "DATAOPS_ACTIVE_GRAPH_BACKEND", "DATAOPS_ACTIVE_AGE_DSN",
+    "DATAOPS_ACTIVE_AGE_GRAPH", "DATAOPS_ACTIVE_AGE_DOMAIN",
+    "DATAOPS_ACTIVE_AGE_TEST_MODE", "DATAOPS_ACTIVE_LIVE_AGE_TEST",
+    "DATAOPS_SHARED_GRAPH_AUTHORIZED", "CI_ALLOW_SQLITE_FALLBACK",
+)
+
+
+def _load_dataops_graph_config(env: Mapping[str, str] | None) -> GraphConfig:
+    """Load production config fail-closed, or an isolated compatibility mapping for tests."""
+    if env is None:
+        return GraphConfig.load("dataops")
+
+    previous = {key: os.environ.get(key) for key in _GRAPH_CONFIG_ENV_KEYS}
+    try:
+        for key in _GRAPH_CONFIG_ENV_KEYS:
+            os.environ.pop(key, None)
+        os.environ.update(env)
+        profile = "production"
+        if "DATAOPS_ACTIVE_GRAPH_BACKEND" not in env:
+            os.environ["DATAOPS_ACTIVE_GRAPH_BACKEND"] = "sqlite"
+            os.environ["CI_ALLOW_SQLITE_FALLBACK"] = "1"
+            profile = "development"
+        if os.environ.get("DATAOPS_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age":
+            if not os.environ.get("DATAOPS_ACTIVE_AGE_DSN", "").strip():
+                raise GraphConfigError(
+                    "DATAOPS_ACTIVE_AGE_DSN is required when DATAOPS_ACTIVE_GRAPH_BACKEND=age"
+                )
+            if not os.environ.get("DATAOPS_ACTIVE_AGE_GRAPH", "").strip():
+                raise GraphConfigError(
+                    "DATAOPS_ACTIVE_AGE_GRAPH is required when DATAOPS_ACTIVE_GRAPH_BACKEND=age"
+                )
+            if "DATAOPS_ACTIVE_AGE_DOMAIN" in env and not env.get("DATAOPS_ACTIVE_AGE_DOMAIN", "").strip():
+                raise GraphConfigError("DATAOPS_ACTIVE_AGE_DOMAIN must not be blank")
+        return GraphConfig.load("dataops", profile=profile)
+    finally:
+        for key in _GRAPH_CONFIG_ENV_KEYS:
+            os.environ.pop(key, None)
+        for key, value in previous.items():
+            if value is not None:
+                os.environ[key] = value
+
+
 @dataclass(frozen=True)
 class DataOpsActiveGraphConfig:
     requested_backend: str = "sqlite"
@@ -81,15 +126,23 @@ class DataOpsActiveGraphConfig:
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "DataOpsActiveGraphConfig":
         source = os.environ if env is None else env
-        backend = (source.get("DATAOPS_ACTIVE_GRAPH_BACKEND") or "sqlite").strip().lower()
+        try:
+            graph_config = _load_dataops_graph_config(env)
+        except GraphConfigError as exc:
+            message = str(exc)
+            if message.startswith("invalid backend"):
+                message = "DATAOPS_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'"
+            raise DataOpsActiveGraphConfigError(message) from exc
         config = cls(
-            requested_backend=backend,
-            dsn=source.get("DATAOPS_ACTIVE_AGE_DSN"),
-            graph=source.get("DATAOPS_ACTIVE_AGE_GRAPH"),
-            domain=(source.get("DATAOPS_ACTIVE_AGE_DOMAIN") or DOMAIN).strip(),
-            test_mode=_parse_bool(source.get("DATAOPS_ACTIVE_AGE_TEST_MODE"), default=False),
-            live_age_test=_parse_bool(source.get("DATAOPS_ACTIVE_LIVE_AGE_TEST"), default=False),
-            shared_graph_authorization=source.get("DATAOPS_SHARED_GRAPH_AUTHORIZED"),
+            requested_backend=graph_config.backend,
+            dsn=graph_config.dsn,
+            graph=graph_config.graph,
+            domain=graph_config.domain,
+            test_mode=graph_config.active_test_mode,
+            live_age_test=graph_config.live_age_test,
+            shared_graph_authorization=(
+                graph_config.authorized if graph_config.graph.strip() == "soc_graph" else None
+            ),
             ignored_generic_graph_env=_generic_graph_env_present(source),
         )
         config.validate(source)
@@ -123,7 +176,7 @@ class DataOpsActiveGraphConfig:
         )
         if graph == "soc_graph" and not soc_graph_authorized:
             raise DataOpsActiveGraphConfigError(
-                "soc_graph requires DATAOPS_SHARED_GRAPH_AUTHORIZED=dataops:soc_graph"
+                "soc_graph authorization is derived from the dataops domain and graph"
             )
         if self.test_mode:
             if not graph.startswith("protocol_v2_test"):
