@@ -26,6 +26,7 @@ def _args(**overrides) -> argparse.Namespace:
     values = {
         "diag_mode": False,
         "age_use_pool": False,
+        "health_timeout": 0,
         "no_browser": True,
         "no_reseed": False,
         "preseed": False,
