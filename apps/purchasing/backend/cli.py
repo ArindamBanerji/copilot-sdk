@@ -27,6 +27,12 @@ from gae.calibration import conservation_status  # noqa: E402
 
 
 DOMAIN = "purchasing"
+
+
+def _cli_profile() -> str:
+    if "pytest" in sys.modules:
+        return "test"
+    return "development"
 DEFAULT_DB_PATH = BACKEND_ROOT / "data" / "purchasing.db"
 BACKUP_VERSION = 1
 
@@ -45,7 +51,11 @@ def _store(db_path: Path) -> SQLiteGraphStore:
 
 
 def _scorer(db_path: Path) -> CompoundingScorer:
-    return CompoundingScorer.from_preset(DOMAIN, db_path=str(db_path.expanduser()))
+    resolved = str(db_path.expanduser())
+    store = SQLiteGraphStore(resolved, domain=DOMAIN)
+    return CompoundingScorer.from_preset(
+        DOMAIN, db_path=resolved, graph_store=store, profile=_cli_profile()
+    )
 
 
 def _json_default(value: Any) -> Any:
@@ -465,6 +475,7 @@ def restore(ctx: click.Context, from_file: Path) -> None:
                 str(decision["decision_id"]),
                 str(decision["actual_action"]),
                 bool(decision["is_correct"]),
+                domain=DOMAIN,
                 metadata={
                     "actual_index": int(decision.get("actual_index", 0)),
                     "verified_at": float(decision.get("verified_at") or 0.0),

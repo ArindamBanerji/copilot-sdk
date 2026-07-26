@@ -206,7 +206,7 @@ def test_config_does_not_affect_scoring(tmp_path):
     from copilot_sdk.scoring.scorer import CompoundingScorer
 
     scorer = CompoundingScorer.from_preset(
-        "trading", db_path=str(tmp_path / "p48_test.db")
+        "trading", db_path=str(tmp_path / "p48_test.db"), profile="test"
     )
     try:
         factors = {factor: 0.5 for factor in scorer._preset.shape.factor_names}

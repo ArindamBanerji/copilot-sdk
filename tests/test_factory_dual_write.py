@@ -7,6 +7,7 @@ import pytest
 from copilot_sdk.graph.dual_write_store import DualWriteStore
 from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.config import GraphConfigError
 
 
 class FactoryAGEAdapter:  # MOCK-OK: factory external adapter loading boundary.
@@ -37,14 +38,11 @@ def test_dual_write_with_dsn_constructs_wrapper(monkeypatch, tmp_path):
     store.close()
 
 
-def test_dual_write_without_dsn_falls_back_to_sqlite(monkeypatch, tmp_path, caplog):
+def test_dual_write_without_dsn_fails_closed(monkeypatch, tmp_path, caplog):
     monkeypatch.delenv("GRAPH_DSN", raising=False)
     monkeypatch.delenv("AGE_DSN", raising=False)
-    with caplog.at_level("WARNING"):
-        store = create_graph_store(backend="dual_write", domain="trading", db_path=tmp_path / "trading.db")
-    assert isinstance(store, SQLiteGraphStore)
-    assert "falling back to SQLite" in caplog.text
-    store.close()
+    with caplog.at_level("WARNING"), pytest.raises(GraphConfigError):
+        create_graph_store(backend="dual_write", domain="trading", db_path=tmp_path / "trading.db")
 
 
 def test_sqlite_backend_is_unchanged(tmp_path):

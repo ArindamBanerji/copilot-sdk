@@ -1,0 +1,22 @@
+{
+  "active_decisions_written": 800,
+  "active_last_rowid": 1171,
+  "active_outcomes_written": 206,
+  "active_source_manifest_hash": "b82381c2aea7ce0b8983109628bc5b377bdb91f3fc94d4142e35d18c684b7658",
+  "all_decisions": true,
+  "archive_last_archive_id": 371,
+  "archive_source_manifest_hash": "2e2269d5357bf26055e1374a08c7d2a7942c6040540765c2131bcc4c4a1d756f",
+  "archived_decisions_written": 371,
+  "archived_outcomes_written": 250,
+  "batch_number": 3,
+  "decisions_written": 1171,
+  "domain": "trading",
+  "graph_name": "soc_graph",
+  "include_archived": true,
+  "last_rowid": 1171,
+  "outcomes_written": 456,
+  "phase": "archive",
+  "source_db_path": "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\data\\trading.db",
+  "status": "in_progress",
+  "timestamp": "2026-07-23T23:53:27.488191+00:00"
+}

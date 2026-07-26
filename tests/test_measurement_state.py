@@ -11,7 +11,7 @@ from integrity.load_benchmark import load_benchmark
 
 
 def _trading_scorer() -> CompoundingScorer:
-    return CompoundingScorer.from_preset("trading", db_path=":memory:")
+    return CompoundingScorer.from_preset("trading", db_path=":memory:", profile="test")
 
 
 def _feed_decisions(scorer: CompoundingScorer, count: int) -> None:
@@ -109,7 +109,10 @@ def test_total_decisions_do_not_measure_without_per_arm_coverage():
 
 def test_measurement_endpoint_returns_200():
     app = FastAPI()
-    app.include_router(create_scoring_router("trading", db_path=":memory:"), prefix="/api")
+    app.include_router(
+        create_scoring_router("trading", scorer_factory=_trading_scorer),
+        prefix="/api",
+    )
     client = TestClient(app)
 
     response = client.get("/api/trading/measurement-state")

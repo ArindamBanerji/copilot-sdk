@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import os
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -74,6 +75,16 @@ from copilot_sdk.state import cached_static, create_invalidation_header_middlewa
 
 
 DOMAIN = "trading"
+
+
+def _resolve_profile() -> str:
+    """Select an explicit isolated profile for pytest app construction."""
+    if os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
+        return "test"
+    if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
+        return "development"
+    return "production"
+logger = logging.getLogger(__name__)
 DB_FILENAME = "trading.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / DB_FILENAME
@@ -112,6 +123,7 @@ def _graph_store(db_path: str | Path):
         domain=DOMAIN,
         db_path=str(db_path),
         decision_id_prefix="TRD-",
+        profile=_resolve_profile(),
     )
     setattr(store, "penalty_ratio", TradingPreset().penalty_ratio)
     return store
@@ -256,6 +268,7 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
         graph_store=graph_store,
         evolve=True,
         consolidation_enabled=True,
+        profile=_resolve_profile(),
     )
     seeded = _seed_from_fixtures(scorer, graph_store)
     print(
@@ -300,7 +313,21 @@ def create_app(
         _bundle_path = Path(demo_bundle_path)
     seed_graph_store = _graph_store(scoring_db)
     startup_state = {"seeded": False, "restored": False}
-    base_scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, selected_graph_store_factory)
+    base_scorer_proxy = FreshScorerProxy(
+        DOMAIN, scoring_db, selected_graph_store_factory, profile=_resolve_profile()
+    )
+    store = base_scorer_proxy.graph_store
+    logger.info("STORE_TYPE: %s", type(store).__name__)
+    if hasattr(store, "primary"):
+        primary = store.primary
+        logger.info("PRIMARY: %s", type(primary).__name__)
+        logger.info("PRIMARY_PATH: %s", getattr(primary, "_db_path", getattr(primary, "db_path", None)))
+    if hasattr(store, "secondary"):
+        logger.info("SECONDARY: %s", type(store.secondary).__name__)
+    if hasattr(store, "_outbox"):
+        outbox = store._outbox
+        logger.info("OUTBOX: %s", outbox is not None)
+        logger.info("OUTBOX_PATH: %s", getattr(outbox, "path", None))
     trading_preset = TradingPreset()
     regime_monitor = RegimeMonitor(config=trading_preset)
     scorer_proxy = TradingRegimeScorerProxy(base_scorer_proxy, regime_monitor)

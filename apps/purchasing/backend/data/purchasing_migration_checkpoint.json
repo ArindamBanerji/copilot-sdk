@@ -1,0 +1,22 @@
+{
+  "active_decisions_written": 800,
+  "active_last_rowid": 1011,
+  "active_outcomes_written": 426,
+  "active_source_manifest_hash": "fd227b0afad77bb9d3aa30657e53f6d8590d5dd2c3734d2e915bf89195a93115",
+  "all_decisions": true,
+  "archive_last_archive_id": 121,
+  "archive_source_manifest_hash": "71c885bd67068e8ac6380b797e4b229a97a29e6c037182fdda50c16d99688747",
+  "archived_decisions_written": 121,
+  "archived_outcomes_written": 121,
+  "batch_number": 3,
+  "decisions_written": 921,
+  "domain": "purchasing",
+  "graph_name": "soc_graph",
+  "include_archived": true,
+  "last_rowid": 1011,
+  "outcomes_written": 547,
+  "phase": "complete",
+  "source_db_path": "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\data\\purchasing.db",
+  "status": "complete",
+  "timestamp": "2026-07-24T21:15:11.617501+00:00"
+}

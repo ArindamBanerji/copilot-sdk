@@ -9,6 +9,7 @@ import pytest
 
 from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.config import GraphConfigError
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -35,17 +36,15 @@ def test_factory_preserves_sqlite_decision_id_prefix(tmp_path, domain: str, pref
     store.close()
 
 
-def test_dual_write_fallback_preserves_sqlite_decision_id_prefix(tmp_path) -> None:
-    store = create_graph_store(
-        backend="dual_write",
-        domain="trading",
-        db_path=tmp_path / "trading.db",
-        decision_id_prefix="TRD-",
-        env={},
-    )
-    assert isinstance(store, SQLiteGraphStore)
-    assert store.write_decision("trading", "category", "approve", 0.9, {}).startswith("TRD-")
-    store.close()
+def test_dual_write_without_dsn_fails_closed(tmp_path) -> None:
+    with pytest.raises(GraphConfigError):
+        create_graph_store(
+            backend="dual_write",
+            domain="trading",
+            db_path=tmp_path / "trading.db",
+            decision_id_prefix="TRD-",
+            env={},
+        )
 
 
 def test_sdk_copilot_main_helpers_call_create_graph_store() -> None:

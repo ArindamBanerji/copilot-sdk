@@ -15,6 +15,8 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 def test_all_fixture_jsons_have_provenance() -> None:
     for path in DATA_DIR.rglob("*.json"):
+        if path.name.endswith("_checkpoint.json"):
+            continue
         payload = _load_json(path)
         _assert_sample_payload(payload, path)
 

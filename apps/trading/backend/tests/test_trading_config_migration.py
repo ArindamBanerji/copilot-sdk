@@ -128,7 +128,7 @@ def test_options_factors_initialized_neutral():
 
 
 def test_scorer_can_initialize_with_trading_config(tmp_path):
-    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"))
+    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"), profile="test")
 
     try:
         assert scorer.gae_scorer.centroids.shape == (5, 4, 10)

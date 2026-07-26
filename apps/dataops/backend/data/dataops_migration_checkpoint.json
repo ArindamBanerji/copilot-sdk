@@ -1,0 +1,22 @@
+{
+  "active_decisions_written": 6,
+  "active_last_rowid": 720,
+  "active_outcomes_written": 388,
+  "active_source_manifest_hash": "d97975496543c8cd35cec919517e94dbd64db8e6f104debe872bc211987dbfa4",
+  "all_decisions": true,
+  "archive_last_archive_id": 0,
+  "archive_source_manifest_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "archived_decisions_written": 0,
+  "archived_outcomes_written": 0,
+  "batch_number": 2,
+  "decisions_written": 6,
+  "domain": "dataops",
+  "graph_name": "soc_graph",
+  "include_archived": true,
+  "last_rowid": 720,
+  "outcomes_written": 388,
+  "phase": "active",
+  "source_db_path": "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\backend\\data\\dataops.db",
+  "status": "in_progress",
+  "timestamp": "2026-07-24T22:14:56.409320+00:00"
+}

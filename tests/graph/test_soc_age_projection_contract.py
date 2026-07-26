@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from copilot_sdk.config import GraphConfig
+from copilot_sdk.testing import age_available
 
 from copilot_sdk.graph.projection import (
     AGEProjection,
@@ -65,9 +67,13 @@ class ReadOnlySOCProjectionClient:
 
 @pytest.fixture()
 def soc_projection_client() -> ReadOnlySOCProjectionClient:
-    if os.getenv("AGE_INTEGRATION") != "1":
-        pytest.skip("AGE_INTEGRATION=1 required for read-only SOC AGE projection tests")
-    dsn = os.getenv("AGE_TEST_DSN", "").strip()
+    if not age_available():
+        pytest.skip("AGE not reachable (no DSN configured or connection failed)")
+    dsn = (
+        os.getenv("AGE_TEST_DSN", "").strip()
+        or os.getenv("GRAPH_DSN", "").strip()
+        or (GraphConfig.load("soc").dsn or "").strip()
+    )
     graph_name = "soc_graph"
     if not dsn:
         pytest.skip("AGE_TEST_DSN is required for read-only SOC AGE projection tests")

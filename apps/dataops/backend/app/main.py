@@ -54,6 +54,15 @@ from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa
 
 
 DOMAIN = "dataops"
+
+
+def _resolve_profile() -> str:
+    """Select an explicit isolated profile for pytest app construction."""
+    if os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
+        return "test"
+    if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
+        return "development"
+    return "production"
 DB_FILENAME = "dataops.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / DB_FILENAME
@@ -99,6 +108,7 @@ def _graph_store(db_path: str | Path):
         domain=DOMAIN,
         db_path=str(db_path),
         decision_id_prefix="DOPS-",
+        profile=_resolve_profile(),
     )
     setattr(store, "penalty_ratio", 10.0)
     return store
@@ -401,6 +411,7 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
         graph_store=graph_store,
         evolve=True,
         consolidation_enabled=True,
+        profile=_resolve_profile(),
     )
     seeded = _seed_from_fixtures(scorer, graph_store)
     print(
@@ -528,7 +539,9 @@ def create_app(
     app.state.dataops_profiler_registry = dataops_profiler_registry
     dataops_profiles = _profile_dataops_sources(dataops_profiler_registry)
     app.state.dataops_profiles = dataops_profiles
-    scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, graph_store_factory)
+    scorer_proxy = FreshScorerProxy(
+        DOMAIN, scoring_db, graph_store_factory, profile=_resolve_profile()
+    )
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
         "dk_source": "cold-start",
@@ -639,8 +652,9 @@ def create_app(
     @app.get("/health")
     def health() -> dict[str, Any]:
         graph = DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+        age_selected = os.getenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age"
         return {
-            "status": "ok",
+            "status": "ok" if not age_selected or graph.is_graph_connected else "error",
             "domain": DOMAIN,
             "graph_connected": graph.is_graph_connected,
             "graph_source": graph.graph_source,

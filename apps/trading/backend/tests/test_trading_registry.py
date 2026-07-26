@@ -18,7 +18,7 @@ def run(coro):
 
 def build_cache():
     store = InMemoryGraphStore(domain="trading")
-    scorer = CompoundingScorer.from_preset("trading", graph_store=store, enable_rl=False)
+    scorer = CompoundingScorer.from_preset("trading", graph_store=store, enable_rl=False, profile="test")
     cache = create_trading_tab_state_cache(
         scorer_provider=lambda: scorer,
         graph_store_factory=lambda: store,

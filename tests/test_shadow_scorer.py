@@ -5,11 +5,23 @@ from dataclasses import dataclass
 import pytest
 
 from copilot_sdk.graph import InMemoryGraphStore
+from copilot_sdk.scoring.scorer import CompoundingScorer
 from copilot_sdk.migrate.shadow_scorer import (
     ComparisonResult,
     ShadowScorer,
     _values_match,
 )
+
+
+@pytest.fixture(autouse=True)
+def _test_profile_for_shadow_scorers(monkeypatch):
+    original = CompoundingScorer.from_preset
+
+    def from_preset(*args, **kwargs):
+        kwargs.setdefault("profile", "test")
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(CompoundingScorer, "from_preset", from_preset)
 
 
 @dataclass

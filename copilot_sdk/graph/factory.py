@@ -154,6 +154,14 @@ def create_graph_store(
         config = GraphConfig.load(domain, profile=profile)
         selected_backend = _normalize_backend(config.backend)
         selected_domain = config.domain
+        if (
+            profile == "production"
+            and config.expected_backend == "age"
+            and selected_backend == "sqlite"
+        ):
+            raise GraphConfigError(
+                f"production domain '{domain}' resolved SQLite while AGE is expected"
+            )
         dsn = config.dsn
         graph_name = config.graph
         if shared_graph_authorization is None:

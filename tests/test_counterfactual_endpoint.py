@@ -9,7 +9,7 @@ from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
 def _client() -> tuple[TestClient, dict[str, float], str]:
-    scorer = CompoundingScorer.from_preset("trading")
+    scorer = CompoundingScorer.from_preset("trading", profile="test")
     preset = TradingPreset()
     factors = {name: 0.6 for name in preset.shape.factor_names}
     category = preset.shape.category_names[0]
@@ -25,7 +25,7 @@ def _client() -> tuple[TestClient, dict[str, float], str]:
 
 
 def _highest_weight_factor() -> str:
-    scorer = CompoundingScorer.from_preset("trading")
+    scorer = CompoundingScorer.from_preset("trading", profile="test")
     preset = TradingPreset()
     category = preset.shape.category_names[0]
     for index in range(400):

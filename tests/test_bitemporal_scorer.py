@@ -189,6 +189,7 @@ def test_warm_start_checkpoint_has_null_decision_range(tmp_path: Path) -> None:
     scorer = CompoundingScorer.from_preset(
         "s2p",
         db_path=str(tmp_path / "s2p.sqlite"),
+        profile="test",
         graph_store=InMemoryGraphStore(),
     )
     pattern = TransferPattern(

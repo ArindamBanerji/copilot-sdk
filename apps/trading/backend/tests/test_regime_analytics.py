@@ -108,7 +108,7 @@ def test_regime_analytics_endpoint_returns_200(tmp_path: Path) -> None:
 
 
 def test_regime_analytics_zero_writes_to_scorer(tmp_path: Path) -> None:
-    scorer = CompoundingScorer.from_preset("trading", db_path=tmp_path / "zero_writes.db")
+    scorer = CompoundingScorer.from_preset("trading", db_path=tmp_path / "zero_writes.db", profile="test")
     before = np.asarray(scorer.gae_scorer.centroids).copy()
 
     RegimeAnalytics().compute([_decision("trending") for _ in range(30)])

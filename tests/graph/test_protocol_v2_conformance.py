@@ -13,6 +13,7 @@ import psycopg
 import pytest
 
 from copilot_sdk.graph import InMemoryGraphStore, SQLiteGraphStore
+from copilot_sdk.config import GraphConfig
 from copilot_sdk.migrate.sqlite_to_age import run_migration
 from copilot_sdk.scoring import CompoundingScorer
 
@@ -41,21 +42,11 @@ def sqlite_store(tmp_path):
 
 
 @pytest.fixture()
-def age_store(request):
-    if os.getenv("AGE_INTEGRATION") != "1":
-        pytest.skip("AGE_INTEGRATION=1 required for AGE Protocol v2 conformance")
+def age_store(request, age_test_graph):
     dsn = os.getenv("AGE_TEST_DSN", "").strip()
-    graph_name = os.getenv("AGE_TEST_GRAPH", "").strip()
     if not dsn:
-        pytest.skip("AGE_TEST_DSN is required for AGE Protocol v2 conformance")
-    if dsn == DEFAULT_AGE_DSN:
-        pytest.skip("AGE_TEST_DSN must not use the default SOC demo DSN")
-    if not graph_name:
-        pytest.skip("AGE_TEST_GRAPH is required for AGE Protocol v2 conformance")
-    if graph_name == "soc_graph":
-        pytest.fail("AGE Protocol v2 conformance must never target soc_graph")
-    if not graph_name.startswith("protocol_v2_test"):
-        pytest.skip("AGE_TEST_GRAPH must start with protocol_v2_test")
+        dsn = (GraphConfig.load("trading").dsn or "").strip()
+    graph_name = age_test_graph
 
     repo_root = Path(__file__).resolve().parents[2]
     ci_platform_path = repo_root.parent / "ci-platform"
@@ -3018,7 +3009,7 @@ def test_migration_replay(tmp_path, age_store):
     domain = f"pytest_protocol_v2_migration_{uuid.uuid4().hex[:8]}"
     source_db = tmp_path / "migration.sqlite"
     _create_migration_source(source_db, domain, [f"migration-{index}" for index in range(5)])
-    dsn = os.environ["AGE_TEST_DSN"]
+    dsn = (os.getenv("AGE_TEST_DSN", "").strip() or (GraphConfig.load("trading").dsn or "").strip())
     graph_conn, graph_name = _create_disposable_migration_graph(dsn)
     store = type(age_store)(dsn=dsn, graph_name=graph_name)
     try:
@@ -3563,7 +3554,7 @@ def test_age_checkpoint_receipt_per_decision_isolation(tmp_path, age_store):
     result = run_migration(
         domain,
         str(source_db),
-        os.environ["AGE_TEST_DSN"],
+        (os.getenv("AGE_TEST_DSN", "").strip() or (GraphConfig.load("trading").dsn or "").strip()),
         os.environ["AGE_TEST_GRAPH"],
         verify=False,
     )

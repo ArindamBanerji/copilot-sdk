@@ -101,7 +101,7 @@ def test_polarity_does_not_affect_scoring(tmp_path):
     from copilot_sdk.scoring.scorer import CompoundingScorer
 
     scorer = CompoundingScorer.from_preset(
-        "purchasing", db_path=str(tmp_path / "pol_test.db")
+        "purchasing", db_path=str(tmp_path / "pol_test.db"), profile="test"
     )
     try:
         factors = {f: 0.5 for f in scorer._preset.shape.factor_names}

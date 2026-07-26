@@ -9,17 +9,12 @@ import pytest
 from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.config import GraphConfigError
 
 
-def test_graphstore_factory_defaults_to_sqlite_when_backend_unset():
-    store = create_graph_store(env={})
-    try:
-        assert isinstance(store, SQLiteGraphStore)
-        assert isinstance(store, GraphStore)
-        assert store.domain == "graph"
-        assert store.db_path == ":memory:"
-    finally:
-        store.close()
+def test_graphstore_factory_requires_domain_when_backend_unset():
+    with pytest.raises(GraphConfigError):
+        create_graph_store(env={})
 
 
 def test_graphstore_factory_explicit_sqlite_returns_sqlite():
@@ -235,7 +230,7 @@ def test_graphstore_factory_age_import_error_is_clear(monkeypatch):
 
 
 def test_graphstore_factory_close_remains_store_owned():
-    store = create_graph_store(env={})
+    store = create_graph_store(backend="sqlite", domain="test", db_path=":memory:")
     assert isinstance(store, SQLiteGraphStore)
     store.close()
     with pytest.raises(RuntimeError, match="closed"):

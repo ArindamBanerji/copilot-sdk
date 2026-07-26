@@ -147,7 +147,7 @@ def _category_verified_decisions(store: Any | None, category: str) -> list[dict[
         try:
             decisions = list(get_verified(DOMAIN) or [])
         except TypeError:
-            decisions = list(get_verified() or [])
+            decisions = list(get_verified(domain=DOMAIN) or [])
         return [
             decision
             for decision in decisions

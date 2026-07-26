@@ -83,6 +83,7 @@ def _trading_scorer(tmp_path) -> CompoundingScorer:
     scorer = CompoundingScorer.from_preset(
         "trading",
         db_path=str(tmp_path / "trading.db"),
+        profile="test",
         graph_store=InMemoryGraphStore(domain="trading"),
     )
     scorer.source_conservation_states = {"dataops": "GREEN"}
@@ -130,6 +131,7 @@ def test_execute_refuses_when_conservation_unknown(tmp_path) -> None:
     scorer = CompoundingScorer.from_preset(
         "trading",
         db_path=str(tmp_path / "trading.db"),
+        profile="test",
         graph_store=InMemoryGraphStore(domain="trading"),
     )
 

@@ -90,6 +90,7 @@ def _run_sdk_full_flow() -> SimpleNamespace:
         DOMAIN,
         graph_store=store,
         enable_rl=False,
+        profile="test",
     )
     tracker = DKWelfordTracker()
     app = FastAPI()

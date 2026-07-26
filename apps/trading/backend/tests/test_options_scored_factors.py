@@ -143,7 +143,7 @@ def test_non_trading_shapes_unchanged():
 
 
 def test_scorer_accepts_10_factor_dict(tmp_path):
-    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"))
+    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"), profile="test")
     try:
         result = scorer.score(
             {name: 0.5 for name in TradingPreset().shape.factor_names},
@@ -158,7 +158,7 @@ def test_scorer_accepts_10_factor_dict(tmp_path):
 def test_legacy_7_factor_dict_is_padded_by_scorer(tmp_path):
     preset = TradingPreset()
     old_factor_names = preset.shape.factor_names[:7]
-    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"))
+    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"), profile="test")
     try:
         result = scorer.score({name: 0.5 for name in old_factor_names}, "trend_following")
     finally:

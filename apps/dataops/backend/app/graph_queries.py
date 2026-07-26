@@ -67,12 +67,20 @@ class DataOpsGraphClient:
         self._serializer = self._fixture_serializer
         self.last_query: str | None = None
 
-        graph_dsn = os.getenv("DATAOPS_ACTIVE_AGE_DSN") or dsn or os.getenv("GRAPH_DSN")
-        graph_name = (
-            os.getenv("DATAOPS_ACTIVE_AGE_GRAPH")
-            or os.getenv("AGE_GRAPH_NAME")
-            or "soc_graph"
-        )
+        self._age_required = os.getenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age"
+        if self._age_required:
+            from copilot_sdk.config.graph_config import GraphConfig
+
+            active_config = GraphConfig.load("dataops")
+            graph_dsn = active_config.dsn
+            graph_name = active_config.graph
+        else:
+            graph_dsn = os.getenv("DATAOPS_ACTIVE_AGE_DSN") or dsn or os.getenv("GRAPH_DSN")
+            graph_name = (
+                os.getenv("DATAOPS_ACTIVE_AGE_GRAPH")
+                or os.getenv("AGE_GRAPH_NAME")
+                or "soc_graph"
+            )
         if graph_dsn and "sslmode" not in graph_dsn:
             graph_dsn += " sslmode=disable"
         if age_client is not None:
@@ -509,6 +517,8 @@ class DataOpsGraphClient:
 
     async def _run_graph(self, query: str) -> list[dict[str, Any]] | None:
         if not self._age_client:
+            if self._age_required:
+                raise RuntimeError("DataOps AGE graph is configured but not connected")
             return None
         if READ_ONLY_FORBIDDEN.search(query):
             raise ValueError(f"DataOps graph query is not read-only: {query[:120]}")
@@ -517,6 +527,8 @@ class DataOpsGraphClient:
             return await self._age_client.run_query(query, None)
         except Exception:
             self._graph_connected = False
+            if self._age_required:
+                raise
             return None
 
     def _serialize(self, value: Any) -> str:

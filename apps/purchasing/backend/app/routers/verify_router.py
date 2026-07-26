@@ -88,7 +88,7 @@ def create_verify_router(scorer_provider: ScorerProvider) -> APIRouter:
         if store is None or not callable(getattr(store, "get_decision", None)):
             raise HTTPException(status_code=500, detail="Verification requires a graph store")
 
-        decision = store.get_decision(decision_id)
+        decision = store.get_decision(decision_id, domain=DOMAIN)
         if decision is None:
             raise HTTPException(status_code=404, detail=f"Unknown decision: {decision_id}")
         if _already_verified(store, decision_id, decision):
@@ -221,6 +221,7 @@ def _record_paused_outcome(
         decision_id=decision_id,
         actual_action=actual_action,
         is_correct=is_correct,
+        domain=DOMAIN,
         metadata={
             "actual_index": actual_index,
             "outcome": "confirmed",

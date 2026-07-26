@@ -339,7 +339,7 @@ def _seed_store(
     category: str = CATEGORY,
 ) -> tuple[InMemoryGraphStore, CompoundingScorer]:
     store = InMemoryGraphStore("trading")
-    scorer = CompoundingScorer.from_preset("trading", graph_store=store)
+    scorer = CompoundingScorer.from_preset("trading", graph_store=store, profile="test")
     for index in range(correct + incorrect):
         _seed_verified(scorer, category, is_correct=index < correct)
     return store, scorer

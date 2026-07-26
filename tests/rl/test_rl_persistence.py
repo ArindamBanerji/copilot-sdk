@@ -140,7 +140,7 @@ def test_get_rl_components_s2p_uses_financial_reward():
 
 def test_learn_posterior_update_is_not_exploration_used():
     graph_store = InMemoryGraphStore(domain="trading")
-    scorer = CompoundingScorer.from_preset("trading", graph_store=graph_store)
+    scorer = CompoundingScorer.from_preset("trading", graph_store=graph_store, profile="test")
     try:
         factors = {name: 0.5 for name in scorer._preset.shape.factor_names}
         result = scorer.score(factors, scorer._preset.shape.category_names[0])

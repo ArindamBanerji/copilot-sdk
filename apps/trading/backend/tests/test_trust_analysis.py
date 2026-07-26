@@ -83,6 +83,7 @@ def _dk_matrix() -> list[list[float]]:
 def _trained_real_dk_scorer() -> CompoundingScorer:
     scorer = CompoundingScorer.from_preset(
         "trading",
+        profile="test",
         graph_store=InMemoryGraphStore(domain="trading"),
         enable_rl=False,
     )

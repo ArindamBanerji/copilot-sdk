@@ -17,6 +17,7 @@ def _make_trading_scorer() -> tuple[CompoundingScorer, InMemoryGraphStore, str, 
         "trading",
         graph_store=store,
         enable_rl=False,
+        profile="test",
     )
     category = "trend_following"
     category_index = scorer._preset.shape.category_names.index(category)
@@ -258,6 +259,7 @@ def test_from_preset_enables_learning_strategy_for_all_sdk_presets() -> None:
             domain,
             graph_store=InMemoryGraphStore(domain=domain),
             enable_rl=False,
+            profile="test",
         )
         strategy = scorer._scorer._learning_strategy
         assert strategy is not None

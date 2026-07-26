@@ -11,6 +11,7 @@ def _scorer(tmp_path) -> CompoundingScorer:
     return CompoundingScorer.from_preset(
         "s2p",
         db_path=str(tmp_path / "s2p.db"),
+        profile="test",
         graph_store=InMemoryGraphStore(domain="s2p"),
     )
 

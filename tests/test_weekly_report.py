@@ -36,6 +36,7 @@ def scorer(tmp_path, store: InMemoryGraphStore) -> CompoundingScorer:
     return CompoundingScorer.from_preset(
         DOMAIN,
         db_path=str(tmp_path / "weekly.db"),
+        profile="test",
         graph_store=store,
         enable_rl=False,
     )

@@ -48,7 +48,7 @@ def test_new_components_importable():
 
 
 def test_compounding_scorer_default_path_without_evolution_config(tmp_path):
-    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"))
+    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"), profile="test")
     factors = {
         "signal_alignment": 0.5,
         "market_regime": 0.5,

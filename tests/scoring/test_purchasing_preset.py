@@ -104,7 +104,7 @@ def test_preset_in_registry():
 def test_from_preset_purchasing_works(tmp_path):
     db_path = tmp_path / "purchasing.db"
 
-    scorer = CompoundingScorer.from_preset("purchasing", db_path=str(db_path))
+    scorer = CompoundingScorer.from_preset("purchasing", db_path=str(db_path), profile="test")
 
     assert scorer is not None
     scorer.graph_store.close()
@@ -309,7 +309,7 @@ def test_weather_factor_in_range():
 
 def test_end_to_end_score_learn_fingerprint_smoke(tmp_path):
     db_path = tmp_path / "purchasing_smoke.db"
-    scorer = CompoundingScorer.from_preset("purchasing", db_path=str(db_path))
+    scorer = CompoundingScorer.from_preset("purchasing", db_path=str(db_path), profile="test")
     order = next(order for order in load_seed_orders() if order["category"] == "produce")
 
     score = scorer.score(order["factors"], order["category"])

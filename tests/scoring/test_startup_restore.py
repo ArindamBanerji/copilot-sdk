@@ -24,6 +24,7 @@ def _s2p_scorer() -> CompoundingScorer:
     return CompoundingScorer.from_preset(
         "s2p",
         graph_store=InMemoryGraphStore(domain="s2p"),
+        profile="test",
     )
 
 

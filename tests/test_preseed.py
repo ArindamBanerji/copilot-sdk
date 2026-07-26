@@ -9,11 +9,30 @@ import pytest
 
 from copilot_sdk.demo.connector_freeze import ConnectorFreeze
 from copilot_sdk.demo.preseed import DemoPreseed, MIN_DEMO_IKS
+from copilot_sdk.scoring.scorer import CompoundingScorer
 from copilot_sdk.scoring.verification.weather import get_weather_factor
 
 
-@pytest.fixture(scope="module")
-def preseed_result(tmp_path_factory):
+@pytest.fixture(autouse=True)
+def _test_profile_for_preseed_scorers(monkeypatch):
+    original = CompoundingScorer.from_preset
+
+    def from_preset(*args, **kwargs):
+        kwargs.setdefault("profile", "test")
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(CompoundingScorer, "from_preset", from_preset)
+
+
+@pytest.fixture
+def preseed_result(tmp_path_factory, monkeypatch):
+    original = CompoundingScorer.from_preset
+
+    def from_preset(*args, **kwargs):
+        kwargs.setdefault("profile", "test")
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(CompoundingScorer, "from_preset", from_preset)
     previous_path = os.environ.get("TRADING_EVOLUTION_LOG_PATH")
     os.environ["TRADING_EVOLUTION_LOG_PATH"] = str(
         tmp_path_factory.mktemp("preseed") / "evolution_log.json"

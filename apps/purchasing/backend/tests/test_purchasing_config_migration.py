@@ -147,7 +147,7 @@ def test_existing_centroid_values_unchanged_for_sample_cells():
 
 
 def test_scorer_can_initialize_with_purchasing_config(tmp_path):
-    scorer = CompoundingScorer.from_preset("purchasing", db_path=str(tmp_path / "purchasing.db"))
+    scorer = CompoundingScorer.from_preset("purchasing", db_path=str(tmp_path / "purchasing.db"), profile="test")
 
     try:
         assert scorer.gae_scorer.centroids.shape == (5, 4, 7)

@@ -50,7 +50,7 @@ def test_s2p_preset_shape_and_penalty_ratio():
 
 
 def test_from_preset_s2p_works(tmp_path):
-    scorer = CompoundingScorer.from_preset("s2p", db_path=str(tmp_path / "s2p.db"))
+    scorer = CompoundingScorer.from_preset("s2p", db_path=str(tmp_path / "s2p.db"), profile="test")
 
     assert scorer._preset.name == "s2p"
     assert scorer._preset.shape.tensor_shape == (5, 5, 8)
@@ -58,7 +58,7 @@ def test_from_preset_s2p_works(tmp_path):
 
 
 def test_s2p_scoring_returns_valid_action(tmp_path):
-    scorer = CompoundingScorer.from_preset("s2p", db_path=str(tmp_path / "s2p.db"))
+    scorer = CompoundingScorer.from_preset("s2p", db_path=str(tmp_path / "s2p.db"), profile="test")
     factors = {name: 0.5 for name in scorer._preset.shape.factor_names}
 
     result = scorer.score(factors, "price_variance")

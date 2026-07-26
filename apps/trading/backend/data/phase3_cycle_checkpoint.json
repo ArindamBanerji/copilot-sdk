@@ -1,0 +1,329 @@
+{
+  "consecutive": 40,
+  "total_cycles": 40,
+  "total_scored": 120,
+  "total_learned": 80,
+  "last_age_archived": 496,
+  "history": [
+    {
+      "cycle": 1,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 379,
+      "age_verified": 205,
+      "timestamp": 1784852859.8784595
+    },
+    {
+      "cycle": 2,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 382,
+      "age_verified": 206,
+      "timestamp": 1784852860.9657974
+    },
+    {
+      "cycle": 3,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 385,
+      "age_verified": 206,
+      "timestamp": 1784852862.2426243
+    },
+    {
+      "cycle": 4,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 388,
+      "age_verified": 206,
+      "timestamp": 1784852863.574075
+    },
+    {
+      "cycle": 5,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 391,
+      "age_verified": 207,
+      "timestamp": 1784852864.7567391
+    },
+    {
+      "cycle": 6,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 394,
+      "age_verified": 208,
+      "timestamp": 1784852866.0593572
+    },
+    {
+      "cycle": 7,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 397,
+      "age_verified": 208,
+      "timestamp": 1784852867.2689867
+    },
+    {
+      "cycle": 8,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 400,
+      "age_verified": 208,
+      "timestamp": 1784852868.5188513
+    },
+    {
+      "cycle": 9,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 403,
+      "age_verified": 209,
+      "timestamp": 1784852869.8150523
+    },
+    {
+      "cycle": 10,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 406,
+      "age_verified": 210,
+      "timestamp": 1784852871.184589
+    },
+    {
+      "cycle": 11,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 409,
+      "age_verified": 210,
+      "timestamp": 1784852872.3864973
+    },
+    {
+      "cycle": 12,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 412,
+      "age_verified": 210,
+      "timestamp": 1784852873.544878
+    },
+    {
+      "cycle": 13,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 415,
+      "age_verified": 211,
+      "timestamp": 1784852874.904828
+    },
+    {
+      "cycle": 14,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 418,
+      "age_verified": 212,
+      "timestamp": 1784852876.0051866
+    },
+    {
+      "cycle": 15,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 421,
+      "age_verified": 212,
+      "timestamp": 1784852877.237541
+    },
+    {
+      "cycle": 16,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 424,
+      "age_verified": 212,
+      "timestamp": 1784852878.3688774
+    },
+    {
+      "cycle": 17,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 427,
+      "age_verified": 213,
+      "timestamp": 1784852879.6439326
+    },
+    {
+      "cycle": 18,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 430,
+      "age_verified": 214,
+      "timestamp": 1784852880.8400745
+    },
+    {
+      "cycle": 19,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 433,
+      "age_verified": 215,
+      "timestamp": 1784852882.0951686
+    },
+    {
+      "cycle": 20,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 436,
+      "age_verified": 215,
+      "timestamp": 1784852883.4280684
+    },
+    {
+      "cycle": 21,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 439,
+      "age_verified": 214,
+      "timestamp": 1784852884.7078018
+    },
+    {
+      "cycle": 22,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 442,
+      "age_verified": 215,
+      "timestamp": 1784852885.9412405
+    },
+    {
+      "cycle": 23,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 445,
+      "age_verified": 215,
+      "timestamp": 1784852887.238667
+    },
+    {
+      "cycle": 24,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 448,
+      "age_verified": 215,
+      "timestamp": 1784852888.5029569
+    },
+    {
+      "cycle": 25,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 451,
+      "age_verified": 216,
+      "timestamp": 1784852889.7143629
+    },
+    {
+      "cycle": 26,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 454,
+      "age_verified": 217,
+      "timestamp": 1784852890.9478333
+    },
+    {
+      "cycle": 27,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 457,
+      "age_verified": 217,
+      "timestamp": 1784852892.2312503
+    },
+    {
+      "cycle": 28,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 460,
+      "age_verified": 217,
+      "timestamp": 1784852893.4664605
+    },
+    {
+      "cycle": 29,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 463,
+      "age_verified": 218,
+      "timestamp": 1784852894.6484318
+    },
+    {
+      "cycle": 30,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 466,
+      "age_verified": 219,
+      "timestamp": 1784852895.9482641
+    },
+    {
+      "cycle": 31,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 469,
+      "age_verified": 219,
+      "timestamp": 1784852897.3220758
+    },
+    {
+      "cycle": 32,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 472,
+      "age_verified": 219,
+      "timestamp": 1784852898.446656
+    },
+    {
+      "cycle": 33,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 475,
+      "age_verified": 220,
+      "timestamp": 1784852899.7519376
+    },
+    {
+      "cycle": 34,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 478,
+      "age_verified": 221,
+      "timestamp": 1784852900.9804304
+    },
+    {
+      "cycle": 35,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 481,
+      "age_verified": 221,
+      "timestamp": 1784852902.3922777
+    },
+    {
+      "cycle": 36,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 484,
+      "age_verified": 221,
+      "timestamp": 1784852903.6956828
+    },
+    {
+      "cycle": 37,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 487,
+      "age_verified": 222,
+      "timestamp": 1784852904.944774
+    },
+    {
+      "cycle": 38,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 490,
+      "age_verified": 223,
+      "timestamp": 1784852906.1998196
+    },
+    {
+      "cycle": 39,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 493,
+      "age_verified": 223,
+      "timestamp": 1784852907.5506039
+    },
+    {
+      "cycle": 40,
+      "passed": true,
+      "age_active": 800,
+      "age_archived": 496,
+      "age_verified": 223,
+      "timestamp": 1784852908.7182343
+    }
+  ]
+}

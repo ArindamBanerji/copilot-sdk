@@ -124,14 +124,14 @@ def test_single_decision_padded():
 
 
 def test_score_with_8():
-    scorer = CompoundingScorer.from_preset("s2p")
+    scorer = CompoundingScorer.from_preset("s2p", profile="test")
     factors = {name: 0.5 for name in S2PPreset().shape.factor_names}
     result = scorer.score(factors, "price_variance")
     assert set(result.factors) == set(S2PPreset().shape.factor_names)
 
 
 def test_score_with_7_auto_padded():
-    scorer = CompoundingScorer.from_preset("s2p")
+    scorer = CompoundingScorer.from_preset("s2p", profile="test")
     factors = {name: 0.5 for name in LEGACY_FACTORS}
     result = scorer.score(factors, "price_variance")
     assert result.factors["environmental_risk"] == 0.5

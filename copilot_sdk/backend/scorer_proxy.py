@@ -19,10 +19,12 @@ class FreshScorerProxy:
         preset_name: str,
         db_path: str | Path,
         graph_store_factory: Callable[[str | Path], Any],
+        profile: str = "production",
     ) -> None:
         self._preset_name = preset_name
         self._db_path = str(db_path)
         self.graph_store = graph_store_factory(db_path)
+        self._profile = profile
         self._lock = threading.RLock()
         self._scorer_instance: CompoundingScorer | None = None
 
@@ -34,6 +36,7 @@ class FreshScorerProxy:
                     graph_store=self.graph_store,
                     evolve=True,
                     consolidation_enabled=True,
+                    profile=self._profile,
                 )
             return self._scorer_instance
 

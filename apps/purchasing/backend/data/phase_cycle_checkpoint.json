@@ -1,0 +1,365 @@
+{
+  "completed": 40,
+  "history": [
+    {
+      "cycle": 1,
+      "ids": [
+        "PUR-c75529136577",
+        "PUR-2045b8da5653",
+        "PUR-08ed9e2a650c"
+      ],
+      "timestamp": 1784927916.0546646
+    },
+    {
+      "cycle": 2,
+      "ids": [
+        "PUR-2d365cc67401",
+        "PUR-1c6a4726ddfa",
+        "PUR-e3def7d28f52"
+      ],
+      "timestamp": 1784927916.828977
+    },
+    {
+      "cycle": 3,
+      "ids": [
+        "PUR-cd4647d907f5",
+        "PUR-4c8bdc3cae27",
+        "PUR-c8164bc56145"
+      ],
+      "timestamp": 1784927917.6296213
+    },
+    {
+      "cycle": 4,
+      "ids": [
+        "PUR-bb4c2e05981d",
+        "PUR-f21927aabfb1",
+        "PUR-bf2b238cd7ef"
+      ],
+      "timestamp": 1784927918.4645283
+    },
+    {
+      "cycle": 5,
+      "ids": [
+        "PUR-92d965da1f07",
+        "PUR-f4fa0bad52e9",
+        "PUR-4476d2511e97"
+      ],
+      "timestamp": 1784927919.3712227
+    },
+    {
+      "cycle": 6,
+      "ids": [
+        "PUR-3e421e8e1060",
+        "PUR-a205603a9540",
+        "PUR-4cec237297c0"
+      ],
+      "timestamp": 1784927920.1970587
+    },
+    {
+      "cycle": 7,
+      "ids": [
+        "PUR-3fb3d1b6196b",
+        "PUR-eeb7ebdc9837",
+        "PUR-9d08d81887b0"
+      ],
+      "timestamp": 1784927921.1706789
+    },
+    {
+      "cycle": 8,
+      "ids": [
+        "PUR-5b9f693e5f12",
+        "PUR-664060bcd918",
+        "PUR-c4456e5e4e6f"
+      ],
+      "timestamp": 1784927922.0857546
+    },
+    {
+      "cycle": 9,
+      "ids": [
+        "PUR-02fdcc3f4775",
+        "PUR-5a4eaf40e9ab",
+        "PUR-7a265c09c6df"
+      ],
+      "timestamp": 1784927923.0959544
+    },
+    {
+      "cycle": 10,
+      "ids": [
+        "PUR-41c28cab13fc",
+        "PUR-d04771c209ca",
+        "PUR-244243903c0b"
+      ],
+      "timestamp": 1784927923.9012222
+    },
+    {
+      "cycle": 11,
+      "ids": [
+        "PUR-68d70e0e73ee",
+        "PUR-59d826eebd89",
+        "PUR-ab276ca70ba3"
+      ],
+      "timestamp": 1784927924.6896725
+    },
+    {
+      "cycle": 12,
+      "ids": [
+        "PUR-3530c205d3c7",
+        "PUR-4a81eed43cc8",
+        "PUR-c9292ccac97e"
+      ],
+      "timestamp": 1784927925.634483
+    },
+    {
+      "cycle": 13,
+      "ids": [
+        "PUR-6e45948572ae",
+        "PUR-0639d076aef2",
+        "PUR-70a29b8db144"
+      ],
+      "timestamp": 1784927926.4740381
+    },
+    {
+      "cycle": 14,
+      "ids": [
+        "PUR-a0cf8ae1fcc7",
+        "PUR-51674963ec2f",
+        "PUR-2daf37ab5a15"
+      ],
+      "timestamp": 1784927927.3482354
+    },
+    {
+      "cycle": 15,
+      "ids": [
+        "PUR-bd1a7fc70d03",
+        "PUR-dbd3b67ea2e5",
+        "PUR-003a15679204"
+      ],
+      "timestamp": 1784927928.4771004
+    },
+    {
+      "cycle": 16,
+      "ids": [
+        "PUR-079cd94051a9",
+        "PUR-50137d8c1cf3",
+        "PUR-55b311410eb3"
+      ],
+      "timestamp": 1784927929.3529258
+    },
+    {
+      "cycle": 17,
+      "ids": [
+        "PUR-219de462ecd2",
+        "PUR-54b9f12125dd",
+        "PUR-59c385eba8c7"
+      ],
+      "timestamp": 1784927930.4428658
+    },
+    {
+      "cycle": 18,
+      "ids": [
+        "PUR-a61ee545ba54",
+        "PUR-fe1ae8c8ba7c",
+        "PUR-046ce90aae24"
+      ],
+      "timestamp": 1784927931.3427086
+    },
+    {
+      "cycle": 19,
+      "ids": [
+        "PUR-1f13bad25473",
+        "PUR-9644cd9e3cf2",
+        "PUR-523e1f29c3b7"
+      ],
+      "timestamp": 1784927932.4349697
+    },
+    {
+      "cycle": 20,
+      "ids": [
+        "PUR-3829996e1c82",
+        "PUR-1ae593dae456",
+        "PUR-a947b73387cb"
+      ],
+      "timestamp": 1784927933.576902
+    },
+    {
+      "cycle": 21,
+      "ids": [
+        "PUR-bdb7d15fad3a",
+        "PUR-1969848edc05",
+        "PUR-25e15167b0df"
+      ],
+      "timestamp": 1784927934.5223727
+    },
+    {
+      "cycle": 22,
+      "ids": [
+        "PUR-fdcdf419ef71",
+        "PUR-7d9437f60808",
+        "PUR-47f417d7abf9"
+      ],
+      "timestamp": 1784927935.452012
+    },
+    {
+      "cycle": 23,
+      "ids": [
+        "PUR-4963ec697e82",
+        "PUR-dfc53584caf4",
+        "PUR-58acd9c0cb46"
+      ],
+      "timestamp": 1784927936.5080643
+    },
+    {
+      "cycle": 24,
+      "ids": [
+        "PUR-b6e507f695f6",
+        "PUR-7e392c607a7a",
+        "PUR-7b9b91bd0b1a"
+      ],
+      "timestamp": 1784927937.4896073
+    },
+    {
+      "cycle": 25,
+      "ids": [
+        "PUR-558347407b3d",
+        "PUR-40cc7a72dedb",
+        "PUR-6615b2f53659"
+      ],
+      "timestamp": 1784927938.4408627
+    },
+    {
+      "cycle": 26,
+      "ids": [
+        "PUR-91cb550ef27c",
+        "PUR-d5137186b690",
+        "PUR-6afa0d918e9d"
+      ],
+      "timestamp": 1784927939.4115336
+    },
+    {
+      "cycle": 27,
+      "ids": [
+        "PUR-7765e61f6ac9",
+        "PUR-64152e270c9d",
+        "PUR-443cfe4b0ae2"
+      ],
+      "timestamp": 1784927940.3411283
+    },
+    {
+      "cycle": 28,
+      "ids": [
+        "PUR-0a36e01a581f",
+        "PUR-773013ee40c7",
+        "PUR-05ea695bf1c5"
+      ],
+      "timestamp": 1784927941.3469558
+    },
+    {
+      "cycle": 29,
+      "ids": [
+        "PUR-82dbcb76440a",
+        "PUR-3a862ce7ae1f",
+        "PUR-0c0fe7a26f31"
+      ],
+      "timestamp": 1784927942.384581
+    },
+    {
+      "cycle": 30,
+      "ids": [
+        "PUR-cce27496e04c",
+        "PUR-fb4faa6b23db",
+        "PUR-5e198bb5ca73"
+      ],
+      "timestamp": 1784927943.5071213
+    },
+    {
+      "cycle": 31,
+      "ids": [
+        "PUR-5c041b81b412",
+        "PUR-03aef3d0da42",
+        "PUR-b41c2173401f"
+      ],
+      "timestamp": 1784927944.4548154
+    },
+    {
+      "cycle": 32,
+      "ids": [
+        "PUR-48e496f1a599",
+        "PUR-0e63d8ca4d7a",
+        "PUR-9c6c39cf3f58"
+      ],
+      "timestamp": 1784927945.4379668
+    },
+    {
+      "cycle": 33,
+      "ids": [
+        "PUR-1dc16fdd9616",
+        "PUR-0254f55233a4",
+        "PUR-9c12965a712e"
+      ],
+      "timestamp": 1784927946.3531194
+    },
+    {
+      "cycle": 34,
+      "ids": [
+        "PUR-6d21c10c839b",
+        "PUR-42d203530c7c",
+        "PUR-555b901881e2"
+      ],
+      "timestamp": 1784927947.308407
+    },
+    {
+      "cycle": 35,
+      "ids": [
+        "PUR-c8a43572e7bc",
+        "PUR-176b040c55c8",
+        "PUR-7da001ee43e4"
+      ],
+      "timestamp": 1784927948.3168766
+    },
+    {
+      "cycle": 36,
+      "ids": [
+        "PUR-1f2c4e7cfd70",
+        "PUR-c26a11d9ec85",
+        "PUR-b3099b18069b"
+      ],
+      "timestamp": 1784927949.3783102
+    },
+    {
+      "cycle": 37,
+      "ids": [
+        "PUR-c4c895a4cda1",
+        "PUR-aaa9744e5aff",
+        "PUR-0d60556a2d63"
+      ],
+      "timestamp": 1784927950.3118272
+    },
+    {
+      "cycle": 38,
+      "ids": [
+        "PUR-7f7482750714",
+        "PUR-2ca5670e41ee",
+        "PUR-4a409feeb2ef"
+      ],
+      "timestamp": 1784927951.213578
+    },
+    {
+      "cycle": 39,
+      "ids": [
+        "PUR-3a31d481a4f8",
+        "PUR-f03f67da6a7b",
+        "PUR-fd99c485bcb2"
+      ],
+      "timestamp": 1784927952.212445
+    },
+    {
+      "cycle": 40,
+      "ids": [
+        "PUR-5884637068ba",
+        "PUR-c312141710aa",
+        "PUR-288e1865ad89"
+      ],
+      "timestamp": 1784927953.266211
+    }
+  ]
+}

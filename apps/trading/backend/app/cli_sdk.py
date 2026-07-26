@@ -22,9 +22,16 @@ from typing import Any, Callable
 
 from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer, ScoreResult
+from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
 
 DOMAIN = "trading"
+
+
+def _cli_profile() -> str:
+    if os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
+        return "test"
+    return "development"
 DEFAULT_DB_PATH = os.path.expanduser("~/.ci-platform/trading/trading.db")
 SELF_CONFIRM_WARNING = (
     "Recorded action matches system recommendation. If this is the "
@@ -78,7 +85,10 @@ def _get_scorer(db_path: str | None = None) -> CompoundingScorer:
     parent = os.path.dirname(path)
     if parent:
         os.makedirs(parent, exist_ok=True)
-    return CompoundingScorer.from_preset(DOMAIN, db_path=path)
+    store = SQLiteGraphStore(path, domain=DOMAIN)
+    return CompoundingScorer.from_preset(
+        DOMAIN, db_path=path, graph_store=store, profile=_cli_profile()
+    )
 
 
 def _close_scorer(scorer: CompoundingScorer) -> None:
@@ -254,7 +264,7 @@ def learn_sdk(decision: str, action: str, db_path: str | None = None) -> dict[st
     _validate_action(action)
     scorer = _get_scorer(db_path)
     try:
-        stored = scorer.graph_store.get_decision(decision)
+        stored = scorer.graph_store.get_decision(decision, domain="trading")
         if stored is None:
             raise CLIUsageError(
                 f"Decision '{decision}' not found",

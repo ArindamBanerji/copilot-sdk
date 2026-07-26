@@ -61,6 +61,7 @@ def create_scoring_router(
     scorer_factory: Callable[..., Any] | None = None,
     learning_store: Any | None = None,
     dk_welford_tracker: DKWelfordTracker | None = None,
+    profile: str = "production",
 ) -> APIRouter:
     """Create a domain-parametric scoring router."""
 
@@ -77,7 +78,9 @@ def create_scoring_router(
                 scorer_cache["scorer"] = (
                     scorer_factory()
                     if scorer_factory is not None
-                    else CompoundingScorer.from_preset(domain, db_path=db_path)
+                    else CompoundingScorer.from_preset(
+                        domain, db_path=db_path, profile=profile
+                    )
                 )
             except ValueError as exc:
                 raise HTTPException(status_code=404, detail=str(exc)) from exc

@@ -152,9 +152,9 @@ class PurchasingActiveGraphConfig:
         return config
 
     def validate(self, source: Mapping[str, str] | None = None) -> None:
-        if self.requested_backend not in {"sqlite", "age"}:
+        if self.requested_backend not in {"sqlite", "age", "dual_write"}:
             raise PurchasingActiveGraphConfigError(
-                "PURCHASING_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'"
+                "PURCHASING_ACTIVE_GRAPH_BACKEND must be 'sqlite', 'age', or 'dual_write'"
             )
         if self.requested_backend == "sqlite":
             return

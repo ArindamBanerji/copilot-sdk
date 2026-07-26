@@ -3,6 +3,7 @@ from __future__ import annotations
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 from apps.purchasing.backend.app.connectors.commodity_provider import CommodityDataProvider
 
@@ -121,7 +122,7 @@ def test_fixture_has_expected_shape():
 
 
 def test_provider_wired_in_main():
-    src = open("apps/purchasing/backend/app/main.py", encoding="utf-8").read()
+    src = (Path(__file__).resolve().parents[1] / "app" / "main.py").read_text(encoding="utf-8")
 
     assert "connectors.commodity_provider import CommodityDataProvider" in src
 

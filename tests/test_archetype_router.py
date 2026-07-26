@@ -84,7 +84,7 @@ def test_apply_unknown_returns_404() -> None:
 
 def test_apply_preserves_existing_decisions(tmp_path) -> None:
     store = InMemoryGraphStore(domain="trading")
-    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"), graph_store=store)
+    scorer = CompoundingScorer.from_preset("trading", db_path=str(tmp_path / "trading.db"), graph_store=store, profile="test")
     before = store.count_decisions("trading")
 
     _client().post("/api/archetypes/apply/financial_services")

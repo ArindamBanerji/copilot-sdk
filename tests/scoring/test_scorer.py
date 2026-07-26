@@ -76,6 +76,7 @@ def test_from_preset_with_graph_store(monkeypatch, mock_preset, tmp_path):
     scorer = CompoundingScorer.from_preset(
         mock_preset.name,
         db_path=str(tmp_path / "scorer.sqlite"),
+        profile="test",
         graph_store=graph_store,
     )
     try:
@@ -90,6 +91,7 @@ def test_scorer_from_preset_creates_sqlite_graph_store(monkeypatch, mock_preset,
     scorer = CompoundingScorer.from_preset(
         mock_preset.name,
         db_path=str(tmp_path / "scorer.sqlite"),
+        profile="development",
     )
     try:
         assert isinstance(scorer._graph_store, SQLiteGraphStore)
@@ -105,6 +107,7 @@ def test_scorer_from_preset_accepts_custom_graph_store(monkeypatch, mock_preset,
         mock_preset.name,
         db_path=str(tmp_path / "scorer.sqlite"),
         graph_store=graph_store,
+        profile="test",
     )
     try:
         assert scorer._graph_store is graph_store
@@ -124,6 +127,7 @@ def test_from_preset_with_rl_components(monkeypatch, mock_preset, tmp_path):
         reward_function=reward_function,
         credit_assigner=credit,
         exploration_policy=explorer,
+        profile="test",
     )
     try:
         assert scorer._reward_fn is reward_function
@@ -779,6 +783,14 @@ def test_load_restores_centroids(monkeypatch, mock_preset, store, tmp_path):
     scorer.export(export_path)
     expected = scorer.gae_scorer.centroids.copy()
     monkeypatch.setitem(PRESET_REGISTRY, mock_preset.name, type(mock_preset))
+
+    original_from_preset = CompoundingScorer.from_preset.__func__
+
+    def test_from_preset(cls, *args, **kwargs):
+        kwargs.setdefault("profile", "test")
+        return original_from_preset(cls, *args, **kwargs)
+
+    monkeypatch.setattr(CompoundingScorer, "from_preset", classmethod(test_from_preset))
 
     restored = CompoundingScorer.load(export_path, db_path=str(tmp_path / "restored.sqlite"))
     try:

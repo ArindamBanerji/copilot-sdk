@@ -14,6 +14,7 @@ from app.graph_status import (
     create_dataops_active_graph_store,
 )
 from app.main import create_app
+from app.graph_queries import DataOpsGraphClient
 from copilot_sdk.scoring.presets.dataops import DataOpsPreset
 
 
@@ -235,6 +236,12 @@ def test_read_and_operational_routes_do_not_create_scorer_decisions_under_active
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ):
+    async def _empty_graph_query(self: DataOpsGraphClient, query: str) -> list[dict[str, Any]]:
+        # Network is intentionally unavailable in this store-selection test;
+        # keep the operational topology reads deterministic without AGE I/O.
+        return []
+
+    monkeypatch.setattr(DataOpsGraphClient, "_run_graph", _empty_graph_query)
     client, fake = _active_client(tmp_path, monkeypatch)
 
     before = fake.count_decisions("dataops")
@@ -296,20 +303,26 @@ def test_active_store_constructs_with_factory_after_guards():
 
 
 def test_operational_graph_client_source_prefers_dataops_active_env():
-    source = Path("apps/dataops/backend/app/graph_queries.py").read_text(encoding="utf-8")
+    source = (Path(__file__).resolve().parents[1] / "app" / "graph_queries.py").read_text(
+        encoding="utf-8"
+    )
     assert "DATAOPS_ACTIVE_AGE_DSN" in source
     assert "DATAOPS_ACTIVE_AGE_GRAPH" in source
 
 
 def test_dataops_active_source_uses_only_dataops_active_prefix():
-    source = Path("apps/dataops/backend/app/graph_status.py").read_text(encoding="utf-8")
+    source = (Path(__file__).resolve().parents[1] / "app" / "graph_status.py").read_text(
+        encoding="utf-8"
+    )
     assert "DATAOPS_ACTIVE" in source
     assert "TRADING_ACTIVE" not in source
     assert "PURCHASING_ACTIVE" not in source
 
 
 def test_main_uses_graph_factory_for_dataops_wiring():
-    source = Path("apps/dataops/backend/app/main.py").read_text(encoding="utf-8")
+    source = (Path(__file__).resolve().parents[1] / "app" / "main.py").read_text(
+        encoding="utf-8"
+    )
     assert "from copilot_sdk.graph.factory import create_graph_store" in source
 
 

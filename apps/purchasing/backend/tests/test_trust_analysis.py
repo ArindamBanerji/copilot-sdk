@@ -11,7 +11,7 @@ from copilot_sdk.scoring.scorer import CompoundingScorer
 
 def _scorer(tmp_path, *, verified_count: int = 0, load_weights: bool = False) -> CompoundingScorer:
     db_path = os.path.join(str(tmp_path), "trust.db")
-    scorer = CompoundingScorer.from_preset("purchasing", db_path=db_path)
+    scorer = CompoundingScorer.from_preset("purchasing", db_path=db_path, profile="test")
     shape = scorer._preset.shape
     factors = {name: 0.6 for name in shape.factor_names}
     categories = list(shape.category_names)

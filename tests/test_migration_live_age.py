@@ -18,16 +18,17 @@ import pytest
 from ci_platform.graph import AGEGraphStoreAdapter
 from ci_platform.graph.agtype import normalize_agtype_value
 from copilot_sdk.migrate import sqlite_to_age as migration
+from copilot_sdk.testing import requires_age
+from copilot_sdk.config import GraphConfig
 
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("AGE_INTEGRATION"),
-    reason="AGE_INTEGRATION=1 required for live migration tests",
-)
+pytestmark = requires_age
 
 
 def _dsn_or_skip() -> str:
     dsn = os.environ.get("AGE_TEST_DSN", "").strip()
+    if not dsn:
+        dsn = GraphConfig.load("trading").dsn or ""
     if not dsn:
         pytest.skip("AGE_TEST_DSN is required for live migration tests")
     return dsn

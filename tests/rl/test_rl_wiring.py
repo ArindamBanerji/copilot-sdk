@@ -18,6 +18,7 @@ def _scorer(domain: str, *, enable_rl: bool = True) -> CompoundingScorer:
         domain,
         graph_store=InMemoryGraphStore(domain=domain),
         enable_rl=enable_rl,
+        profile="test",
     )
 
 
@@ -154,6 +155,7 @@ def test_from_preset_preserves_old_positional_evolve_argument_order():
         None,
         True,
         True,
+        profile="test",
     )
     try:
         assert scorer._evolve is True
@@ -189,6 +191,7 @@ def test_rl_setup_failure_preserves_explicit_components(monkeypatch):
         reward_function=reward,
         credit_assigner=credit,
         exploration_policy=explorer,
+        profile="test",
     )
     try:
         assert scorer._reward_fn is reward
@@ -213,6 +216,7 @@ def test_rl_setup_failure_preserves_one_explicit_component_only(monkeypatch):
         "trading",
         graph_store=InMemoryGraphStore(domain="trading"),
         reward_function=reward,
+        profile="test",
     )
     try:
         assert scorer._reward_fn is reward

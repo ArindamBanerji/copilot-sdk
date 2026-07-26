@@ -86,6 +86,7 @@ def test_compounding_scorer_score_persists_caller_metadata(tmp_path):
     scorer = CompoundingScorer.from_preset(
         "s2p",
         db_path=str(tmp_path / "s2p.db"),
+        profile="test",
         graph_store=graph_store,
     )
     factors = {name: 0.5 for name in scorer._preset.shape.factor_names}

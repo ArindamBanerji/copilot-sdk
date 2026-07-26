@@ -23,6 +23,7 @@ def create_counterfactual_router(
     *,
     prefix: str,
     scorer_provider: Callable[[], Any] | None = None,
+    profile: str = "production",
 ) -> APIRouter:
     router = APIRouter(prefix=prefix, tags=[f"{domain}-counterfactual"])
     scorer_cache: dict[str, CompoundingScorer] = {}
@@ -32,7 +33,7 @@ def create_counterfactual_router(
             return scorer_provider()
         scorer = scorer_cache.get(domain)
         if scorer is None:
-            scorer = CompoundingScorer.from_preset(domain)
+            scorer = CompoundingScorer.from_preset(domain, profile=profile)
             scorer_cache[domain] = scorer
         return scorer
 

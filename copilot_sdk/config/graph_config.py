@@ -6,7 +6,7 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Any
+from typing import Any, Literal, cast
 
 try:  # Python 3.11+
     import tomllib
@@ -112,6 +112,7 @@ class GraphConfig:
             file_has = field in merged
             file_value = merged.get(field)
             if _present(env_value):
+                assert env_value is not None
                 if file_has and str(file_value) != env_value:
                     logger.warning(
                         "graph config collision field=%s file=%s env=%s winner=env",
@@ -137,8 +138,8 @@ class GraphConfig:
         values["domain"] = resolved_domain
         config = cls(
             domain=values["domain"],
-            backend=str(values["backend"]).strip().lower(),
-            expected_backend=str(values["expected_backend"]).strip().lower(),
+            backend=cast(Backend, str(values["backend"]).strip().lower()),
+            expected_backend=cast(Backend, str(values["expected_backend"]).strip().lower()),
             dsn=(str(values["dsn"]).strip() if _present(values["dsn"]) else None),
             graph=str(values["graph"]).strip(),
             prefix=str(values["prefix"]).strip(),
@@ -161,10 +162,15 @@ class GraphConfig:
         candidates: list[Path] = []
         configured = os.environ.get("GRAPH_CONFIG_PATH")
         if _present(configured):
+            assert configured is not None
             candidates.append(Path(configured).expanduser())
         candidates.append(package_root / "graph_config.toml")
         candidates.append(Path(__file__).resolve().parent / "graph_config.toml")
-        configured_path = Path(configured).expanduser() if _present(configured) else None
+        configured_path = (
+            Path(configured).expanduser()
+            if configured is not None and _present(configured)
+            else None
+        )
         if configured_path is not None and not configured_path.is_file():
             raise GraphConfigError(f"GRAPH_CONFIG_PATH does not exist: {configured_path}")
         for path in candidates:

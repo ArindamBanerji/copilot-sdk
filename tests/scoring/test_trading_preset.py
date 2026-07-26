@@ -102,7 +102,7 @@ def test_preset_in_registry():
 def test_from_preset_trading_works(tmp_path):
     db_path = tmp_path / "trading.db"
 
-    scorer = CompoundingScorer.from_preset("trading", db_path=str(db_path))
+    scorer = CompoundingScorer.from_preset("trading", db_path=str(db_path), profile="test")
 
     assert scorer is not None
     scorer.graph_store.close()
@@ -250,7 +250,7 @@ def test_price_verification_unknown_ticker():
 
 def test_end_to_end_score_learn_fingerprint_smoke(tmp_path):
     db_path = tmp_path / "trading_smoke.db"
-    scorer = CompoundingScorer.from_preset("trading", db_path=str(db_path))
+    scorer = CompoundingScorer.from_preset("trading", db_path=str(db_path), profile="test")
     trade = load_seed_trades()[0]
 
     score = scorer.score(trade["factors"], trade["category"])

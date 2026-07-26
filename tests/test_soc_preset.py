@@ -65,6 +65,7 @@ def _soc_scorer() -> CompoundingScorer:
         "soc",
         graph_store=InMemoryGraphStore(domain="soc"),
         enable_rl=False,
+        profile="test",
     )
 
 

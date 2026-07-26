@@ -76,7 +76,7 @@ def test_preset_in_registry():
 def test_from_preset_dataops_works(tmp_path):
     db_path = tmp_path / "dataops.db"
 
-    scorer = CompoundingScorer.from_preset("dataops", db_path=str(db_path))
+    scorer = CompoundingScorer.from_preset("dataops", db_path=str(db_path), profile="test")
 
     assert scorer is not None
     scorer.graph_store.close()
@@ -245,7 +245,7 @@ def test_fingerprint_shows_recurrence_signal_if_stable():
 
 def test_end_to_end_score_learn_fingerprint_smoke(tmp_path):
     db_path = tmp_path / "dataops_smoke.db"
-    scorer = CompoundingScorer.from_preset("dataops", db_path=str(db_path))
+    scorer = CompoundingScorer.from_preset("dataops", db_path=str(db_path), profile="test")
     event = next(
         event for event in load_seed_events() if event["category"] == "pipeline_failure"
     )

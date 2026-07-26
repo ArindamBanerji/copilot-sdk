@@ -91,6 +91,8 @@ def test_seed_fixture_has_sample_provenance():
 def test_all_purchasing_fixtures_have_provenance():
     missing: list[str] = []
     for path in sorted(DATA_DIR.glob("*.json")):
+        if path.name.endswith("_checkpoint.json"):
+            continue
         data = json.loads(path.read_text(encoding="utf-8"))
         for label, record in _fixture_records(path.name, data):
             if record.get("provenance") not in VALID_FIXTURE_PROVENANCE:
@@ -102,6 +104,8 @@ def test_all_purchasing_fixtures_have_provenance():
 def test_valid_fixture_provenance_values():
     """Provenance must be one of the known non-production values."""
     for path in sorted(DATA_DIR.glob("*.json")):
+        if path.name.endswith("_checkpoint.json"):
+            continue
         data = json.loads(path.read_text(encoding="utf-8"))
         for label, record in _fixture_records(path.name, data):
             prov = record.get("provenance")

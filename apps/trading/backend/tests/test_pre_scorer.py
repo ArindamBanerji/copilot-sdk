@@ -312,7 +312,7 @@ def _client() -> TestClient:
 
 def _scorer_store() -> tuple[CompoundingScorer, InMemoryGraphStore]:
     store = InMemoryGraphStore("trading")
-    scorer = CompoundingScorer.from_preset("trading", graph_store=store)
+    scorer = CompoundingScorer.from_preset("trading", graph_store=store, profile="test")
     return scorer, store
 
 

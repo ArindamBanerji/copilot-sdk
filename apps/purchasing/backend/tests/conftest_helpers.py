@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from copilot_sdk.scoring.scorer import CompoundingScorer
+from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
 
 def _shape(scorer: CompoundingScorer):
@@ -17,7 +18,8 @@ def seed_green_scorer(
 ) -> CompoundingScorer:
     """Create a real scorer seeded to conservation GREEN."""
     db = os.path.join(str(tmp_path), f"{domain}_green.db")
-    scorer = CompoundingScorer.from_preset(domain, db_path=db)
+    store = SQLiteGraphStore(db, domain=domain)
+    scorer = CompoundingScorer.from_preset(domain, db_path=db, graph_store=store, profile="test")
     shape = _shape(scorer)
     factors = {name: 0.6 for name in shape.factor_names}
     category = str(shape.category_names[0])

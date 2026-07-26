@@ -226,6 +226,15 @@ class CompoundingScorer:
             from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
             graph_store = SQLiteGraphStore(db_path, domain=preset.name)
+        if profile == "production":
+            from copilot_sdk.graph.memory_store import InMemoryGraphStore
+            from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+
+            if isinstance(graph_store, (SQLiteGraphStore, InMemoryGraphStore)):
+                raise RuntimeError(
+                    "Production scorer requires an AGE-backed GraphStore; "
+                    "SQLite and InMemoryGraphStore are test/development stores."
+                )
         centroids = graph_store.load_latest_centroids(preset.name)
         if centroids is None:
             centroids = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)

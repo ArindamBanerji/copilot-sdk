@@ -88,6 +88,15 @@ from copilot_sdk.transfer.chain_transfer import ChainTransfer  # noqa: E402
 
 
 DOMAIN = "purchasing"
+
+
+def _resolve_profile() -> str:
+    """Select an explicit isolated profile for pytest app construction."""
+    if os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
+        return "test"
+    if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
+        return "development"
+    return "production"
 DB_FILENAME = "purchasing.db"
 OUTBOX_DB_FILENAME = "purchasing_outbox.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -125,17 +134,16 @@ def _cors_origins() -> list[str]:
     ]
 
 
-def _graph_store(db_path: str | Path):
+def _graph_store(db_path: str | Path, *, backend: str | None = None):
     # Active AGE configuration is owned by PURCHASING_ACTIVE_*; generic AGE
     # settings remain deliberately ignored by the graph-status contract.
-    backend = os.environ.get("GRAPH_BACKEND", "sqlite").strip().lower()
-    if backend == "age":
-        backend = "sqlite"
+    backend = (backend or os.environ.get("GRAPH_BACKEND", "sqlite")).strip().lower()
     store = create_graph_store(
         backend=backend,
         domain=DOMAIN,
         db_path=str(db_path),
         decision_id_prefix="PUR-",
+        profile=_resolve_profile(),
     )
     setattr(store, "penalty_ratio", 3.0)
     return store
@@ -282,6 +290,7 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
         graph_store=graph_store,
         evolve=True,
         consolidation_enabled=True,
+        profile=_resolve_profile(),
     )
     seeded = _seed_from_fixtures(scorer, graph_store)
     print(
@@ -399,7 +408,7 @@ def create_app(
     def selected_graph_store_factory(path: str | Path):
         if active_graph_store is not None:
             return active_graph_store
-        return _graph_store(path)
+        return _graph_store(path, backend=active_graph_config.requested_backend)
 
     if demo_bundle_path is None:
         _bundle_path = REPO_ROOT / "demo" / f"{DOMAIN}_demo_bundle.json"
@@ -407,9 +416,17 @@ def create_app(
         _bundle_path = False
     else:
         _bundle_path = Path(demo_bundle_path)
-    seed_graph_store = _graph_store(scoring_db)
+    # Active AGE owns the selected store; no separate generic factory call is
+    # needed for startup seeding (seeding is skipped while AGE is active).
+    seed_graph_store = (
+        active_graph_store
+        if active_graph_store is not None
+        else _graph_store(scoring_db, backend=active_graph_config.requested_backend)
+    )
     startup_state = {"seeded": False, "restored": False}
-    scorer_proxy = FreshScorerProxy(DOMAIN, scoring_db, selected_graph_store_factory)
+    scorer_proxy = FreshScorerProxy(
+        DOMAIN, scoring_db, selected_graph_store_factory, profile=_resolve_profile()
+    )
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
         "dk_source": "cold-start",

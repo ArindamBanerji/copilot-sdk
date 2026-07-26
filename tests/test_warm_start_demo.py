@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
-import subprocess
-import sys
+import contextlib
+import io
 from pathlib import Path
 from types import ModuleType
 
@@ -24,6 +24,7 @@ def test_warm_start_transfers_patterns(tmp_path) -> None:
     target = CompoundingScorer.from_preset(
         "trading",
         db_path=str(tmp_path / "trading.db"),
+        profile="test",
     )
     try:
         summary = target.warm_start(
@@ -42,17 +43,21 @@ def test_warm_start_transfers_patterns(tmp_path) -> None:
     assert summary["source_copilots"] == ["dataops"]
 
 
-def test_warm_start_demo_script_runs() -> None:
-    result = subprocess.run(
-        [sys.executable, "scripts/demo_warm_start.py"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+def test_warm_start_demo_script_runs(monkeypatch) -> None:
+    original = CompoundingScorer.from_preset
 
-    assert result.returncode == 0, result.stderr
-    assert "WARM START TRANSFER COMPLETE" in result.stdout
-    assert "source_copilot=dataops" in result.stdout
-    assert "target_copilot=trading" in result.stdout
-    assert "applied=2" in result.stdout
-    assert "source_copilots=dataops" in result.stdout
+    def from_preset(*args, **kwargs):
+        kwargs.setdefault("profile", "test")
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(CompoundingScorer, "from_preset", from_preset)
+    demo = _load_demo_module()
+    output = io.StringIO()
+    with contextlib.redirect_stdout(output):
+        assert demo.main() == 0
+    text = output.getvalue()
+    assert "WARM START TRANSFER COMPLETE" in text
+    assert "source_copilot=dataops" in text
+    assert "target_copilot=trading" in text
+    assert "applied=2" in text
+    assert "source_copilots=dataops" in text
