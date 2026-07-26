@@ -85,6 +85,31 @@ conserving against the wrong population; this is a migration finding that
 must be resolved before B1, not a post-B1 pass criterion. B1 cannot proceed
 until the SOC domain-scoping prerequisite is also confirmed complete.
 
+**B0 Result (July 25, 2026):**
+
+```text
+SCORER V (in-memory): 0
+CENSUS V (AGE):       4,862
+DELTA:                -4,862
+RECONCILIATION:       MISMATCH - CONFIRMED
+```
+
+SOC's conservation gate has been computing against V=0 for its entire
+operational lifetime. The InMemoryGraphStore starts empty on every process
+restart; the scorer never sees the 4,862 verified decisions in AGE. This means:
+
+1. SOC conservation status from the scorer has never reflected AGE state.
+2. The conservation GREEN/AMBER/RED displayed in the demo comes from
+   router-level AGE queries (neo4j_client), not from the scorer's conservation
+   computation.
+3. B1 (AGE store injection) will change the scorer's V from 0 to 4,862
+   immediately - this is a behavioral change to the conservation gate.
+4. This finding confirms Blocker A is the most significant behavioral issue in
+   the migration, not merely a store-selection question.
+
+The B0 artifact is preserved at:
+`gen-ai-roi-demo-v4-v50/backend/scripts/b0_v_reconciliation_result.json`
+
 **Fix.** Inject the GraphConfig-resolved, AGE-backed GraphStore into
 `init_learning_state`; remove the production memory default from the SOC
 adapter. Preserve an in-memory store only in explicitly isolated tests.
@@ -947,6 +972,11 @@ V_soc(t) >= census_baseline
 every increment is traceable to a recorded SOC verification event
 scorer-side V == census V after B1, or the reconciled delta is documented
 ```
+
+**B0 evidence:** The scorer-side V was confirmed as 0 on July 25, 2026. The
+census V was confirmed as 4,862. After B1 injection, the scorer must report
+V=4,862 from AGE, matching the census. This is the first time scorer and
+census V will agree.
 
 B0 records scorer-side and census V before AGE injection. B1 then proves the
 post-injection scorer reads the same population. Any unexplained delta or
