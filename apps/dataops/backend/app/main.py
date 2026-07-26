@@ -652,12 +652,12 @@ def create_app(
     @app.get("/health")
     def health() -> dict[str, Any]:
         graph = DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
-        age_selected = os.getenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age"
+        graph_source = graph.graph_source
         return {
-            "status": "ok" if not age_selected or graph.is_graph_connected else "error",
+            "status": "ok" if graph_source == "graph" else "error",
             "domain": DOMAIN,
             "graph_connected": graph.is_graph_connected,
-            "graph_source": graph.graph_source,
+            "graph_source": graph_source,
             "engine": (
                 "copilot_sdk.scoring + gae.profile_scorer + gae.calibration + "
                 "gae.evolution + ci_platform.graph"

@@ -1,4 +1,4 @@
-"""DataOps graph query layer with deterministic fixture fallback."""
+"""DataOps topology query layer with explicit offline fixture mode."""
 
 from __future__ import annotations
 
@@ -9,6 +9,8 @@ import sys
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+
+from copilot_sdk.config import GraphConfig
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -25,6 +27,40 @@ READ_ONLY_FORBIDDEN = re.compile(
     r"\b(CREATE|MERGE|SET|DELETE|REMOVE|DROP|DETACH|ON\s+CREATE|ON\s+MATCH)\b",
     re.IGNORECASE,
 )
+_TOPOLOGY_ENV_KEYS = (
+    "GRAPH_BACKEND",
+    "GRAPH_DSN",
+    "GRAPH_NAME",
+    "GRAPH_DOMAIN",
+    "AGE_DSN",
+    "AGE_GRAPH_NAME",
+    "CI_ALLOW_SQLITE_FALLBACK",
+)
+_DATAOPS_GRAPH_CONFIG_KEYS = (
+    "DATAOPS_ACTIVE_GRAPH_BACKEND",
+    "DATAOPS_ACTIVE_AGE_DSN",
+    "DATAOPS_ACTIVE_AGE_GRAPH",
+)
+
+
+def _load_topology_config() -> GraphConfig:
+    """Resolve topology connection settings from the typed DataOps config only."""
+    previous = {key: os.environ.get(key) for key in _TOPOLOGY_ENV_KEYS}
+    try:
+        for key in _TOPOLOGY_ENV_KEYS:
+            os.environ.pop(key, None)
+        has_dataops_backend = bool(os.environ.get(_DATAOPS_GRAPH_CONFIG_KEYS[0], "").strip())
+        profile = "production" if has_dataops_backend else "development"
+        if not has_dataops_backend:
+            os.environ["DATAOPS_ACTIVE_GRAPH_BACKEND"] = "sqlite"
+            os.environ["CI_ALLOW_SQLITE_FALLBACK"] = "1"
+        return GraphConfig.load("dataops", profile=profile)
+    finally:
+        for key in _TOPOLOGY_ENV_KEYS:
+            os.environ.pop(key, None)
+        for key, value in previous.items():
+            if value is not None:
+                os.environ[key] = value
 
 
 def _load_json(path: Path) -> Any:
@@ -67,20 +103,10 @@ class DataOpsGraphClient:
         self._serializer = self._fixture_serializer
         self.last_query: str | None = None
 
-        self._age_required = os.getenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "").strip().lower() == "age"
-        if self._age_required:
-            from copilot_sdk.config.graph_config import GraphConfig
-
-            active_config = GraphConfig.load("dataops")
-            graph_dsn = active_config.dsn
-            graph_name = active_config.graph
-        else:
-            graph_dsn = os.getenv("DATAOPS_ACTIVE_AGE_DSN") or dsn or os.getenv("GRAPH_DSN")
-            graph_name = (
-                os.getenv("DATAOPS_ACTIVE_AGE_GRAPH")
-                or os.getenv("AGE_GRAPH_NAME")
-                or "soc_graph"
-            )
+        active_config = _load_topology_config()
+        self._age_required = active_config.backend in {"age", "dual_write"} or age_client is not None
+        graph_dsn = active_config.dsn
+        graph_name = active_config.graph
         if graph_dsn and "sslmode" not in graph_dsn:
             graph_dsn += " sslmode=disable"
         if age_client is not None:

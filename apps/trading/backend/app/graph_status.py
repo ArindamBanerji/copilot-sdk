@@ -133,7 +133,10 @@ class TradingActiveGraphConfig:
         except GraphConfigError as exc:
             message = str(exc)
             if message.startswith("invalid backend"):
-                message = "TRADING_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'"
+                message = (
+                    "TRADING_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'; "
+                    "'dual_write' is also supported"
+                )
             raise TradingActiveGraphConfigError(message) from exc
         config = cls(
             requested_backend=graph_config.backend,
@@ -150,9 +153,10 @@ class TradingActiveGraphConfig:
         return config
 
     def validate(self, source: Mapping[str, str] | None = None) -> None:
-        if self.requested_backend not in {"sqlite", "age"}:
+        if self.requested_backend not in {"sqlite", "age", "dual_write"}:
             raise TradingActiveGraphConfigError(
-                "TRADING_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'"
+                "TRADING_ACTIVE_GRAPH_BACKEND must be 'sqlite' or 'age'; "
+                "'dual_write' is also supported"
             )
         if self.requested_backend == "sqlite":
             return
@@ -201,7 +205,7 @@ class TradingActiveGraphConfig:
             )
 
     def graph_kind(self) -> str:
-        if self.requested_backend != "age" or not self.graph:
+        if self.requested_backend not in {"age", "dual_write"} or not self.graph:
             return "none"
         return "test" if self.graph.strip().startswith("protocol_v2_test") else "product"
 
@@ -222,9 +226,16 @@ class TradingActiveAGEGraphStore:
 
     domain = DOMAIN
 
-    def __init__(self, store: Any, *, active_phase: str = "test_mode") -> None:
+    def __init__(
+        self,
+        store: Any,
+        *,
+        active_phase: str = "test_mode",
+        active_backend: str = "age",
+    ) -> None:
         self._store = store
         self.active_phase = active_phase
+        self.active_backend = active_backend
 
     def generate_decision_id(self, domain: str) -> str:
         """Trading active AGE IDs use TRD- prefix."""
@@ -311,11 +322,11 @@ def create_trading_active_graph_store(
     *,
     store_factory: Any | None = None,
 ) -> Any | None:
-    if config.requested_backend != "age":
+    if config.requested_backend not in {"age", "dual_write"}:
         return None
     if _parse_bool(os.environ.get("TRADING_SHADOW_AGE"), default=False):
         raise TradingActiveGraphConfigError("TRADING_SHADOW_AGE=1 conflicts with active AGE")
-    config.validate({"TRADING_ACTIVE_GRAPH_BACKEND": "age"})
+    config.validate({"TRADING_ACTIVE_GRAPH_BACKEND": config.requested_backend})
     shared_soc_graph = (
         config.graph is not None
         and _shared_graph_is_authorized(
@@ -334,7 +345,7 @@ def create_trading_active_graph_store(
 
         factory = create_graph_store
     factory_args = {
-        "backend": "age",
+        "backend": config.requested_backend,
         "domain": config.domain,
         "dsn": config.dsn,
         "graph_name": config.graph,
@@ -347,6 +358,7 @@ def create_trading_active_graph_store(
     return TradingActiveAGEGraphStore(
         store,
         active_phase="shared_graph" if shared_soc_graph else "test_mode",
+        active_backend=config.requested_backend,
     )
 
 
@@ -355,10 +367,13 @@ def build_trading_graph_status(app_state: Any) -> dict[str, Any]:
     if not isinstance(config, TradingActiveGraphConfig):
         config = TradingActiveGraphConfig.from_env({})
     active_store = getattr(app_state, "trading_selected_graph_store", None)
-    age_active = bool(
-        config.requested_backend == "age" and isinstance(active_store, TradingActiveAGEGraphStore)
+    active_backend = (
+        active_store.active_backend
+        if isinstance(active_store, TradingActiveAGEGraphStore)
+        else "sqlite"
     )
-    requested_age = config.requested_backend == "age"
+    age_active = active_backend == "age"
+    requested_age = config.requested_backend in {"age", "dual_write"}
     graph_kind = config.graph_kind()
     product_graph_allowed = (
         None
@@ -373,7 +388,7 @@ def build_trading_graph_status(app_state: Any) -> dict[str, Any]:
         )
     )
     return {
-        "active_backend": "age" if age_active else "sqlite",
+        "active_backend": active_backend,
         "requested_backend": config.requested_backend,
         "sqlite_authoritative": not age_active,
         "age_active": age_active,

@@ -20,9 +20,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
 
+from copilot_sdk.config import GraphConfig
+from copilot_sdk.graph.factory import create_graph_store
 from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer, ScoreResult
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
 
 DOMAIN = "trading"
@@ -31,7 +32,43 @@ DOMAIN = "trading"
 def _cli_profile() -> str:
     if os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
         return "test"
-    return "development"
+    age_keys = (
+        "TRADING_ACTIVE_AGE_DSN",
+        "GRAPH_DSN",
+        "AGE_DSN",
+    )
+    return "production" if any(os.environ.get(key, "").strip() for key in age_keys) else "development"
+
+
+def _age_configured() -> bool:
+    backend = os.environ.get("TRADING_ACTIVE_GRAPH_BACKEND", "").strip().lower()
+    dsn_configured = any(
+        os.environ.get(key, "").strip()
+        for key in ("TRADING_ACTIVE_AGE_DSN", "GRAPH_DSN", "AGE_DSN")
+    )
+    return backend in {"age", "dual_write"} or dsn_configured
+
+
+def _load_cli_graph_config(profile: str) -> GraphConfig:
+    """Load typed graph configuration, allowing local CLI SQLite development."""
+    if _age_configured():
+        return GraphConfig.load(DOMAIN, profile=profile)
+
+    previous_backend = os.environ.get("TRADING_ACTIVE_GRAPH_BACKEND")
+    previous_fallback = os.environ.get("CI_ALLOW_SQLITE_FALLBACK")
+    os.environ["TRADING_ACTIVE_GRAPH_BACKEND"] = "sqlite"
+    os.environ["CI_ALLOW_SQLITE_FALLBACK"] = "1"
+    try:
+        return GraphConfig.load(DOMAIN, profile="development")
+    finally:
+        if previous_backend is None:
+            os.environ.pop("TRADING_ACTIVE_GRAPH_BACKEND", None)
+        else:
+            os.environ["TRADING_ACTIVE_GRAPH_BACKEND"] = previous_backend
+        if previous_fallback is None:
+            os.environ.pop("CI_ALLOW_SQLITE_FALLBACK", None)
+        else:
+            os.environ["CI_ALLOW_SQLITE_FALLBACK"] = previous_fallback
 DEFAULT_DB_PATH = os.path.expanduser("~/.ci-platform/trading/trading.db")
 SELF_CONFIRM_WARNING = (
     "Recorded action matches system recommendation. If this is the "
@@ -85,9 +122,21 @@ def _get_scorer(db_path: str | None = None) -> CompoundingScorer:
     parent = os.path.dirname(path)
     if parent:
         os.makedirs(parent, exist_ok=True)
-    store = SQLiteGraphStore(path, domain=DOMAIN)
+    profile = _cli_profile()
+    config = _load_cli_graph_config(profile)
+    store = create_graph_store(
+        backend=config.backend,
+        domain=config.domain,
+        db_path=path,
+        dsn=config.dsn,
+        graph_name=config.graph,
+        env={},
+        test_mode=config.active_test_mode,
+        shared_graph_authorization=config.authorized,
+        profile=profile,
+    )
     return CompoundingScorer.from_preset(
-        DOMAIN, db_path=path, graph_store=store, profile=_cli_profile()
+        DOMAIN, db_path=path, graph_store=store, profile=profile
     )
 
 
@@ -578,6 +627,9 @@ def restore_sdk(
         return {"error": "Invalid backup file"}
     finally:
         conn.close()
+
+    if _load_cli_graph_config(_cli_profile()).backend != "sqlite":
+        return {"error": "SQLite restore is unavailable for AGE-backed Trading"}
 
     dest = _db_path(db_path)
     parent = os.path.dirname(dest)

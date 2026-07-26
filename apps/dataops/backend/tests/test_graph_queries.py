@@ -108,10 +108,11 @@ def test_age_client_constructor_receives_graph_name(monkeypatch, no_graph):
         def __init__(self, **kwargs):
             calls.append(kwargs)
 
-    monkeypatch.setenv("AGE_GRAPH_NAME", "dataops_graph")
+    monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "age")
+    monkeypatch.setenv("DATAOPS_ACTIVE_AGE_DSN", "host=active port=5433 dbname=dataops")
+    monkeypatch.setenv("DATAOPS_ACTIVE_AGE_GRAPH", "dataops_graph")
 
     client = DataOpsGraphClient(
-        dsn="host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres",
         fallback_dir=FALLBACK_DIR,
         age_client_cls=CapturingAGEClient,
     )
@@ -119,7 +120,7 @@ def test_age_client_constructor_receives_graph_name(monkeypatch, no_graph):
     assert client.is_graph_connected is True
     assert calls == [
         {
-            "dsn": "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable",
+            "dsn": "host=active port=5433 dbname=dataops sslmode=disable",
             "graph_name": "dataops_graph",
         }
     ]
@@ -143,23 +144,15 @@ def test_dataops_graph_client_uses_active_config(monkeypatch, no_graph):
     assert calls == [{"dsn": "host=active port=5433 dbname=dataops sslmode=disable", "graph_name": "governed_copilot_graph"}]
 
 
-def test_dataops_graph_client_falls_back_to_generic(monkeypatch, no_graph):
-    calls = []
-
-    class CapturingAGEClient:
-        serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
-
-        def __init__(self, **kwargs):
-            calls.append(kwargs)
-
+def test_dataops_graph_client_rejects_missing_dataops_config(monkeypatch, no_graph):
     monkeypatch.delenv("DATAOPS_ACTIVE_AGE_DSN", raising=False)
     monkeypatch.delenv("DATAOPS_ACTIVE_AGE_GRAPH", raising=False)
+    monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "age")
     monkeypatch.setenv("GRAPH_DSN", "host=generic port=5433 dbname=generic")
     monkeypatch.setenv("AGE_GRAPH_NAME", "generic_graph")
 
-    DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client_cls=CapturingAGEClient)
-
-    assert calls == [{"dsn": "host=generic port=5433 dbname=generic sslmode=disable", "graph_name": "generic_graph"}]
+    with pytest.raises(ValueError, match="missing AGE DSN"):
+        DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
 
 
 @pytest.mark.asyncio

@@ -355,7 +355,7 @@ def create_purchasing_active_graph_store(
     *,
     store_factory: Any | None = None,
 ) -> Any | None:
-    if config.requested_backend != "age":
+    if config.requested_backend not in {"age", "dual_write"}:
         return None
     if _parse_bool(os.environ.get("PURCHASING_SHADOW_AGE"), default=False):
         raise PurchasingActiveGraphConfigError(
@@ -378,7 +378,7 @@ def create_purchasing_active_graph_store(
 
         factory = create_graph_store
     factory_args = {
-        "backend": "age", "domain": config.domain, "dsn": config.dsn,
+        "backend": config.requested_backend, "domain": config.domain, "dsn": config.dsn,
         "graph_name": config.graph, "env": {}, "test_mode": config.test_mode,
     }
     if shared_soc_graph:
@@ -392,11 +392,13 @@ def build_purchasing_graph_status(app_state: Any) -> dict[str, Any]:
     if not isinstance(config, PurchasingActiveGraphConfig):
         config = PurchasingActiveGraphConfig.from_env({})
     active_store = getattr(app_state, "purchasing_selected_graph_store", None)
-    age_active = bool(
-        config.requested_backend == "age"
-        and isinstance(active_store, PurchasingActiveAGEGraphStore)
+    active_backend = (
+        config.requested_backend
+        if isinstance(active_store, PurchasingActiveAGEGraphStore)
+        else "sqlite"
     )
-    requested_age = config.requested_backend == "age"
+    age_active = active_backend in {"age", "dual_write"}
+    requested_age = config.requested_backend in {"age", "dual_write"}
     graph_kind = config.graph_kind()
     product_graph_allowed = (
         None
@@ -404,9 +406,9 @@ def build_purchasing_graph_status(app_state: Any) -> dict[str, Any]:
         else str(config.graph).strip() in ALLOWED_PRODUCT_AGE_GRAPHS
     )
     return {
-        "active_backend": "age" if age_active else "sqlite",
+        "active_backend": active_backend,
         "requested_backend": config.requested_backend,
-        "sqlite_authoritative": not age_active,
+        "sqlite_authoritative": active_backend == "sqlite",
         "age_active": age_active,
         "shadow_enabled": False,
         "shadow_allowed": not requested_age,

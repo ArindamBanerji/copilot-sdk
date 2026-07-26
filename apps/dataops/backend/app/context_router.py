@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -36,6 +37,7 @@ DATAOPS_CATEGORIES = (
     "pipeline_failure",
     "transform_drift",
 )
+DOMAIN = "dataops"
 CATEGORY_SLA_MINUTES = {
     "pipeline_failure": 30,
     "schema_change": 60,
@@ -73,6 +75,50 @@ def set_evolution_store_factory(factory: Callable[[], Any] | None) -> None:
 
 def _graph_client() -> DataOpsGraphClient:
     return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+
+
+def _decision_store() -> Any:
+    if _evolution_store_factory is None:
+        raise HTTPException(status_code=503, detail="DataOps Decision graph unavailable")
+    try:
+        store = _evolution_store_factory()
+        if store is None:
+            raise RuntimeError("DataOps Decision graph store is unavailable")
+        return store
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="DataOps Decision graph unavailable") from exc
+
+
+def _graph_decisions() -> list[dict[str, Any]]:
+    try:
+        decisions = _decision_store().get_all_decisions(DOMAIN)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="DataOps Decision graph query failed") from exc
+    if not isinstance(decisions, list):
+        raise HTTPException(status_code=503, detail="DataOps Decision graph returned invalid data")
+    return [_normalize_live_decision(entry) for entry in decisions if isinstance(entry, dict)]
+
+
+def _explicit_demo_mode() -> bool:
+    return os.environ.get("DATAOPS_DEMO_MODE") == "1" or bool(os.environ.get("PYTEST_CURRENT_TEST"))
+
+
+def _demo_context_decisions() -> list[dict[str, Any]]:
+    category_by_alert_id = _alert_category_by_id()
+    decisions = [
+        _enrich_live_decision_category(_normalize_live_decision(entry), category_by_alert_id)
+        for entry in _iter_metadata_decisions()
+    ]
+    decisions.extend(_normalize_seed_decision(entry) for entry in _load_dataops_seed())
+    for decision in decisions:
+        if decision.get("source") == "live_graph":
+            decision["source"] = "live_decision"
+        decision["provenance"] = "sample"
+    return decisions
 
 
 def _sap_connector() -> SAPConnector:
@@ -303,19 +349,19 @@ def _normalize_live_decision(entry: dict[str, Any]) -> dict[str, Any]:
     if not system and dataset:
         system = _infer_system_from_dataset(str(dataset))
     return {
-        "decision_id": entry.get("decision_id"),
+        "decision_id": entry.get("decision_id") or entry.get("id"),
         "alert_id": entry.get("alert_id") or entry.get("event_id"),
         "event_id": entry.get("event_id") or entry.get("alert_id"),
         "system": _normalize_system_key(str(system or "")) or None,
         "dataset": dataset,
         "category": entry.get("category"),
         "action_taken": entry.get("action_taken") or entry.get("actual_action") or entry.get("actionTaken"),
-        "score_action": entry.get("score_action") or entry.get("scored_action"),
-        "score_confidence": _numeric_or_none(entry.get("score_confidence")),
+        "score_action": entry.get("score_action") or entry.get("scored_action") or entry.get("recommended_action"),
+        "score_confidence": _numeric_or_none(entry.get("score_confidence") or entry.get("confidence")),
         "outcome": entry.get("outcome"),
         "is_correct": _correct_from_decision(entry),
         "date": entry.get("date") or entry.get("timestamp") or "live",
-        "source": "live_decision",
+        "source": "live_graph",
         "factors": entry.get("scored_factors") or entry.get("factors") or entry.get("seed_factors"),
     }
 
@@ -386,14 +432,12 @@ def _decision_summary(decisions: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _all_context_decisions() -> list[dict[str, Any]]:
-    category_by_alert_id = _alert_category_by_id()
-    return [
-        *(
-            _enrich_live_decision_category(_normalize_live_decision(entry), category_by_alert_id)
-            for entry in _iter_metadata_decisions()
-        ),
-        *(_normalize_seed_decision(entry) for entry in _load_dataops_seed()),
-    ]
+    decisions = _graph_decisions()
+    if decisions or not _explicit_demo_mode():
+        return decisions
+    # JSON is permitted only for explicit demo/test operation and is labeled
+    # sample so it cannot be mistaken for live graph Decision data.
+    return _demo_context_decisions()
 
 
 def _matches_decision_filters(
@@ -460,8 +504,9 @@ def _fallback_alerts_by_id() -> dict[str, dict[str, Any]]:
 def _metadata_for_alert(alert_id: str) -> dict[str, Any] | None:
     matches = [
         entry
-        for entry in _iter_metadata_decisions()
-        if str(entry.get("alert_id") or "") == alert_id or str(entry.get("event_id") or "") == alert_id
+        for entry in _all_context_decisions()
+        if str(entry.get("alert_id") or "") == alert_id
+        or str(entry.get("event_id") or "") == alert_id
     ]
     return matches[-1] if matches else None
 
@@ -707,13 +752,16 @@ async def pipelines() -> dict[str, Any]:
 async def enterprise_health() -> dict[str, Any]:
     sap = await _safe_connector_health(_sap_connector())
     celonis = await _safe_connector_health(_celonis_connector())
+    graph = _graph_client()
+    pipeline_payload = await graph.get_pipelines()
+    graph_source = graph.graph_source
     return {
         "sap": sap,
         "celonis": celonis,
         "graph": {
-            "status": "ok" if _pipeline_count() > 0 else "empty",
-            "source": "fixture",
-            "pipeline_count": _pipeline_count(),
+            "status": "ok" if graph_source == "graph" else "error",
+            "source": graph_source,
+            "pipeline_count": len(pipeline_payload.get("pipelines") or []),
         },
         "engine_version": "v0.7.23",
     }
@@ -854,13 +902,8 @@ def alert_groups() -> dict[str, Any]:
 def system_history(name: str, limit: int = 5) -> dict[str, Any]:
     system_key = _normalize_system_key(name)
     real_decisions = []
-    for entry in _iter_metadata_decisions():
-        entry_system = (
-            entry.get("system_name")
-            or entry.get("system")
-            or entry.get("systemName")
-            or _infer_system_from_dataset(str(entry.get("dataset", "")))
-        )
+    for entry in _all_context_decisions():
+        entry_system = entry.get("system") or _infer_system_from_dataset(str(entry.get("dataset", "")))
         if _normalize_system_key(str(entry_system or "")) != system_key:
             continue
         real_decisions.append(
@@ -873,33 +916,10 @@ def system_history(name: str, limit: int = 5) -> dict[str, Any]:
                 "is_correct": entry.get("is_correct"),
                 "category": entry.get("category"),
                 "resolution_time_minutes": entry.get("resolution_time_minutes"),
-                "source": "live_decision",
+                "source": "live_graph",
             }
         )
-
-    seed_decisions = []
-    for entry in _load_dataops_seed():
-        entry_system = entry.get("system_name") or entry.get("system") or _infer_system_from_dataset(
-            str(entry.get("dataset", ""))
-        )
-        if _normalize_system_key(str(entry_system or "")) != system_key:
-            continue
-        is_correct = bool(entry.get("is_correct"))
-        seed_decisions.append(
-            {
-                "decision_id": None,
-                "alert_id": entry.get("event_id") or entry.get("alert_id"),
-                "date": entry.get("date") or entry.get("timestamp") or "historical",
-                "action_taken": entry.get("action_taken"),
-                "outcome": "correct" if is_correct else "incorrect",
-                "is_correct": is_correct,
-                "category": entry.get("category"),
-                "resolution_time_minutes": None,
-                "source": "seed_history",
-            }
-        )
-
-    all_decisions = real_decisions + seed_decisions
+    all_decisions = real_decisions
     total = len(all_decisions)
     correct_count = sum(1 for entry in all_decisions if entry.get("is_correct") is True)
     action_breakdown: dict[str, dict[str, Any]] = {}
@@ -1371,7 +1391,7 @@ def similar_alerts(
 ) -> dict[str, Any]:
     seed = _load_dataops_seed()
     if not seed:
-        return {"similar": [], "count": 0}
+        return {"similar": [], "count": 0, "source": "demo", "provenance": "sample"}
 
     current_vector = [
         impact_scope,
@@ -1404,7 +1424,12 @@ def similar_alerts(
 
     matches.sort(key=lambda item: item["similarity"], reverse=True)
     limit = max(int(n), 0)
-    return {"similar": matches[:limit], "count": len(matches)}
+    return {
+        "similar": matches[:limit],
+        "count": len(matches),
+        "source": "demo",
+        "provenance": "sample",
+    }
 
 
 @router.get("/process-signals/{system}")
@@ -1581,11 +1606,14 @@ def store_alert_metadata(payload: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="decision_id is required")
 
     metadata = _load_json(METADATA_PATH, {})
-    metadata[str(decision_id)] = dict(payload)
+    stored = dict(payload)
+    stored["domain"] = DOMAIN
+    stored["provenance"] = "demo"
+    metadata[str(decision_id)] = stored
     _write_json(METADATA_PATH, metadata)
-    return {"stored": True, "decision_id": decision_id, "metadata": metadata[str(decision_id)]}
+    return {"stored": True, "decision_id": decision_id, "metadata": stored, "source": "demo"}
 
 
 @router.get("/alert-metadata")
 def alert_metadata() -> dict[str, Any]:
-    return {"metadata": _load_json(METADATA_PATH, {})}
+    return {"metadata": _load_json(METADATA_PATH, {}), "source": "demo", "provenance": "demo"}

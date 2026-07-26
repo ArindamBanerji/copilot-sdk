@@ -227,8 +227,11 @@ def _journal_records(
             store = graph_store_factory()
             for decision in store.get_all_decisions(domain):
                 add_record(decision)
-        except Exception:
-            pass
+        except Exception as exc:
+            raise HTTPException(
+                status_code=503,
+                detail="Trading graph unavailable",
+            ) from exc
         finally:
             close = getattr(store, "close", None)
             if callable(close):

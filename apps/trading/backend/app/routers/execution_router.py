@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any, Callable
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 
 from app.routers.data_import import _trade_store_ref
 from app.services.execution_analysis import ExecutionAnalyzer
@@ -33,8 +33,11 @@ def create_execution_router(
                 store = graph_store_factory()
                 for decision in store.get_all_decisions(domain):
                     records.append(_as_record(decision))
-            except Exception:
-                pass
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=503,
+                    detail="Trading graph unavailable",
+                ) from exc
             finally:
                 close = getattr(store, "close", None)
                 if callable(close):

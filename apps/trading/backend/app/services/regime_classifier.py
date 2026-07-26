@@ -140,10 +140,7 @@ class RegimePerformanceMapper:
         reader = getattr(self._graph_store, "get_verified_decisions", None)
         if not callable(reader):
             return []
-        try:
-            values = reader(self._domain)
-        except TypeError:
-            values = reader()
+        values = reader(self._domain)
         return [value for value in values if isinstance(value, dict)]
 
 

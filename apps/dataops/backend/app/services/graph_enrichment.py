@@ -30,9 +30,10 @@ class DataOpsGraphEnricher:
         record = {
             "enrichment_id": enrichment_id,
             "source_ids": normalized_sources,
-            "enrichment_type": normalized_type,
-            "payload": dict(payload or {}),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+        "enrichment_type": normalized_type,
+        "payload": dict(payload or {}),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "domain": "dataops",
         }
 
         writer = getattr(graph_store, "write_enrichment", None)
@@ -49,7 +50,11 @@ class DataOpsGraphEnricher:
 
         run_query = getattr(graph_store, "run_query", None)
         if callable(run_query):
-            result = _run_graph_query(run_query, _age_find_query(), {"enrichment_id": enrichment_id})
+            result = _run_graph_query(
+                run_query,
+                _age_find_query(),
+                {"enrichment_id": enrichment_id, "domain": "dataops"},
+            )
             query = _age_update_query() if result else _age_create_query()
             result = _run_graph_query(run_query, query, record)
             self._link_sources(graph_store, enrichment_id, normalized_sources)
@@ -94,6 +99,7 @@ def _run_graph_query(run_query: Any, query: str, parameters: dict[str, Any]) -> 
 def _age_find_query() -> str:
     return """
     MATCH (existing:EnrichmentNode {enrichment_id: $enrichment_id})
+    WHERE existing.domain = $domain
     RETURN existing.enrichment_id AS enrichment_id
     """
 
@@ -101,7 +107,9 @@ def _age_find_query() -> str:
 def _age_update_query() -> str:
     return """
     MATCH (existing:EnrichmentNode {enrichment_id: $enrichment_id})
-    SET existing.source_ids = $source_ids,
+    WHERE existing.domain = $domain
+    SET existing.domain = $domain,
+        existing.source_ids = $source_ids,
         existing.enrichment_type = $enrichment_type,
         existing.payload = $payload,
         existing.timestamp = $timestamp
@@ -112,6 +120,7 @@ def _age_update_query() -> str:
 def _age_create_query() -> str:
     return """
     CREATE (node:EnrichmentNode {
+        domain: $domain,
         enrichment_id: $enrichment_id,
         source_ids: $source_ids,
         enrichment_type: $enrichment_type,
