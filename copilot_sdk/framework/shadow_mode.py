@@ -30,11 +30,17 @@ class ShadowModeService:
         system_confidence: float,
         category: str,
         neo4j_service: Any,
+        domain: str | None = None,
     ) -> None:
         """Mark a Decision node as shadow_mode=True."""
+        domain_clause = " WHERE d.domain = $domain" if domain is not None else ""
+        params = {"id": decision_id}
+        if domain is not None:
+            params["domain"] = domain
         await neo4j_service.run_query(
-            "MATCH (d:Decision {decision_id: $id}) SET d.shadow_mode = true",
-            {"id": decision_id},
+            "MATCH (d:Decision {decision_id: $id})"
+            f"{domain_clause} SET d.shadow_mode = true",
+            params,
         )
         log.debug(
             "[SHADOW] Recorded shadow decision: id=%s action=%s category=%s",
@@ -46,19 +52,26 @@ class ShadowModeService:
         decision_id: str,
         analyst_action: str,
         neo4j_service: Any,
+        domain: str | None = None,
     ) -> None:
         """Record what the analyst actually did (the ground truth).
         Also sets d.agreement = (d.action = analyst_action) on the node."""
+        domain_clause = "\n               WHERE d.domain = $domain" if domain is not None else ""
+        params = {"id": decision_id, "analyst_action": analyst_action}
+        if domain is not None:
+            params["domain"] = domain
         await neo4j_service.run_query(
-            """MATCH (d:Decision {decision_id: $id})
+            """MATCH (d:Decision {decision_id: $id})"""
+            f"{domain_clause}"
+            """
                SET d.analyst_action = $analyst_action,
                    d.agreement = (d.action = $analyst_action)""",
-            {"id": decision_id, "analyst_action": analyst_action},
+            params,
         )
         log.debug("[SHADOW] Analyst action recorded: decision=%s action=%s", decision_id, analyst_action)
 
     @staticmethod
-    async def get_shadow_report(neo4j_service: Any) -> dict:
+    async def get_shadow_report(neo4j_service: Any, domain: str | None = None) -> dict:
         """Generate shadow mode report: agreement rates by category.
 
         Returns
@@ -71,15 +84,24 @@ class ShadowModeService:
         }
         """
         try:
-            result = await neo4j_service.run_query(
+            domain_clause = "\n                  AND d.domain = $domain" if domain is not None else ""
+            params = {"domain": domain} if domain is not None else None
+            query = (
                 """
                 MATCH (d:Decision)
-                WHERE d.shadow_mode = true AND d.analyst_action IS NOT NULL
+                WHERE d.shadow_mode = true AND d.analyst_action IS NOT NULL"""
+                f"{domain_clause}"
+                """
                 RETURN d.category AS category,
                        count(d) AS total,
                        sum(CASE WHEN d.agreement = true THEN 1 ELSE 0 END) AS agreed
                 ORDER BY category
-                """,
+                """
+            )
+            result = (
+                await neo4j_service.run_query(query, params)
+                if domain is not None
+                else await neo4j_service.run_query(query)
             )
         except Exception as exc:
             log.warning("[SHADOW] get_shadow_report query failed: %s", exc)

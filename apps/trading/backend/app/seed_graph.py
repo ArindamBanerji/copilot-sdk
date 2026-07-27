@@ -187,6 +187,7 @@ def seed_trading_graph(seed: int = 42) -> tuple[list[dict[str, Any]], list[dict[
             trade_id,
             {
                 "decision_id": f"decision-{trade_id}",
+                "domain": "trading",
                 "category": category,
                 "recommended_action": trade.get("action_taken") or trade.get("direction"),
                 "confidence": round(0.55 + rng.random() * 0.4, 4),

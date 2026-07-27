@@ -163,10 +163,7 @@ def _already_verified(store: Any, decision_id: str, decision: dict[str, Any]) ->
     get_verified = getattr(store, "get_verified_decisions", None)
     if not callable(get_verified):
         return False
-    try:
-        verified = get_verified(DOMAIN)
-    except TypeError:
-        verified = get_verified()
+    verified = get_verified(DOMAIN)
     return any(str(row.get("decision_id") or "") == decision_id for row in verified or [])
 
 
@@ -179,15 +176,12 @@ def _learn_with_context(
 ) -> Any:
     learn = getattr(state, "learn", None)
     if callable(learn):
-        try:
-            return learn(
-                decision_id,
-                actual_action,
-                "confirmed",
-                context=context,
-            )
-        except TypeError:
-            return learn(decision_id, actual_action, "confirmed")
+        return learn(
+            decision_id,
+            actual_action,
+            "confirmed",
+            context=context,
+        )
 
     scorer_factory = getattr(state, "_scorer", None)
     if callable(scorer_factory):

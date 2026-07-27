@@ -235,7 +235,7 @@ async def reconstruct_from_memory() -> int:
     return added
 
 
-async def rebuild_chain_from_graph(client: Any) -> int:
+async def rebuild_chain_from_graph(client: Any, domain: str | None = None) -> int:
     """
     Rehydrate the audit hash-chain from persistent Decision nodes in AGE.
 
@@ -246,9 +246,12 @@ async def rebuild_chain_from_graph(client: Any) -> int:
     decision_ids are preserved and chronological order is maintained.
     ORDER BY ASC is critical — each append() hashes the previous entry.
     """
-    rows = await client.run_query(
+    domain_clause = " AND d.domain = $domain" if domain is not None else ""
+    params = {"domain": domain} if domain is not None else None
+    query = (
         "MATCH (d:Decision)-[:DECIDED_ON]->(a:Alert) "
-        "WHERE d.origin = 'zero_day_synthetic' "
+        "WHERE d.origin = 'zero_day_synthetic'"
+        f"{domain_clause} "
         "RETURN d.decision_id AS decision_id, "
         "       a.alert_id    AS alert_id, "
         "       d.category    AS category, "
@@ -259,6 +262,7 @@ async def rebuild_chain_from_graph(client: Any) -> int:
         "ORDER BY d.timestamp_epoch ASC "
         "LIMIT 50"
     )
+    rows = await client.run_query(query, params) if domain is not None else await client.run_query(query)
 
     async with _ledger_lock:
         if len(_LEDGER._entries) > 0:
@@ -282,7 +286,7 @@ async def rebuild_chain_from_graph(client: Any) -> int:
     return n
 
 
-async def rebuild_from_age() -> int:
+async def rebuild_from_age(domain: str | None = None) -> int:
     """Rebuild the audit ledger from Decision nodes in AGE.
 
     Called once during startup to restore the hash chain after restart.
@@ -293,9 +297,12 @@ async def rebuild_from_age() -> int:
     except ImportError:
         neo4j_client = None  # SDK standalone — no SOC backend
 
-    rows = await neo4j_client.run_query(
+    domain_clause = " AND d.domain = $domain" if domain is not None else ""
+    params = {"domain": domain} if domain is not None else None
+    query = (
         "MATCH (d:Decision)-[:DECIDED_ON]->(a:Alert) "
-        "WHERE d.timestamp_epoch IS NOT NULL "
+        "WHERE d.timestamp_epoch IS NOT NULL"
+        f"{domain_clause} "
         "RETURN d.decision_id AS decision_id, "
         "d.action AS action, "
         "d.confidence AS confidence, "
@@ -305,6 +312,7 @@ async def rebuild_from_age() -> int:
         "d.outcome AS outcome "
         "ORDER BY d.timestamp_epoch ASC"
     )
+    rows = await neo4j_client.run_query(query, params) if domain is not None else await neo4j_client.run_query(query)
 
     async with _ledger_lock:
         if len(_LEDGER._entries) > 0:

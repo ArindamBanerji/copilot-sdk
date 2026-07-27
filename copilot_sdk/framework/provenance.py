@@ -289,6 +289,7 @@ class ProvenanceService:
         neo4j_service: Any,
         factor_names: Optional[List[str]] = None,
         resolve_category: Optional[Any] = None,
+        domain: str | None = None,
     ) -> Optional[dict]:
         """
         Retrieve a stored decision's factor vector from Neo4j and rebuild provenance.
@@ -307,14 +308,20 @@ class ProvenanceService:
         _resolve = resolve_category if resolve_category is not None else (lambda x: x)
 
         try:
+            domain_clause = "\n                 WHERE d.domain = $domain" if domain is not None else ""
+            params = {"id": decision_id}
+            if domain is not None:
+                params["domain"] = domain
             results = await neo4j_service.run_query(
                 """
-                MATCH (d:Decision {decision_id: $id})-[:DECIDED_ON]->(a:Alert)
+                MATCH (d:Decision {decision_id: $id})-[:DECIDED_ON]->(a:Alert)"""
+                f"{domain_clause}"
+                """
                 RETURN d.factor_vector AS fv,
                        d.action        AS action,
                        a.alert_type    AS alert_type
                 """,
-                {"id": decision_id},
+                params,
             )
         except Exception as exc:
             log.warning("[PROVENANCE] query failed for decision=%r: %s", decision_id, exc)

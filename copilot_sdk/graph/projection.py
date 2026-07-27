@@ -68,6 +68,25 @@ class ProjectionRegistry:
         }
     )
 
+    @classmethod
+    def render(cls, name: str, domain: str | None = None) -> str:
+        """Render a registered query, optionally adding a Decision domain filter."""
+        pattern = cls.PATTERNS[name]
+        if domain is None or "Decision" not in pattern.query_template:
+            return pattern.query_template
+        if not _SAFE_DOMAIN_RE.fullmatch(str(domain)):
+            raise ValueError(f"unsupported graph domain: {domain}")
+        predicate = f"d.domain = '{domain}'"
+        query = pattern.query_template.replace("<d2>", predicate, 1)
+        query = query.replace("<d2-correct>", predicate, 1)
+        if query == pattern.query_template:
+            query = query.replace(
+                "MATCH (d:Decision)",
+                f"MATCH (d:Decision) WHERE {predicate}",
+                1,
+            )
+        return query
+
 
 def parse_projection_json(value: Any) -> Any:
     """Parse AGE JSON-like string values while leaving scalar values intact."""

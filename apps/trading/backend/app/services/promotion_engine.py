@@ -194,10 +194,7 @@ class PromotionEngine:
         reader = getattr(self._store, "get_verified_decisions", None)
         if not callable(reader):
             return []
-        try:
-            decisions = reader(self._domain)
-        except TypeError:
-            decisions = reader()
+        decisions = reader(domain=self._domain)
         rows = [
             decision
             for decision in decisions

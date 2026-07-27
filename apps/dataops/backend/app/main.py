@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 import warnings
@@ -44,6 +45,7 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.config import GraphConfig, GraphConfigError  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.di import AcquisitionAdvisor, BaseSourceProfiler, IntelligenceMapBuilder  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
@@ -54,6 +56,7 @@ from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa
 
 
 DOMAIN = "dataops"
+logger = logging.getLogger(__name__)
 
 
 def _resolve_profile() -> str:
@@ -100,7 +103,12 @@ def _cors_origins() -> list[str]:
 def _graph_store(db_path: str | Path):
     # Active AGE configuration is owned by DATAOPS_ACTIVE_*; generic AGE
     # settings remain deliberately ignored by the graph-status contract.
-    backend = os.environ.get("GRAPH_BACKEND", "sqlite").strip().lower()
+    try:
+        backend = GraphConfig.load(DOMAIN).backend
+    except GraphConfigError:
+        if _resolve_profile() != "test":
+            raise
+        backend = "sqlite"
     if backend == "age":
         backend = "sqlite"
     store = create_graph_store(
@@ -401,8 +409,8 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     try:
         count = int(graph_store.count_decisions(DOMAIN))
     except Exception as exc:
-        print(f"[{DOMAIN}] auto-seed count failed: {exc}")
-        return 0
+        logger.warning("[%s] auto-seed count failed", DOMAIN, exc_info=True)
+        raise RuntimeError(f"[{DOMAIN}] auto-seed count failed") from exc
     if count > 0:
         print(f"[{DOMAIN}] resuming with {count} persisted decisions")
         return 0
@@ -481,8 +489,8 @@ def _variant_from_event(event: dict[str, Any]) -> dict[str, Any]:
 def _evolution_variants(store: Any) -> list[dict[str, Any]]:
     try:
         events = store.get_evolution_events(domain=DOMAIN, limit=500)
-    except Exception:
-        return []
+    except Exception as exc:
+        raise RuntimeError(f"[{DOMAIN}] evolution graph read failed") from exc
     return [_variant_from_event(event) for event in events if isinstance(event, dict)]
 
 

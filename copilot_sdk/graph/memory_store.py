@@ -1574,8 +1574,11 @@ class InMemoryGraphStore:
     def get_decision_links(
         self,
         decision_id: str | None = None,
+        domain: str | None = None,
         limit: int | None = None,
     ) -> list[dict[str, Any]]:
+        if domain is not None and str(domain) != self.domain:
+            return []
         limit_value = _bounded_traversal_limit(limit) if limit is not None else None
         links = [
             {
@@ -1591,7 +1594,12 @@ class InMemoryGraphStore:
             links = links[:limit_value]
         return deepcopy(links)
 
-    def query_context(self, entity_id: str, max_depth: int) -> list[dict[str, Any]]:
+    def query_context(
+        self,
+        entity_id: str,
+        max_depth: int,
+        domain: str | None = None,
+    ) -> list[dict[str, Any]]:
         depth = _bounded_traversal_depth(max_depth)
         root_id = str(entity_id)
         rows: list[dict[str, Any]] = [
@@ -1615,7 +1623,9 @@ class InMemoryGraphStore:
                 continue
             seen.add(decision_id)
             decision = self._decisions.get(decision_id)
-            if decision is None:
+            if decision is None or (
+                domain is not None and decision.get("domain") != str(domain)
+            ):
                 continue
             rows.append(
                 {
@@ -1653,7 +1663,10 @@ class InMemoryGraphStore:
                     if not neighbor_decision_id or neighbor_decision_id in seen:
                         continue
                     neighbor_decision = self._decisions.get(neighbor_decision_id)
-                    if neighbor_decision is None:
+                    if neighbor_decision is None or (
+                        domain is not None
+                        and neighbor_decision.get("domain") != str(domain)
+                    ):
                         continue
                     seen.add(neighbor_decision_id)
                     rows.append(

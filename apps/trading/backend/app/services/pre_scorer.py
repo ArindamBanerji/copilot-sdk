@@ -201,20 +201,14 @@ class PreScorer:
         reader = getattr(self._store, "get_all_decisions", None)
         if not callable(reader):
             return []
-        try:
-            values = reader(self._domain)
-        except TypeError:
-            values = reader()
+        values = reader(domain=self._domain)
         return [value for value in values if isinstance(value, dict)]
 
     def _verified_decisions(self) -> list[dict[str, Any]]:
         reader = getattr(self._store, "get_verified_decisions", None)
         if not callable(reader):
             return []
-        try:
-            values = reader(self._domain)
-        except TypeError:
-            values = reader()
+        values = reader(domain=self._domain)
         return [value for value in values if isinstance(value, dict)]
 
     def _correctness_by_decision(self) -> dict[str, bool]:

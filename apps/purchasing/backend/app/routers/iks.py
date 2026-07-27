@@ -22,13 +22,18 @@ def create_iks_router(graph_store_factory: GraphStoreFactory | None = None) -> A
     @router.get("/iks")
     def iks_summary() -> dict[str, Any]:
         store = _graph_store(graph_store_factory)
-        service = IKSService(
-            store,
-            domain=DOMAIN,
-            shape=PurchasingPreset().shape,
-            categories=CATEGORIES,
-        )
-        return service.summary()
+        try:
+            service = IKSService(
+                store,
+                domain=DOMAIN,
+                shape=PurchasingPreset().shape,
+                categories=CATEGORIES,
+            )
+            return service.summary()
+        except HTTPException:
+            raise
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail="IKS graph service unavailable") from exc
 
     @router.get("/suppliers/{supplier_id}/scorecard")
     def supplier_scorecard(supplier_id: str) -> dict[str, Any]:
@@ -41,25 +46,26 @@ def create_iks_router(graph_store_factory: GraphStoreFactory | None = None) -> A
     return router
 
 
-class _EmptyStore:
-    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
-        return []
-
-
 def _graph_store(graph_store_factory: GraphStoreFactory | None) -> Any:
     if graph_store_factory is None:
-        return _EmptyStore()
-    return graph_store_factory()
+        raise HTTPException(status_code=503, detail="IKS graph store is not configured")
+    try:
+        store = graph_store_factory()
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="IKS graph store is unavailable") from exc
+    if store is None:
+        raise HTTPException(status_code=503, detail="IKS graph store is not configured")
+    return store
 
 
 def _supplier_rows_from_graph(store: Any, supplier_id: str) -> list[dict[str, Any]]:
     getter = getattr(store, "get_verified_decisions", None)
     if not callable(getter):
-        return []
+        raise HTTPException(status_code=503, detail="IKS graph store cannot read verified decisions")
     try:
         rows = getter(DOMAIN) or []
-    except Exception:
-        return []
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="IKS graph store is unavailable") from exc
     return [
         row
         for row in rows

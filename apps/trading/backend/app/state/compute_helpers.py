@@ -247,9 +247,9 @@ def count_decisions(store: Any) -> int:
     if callable(count):
         try:
             return int(count("trading"))
-        except Exception:
-            return 0
-    return 0
+        except Exception as exc:
+            raise RuntimeError("Trading decision count failed") from exc
+    raise RuntimeError("Graph store does not provide count_decisions")
 
 
 def grouped_accuracy(field: str, decisions: list[dict[str, Any]]) -> dict[str, Any]:

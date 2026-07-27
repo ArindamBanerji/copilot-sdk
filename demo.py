@@ -949,7 +949,9 @@ def run_preseed(selected: list[dict], *, fail_hard: bool = False):
     """Run pre-seeding script."""
     print()
     print("Pre-seeding copilots...")
-    run_deterministic_preseed(fail_hard=fail_hard)
+    preseed_result = run_deterministic_preseed(fail_hard=fail_hard)
+    if preseed_result is not None:
+        _append_baseline_reset_event(preseed_result)
     soc_selected = any(c["name"].lower() == "soc" for c in selected)
     soc_preseeded = False
     if soc_selected and any("be_port" in c for c in selected if c["name"].lower() == "soc"):
@@ -989,17 +991,54 @@ def run_preseed(selected: list[dict], *, fail_hard: bool = False):
     print()
 
 
-def run_deterministic_preseed(*, fail_hard: bool = False) -> None:
+def run_deterministic_preseed(*, fail_hard: bool = False):
     """Run deterministic SDK preseed and print stable headline summary."""
     try:
         from copilot_sdk.demo.preseed import DemoPreseed, print_summary
 
         result = DemoPreseed().preseed_all()
         print_summary(result)
+        return result
     except Exception as exc:
         print(f"  WARN: deterministic preseed failed: {exc}")
         if fail_hard:
             raise
+    return None
+
+
+def _append_baseline_reset_event(result) -> None:
+    """Record the deterministic seed identity after a successful reseed."""
+    import datetime
+    from copilot_sdk.seed.seed_version import SEED_VERSION, compute_seed_hash
+
+    ledger_path = SCRIPT_DIR / "data" / "baseline_events.jsonl"
+    v_before = 0
+    if ledger_path.exists():
+        for line in ledger_path.read_text(encoding="utf-8").splitlines():
+            try:
+                v_before = int(json.loads(line).get("v_after", v_before))
+            except (TypeError, ValueError, json.JSONDecodeError):
+                continue
+    decisions = []
+    v_after = 0
+    for domain, preseed in sorted(result.copilots.items()):
+        count = int(preseed.decisions)
+        v_after += count
+        decisions.extend(
+            {"decision_id": f"{domain}-preseed-{index:04d}"}
+            for index in range(count)
+        )
+    event = {
+        "event": "baseline_reset",
+        "v_before": v_before,
+        "v_after": v_after,
+        "date": datetime.datetime.utcnow().isoformat(),
+        "seed_version": SEED_VERSION,
+        "seed_hash": compute_seed_hash(decisions),
+    }
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    with ledger_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event) + "\n")
 
 
 def run_connector_freeze() -> None:

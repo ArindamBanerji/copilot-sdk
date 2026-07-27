@@ -223,6 +223,8 @@ class CompoundingScorer:
 
             graph_store = InMemoryGraphStore(domain=preset.name)
         elif graph_store is None:
+            # Development-only SQLite fallback; production requires an injected
+            # AGE-backed store and is rejected above.
             from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
             graph_store = SQLiteGraphStore(db_path, domain=preset.name)

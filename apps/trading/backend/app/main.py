@@ -64,6 +64,7 @@ from copilot_sdk.backend import (  # noqa: E402
 )
 from copilot_sdk.backend.counterfactual_router import create_counterfactual_router  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.config import GraphConfig, GraphConfigError  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
@@ -115,7 +116,14 @@ def _cors_origins() -> list[str]:
 def _graph_store(db_path: str | Path):
     # Active AGE configuration is owned by TRADING_ACTIVE_*; generic AGE
     # settings remain deliberately ignored by the graph-status contract.
-    backend = os.environ.get("GRAPH_BACKEND", "sqlite").strip().lower()
+    try:
+        backend = GraphConfig.load(DOMAIN).backend
+    except GraphConfigError:
+        if _resolve_profile() != "test":
+            raise
+        # A generic AGE value without complete AGE config is intentionally not
+        # an active Trading-store selection in isolated tests.
+        backend = "sqlite"
     if backend == "age":
         backend = "sqlite"
     store = create_graph_store(
@@ -258,8 +266,7 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     try:
         count = int(graph_store.count_decisions(DOMAIN))
     except Exception as exc:
-        print(f"[{DOMAIN}] auto-seed count failed: {exc}")
-        return 0
+        raise RuntimeError(f"[{DOMAIN}] auto-seed count failed") from exc
     if count > 0:
         print(f"[{DOMAIN}] resuming with {count} persisted decisions")
         return 0

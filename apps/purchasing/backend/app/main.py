@@ -73,6 +73,7 @@ from copilot_sdk.backend import (  # noqa: E402
 from copilot_sdk.outbox import OutboxStore  # noqa: E402
 from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.config import GraphConfig, GraphConfigError  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
@@ -144,7 +145,14 @@ def _cors_origins() -> list[str]:
 def _graph_store(db_path: str | Path, *, backend: str | None = None):
     # Active AGE configuration is owned by PURCHASING_ACTIVE_*; generic AGE
     # settings remain deliberately ignored by the graph-status contract.
-    backend = (backend or os.environ.get("GRAPH_BACKEND", "sqlite")).strip().lower()
+    if backend is None:
+        try:
+            backend = GraphConfig.load(DOMAIN).backend
+        except GraphConfigError:
+            if _resolve_profile() != "test":
+                raise
+            backend = "sqlite"
+    backend = backend.strip().lower()
     store = create_graph_store(
         backend=backend,
         domain=DOMAIN,
@@ -287,8 +295,7 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     try:
         count = int(graph_store.count_decisions(DOMAIN))
     except Exception as exc:
-        print(f"[{DOMAIN}] auto-seed count failed: {exc}")
-        return 0
+        raise RuntimeError(f"[{DOMAIN}] auto-seed count failed") from exc
     if count > 0:
         print(f"[{DOMAIN}] resuming with {count} persisted decisions")
         return 0
@@ -753,6 +760,7 @@ def create_app(
             "engine": "copilot_sdk.scoring + gae.profile_scorer + gae.evolution",
             "iks_score": iks["iks_score"],
             "iks_available": iks["available"],
+            "iks_status": "available" if iks["available"] else "unavailable",
             "iks_verified_count": iks["verified_count"],
         }
 

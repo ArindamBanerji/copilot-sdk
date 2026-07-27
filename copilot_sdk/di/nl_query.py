@@ -18,7 +18,9 @@ class NLQueryRouter:
             reverse=True,
         )
 
-    def query(self, question: str, graph_store: Any) -> dict[str, Any]:
+    def query(
+        self, question: str, graph_store: Any, domain: str | None = None
+    ) -> dict[str, Any]:
         normalized = str(question or "").strip()
         if not normalized:
             return {
@@ -27,7 +29,7 @@ class NLQueryRouter:
                 "evidence": [],
             }
         intent = self._classify_intent(normalized)
-        return self._execute(intent, normalized, graph_store)
+        return self._execute(intent, normalized, graph_store, domain=domain)
 
     def _classify_intent(self, question: str) -> str:
         lowered = question.lower()
@@ -45,26 +47,28 @@ class NLQueryRouter:
             return "metric"
         return "unknown"
 
-    def _execute(self, intent: str, question: str, graph_store: Any) -> dict[str, Any]:
+    def _execute(
+        self, intent: str, question: str, graph_store: Any, *, domain: str | None = None
+    ) -> dict[str, Any]:
         if intent == "unknown":
-            decisions = _decisions(graph_store)
+            decisions = _decisions(graph_store, domain=domain)
             for pattern in self._patterns:
                 if pattern.matches(question):
                     return pattern.execute(question, decisions).to_response()
             return _unknown_response(intent)
 
-        decisions = _decisions(graph_store)
+        decisions = _decisions(graph_store, domain=domain)
         evidence = _evidence_for_intent(intent, decisions)
         answer = _answer(intent, evidence, question)
         return {
             "intent": intent,
             "answer": answer,
             "evidence": evidence,
-            "query_template": _query_template(intent),
+            "query_template": _query_template(intent, domain=domain),
         }
 
 
-def _decisions(graph_store: Any) -> list[dict[str, Any]]:
+def _decisions(graph_store: Any, *, domain: str | None = None) -> list[dict[str, Any]]:
     if isinstance(graph_store, (list, tuple)):
         return [row for row in graph_store if isinstance(row, dict)]
     if graph_store is None:
@@ -74,7 +78,7 @@ def _decisions(graph_store: Any) -> list[dict[str, Any]]:
         if not callable(method):
             continue
         try:
-            rows = method("dataops")
+            rows = method(domain or "dataops")
         except TypeError:
             rows = method()
         except Exception:
@@ -134,7 +138,7 @@ def _answer(intent: str, evidence: list[dict[str, Any]], question: str) -> str:
     )
 
 
-def _query_template(intent: str) -> str:
+def _query_template(intent: str, *, domain: str | None = None) -> str:
     templates = {
         "source_reliability": "MATCH (s:Source)-[:EMITS]->(d:Decision) RETURN s, d",
         "freshness": "MATCH (d:Decision) WHERE d.data_freshness IS NOT NULL RETURN d",
@@ -142,7 +146,16 @@ def _query_template(intent: str) -> str:
         "impact": "MATCH (d:Decision)-[:AFFECTS]->(s:System) RETURN d, s",
         "metric": "MATCH (d:Decision) RETURN d",
     }
-    return templates[intent]
+    template = templates[intent]
+    if domain is None or "Decision" not in template:
+        return template
+    safe_domain = str(domain).replace("\\", "\\\\").replace("'", "\\'")
+    predicate = f"d.domain = '{safe_domain}'"
+    if " WHERE " in template:
+        return template.replace(" WHERE ", f" WHERE {predicate} AND ", 1)
+    if " RETURN " in template:
+        return template.replace(" RETURN ", f" WHERE {predicate} RETURN ", 1)
+    return template
 
 
 def _safe_float(value: Any, *, default: float | None) -> float | None:

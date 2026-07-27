@@ -144,10 +144,7 @@ def _category_verified_decisions(store: Any | None, category: str) -> list[dict[
         return None
     get_verified = getattr(store, "get_verified_decisions", None)
     if callable(get_verified):
-        try:
-            decisions = list(get_verified(DOMAIN) or [])
-        except TypeError:
-            decisions = list(get_verified(domain=DOMAIN) or [])
+        decisions = list(get_verified(DOMAIN) or [])
         return [
             decision
             for decision in decisions
@@ -157,10 +154,7 @@ def _category_verified_decisions(store: Any | None, category: str) -> list[dict[
         ]
     get_decisions = getattr(store, "get_decisions", None)
     if callable(get_decisions):
-        try:
-            decisions = list(get_decisions(DOMAIN, category=category, limit=10**12) or [])
-        except TypeError:
-            decisions = list(get_decisions(DOMAIN, category, 10**12) or [])
+        decisions = list(get_decisions(DOMAIN, category=category, limit=10**12) or [])
         return [
             decision
             for decision in decisions
@@ -208,7 +202,4 @@ def _learn_auto_order(
     learn = getattr(state, "learn", None)
     if not callable(learn):
         raise ValueError("auto-order learning requires learn()")
-    try:
-        return learn(decision_id, actual_action, "confirmed", context=context)
-    except TypeError:
-        return learn(decision_id, actual_action, "confirmed")
+    return learn(decision_id, actual_action, "confirmed", context=context)

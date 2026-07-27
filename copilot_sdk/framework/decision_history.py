@@ -19,7 +19,11 @@ class DecisionHistoryService:
     """Tracks per-category decision counts and rolling accuracy."""
 
     @staticmethod
-    async def get_category_stats(category: str, neo4j_service: Any) -> dict:
+    async def get_category_stats(
+        category: str,
+        neo4j_service: Any,
+        domain: str | None = None,
+    ) -> dict:
         """
         Get decision count and rolling accuracy for a category.
 
@@ -35,16 +39,22 @@ class DecisionHistoryService:
         }
         """
         try:
+            domain_clause = "\n                  AND d.domain = $domain" if domain is not None else ""
+            params = {"cat": category}
+            if domain is not None:
+                params["domain"] = domain
             result = await neo4j_service.run_query(
                 """
                 MATCH (d:Decision)
-                WHERE d.category = $cat
+                WHERE d.category = $cat"""
+                f"{domain_clause}"
+                """
                 WITH d ORDER BY d.timestamp_epoch DESC LIMIT 100
                 RETURN count(d) AS cat_count,
                        sum(CASE WHEN d.outcome = 'correct' THEN 1 ELSE 0 END) AS correct_count,
                        sum(CASE WHEN d.outcome IS NOT NULL THEN 1 ELSE 0 END) AS verified_count
                 """,
-                {"cat": category},
+                params,
             )
         except Exception as exc:
             log.warning("[DECISION-HISTORY] query failed for category=%r: %s", category, exc)

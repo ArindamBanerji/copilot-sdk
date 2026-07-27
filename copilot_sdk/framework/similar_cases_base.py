@@ -63,6 +63,7 @@ class SimilarCasesBase(abc.ABC):
         category: str,
         neo4j_client: Any,
         limit: int = SIMILAR_CASES_MAX_SCAN,
+        domain: str | None = None,
     ) -> List[Dict[str, Any]]:
         """
         Fetch up to *limit* verified Decision nodes for *category* from Neo4j,
@@ -72,10 +73,16 @@ class SimilarCasesBase(abc.ABC):
           decision_id, action, confidence, outcome, factor_vector, timestamp
         """
         try:
+            domain_clause = "\n                  AND d.domain = $domain" if domain is not None else ""
+            params = {"category": category, "limit": limit}
+            if domain is not None:
+                params["domain"] = domain
             rows = await neo4j_client.run_query(
                 """
                 MATCH (d:Decision)
-                WHERE d.category = $category
+                WHERE d.category = $category"""
+                f"{domain_clause}"
+                """
                   AND d.factor_vector IS NOT NULL
                   AND d.outcome IS NOT NULL
                 RETURN d.decision_id    AS decision_id,
@@ -87,7 +94,7 @@ class SimilarCasesBase(abc.ABC):
                 ORDER BY d.timestamp_epoch DESC
                 LIMIT $limit
                 """,
-                {"category": category, "limit": limit},
+                params,
             )
         except Exception as exc:
             log.warning("[SIMILAR-CASES] Neo4j query failed for category=%r: %s", category, exc)
@@ -122,6 +129,7 @@ class SimilarCasesBase(abc.ABC):
         category: str,
         neo4j_client: Any,
         k: int = SIMILAR_CASES_K,
+        domain: str | None = None,
     ) -> List[Dict[str, Any]]:
         """
         Return up to k similar past Decision nodes for *category*.
@@ -131,7 +139,7 @@ class SimilarCasesBase(abc.ABC):
 
         Each returned dict adds a 'similarity' key (float in [0,1]).
         """
-        decisions = await self._fetch_verified_decisions(category, neo4j_client)
+        decisions = await self._fetch_verified_decisions(category, neo4j_client, domain=domain)
 
         if len(decisions) < SIMILAR_CASES_MIN_PRIOR:
             log.debug(

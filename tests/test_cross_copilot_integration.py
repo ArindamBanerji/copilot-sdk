@@ -117,6 +117,13 @@ def test_s2p_score_path_injects_cross_copilot_signal_context(monkeypatch):
             ]
 
     class GraphStore:
+        def __init__(self):
+            self.context_rows = []
+            self.links = []
+
+        def query_context(self, entity_id, hops=2):
+            return list(self.context_rows)
+
         def get_decision_links(self, decision_id):
             return []
 

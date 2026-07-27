@@ -137,7 +137,20 @@ class GraphStore(Protocol):
 class GraphTraversalStore(Protocol):
     """Optional read-only graph traversal extension for bounded context queries."""
 
-    def query_context(self, entity_id: str, max_depth: int) -> list[dict[str, Any]]:
+    def get_decision_links(
+        self,
+        decision_id: str | None = None,
+        domain: str | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        ...
+
+    def query_context(
+        self,
+        entity_id: str,
+        max_depth: int,
+        domain: str | None = None,
+    ) -> list[dict[str, Any]]:
         ...
 
     def query_similar(self, entity_id: str, limit: int) -> list[dict[str, Any]]:

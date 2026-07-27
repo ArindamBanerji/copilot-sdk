@@ -1,31 +1,56 @@
 # Every exception is limited to the specific scanner rule that requires it.
-# Test code is permitted to use isolated stores and disposable AGE connections.
+# Findings in tests and tooling are reported separately and never fail the gate.
+# Structured entries may use files (whole file), lines (exact line), or
+# patterns (regex applied to the matching source line). Every exception has a
+# reason so an implementation exception cannot become an unreviewed bypass.
 
-[rules]
-neo4j_driver = [
-  "tests/",
-  "copilot_sdk/testing/",
+[rules.neo4j_driver]
+paths = ["tests/", "copilot_sdk/testing/"]
+
+[rules.psycopg_connect]
+paths = ["ci_platform/graph/age_client.py", "copilot_sdk/testing/", "tests/"]
+files = [
+  { path = "gen-ai-roi-demo-v4-v50/backend/app/services/posterior_store.py", reason = "approved AGE-backed RL posterior adapter" },
 ]
-psycopg_connect = [
-  "ci_platform/graph/age_client.py",
-  "copilot_sdk/testing/",
-  "tests/",
+
+[rules.sqlite_graph_store]
+paths = ["copilot_sdk/graph/sqlite_store.py", "copilot_sdk/testing/", "tests/"]
+files = [
+  { path = "copilot_sdk/graph/factory.py", reason = "factory implementation constructs the selected SQLite backend" },
 ]
-sqlite_graph_store = [
-  "copilot_sdk/graph/sqlite_store.py",
-  "copilot_sdk/testing/",
-  "tests/",
+lines = [
+  { path = "copilot_sdk/scoring/scorer.py", line = 230, reason = "development-only SQLite fallback; production rejects at :231-238" },
 ]
-in_memory_graph_store = [
-  "copilot_sdk/graph/memory_store.py",
-  "copilot_sdk/testing/",
-  "tests/",
+
+[rules.in_memory_graph_store]
+paths = ["copilot_sdk/graph/memory_store.py", "copilot_sdk/testing/", "tests/"]
+files = [
+  { path = "copilot_sdk/scoring/scorer.py", reason = "scorer implementation selects the test/development store when explicitly requested" },
+  { path = "copilot_sdk/demo/preseed.py", reason = "demo preseed fixture" },
+  { path = "copilot-sdk/integrity/", reason = "integrity benchmark fixtures" },
 ]
-graph_environment = [
-  "copilot_sdk/config/graph_config.py",
-  "copilot_sdk/testing/",
-  "tests/",
+
+[rules.graph_environment]
+paths = ["copilot_sdk/config/graph_config.py", "copilot_sdk/testing/", "tests/"]
+
+[rules.unscoped_decision_match]
+paths = ["tests/"]
+files = [
+  { path = "gen-ai-roi-demo-v4-v50/backend/app/services/state_manager.py", reason = "destructive-operation safety gateway receives domain-bearing filter clauses" },
+  { path = "ci_platform/graph/age_client.py", reason = "legacy AGE shadow/count implementation retained for comparison" },
+  { path = "copilot_sdk/graph/sqlite_store.py", reason = "SQLiteGraphStore implementation; domain filtering is applied by its public methods" },
+  { path = "copilot_sdk/graph/memory_store.py", reason = "InMemoryGraphStore implementation; domain filtering is applied by its public methods" },
+  { path = "copilot_sdk/graph/factory.py", reason = "factory implementation and backend selection" },
+  { path = "copilot_sdk/migrate/", reason = "migration tooling operates on explicitly selected migration domains" },
+  { path = "gen-ai-roi-demo-v4-v50/backend/app/db/neo4j.py", reason = "legacy unreachable; non-AGE backends rejected at db/neo4j.py:510-543" },
 ]
-unscoped_decision_match = [
-  "tests/",
+lines = [
+  { path = "copilot_sdk/di/nl_query.py", line = 144, reason = "base template rendered with domain by _query_template() at :154" },
+  { path = "copilot_sdk/di/nl_query.py", line = 145, reason = "base template rendered with domain by _query_template() at :154" },
+  { path = "copilot_sdk/di/nl_query.py", line = 146, reason = "base template rendered with domain by _query_template() at :154" },
+  { path = "copilot_sdk/di/nl_query.py", line = 147, reason = "base template rendered with domain by _query_template() at :154" },
+  { path = "copilot_sdk/di/nl_query.py", line = 153, reason = "query replacement marker for _query_template(), never executed directly" },
+  { path = "copilot_sdk/graph/projection.py", line = 45, reason = "registry template rendered with domain by ProjectionRegistry.render() at :72" },
+  { path = "copilot_sdk/graph/projection.py", line = 50, reason = "registry template rendered with domain by ProjectionRegistry.render() at :72" },
+  { path = "copilot_sdk/graph/projection.py", line = 84, reason = "query replacement marker inside render(), never executed directly" },
 ]

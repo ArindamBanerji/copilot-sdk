@@ -171,6 +171,7 @@ def seed_purchasing_graph(seed: int = 42) -> tuple[list[dict[str, Any]], list[di
             order_id_value,
             {
                 "decision_id": f"decision-{order_id_value}",
+                "domain": "purchasing",
                 "category": category,
                 "recommended_action": order.get("action_taken"),
                 "confidence": round(0.55 + rng.random() * 0.4, 4),

@@ -33,6 +33,10 @@ KNOWN_DRIFT = {
     "audit.py": "app.framework.feedback_store and app.db.neo4j imports guarded with try/except ImportError. SDK standalone requirement.",
     "composite_gate.py": "Import path adapted: app.framework → copilot_sdk.framework. SDK namespace requirement.",
     "feedback_base.py": "Import path adapted: app.framework → copilot_sdk.framework. SDK namespace requirement.",
+    "decision_history.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",
+    "provenance.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",
+    "shadow_mode.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",
+    "similar_cases_base.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",
 }
 
 # ---------------------------------------------------------------------------

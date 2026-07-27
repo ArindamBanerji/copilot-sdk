@@ -2470,8 +2470,11 @@ class SQLiteGraphStore:
     def get_decision_links(
         self,
         decision_id: str | None = None,
+        domain: str | None = None,
         limit: int | None = None,
     ) -> list[dict[str, Any]]:
+        if domain is not None and str(domain) != self.domain:
+            return []
         limit_value = _bounded_traversal_limit(limit) if limit is not None else None
         if decision_id is None:
             limit_clause = "" if limit_value is None else "LIMIT ?"
@@ -2507,7 +2510,12 @@ class SQLiteGraphStore:
             ).fetchall()
         return [dict(row) for row in rows]
 
-    def query_context(self, entity_id: str, max_depth: int) -> list[dict[str, Any]]:
+    def query_context(
+        self,
+        entity_id: str,
+        max_depth: int,
+        domain: str | None = None,
+    ) -> list[dict[str, Any]]:
         depth = _bounded_traversal_depth(max_depth)
         root_id = str(entity_id)
         rows: list[dict[str, Any]] = [
@@ -2536,7 +2544,9 @@ class SQLiteGraphStore:
                 continue
             seen_decisions.add(decision_id)
             decision = self.get_decision(decision_id)
-            if decision is None:
+            if decision is None or (
+                domain is not None and decision.get("domain") != str(domain)
+            ):
                 continue
             rows.append(
                 {
@@ -2572,7 +2582,10 @@ class SQLiteGraphStore:
                     if not neighbor_decision_id or neighbor_decision_id in seen_decisions:
                         continue
                     neighbor_decision = self.get_decision(neighbor_decision_id)
-                    if neighbor_decision is None:
+                    if neighbor_decision is None or (
+                        domain is not None
+                        and neighbor_decision.get("domain") != str(domain)
+                    ):
                         continue
                     seen_decisions.add(neighbor_decision_id)
                     rows.append(

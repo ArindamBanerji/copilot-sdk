@@ -283,6 +283,7 @@ def seed_dataops_graph(seed: int = 42) -> tuple[list[dict[str, Any]], list[dict[
             alert_key,
             {
                 "decision_id": f"decision-{alert_key}",
+                "domain": "dataops",
                 "category": category,
                 "recommended_action": alert.get("action_taken"),
                 "confidence": round(0.55 + rng.random() * 0.4, 4),
