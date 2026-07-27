@@ -1,0 +1,31 @@
+# Every exception is limited to the specific scanner rule that requires it.
+# Test code is permitted to use isolated stores and disposable AGE connections.
+
+[rules]
+neo4j_driver = [
+  "tests/",
+  "copilot_sdk/testing/",
+]
+psycopg_connect = [
+  "ci_platform/graph/age_client.py",
+  "copilot_sdk/testing/",
+  "tests/",
+]
+sqlite_graph_store = [
+  "copilot_sdk/graph/sqlite_store.py",
+  "copilot_sdk/testing/",
+  "tests/",
+]
+in_memory_graph_store = [
+  "copilot_sdk/graph/memory_store.py",
+  "copilot_sdk/testing/",
+  "tests/",
+]
+graph_environment = [
+  "copilot_sdk/config/graph_config.py",
+  "copilot_sdk/testing/",
+  "tests/",
+]
+unscoped_decision_match = [
+  "tests/",
+]

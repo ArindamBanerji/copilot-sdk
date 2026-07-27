@@ -1,10 +1,9 @@
 # AGE Shared Graph Migration — Complete Design & Execution Plan
 
-**Date:** July 20, 2026 · **Version:** v3.20
+**Date:** July 20, 2026 · **Version:** v3.18 (o1-edited)
 **Authority:** judgment_memory_v2_7.md
-**History:** v1→v3.14 → protocol audit → v3.16 → final review → v3.17 → o1 code-verified edits → v3.18 → o1 sign-off review → v3.19 → S1 complete, OD-5 resolved → v3.20
+**History:** v1→v3.14 → protocol audit → v3.16 → final review → v3.17 → o1 code-verified edits → v3.18
 **Scope:** Current state to "every §2 claim demonstrated"
-**Design status:** SIGNED OFF. Zero design gaps (o1-verified). All phases design-complete. Go/no-go gates (§7.0, §8.2b) authorize production flips after implementation passes.
 
 This document is the single source of truth for the AGE migration.
 Implementation prompts reference sections by number. No design spec
@@ -19,18 +18,13 @@ File:line evidence recorded in investigation scripts under scripts/.
 
 ## §1.1 AGE graph state
 
-- **SOC:** 6,253 Decisions at the July 19 audit. Historical V_soc = 4,899
-  (3,749 correct + 1,150 incorrect). A later S1 direct D2 measurement was
-  4,862; record `V_SOC_BASELINE` at Phase 1 execution and do not use either
-  historical value as a gate. "incorrect" = overridden per JM §4.2. No
-  status property on SOC Decisions at the audit.
+- **SOC:** 6,253 Decisions. V_soc = 4,899 (3,749 correct + 1,150 incorrect).
+  "incorrect" = overridden per JM §4.2. No status property on SOC Decisions.
   No Outcome nodes. No HAS_OUTCOME edges. Factor vectors embedded on Decision.
 - **Forward-write bug:** age_client.py L848 CREATE does not set domain.
 - **Scorer:** SOC uses InMemoryGraphStore + file checkpoint. Does NOT read L5.
 - **Conservation query:** `d.domain = 'soc' OR d.domain IS NULL` (handles both).
-- **Historical V bug:** before S1, count_verified(store,'soc') returned 0
-  through an edge-based implementation. S1 replaced it with D2 plus active
-  (not-archived) filtering.
+- **Live V bug:** count_verified(store,'soc') returns 0 (edge-based implementation).
 
 ## §1.2 Stale nodes (4,871 total)
 
@@ -44,7 +38,7 @@ File:line evidence recorded in investigation scripts under scripts/.
 | EvolutionEvent | 142 | 0 edges, 0 Decision overlap |
 | L5Centroid | 17 | Wrong: Trading=4 vs 0 in SQLite |
 | L5DKWeight | 4 | Wrong: Trading claims 280 decisions |
-| L5ConservationState | 5 | Wrong: Trading V=351 vs actual 150; SOC V=37 vs historical audit V=4,899 |
+| L5ConservationState | 5 | Wrong: Trading V=351 vs actual 150; SOC V=37 vs actual 4,899 |
 | L5DKWeightArchive | 102 | Stale archive of wrong state |
 
 SOC confirmed: does not read L5 at startup. L5 deletion inert for SOC.
@@ -116,13 +110,13 @@ investigation, and deadline.
 | **OD-2** | Production scorer convergence: accept bootstrap cold-start for Phase 4 copilots? | (a) Accept — bootstrap centroids converge. (b) L2: migrate SQLite L5 tables to warm-start. | §7.7 Trading observation: after 50 live-verified decisions, compare production centroids against SQLite baseline. **Criterion: cosine >= 0.90 per category with >= 5 verified.** Categories with < 5 excluded. **Time contingency:** if 50 verified decisions have not occurred within 2 weeks, apply the same criterion to however many are available. If >= 20 decisions exist and all qualifying categories pass → accept L1. If < 20 decisions exist → accept L1 for Trading (small impact) and evaluate L2 separately for each Phase 4 copilot based on their verified count (Purchasing=20, DataOps=20, S2P=12). | After Trading flip (week 6), before Phase 4 | §8.1-8.3 Phase 4 migrations |
 | **OD-3** | TRIGGERED_EVOLUTION naming: what label do SDK copilots use? | (a) Keep label, different topology. (b) SDK uses EVOLVED_FROM. (c) Coexist, filter by type. | Phase 2 naming analysis | Before any copilot creates evolution events (no urgency — 0 edges) | OD-4 |
 | **OD-4** | Evolution events (Trading=1, DataOps=1): migrate or discard? | (a) Migrate after OD-3. (b) Discard — 2 rows. | OD-3 resolution | Before Phase 4 if (a), otherwise no deadline | Nothing critical |
-| **OD-5** | ~~V parity: which SOC callable?~~ **RESOLVED.** AGEClient.count_verified_decisions() is the SOC startup parity callable. `test_mixed_branch_parity_across_all_soc_count_readers` proves behavioral parity with AGEGraphStore.count_verified('soc'). | Resolved via S1 implementation | Resolved | §5.9 completion, §10.8 V parity |
+| **OD-5** | V parity: which SOC callable? | Identify exact method in LearningHealthMonitor that computes verified count. | S1 Prompt 0 discovery | **Blocks Phase 1 completion** (not Phase 1 start). §5.9 D2 gate requires V parity. | §5.9 completion, §10.8 V parity |
 | **OD-6** | Phase 6 receipt traversal: S2P has 4 receipts — require traversal proof or skip? | (a) Include — 4 rows proves topology. (b) Skip — HAS_OUTCOME sufficient. | Receipt migration completes (unconditional) | Phase 6 (week 8) | §10.4 wording only |
 | **OD-7** | write_outcome compound identity: how does domain reach the MATCH clause? | (a) Add domain to AGEGraphStore constructor, use self.domain in MATCH. (b) Add domain parameter to write_outcome protocol signature (broader change, affects all callers). Option (c) single-key is REJECTED — bare hex IDs across Purchasing/DataOps/S2P have no uniqueness guarantee. | §6.1b implementation: read AGEGraphStore constructor + write_outcome, choose (a) or (b) | Before Phase 2 completion (week 4) | §7.5 dual-write flip, §3.4 DualWriteStore |
 | **OD-8** | write_entity_enrichment: implement on AGE or defer? | (a) Implement AGE support — required for full dual-write protocol coverage. (b) Defer — AGE raises NotImplementedError today; DualWriteStore skips secondary for this method; accept incomplete dual-write coverage. | Codex S3 Prompt 0 reads AGE enrichment implementation to assess scope | Before Phase 2 DualWriteStore claims full coverage | §3.4.3 delegation completeness, §7.0 go/no-go |
 
 **Phase 1 blocking rule:** Phase 1 CAN START without any OD resolved.
-OD-5 is RESOLVED — AGEClient.count_verified_decisions() is the SOC V parity callable.
+Phase 1 CANNOT COMPLETE until OD-5 is resolved (V parity callable identified).
 OD-7 must resolve before Phase 2 completion and any production flip.
 OD-8 must resolve before DualWriteStore claims full protocol coverage.
 All other ODs resolve in their stated phases.
@@ -136,8 +130,7 @@ All other ODs resolve in their stated phases.
 ### §3.1.1 Locked predicate
 
 ```
-V(domain) = count(DISTINCT d.decision_id) WHERE domain_scope(d, domain) AND
-  (d.archived IS NULL OR d.archived <> true) AND
+V(domain) = count(DISTINCT d.decision_id) WHERE d.domain = domain AND
   (
     (d.status IS NOT NULL AND d.status IN ['confirmed','overridden'])
     OR
@@ -148,8 +141,6 @@ V(domain) = count(DISTINCT d.decision_id) WHERE domain_scope(d, domain) AND
 Property-based. No edge traversal. Two branches are complementary by
 construction: `status IS NOT NULL` vs `status IS NULL`. A decision
 cannot satisfy both. Double-counting is structurally impossible.
-`domain_scope(d, 'soc')` additionally permits legacy `d.domain IS NULL`;
-all other domains require exact equality.
 
 ### §3.1.2 Population coverage
 
@@ -161,15 +152,13 @@ all other domains require exact equality.
 | SOC unverified | NULL | NULL | 2 fails | ✗ |
 | SDK live verified (post-flip) | 'confirmed'/'overridden' | on Outcome node | 1 | ✓ |
 | SDK live pending (post-flip) | 'pending' | absent | neither | ✗ |
-| Archived verified | confirmed/overridden or legacy | any | excluded before branch evaluation | ✗ |
 
 ### §3.1.3 Exact AGE Cypher
 
 ```sql
 SELECT * FROM cypher('soc_graph', $$
   MATCH (d:Decision)
-  WHERE <domain_scope>
-  AND (d.archived IS NULL OR d.archived <> true)
+  WHERE d.domain = '<domain>'
   AND (
     (d.status IS NOT NULL AND d.status IN ['confirmed','overridden'])
     OR
@@ -179,31 +168,25 @@ SELECT * FROM cypher('soc_graph', $$
 $$) as (v agtype);
 ```
 
-Use _S() or literal string for domain. No $params (AGE limitation). For
-SOC, `<domain_scope>` is `(d.domain = 'soc' OR d.domain IS NULL)`; for all
-other domains it is `d.domain = '<domain>'`.
-**Validate the interpolated domain against the safe identifier grammar:**
+Use _S() or literal string for domain. No $params (AGE limitation).
+**Validate domain against the known set before interpolation:**
 ```python
 VALID_DOMAINS = frozenset({"soc", "trading", "purchasing", "dataops", "s2p"})
-_SAFE_DOMAIN_RE = re.compile(r"^[a-zA-Z0-9_-]{1,200}$")
-if not isinstance(domain, str) or not _SAFE_DOMAIN_RE.fullmatch(domain):
+if domain not in VALID_DOMAINS:
     raise ValueError(f"Unknown domain: {domain}")
 ```
-`VALID_DOMAINS` remains the production-domain documentation registry; it is
-not the interpolation gate because isolated conformance domains are valid.
-The regex closes the injection path while allowing those test domains.
+This closes the injection path permanently. Domain is internal with five
+known values — validation is one line.
 
-### §3.1.4 S1 D2 method changes
+### §3.1.4 Methods to change
 
-| Method | File | Pre-S1 behavior | S1 implementation |
+| Method | File | Current | Change to |
 |---|---|---|---|
-| count_verified(domain) | age_graph_store.py | Edge-based (HAS_OUTCOME) | §3.1.3 predicate, including active (not-archived) exclusion |
-| count_verified_decisions(domain) | age_graph_store.py | Status-based only | §3.1.3 predicate, including active exclusion |
-| get_verified_decisions(domain) | age_graph_store.py | Edge-based | §3.1.3 WHERE clause, active exclusion, and Decision/optional Outcome property maps |
-| count_correct(domain) | age_graph_store.py | Edge-based | Dual-branch: Branch 1 traverse HAS_OUTCOME→Outcome.is_correct=true (legitimate edge use); Branch 2 d.correct=true AND d.status IS NULL; both exclude archived Decisions |
+| count_verified(domain) | age_graph_store.py | Edge-based (HAS_OUTCOME) | §3.1.3 predicate |
+| count_verified_decisions(domain) | age_graph_store.py | Status-based only | §3.1.3 predicate |
+| get_verified_decisions(domain) | age_graph_store.py | Edge-based | §3.1.3 WHERE clause |
+| count_correct(domain) | age_graph_store.py | Edge-based | Dual-branch: Branch 1 traverse HAS_OUTCOME→Outcome.is_correct=true (legitimate edge use); Branch 2 d.correct=true AND d.status IS NULL |
 | AGESDKAdapter delegations | age_sdk_adapter.py | Pass-through | Inherits fix via delegation |
-| AGEClient.count_verified_decisions(), count_correct_decisions() | age_client.py | SOC direct path | Full SOC D2 for V; legacy direct correct count; both use SOC/null-domain scope plus active exclusion |
-| Neo4jClient.count_verified_decisions(), count_correct_decisions() | backend/app/db/neo4j.py | SOC direct path | Full SOC D2 for V; legacy direct correct count; both use SOC/null-domain scope plus active exclusion |
 
 ### §3.1.5 Callers (must not change signatures)
 
@@ -212,10 +195,8 @@ The regex closes the injection path while allowing those test domains.
 | scorer.py conservation | copilot_sdk/scoring/scorer.py:453 | store.count_verified_decisions() |
 | scorer.py DK refresh | copilot_sdk/scoring/scorer.py:811 | store.count_verified_decisions() |
 | Various API endpoints | per copilot | Via store interface |
-| SOC startup and direct graph paths | AGEClient / Neo4jClient | count_verified_decisions() |
 
-GraphStore callers use the protocol interface; SOC direct paths use their
-existing AGEClient or Neo4jClient methods. All method signatures are
+All callers use the GraphStore protocol interface. Method signatures
 preserved. No caller changes needed.
 
 ### §3.1.6 count_correct — legitimate edge use
@@ -225,13 +206,11 @@ property read on a linked node, not an existence check for V. The query:
 
 ```
 Branch 1: MATCH (d:Decision {domain: '<domain>'})
-            WHERE d.status IN ['confirmed','overridden']
-              AND (d.archived IS NULL OR d.archived <> true)
+           WHERE d.status IN ['confirmed','overridden']
            MATCH (d)-[:HAS_OUTCOME]->(o:Outcome)
            WHERE o.is_correct = true
 Branch 2: MATCH (d:Decision {domain: '<domain>'})
-            WHERE d.status IS NULL AND d.correct = true
-              AND (d.archived IS NULL OR d.archived <> true)
+           WHERE d.status IS NULL AND d.correct = true
 ```
 
 **d.correct type hazard:** V uses `d.outcome IS NOT NULL` (type-agnostic,
@@ -251,7 +230,7 @@ $$) as (val agtype, c agtype);
 Record the type. If boolean true/false → `d.correct = true` works.
 If string or integer → adjust the Branch 2 predicate to match.
 
-### §3.1.7 Fixtures (9)
+### §3.1.7 Fixtures (8)
 
 | # | Setup | Assert |
 |---|---|---|
@@ -260,27 +239,23 @@ If string or integer → adjust the Branch 2 predicate to match.
 | 3 | Decision: status='confirmed', outcome='correct' | counted ONCE (Branch 1 only) |
 | 4 | Decision: status='pending', outcome='correct' | NOT counted |
 | 5 | Measure V_branch1 + V_branch2 - V_total | must = 0 (no double-count) |
-| 6 | Archived confirmed Decision | excluded from V, count_correct, and get_verified_decisions |
-| 7 | count_verified(store, 'soc') | >= V_SOC_BASELINE recorded at Phase 1 execution |
-| 8 | count_verified(store, 'trading') after Phase 3 | >= 150 |
-| 9 | Create pending → write_outcome() → V | increments by exactly 1 |
+| 6 | count_verified(store, 'soc') | >= 4,899 (live gate) |
+| 7 | count_verified(store, 'trading') after Phase 3 | >= 150 |
+| 8 | Create pending → write_outcome() → V | increments by exactly 1 |
 
-Run all 9 against BOTH AGEGraphStore and SQLiteGraphStore.
+Run all 8 against BOTH AGEGraphStore and SQLiteGraphStore.
 
 ### §3.1.8 V parity (SOC runtime vs adapter)
 
-SOC startup computes V through `AGEClient.count_verified_decisions()`;
-`AGEGraphStore.count_verified('soc')` is the adapter comparator. S1's
-`test_mixed_branch_parity_across_all_soc_count_readers` exercises both D2
-branches and the active exclusion through AGEGraphStore, AGEClient, and
-Neo4jClient. `LearningHealthMonitor.evaluate()` retains its separate
-category- and verified_at_epoch-aware analytics query (learning_health.py:470)
-and is not the startup V callable.
+SOC computes V via LearningHealthMonitor.evaluate() →
+internal verified count from direct Decision-property queries
+(learning_health.py:470). After D2 fix, add a parity test.
 
-The runtime parity assertion is:
+The exact SOC callable must be identified during S1 implementation
+(open decision OD-5). The parity assertion is:
 
 ```python
-soc_internal_v = await age_client.count_verified_decisions()
+soc_internal_v = <discovered callable>(domain='soc')
 adapter_v = count_verified(age_store, 'soc')
 assert soc_internal_v == adapter_v
 ```
@@ -705,8 +680,8 @@ arguments, and a method-specific idempotency key:
 | write_fingerprint | `(method, domain, fingerprint_id)` |
 | write_centroid_checkpoint | `(method, domain, checkpoint_id)` |
 | write_evolution_event | `(method, domain, event_id)` |
-| link_entity | `(method, domain, decision_id, entity_id, entity_type)` |
-| archive_decisions | `(method, domain, before, status_filter, confirm_verified)` |
+| link_entity | `(method, domain, decision_id, entity_id)` |
+| archive_decisions | `(method, domain, before)` |
 | write_entity_enrichment | `(method, idempotency_key)` when supplied; otherwise no asynchronous replay |
 | save_centroids | No asynchronous replay until a stable operation-specific key is designed |
 | archive_old_decisions | No asynchronous replay until a stable operation-specific key is designed |
@@ -724,7 +699,7 @@ Return list of still-failed entries. Clear succeeded entries.
 ### §3.4.7 Factory integration
 
 ```
-GRAPH_BACKEND=dual_write
+GRAPH_BACKEND=dual-write
 GRAPH_WRITE_PRIMARY=sqlite
 GRAPH_WRITE_SECONDARY=age
 ```
@@ -783,9 +758,6 @@ ReadDiffRunner compares these return values, not storage columns.
 comparison, ReadDiffRunner must additionally call `get_verified_decisions()`
 on both stores and join by `(domain, decision_id)`; both implementations
 return `actual_action` and `is_correct` there.
-AGEGraphStore returns `properties(d) AS d` plus optional
-`properties(o) AS o`, then merges those property maps into the normalized
-dictionary. It must not return raw AGE vertices to the comparison boundary.
 
 **Ignored:**
 - List ordering (decisions may come back in different order)
@@ -894,17 +866,24 @@ This is open decision OD-2. Must resolve after Phase 3, before Phase 4.
 
 | Method | Current | Change |
 |---|---|---|
-| get_decisions(domain) | limit=400 default | Preserve the bounded `limit=400` default and add deterministic `ORDER BY created_at, decision_id`. No offset/cursor change in this phase. |
-| get_all_decisions(domain) | Exists but delegates to get_decisions with 400-row cap — **broken** | Run a dedicated, unbounded, domain-scoped query ordered by `created_at, decision_id`. |
+| get_decisions(domain) | limit=400 default | Add limit and offset params. Default limit=None (return all). |
+| get_all_decisions(domain) | Exists but delegates to get_decisions with 400-row cap — **broken** | Fix: paginate internally (1,000 per page) and return complete list. |
 
 Note: `get_verified_decisions()` already returns all rows in SQLite and
 has no limit parameter in the protocol. The AGE implementation must match
 this — remove any internal cap. No signature change needed.
 
-Existing callers of `get_decisions()` remain bounded at 400 unless they pass
-an explicit limit. Full-history consumers use `get_all_decisions()`; this
-avoids silently expanding UI/API responses to all 24,032 S2P rows. Offset or
-cursor pagination remains a separate design decision.
+Existing callers that pass no arguments currently receive at most 400 rows.
+Changing the default to limit=None means they receive ALL rows — which for
+S2P is 24,032. This is correct for data completeness but may cause latency
+and memory regression on UI/API paths that were silently paginated.
+
+**Caller audit (before flipping the default):** Enumerate all callers of
+get_decisions() and get_verified_decisions() across all repos. For each:
+- If it displays to UI or serializes to API response → give it an explicit
+  limit (e.g., 100, 400) to preserve current behavior.
+- If it computes aggregates, comparisons, or exports → leave limit=None.
+- Document each caller's decision.
 
 get_all_decisions() is what ReadDiffRunner calls for full comparison.
 
@@ -1016,7 +995,7 @@ SELECT * FROM cypher('soc_graph', $$ MATCH (d:Decision {domain:'soc'}) RETURN co
 SELECT * FROM cypher('soc_graph', $$ MATCH (d:Decision {domain:'soc'}) WHERE d.outcome IS NOT NULL RETURN count(*) $$) as (c agtype);
 ```
 
-**Gate:** remaining=0, total >= V_TOTAL_BASELINE, V >= V_SOC_BASELINE (measure both at Phase 1 start).
+**Gate:** remaining=0, total >= 6,253, V >= 4,899.
 **Rollback:** `MATCH (d:Decision {domain_source:'backfill'}) REMOVE d.domain, d.domain_source`
 
 ## §5.6 DataOps domain backfill (29 nodes)
@@ -1167,7 +1146,7 @@ $$) as (val agtype, c agtype);
 ```
 If boolean → `d.correct = true` works. If string/integer → adjust Branch 2.
 
-**Gate:** 9 fixtures pass on both adapters. count_verified(store,'soc') >= V_SOC_BASELINE.
+**Gate:** 8 fixtures pass on both adapters. count_verified(store,'soc') >= 4,899.
 SQLite V unchanged for all 4 copilots. AGE Cypher acceptance tests pass.
 d.correct type verified.
 **Rollback:** Revert function + caller changes.
@@ -1254,11 +1233,6 @@ Default GRAPH_BACKEND=sqlite. Behavior unchanged.
 88 tests. Report exact pass/skip/fail counts.
 **Zero migration-related skips.** If any are skipped, list and justify.
 
-Dedicated AGEGraphStore and AGEGraphStoreAdapter live tests are separate from
-Protocol v2 conformance: they run only with `AGE_LIVE_STORE_TESTS=1`, create a
-unique `age_store_test_<timestamp>_<uuid>` graph, and drop it in teardown.
-They must never target `soc_graph` or a shared `test_graph`.
-
 **Gate:** pass count + skip justification. **Rollback:** N/A.
 
 ## §6.7 Projection module
@@ -1290,7 +1264,6 @@ Run after §6.2 complete. Measured S2P estimate replaces "minutes."
 | Shape parity | write_decision→write_governed_decision produces identical AGE node |
 | ReadDiffRunner | Compares all §3.5.2 fields with normalization (§3.5.2) |
 | OD-7 resolved | write_outcome uses compound identity |
-| OD-8 resolved | write_entity_enrichment: if (a) implement → AGE enrichment works under dual-write. If (b) defer → DualWriteStore explicitly skips secondary for this method, introspection test documents the exception, and the completeness gate passes with that documented exclusion. |
 | Outbox replay | Replay of governed payload succeeds + per-method idempotency (§3.4.5) |
 | Conformance | Exact pass/skip/fail counts; zero migration-related skips |
 | Rule #38 | All 4 copilots via factory |
@@ -1299,7 +1272,7 @@ Run after §6.2 complete. Measured S2P estimate replaces "minutes."
 
 ## §7.1 Pre-migration
 
-SQLite backup + AGE pg_dump. Verify count_verified(store,'soc') >= V_SOC_BASELINE.
+SQLite backup + AGE pg_dump. Verify count_verified(store,'soc') >= 4,899.
 
 ## §7.2 Migration
 
@@ -1326,7 +1299,7 @@ SELECT * FROM cypher('soc_graph', $$
 
 -- V through function (property-based)
 count_verified(store, 'trading')  -- Gate: >= 150
-count_verified(store, 'soc')      -- Gate: >= V_SOC_BASELINE
+count_verified(store, 'soc')      -- Gate: >= 4,899
 
 -- Pending without outcomes
 SELECT * FROM cypher('soc_graph', $$
@@ -1382,7 +1355,7 @@ SELECT * FROM cypher('soc_graph', $$
   RETURN d.domain, count(d) $$) as (domain agtype, c agtype);
 ```
 
-**Gate:** Both domains present. V_soc >= V_SOC_BASELINE.
+**Gate:** Both domains present. V_soc >= 4,899.
 
 ---
 
@@ -1410,7 +1383,7 @@ Implement before S2P migration.
 SQLite backup. Migration. Verification (total=520, status distribution, V >= 20).
 Remove write gate. Dual-write (N=40, compare_all). Flip. PW: 235/0/1.
 
-**V regression:** soc >= V_SOC_BASELINE, trading >= 150, purchasing >= 20.
+**V regression:** soc >= 4,899, trading >= 150, purchasing >= 20.
 **Rollback:** Tagged delete + restore gate + un-flip.
 
 ## §8.2 DataOps (620 total, 20 verified, 600 pending)
@@ -1478,7 +1451,7 @@ for domain in ["soc", "s2p", "trading", "purchasing", "dataops"]:
     print(f"{domain}: V={v}")
 ```
 
-**Gate:** soc >= V_SOC_BASELINE; trading >= 150; purchasing >= 20; dataops >= 20; s2p >= 12.
+**Gate:** soc >= 4,899; trading >= 150; purchasing >= 20; dataops >= 20; s2p >= 12.
 
 ## §10.3 Multi-domain status distribution
 
@@ -1551,8 +1524,8 @@ Per §3.1.8. SOC runtime V == adapter count_verified(store,'soc').
 | Backup | pg_dump non-empty |
 | Stale deletion | 10 labels: all verification queries return 0 |
 | Forward-write | domain='soc' on CREATE; BE pass; ordered BEFORE backfill |
-| Domain backfill | IS NULL = 0; total >= V_TOTAL_BASELINE; V >= V_SOC_BASELINE |
-| D2/V fix (§3.1) | 9 fixtures both adapters; parity; all callers wired |
+| Domain backfill | IS NULL = 0; total >= 6,253; V >= 4,899 |
+| D2/V fix (§3.1) | 8 fixtures both adapters; parity; all callers wired |
 | Migration writer (§3.2) | Outcome + HAS_OUTCOME + status; equiv test; schema discovery |
 | Batched writer (§3.3) | Checkpoint/resume; 1K interrupt test; tagged rollback |
 | DualWriteStore (§3.4) | Full protocol; outbox; replay |
@@ -1576,7 +1549,7 @@ Per §3.1.8. SOC runtime V == adapter count_verified(store,'soc').
 
 | Week | Work | Gate |
 |---|---|---|
-| 1-2 | §5: backup, delete 4,871, forward-write fix, backfill, D2 fix, cleanup | Counts=0; V >= V_SOC_BASELINE direct+function; PW diff empty |
+| 1-2 | §5: backup, delete 4,871, forward-write fix, backfill, D2 fix, cleanup | Counts=0; V >= 4,899 direct+function; PW diff empty |
 | 2-5 | §6: migration writer, batched writer, dual-write, conformance, projection, entity investigation, benchmark | All §6 tests; 88/88; benchmark measured |
 | 5-6 | §7: Trading migration, equiv test, dual-write, flip, cold-start, PW | V >= 150; 246 PW; cosine >= 0.95; cross-copilot |
 | 6-8 | §8: Purchasing, DataOps, S2P (ascending) | All V baselines; all PW; demo.py |
