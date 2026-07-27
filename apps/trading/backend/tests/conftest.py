@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
+import uuid
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from copilot_sdk.config import GraphConfig
+from copilot_sdk.testing import age_available
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +23,48 @@ from app import context_router  # noqa: E402
 from app.main import create_app  # noqa: E402
 from apps.trading.backend.app.connectors.market_source import MockMarketSource  # noqa: E402
 from apps.trading.backend.app.services.market_data_provider import MarketDataProvider  # noqa: E402
+
+
+@pytest.fixture
+def trading_live_age_graph():
+    """Run live AGE tests against an isolated disposable graph."""
+    if not age_available():
+        yield
+        return
+
+    import psycopg
+
+    config = GraphConfig.load("trading")
+    if not config.dsn:
+        pytest.skip("Trading AGE DSN is not configured")
+    graph_name = f"protocol_v2_test_{uuid.uuid4().hex[:12]}"
+    keys = {
+        "TRADING_ACTIVE_GRAPH_BACKEND": "age",
+        "TRADING_ACTIVE_AGE_DSN": config.dsn,
+        "TRADING_ACTIVE_AGE_GRAPH": graph_name,
+        "TRADING_ACTIVE_AGE_DOMAIN": "trading",
+        "TRADING_ACTIVE_AGE_TEST_MODE": "1",
+    }
+    previous = {key: os.environ.get(key) for key in keys}
+    conn = psycopg.connect(config.dsn, connect_timeout=3, autocommit=True)
+    try:
+        conn.execute("LOAD 'age'")
+        conn.execute('SET search_path = ag_catalog, "$user", public')
+        conn.execute("SELECT create_graph(%s)", (graph_name,))
+        os.environ.update(keys)
+        yield graph_name
+    finally:
+        for key, value in previous.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+        try:
+            conn.execute("LOAD 'age'")
+            conn.execute('SET search_path = ag_catalog, "$user", public')
+            conn.execute("SELECT drop_graph(%s, true)", (graph_name,))
+        finally:
+            conn.close()
 
 
 @pytest.fixture

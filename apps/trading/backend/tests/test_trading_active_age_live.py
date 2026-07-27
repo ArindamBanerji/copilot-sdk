@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+from copilot_sdk.testing import age_available
 
 
 TRADING_FACTORS = {
@@ -25,12 +26,12 @@ TRADING_FACTORS = {
 
 
 pytestmark = pytest.mark.skipif(
-    os.environ.get("TRADING_ACTIVE_LIVE_AGE_TEST") != "1",
-    reason="set TRADING_ACTIVE_LIVE_AGE_TEST=1 to run guarded live Trading AGE tests",
+    not age_available(),
+    reason="AGE is not reachable",
 )
 
 
-def test_live_active_age_score_learn_route_surface_and_read_safety(tmp_path: Path):
+def test_live_active_age_score_learn_route_surface_and_read_safety(tmp_path: Path, trading_live_age_graph):
     _require_live_env()
     client = TestClient(create_app(db_path=tmp_path / "unused.sqlite", demo_bundle_path=False))
     store = client.app.state.trading_selected_graph_store
@@ -108,13 +109,12 @@ def _require_live_env() -> None:
     required = {
         "TRADING_ACTIVE_GRAPH_BACKEND": "age",
         "TRADING_ACTIVE_AGE_TEST_MODE": "1",
-        "TRADING_ACTIVE_AGE_GRAPH": "protocol_v2_test",
         "TRADING_ACTIVE_AGE_DOMAIN": "trading",
     }
     for key, expected in required.items():
         assert os.environ.get(key) == expected
     assert os.environ.get("TRADING_ACTIVE_AGE_DSN")
-    assert os.environ.get("TRADING_ACTIVE_AGE_GRAPH") != "soc_graph"
+    assert os.environ.get("TRADING_ACTIVE_AGE_GRAPH", "").startswith("protocol_v2_test_")
 
 
 def _has_outcome(decision: dict[str, Any]) -> bool:
