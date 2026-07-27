@@ -97,6 +97,13 @@ def _resolve_profile() -> str:
     if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
         return "development"
     return "production"
+
+
+def _demo_mode() -> bool:
+    configured = os.environ.get("DEMO_MODE", os.environ.get("PURCHASING_DEMO_MODE"))
+    if configured is not None:
+        return configured.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
 DB_FILENAME = "purchasing.db"
 OUTBOX_DB_FILENAME = "purchasing_outbox.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -590,12 +597,16 @@ def create_app(
 
     @app.post("/api/purchasing/demo/chain-seed")
     def chain_demo_seed() -> dict[str, Any]:
+        if not _demo_mode():
+            raise HTTPException(status_code=404, detail="Purchasing demo route is disabled")
         state = chain_demo.seed()
         app.state.purchasing_chain_demo = state
         return chain_demo.seed_response(state)
 
     @app.post("/api/purchasing/chain/transfer")
     def chain_demo_transfer(payload: dict[str, Any], request: Request) -> dict[str, Any]:
+        if not _demo_mode():
+            raise HTTPException(status_code=404, detail="Purchasing demo route is disabled")
         if "source_location" in payload or "target_locations" in payload:
             state = getattr(app.state, "purchasing_chain_demo", None)
             if not isinstance(state, dict):
@@ -672,9 +683,11 @@ def create_app(
             outbox_store=outbox_store,
         )
     )
-    app.include_router(create_chain_router())
+    if _demo_mode():
+        app.include_router(create_chain_router())
     app.include_router(create_delivery_router())
-    app.include_router(create_discovery_router())
+    if _demo_mode():
+        app.include_router(create_discovery_router())
     app.include_router(create_economic_router())
     app.include_router(create_event_router())
     app.include_router(create_pos_router())
@@ -763,6 +776,8 @@ def create_app(
 
     @app.post("/api/purchasing/demo/reset")
     def reset_demo_state() -> dict[str, Any]:
+        if not _demo_mode():
+            raise HTTPException(status_code=404, detail="Purchasing demo route is disabled")
         reset_chain_state(app.state)
         reset_event_state(app.state)
         if hasattr(app.state, "outbox_store"):

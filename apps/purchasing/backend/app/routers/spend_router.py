@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.connectors.commodity_provider import CommodityDataProvider
 from app.data_helpers import is_sample_data
@@ -15,12 +16,20 @@ SCRAPED_EXTERNAL_PROVENANCE = "scraped_external"
 SAMPLE_PROVENANCE = "sample"
 
 
+def _demo_mode() -> bool:
+    configured = os.environ.get("DEMO_MODE", os.environ.get("PURCHASING_DEMO_MODE"))
+    if configured is not None:
+        return configured.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
+
+
 def create_spend_router(
     orders: list[dict] | None = None,
     connector: Any | None = None,
     commodity_provider: CommodityDataProvider | None = None,
 ) -> APIRouter:
-    if connector is None:
+    default_connector = connector is None
+    if default_connector:
         from app.connectors.mock_qbo import MockQBOConnector
 
         connector = MockQBOConnector()
@@ -30,6 +39,8 @@ def create_spend_router(
     router = APIRouter(prefix="/api/purchasing/spend", tags=["spend"])
 
     def _get_orders() -> list[dict]:
+        if default_connector and not _demo_mode():
+            raise HTTPException(status_code=503, detail="QuickBooks spend provider unavailable")
         if orders is not None:
             rows = list(orders)
         else:
@@ -125,6 +136,8 @@ def _commodity_context(provider: CommodityDataProvider | None = None) -> dict[st
     provider = provider or CommodityDataProvider()
     result = provider.get_all_indices()
     source = str(result.source)
+    if source in {SAMPLE_PROVENANCE, "demo_fixture"} and not _demo_mode():
+        raise HTTPException(status_code=503, detail="Commodity data provider unavailable")
     return {
         "provenance": source,
         "source": result.label,

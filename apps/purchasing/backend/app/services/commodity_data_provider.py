@@ -6,6 +6,7 @@ from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as Futur
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
+import os
 
 from app.connectors.mock_commodity import MockCommoditySource
 from copilot_sdk.evidence.provenance import Provenanced
@@ -13,6 +14,22 @@ from copilot_sdk.evidence.provenance import Provenanced
 LIVE_TIMEOUT_SECONDS = 3
 MAX_BACKOFF_SECONDS = 300
 COMMODITY_CATEGORIES = ("protein", "produce", "dairy", "dry_goods", "beverages")
+
+
+def _demo_mode() -> bool:
+    configured = os.environ.get("DEMO_MODE", os.environ.get("PURCHASING_DEMO_MODE"))
+    if configured is not None:
+        return configured.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
+
+
+def _demo_provenance() -> str:
+    configured = os.environ.get("DEMO_MODE", os.environ.get("PURCHASING_DEMO_MODE"))
+    return (
+        "demo_fixture"
+        if configured is not None and configured.strip().lower() in {"1", "true", "yes", "on"}
+        else "sample"
+    )
 
 
 def now_utc() -> datetime:
@@ -91,6 +108,14 @@ class CommodityDataProvider:
             try:
                 data = self._fetch_with_timeout(fetch_fn)
                 if data is not None:
+                    source_tier = self._source_provenance_tier()
+                    if not _demo_mode() and source_tier in {
+                        "sample",
+                        "fixture",
+                        "demo_fixture",
+                    }:
+                        self._enter_backoff(key)
+                        raise RuntimeError("Commodity data provider unavailable")
                     timestamp = now_iso()
                     self._cache[key] = CacheEntry(
                         data=data,
@@ -100,26 +125,37 @@ class CommodityDataProvider:
                     self._clear_backoff(key)
                     return Provenanced(
                         value=data,
-                        source=self._source_provenance_tier(),
+                        source=source_tier,
                         as_of=timestamp,
                     )
-            except Exception:
-                pass
-            self._enter_backoff(key)
+            except Exception as exc:
+                self._enter_backoff(key)
+                if not _demo_mode() and entry is None:
+                    raise RuntimeError("Commodity data provider unavailable") from exc
+            else:
+                self._enter_backoff(key)
 
         if entry is not None:
             return Provenanced(value=entry.data, source="cached", as_of=entry.as_of)
 
         fixture = self._fixture_for_key(key)
         if fixture is not None:
+            if not _demo_mode():
+                raise RuntimeError("Commodity data provider unavailable")
             return Provenanced(
                 value=fixture,
-                source="sample",
-                label="sample data",
+                source=_demo_provenance(),
+                label=(
+                    "demo fixture data"
+                    if _demo_provenance() == "demo_fixture"
+                    else "sample data"
+                ),
                 as_of=self._fixture_as_of(),
             )
 
-        return Provenanced(value=None, source="sample", label="no data available")
+        if not _demo_mode():
+            raise RuntimeError("Commodity data provider unavailable")
+        return Provenanced(value=None, source=_demo_provenance(), label="no data available")
 
     def _source_provenance_tier(self) -> str:
         return str(getattr(self._source, "provenance_tier", "sample"))

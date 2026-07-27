@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +32,18 @@ _FACTOR_NAMES = (
     "emotional_indicator",
     "signal_confidence",
 )
+
+
+def _demo_mode() -> bool:
+    configured = os.environ.get("DEMO_MODE", os.environ.get("TRADING_DEMO_MODE"))
+    if configured is not None:
+        return configured.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
+
+
+def _explicit_demo_mode() -> bool:
+    configured = os.environ.get("DEMO_MODE", os.environ.get("TRADING_DEMO_MODE"))
+    return configured is not None and configured.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _load_json(filename: str) -> Any:
@@ -96,7 +109,12 @@ def _provenance_payload(result: Any) -> dict[str, Any]:
 
 
 def _fallback_provenance(source: str = "fixture") -> dict[str, Any]:
-    return {"source": source, "as_of": None}
+    explicit_demo = _explicit_demo_mode()
+    return {
+        "source": "demo_fixture" if explicit_demo else source,
+        "as_of": None,
+        **({"label": source} if explicit_demo else {}),
+    }
 
 
 def _ticker_response(value: dict[str, Any], provenance: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -297,8 +315,19 @@ def _conservation_category_row(
 @cached_static("market-snapshot")
 def market_snapshot(request: Request) -> dict[str, Any]:
     provider = _market_provider()
-    result = provider.get_market_snapshot()
+    try:
+        result = provider.get_market_snapshot()
+    except Exception as exc:
+        if not _demo_mode():
+            raise HTTPException(status_code=503, detail="Market data provider unavailable") from exc
+        result = None
     if isinstance(result.value, dict):
+        if not _demo_mode() and str(result.source).lower() in {
+            "sample",
+            "fixture",
+            "demo_fixture",
+        }:
+            raise HTTPException(status_code=503, detail="Market data provider unavailable")
         origin_provenance = getattr(provider, "origin_provenance", None)
         provenance_result = (
             origin_provenance("market_snapshot", result)
@@ -309,6 +338,8 @@ def market_snapshot(request: Request) -> dict[str, Any]:
 
     # JSON cache remains as the fixture fallback reference when live/provider data is unavailable.
     payload = _load_json_optional("market_snapshot.json")
+    if not _demo_mode():
+        raise HTTPException(status_code=503, detail="Market data provider unavailable")
     if isinstance(payload, dict):
         return _market_snapshot_response(payload, _fallback_provenance())
     return _market_snapshot_response(_default_market_snapshot(), _fallback_provenance())
@@ -317,11 +348,24 @@ def market_snapshot(request: Request) -> dict[str, Any]:
 @router.get("/ticker/{ticker}")
 def ticker_detail(ticker: str) -> dict[str, Any]:
     normalized = ticker.upper()
-    result = _market_provider().get_ticker_snapshot(normalized)
+    try:
+        result = _market_provider().get_ticker_snapshot(normalized)
+    except Exception as exc:
+        if not _demo_mode():
+            raise HTTPException(status_code=503, detail="Market data provider unavailable") from exc
+        result = None
     if isinstance(result.value, dict):
+        if not _demo_mode() and str(result.source).lower() in {
+            "sample",
+            "fixture",
+            "demo_fixture",
+        }:
+            raise HTTPException(status_code=503, detail="Market data provider unavailable")
         return _ticker_response(result.value, _provenance_payload(result))
 
     # JSON cache remains as the fixture fallback reference when live/provider data is unavailable.
+    if not _demo_mode():
+        raise HTTPException(status_code=503, detail="Market data provider unavailable")
     cache = _load_json("ticker_cache.json")
     if normalized not in cache:
         return {
@@ -338,19 +382,29 @@ def ticker_detail(ticker: str) -> dict[str, Any]:
 
 @router.get("/portfolio-summary")
 def portfolio_summary() -> dict[str, Any]:
+    if not _demo_mode():
+        raise HTTPException(status_code=503, detail="Portfolio analytics provider unavailable")
     analytics = _load_json_optional("analytics_cache.json")
     if isinstance(analytics, dict) and isinstance(analytics.get("portfolio_summary"), dict):
-        return analytics["portfolio_summary"]
-    return _load_json("portfolio_summary.json")
+        summary = analytics["portfolio_summary"]
+    else:
+        summary = _load_json("portfolio_summary.json")
+    if _explicit_demo_mode():
+        return {**summary, "source": "demo_fixture", "provenance": "demo_fixture"}
+    return summary
 
 
 @router.get("/analytics")
 @cached_static("analytics")
 def analytics(request: Request) -> dict[str, Any]:
+    if not _demo_mode():
+        raise HTTPException(status_code=503, detail="Trading analytics provider unavailable")
     payload = _load_json_optional("analytics_cache.json")
     if isinstance(payload, dict):
+        if _explicit_demo_mode():
+            return {**payload, "provenance": "demo_fixture"}
         return payload
-    return _empty_analytics()
+    return {**_empty_analytics(), "provenance": "demo_fixture"}
 
 
 @router.get("/trust-analysis")
@@ -437,9 +491,11 @@ def similar_trades(
     signal_confidence: float = 0.5,
     n: int = 5,
 ) -> dict[str, Any]:
+    if not _demo_mode():
+        raise HTTPException(status_code=503, detail="Trading similarity provider unavailable")
     seed = _load_json_optional("trading_seed_v2.json")
     if not isinstance(seed, list):
-        return {"similar": [], "count": 0}
+        return {"similar": [], "count": 0, "source": "demo_fixture", "provenance": "demo_fixture"}
 
     query = [
         signal_alignment,
@@ -474,7 +530,12 @@ def similar_trades(
 
     matches.sort(key=lambda item: item["similarity"], reverse=True)
     limit = max(n, 0)
-    return {"similar": matches[:limit], "count": len(matches)}
+    return {
+        "similar": matches[:limit],
+        "count": len(matches),
+        "source": "demo_fixture",
+        "provenance": "demo_fixture",
+    }
 
 
 @router.post("/trade-metadata", status_code=status.HTTP_201_CREATED)

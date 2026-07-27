@@ -8,12 +8,24 @@ from collections.abc import Callable
 from datetime import date, timedelta
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.connectors.mock_toast import MockToastConnector
 from copilot_sdk.di.profiler import BaseSourceProfiler
 
 ConnectorFactory = Callable[[], Any]
+
+
+def _demo_mode() -> bool:
+    configured = os.environ.get("DEMO_MODE", os.environ.get("PURCHASING_DEMO_MODE"))
+    if configured is not None:
+        return configured.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
+
+
+def _is_mock_connector(connector: Any) -> bool:
+    source = str(getattr(connector, "source_name", "") or type(connector).__name__).lower()
+    return "mock" in source or "fixture" in source
 
 
 def _default_toast_connector() -> Any:
@@ -30,9 +42,15 @@ def _default_toast_connector() -> Any:
                 location_id=os.environ.get("TOAST_LOCATION_ID", ""),
             )
         except ImportError:
+            if not _demo_mode():
+                raise RuntimeError("Toast provider is unavailable")
             warnings.warn("TOAST_CLIENT_ID set but client library not installed. Using mock.")
         except Exception as exc:
+            if not _demo_mode():
+                raise RuntimeError("Toast provider failed to initialize") from exc
             warnings.warn(f"Toast connector failed to initialize: {exc}. Using mock.")
+    if not _demo_mode():
+        raise RuntimeError("Toast provider is not configured")
     return MockToastConnector()
 
 
@@ -45,7 +63,12 @@ def create_pos_router(
 
     @router.get("/pos/today")
     def pos_today() -> dict[str, Any]:
-        connector = factory()
+        try:
+            connector = factory()
+            if not _demo_mode() and _is_mock_connector(connector):
+                raise RuntimeError("Toast provider is unavailable")
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail="Toast POS provider unavailable") from exc
         requested_date = date.today().isoformat()
         records = _fetch_records(connector, requested_date)
         effective_date = requested_date
@@ -53,7 +76,7 @@ def create_pos_router(
 
         if not records:
             fallback_date = _latest_fixture_date(connector)
-            if fallback_date is not None and fallback_date != requested_date:
+            if _demo_mode() and fallback_date is not None and fallback_date != requested_date:
                 fallback_records = _fetch_records(connector, fallback_date)
                 if fallback_records:
                     records = fallback_records
@@ -64,17 +87,25 @@ def create_pos_router(
         if records:
             summary.update(_record_summary(records[0]))
             summary["records"] = records
+        if _demo_mode():
+            summary["source"] = "demo_fixture"
+            summary["provenance"] = "demo_fixture"
         return summary
 
     @router.get("/pos/profile")
     def pos_profile() -> dict[str, Any]:
-        connector = factory()
+        try:
+            connector = factory()
+            if not _demo_mode() and _is_mock_connector(connector):
+                raise RuntimeError("Toast provider is unavailable")
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail="Toast POS provider unavailable") from exc
         entity_ids = _last_7_dates()
         date_source = "last_7_dates"
 
         if not any(_fetch_records(connector, entity_id) for entity_id in entity_ids):
             fixture_dates = _fixture_dates(connector)
-            if fixture_dates:
+            if _demo_mode() and fixture_dates:
                 entity_ids = fixture_dates[-7:]
                 date_source = "fixture_fallback"
 
@@ -82,6 +113,9 @@ def create_pos_router(
         payload = profile.to_dict()
         payload["entity_ids"] = entity_ids
         payload["date_source"] = date_source
+        if _demo_mode():
+            payload["source"] = "demo_fixture"
+            payload["provenance"] = "demo_fixture"
         return payload
 
     return router
