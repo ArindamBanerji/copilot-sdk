@@ -511,7 +511,7 @@ def create_app(
         try:
             payload = compute_conservation_status_payload(DOMAIN, scorer_proxy)
         except Exception:
-            return "GREEN"
+            return "UNAVAILABLE"
         return str(payload.get("status") or payload.get("state") or "GREEN").upper()
 
     def _alert_conservation_status() -> dict[str, Any] | None:
