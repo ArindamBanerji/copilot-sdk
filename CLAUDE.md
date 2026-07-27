@@ -125,3 +125,15 @@ Rules:
 - If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
 - For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
 - After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
+
+## Rule #63 — Test Double Completeness
+
+No mock/monkeypatch in test code unless the external dependency is
+truly unreachable (network, hardware, paid API). Test doubles must
+be complete — track state and answer queries from their own state.
+
+If a test double needs monkeypatching to work with new code, the
+test double is incomplete. Fix the double, not the caller.
+
+Retroactive audit needed: check all existing monkeypatch usage
+against this rule. Violations are technical debt, not exceptions.
