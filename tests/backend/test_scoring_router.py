@@ -1350,7 +1350,7 @@ def test_history_returns_empty_then_populated_decisions():
 
 def test_learn_prelookup_prefers_graph_store_over_legacy_store():
     scorer = GraphStoreBackedScorer()
-    client = build_client(scorer=scorer)
+    client = build_client(domain="test", scorer=scorer)
     score = client.post(
         "/score",
         json={

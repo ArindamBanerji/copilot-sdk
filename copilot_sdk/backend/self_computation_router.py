@@ -115,7 +115,7 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
     ) -> dict[str, Any]:
         store = _gs()
         if decision_id:
-            decision = store.get_decision(decision_id)
+            decision = store.get_decision(decision_id, domain=_domain())
             if decision is None:
                 return {"error": f"Decision {decision_id} not found"}
             outcome = next(
@@ -218,16 +218,11 @@ def _merge_verified_fields(
 
 
 def _get_all_decisions(store: GraphStore, domain: str) -> list[dict[str, Any]]:
-    get_all = getattr(store, "get_all_decisions", None)
-    if callable(get_all):
-        return list(get_all(domain))
-    get_verified = getattr(store, "get_verified_decisions", None)
-    return list(get_verified(domain)) if callable(get_verified) else []
+    return list(store.get_all_decisions(domain))
 
 
 def _get_verified_decisions(store: GraphStore, domain: str) -> list[dict[str, Any]]:
-    get_verified = getattr(store, "get_verified_decisions", None)
-    return list(get_verified(domain)) if callable(get_verified) else []
+    return list(store.get_verified_decisions(domain))
 
 
 def _count_verified(
@@ -235,10 +230,7 @@ def _count_verified(
     domain: str,
     verified: list[dict[str, Any]],
 ) -> int:
-    count_verified = getattr(store, "count_verified", None)
-    if callable(count_verified):
-        return int(count_verified(domain))
-    return len(verified)
+    return int(store.count_verified(domain))
 
 
 def _count_correct(
@@ -246,10 +238,7 @@ def _count_correct(
     domain: str,
     verified: list[dict[str, Any]],
 ) -> int:
-    count_correct = getattr(store, "count_correct", None)
-    if callable(count_correct):
-        return int(count_correct(domain))
-    return sum(1 for decision in verified if decision.get("is_correct") is True)
+    return int(store.count_correct(domain))
 
 
 def _get_centroid_checkpoints(

@@ -61,6 +61,9 @@ class GraphStore(Protocol):
     def count_verified(self, domain: str) -> int:
         ...
 
+    def count_verified_decisions(self, domain: str) -> int:
+        ...
+
     def count_correct(self, domain: str) -> int:
         ...
 

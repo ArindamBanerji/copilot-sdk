@@ -112,7 +112,7 @@ def create_scoring_router(
         with mutation_lock_scope(domain):
             scorer = get_scorer()
             try:
-                decision = _get_decision(scorer, request.decision_id)
+                decision = _get_decision(scorer, request.decision_id, domain=domain)
                 is_correct = request.actual_action == decision.get("recommended_action")
                 reward = _signed_reward(
                     domain=domain,
@@ -213,12 +213,7 @@ def create_scoring_router(
         scorer = get_scorer()
         store = _scorer_data_store(scorer)
         store_domain = _store_domain(store, domain)
-        get_decisions = getattr(store, "get_decisions", None)
-        if callable(get_decisions):
-            decisions = get_decisions(store_domain, limit=10**12)
-        else:
-            get_all = getattr(store, "get_all_decisions", None)
-            decisions = get_all(store_domain) if callable(get_all) else []
+        decisions = store.get_decisions(store_domain, limit=10**12)
         return {"engine": ENGINE, "decisions": _json_safe(decisions)}
 
     def measurement_payload() -> dict[str, Any]:
@@ -334,12 +329,9 @@ def _signed_reward(
     return round(reward if is_correct else -reward, 6)
 
 
-def _get_decision(scorer: Any, decision_id: str) -> dict[str, Any]:
+def _get_decision(scorer: Any, decision_id: str, *, domain: str) -> dict[str, Any]:
     store = _scorer_data_store(scorer)
-    get_decision = getattr(store, "get_decision", None)
-    if not callable(get_decision):
-        raise KeyError(decision_id)
-    decision = get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain=domain)
     if decision is None:
         raise KeyError(decision_id)
     return dict(decision)

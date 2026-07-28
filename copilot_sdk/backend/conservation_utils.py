@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol, cast, runtime_checkable
 
 
 def _ensure_gae_path() -> None:
@@ -24,6 +24,24 @@ from gae.calibration import check_conservation, compute_theta_min, conservation_
 ENGINE_STATUS = {"gae": "gae.calibration", "component": "conservation_status"}
 ENGINE_WHAT_IF = {"gae": "gae.calibration", "component": "check_conservation"}
 L5_BASELINE_PRODUCT_FALLBACK = 0.0
+
+
+@runtime_checkable
+class _DecisionCountStore(Protocol):
+    def count_verified(self, domain: str) -> int:
+        ...
+
+    def count_verified_decisions(self, domain: str) -> int:
+        ...
+
+    def count_correct(self, domain: str) -> int:
+        ...
+
+
+@runtime_checkable
+class _ConservationStore(_DecisionCountStore, Protocol):
+    def count_categories_with_n(self, domain: str, n: int = 1) -> int:
+        ...
 
 
 def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, Any]:
@@ -116,11 +134,9 @@ def state_counts(state: Any, domain: str | None = None) -> dict[str, Any]:
         total = int(getattr(state, "total_decisions", verified) or verified)
     else:
         effective_domain = str(domain or store_domain(store, getattr(state, "domain", "")))
-        verified = _call_count(store, "count_verified", effective_domain)
-        correct = _call_count(store, "count_correct", effective_domain)
-        total = _call_count_optional(store, "count_verified_decisions", effective_domain)
-        if total is None:
-            total = max(verified, correct)
+        verified = int(store.count_verified(effective_domain))
+        correct = int(store.count_correct(effective_domain))
+        total = int(store.count_verified_decisions(effective_domain))
 
     preset = preset_for_state(state)
     penalty = _positive_float(
@@ -146,14 +162,17 @@ def check_payload(check: Any) -> dict[str, Any]:
     }
 
 
-def state_store(state: Any) -> Any | None:
+def state_store(state: Any) -> _DecisionCountStore | None:
     if isinstance(state, dict):
         return None
-    direct_count_verified = getattr(state, "count_verified", None)
-    direct_count_correct = getattr(state, "count_correct", None)
-    if callable(direct_count_verified) and callable(direct_count_correct):
+    if isinstance(state, _DecisionCountStore):
         return state
-    return getattr(state, "graph_store", None) or getattr(state, "_graph_store", None)
+    candidate = getattr(state, "graph_store", None) or getattr(state, "_graph_store", None)
+    if candidate is None:
+        return None
+    if not isinstance(candidate, _DecisionCountStore):
+        raise RuntimeError("state graph store does not satisfy the Decision count contract")
+    return cast(_DecisionCountStore, candidate)
 
 
 def store_domain(store: Any, fallback: str) -> str:
@@ -189,34 +208,11 @@ def preset_for_state(state: Any) -> Any | None:
     return preset_cls() if preset_cls is not None else None
 
 
-def count_categories_with_data(store: Any, domain: str) -> int:
-    method = getattr(store, "count_categories_with_n", None)
-    if not callable(method):
-        raise RuntimeError("categories_with_data unavailable")
-    value = int(method(domain, 1))
+def count_categories_with_data(store: _ConservationStore, domain: str) -> int:
+    value = int(store.count_categories_with_n(domain, 1))
     if value < 0:
         raise ValueError("categories_with_data must be non-negative")
     return value
-
-
-def _call_count(store: Any, method_name: str, domain: str) -> int:
-    method = getattr(store, method_name, None)
-    if not callable(method):
-        return 0
-    try:
-        return int(method(domain))
-    except TypeError:
-        return int(method())
-
-
-def _call_count_optional(store: Any, method_name: str, domain: str) -> int | None:
-    method = getattr(store, method_name, None)
-    if not callable(method):
-        return None
-    try:
-        return int(method(domain))
-    except TypeError:
-        return int(method())
 
 
 def _positive_float(value: Any, default: float) -> float:

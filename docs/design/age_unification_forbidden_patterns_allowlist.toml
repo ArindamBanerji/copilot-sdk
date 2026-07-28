@@ -45,11 +45,10 @@ files = [
   { path = "gen-ai-roi-demo-v4-v50/backend/app/db/neo4j.py", reason = "legacy unreachable; non-AGE backends rejected at db/neo4j.py:510-543" },
 ]
 lines = [
-  { path = "copilot_sdk/di/nl_query.py", line = 144, reason = "base template rendered with domain by _query_template() at :154" },
-  { path = "copilot_sdk/di/nl_query.py", line = 145, reason = "base template rendered with domain by _query_template() at :154" },
-  { path = "copilot_sdk/di/nl_query.py", line = 146, reason = "base template rendered with domain by _query_template() at :154" },
-  { path = "copilot_sdk/di/nl_query.py", line = 147, reason = "base template rendered with domain by _query_template() at :154" },
-  { path = "copilot_sdk/di/nl_query.py", line = 153, reason = "query replacement marker for _query_template(), never executed directly" },
+  { path = "copilot_sdk/di/nl_query.py", line = 133, reason = "base template rendered with domain by _query_template()" },
+  { path = "copilot_sdk/di/nl_query.py", line = 134, reason = "base template rendered with domain by _query_template()" },
+  { path = "copilot_sdk/di/nl_query.py", line = 135, reason = "base template rendered with domain by _query_template()" },
+  { path = "copilot_sdk/di/nl_query.py", line = 136, reason = "base template rendered with domain by _query_template()" },
   { path = "copilot_sdk/graph/projection.py", line = 45, reason = "registry template rendered with domain by ProjectionRegistry.render() at :72" },
   { path = "copilot_sdk/graph/projection.py", line = 50, reason = "registry template rendered with domain by ProjectionRegistry.render() at :72" },
   { path = "copilot_sdk/graph/projection.py", line = 84, reason = "query replacement marker inside render(), never executed directly" },

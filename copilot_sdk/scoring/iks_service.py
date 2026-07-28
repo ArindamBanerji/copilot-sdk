@@ -43,10 +43,7 @@ class IKSService:
         return output
 
     def _verified_decisions(self) -> list[dict[str, Any]]:
-        getter = getattr(self._graph_store, "get_verified_decisions", None)
-        if not callable(getter):
-            return []
-        rows = getter(self._domain) or []
+        rows = self._graph_store.get_verified_decisions(self._domain)
         return [
             _normalize_decision(row, index)
             for index, row in enumerate(rows)

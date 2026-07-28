@@ -98,6 +98,9 @@ class MinimalGraphStore:
     def count_verified(self, domain):
         return len(self.outcomes)
 
+    def count_verified_decisions(self, domain):
+        return len(self.get_verified_decisions(domain))
+
     def count_correct(self, domain):
         return sum(1 for outcome in self.outcomes.values() if outcome["is_correct"])
 

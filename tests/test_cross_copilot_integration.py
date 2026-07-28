@@ -121,7 +121,8 @@ def test_s2p_score_path_injects_cross_copilot_signal_context(monkeypatch):
             self.context_rows = []
             self.links = []
 
-        def query_context(self, entity_id, hops=2):
+        def query_context(self, entity_id, max_depth=2, domain=None):
+            assert domain == "s2p"
             return list(self.context_rows)
 
         def get_decision_links(self, decision_id):

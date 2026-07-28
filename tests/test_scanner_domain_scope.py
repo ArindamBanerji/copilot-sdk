@@ -53,7 +53,7 @@ def test_known_template_lines_are_allowlisted():
     root = Path(__file__).resolve().parents[1]
     allowlist = load_allowlist()
     for relative, line in (
-        ("copilot_sdk/di/nl_query.py", 144),
+        ("copilot_sdk/di/nl_query.py", 133),
         ("copilot_sdk/graph/projection.py", 45),
     ):
         source = (root / relative).read_text(encoding="utf-8")

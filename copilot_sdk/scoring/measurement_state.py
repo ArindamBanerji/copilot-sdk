@@ -112,16 +112,7 @@ def _verified_decisions(scorer: Any) -> list[dict[str, Any]]:
     store = _graph_store(scorer)
     domain = _domain(scorer, store)
     if store is not None:
-        get_verified = getattr(store, "get_verified_decisions", None)
-        if callable(get_verified):
-            return [dict(row) for row in get_verified(domain)]
-        get_all = getattr(store, "get_all_decisions", None)
-        if callable(get_all):
-            return [
-                dict(row)
-                for row in get_all(domain)
-                if row.get("is_correct") is not None or row.get("actual_action") is not None
-            ]
+        return [dict(row) for row in store.get_verified_decisions(domain)]
     get_verified_count = getattr(scorer, "get_verified_count", None)
     if callable(get_verified_count):
         return [{} for _ in range(max(int(get_verified_count()), 0))]

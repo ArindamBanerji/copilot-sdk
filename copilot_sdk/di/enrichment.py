@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from copilot_sdk.graph.enrichment import (
     EnrichmentSourceSet,
@@ -19,6 +19,12 @@ from copilot_sdk.graph.enrichment import (
 
 def _utc_iso_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+@runtime_checkable
+class _VerifiedDecisionReader(Protocol):
+    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]:
+        ...
 
 
 @dataclass(frozen=True)
@@ -324,15 +330,11 @@ class BaseGraphEnricher(ABC):
         return f"di-enrichment:{digest[:24]}"
 
     def _read_verified_decisions(self, graph_store: Any) -> tuple[list[dict[str, Any]], list[str]]:
-        read = getattr(graph_store, "get_verified_decisions", None)
-        if not callable(read):
+        if not isinstance(graph_store, _VerifiedDecisionReader):
             return [], ["graph_store does not support get_verified_decisions"]
-        try:
-            rows = read(self.domain)
-        except Exception as exc:
-            return [], [f"get_verified_decisions failed: {exc}"]
+        rows = graph_store.get_verified_decisions(self.domain)
         if not isinstance(rows, list):
-            return [], ["get_verified_decisions returned non-list result"]
+            raise TypeError("get_verified_decisions must return a list")
         return [row for row in rows if isinstance(row, dict)], []
 
 

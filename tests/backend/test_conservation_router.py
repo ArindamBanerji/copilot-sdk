@@ -151,6 +151,10 @@ def test_status_fallback_uses_verified_count_not_all_rows_for_conservation_v():
             assert domain == "dataops"
             return 1
 
+        def count_verified_decisions(self, domain: str = "dataops") -> int:
+            assert domain == "dataops"
+            return 2
+
         def count_decisions(self, domain: str = "dataops") -> int:
             raise AssertionError("all-row count_decisions must not define conservation V")
 

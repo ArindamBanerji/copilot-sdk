@@ -111,6 +111,9 @@ def test_minimal_graphstore_does_not_need_l5_methods() -> None:
         def count_verified(self, domain):
             return 0
 
+        def count_verified_decisions(self, domain):
+            return 0
+
         def count_correct(self, domain):
             return 0
 

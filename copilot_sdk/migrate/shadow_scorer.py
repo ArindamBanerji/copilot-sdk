@@ -40,6 +40,7 @@ class ShadowStatus:
     mismatches: list[dict[str, Any]] = field(default_factory=list)
     status: str = "validating"
     proven_threshold: int = 50
+    provenance: str = "shadow_non_authoritative"
 
 
 class ShadowScorer:
@@ -361,14 +362,27 @@ def _category_coverage_alpha(store: Any, domain: str, preset: Any) -> float:
                 if category in category_names:
                     categories.add(category_names.index(category))
             return len(categories) / total_categories
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "shadow scorer category coverage fallback to zero; "
+                "output is non-authoritative: %s",
+                exc,
+            )
             return 0.0
     count_categories_with_n = getattr(store, "count_categories_with_n", None)
     if callable(count_categories_with_n):
         try:
             return min(max(int(count_categories_with_n(domain, n=1)), 0), total_categories) / total_categories
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "shadow scorer category coverage fallback to zero after "
+                "category-count failure; output is non-authoritative: %s",
+                exc,
+            )
             return 0.0
+    logger.warning(
+        "shadow scorer category coverage unavailable; output is non-authoritative"
+    )
     return 0.0
 
 

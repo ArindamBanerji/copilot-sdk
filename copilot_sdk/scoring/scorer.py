@@ -520,15 +520,8 @@ class CompoundingScorer:
         return True
 
     def get_verified_count(self) -> int:
-        """Return the current verified-decision count without adding GraphStore APIs."""
-        for method_name in ("count_verified_decisions", "count_verified"):
-            method = getattr(self._graph_store, method_name, None)
-            if callable(method):
-                return int(method(self._domain))
-        get_verified_decisions = getattr(self._graph_store, "get_verified_decisions", None)
-        if callable(get_verified_decisions):
-            return len(list(get_verified_decisions(self._domain)))
-        return 0
+        """Return the current verified-decision count from the GraphStore."""
+        return int(self._graph_store.count_verified_decisions(self._domain))
 
     def learn(
         self,
@@ -1250,49 +1243,22 @@ def _recent_quality(store: Any, *, window: int) -> tuple[int, float] | None:
 
 def _conservation_stats(store: Any) -> tuple[int, int, float]:
     domain = _store_domain(store)
-    verified_decisions = _conservation_verified_decisions(store)
-    if verified_decisions is not None:
-        verified = len(verified_decisions)
-        correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
-        overrides = sum(1 for decision in verified_decisions if _is_override_decision(decision))
-        override_rate = overrides / verified if verified > 0 else 0.0
-        return verified, correct, override_rate
-
-    count_verified = getattr(store, "count_verified", None)
-    count_correct = getattr(store, "count_correct", None)
-    if callable(count_verified) and callable(count_correct):
-        return max(int(count_verified(domain)), 0), max(int(count_correct(domain)), 0), 0.0
-
-    get_all_decisions = getattr(store, "get_all_decisions", None)
-    if not callable(get_all_decisions):
-        return 0, 0, 0.0
-    decisions = get_all_decisions(domain)
-    verified = sum(1 for decision in decisions if _is_verified_decision(decision))
-    correct = sum(1 for decision in decisions if _is_correct_decision(decision))
-    overrides = sum(
-        1
-        for decision in decisions
-        if _is_verified_decision(decision) and _is_override_decision(decision)
-    )
+    verified = max(int(store.count_verified(domain)), 0)
+    correct = max(int(store.count_correct(domain)), 0)
+    decisions = _conservation_verified_decisions(store)
+    overrides = sum(1 for decision in decisions if _is_override_decision(decision))
     override_rate = overrides / verified if verified > 0 else 0.0
     return verified, correct, override_rate
 
 
-def _verified_decisions(store: Any) -> list[dict[str, Any]] | None:
+def _verified_decisions(store: Any) -> list[dict[str, Any]]:
     domain = _store_domain(store)
-    get_verified_decisions = getattr(store, "get_verified_decisions", None)
-    if not callable(get_verified_decisions):
-        return None
-    decisions = get_verified_decisions(domain)
-    if decisions is None:
-        return None
+    decisions = store.get_verified_decisions(domain)
     return [decision for decision in decisions if _is_verified_decision(decision)]
 
 
-def _conservation_verified_decisions(store: Any) -> list[dict[str, Any]] | None:
+def _conservation_verified_decisions(store: Any) -> list[dict[str, Any]]:
     decisions = _verified_decisions(store)
-    if decisions is None:
-        return None
     return [
         decision
         for decision in decisions

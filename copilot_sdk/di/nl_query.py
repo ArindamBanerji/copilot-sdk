@@ -73,19 +73,8 @@ def _decisions(graph_store: Any, *, domain: str | None = None) -> list[dict[str,
         return [row for row in graph_store if isinstance(row, dict)]
     if graph_store is None:
         return []
-    for method_name in ("get_verified_decisions", "get_all_decisions"):
-        method = getattr(graph_store, method_name, None)
-        if not callable(method):
-            continue
-        try:
-            rows = method(domain or "dataops")
-        except TypeError:
-            rows = method()
-        except Exception:
-            rows = []
-        if rows:
-            return [row for row in rows if isinstance(row, dict)]
-    return []
+    rows = graph_store.get_verified_decisions(domain or "dataops")
+    return [row for row in rows if isinstance(row, dict)]
 
 
 def _unknown_response(intent: str = "unknown") -> dict[str, Any]:
