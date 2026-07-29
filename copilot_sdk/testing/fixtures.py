@@ -13,6 +13,7 @@ import pytest
 
 from copilot_sdk.config import GraphConfig
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
+from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
 
 log = logging.getLogger(__name__)
@@ -108,9 +109,8 @@ def age_graph_store() -> Generator[Callable[[str], Any], None, None]:
         yield make
     finally:
         for store in stores:
-            close = getattr(store, "close", None)
-            if close is not None:
-                close()
+            if isinstance(store, GraphStore):
+                store.close()
         conn = psycopg.connect(dsn, connect_timeout=3, autocommit=True)
         with conn:
             conn.execute("LOAD 'age'")

@@ -43,7 +43,9 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
             "decision_time_end": decision_time_end,
             "category": category,
         }
-        active_filters = {key: value for key, value in filters.items() if value is not None}
+        active_filters: dict[str, Any] = {
+            key: value for key, value in filters.items() if value is not None
+        }
         checkpoints = _gs().get_centroid_checkpoints(_domain(), limit=limit, **active_filters)
         normalized = [_json_safe(checkpoint) for checkpoint in checkpoints]
         return {"checkpoints": normalized, "total": len(normalized)}
@@ -247,10 +249,7 @@ def _get_centroid_checkpoints(
     *,
     limit: int,
 ) -> list[dict[str, Any]]:
-    get_checkpoints = getattr(store, "get_centroid_checkpoints", None)
-    if not callable(get_checkpoints):
-        return []
-    return list(get_checkpoints(domain, limit=limit))
+    return list(store.get_centroid_checkpoints(domain, limit=limit))
 
 
 def _category_flow_stats(

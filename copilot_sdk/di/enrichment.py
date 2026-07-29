@@ -297,11 +297,8 @@ class BaseGraphEnricher(ABC):
             return None, False, ["no ProvenancedValue metrics available for persistence"]
         if graph_store is None:
             return None, False, ["graph_store unavailable; computed only"]
-        write = getattr(graph_store, "write_entity_enrichment", None)
-        if not callable(write):
-            return None, False, ["graph_store does not support write_entity_enrichment"]
         try:
-            receipt = write(
+            receipt = graph_store.write_entity_enrichment(
                 domain=self.domain,
                 entity_type=self.entity_type,
                 entity_id=str(entity_id),

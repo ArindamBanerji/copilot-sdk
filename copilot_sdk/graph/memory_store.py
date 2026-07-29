@@ -27,6 +27,13 @@ def _utc_iso_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def _timestamp_value(value: Any) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp()
+
+
 def _json_default(value: Any) -> Any:
     if isinstance(value, np.ndarray):
         return value.tolist()
@@ -336,6 +343,7 @@ class InMemoryGraphStore:
         self._l5_conservation_state: dict[str, dict[str, object]] = {}
         self._l5_conservation_state_counter: int = 0
         self._protocol_evolution_events: dict[str, dict[str, Any]] = {}
+        self._transfer_patterns: dict[str, dict[str, Any]] = {}
         self._edges: list[dict[str, Any]] = []
         self._centroid_checkpoints: list[dict[str, Any]] = []
         self._evolution_events: list[dict[str, Any]] = []
@@ -835,6 +843,150 @@ class InMemoryGraphStore:
         )
         return None
 
+    def write_transfer_pattern(
+        self,
+        pattern_id: str,
+        source_domain: str,
+        target_domain: str,
+        pattern_type: str,
+        factor_mapping: dict[str, Any],
+        confidence: float,
+        validation_status: str,
+        conservation_status: str,
+        source_rule: str | None = None,
+        target_rule: str | None = None,
+        source_fingerprint_id: str | None = None,
+        evolution_event_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        pattern_id = str(pattern_id)
+        payload = {
+            "pattern_id": pattern_id,
+            "source_domain": str(source_domain),
+            "target_domain": str(target_domain),
+            "pattern_type": str(pattern_type),
+            "source_rule": None if source_rule is None else str(source_rule),
+            "target_rule": None if target_rule is None else str(target_rule),
+            "factor_mapping": deepcopy(dict(factor_mapping)),
+            "confidence": float(confidence),
+            "validation_status": str(validation_status),
+            "conservation_status": str(conservation_status),
+            "source_fingerprint_id": (
+                None if source_fingerprint_id is None else str(source_fingerprint_id)
+            ),
+            "evolution_event_id": None if evolution_event_id is None else str(evolution_event_id),
+            "metadata": deepcopy(dict(metadata or {})),
+        }
+        existing = self._transfer_patterns.get(pattern_id)
+        if existing is not None:
+            existing_payload = {key: existing[key] for key in payload}
+            if existing_payload == payload:
+                return None
+            raise ValueError(f"conflicting transfer pattern_id: {pattern_id}")
+        self._transfer_patterns[pattern_id] = {
+            **payload,
+            "created_at": time.time(),
+        }
+        return None
+
+    def get_transfer_patterns(
+        self,
+        source_domain: str | None = None,
+        target_domain: str | None = None,
+    ) -> list[dict[str, Any]]:
+        patterns = [
+            pattern
+            for pattern in self._transfer_patterns.values()
+            if (source_domain is None or pattern["source_domain"] == str(source_domain))
+            and (target_domain is None or pattern["target_domain"] == str(target_domain))
+        ]
+        return deepcopy(sorted(patterns, key=lambda item: (item["created_at"], item["pattern_id"])))
+
+    def get_latest_conservation_statuses(
+        self,
+        domains: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        allowed = None if domains is None else {str(domain) for domain in domains}
+        latest: dict[str, dict[str, Any]] = {}
+        for snapshot in self._conservation_snapshots.values():
+            domain = str(snapshot["domain"])
+            if allowed is not None and domain not in allowed:
+                continue
+            current = latest.get(domain)
+            if current is None or (
+                float(snapshot["computed_at"]), str(snapshot["snapshot_id"])
+            ) > (
+                float(current["computed_at"]), str(current["status_id"])
+            ):
+                latest[domain] = {
+                    "status_id": snapshot["snapshot_id"],
+                    "domain": domain,
+                    "V": int(snapshot["V"]),
+                    "q": float(snapshot["q"]),
+                    "alpha": float(snapshot["alpha"]),
+                    "theta_min": float(snapshot["theta_min"]),
+                    "verified_count": int(snapshot["verified_count"]),
+                    "correct_count": int(snapshot["correct_count"]),
+                    "status": snapshot["status"],
+                    "policy_version": snapshot["policy_version"],
+                    "computed_at": float(snapshot["computed_at"]),
+                }
+        return [deepcopy(latest[domain]) for domain in sorted(latest)]
+
+    def get_iks_trajectory(
+        self,
+        domains: list[str] | None = None,
+        start: float | None = None,
+        end: float | None = None,
+    ) -> list[dict[str, Any]]:
+        allowed = None if domains is None else {str(domain) for domain in domains}
+        records: list[dict[str, Any]] = []
+        for checkpoint in self._centroid_checkpoints:
+            if checkpoint.get("iks") is None:
+                continue
+            record = deepcopy(checkpoint)
+            records.append(record)
+        for checkpoint in self._protocol_centroid_checkpoints.values():
+            if checkpoint.get("iks") is None:
+                continue
+            record = deepcopy(checkpoint)
+            record["decision_id"] = record.get("metadata", {}).get("decision_id")
+            records.append(record)
+        if allowed is not None:
+            records = [record for record in records if str(record.get("domain")) in allowed]
+        if start is not None:
+            records = [
+                record
+                for record in records
+                if _timestamp_value(record["created_at"]) >= float(start)
+            ]
+        if end is not None:
+            records = [
+                record
+                for record in records
+                if _timestamp_value(record["created_at"]) <= float(end)
+            ]
+        selected: dict[tuple[str, str], dict[str, Any]] = {}
+        for record in records:
+            decision_id = record.get("decision_id")
+            key = (str(record["domain"]), str(decision_id)) if decision_id else (
+                str(record["domain"]), f"row:{record['created_at']}:{record.get('checkpoint_id', '')}"
+            )
+            current = selected.get(key)
+            if current is None or (
+                record.get("checkpoint_id") is not None
+                and current.get("checkpoint_id") is None
+            ):
+                selected[key] = record
+        return sorted(
+            selected.values(),
+            key=lambda item: (
+                str(item["domain"]),
+                _timestamp_value(item["created_at"]),
+                str(item.get("checkpoint_id") or ""),
+            ),
+        )
+
     def link_entity(
         self,
         decision_id: str,
@@ -954,6 +1106,15 @@ class InMemoryGraphStore:
 
     def count_decisions(self, domain: str) -> int:
         return sum(1 for decision in self._decisions.values() if decision.get("domain") == domain)
+
+    def count_categories_with_n(self, domain: str, n: int) -> int:
+        counts: dict[str, int] = {}
+        for decision_id, decision in self._decisions.items():
+            if decision.get("domain") != domain or decision_id not in self._outcomes:
+                continue
+            category = str(decision.get("category") or "")
+            counts[category] = counts.get(category, 0) + 1
+        return sum(1 for count in counts.values() if count >= int(n))
 
     def update_centroid(
         self,
@@ -1163,6 +1324,7 @@ class InMemoryGraphStore:
     def get_centroid_checkpoints(
         self,
         domain: str,
+        include_v2: bool = False,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         limit_value = kwargs.get("limit", 50)
@@ -1179,6 +1341,13 @@ class InMemoryGraphStore:
                 category=kwargs.get("category"),
             )
         ]
+        if include_v2:
+            checkpoints.extend(
+                checkpoint
+                for checkpoint in self._protocol_centroid_checkpoints.values()
+                if checkpoint.get("domain") == domain
+            )
+            checkpoints.sort(key=lambda checkpoint: _timestamp_value(checkpoint.get("created_at", 0.0)))
         if limit_value is None:
             return deepcopy(checkpoints)
         limit_value = max(int(limit_value), 0)

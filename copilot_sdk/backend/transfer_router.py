@@ -13,6 +13,7 @@ from copilot_sdk.backend.transfer import (
     TransferDetector,
     load_fingerprints_with_warnings,
 )
+from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.transfer import TransferPattern
 from copilot_sdk.transfer.category_mappings import get_mapping, list_available_transfers
 from copilot_sdk.transfer.registry import SharedPatternRegistry
@@ -183,13 +184,12 @@ def _find_warm_start_info(
 
 def _latest_checkpoint_info(scorer: Any) -> dict[str, Any] | None:
     store = getattr(scorer, "graph_store", None) or getattr(scorer, "_graph_store", None)
-    get_checkpoints = getattr(store, "get_centroid_checkpoints", None)
-    if not callable(get_checkpoints):
+    if not isinstance(store, GraphStore):
         return None
     domain = str(getattr(store, "domain", "") or getattr(scorer, "_domain", "") or "")
 
     try:
-        checkpoints = get_checkpoints(domain, limit=10)
+        checkpoints = store.get_centroid_checkpoints(domain, limit=10)
     except Exception:
         return None
 
@@ -446,12 +446,11 @@ def _source_store_for_domain(scorer: Any, source_domain: str) -> Any | None:
 
 
 def _save_transfer_checkpoint(store: Any, domain: str, scorer: Any, metadata: dict[str, Any]) -> None:
-    save = getattr(store, "save_centroids", None)
-    if not callable(save):
+    if not isinstance(store, GraphStore):
         return
     centroids = getattr(getattr(scorer, "gae_scorer", None), "centroids", None)
     try:
-        save(domain, "transfer_event", centroids, metadata=metadata)
+        store.save_centroids(domain, "transfer_event", centroids, metadata=metadata)
     except Exception:
         return
 

@@ -6,23 +6,73 @@ import ast
 from pathlib import Path
 
 
-DECISION_METHODS = {
-    "get_decision",
-    "get_all_decisions",
-    "get_verified_decisions",
-    "get_decisions",
-    "count_verified",
-    "count_verified_decisions",
-    "count_correct",
-    "count_decisions",
+PROTOCOL_METHODS = frozenset(
+    {
+        "write_decision",
+        "write_outcome",
+        "get_decision",
+        "get_decisions",
+        "get_all_decisions",
+        "get_archived_decisions",
+        "get_verified_decisions",
+        "count_verified",
+        "count_verified_decisions",
+        "count_correct",
+        "count_decisions",
+        "save_centroids",
+        "load_latest_centroids",
+        "get_centroid_checkpoints",
+        "archive_old_decisions",
+        "count_archived",
+        "close",
+        "write_entity_enrichment",
+        "read_entity_enrichment",
+        "list_entity_enrichments",
+        "get_decision_links",
+        "query_context",
+        "query_similar",
+        "generate_decision_id",
+        "write_governed_decision",
+        "write_observation",
+        "append_evidence_receipt",
+        "write_conservation_status",
+        "write_fingerprint",
+        "write_centroid_checkpoint",
+        "write_evolution_event",
+        "link_entity",
+        "archive_decisions",
+        "domain_scoped_reset",
+    }
+)
+
+# Kept as a named alias for compatibility with callers of this test module.
+DECISION_METHODS = PROTOCOL_METHODS | {
     "count_recommended_action",
-    "get_decision_links",
-    "query_context",
 }
 
 # These methods have an optional domain for compatibility, so the required
 # domain argument applies to the enumeration/count methods below.
-DOMAIN_REQUIRED = DECISION_METHODS - {"get_decision", "get_decision_links"}
+DOMAIN_REQUIRED = {
+    "get_decisions",
+    "get_all_decisions",
+    "get_verified_decisions",
+    "count_verified",
+    "count_verified_decisions",
+    "count_correct",
+    "count_decisions",
+    "query_context",
+}
+
+DOMAIN_POSITION = {
+    "get_decisions": 0,
+    "get_all_decisions": 0,
+    "get_verified_decisions": 0,
+    "count_verified": 0,
+    "count_verified_decisions": 0,
+    "count_correct": 0,
+    "count_decisions": 0,
+    "query_context": 2,
+}
 
 
 def _repo_root() -> Path:
@@ -36,9 +86,28 @@ def _relative(path: Path) -> str:
 def _has_domain_argument(call: ast.Call, method: str) -> bool:
     if any(keyword.arg == "domain" for keyword in call.keywords):
         return True
-    if method == "query_context":
-        return len(call.args) >= 3
-    return bool(call.args)
+    position = DOMAIN_POSITION.get(method)
+    return position is not None and len(call.args) > position
+
+
+def _raw_unscoped_decision_query(call: ast.Call) -> bool:
+    if not isinstance(call, ast.Call):
+        return False
+    if not isinstance(call.func, ast.Attribute) or call.func.attr != "run_query":
+        return False
+    literals = [
+        node.value
+        for node in ast.walk(call)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+    ]
+    query_text = " ".join(literals)
+    if "Decision" not in query_text:
+        return False
+    has_scope_expression = "d.domain" in query_text or any(
+        isinstance(node, ast.Name) and node.id == "domain_clause"
+        for node in ast.walk(call)
+    )
+    return not has_scope_expression
 
 
 def _is_allowed_getattr(path: Path, line: int) -> bool:
@@ -77,6 +146,12 @@ def test_sdk_rule72_decision_access_is_explicitly_domain_aware() -> None:
                                 f"{_relative(path)}:{node.lineno}: "
                                 f"{node.func.id}({method_arg.value!r})"
                             )
+
+            if _raw_unscoped_decision_query(node):
+                violations.append(
+                    f"{_relative(path)}:{node.lineno}: raw run_query for an "
+                    "Decision query has no domain predicate"
+                )
 
             if isinstance(node, ast.Try):
                 decision_call = any(

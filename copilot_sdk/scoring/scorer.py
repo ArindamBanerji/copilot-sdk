@@ -1136,10 +1136,9 @@ class CompoundingScorer:
                     if str(getattr(pattern, "source_copilot", ""))
                 }
             )
-            save_centroids = getattr(self._graph_store, "save_centroids", None)
-            if callable(save_centroids):
+            if isinstance(self._graph_store, GraphStore):
                 try:
-                    save_centroids(
+                    self._graph_store.save_centroids(
                         self._domain,
                         "warm_start",
                         self._scorer.centroids,

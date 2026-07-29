@@ -202,6 +202,7 @@ def test_learn_with_context_invoice_creates_link(tmp_path):
         {
             "decision_id": result.decision_id,
             "entity_id": "INV-001",
+            "entity_type": "invoice",
             "edge_type": "DECIDED_ON",
             "created_at": graph_store.get_decision_links(result.decision_id)[0]["created_at"],
         }
