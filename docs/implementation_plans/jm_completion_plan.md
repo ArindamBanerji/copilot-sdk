@@ -218,3 +218,30 @@ JM v2.8 should replace the static “current implementation” map with:
 ## Summary
 
 The critical path is `J1 → J2 → J4 → J5`, with J3 parallelizable after the initial backend inventory. The three seed files requested by the diagnostic already pass. The highest-priority newly confirmed code gaps are the SOC bootstrap Decision write, two unscoped legacy AGE aggregates, and NULL-domain traversal compatibility.
+
+### JM §12b Compliance Status
+
+| Artifact | §12b policy | Implementation | Status |
+|---|---|---|---|
+| Outcome | Fail-closed | `learn()` propagates failure | ✅ Compliant |
+| Evidence | Queue/retry | Outbox records + startup drain | ✅ Compliant |
+| Conservation | Queue/retry | Outbox records + startup drain | ✅ Compliant |
+| Fingerprint | Not specified | Outbox records (recomputable) | ✅ Documented |
+| Checkpoint | Not specified | Outbox records (best-effort replay) | ✅ Documented |
+
+### JM §4.2 Edge Topology Status
+
+| Edge | Status | Implementation |
+|---|---|---|
+| IN_DOMAIN | ✅ | `write_decision` creates edge |
+| HAS_FACTOR_VECTOR | ✅ | `write_decision` creates FactorVector node + edge |
+| EMITTED_RECEIPT | ✅ | Pre-existing |
+| SNAPSHOT_AFTER | ✅ | J6 fixer |
+| DERIVED_FROM | ✅ | J6 fixer |
+| SUMMARIZES_DOMAIN | ✅ | J6 fixer |
+| HAS_OUTCOME | ✅ | Pre-existing |
+| ABOUT | ✅ | Pre-existing |
+
+Remaining for Phase 6: Observation edges (`IN_DOMAIN`, `ABOUT`,
+`HAS_FACTOR_VECTOR`), TransferPattern edges (`FROM_DOMAIN`, `TO_DOMAIN`,
+`DERIVED_FROM`), and cross-copilot traversal proof.

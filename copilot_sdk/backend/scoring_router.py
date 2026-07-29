@@ -163,6 +163,12 @@ def create_scoring_router(
                 persistence_lock=l5_centroid_lock,
                 logger=log,
             )
+            # NOTE: L5 conservation persistence (update_conservation_state) coexists
+            # with V2 conservation persistence (write_conservation_status) in the
+            # scorer's _persist_learning_artifacts. They are different contracts:
+            # L5 updates operational state; V2 writes a graph snapshot. Both are
+            # intentional. Remove L5 only after V2 is proven sufficient and the
+            # L5 contract is formally retired.
             _persist_conservation_state_l5(
                 domain=domain,
                 scorer=scorer,

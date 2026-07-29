@@ -26,6 +26,7 @@ from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
 from copilot_sdk.evolution.protocol import EvolutionStore
 from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
+from copilot_sdk.scoring.persistence_outbox import PersistenceOutbox
 
 
 def _ensure_gae_path() -> None:
@@ -149,6 +150,14 @@ class CompoundingScorer:
         self._last_checkpoint_action: str | None = None
         self._last_checkpoint_iks: float | None = None
         self._last_persisted_fingerprint_signature: str | None = None
+        try:
+            self._outbox: PersistenceOutbox | None = PersistenceOutbox(self._domain)
+            drained, failed = self._outbox.drain(self._graph_store)
+            if drained or failed:
+                logger.info("Outbox drain: %d replayed, %d failed", drained, failed)
+        except Exception as exc:
+            self._outbox = None
+            logger.warning("Persistence outbox unavailable for %s: %s", self._domain, exc)
         if self._evolve:
             self._setup_evolution()
 
@@ -561,7 +570,7 @@ class CompoundingScorer:
         conservation_pause = self._conservation_pause()
         if conservation_pause is not None:
             return conservation_pause
-        iks_before = self._compute_iks(persist_artifacts=persist_artifacts)
+        iks_before = self._compute_iks(persist_artifacts=False)
         before_centroids = self._scorer.centroids.copy()
 
         old_eta = self._scorer.eta
@@ -586,6 +595,7 @@ class CompoundingScorer:
             self._scorer.eta_override = old_eta_override
 
         centroid_delta = float(np.linalg.norm(self._scorer.centroids - before_centroids))
+        category = str(_decision_field(decision, "category", ""))
         outcome_metadata: dict[str, Any] = {
             "actual_index": actual_index,
             "verified_at": time.time(),
@@ -610,11 +620,17 @@ class CompoundingScorer:
             )
         self._refresh_dk_after_learn()
         invoice_id = (context or {}).get("invoice_id")
-        link_decision_to_entity = getattr(self._graph_store, "link_decision_to_entity", None)
-        if invoice_id and callable(link_decision_to_entity):
-            link_decision_to_entity(decision_id, str(invoice_id), edge_type="DECIDED_ON")
-        iks_after = self._compute_iks(persist_artifacts=persist_artifacts)
-        category = str(_decision_field(decision, "category", ""))
+        if invoice_id and isinstance(self._graph_store, ProtocolV2GraphStore):
+            self._graph_store.link_entity(
+                decision_id=decision_id,
+                entity_id=str(invoice_id),
+                entity_type="invoice",
+                domain=self._domain,
+            )
+        iks_after = self._compute_iks(
+            persist_artifacts=persist_artifacts,
+            decision_id=decision_id,
+        )
         self._last_checkpoint_decision_id = decision_id
         self._last_checkpoint_category = category
         self._last_checkpoint_action = actual_action
@@ -670,7 +686,16 @@ class CompoundingScorer:
         self._maybe_archive()
 
         if persist_artifacts:
-            self._persist_learning_artifacts(decision_id)
+            self._persist_learning_artifacts(
+                decision_id,
+                actual_action=actual_action,
+                is_correct=is_correct,
+                outcome=outcome,
+                category=category,
+                metadata=outcome_metadata,
+                evidence_already_persisted=True,
+                checkpoint_already_persisted=True,
+            )
 
         return LearnResult(
             decision_id=decision_id,
@@ -684,19 +709,73 @@ class CompoundingScorer:
             exploration_used=False,
         )
 
-    def fingerprint(self, *, persist: bool = True) -> FingerprintResult:
+    def fingerprint(
+        self,
+        *,
+        persist: bool = True,
+        decision_id: str | None = None,
+    ) -> FingerprintResult:
         result = compute_fingerprint(
             self._graph_store.get_verified_decisions(self._domain),
             list(self._preset.shape.factor_names),
         )
         if persist:
-            self._persist_fingerprint(result)
+            self._persist_fingerprint(result, decision_id=decision_id)
         return result
 
-    def _persist_learning_artifacts(self, decision_id: str) -> None:
-        """Persist V2 conservation artifacts after a successful learn."""
+    def _persist_learning_artifacts(
+        self,
+        decision_id: str,
+        *,
+        actual_action: str | None = None,
+        is_correct: bool | None = None,
+        outcome: str | None = None,
+        category: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        evidence_already_persisted: bool = False,
+        checkpoint_already_persisted: bool = False,
+    ) -> None:
+        """Persist learning artifacts after a successful update.
+
+        The shared ``learn`` path already persists its evidence receipt and
+        centroid checkpoint before reaching this coordinator.  The explicit
+        flags preserve that ordering without duplicating those writes, while
+        allowing the SOC raw-profile bridge to use this method independently.
+        """
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
             return
+
+        decision: dict[str, Any] | None = None
+
+        def load_decision() -> dict[str, Any]:
+            nonlocal decision
+            if decision is None:
+                loaded = self._graph_store.get_decision(decision_id, domain=self._domain)
+                if loaded is None:
+                    raise KeyError(decision_id)
+                decision = loaded
+            return decision
+
+        def record_failure(
+            artifact_type: str,
+            payload: dict[str, Any],
+            exc: Exception,
+        ) -> None:
+            if self._outbox is None:
+                return
+            try:
+                self._outbox.record_failure(decision_id, artifact_type, payload, str(exc))
+            except Exception as outbox_exc:
+                logger.warning(
+                    "Persistence outbox record failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                    self._domain,
+                    decision_id,
+                    artifact_type,
+                    type(outbox_exc).__name__,
+                    outbox_exc,
+                )
+
+        conservation_payload: dict[str, Any] = {}
         try:
             from copilot_sdk.backend.conservation_utils import compute_conservation_metrics
 
@@ -707,26 +786,104 @@ class CompoundingScorer:
                     "Cold start: theta_min=%s, skipping conservation snapshot",
                     theta_min,
                 )
-                return
-            self._graph_store.write_conservation_status(
-                status_id=f"{self._domain}:conservation:{uuid.uuid4().hex}",
-                domain=self._domain,
-                V=int(metrics["V"]),
-                q=float(metrics["q"]),
-                alpha=float(metrics["alpha"]),
-                theta_min=theta_min,
-                verified_count=int(metrics["V"]),
-                correct_count=int(round(float(metrics["q"]) * int(metrics["V"]))),
-                status=str(metrics["status"]),
-                policy_version="conservation.v1",
-            )
+            else:
+                conservation_payload = {
+                    "status_id": f"{self._domain}:conservation:{decision_id}",
+                    "domain": self._domain,
+                    "V": int(metrics["V"]),
+                    "q": float(metrics["q"]),
+                    "alpha": float(metrics["alpha"]),
+                    "theta_min": theta_min,
+                    "verified_count": int(metrics["V"]),
+                    "correct_count": int(round(float(metrics["q"]) * int(metrics["V"]))),
+                    "status": str(metrics["status"]),
+                    "policy_version": "conservation.v1",
+                }
+                self._graph_store.write_conservation_status(**conservation_payload)
         except Exception as exc:
             logger.warning(
-                "Learning artifact persistence failed for %s/%s: %s",
-                self._domain,
-                decision_id,
-                exc,
+                "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                self._domain, decision_id, "conservation", type(exc).__name__, exc,
             )
+            record_failure("conservation", conservation_payload, exc)
+
+        try:
+            fingerprint = self.fingerprint(persist=False)
+            self._persist_fingerprint(fingerprint, decision_id=decision_id)
+        except Exception as exc:
+            logger.warning(
+                "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                self._domain, decision_id, "fingerprint", type(exc).__name__, exc,
+            )
+            record_failure("fingerprint", {}, exc)
+
+        if not evidence_already_persisted:
+            try:
+                row = load_decision()
+                resolved_correct = bool(
+                    is_correct if is_correct is not None else _is_correct_decision(row)
+                )
+                resolved_action = actual_action
+                if resolved_action is None:
+                    resolved_action = _decision_field(
+                        row,
+                        "actual_action",
+                        _decision_field(row, "recommended_action", _decision_field(row, "action", "")),
+                    )
+                resolved_outcome = outcome
+                if resolved_outcome is None:
+                    resolved_outcome = _decision_field(
+                        row,
+                        "outcome",
+                        "confirmed" if resolved_correct else "overridden",
+                    )
+                resolved_metadata = metadata
+                if resolved_metadata is None:
+                    candidate_metadata = _decision_field(row, "outcome_metadata", {})
+                    resolved_metadata = candidate_metadata if isinstance(candidate_metadata, dict) else {}
+                self._persist_evidence_receipt(
+                    decision_id=decision_id,
+                    actual_action=str(resolved_action or ""),
+                    is_correct=resolved_correct,
+                    outcome=str(resolved_outcome),
+                    metadata=dict(resolved_metadata),
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                    self._domain, decision_id, "evidence_receipt", type(exc).__name__, exc,
+                )
+                record_failure("evidence_receipt", {}, exc)
+
+        if not checkpoint_already_persisted:
+            try:
+                row = load_decision()
+                checkpoint_category = category or str(_decision_field(row, "category", ""))
+                if not checkpoint_category:
+                    raise ValueError(f"Decision {decision_id} has no category")
+                resolved_action = actual_action
+                if resolved_action is None:
+                    resolved_action = _decision_field(
+                        row,
+                        "actual_action",
+                        _decision_field(row, "recommended_action", _decision_field(row, "action", "")),
+                    )
+                if not resolved_action:
+                    raise ValueError(f"Decision {decision_id} has no action")
+                self._save_centroids_checkpoint(
+                    decision_id=decision_id,
+                    category=checkpoint_category,
+                    action=str(resolved_action),
+                    iks=self._compute_iks(persist_artifacts=False),
+                    decision_time_start=self._extract_decision_timestamp(row),
+                    decision_time_end=self._extract_decision_timestamp(row),
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                    self._domain, decision_id, "centroid_checkpoint", type(exc).__name__, exc,
+                )
+                record_failure("centroid_checkpoint", {}, exc)
 
     def _persist_evidence_receipt(
         self,
@@ -739,33 +896,54 @@ class CompoundingScorer:
     ) -> None:
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
             return
+        receipt_intent_id = f"{self._domain}:outcome:{decision_id}:{uuid.uuid4().hex}"
+        canonical_payload: dict[str, Any] = {
+            "receipt_type": "post_outcome_verification",
+            "decision_id": decision_id,
+            "actual_action": actual_action,
+            "is_correct": bool(is_correct),
+            "outcome": outcome,
+            "metadata": dict(metadata),
+        }
+        evidence_payload: dict[str, Any] = {
+            "receipt_intent_id": receipt_intent_id,
+            "domain": self._domain,
+            "decision_id": decision_id,
+            "canonical_payload": canonical_payload,
+            "actor": "compounding_scorer",
+            "source_route": "copilot_sdk.scoring.learn",
+        }
         try:
             self._graph_store.append_evidence_receipt(
-                receipt_intent_id=(
-                    f"{self._domain}:outcome:{decision_id}:{uuid.uuid4().hex}"
-                ),
+                receipt_intent_id=receipt_intent_id,
                 domain=self._domain,
                 decision_id=decision_id,
-                canonical_payload={
-                    "receipt_type": "post_outcome_verification",
-                    "decision_id": decision_id,
-                    "actual_action": actual_action,
-                    "is_correct": bool(is_correct),
-                    "outcome": outcome,
-                    "metadata": dict(metadata),
-                },
+                canonical_payload=canonical_payload,
                 actor="compounding_scorer",
                 source_route="copilot_sdk.scoring.learn",
             )
         except Exception as exc:
             logger.warning(
-                "Evidence receipt persistence failed for %s/%s: %s",
-                self._domain,
-                decision_id,
-                exc,
+                "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                self._domain, decision_id, "evidence_receipt", type(exc).__name__, exc,
             )
+            if self._outbox is not None:
+                try:
+                    self._outbox.record_failure(
+                        decision_id,
+                        "evidence_receipt",
+                        evidence_payload,
+                        str(exc),
+                    )
+                except Exception as outbox_exc:
+                    logger.warning("Persistence outbox record failed: %s", outbox_exc)
 
-    def _persist_fingerprint(self, result: FingerprintResult) -> None:
+    def _persist_fingerprint(
+        self,
+        result: FingerprintResult,
+        *,
+        decision_id: str | None = None,
+    ) -> None:
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
             return
         factor_names = list(self._preset.shape.factor_names)
@@ -796,18 +974,48 @@ class CompoundingScorer:
         signature = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         if signature == self._last_persisted_fingerprint_signature:
             return
+        fingerprint_id = f"{self._domain}:fingerprint:{signature[:32]}"
+        fingerprint_metadata: dict[str, Any] = {
+            "source": "compounding_scorer.fingerprint",
+        }
+        fingerprint_payload: dict[str, Any] = {
+            "fingerprint_id": fingerprint_id,
+            "domain": self._domain,
+            "factor_names": factor_names,
+            "factor_stats": factor_stats,
+            "skipped_incompatible": int(result.skipped_decisions),
+            "window": int(result.decisions_analyzed),
+            "metadata": fingerprint_metadata,
+        }
         try:
             self._graph_store.write_fingerprint(
-                fingerprint_id=f"{self._domain}:fingerprint:{signature[:32]}",
+                fingerprint_id=fingerprint_id,
                 domain=self._domain,
                 factor_names=factor_names,
                 factor_stats=factor_stats,
                 skipped_incompatible=int(result.skipped_decisions),
                 window=int(result.decisions_analyzed),
-                metadata={"source": "compounding_scorer.fingerprint"},
+                metadata=fingerprint_metadata,
             )
         except Exception as exc:
-            logger.warning("Fingerprint persistence failed for %s: %s", self._domain, exc)
+            logger.warning(
+                "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                self._domain,
+                decision_id or "unknown",
+                "fingerprint",
+                type(exc).__name__,
+                exc,
+            )
+            if self._outbox is not None:
+                try:
+                    self._outbox.record_failure(
+                        decision_id or "unknown",
+                        "fingerprint",
+                        fingerprint_payload,
+                        str(exc),
+                    )
+                except Exception as outbox_exc:
+                    logger.warning("Persistence outbox record failed: %s", outbox_exc)
             return
         self._last_persisted_fingerprint_signature = signature
 
@@ -979,7 +1187,12 @@ class CompoundingScorer:
         scorer._scorer.centroids = np.asarray(state["centroids"], dtype=np.float64)
         return scorer
 
-    def _compute_iks(self, *, persist_artifacts: bool = True) -> float:
+    def _compute_iks(
+        self,
+        *,
+        persist_artifacts: bool = True,
+        decision_id: str | None = None,
+    ) -> float:
         try:
             verified = self._graph_store.count_verified(self._domain)
         except Exception:
@@ -994,7 +1207,10 @@ class CompoundingScorer:
             verified_decisions = _verified_decisions(self._graph_store) or []
             correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
         accuracy = correct / verified
-        fingerprint = self.fingerprint(persist=persist_artifacts)
+        fingerprint = self.fingerprint(
+            persist=persist_artifacts,
+            decision_id=decision_id,
+        )
         mean_sigma = (
             sum(factor.sigma for factor in fingerprint.factors) / len(fingerprint.factors)
             if fingerprint.factors
@@ -1161,6 +1377,7 @@ class CompoundingScorer:
                 "decisions_in_batch": decisions_in_batch,
                 "consolidation": True,
             })
+        checkpoint_payload: dict[str, Any] = {}
         try:
             self._graph_store.save_centroids(
                 self._domain,
@@ -1173,10 +1390,8 @@ class CompoundingScorer:
             )
         except Exception as exc:
             logger.warning(
-                "Legacy centroid checkpoint persistence failed for %s/%s: %s",
-                self._domain,
-                decision_id,
-                exc,
+                "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                self._domain, decision_id, "centroid_checkpoint", type(exc).__name__, exc,
             )
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
             return
@@ -1189,26 +1404,35 @@ class CompoundingScorer:
             factor_names_hash = hashlib.sha256(
                 json.dumps(factor_names, separators=(",", ":")).encode("utf-8")
             ).hexdigest()
-            self._graph_store.write_centroid_checkpoint(
-                checkpoint_id=f"{self._domain}:checkpoint:{uuid.uuid4().hex}",
-                domain=self._domain,
-                category=category,
-                action=action,
-                centroids=self._scorer.centroids,
-                decisions_count=int(decisions_in_batch or 1),
-                verified_count=self.get_verified_count(),
-                iks=float(iks),
-                shape=[int(value) for value in self._scorer.centroids.shape],
-                factor_names_hash=factor_names_hash,
-                metadata={**metadata, "decision_id": decision_id},
-            )
+            checkpoint_payload = {
+                "checkpoint_id": f"{self._domain}:checkpoint:{uuid.uuid4().hex}",
+                "domain": self._domain,
+                "category": category,
+                "action": action,
+                "centroids": self._scorer.centroids,
+                "decisions_count": int(decisions_in_batch or 1),
+                "verified_count": self.get_verified_count(),
+                "iks": float(iks),
+                "shape": [int(value) for value in self._scorer.centroids.shape],
+                "factor_names_hash": factor_names_hash,
+                "metadata": {**metadata, "decision_id": decision_id},
+            }
+            self._graph_store.write_centroid_checkpoint(**checkpoint_payload)
         except Exception as exc:
             logger.warning(
-                "Protocol V2 centroid checkpoint persistence failed for %s/%s: %s",
-                self._domain,
-                decision_id,
-                exc,
+                "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                self._domain, decision_id, "centroid_checkpoint", type(exc).__name__, exc,
             )
+            if self._outbox is not None:
+                try:
+                    self._outbox.record_failure(
+                        decision_id,
+                        "centroid_checkpoint",
+                        checkpoint_payload,
+                        str(exc),
+                    )
+                except Exception as outbox_exc:
+                    logger.warning("Persistence outbox record failed: %s", outbox_exc)
 
     def _maybe_archive(self, keep_recent: int = 800) -> None:
         try:
