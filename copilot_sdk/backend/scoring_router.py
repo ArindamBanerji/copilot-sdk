@@ -358,16 +358,16 @@ def _persist_conservation_state_l5(
     persistence_lock: threading.RLock | None = None,
 ) -> None:
     store = _learning_store_for(scorer, explicit_learning_store)
-    if store is None:
-        return None
     lock = persistence_lock or threading.RLock()
     with lock:
-        return _persist_conservation_state_l5_locked(
-            domain=domain,
-            scorer=scorer,
-            store=store,
-            caused_by_decision_id=caused_by_decision_id,
-        )
+        if store is not None:
+            _persist_conservation_state_l5_locked(
+                domain=domain,
+                scorer=scorer,
+                store=store,
+                caused_by_decision_id=caused_by_decision_id,
+            )
+    return None
 
 
 def _persist_conservation_state_l5_locked(

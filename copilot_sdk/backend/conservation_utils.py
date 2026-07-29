@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Protocol, cast, runtime_checkable
+from typing import Any, Protocol, TypedDict, cast, runtime_checkable
 
 
 def _ensure_gae_path() -> None:
@@ -44,6 +44,20 @@ class _ConservationStore(_DecisionCountStore, Protocol):
         ...
 
 
+class ConservationMetrics(TypedDict):
+    status: str
+    alpha: float
+    q: float
+    V: int
+    theta_min: float
+    product: float
+    categories_total: int
+    categories_with_data: int
+    baseline_product: float
+    relative_threshold: float
+    complacency_flag: str
+
+
 def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, Any]:
     counts = state_counts(state, domain=domain)
     check = conservation_status(
@@ -64,7 +78,9 @@ def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, An
     return payload
 
 
-def compute_conservation_metrics(state: Any, domain: str | None = None) -> dict[str, object]:
+def compute_conservation_metrics(
+    state: Any, domain: str | None = None
+) -> ConservationMetrics:
     store = state_store(state)
     if store is None:
         raise RuntimeError("conservation metrics require a graph store")

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import importlib
+import hashlib
 import json
 import logging
+import math
 import os
 import sys
 import time
@@ -144,7 +146,9 @@ class CompoundingScorer:
         self._batch_decision_time_end: str | None = None
         self._last_checkpoint_decision_id: str | None = None
         self._last_checkpoint_category: str | None = None
+        self._last_checkpoint_action: str | None = None
         self._last_checkpoint_iks: float | None = None
+        self._last_persisted_fingerprint_signature: str | None = None
         if self._evolve:
             self._setup_evolution()
 
@@ -531,6 +535,7 @@ class CompoundingScorer:
         *,
         consolidate: bool = False,
         context: dict[str, Any] | None = None,
+        persist_artifacts: bool = True,
     ) -> LearnResult | dict[str, Any]:
         decision = self._graph_store.get_decision(decision_id, domain=self._domain)
         if decision is None:
@@ -556,7 +561,7 @@ class CompoundingScorer:
         conservation_pause = self._conservation_pause()
         if conservation_pause is not None:
             return conservation_pause
-        iks_before = self._compute_iks()
+        iks_before = self._compute_iks(persist_artifacts=persist_artifacts)
         before_centroids = self._scorer.centroids.copy()
 
         old_eta = self._scorer.eta
@@ -595,42 +600,55 @@ class CompoundingScorer:
             metadata=outcome_metadata,
             domain=self._domain,
         )
+        if persist_artifacts:
+            self._persist_evidence_receipt(
+                decision_id=decision_id,
+                actual_action=actual_action,
+                is_correct=is_correct,
+                outcome=outcome,
+                metadata=outcome_metadata,
+            )
         self._refresh_dk_after_learn()
         invoice_id = (context or {}).get("invoice_id")
         link_decision_to_entity = getattr(self._graph_store, "link_decision_to_entity", None)
         if invoice_id and callable(link_decision_to_entity):
             link_decision_to_entity(decision_id, str(invoice_id), edge_type="DECIDED_ON")
-        iks_after = self._compute_iks()
+        iks_after = self._compute_iks(persist_artifacts=persist_artifacts)
         category = str(_decision_field(decision, "category", ""))
         self._last_checkpoint_decision_id = decision_id
         self._last_checkpoint_category = category
+        self._last_checkpoint_action = actual_action
         self._last_checkpoint_iks = iks_after
         decision_timestamp = self._extract_decision_timestamp(decision)
         self._update_batch_decision_time_range(decision_timestamp)
         if self._consolidation_enabled:
             self._batch_decision_count += 1
             if consolidate:
-                self._save_centroids_checkpoint(
-                    decision_id=decision_id,
-                    category=category,
-                    iks=iks_after,
-                    boundary="learn",
-                    decisions_in_batch=self._batch_decision_count,
-                    consolidation=True,
-                    decision_time_start=self._batch_decision_time_start,
-                    decision_time_end=self._batch_decision_time_end,
-                )
+                if persist_artifacts:
+                    self._save_centroids_checkpoint(
+                        decision_id=decision_id,
+                        category=category,
+                        action=actual_action,
+                        iks=iks_after,
+                        boundary="learn",
+                        decisions_in_batch=self._batch_decision_count,
+                        consolidation=True,
+                        decision_time_start=self._batch_decision_time_start,
+                        decision_time_end=self._batch_decision_time_end,
+                    )
                 self._batch_decision_count = 0
                 self._batch_decision_time_start = None
                 self._batch_decision_time_end = None
         else:
-            self._save_centroids_checkpoint(
-                decision_id=decision_id,
-                category=category,
-                iks=iks_after,
-                decision_time_start=decision_timestamp,
-                decision_time_end=decision_timestamp,
-            )
+            if persist_artifacts:
+                self._save_centroids_checkpoint(
+                    decision_id=decision_id,
+                    category=category,
+                    action=actual_action,
+                    iks=iks_after,
+                    decision_time_start=decision_timestamp,
+                    decision_time_end=decision_timestamp,
+                )
         reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome, context)
         if reward_raw is not None:
             if self._explorer is not None:
@@ -651,6 +669,9 @@ class CompoundingScorer:
 
         self._maybe_archive()
 
+        if persist_artifacts:
+            self._persist_learning_artifacts(decision_id)
+
         return LearnResult(
             decision_id=decision_id,
             iks_before=iks_before,
@@ -663,11 +684,132 @@ class CompoundingScorer:
             exploration_used=False,
         )
 
-    def fingerprint(self) -> FingerprintResult:
-        return compute_fingerprint(
+    def fingerprint(self, *, persist: bool = True) -> FingerprintResult:
+        result = compute_fingerprint(
             self._graph_store.get_verified_decisions(self._domain),
             list(self._preset.shape.factor_names),
         )
+        if persist:
+            self._persist_fingerprint(result)
+        return result
+
+    def _persist_learning_artifacts(self, decision_id: str) -> None:
+        """Persist V2 conservation artifacts after a successful learn."""
+        if not isinstance(self._graph_store, ProtocolV2GraphStore):
+            return
+        try:
+            from copilot_sdk.backend.conservation_utils import compute_conservation_metrics
+
+            metrics = compute_conservation_metrics(self, domain=self._domain)
+            theta_min = float(metrics["theta_min"])
+            if not math.isfinite(theta_min):
+                logger.warning(
+                    "Cold start: theta_min=%s, skipping conservation snapshot",
+                    theta_min,
+                )
+                return
+            self._graph_store.write_conservation_status(
+                status_id=f"{self._domain}:conservation:{uuid.uuid4().hex}",
+                domain=self._domain,
+                V=int(metrics["V"]),
+                q=float(metrics["q"]),
+                alpha=float(metrics["alpha"]),
+                theta_min=theta_min,
+                verified_count=int(metrics["V"]),
+                correct_count=int(round(float(metrics["q"]) * int(metrics["V"]))),
+                status=str(metrics["status"]),
+                policy_version="conservation.v1",
+            )
+        except Exception as exc:
+            logger.warning(
+                "Learning artifact persistence failed for %s/%s: %s",
+                self._domain,
+                decision_id,
+                exc,
+            )
+
+    def _persist_evidence_receipt(
+        self,
+        *,
+        decision_id: str,
+        actual_action: str,
+        is_correct: bool,
+        outcome: str,
+        metadata: dict[str, Any],
+    ) -> None:
+        if not isinstance(self._graph_store, ProtocolV2GraphStore):
+            return
+        try:
+            self._graph_store.append_evidence_receipt(
+                receipt_intent_id=(
+                    f"{self._domain}:outcome:{decision_id}:{uuid.uuid4().hex}"
+                ),
+                domain=self._domain,
+                decision_id=decision_id,
+                canonical_payload={
+                    "receipt_type": "post_outcome_verification",
+                    "decision_id": decision_id,
+                    "actual_action": actual_action,
+                    "is_correct": bool(is_correct),
+                    "outcome": outcome,
+                    "metadata": dict(metadata),
+                },
+                actor="compounding_scorer",
+                source_route="copilot_sdk.scoring.learn",
+            )
+        except Exception as exc:
+            logger.warning(
+                "Evidence receipt persistence failed for %s/%s: %s",
+                self._domain,
+                decision_id,
+                exc,
+            )
+
+    def _persist_fingerprint(self, result: FingerprintResult) -> None:
+        if not isinstance(self._graph_store, ProtocolV2GraphStore):
+            return
+        factor_names = list(self._preset.shape.factor_names)
+        factor_stats = {
+            "factors": [
+                {
+                    "name": factor.name,
+                    "sigma": float(factor.sigma),
+                    "weight": float(factor.weight),
+                    "interpretation": factor.interpretation,
+                }
+                for factor in result.factors
+            ],
+            "overall_win_rate": float(result.overall_win_rate),
+            "per_category_precision": dict(result.per_category_precision),
+            "decisions_analyzed": int(result.decisions_analyzed),
+        }
+        canonical = json.dumps(
+            {
+                "domain": self._domain,
+                "factor_names": factor_names,
+                "factor_stats": factor_stats,
+                "skipped_incompatible": int(result.skipped_decisions),
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        signature = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        if signature == self._last_persisted_fingerprint_signature:
+            return
+        try:
+            self._graph_store.write_fingerprint(
+                fingerprint_id=f"{self._domain}:fingerprint:{signature[:32]}",
+                domain=self._domain,
+                factor_names=factor_names,
+                factor_stats=factor_stats,
+                skipped_incompatible=int(result.skipped_decisions),
+                window=int(result.decisions_analyzed),
+                metadata={"source": "compounding_scorer.fingerprint"},
+            )
+        except Exception as exc:
+            logger.warning("Fingerprint persistence failed for %s: %s", self._domain, exc)
+            return
+        self._last_persisted_fingerprint_signature = signature
 
     @property
     def last_conflict(self) -> JudgmentConflict | None:
@@ -682,6 +824,7 @@ class CompoundingScorer:
         self._save_centroids_checkpoint(
             decision_id=self._last_checkpoint_decision_id,
             category=self._last_checkpoint_category,
+            action=self._last_checkpoint_action or self._preset.shape.action_names[0],
             iks=self._last_checkpoint_iks if self._last_checkpoint_iks is not None else self._compute_iks(),
             boundary=str(reason),
             decisions_in_batch=flushed,
@@ -836,7 +979,7 @@ class CompoundingScorer:
         scorer._scorer.centroids = np.asarray(state["centroids"], dtype=np.float64)
         return scorer
 
-    def _compute_iks(self) -> float:
+    def _compute_iks(self, *, persist_artifacts: bool = True) -> float:
         try:
             verified = self._graph_store.count_verified(self._domain)
         except Exception:
@@ -851,7 +994,7 @@ class CompoundingScorer:
             verified_decisions = _verified_decisions(self._graph_store) or []
             correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
         accuracy = correct / verified
-        fingerprint = self.fingerprint()
+        fingerprint = self.fingerprint(persist=persist_artifacts)
         mean_sigma = (
             sum(factor.sigma for factor in fingerprint.factors) / len(fingerprint.factors)
             if fingerprint.factors
@@ -1003,6 +1146,7 @@ class CompoundingScorer:
         *,
         decision_id: str,
         category: str,
+        action: str,
         iks: float,
         boundary: str | None = None,
         decisions_in_batch: int | None = None,
@@ -1017,15 +1161,54 @@ class CompoundingScorer:
                 "decisions_in_batch": decisions_in_batch,
                 "consolidation": True,
             })
-        self._graph_store.save_centroids(
-            self._domain,
-            category,
-            self._scorer.centroids,
-            metadata=metadata,
-            decision_id=decision_id,
-            decision_time_start=decision_time_start,
-            decision_time_end=decision_time_end,
-        )
+        try:
+            self._graph_store.save_centroids(
+                self._domain,
+                category,
+                self._scorer.centroids,
+                metadata=metadata,
+                decision_id=decision_id,
+                decision_time_start=decision_time_start,
+                decision_time_end=decision_time_end,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Legacy centroid checkpoint persistence failed for %s/%s: %s",
+                self._domain,
+                decision_id,
+                exc,
+            )
+        if not isinstance(self._graph_store, ProtocolV2GraphStore):
+            return
+        try:
+            # NOTE: Legacy checkpoint creates HAS_CENTROID_CHECKPOINT edge.
+            # V2 checkpoint stores richer metadata without the edge.
+            # When V2 adds edge creation, legacy path should be removed.
+            # Until then, both writes are intentional.
+            factor_names = list(self._preset.shape.factor_names)
+            factor_names_hash = hashlib.sha256(
+                json.dumps(factor_names, separators=(",", ":")).encode("utf-8")
+            ).hexdigest()
+            self._graph_store.write_centroid_checkpoint(
+                checkpoint_id=f"{self._domain}:checkpoint:{uuid.uuid4().hex}",
+                domain=self._domain,
+                category=category,
+                action=action,
+                centroids=self._scorer.centroids,
+                decisions_count=int(decisions_in_batch or 1),
+                verified_count=self.get_verified_count(),
+                iks=float(iks),
+                shape=[int(value) for value in self._scorer.centroids.shape],
+                factor_names_hash=factor_names_hash,
+                metadata={**metadata, "decision_id": decision_id},
+            )
+        except Exception as exc:
+            logger.warning(
+                "Protocol V2 centroid checkpoint persistence failed for %s/%s: %s",
+                self._domain,
+                decision_id,
+                exc,
+            )
 
     def _maybe_archive(self, keep_recent: int = 800) -> None:
         try:
