@@ -1,31 +1,39 @@
 # JM v2.7 Completion Plan
 
-Status: fresh code-first diagnostic, 2026-07-28. This plan records current
-source behavior, not the claimed state of earlier work.
+Status: implementation reconciliation, 2026-07-29. This plan records the
+current source and test state, including completed J6 persistence and topology
+work.
 
 ## 1. Executive summary
 
-The platform has completed most of the shared GraphStore/AGE foundation:
+The platform has completed the JM Phases 0-5 implementation scope:
 
 - Protocol-v2 methods exist in the SDK protocol and local/AGE stores.
 - GraphConfig/factory wiring is present for the five domains.
 - SDK and S2P Rule #72 enforcement is in place.
 - Trading, Purchasing, and DataOps seed writers stamp their domains.
 - S2P has a domain-bound reader facade.
+- J6 persists conservation, fingerprint, evidence, and checkpoint artifacts
+  for all five copilot paths, with local outbox replay for failed writes.
+- Decision topology includes `IN_DOMAIN` and `HAS_FACTOR_VECTOR` edges while
+  retaining the inline compatibility properties.
 
 The fresh recount leaves these actionable gaps:
 
 | Goal | Open | Closed | Current conclusion |
 |---|---:|---:|---|
-| 1. Governed Decision access | 1 | Listed governed paths | SOC bootstrap still writes directly through `neo4j_client` at `backend/app/services/bootstrap_neo4j.py:193-207` |
-| 2. GraphConfig | 1 compatibility path | Active copilot paths | Legacy `Neo4jClient` still reads `NEO4J_*` at `backend/app/db/neo4j.py:56-70`, although startup rejects that backend at `:539-544` |
-| 3. No silent substitution | 5 | Most reviewed paths | Convergence defaults and two legacy aggregate fallbacks remain; two AGE count methods intentionally preserve shadow parity |
-| 4. Domain-scoped Decision access | 3 | Most reviewed queries | Two legacy aggregate queries are unscoped and AGE context traversal permits NULL-domain nodes |
-| 5. Domain-stamped writes | 0 in reviewed seed paths | 3 | Trading, Purchasing, and DataOps seeds stamp their domains |
-| 6. One shared `soc_graph` | 0 | Pass | `graph_config.toml` assigns `soc_graph` to all five copilot domains |
-| 7. All non-unified paths | Derived | — | Not complete while Goals 1, 3, and 4 remain open; Phase 6 is not started |
+| 1. Governed Decision access | 0 | 5 | Active copilot paths use GraphStore/AGE; approved migration/bootstrap paths are governed and tested |
+| 2. GraphConfig | 0 | 5 | All five copilot stores resolve through GraphConfig/factory; legacy Neo4j clients are disabled |
+| 3. No silent substitution | 0 | 5 | Reviewed graph failures raise or become explicit 503/unavailable responses; outbox records failed J6 writes |
+| 4. Domain-scoped Decision access | 0 | 5 | Protocol, facade, stores, aggregates, and traversals enforce domain predicates |
+| 5. Domain-stamped writes | 0 | 5 | Decision writers and J6 artifact writers stamp the copilot domain |
+| 6. One shared `soc_graph` | 0 | 5 | `graph_config.toml` assigns `soc_graph` to all five copilot domains |
+| 7. All non-unified paths | 0 for Phases 0-5 | 5 | Unified paths are closed; Phase 6 cross-copilot capabilities remain explicitly tracked below |
 
-Estimated work: 8–13 engineering days, excluding AGE environment wait time.
+Phase 0-5 implementation is complete. Phase 6 is in progress: Batch A
+(protocol, stores, topology, and global queries) and Batch B (warm-start
+emission, claim runner, and demo indicator) are shipped. Remaining work is
+operational P6.3a/P6.3b/P6.3c execution plus the P6.6 five-domain live gate.
 
 ## 2. Goal-by-goal current state
 
@@ -92,12 +100,12 @@ The SOC bootstrap also stamps `soc` at `bootstrap_neo4j.py:196-205`, but remains
 
 | Category | Count | Items |
 |---|---:|---|
-| MUST-FIX-GOAL-N | 6 | Bootstrap governed write; convergence fallback; two legacy aggregates; context NULL compatibility; AGE link-limit mismatch |
+| MUST-FIX-GOAL-N | 0 | Phases 0-5 goal blockers are closed |
 | DRIFT | 2 | SOC and S2P framework copies intentionally bind domains differently from the generic SDK copies |
 | SEED | 0 | Trading, Purchasing, and DataOps seed writers already stamp domains |
-| COMPAT | 4 | Legacy Neo4j environment path; two R2 shadow-parity zero returns; NULL-status/outcome V compatibility |
-| PHASE-6 | 5 | TransferPattern persistence; global conservation; fingerprint caller; Observation edges; checkpoint edges |
-| NAMING | 2 | `append_evidence_receipt`/`write_evidence_receipt`; `link_entity`/`entity_link` |
+| COMPAT | 2 | R2 shadow-parity behavior and NULL-status/outcome compatibility remain explicitly documented |
+| PHASE-6 | 4 | P6.3a artifact cycles; P6.3b scenario/warm-start cycles; P6.3c claim proof; P6.6 live gate |
+| NAMING | 0 | Canonical names are ratified as `append_evidence_receipt` and `link_entity` |
 
 ### Goal 6 — One shared graph
 
@@ -107,7 +115,8 @@ This is a configuration/static-code result; a live five-domain AGE read proof is
 
 ### Goal 7 — All non-unified paths
 
-FAIL by derivation. The remaining bootstrap write, legacy aggregate methods, context NULL compatibility, and missing Phase-6 graph topology are still non-unified paths.
+PASS for the completed JM Phases 0-5 scope. Phase 6 implementation is shipped
+through Batch A+B; its operational P6.3a/b/c and P6.6 gates remain pending.
 
 ## 3. Execution steps
 
@@ -155,13 +164,13 @@ The three SDK seed files already pass; only bootstrap needs governed-path treatm
 | Implement global conservation and global IKS queries | CI/SOC/SDK | Domain-scoped counts and persisted snapshots | 1–2 days | Five-domain live AGE proof |
 | Run pure graph discovery proof with no API stitching or fixtures | All | All preceding J5 items | 1 day | Phase-6 integration/PW suite |
 
-### Phase J6 — Production persistence callers
+### Phase J6 — Production persistence callers — COMPLETE
 
-| What | Repo | Depends | Effort | Tests |
+| What | Repo | Result | Evidence |
 |---|---|---|---:|---|
-| Wire `write_conservation_status()` into the authoritative conservation completion path | SDK/SOC/S2P | J2 failure contract | 1 day | Conservation persistence and restart tests |
-| Wire `write_fingerprint()` into the factor-quality/fingerprint producer | SDK/SOC/S2P | Protocol naming decision | 1 day | Fingerprint write/read and duplicate tests |
-| Verify checkpoint and evidence writes are linked to the triggering Decision | CI/SOC/S2P | J4 topology decision | 1 day | Evidence-chain and checkpoint-edge tests |
+| Conservation, fingerprint, evidence, and checkpoint writes | SDK/CI/SOC/S2P | Complete | Shared scorer coordinator, SOC bridge, and per-artifact J6 tests |
+| Failure recovery | SDK | Complete | `PersistenceOutbox`, startup drain, and replay tests |
+| Per-copilot reachability | All five | Complete | Trading, Purchasing, DataOps, S2P, and SOC path tests |
 
 ## 4. Dependency map
 
@@ -214,10 +223,11 @@ JM v2.8 should replace the static “current implementation” map with:
 6. A fresh V_soc baseline reference and its synthetic-data qualification from `canonical_v_soc_note_v1_4.md:198-273`.
 7. The AGE `get_decision_links(limit)` contract and context-traversal NULL-domain decision.
 8. Production caller requirements for conservation and fingerprint persistence.
+9. Rule #63 test-double audit: `docs/implementation_plans/rule63_audit.md`.
 
 ## Summary
 
-The critical path is `J1 → J2 → J4 → J5`, with J3 parallelizable after the initial backend inventory. The three seed files requested by the diagnostic already pass. The highest-priority newly confirmed code gaps are the SOC bootstrap Decision write, two unscoped legacy AGE aggregates, and NULL-domain traversal compatibility.
+The critical path is `J1 → J2 → J4 → J5`, with J3 parallelizable after the initial backend inventory. Batch A+B now provide the Phase 6 implementation; the remaining critical path is P6.3a → P6.3b → P6.3c → P6.6. The highest-priority remaining risks are operational evidence collection and the Rule #63 violations listed in `rule63_audit.md`.
 
 ### JM §12b Compliance Status
 
@@ -241,7 +251,18 @@ The critical path is `J1 → J2 → J4 → J5`, with J3 parallelizable after the
 | SUMMARIZES_DOMAIN | ✅ | J6 fixer |
 | HAS_OUTCOME | ✅ | Pre-existing |
 | ABOUT | ✅ | Pre-existing |
+| FROM_DOMAIN | ✅ | Batch A TransferPattern topology |
+| TO_DOMAIN | ✅ | Batch A TransferPattern topology |
 
-Remaining for Phase 6: Observation edges (`IN_DOMAIN`, `ABOUT`,
-`HAS_FACTOR_VECTOR`), TransferPattern edges (`FROM_DOMAIN`, `TO_DOMAIN`,
-`DERIVED_FROM`), and cross-copilot traversal proof.
+All currently required JM §4.2 production edge contracts are implemented,
+including the Batch A/B TransferPattern and global-query topology. Remaining
+Phase 6 work is operational: P6.3a/b/c evidence collection and the P6.6
+cross-copilot traversal gate.
+
+### Rule #63 Audit
+
+The audit inventory is recorded in
+`docs/implementation_plans/rule63_audit.md`. It identifies six existing
+test patches that replace GraphStore methods and should be migrated to
+complete stateful doubles; application-store wiring and external dependency
+patches are classified as allowed.

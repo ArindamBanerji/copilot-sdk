@@ -73,6 +73,35 @@ def test_current_public_constants_define_expected_copilots() -> None:
     assert demo.PLAYWRIGHT_NAMES == {"soc", "s2p"}
 
 
+def test_all_copilots_have_explicit_age_graph_env() -> None:
+    for copilot in COPILOTS:
+        env = copilot["env"]
+        domain = copilot["name"].lower()
+        assert env["GRAPH_BACKEND"] == "age"
+        assert env["GRAPH_DSN"] == copilot["graph_dsn"]
+        assert env["GRAPH_NAME"] == "soc_graph"
+        assert env["AGE_GRAPH_NAME"] == "soc_graph"
+        assert env["GRAPH_DOMAIN"] == domain
+        if domain != "soc":
+            assert env[f"{domain.upper()}_ACTIVE_GRAPH_BACKEND"] == "age"
+            assert env[f"{domain.upper()}_ACTIVE_AGE_GRAPH"] == "soc_graph"
+
+
+def test_launcher_graph_config_ignores_stale_parent_graph_backend(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GRAPH_BACKEND", "sqlite")
+    monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "sqlite")
+
+    config = demo._load_launcher_graph_config(
+        "dataops",
+        "host=generic port=5433 dbname=shared",
+    )
+
+    assert config.backend == "age"
+    assert config.graph == "soc_graph"
+
+
 def test_redact_dsn_redacts_password_key_only() -> None:
     redacted = demo.redact_dsn(
         "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable"
@@ -231,6 +260,8 @@ def test_cmd_start_starts_backend_and_frontend_with_mocked_processes(
     assert any(command[:2] == ("npx", "vite") for command in commands)
     assert any(call[0] == "health" for call in calls)
     assert any(call[0] == "frontend_wait" for call in calls)
+    backend_env = next(call[3] for call in calls if call[0] == "popen" and "uvicorn" in call[1])
+    assert backend_env["GRAPH_BACKEND"] == "age"
 
 
 def test_cmd_start_age_precheck_blocks_age_only_selection(
