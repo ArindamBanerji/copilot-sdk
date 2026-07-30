@@ -65,7 +65,7 @@ def test_conservation_snapshot_written_when_paused(mock_preset):
     assert store.count_verified("mock") == 10
     assert not store._evidence_receipts
     assert store._protocol_centroid_checkpoints
-    assert not store._fingerprints
+    assert store._fingerprints
 
 
 def test_conservation_alpha_is_category_coverage(mock_preset):

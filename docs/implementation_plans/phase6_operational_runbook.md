@@ -34,8 +34,10 @@ Use the project environment used by the SDK tests:
 
 The five fixed graph policies are `soc`, `s2p`, `trading`, `purchasing`, and
 `dataops`; `graph_config.toml` maps each to AGE and `soc_graph`. The launcher
-injects the SOC and DataOps graph environment and the other apps inherit the
-shared DSN/environment before loading their domain-specific `GraphConfig`.
+uses `_build_graph_env()` and `env.update()` to inject explicit AGE graph
+environment variables for all five copilots. Operators still need to set the
+parent environment before running standalone scripts such as the census,
+seeder, or warm-start tool.
 
 ## Step 1: Baseline Census
 
@@ -45,11 +47,18 @@ Run the census before starting or mutating the backends:
 python scripts/graph_census_v2.py --dsn $env:GRAPH_DSN
 ```
 
-Record the complete console output. The known baseline is that all five
-Decision domains exist, while conservation snapshots are absent, only S2P and
-DataOps have checkpoints, only Trading has a Fingerprint, only S2P has evidence
-receipts, anchors are incomplete, and TransferPattern/$604K entities are
-absent.
+Record the complete console output. The July 30 live baseline was:
+
+| Copilot | Decisions | Conservation | Checkpoints | Fingerprints | Receipts | Conservation/J6 |
+|---|---:|---:|---:|---:|---:|---|
+| SOC | 4862 | 1 | 0 | 0 | 0 | RED, non-scorable / blocked |
+| S2P | 25111 | 1 | 50 | 1 | 163 | GREEN, α=1.0 / ready |
+| Trading | 1582 | 101 | 0 | 138 | 101 | GREEN, α=1.0 / ready |
+| Purchasing | 1101 | 1 | 0 | 2 | 1 | GREEN, α=1.0 / ready |
+| DataOps | 722 | 1 | 50 | 2 | 1 | GREEN, α=1.0 / ready |
+
+All five domains had AGE/soc_graph and ProtocolV2 infrastructure. Domain
+anchors existed for all five domains. The platform verdict was `READY`.
 
 ## Step 2: Start All 5 Backends
 
@@ -80,10 +89,14 @@ curl.exe http://127.0.0.1:8002/health
 curl.exe http://127.0.0.1:8010/health
 curl.exe http://127.0.0.1:8020/health
 curl.exe http://127.0.0.1:8030/health
+python demo.py --dump
 ```
 
 `demo.py --status` must show `AGE/PostgreSQL UP`, the shared `soc_graph`
-line, and a `LIVE` graph proof. The launcher does not run preseed when
+line, and a `LIVE` graph proof. `demo.py --dump` must show all five
+infrastructure layers as `ok` and a present conservation status; this is the
+Rule #78 live startup gate. Keep the saved dump JSON in the evidence package.
+The launcher does not run preseed when
 `--preseed` is omitted; `--no-reseed` also prevents bundle restore and fixture
 seeding. That is intentional for this live census run.
 
@@ -108,11 +121,24 @@ send its actual `decision_id` and `action` to learn.
 
 ### 3.1 SOC
 
+> **SOC LIMITATION:** All current demo alerts route to
+> `refer_to_analyst` via the composite gate (confidence < 0.65, margin <
+> 0.3). This is a non-scorable action. SOC outcome cycles will:
+> - write a conservation snapshot (`CALIBRATING`, alpha=0);
+> - not write fingerprints, evidence receipts, or checkpoints; and
+> - not update centroids or learning state.
+>
+> SOC J6 artifacts require scorable actions (`escalate`, `investigate`,
+> `suppress`, or `monitor`) with sufficient confidence to pass the composite
+> gate. With the current demo alert set, this is not achievable.
+
 SOC uses `POST /api/alert/analyze` with the `ProcessAlertRequest` payload
 `{"alert_id":"...","deployment_version":"v3.1","simulate_failure":false}`.
 It uses `POST /api/alert/outcome` with the `OutcomeRequest` payload
 `{"alert_id":"...","decision_id":"...","outcome":"correct","analyst_action":"..."}`.
-The alert ID must come from the live queue; do not invent one.
+The alert ID must come from the live queue; do not invent one. Note: the SOC
+queue returns alerts with field `id`, not `alert_id`; the fallback below
+handles both names.
 
 ```powershell
 $queue = curl.exe -s http://127.0.0.1:8001/api/alerts/queue | ConvertFrom-Json
@@ -223,6 +249,18 @@ The five endpoint pairs are therefore:
 | Purchasing | `POST /api/score` | `POST /api/learn` | 8020 |
 | DataOps | `POST /api/score` | `POST /api/learn` | 8030 |
 
+### 3.5b Mid-Session Instrumentation Checkpoint
+
+Run `--dump` after the score/learn cycles and before seeding or warm-start:
+
+```powershell
+python demo.py --dump
+```
+
+The saved JSON is the pre-seed baseline. Compare it with the post-seed dump in
+Step 7 to verify that seeding and warm-start produced the expected new
+artifacts.
+
 ## Step 4: Verify Artifacts Generated
 
 Run the census again:
@@ -231,12 +269,26 @@ Run the census again:
 python scripts/graph_census_v2.py --dsn $env:GRAPH_DSN
 ```
 
-After successful learn/outcome cycles, all five domains should have at least
-one conservation snapshot, checkpoint, domain anchor, fingerprint, and
-evidence receipt. If a domain is absent, inspect that backend's console for
-503/422 responses and repeat its score/learn loop with a fresh decision. The
-SOC endpoint's artifact status is checked through its `learning-health` route;
-the shared graph census remains authoritative for counts.
+Four domains (S2P, Trading, Purchasing, and DataOps) should have at least one
+conservation snapshot, fingerprint, and evidence receipt. SOC will have a
+conservation snapshot (`CALIBRATING`) but will not have fingerprints, receipts,
+or checkpoints because of the non-scorable limitation documented in Step 3.1.
+
+Checkpoints require successful consolidated learns and may not appear after a
+single cycle. S2P and DataOps have pre-existing legacy checkpoints. All five
+domains should have domain anchors. If a non-SOC artifact is absent, inspect
+that backend's console for 503/422 responses and repeat its score/learn loop
+with a fresh decision. The shared graph census remains authoritative for
+counts.
+
+Compare the census with a platform dump:
+
+```powershell
+python demo.py --dump
+```
+
+The diagnostics should show scorer state, conservation, and artifact counts
+matching the census for all five copilots.
 
 ## Step 5: Seed the $604K Scenario (P6.3b)
 
@@ -276,9 +328,30 @@ from its factor names/statistics, calls `CompoundingScorer.warm_start()`, and
 verifies the resulting TransferPattern. Missing source fingerprints are
 reported as `NOT_PROVEN` and exit 1.
 
-Claim 4 specifically requires validated transfers from SOC to S2P and
-DataOps. After Step 3 has produced a SOC Fingerprint, run both required
-proof edges:
+> **CLAIM 4 DEPENDENCY:** Claim 4 requires validated transfers from SOC to
+> S2P and SOC to DataOps. These warm-start transfers require a SOC Fingerprint
+> as the source. However, SOC cannot produce a Fingerprint because all demo
+> alerts route to non-scorable actions (see the Step 3.1 limitation).
+>
+> Options:
+> a. If SOC has a pre-existing Fingerprint from a prior session where learning
+>    was enabled, the warm-start commands can succeed. Check the census first.
+> b. If SOC has no Fingerprint, SOC→S2P and SOC→DataOps cannot be proven with
+>    the current demo data. Claim 4 can be partially proven with
+>    Trading→Purchasing only.
+> c. Producing a SOC Fingerprint requires SOC learning to be enabled
+>    (`soc/config.py:66`) and alerts to produce scorable actions. That requires
+>    demo configuration changes beyond this runbook.
+
+Check SOC's fingerprint count before attempting the SOC transfers:
+
+```powershell
+python scripts/graph_census_v2.py --dsn $env:GRAPH_DSN 2>&1 | Select-String 'FINGERPRINTS'
+```
+
+If SOC fingerprints equal zero, skip the SOC→S2P and SOC→DataOps commands and
+document Claim 4 as `PARTIAL`. If a SOC Fingerprint is available, run both
+required proof edges:
 
 ```powershell
 python scripts/trigger_warm_start.py --apply --source soc --target s2p --age-dsn $env:GRAPH_DSN --graph-name soc_graph
@@ -290,13 +363,20 @@ python scripts/trigger_warm_start.py --verify --age-dsn $env:GRAPH_DSN --graph-n
 
 ```powershell
 python scripts/graph_census_v2.py --dsn $env:GRAPH_DSN
+python demo.py --dump
 ```
 
-The final census should show all five Decision domains, conservation,
-checkpoints, Fingerprints, EvidenceReceipts, and Domain anchors; the $604K
-DomainContext entities should be present; and TransferPatterns should be
-nonzero. Claim 4's required source/target rows must include SOC→S2P and
-SOC→DataOps.
+The final census should show:
+
+- all five Decision domains with decisions;
+- conservation snapshots for all five domains (SOC may be `CALIBRATING`);
+- domain anchors for all five domains;
+- Fingerprints for at least four domains (SOC may be zero);
+- Evidence receipts for at least four domains (SOC may be zero);
+- checkpoints for at least two domains (S2P and DataOps pre-existing);
+- `$604K` DomainContext entities;
+- nonzero TransferPatterns, at minimum Trading→Purchasing; and
+- if a SOC Fingerprint was available, SOC→S2P and SOC→DataOps transfers.
 
 ## Step 8: Run Claim Proof (P6.6)
 
@@ -310,11 +390,14 @@ New-Item -ItemType Directory -Force -Path out | Out-Null
 python scripts/phase6_claim_proof.py --execute --age-dsn $env:GRAPH_DSN --graph-name soc_graph --report out/phase6_claims.json
 ```
 
-Expected result is eight `PASS` lines after both SOC transfers and the $604K
-seed exist. Claim 3 is `NOT_PROVEN` until the seed exists. Claim 4 remains
-`NOT_PROVEN` if only Trading→Purchasing was run. Claim 5 reports computed
-per-copilot totals and explicitly notes that the historical 315 value is
-stale; it passes only when all five current domain totals are present.
+Expected results depend on SOC Fingerprint availability:
+
+- If SOC has a Fingerprint, all 8 claims should pass.
+- If SOC has no Fingerprint, Claims 1–3 and 5–8 should pass; Claim 4 is
+  `PARTIAL` (Trading→Purchasing proven, SOC→S2P and SOC→DataOps
+  `NOT_PROVEN`).
+- Claim 3 requires the `$604K` seed from Step 5.
+- Claim 5 reports per-copilot learned-value totals.
 
 ## Step 9: Demo Status
 
@@ -329,16 +412,39 @@ Shared judgment graph  soc_graph  domains: soc,s2p,trading,purchasing,dataops
 Graph proof             LIVE ✓  decisions=<n> domains=<n> transfer_edges=<n>
 ```
 
+## Step 9.5: Platform Diagnostics
+
+Run the full diagnostics check:
+
+```powershell
+python demo.py --diagnose
+```
+
+Expected: all five copilots show infrastructure `ok`. S2P, Trading,
+Purchasing, and DataOps show conservation `GREEN`. SOC shows conservation
+`RED`/`CALIBRATING`, which is expected for the non-scorable demo alert path.
+J6 readiness should be `ready` for the four GREEN copilots.
+
+Also run a final dump for the evidence package:
+
+```powershell
+python demo.py --dump
+```
+
+This final dump is the Phase 6 completion evidence.
+
 ## Step 10: Stop and Record
 
 ```powershell
-python demo.py --stop
 Copy-Item out/phase6_claims.json out/phase6_claims_final.json
 python scripts/graph_census_v2.py --dsn $env:GRAPH_DSN | Tee-Object -FilePath out/graph_census_final.txt
+python demo.py --dump
+python demo.py --stop
 ```
 
-Keep `out/phase6_claims_final.json`, `out/graph_census_final.txt`, and
-`out/demo_status.txt` with the Phase 6 evidence package. If the backends must
+Keep the final `--dump` JSON together with
+`out/phase6_claims_final.json`, `out/graph_census_final.txt`, and
+`out/demo_status.txt` in the Phase 6 evidence package. If the backends must
 remain available while collecting evidence, defer `--stop` until after the
 operator has copied the outputs.
 
@@ -365,6 +471,28 @@ operator has copied the outputs.
 - **Claim 4 remains `NOT_PROVEN`:** run both `soc -> s2p` and `soc -> dataops`
   warm-start commands; a Trading→Purchasing transfer alone does not satisfy
   the claim's locked pass condition.
+- **SOC conservation `CALIBRATING` with alpha=0:** this is expected. SOC's
+  composite gate routes all demo alerts to `refer_to_analyst`; the
+  conservation snapshot records alpha=0 and `CALIBRATING`. This is not an
+  error: SOC has not processed scorable outcomes through the shared learning
+  path.
+- **Conservation always `RED` for a copilot with many decisions:** check
+  alpha, which is category coverage. If alpha is 0, the copilot has verified
+  decisions but `count_categories_with_n` is returning 0. This was fixed July
+  30 by using the verified Decision predicate rather than only a
+  `HAS_OUTCOME` predicate.
+- **Diagnostics endpoint timed out (S2P):** S2P has approximately 25K
+  decisions. The diagnostics timeout is now 30 seconds. If it still times
+  out, check the AGE connection pool and query performance.
+- **`demo.py --dump` shows `VERDICT: NOT READY`:** inspect the three issue
+  categories: `blocking` (real issues), `expected_limitations` (SOC's
+  non-scorable gaps), and `pending_operations` (Phase 6 steps not yet run).
+  Only `blocking` items prevent `READY`.
+- **Outbox has pending items:** these may be historical failed writes from
+  prior sessions. Items exceeding `max_retries=10` are marked `abandoned` and
+  excluded from pending. If manual cleanup is required, delete rows from
+  `~/.ci-platform/<domain>/outbox.db` only after preserving the database as an
+  audit copy.
 
 ## Evidence Basis
 
@@ -381,3 +509,8 @@ operator has copied the outputs.
   execution.
 - `scripts/phase6_claim_proof.py`: eight claim queries, AGE integration gate,
   and report output.
+- `demo.py --dump`: complete platform-state JSON snapshot containing all five
+  copilots' diagnostics, census, and integrity results.
+- `demo.py --diagnose`: console diagnostics with READY/NOT READY status.
+- `copilot_sdk/diagnostics/platform_dump.py`: platform dump module with census
+  integration and verdict categorization.

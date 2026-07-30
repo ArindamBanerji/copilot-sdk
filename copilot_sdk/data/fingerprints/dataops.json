@@ -1,8 +1,8 @@
 {
   "domain": "dataops",
-  "exported_at": "2026-07-30T03:04:51Z",
+  "exported_at": "2026-07-30T22:10:50Z",
   "fingerprint": {
-    "decisions_analyzed": 389,
+    "decisions_analyzed": 390,
     "engine": {
       "gae": "gae.profile_scorer.ProfileScorer",
       "scoring": "copilot_sdk.scoring.CompoundingScorer"
@@ -12,7 +12,7 @@
         "interpretation": "noisy",
         "name": "impact_scope",
         "sigma": 0.237,
-        "weight": 0.307
+        "weight": 0.308
       },
       {
         "interpretation": "moderate",
@@ -30,7 +30,7 @@
         "interpretation": "moderate",
         "name": "downstream_urgency",
         "sigma": 0.162,
-        "weight": 0.659
+        "weight": 0.66
       },
       {
         "interpretation": "noisy",
@@ -50,7 +50,7 @@
       "freshness_violation": 0.962,
       "pipeline_failure": 0.796,
       "quality_anomaly": 0.5,
-      "schema_change": 0.735,
+      "schema_change": 0.737,
       "transform_drift": 0.667,
       "volume_anomaly": 0.962
     },

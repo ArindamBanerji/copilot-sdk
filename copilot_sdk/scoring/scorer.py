@@ -626,6 +626,21 @@ class CompoundingScorer:
                         decision_id,
                         exc,
                     )
+                if persist_artifacts:
+                    try:
+                        paused_fingerprint = self.fingerprint(persist=False)
+                        if paused_fingerprint.decisions_analyzed >= 5:
+                            self._persist_fingerprint(
+                                paused_fingerprint,
+                                decision_id=decision_id,
+                            )
+                    except Exception as exc:
+                        logger.warning(
+                            "Paused conservation fingerprint failed: domain=%s decision=%s error=%s",
+                            self._domain,
+                            decision_id,
+                            exc,
+                        )
             return conservation_pause
         iks_before = self._compute_iks(persist_artifacts=False)
         before_centroids = self._scorer.centroids.copy()
@@ -814,10 +829,11 @@ class CompoundingScorer:
         theta_min: float | None = None,
         status: str | None = None,
         policy_version: str = "conservation.v1",
-    ) -> None:
+        status_id: str | None = None,
+    ) -> bool:
         """Persist the current conservation state independently of learning."""
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
-            return
+            return False
 
         conservation_payload: dict[str, Any] = {}
         try:
@@ -841,10 +857,10 @@ class CompoundingScorer:
                     "Cold start: theta_min=%s, skipping conservation snapshot",
                     theta_min,
                 )
-                return
+                return False
 
             conservation_payload = {
-                "status_id": f"{self._domain}:conservation:{decision_id}",
+                "status_id": status_id or f"{self._domain}:conservation:{decision_id}",
                 "domain": self._domain,
                 "V": int(V),
                 "q": float(q),
@@ -867,6 +883,7 @@ class CompoundingScorer:
                 status=str(conservation_payload["status"]),
                 policy_version=str(conservation_payload["policy_version"]),
             )
+            return True
         except Exception as exc:
             logger.warning(
                 "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
@@ -877,6 +894,7 @@ class CompoundingScorer:
                 exc,
             )
             self._record_persistence_failure(decision_id, "conservation", conservation_payload, exc)
+            return False
 
     def _persist_learning_artifacts(
         self,
@@ -992,6 +1010,127 @@ class CompoundingScorer:
                 )
                 self._record_persistence_failure(decision_id, "centroid_checkpoint", {}, exc)
 
+    def capture_existing_state(
+        self,
+        *,
+        capture_reason: str,
+        decision_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Capture Type A state artifacts without recording a learning event."""
+        result: dict[str, Any] = {
+            "conservation": 0,
+            "fingerprint": 0,
+            "checkpoint": 0,
+            "errors": [],
+        }
+        if not isinstance(self._graph_store, ProtocolV2GraphStore):
+            return result
+
+        capture_key = decision_id or f"capture:{capture_reason}"
+        errors = result["errors"]
+
+        try:
+            conservation = self._capture_conservation_state()
+            if conservation is not None:
+                canonical = json.dumps(
+                    {
+                        "domain": self._domain,
+                        "V": conservation["V"],
+                        "q": conservation["q"],
+                        "alpha": conservation["alpha"],
+                        "theta_min": conservation["theta_min"],
+                        "status": conservation["status"],
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                status_digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:32]
+                result["conservation"] = int(
+                    self._persist_conservation_snapshot(
+                        capture_key,
+                        V=int(conservation["V"]),
+                        q=float(conservation["q"]),
+                        alpha=float(conservation["alpha"]),
+                        theta_min=float(conservation["theta_min"]),
+                        status=str(conservation["status"]),
+                        status_id=f"{self._domain}:conservation:{status_digest}",
+                    )
+                )
+        except Exception as exc:
+            errors.append(f"conservation: {type(exc).__name__}: {exc}")
+            logger.warning("State capture conservation failed for %s: %s", self._domain, exc)
+
+        try:
+            fingerprint = self.fingerprint(persist=False)
+            if fingerprint.decisions_analyzed >= 5:
+                result["fingerprint"] = int(
+                    self._persist_fingerprint(fingerprint, decision_id=capture_key)
+                )
+        except Exception as exc:
+            errors.append(f"fingerprint: {type(exc).__name__}: {exc}")
+            logger.warning("State capture fingerprint failed for %s: %s", self._domain, exc)
+
+        try:
+            centroids = np.asarray(self._scorer.centroids, dtype=np.float64)
+            finite_nonzero = np.isfinite(centroids) & (centroids != 0.0)
+            if centroids.size and np.any(finite_nonzero):
+                verified = int(self._graph_store.count_verified(self._domain))
+                centroid_digest = hashlib.sha256(centroids.tobytes()).hexdigest()[:32]
+                checkpoint_digest = hashlib.sha256(
+                    f"{self._domain}|{capture_reason}|{centroid_digest}|{verified}".encode("utf-8")
+                ).hexdigest()[:32]
+                result["checkpoint"] = int(
+                    self._save_centroids_checkpoint(
+                        decision_id=capture_key,
+                        category=self._preset.shape.category_names[0],
+                        action=self._preset.shape.action_names[0],
+                        iks=self._compute_iks(persist_artifacts=False),
+                        boundary=capture_reason,
+                        decisions_in_batch=verified,
+                        write_legacy=False,
+                        checkpoint_id=f"{self._domain}:checkpoint:{checkpoint_digest}",
+                        capture_reason=capture_reason,
+                    )
+                )
+        except Exception as exc:
+            errors.append(f"checkpoint: {type(exc).__name__}: {exc}")
+            logger.warning("State capture checkpoint failed for %s: %s", self._domain, exc)
+
+        return result
+
+    def _capture_conservation_state(self) -> dict[str, float | int | str] | None:
+        paused = self._conservation_pause()
+        if paused is not None:
+            return {
+                "V": int(paused["verified_count"]),
+                "q": float(paused["q"]),
+                "alpha": float(paused["alpha"]),
+                "theta_min": float(paused["theta_min"]),
+                "status": str(paused.get("conservation_status", "RED")),
+            }
+
+        verified, correct, _override_rate = _conservation_stats(self._graph_store)
+        if verified <= 0:
+            return None
+        alpha = self._category_coverage()
+        q = correct / verified
+        if verified < CONSERVATION_MIN_VERIFIED or alpha <= 0.0:
+            theta_min = compute_theta_min(1.0, verified)
+            status = "CALIBRATING"
+        else:
+            theta_min = compute_theta_min(alpha, verified)
+            signal = alpha * q * verified
+            status = "GREEN" if theta_min is not None and signal >= theta_min else "RED"
+        if theta_min is None or not math.isfinite(float(theta_min)):
+            return None
+        return {
+            "V": int(verified),
+            "q": float(q),
+            "alpha": float(alpha),
+            "theta_min": float(theta_min),
+            "status": status,
+        }
+
     def _persist_evidence_receipt(
         self,
         *,
@@ -1050,9 +1189,9 @@ class CompoundingScorer:
         result: FingerprintResult,
         *,
         decision_id: str | None = None,
-    ) -> None:
+    ) -> bool:
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
-            return
+            return False
         factor_names = list(self._preset.shape.factor_names)
         factor_stats = {
             "factors": [
@@ -1080,7 +1219,7 @@ class CompoundingScorer:
         )
         signature = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         if signature == self._last_persisted_fingerprint_signature:
-            return
+            return True
         fingerprint_id = f"{self._domain}:fingerprint:{signature[:32]}"
         fingerprint_metadata: dict[str, Any] = {
             "source": "compounding_scorer.fingerprint",
@@ -1123,8 +1262,9 @@ class CompoundingScorer:
                     )
                 except Exception as outbox_exc:
                     logger.warning("Persistence outbox record failed: %s", outbox_exc)
-            return
+            return False
         self._last_persisted_fingerprint_signature = signature
+        return True
 
     @property
     def last_conflict(self) -> JudgmentConflict | None:
@@ -1568,7 +1708,9 @@ class CompoundingScorer:
         decision_time_start: str | None = None,
         decision_time_end: str | None = None,
         write_legacy: bool = True,
-    ) -> None:
+        checkpoint_id: str | None = None,
+        capture_reason: str | None = None,
+    ) -> bool:
         metadata: dict[str, Any] = {"iks": iks}
         if consolidation:
             metadata.update({
@@ -1576,6 +1718,9 @@ class CompoundingScorer:
                 "decisions_in_batch": decisions_in_batch,
                 "consolidation": True,
             })
+        if capture_reason is not None:
+            metadata["capture_reason"] = capture_reason
+        persisted = False
         checkpoint_payload: dict[str, Any] = {}
         if write_legacy:
             try:
@@ -1588,13 +1733,14 @@ class CompoundingScorer:
                     decision_time_start=decision_time_start,
                     decision_time_end=decision_time_end,
                 )
+                persisted = True
             except Exception as exc:
                 logger.warning(
                     "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
                     self._domain, decision_id, "centroid_checkpoint", type(exc).__name__, exc,
                 )
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
-            return
+            return persisted
         try:
             # NOTE: Legacy checkpoint creates HAS_CENTROID_CHECKPOINT edge.
             # V2 checkpoint stores richer metadata without the edge.
@@ -1605,7 +1751,7 @@ class CompoundingScorer:
                 json.dumps(factor_names, separators=(",", ":")).encode("utf-8")
             ).hexdigest()
             checkpoint_payload = {
-                "checkpoint_id": f"{self._domain}:checkpoint:{uuid.uuid4().hex}",
+                "checkpoint_id": checkpoint_id or f"{self._domain}:checkpoint:{uuid.uuid4().hex}",
                 "domain": self._domain,
                 "category": category,
                 "action": action,
@@ -1618,6 +1764,7 @@ class CompoundingScorer:
                 "metadata": {**metadata, "decision_id": decision_id},
             }
             self._graph_store.write_centroid_checkpoint(**checkpoint_payload)
+            return True
         except Exception as exc:
             logger.warning(
                 "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
@@ -1633,6 +1780,7 @@ class CompoundingScorer:
                     )
                 except Exception as outbox_exc:
                     logger.warning("Persistence outbox record failed: %s", outbox_exc)
+            return persisted
 
     def _maybe_archive(self, keep_recent: int = 800) -> None:
         try:

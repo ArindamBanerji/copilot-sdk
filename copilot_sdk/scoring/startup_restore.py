@@ -38,15 +38,46 @@ def restore_l5_runtime_state(
             "centroid_source": "missing",
             "conservation_source": "missing",
         })
-        return status
+    else:
+        _restore_dk(domain, scorer, learning_store, status, active_log)
+        if welford_tracker is not None and isinstance(status.get("welford_tracker"), DKWelfordTracker):
+            _copy_welford_tracker_state(welford_tracker, status["welford_tracker"])
+            status["welford_tracker"] = welford_tracker
+        _restore_centroids(domain, scorer, learning_store, status, active_log)
+        _restore_conservation(domain, learning_store, status, active_log)
 
-    _restore_dk(domain, scorer, learning_store, status, active_log)
-    if welford_tracker is not None and isinstance(status.get("welford_tracker"), DKWelfordTracker):
-        _copy_welford_tracker_state(welford_tracker, status["welford_tracker"])
-        status["welford_tracker"] = welford_tracker
-    _restore_centroids(domain, scorer, learning_store, status, active_log)
-    _restore_conservation(domain, learning_store, status, active_log)
+    _capture_existing_state(scorer, status, active_log)
     return status
+
+
+def _capture_existing_state(
+    scorer: Any,
+    status: dict[str, Any],
+    active_log: logging.Logger,
+) -> None:
+    capture = getattr(scorer, "capture_existing_state", None)
+    if not callable(capture):
+        scorer_factory = getattr(scorer, "_scorer", None)
+        if callable(scorer_factory):
+            try:
+                capture = getattr(scorer_factory(), "capture_existing_state", None)
+            except Exception as exc:
+                active_log.warning("J6 startup state capture setup failed: %s", exc)
+                return
+    if not callable(capture):
+        active_log.debug("J6 startup state capture unavailable")
+        return
+    try:
+        capture_result = capture(capture_reason="startup_restore")
+        status["state_capture"] = capture_result
+        active_log.info(
+            "J6 startup state capture: conservation=%s fingerprint=%s checkpoint=%s",
+            capture_result.get("conservation", 0),
+            capture_result.get("fingerprint", 0),
+            capture_result.get("checkpoint", 0),
+        )
+    except Exception as exc:
+        active_log.warning("J6 startup state capture failed: %s", exc)
 
 
 def _copy_welford_tracker_state(target: DKWelfordTracker, source: DKWelfordTracker) -> None:

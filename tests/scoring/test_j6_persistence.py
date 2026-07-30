@@ -15,6 +15,7 @@ from copilot_sdk.backend.scoring_router import (
 )
 from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
+from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state
 
 
 def _scorer(mock_preset, store: InMemoryGraphStore) -> CompoundingScorer:
@@ -152,6 +153,158 @@ def _verified_scorer(mock_preset, store: InMemoryGraphStore):
         metadata={"source": "j6-test"},
     )
     return scorer, result, alternate
+
+
+def _seed_capture_decisions(
+    store: InMemoryGraphStore,
+    preset: Any,
+    count: int,
+    *,
+    correct: bool = True,
+    empty_vectors: bool = False,
+) -> None:
+    factor_names = list(preset.shape.factor_names)
+    for index in range(count):
+        vector = [] if empty_vectors else [0.1 + index * 0.01] * len(factor_names)
+        decision_id = store.write_decision(
+            "mock",
+            category=preset.shape.category_names[0],
+            action=preset.shape.action_names[0],
+            confidence=0.8,
+            factors={name: value for name, value in zip(factor_names, vector)},
+            metadata={
+                "decision_id": f"capture-{index}",
+                "category_index": 0,
+                "recommended_index": 0,
+                "factor_vector": vector,
+                "probabilities": [0.8, 0.2],
+            },
+        )
+        store.write_outcome(
+            decision_id,
+            preset.shape.action_names[0] if correct else preset.shape.action_names[1],
+            correct,
+            metadata={"actual_index": 0 if correct else 1},
+        )
+
+
+def test_capture_existing_state_writes_three_artifacts(mock_preset):
+    store = L5InMemoryStore(domain="mock")
+    _seed_capture_decisions(store, mock_preset, 5)
+    scorer = _scorer(mock_preset, store)
+
+    try:
+        result = scorer.capture_existing_state(capture_reason="startup_restore")
+
+        assert result["conservation"] == 1
+        assert result["fingerprint"] == 1
+        assert result["checkpoint"] == 1
+        assert not result["errors"]
+        assert len(store._conservation_snapshots) == 1
+        assert len(store._fingerprints) == 1
+        assert len(store._protocol_centroid_checkpoints) == 1
+        assert len(store._evidence_receipts) == 0
+    finally:
+        store.close()
+
+
+def test_capture_existing_state_idempotent(mock_preset):
+    store = L5InMemoryStore(domain="mock")
+    _seed_capture_decisions(store, mock_preset, 5)
+    scorer = _scorer(mock_preset, store)
+
+    try:
+        scorer.capture_existing_state(capture_reason="startup_restore")
+        scorer.capture_existing_state(capture_reason="startup_restore")
+
+        assert len(store._conservation_snapshots) == 1
+        assert len(store._fingerprints) == 1
+        assert len(store._protocol_centroid_checkpoints) == 1
+    finally:
+        store.close()
+
+
+def test_capture_existing_state_no_receipt(mock_preset):
+    store = L5InMemoryStore(domain="mock")
+    _seed_capture_decisions(store, mock_preset, 5)
+    scorer = _scorer(mock_preset, store)
+
+    try:
+        scorer.capture_existing_state(capture_reason="manual_state_capture")
+        assert not store._evidence_receipts
+    finally:
+        store.close()
+
+
+def test_capture_existing_state_insufficient_factors(mock_preset):
+    store = L5InMemoryStore(domain="mock")
+    _seed_capture_decisions(store, mock_preset, 3, empty_vectors=True)
+    scorer = _scorer(mock_preset, store)
+
+    try:
+        result = scorer.capture_existing_state(capture_reason="startup_restore")
+
+        assert result["conservation"] == 1
+        assert result["fingerprint"] == 0
+        assert result["checkpoint"] == 1
+        assert not store._fingerprints
+        assert len(store._conservation_snapshots) == 1
+        assert len(store._protocol_centroid_checkpoints) == 1
+    finally:
+        store.close()
+
+
+def test_pause_path_writes_fingerprint(mock_preset):
+    store = L5InMemoryStore(domain="mock")
+    _seed_capture_decisions(store, mock_preset, 10, correct=False)
+    scorer = _scorer(mock_preset, store)
+    score_result = scorer.score(
+        {"amount": 0.2, "risk": 0.3, "history": 0.4},
+        mock_preset.shape.category_names[0],
+    )
+
+    try:
+        learned = scorer.learn(score_result.decision_id, score_result.action)
+
+        assert learned["status"] == "paused"
+        assert store._conservation_snapshots
+        assert store._protocol_centroid_checkpoints
+        assert store._fingerprints
+        assert not store._evidence_receipts
+    finally:
+        store.close()
+
+
+def test_startup_restore_calls_capture(mock_preset):
+    store = L5InMemoryStore(domain="mock")
+    _seed_capture_decisions(store, mock_preset, 5)
+    scorer = _scorer(mock_preset, store)
+
+    try:
+        status = restore_l5_runtime_state(
+            domain="mock",
+            scorer=scorer,
+            learning_store=store,
+        )
+
+        assert status["state_capture"]["conservation"] == 1
+        assert status["state_capture"]["fingerprint"] == 1
+        assert status["state_capture"]["checkpoint"] == 1
+        assert store._conservation_snapshots
+        assert store._fingerprints
+        assert store._protocol_centroid_checkpoints
+        assert not store._evidence_receipts
+
+        failing_store = FailingV2Store(domain="mock")
+        failing_scorer = _scorer(mock_preset, failing_store)
+        failure_status = restore_l5_runtime_state(
+            domain="mock",
+            scorer=failing_scorer,
+            learning_store=failing_store,
+        )
+        assert "state_capture" in failure_status
+    finally:
+        store.close()
 
 
 def test_scorer_persists_v2_evidence_fingerprint_and_checkpoint(mock_preset):

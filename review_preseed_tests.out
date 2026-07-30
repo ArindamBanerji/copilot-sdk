@@ -1,8 +1,0 @@
-......                                                                   [100%]
-============================== warnings summary ===============================
-..\..\..\proj-envs\python_expts_venv\Lib\site-packages\pytest_freezegun.py:17: 12 warnings
-  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\pytest_freezegun.py:17: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
-    if LooseVersion(pytest.__version__) < LooseVersion('3.6.0'):
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-6 passed, 12 warnings in 3.31s

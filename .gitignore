@@ -31,3 +31,21 @@ pw_*.json
 soc_projection_gate_*.txt
 age_protocol_v2_*.txt
 pw_protocol_v2_*.txt
+
+# Temp/debug files
+debug.log
+*.out
+test_results*.txt
+tests_before.txt
+tests_now.txt
+age_smoke*.py
+
+# SQLite WAL/SHM
+*.db-shm
+*.db-wal
+
+# Codex temp
+.codex_tmp/
+
+# Build output
+out/
