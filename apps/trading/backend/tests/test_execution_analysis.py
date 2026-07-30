@@ -135,6 +135,9 @@ class _Store:
             {"metadata": {"broker": "ibkr", "fill_price": 100.01, "mid_price": 100.00}},
         ]
 
+    def close(self) -> None:
+        return None
+
 
 def _client() -> TestClient:
     app = FastAPI()

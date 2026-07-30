@@ -147,6 +147,5 @@ def _conservation_status(graph_store_factory: GraphStoreFactory | None) -> dict[
     except Exception:
         return None
     finally:
-        close = getattr(store, "close", None)
-        if callable(close):
-            close()
+        if store is not None:
+            store.close()

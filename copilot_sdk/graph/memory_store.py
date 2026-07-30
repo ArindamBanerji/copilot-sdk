@@ -1110,7 +1110,12 @@ class InMemoryGraphStore:
     def count_categories_with_n(self, domain: str, n: int) -> int:
         counts: dict[str, int] = {}
         for decision_id, decision in self._decisions.items():
-            if decision.get("domain") != domain or decision_id not in self._outcomes:
+            if decision.get("domain") != domain:
+                continue
+            if not (
+                decision.get("status") in {"confirmed", "overridden"}
+                or decision_id in self._outcomes
+            ):
                 continue
             category = str(decision.get("category") or "")
             counts[category] = counts.get(category, 0) + 1

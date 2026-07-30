@@ -36,6 +36,15 @@ def seed_green_scorer(
     factors = _default_factors(scorer)
     category = str(_shape(scorer).category_names[0])
 
+    for coverage_category in _shape(scorer).category_names[1:]:
+        seed = scorer.score(category=str(coverage_category), factors=factors)
+        seed_result = scorer.learn(
+            decision_id=seed.decision_id,
+            actual_action=seed.action,
+        )
+        if isinstance(seed_result, dict):
+            raise AssertionError(f"coverage seed should apply, got {seed_result}")
+
     for _ in range(n_decisions):
         result = scorer.score(category=category, factors=factors)
         learn_result = scorer.learn(
@@ -53,6 +62,23 @@ def seed_green_client(client: Any, n_decisions: int = 50) -> dict[str, Any]:
     preset = TradingPreset()
     factors = {name: 0.6 for name in preset.shape.factor_names}
     category = str(preset.shape.category_names[0])
+
+    for coverage_category in preset.shape.category_names[1:]:
+        score_response = client.post(
+            "/api/score",
+            json={"category": str(coverage_category), "factors": factors},
+        )
+        assert score_response.status_code == 200, score_response.json()
+        score_payload = score_response.json()
+        learn_response = client.post(
+            "/api/learn",
+            json={
+                "decision_id": score_payload["decision_id"],
+                "actual_action": score_payload["action"],
+            },
+        )
+        assert learn_response.status_code == 200, learn_response.json()
+        assert learn_response.json().get("paused") is False
 
     for _ in range(n_decisions):
         score_response = client.post(
@@ -96,6 +122,15 @@ def seed_paused_scorer(
     )
     if isinstance(first_result, dict):
         raise AssertionError(f"first override should seed state, got {first_result}")
+
+    for _ in range(9):
+        seed = scorer.score(category=category, factors=factors)
+        seed_result = scorer.learn(
+            decision_id=seed.decision_id,
+            actual_action=seed.action,
+        )
+        if isinstance(seed_result, dict):
+            raise AssertionError(f"correct seed should apply, got {seed_result}")
 
     pending = scorer.score(category=category, factors=factors)
     action = str(pending.action)

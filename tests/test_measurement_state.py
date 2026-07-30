@@ -18,7 +18,15 @@ def _feed_decisions(scorer: CompoundingScorer, count: int) -> None:
     train, _eval_rows = load_benchmark()
     for row in train[:count]:
         result = scorer.score(row["factors"], row["category"])
-        scorer.learn(result.decision_id, result.action)
+        # Seed measurement state directly; this test must not exercise the
+        # conservation learning gate while measuring coverage.
+        scorer.graph_store.write_outcome(
+            result.decision_id,
+            result.action,
+            True,
+            metadata={"verified_at": float(count)},
+            domain="trading",
+        )
 
 
 def _feed_all_arms(scorer: CompoundingScorer, per_arm: int) -> None:

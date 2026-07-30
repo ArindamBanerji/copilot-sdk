@@ -632,16 +632,33 @@ class SQLiteGraphStore:
                 computed_at REAL NOT NULL
             );
 
-            CREATE TABLE IF NOT EXISTS fingerprints (
-                fingerprint_id TEXT PRIMARY KEY,
+             CREATE TABLE IF NOT EXISTS fingerprints (
+                 fingerprint_id TEXT PRIMARY KEY,
                 domain TEXT NOT NULL,
                 factor_names_json TEXT NOT NULL,
                 factor_stats_json TEXT NOT NULL,
                 skipped_incompatible INTEGER NOT NULL,
                 window INTEGER NOT NULL,
                 metadata_json TEXT NOT NULL DEFAULT '{}',
-                created_at REAL NOT NULL
-            );
+                 created_at REAL NOT NULL
+             );
+
+             CREATE TABLE IF NOT EXISTS transfer_patterns (
+                 pattern_id TEXT PRIMARY KEY,
+                 source_domain TEXT NOT NULL,
+                 target_domain TEXT NOT NULL,
+                 pattern_type TEXT NOT NULL,
+                 source_rule TEXT,
+                 target_rule TEXT,
+                 factor_mapping TEXT NOT NULL,
+                 confidence REAL NOT NULL,
+                 validation_status TEXT NOT NULL,
+                 conservation_status TEXT NOT NULL,
+                 source_fingerprint_id TEXT,
+                 evolution_event_id TEXT,
+                 metadata TEXT,
+                 created_at TEXT NOT NULL
+             );
 
             CREATE TABLE IF NOT EXISTS decisions_archive (
                 archive_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -700,9 +717,10 @@ class SQLiteGraphStore:
             "observation_entity_edges",
             "observation_factor_vectors",
             "evidence_receipts",
-            "conservation_snapshots",
-            "fingerprints",
-            "decisions_archive",
+             "conservation_snapshots",
+             "fingerprints",
+             "transfer_patterns",
+             "decisions_archive",
             "entity_enrichments",
         ):
             self._ensure_domain_column(table)
@@ -732,7 +750,9 @@ class SQLiteGraphStore:
             CREATE INDEX IF NOT EXISTS idx_observation_factor_vectors_domain ON observation_factor_vectors(domain);
             CREATE INDEX IF NOT EXISTS idx_evidence_receipts_domain ON evidence_receipts(domain);
             CREATE INDEX IF NOT EXISTS idx_conservation_domain ON conservation_snapshots(domain, computed_at);
-             CREATE INDEX IF NOT EXISTS idx_fingerprints_domain_created ON fingerprints(domain, created_at);
+              CREATE INDEX IF NOT EXISTS idx_fingerprints_domain_created ON fingerprints(domain, created_at);
+              CREATE INDEX IF NOT EXISTS idx_transfer_patterns_source_target
+              ON transfer_patterns(source_domain, target_domain, created_at);
              CREATE INDEX IF NOT EXISTS idx_centroid_checkpoints_domain_category_action_created ON centroid_checkpoints(domain, category, action, created_at);
              CREATE INDEX IF NOT EXISTS idx_l5_centroids_domain ON l5_centroids(domain);
              CREATE UNIQUE INDEX IF NOT EXISTS idx_l5_dk_weights_current_domain ON l5_dk_weights(domain) WHERE is_current = 1;
@@ -1561,6 +1581,229 @@ class SQLiteGraphStore:
         self._run_write(persist)
         return None
 
+    def write_transfer_pattern(
+        self,
+        pattern_id: str,
+        source_domain: str,
+        target_domain: str,
+        pattern_type: str,
+        factor_mapping: dict[str, Any],
+        confidence: float,
+        validation_status: str,
+        conservation_status: str,
+        source_rule: str | None = None,
+        target_rule: str | None = None,
+        source_fingerprint_id: str | None = None,
+        evolution_event_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        payload = {
+            "pattern_id": str(pattern_id),
+            "source_domain": str(source_domain),
+            "target_domain": str(target_domain),
+            "pattern_type": str(pattern_type),
+            "source_rule": None if source_rule is None else str(source_rule),
+            "target_rule": None if target_rule is None else str(target_rule),
+            "factor_mapping_json": _to_json(dict(factor_mapping)),
+            "confidence": float(confidence),
+            "validation_status": str(validation_status),
+            "conservation_status": str(conservation_status),
+            "source_fingerprint_id": (
+                None if source_fingerprint_id is None else str(source_fingerprint_id)
+            ),
+            "evolution_event_id": None if evolution_event_id is None else str(evolution_event_id),
+            "metadata_json": _to_json(dict(metadata or {})),
+        }
+
+        def persist() -> None:
+            existing = self.connection.execute(
+                "SELECT * FROM transfer_patterns WHERE pattern_id = ?",
+                (payload["pattern_id"],),
+            ).fetchone()
+            if existing is not None:
+                existing_payload = {
+                    "pattern_id": existing["pattern_id"],
+                    "source_domain": existing["source_domain"],
+                    "target_domain": existing["target_domain"],
+                    "pattern_type": existing["pattern_type"],
+                    "source_rule": existing["source_rule"],
+                    "target_rule": existing["target_rule"],
+                    "factor_mapping_json": existing["factor_mapping"],
+                    "confidence": float(existing["confidence"]),
+                    "validation_status": existing["validation_status"],
+                    "conservation_status": existing["conservation_status"],
+                    "source_fingerprint_id": existing["source_fingerprint_id"],
+                    "evolution_event_id": existing["evolution_event_id"],
+                    "metadata_json": existing["metadata"],
+                }
+                if existing_payload == payload:
+                    return None
+                raise ValueError(f"conflicting transfer pattern_id: {payload['pattern_id']}")
+            self.connection.execute(
+                """
+                INSERT INTO transfer_patterns (
+                    pattern_id, source_domain, target_domain, pattern_type,
+                    source_rule, target_rule, factor_mapping, confidence,
+                    validation_status, conservation_status, source_fingerprint_id,
+                    evolution_event_id, metadata, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    payload["pattern_id"],
+                    payload["source_domain"],
+                    payload["target_domain"],
+                    payload["pattern_type"],
+                    payload["source_rule"],
+                    payload["target_rule"],
+                    payload["factor_mapping_json"],
+                    payload["confidence"],
+                    payload["validation_status"],
+                    payload["conservation_status"],
+                    payload["source_fingerprint_id"],
+                    payload["evolution_event_id"],
+                    payload["metadata_json"],
+                    str(time.time()),
+                ),
+            )
+            return None
+
+        self._run_write(persist)
+        return None
+
+    def get_transfer_patterns(
+        self,
+        source_domain: str | None = None,
+        target_domain: str | None = None,
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if source_domain is not None:
+            clauses.append("source_domain = ?")
+            params.append(str(source_domain))
+        if target_domain is not None:
+            clauses.append("target_domain = ?")
+            params.append(str(target_domain))
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        rows = self.connection.execute(
+            f"SELECT * FROM transfer_patterns {where} ORDER BY created_at ASC, pattern_id ASC",
+            params,
+        ).fetchall()
+        return [
+            {
+                "pattern_id": row["pattern_id"],
+                "source_domain": row["source_domain"],
+                "target_domain": row["target_domain"],
+                "pattern_type": row["pattern_type"],
+                "source_rule": row["source_rule"],
+                "target_rule": row["target_rule"],
+                "factor_mapping": _from_json(row["factor_mapping"]),
+                "confidence": float(row["confidence"]),
+                "validation_status": row["validation_status"],
+                "conservation_status": row["conservation_status"],
+                "source_fingerprint_id": row["source_fingerprint_id"],
+                "evolution_event_id": row["evolution_event_id"],
+                "metadata": _from_json(row["metadata"]),
+                "created_at": float(row["created_at"]),
+            }
+            for row in rows
+        ]
+
+    def get_latest_conservation_statuses(
+        self,
+        domains: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        params: list[Any] = []
+        where = ""
+        if domains is not None:
+            if not domains:
+                return []
+            placeholders = ", ".join("?" for _ in domains)
+            where = f"WHERE domain IN ({placeholders})"
+            params.extend(str(domain) for domain in domains)
+        rows = self.connection.execute(
+            f"""
+            SELECT snapshot_id, domain, V, q, alpha, theta_min,
+                   verified_count, correct_count, status, policy_version, computed_at
+            FROM conservation_snapshots
+            {where}
+            ORDER BY domain ASC, computed_at DESC, snapshot_id DESC
+            """,
+            params,
+        ).fetchall()
+        latest: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            latest.setdefault(
+                str(row["domain"]),
+                {
+                    "status_id": row["snapshot_id"],
+                    "domain": row["domain"],
+                    "V": int(row["V"]),
+                    "q": float(row["q"]),
+                    "alpha": float(row["alpha"]),
+                    "theta_min": float(row["theta_min"]),
+                    "verified_count": int(row["verified_count"]),
+                    "correct_count": int(row["correct_count"]),
+                    "status": row["status"],
+                    "policy_version": row["policy_version"],
+                    "computed_at": float(row["computed_at"]),
+                },
+            )
+        return [latest[domain] for domain in sorted(latest)]
+
+    def get_iks_trajectory(
+        self,
+        domains: list[str] | None = None,
+        start: float | None = None,
+        end: float | None = None,
+    ) -> list[dict[str, Any]]:
+        params: list[Any] = []
+        clauses = ["iks IS NOT NULL"]
+        if domains is not None:
+            if not domains:
+                return []
+            placeholders = ", ".join("?" for _ in domains)
+            clauses.append(f"domain IN ({placeholders})")
+            params.extend(str(domain) for domain in domains)
+        if start is not None:
+            clauses.append("created_at >= ?")
+            params.append(float(start))
+        if end is not None:
+            clauses.append("created_at <= ?")
+            params.append(float(end))
+        rows = self.connection.execute(
+            f"""
+            SELECT checkpoint_id, decision_id, domain, iks, decisions_count,
+                   verified_count, factor_names_hash, created_at, metadata_json
+            FROM centroid_checkpoints
+            WHERE {' AND '.join(clauses)}
+            ORDER BY domain ASC, created_at ASC, id ASC
+            """,
+            params,
+        ).fetchall()
+        selected: dict[tuple[str, str], dict[str, Any]] = {}
+        for row in rows:
+            metadata = _from_json(row["metadata_json"])
+            decision_id = row["decision_id"] or (
+                metadata.get("decision_id") if isinstance(metadata, dict) else None
+            )
+            key = (str(row["domain"]), str(decision_id)) if decision_id else (
+                str(row["domain"]), f"row:{row['created_at']}:{row['checkpoint_id']}"
+            )
+            record = {
+                "checkpoint_id": row["checkpoint_id"],
+                "decision_id": decision_id,
+                "domain": row["domain"],
+                "iks": float(row["iks"]),
+                "decisions_count": int(row["decisions_count"]),
+                "verified_count": int(row["verified_count"]),
+                "factor_names_hash": row["factor_names_hash"],
+                "created_at": float(row["created_at"]),
+                "metadata": metadata,
+            }
+            if key not in selected or (row["checkpoint_id"] is not None and selected[key]["checkpoint_id"] is None):
+                selected[key] = record
+        return sorted(selected.values(), key=lambda item: (item["domain"], item["created_at"], item["checkpoint_id"] or ""))
+
     def write_evolution_event(
         self,
         event_id: str,
@@ -2356,10 +2599,13 @@ class SQLiteGraphStore:
     def get_centroid_checkpoints(
         self,
         domain: str,
+        include_v2: bool = False,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         limit = kwargs.pop("limit", 50)
-        where, params = _checkpoint_where_clause(domain=str(domain), **kwargs)
+        where, params = _checkpoint_where_clause(
+            domain=str(domain), include_v2=include_v2, **kwargs
+        )
         if limit is None:
             rows = self.connection.execute(
                 f"""
@@ -2821,12 +3067,16 @@ class SQLiteGraphStore:
     def count_categories_with_n(self, domain: str, n: int) -> int:
         rows = self.connection.execute(
             """
-            SELECT d.category, COUNT(*) AS count
+            SELECT d.category AS cat, COUNT(*) AS cnt
             FROM decisions d
-            INNER JOIN outcomes o ON d.decision_id = o.decision_id
+            LEFT JOIN outcomes o ON d.decision_id = o.decision_id
             WHERE d.domain = ?
+              AND (
+                  d.status IN ('confirmed', 'overridden')
+                  OR o.decision_id IS NOT NULL
+              )
             GROUP BY d.category
-            HAVING count >= ?
+            HAVING cnt >= ?
             """,
             (str(domain), int(n)),
         ).fetchall()
@@ -2991,9 +3241,10 @@ class SQLiteGraphStore:
                 "observation_entity_edges",
                 "observation_factor_vectors",
                 "evidence_receipts",
-                "conservation_snapshots",
-                "fingerprints",
-                "centroid_checkpoints",
+                  "conservation_snapshots",
+                  "fingerprints",
+                  "transfer_patterns",
+                  "centroid_checkpoints",
                 "evolution_events",
                 "decision_entity_edges",
                   "decisions_archive",
@@ -3102,12 +3353,16 @@ class SQLiteGraphStore:
     def _checkpoint_from_row(self, row: sqlite3.Row) -> dict[str, Any]:
         return {
             "id": int(row["id"]),
+            "checkpoint_id": row["checkpoint_id"],
             "domain": row["domain"],
             "decision_id": row["decision_id"],
             "category": row["category"],
             "centroids": np.asarray(_from_json(row["centroids_json"]), dtype=np.float64),
             "decisions_count": int(row["decisions_count"]),
+            "verified_count": int(row["verified_count"]),
             "iks": float(row["iks"]),
+            "shape": _from_json(row["shape_json"]),
+            "factor_names_hash": row["factor_names_hash"],
             "metadata": _from_json(row["metadata_json"]),
             "created_at": float(row["created_at"]),
             "decision_time_start": row["decision_time_start"],
@@ -3119,13 +3374,16 @@ class SQLiteGraphStore:
 def _checkpoint_where_clause(
     *,
     domain: str,
+    include_v2: bool = False,
     checkpoint_time_start: str | None = None,
     checkpoint_time_end: str | None = None,
     decision_time_start: str | None = None,
     decision_time_end: str | None = None,
     category: str | None = None,
 ) -> tuple[str, list[Any]]:
-    clauses: list[str] = ["domain = ?", "checkpoint_id IS NULL"]
+    clauses: list[str] = ["domain = ?"]
+    if not include_v2:
+        clauses.append("checkpoint_id IS NULL")
     params: list[Any] = [domain]
     if category is not None:
         clauses.append("category = ?")

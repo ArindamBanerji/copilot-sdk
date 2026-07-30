@@ -85,9 +85,57 @@ class CoexistenceStore(L5InMemoryStore):
         super().__init__(*args, **kwargs)
         self.l5_calls: list[dict[str, Any]] = []
 
-    def update_conservation_state(self, *args: Any, **kwargs: Any) -> None:
-        self.l5_calls.append(dict(kwargs))
-        return super().update_conservation_state(*args, **kwargs)
+    def update_conservation_state(
+        self,
+        domain: str,
+        status: str,
+        alpha: float,
+        q: float,
+        V: int,
+        theta_min: float,
+        product: float,
+        categories_total: int,
+        categories_with_data: int,
+        baseline_product: float,
+        relative_threshold: float,
+        complacency_flag: str,
+        caused_by_decision_id: str | None = None,
+        old_status: str | None = None,
+    ) -> str:
+        self.l5_calls.append(
+            {
+                "domain": domain,
+                "status": status,
+                "alpha": alpha,
+                "q": q,
+                "V": V,
+                "theta_min": theta_min,
+                "product": product,
+                "categories_total": categories_total,
+                "categories_with_data": categories_with_data,
+                "baseline_product": baseline_product,
+                "relative_threshold": relative_threshold,
+                "complacency_flag": complacency_flag,
+                "caused_by_decision_id": caused_by_decision_id,
+                "old_status": old_status,
+            }
+        )
+        return super().update_conservation_state(
+            domain,
+            status,
+            alpha,
+            q,
+            V,
+            theta_min,
+            product,
+            categories_total,
+            categories_with_data,
+            baseline_product,
+            relative_threshold,
+            complacency_flag,
+            caused_by_decision_id,
+            old_status,
+        )
 
 
 def _verified_scorer(mock_preset, store: InMemoryGraphStore):
@@ -129,11 +177,11 @@ def test_scorer_persists_v2_evidence_fingerprint_and_checkpoint(mock_preset):
 
         fingerprint = scorer.fingerprint()
         assert fingerprint.decisions_analyzed == 1
-        assert len(store._fingerprints) == 2
+        assert len(store._fingerprints) == 1
         assert all(snapshot["domain"] == "mock" for snapshot in store._fingerprints.values())
         assert any(snapshot["window"] == 1 for snapshot in store._fingerprints.values())
         scorer.fingerprint()
-        assert len(store._fingerprints) == 2
+        assert len(store._fingerprints) == 1
     finally:
         store.close()
 

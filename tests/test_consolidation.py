@@ -90,6 +90,25 @@ def test_consolidation_enabled_buffers_persistence(tmp_path):
     scorer.graph_store.close()
 
 
+def test_consolidation_enabled_writes_v2_checkpoint_after_each_successful_learn(tmp_path):
+    scorer, graph_store = _build_scorer(tmp_path, consolidation_enabled=True)
+    first = _score(scorer, 0.2)
+    second = _score(scorer, 0.25)
+
+    scorer.learn(first.decision_id, first.action)
+    scorer.learn(second.decision_id, second.action)
+
+    assert graph_store.get_centroid_checkpoints("test") == []
+    v2_checkpoints = graph_store.get_centroid_checkpoints("test", include_v2=True)
+    assert len(v2_checkpoints) == 2
+    assert all(checkpoint.get("checkpoint_id") for checkpoint in v2_checkpoints)
+    assert {checkpoint["metadata"]["decision_id"] for checkpoint in v2_checkpoints} == {
+        first.decision_id,
+        second.decision_id,
+    }
+    scorer.graph_store.close()
+
+
 def test_consolidation_in_memory_centroids_update_while_buffered(tmp_path):
     scorer, graph_store = _build_scorer(tmp_path, consolidation_enabled=True)
     result = _score(scorer)

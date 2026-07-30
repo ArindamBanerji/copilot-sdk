@@ -59,11 +59,8 @@ def _graph_store(graph_store_factory: GraphStoreFactory | None) -> Any:
 
 
 def _supplier_rows_from_graph(store: Any, supplier_id: str) -> list[dict[str, Any]]:
-    getter = getattr(store, "get_verified_decisions", None)
-    if not callable(getter):
-        raise HTTPException(status_code=503, detail="IKS graph store cannot read verified decisions")
     try:
-        rows = getter(DOMAIN) or []
+        rows = store.get_verified_decisions(DOMAIN) or []
     except Exception as exc:
         raise HTTPException(status_code=503, detail="IKS graph store is unavailable") from exc
     return [

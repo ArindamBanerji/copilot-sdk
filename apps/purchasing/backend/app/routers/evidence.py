@@ -184,11 +184,12 @@ def _verified_decisions(graph_store: Any) -> list[dict[str, Any]]:
 
 
 def _centroid_checkpoints(graph_store: Any) -> list[dict[str, Any]]:
-    get_checkpoints = getattr(graph_store, "get_centroid_checkpoints", None)
-    if not callable(get_checkpoints):
-        return []
     try:
-        return [row for row in get_checkpoints(DOMAIN, limit=25) if isinstance(row, dict)]
+        return [
+            row
+            for row in graph_store.get_centroid_checkpoints(DOMAIN, limit=25)
+            if isinstance(row, dict)
+        ]
     except Exception:
         return []
 

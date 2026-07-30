@@ -144,6 +144,36 @@ def test_dataops_graph_client_uses_active_config(monkeypatch, no_graph):
     assert calls == [{"dsn": "host=active port=5433 dbname=dataops sslmode=disable", "graph_name": "governed_copilot_graph"}]
 
 
+def test_dataops_graph_client_uses_generic_age_config(monkeypatch, no_graph):
+    calls = []
+
+    class CapturingAGEClient:
+        serialize_for_age = staticmethod(lambda value: "'" + str(value).replace("'", "\\'") + "'")
+
+        def __init__(self, **kwargs):
+            calls.append(kwargs)
+
+    monkeypatch.delenv("DATAOPS_ACTIVE_GRAPH_BACKEND", raising=False)
+    monkeypatch.delenv("DATAOPS_ACTIVE_AGE_DSN", raising=False)
+    monkeypatch.delenv("DATAOPS_ACTIVE_AGE_GRAPH", raising=False)
+    monkeypatch.setenv("GRAPH_BACKEND", "age")
+    monkeypatch.setenv("GRAPH_DSN", "host=generic port=5433 dbname=shared")
+    monkeypatch.setenv("AGE_GRAPH_NAME", "soc_graph")
+
+    client = DataOpsGraphClient(
+        fallback_dir=FALLBACK_DIR,
+        age_client_cls=CapturingAGEClient,
+    )
+
+    assert client.is_graph_connected is True
+    assert calls == [
+        {
+            "dsn": "host=generic port=5433 dbname=shared sslmode=disable",
+            "graph_name": "soc_graph",
+        }
+    ]
+
+
 def test_dataops_graph_client_rejects_missing_dataops_config(monkeypatch, no_graph):
     monkeypatch.delenv("DATAOPS_ACTIVE_AGE_DSN", raising=False)
     monkeypatch.delenv("DATAOPS_ACTIVE_AGE_GRAPH", raising=False)

@@ -1,8 +1,8 @@
 {
   "domain": "dataops",
-  "exported_at": "2026-07-14T02:35:37Z",
+  "exported_at": "2026-07-30T03:04:51Z",
   "fingerprint": {
-    "decisions_analyzed": 308,
+    "decisions_analyzed": 389,
     "engine": {
       "gae": "gae.profile_scorer.ProfileScorer",
       "scoring": "copilot_sdk.scoring.CompoundingScorer"
@@ -11,48 +11,48 @@
       {
         "interpretation": "noisy",
         "name": "impact_scope",
-        "sigma": 0.244,
-        "weight": 0.207
+        "sigma": 0.237,
+        "weight": 0.307
       },
       {
         "interpretation": "moderate",
         "name": "source_reliability",
-        "sigma": 0.111,
+        "sigma": 0.131,
         "weight": 1.0
       },
       {
         "interpretation": "noisy",
         "name": "recurrence_frequency",
-        "sigma": 0.347,
-        "weight": 0.102
+        "sigma": 0.325,
+        "weight": 0.163
       },
       {
         "interpretation": "moderate",
         "name": "downstream_urgency",
-        "sigma": 0.15,
-        "weight": 0.549
+        "sigma": 0.162,
+        "weight": 0.659
       },
       {
         "interpretation": "noisy",
         "name": "data_freshness",
-        "sigma": 0.238,
-        "weight": 0.216
+        "sigma": 0.233,
+        "weight": 0.318
       },
       {
         "interpretation": "moderate",
         "name": "business_criticality",
-        "sigma": 0.154,
-        "weight": 0.522
+        "sigma": 0.185,
+        "weight": 0.503
       }
     ],
-    "overall_win_rate": 0.737,
+    "overall_win_rate": 0.792,
     "per_category_precision": {
-      "freshness_violation": 0.833,
-      "pipeline_failure": 0.774,
+      "freshness_violation": 0.962,
+      "pipeline_failure": 0.796,
       "quality_anomaly": 0.5,
-      "schema_change": 0.677,
+      "schema_change": 0.735,
       "transform_drift": 0.667,
-      "volume_anomaly": 0.833
+      "volume_anomaly": 0.962
     },
     "skipped_decisions": 0
   },

@@ -233,9 +233,8 @@ def _journal_records(
                 detail="Trading graph unavailable",
             ) from exc
         finally:
-            close = getattr(store, "close", None)
-            if callable(close):
-                close()
+            if store is not None:
+                store.close()
 
     records.sort(key=lambda trade: _entry_date(trade) or datetime.min, reverse=True)
     return records

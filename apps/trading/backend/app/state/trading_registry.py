@@ -63,8 +63,7 @@ def create_trading_tab_state_cache(
 
     def centroid_history_summary() -> dict[str, Any]:
         store = graph_store()
-        get_checkpoints = getattr(store, "get_centroid_checkpoints", None)
-        rows = get_checkpoints("trading", limit=50) if callable(get_checkpoints) else []
+        rows = store.get_centroid_checkpoints("trading", limit=50)
         return {"checkpoints": json_safe(list(rows)), "total": len(rows)}
 
     def audit_trail_summary() -> dict[str, Any]:

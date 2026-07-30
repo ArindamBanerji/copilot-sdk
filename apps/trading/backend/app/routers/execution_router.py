@@ -39,9 +39,8 @@ def create_execution_router(
                     detail="Trading graph unavailable",
                 ) from exc
             finally:
-                close = getattr(store, "close", None)
-                if callable(close):
-                    close()
+                if store is not None:
+                    store.close()
         return records
 
     @router.get("/analysis")

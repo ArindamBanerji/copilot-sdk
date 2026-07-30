@@ -1071,7 +1071,7 @@ def test_context_router_uses_canonical_theta_min() -> None:
     source = Path(context_router.__file__).read_text(encoding="utf-8")
 
     assert "from copilot_sdk.scoring.scorer import compute_theta_min" in source
-    assert "compute_theta_min(APPLY_FIX_OVERRIDE_RATE, APPLY_FIX_VERIFIED_COUNT)" in source
+    assert "compute_theta_min(APPLY_FIX_CATEGORY_COVERAGE, APPLY_FIX_VERIFIED_COUNT)" in source
     assert "23.53" not in source
 
 

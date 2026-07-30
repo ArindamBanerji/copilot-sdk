@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from pathlib import Path
 
 from gae.profile_scorer import ProfileScorer
@@ -59,6 +60,48 @@ def test_outbox_failed_replay_remains_pending(tmp_path: Path) -> None:
 
     assert outbox.drain(_FailingStore()) == (0, 1)
     assert outbox.pending_count() == 1
+
+
+def test_outbox_abandons_after_max_retries(tmp_path: Path) -> None:
+    outbox_path = tmp_path / "retry-limit.db"
+    outbox = PersistenceOutbox("trading", outbox_path)
+    outbox.record_failure("decision-retry", "conservation", {"V": 1}, "offline")
+
+    class _FailingStore:
+        def write_conservation_status(self, **payload):
+            raise RuntimeError("still unavailable")
+
+    for _ in range(PersistenceOutbox.MAX_RETRIES):
+        assert outbox.drain(_FailingStore()) == (0, 1)
+
+    assert outbox.pending_count() == 0
+    with sqlite3.connect(outbox_path) as connection:
+        row = connection.execute(
+            "SELECT retry_count, status FROM failed_artifacts WHERE decision_id = ?",
+            ("decision-retry",),
+        ).fetchone()
+    assert row == (PersistenceOutbox.MAX_RETRIES, "abandoned")
+
+
+def test_outbox_abandons_legacy_incompatible_rows(tmp_path: Path) -> None:
+    outbox_path = tmp_path / "legacy.db"
+    outbox = PersistenceOutbox("soc", outbox_path)
+    outbox.record_failure(
+        "decision-legacy",
+        "conservation",
+        {"V": 1},
+        "write_conservation_status() missing 10 required positional arguments",
+    )
+
+    restored = PersistenceOutbox("soc", outbox_path)
+
+    assert restored.pending_count() == 0
+    with sqlite3.connect(outbox_path) as connection:
+        row = connection.execute(
+            "SELECT status FROM failed_artifacts WHERE decision_id = ?",
+            ("decision-legacy",),
+        ).fetchone()
+    assert row == ("abandoned",)
 
 
 def test_outbox_deduplicates_pending_artifact(tmp_path: Path) -> None:

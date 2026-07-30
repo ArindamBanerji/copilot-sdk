@@ -92,6 +92,7 @@ def _run_sdk_full_flow() -> SimpleNamespace:
         enable_rl=False,
         profile="test",
     )
+    setattr(scorer, "_conservation_pause", lambda: None)
     tracker = DKWelfordTracker()
     app = FastAPI()
     app.include_router(

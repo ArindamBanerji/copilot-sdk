@@ -19,6 +19,9 @@ def _make_trading_scorer() -> tuple[CompoundingScorer, InMemoryGraphStore, str, 
         enable_rl=False,
         profile="test",
     )
+    # These tests seed the DK state machine and intentionally bypass the
+    # conservation gate under test elsewhere.
+    setattr(scorer, "_conservation_pause", lambda: None)
     category = "trend_following"
     category_index = scorer._preset.shape.category_names.index(category)
 

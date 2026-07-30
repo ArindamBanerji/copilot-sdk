@@ -141,9 +141,7 @@ def _get_scorer(db_path: str | None = None) -> CompoundingScorer:
 
 
 def _close_scorer(scorer: CompoundingScorer) -> None:
-    close = getattr(scorer.graph_store, "close", None)
-    if callable(close):
-        close()
+    scorer.graph_store.close()
 
 
 def _validate_category(category: str) -> None:

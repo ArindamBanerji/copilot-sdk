@@ -61,12 +61,14 @@ print(json.dumps({{
 
 
 def _soc_scorer() -> CompoundingScorer:
-    return CompoundingScorer.from_preset(
+    scorer = CompoundingScorer.from_preset(
         "soc",
         graph_store=InMemoryGraphStore(domain="soc"),
         enable_rl=False,
         profile="test",
     )
+    setattr(scorer, "_conservation_pause", lambda: None)
+    return scorer
 
 
 def _factor_payload(value: float = 0.5) -> dict[str, float]:

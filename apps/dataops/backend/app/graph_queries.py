@@ -50,8 +50,14 @@ def _load_topology_config() -> GraphConfig:
         for key in _TOPOLOGY_ENV_KEYS:
             os.environ.pop(key, None)
         has_dataops_backend = bool(os.environ.get(_DATAOPS_GRAPH_CONFIG_KEYS[0], "").strip())
-        profile = "production" if has_dataops_backend else "development"
-        if not has_dataops_backend:
+        generic_backend = previous.get("GRAPH_BACKEND")
+        has_generic_backend = bool(generic_backend and generic_backend.strip())
+        profile = "production" if has_dataops_backend or has_generic_backend else "development"
+        if not has_dataops_backend and has_generic_backend:
+            for key, value in previous.items():
+                if value is not None:
+                    os.environ[key] = value
+        elif not has_dataops_backend:
             os.environ["DATAOPS_ACTIVE_GRAPH_BACKEND"] = "sqlite"
             os.environ["CI_ALLOW_SQLITE_FALLBACK"] = "1"
         return GraphConfig.load("dataops", profile=profile)

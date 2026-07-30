@@ -54,7 +54,7 @@ APPLY_FIX_ALLOWED_PAYLOAD_FIELDS = {
     "hold_status",
 }
 APPLY_FIX_TIMESTAMP = "2026-05-19T10:00:00Z"
-APPLY_FIX_OVERRIDE_RATE = 0.35
+APPLY_FIX_CATEGORY_COVERAGE = 0.35
 APPLY_FIX_VERIFIED_COUNT = 100
 SEVERITY_AGE_MINUTES = {
     "critical": 5,
@@ -162,12 +162,9 @@ def _variant_from_evolution_event(event: dict[str, Any]) -> dict[str, Any]:
 
 def _evolution_variants() -> list[dict[str, Any]]:
     if _evolution_store_factory is None:
-        return []
-    try:
-        store = _evolution_store_factory()
-        events = store.get_evolution_events(domain="dataops", limit=500)
-    except Exception:
-        return []
+        raise RuntimeError("DataOps evolution graph store is not configured")
+    store = _evolution_store_factory()
+    events = store.get_evolution_events(domain="dataops", limit=500)
     return [_variant_from_evolution_event(event) for event in events if isinstance(event, dict)]
 
 
@@ -544,7 +541,11 @@ def _audit_variant_matches(alert: dict[str, Any], variant: dict[str, Any]) -> bo
 
 
 def _audit_recommendation_for_alert(alert: dict[str, Any]) -> dict[str, Any] | None:
-    for variant in _evolution_variants():
+    try:
+        variants = _evolution_variants()
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="DataOps evolution graph unavailable") from exc
+    for variant in variants:
         if not isinstance(variant, dict) or variant.get("event_type") != "promotion_approved":
             continue
         if _audit_variant_matches(alert, variant):
@@ -1331,7 +1332,7 @@ def apply_fix(payload: dict[str, Any]) -> dict[str, Any]:
         "current_automation": 0.35,
         "projected_automation": 0.38,
         "theta_min": round(
-            compute_theta_min(APPLY_FIX_OVERRIDE_RATE, APPLY_FIX_VERIFIED_COUNT) or 0.0,
+            compute_theta_min(APPLY_FIX_CATEGORY_COVERAGE, APPLY_FIX_VERIFIED_COUNT) or 0.0,
             2,
         ),
         "safe": True,

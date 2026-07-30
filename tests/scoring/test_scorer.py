@@ -5,6 +5,7 @@ import sys
 from dataclasses import asdict
 from dataclasses import replace
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
@@ -278,7 +279,8 @@ def test_compounding_scorer_learn_pauses_when_below_threshold(mock_preset, store
     assert learn["reason"] == "conservation_red"
     assert learn["q"] == 0.0
     assert learn["override_rate"] == pytest.approx(1.0)
-    assert learn["theta_min"] == pytest.approx(23.53 / 25)
+    assert learn["alpha"] == pytest.approx(1 / 3)
+    assert learn["theta_min"] == pytest.approx(23.53 / ((1 / 3) * 25))
     assert learn["verified_count"] == 25
     assert learn["correct_count"] == 0
     np.testing.assert_allclose(scorer.gae_scorer.centroids, before_centroids)
@@ -296,15 +298,11 @@ def test_compounding_scorer_learn_pauses_when_low_verified_threshold_exceeds_one
 
     learn = scorer.learn(result.decision_id, result.action)
 
-    assert learn["status"] == "paused"
-    assert learn["reason"] == "conservation_red"
-    assert learn["q"] == 0.0
-    assert learn["override_rate"] == pytest.approx(1.0)
-    assert learn["theta_min"] == pytest.approx(23.53)
-    assert learn["verified_count"] == 1
-    assert learn["correct_count"] == 0
-    np.testing.assert_allclose(scorer.gae_scorer.centroids, before_centroids)
-    assert store.count_verified("mock") == 1
+    assert learn.decision_id == result.decision_id
+    assert learn.centroid_delta > 0
+    assert not np.allclose(scorer.gae_scorer.centroids, before_centroids)
+    assert store.count_verified("mock") == 2
+    assert store.count_correct("mock") == 1
 
 
 def test_compounding_scorer_learn_allows_when_above_threshold(mock_preset, store):
@@ -465,10 +463,11 @@ def test_learn_conservation_pause_skips_rl(mock_preset, store):
 
     learn = scorer.learn(result.decision_id, result.action)
 
-    assert learn["status"] == "paused"
-    assert reward.calls == []
-    assert explorer.updates == []
-    assert credit.calls == []
+    assert learn.decision_id == result.decision_id
+    assert learn.reward == pytest.approx(1.0)
+    assert reward.calls == [(result.action, result.action, {"outcome": "confirmed"})]
+    assert explorer.updates == [(result.action_index, 1.0)]
+    assert credit.calls == [(1.0, ["amount", "risk", "history"])]
 
 
 def test_learn_result_serializable(mock_preset, store):
@@ -601,11 +600,10 @@ def test_compounding_scorer_conservation_from_graph_store(mock_preset, store):
 
     learn = scorer.learn(result.decision_id, result.action)
 
-    assert learn["status"] == "paused"
-    assert learn["reason"] == "conservation_red"
-    assert learn["verified_count"] == 1
-    assert learn["correct_count"] == 0
-    np.testing.assert_allclose(scorer.gae_scorer.centroids, before_centroids)
+    assert learn.decision_id == result.decision_id
+    assert learn.centroid_delta > 0
+    assert not np.allclose(scorer.gae_scorer.centroids, before_centroids)
+    assert graph_store.count_verified("test") == 2
     assert store.count_verified("mock") == 0
 
 
@@ -616,9 +614,10 @@ def test_compounding_scorer_no_graph_store_uses_sqlite(mock_preset, store):
 
     learn = scorer.learn(result.decision_id, result.action)
 
-    assert learn["status"] == "paused"
-    assert learn["verified_count"] == 1
-    assert learn["correct_count"] == 0
+    assert learn.decision_id == result.decision_id
+    assert learn.centroid_delta > 0
+    assert store.count_verified("mock") == 2
+    assert store.count_correct("mock") == 1
 
 
 def test_compounding_scorer_graph_store_counts_match(mock_preset, store):
@@ -637,9 +636,9 @@ def test_scorer_conservation_reads_from_graph_store(mock_preset, store):
 
     pause = scorer._conservation_pause()
 
-    assert pause["status"] == "paused"
-    assert pause["verified_count"] == 1
-    assert pause["correct_count"] == 0
+    assert pause is None
+    assert scorer.get_verified_count() == graph_store.count_verified("test") == 1
+    assert graph_store.count_correct("test") == 0
 
 
 def test_compounding_scorer_learn_store_failure_allows_learning(
@@ -855,13 +854,13 @@ def _seed_graph_history(graph_store: InMemoryGraphStore, total: int, correct: in
 def _other_action(mock_preset, action: str) -> str:
     for candidate in mock_preset.shape.action_names:
         if candidate != action:
-            return candidate
+            return str(candidate)
     raise AssertionError("mock preset must define at least two actions")
 
 
 class RecordingExplorer:
     def __init__(self) -> None:
-        self.updates = []
+        self.updates: list[tuple[int, float]] = []
 
     def update(self, action: int, reward: float) -> None:
         self.updates.append((action, reward))
@@ -869,7 +868,7 @@ class RecordingExplorer:
 
 class RecordingCreditAssigner:
     def __init__(self) -> None:
-        self.calls = []
+        self.calls: list[tuple[float, list[str]]] = []
 
     def assign(self, reward: float, factors: list[str]) -> dict[str, float]:
         self.calls.append((reward, factors))
@@ -879,7 +878,7 @@ class RecordingCreditAssigner:
 class RecordingRewardFunction:
     def __init__(self, value: float = 1.0) -> None:
         self.value = value
-        self.calls = []
+        self.calls: list[tuple[str, str, dict[str, Any]]] = []
 
     def compute(self, recommended_action: str, actual_action: str, outcome: dict) -> float:
         self.calls.append((recommended_action, actual_action, dict(outcome)))
@@ -889,7 +888,7 @@ class RecordingRewardFunction:
 class SequencedRewardFunction:
     def __init__(self, values: list[float]) -> None:
         self.values = list(values)
-        self.calls = []
+        self.calls: list[tuple[str, str, dict[str, Any]]] = []
 
     def compute(self, recommended_action: str, actual_action: str, outcome: dict) -> float:
         self.calls.append((recommended_action, actual_action, dict(outcome)))

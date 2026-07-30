@@ -86,6 +86,7 @@ class GraphStore(Protocol):
     def get_centroid_checkpoints(
         self,
         domain: str,
+        include_v2: bool = False,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         ...
@@ -281,6 +282,45 @@ class ProtocolV2GraphStore(GraphStore, Protocol):
         min_shadow_batches: int | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
+        ...
+
+    def write_transfer_pattern(
+        self,
+        pattern_id: str,
+        source_domain: str,
+        target_domain: str,
+        pattern_type: str,
+        factor_mapping: dict[str, Any],
+        confidence: float,
+        validation_status: str,
+        conservation_status: str,
+        source_rule: str | None = None,
+        target_rule: str | None = None,
+        source_fingerprint_id: str | None = None,
+        evolution_event_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        ...
+
+    def get_transfer_patterns(
+        self,
+        source_domain: str | None = None,
+        target_domain: str | None = None,
+    ) -> list[dict[str, Any]]:
+        ...
+
+    def get_latest_conservation_statuses(
+        self,
+        domains: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        ...
+
+    def get_iks_trajectory(
+        self,
+        domains: list[str] | None = None,
+        start: float | None = None,
+        end: float | None = None,
+    ) -> list[dict[str, Any]]:
         ...
 
     def link_entity(

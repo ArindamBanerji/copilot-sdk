@@ -127,11 +127,7 @@ def create_transfer_router(
                 detail=f"This router can apply transfers only to {own_domain}",
             )
 
-        warm_start = getattr(scorer, "warm_start", None)
-        if not callable(warm_start):
-            raise HTTPException(status_code=400, detail="Scorer does not support warm_start")
-
-        summary = warm_start(patterns)
+        summary = scorer.warm_start(patterns)
         applied = int(summary.get("applied", 0)) if isinstance(summary, dict) else 0
         conservation_reset = False
         if applied > 0:
@@ -184,7 +180,7 @@ def _find_warm_start_info(
 
 def _latest_checkpoint_info(scorer: Any) -> dict[str, Any] | None:
     store = getattr(scorer, "graph_store", None) or getattr(scorer, "_graph_store", None)
-    if not isinstance(store, GraphStore):
+    if store is None:
         return None
     domain = str(getattr(store, "domain", "") or getattr(scorer, "_domain", "") or "")
 

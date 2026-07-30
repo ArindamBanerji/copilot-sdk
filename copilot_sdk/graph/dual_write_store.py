@@ -357,11 +357,23 @@ class DualWriteStore(GraphStore):
     def count_correct(self, domain: str) -> int: return self.primary.count_correct(domain)
     def count_decisions(self, domain: str) -> int: return self.primary.count_decisions(domain)
     def load_latest_centroids(self, domain: str) -> Any | None: return self.primary.load_latest_centroids(domain)
-    def get_centroid_checkpoints(self, domain: str, **kwargs: Any) -> list[dict[str, Any]]: return self.primary.get_centroid_checkpoints(domain, **kwargs)
+    def get_centroid_checkpoints(self, domain: str, include_v2: bool = False, **kwargs: Any) -> list[dict[str, Any]]: return self.primary.get_centroid_checkpoints(domain, include_v2=include_v2, **kwargs)
     def count_archived(self, domain: str) -> int: return self.primary.count_archived(domain)
     def read_entity_enrichment(self, *, domain: str, entity_type: str, entity_id: str, namespace: str | None = None) -> dict[str, ProvenancedValue]: return self.primary.read_entity_enrichment(domain=domain, entity_type=entity_type, entity_id=entity_id, namespace=namespace)
     def list_entity_enrichments(self, *, domain: str, entity_type: str | None = None, namespace: str | None = None, limit: int = 500) -> list[EntityEnrichmentRecord]: return self.primary.list_entity_enrichments(domain=domain, entity_type=entity_type, namespace=namespace, limit=limit)
     def count_verified_decisions(self, domain: str) -> int: return self.primary.count_verified_decisions(domain)
+
+    def write_transfer_pattern(self, pattern_id: str, source_domain: str, target_domain: str, pattern_type: str, factor_mapping: dict[str, Any], confidence: float, validation_status: str, conservation_status: str, source_rule: str | None = None, target_rule: str | None = None, source_fingerprint_id: str | None = None, evolution_event_id: str | None = None, metadata: dict[str, Any] | None = None) -> None:
+        self._write("write_transfer_pattern", lambda: self.primary.write_transfer_pattern(pattern_id, source_domain, target_domain, pattern_type, factor_mapping, confidence, validation_status, conservation_status, source_rule, target_rule, source_fingerprint_id, evolution_event_id, metadata), lambda: self.secondary.write_transfer_pattern(pattern_id, source_domain, target_domain, pattern_type, factor_mapping, confidence, validation_status, conservation_status, source_rule, target_rule, source_fingerprint_id, evolution_event_id, metadata), (pattern_id, source_domain, target_domain, pattern_type, factor_mapping, confidence, validation_status, conservation_status), {"source_rule": source_rule, "target_rule": target_rule, "source_fingerprint_id": source_fingerprint_id, "evolution_event_id": evolution_event_id, "metadata": metadata})
+
+    def get_transfer_patterns(self, source_domain: str | None = None, target_domain: str | None = None) -> list[dict[str, Any]]:
+        return self.primary.get_transfer_patterns(source_domain=source_domain, target_domain=target_domain)
+
+    def get_latest_conservation_statuses(self, domains: list[str] | None = None) -> list[dict[str, Any]]:
+        return self.primary.get_latest_conservation_statuses(domains=domains)
+
+    def get_iks_trajectory(self, domains: list[str] | None = None, start: float | None = None, end: float | None = None) -> list[dict[str, Any]]:
+        return self.primary.get_iks_trajectory(domains=domains, start=start, end=end)
 
     def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
         return self._write("archive_old_decisions", lambda: self.primary.archive_old_decisions(domain, keep_recent), lambda: self.secondary.archive_old_decisions(domain, keep_recent), (domain,), {"keep_recent": keep_recent})

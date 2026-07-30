@@ -74,7 +74,14 @@ def test_empty_registry_returns_zero_summary(tmp_path) -> None:
 
     summary = scorer.warm_start(SharedPatternRegistry())
 
-    assert summary == {"applied": 0, "score": 0.0, "source_copilots": []}
+    assert summary == {
+        "applied": 0,
+        "score": 0.0,
+        "source_copilots": [],
+        "emitted": 0,
+        "skipped": 0,
+        "emission_errors": 0,
+    }
     assert np.array_equal(scorer.gae_scorer.centroids, before)
 
 
@@ -119,4 +126,11 @@ def test_zero_confidence_pattern_is_not_counted_as_applied(tmp_path) -> None:
 
     summary = scorer.warm_start([_pattern(confidence=0.0)])
 
-    assert summary == {"applied": 0, "score": 0.0, "source_copilots": []}
+    assert summary == {
+        "applied": 0,
+        "score": 0.0,
+        "source_copilots": [],
+        "emitted": 0,
+        "skipped": 0,
+        "emission_errors": 0,
+    }

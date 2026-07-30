@@ -254,10 +254,7 @@ def _centroid_vectors(
     if graph_store_factory is None:
         return {}
     store = graph_store_factory()
-    get_checkpoints = getattr(store, "get_centroid_checkpoints", None)
-    if not callable(get_checkpoints):
-        return {}
-    checkpoints = get_checkpoints(domain, limit=1)
+    checkpoints = store.get_centroid_checkpoints(domain, limit=1)
     if not checkpoints:
         return {}
     centroids = checkpoints[-1].get("centroids")

@@ -35,7 +35,7 @@ def _test_profile_for_proxy_scorers(monkeypatch):
 
 def _graph_store(db_path: str | Path):
     store = SQLiteGraphStore(str(db_path), domain="trading")
-    store.penalty_ratio = 2.0
+    setattr(store, "penalty_ratio", 2.0)
     return store
 
 
@@ -320,7 +320,11 @@ def test_scorer_proxy_score_and_learn(tmp_path):
     with ThreadPoolExecutor(max_workers=8) as executor:
         results = list(executor.map(score_and_learn, range(8)))
 
-    assert len({result.decision_id for result in results}) == 8
+    decision_ids = {
+        result.decision_id
+        for result in results
+    }
+    assert len(decision_ids) == 8
     assert proxy.graph_store.count_verified("trading") == 8
 
 

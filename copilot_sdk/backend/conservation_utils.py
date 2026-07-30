@@ -110,6 +110,24 @@ def compute_conservation_metrics(
         alpha = categories_with_data / categories_total if categories_total > 0 else 0.0
         q = correct_count / verified_count
         V = verified_count
+        if alpha == 0.0:
+            # No category has reached the configured coverage threshold yet.
+            # This is a valid calibrating state: persist it, but keep the gate
+            # closed until category coverage becomes positive.
+            theta_min = float(compute_theta_min(1.0, float(V)))
+            return {
+                "status": "CALIBRATING",
+                "alpha": 0.0,
+                "q": float(q),
+                "V": int(V),
+                "theta_min": theta_min,
+                "product": 0.0,
+                "categories_total": int(categories_total),
+                "categories_with_data": 0,
+                "baseline_product": L5_BASELINE_PRODUCT_FALLBACK,
+                "relative_threshold": 0.7 * L5_BASELINE_PRODUCT_FALLBACK,
+                "complacency_flag": "false",
+            }
         theta_min = compute_theta_min(alpha, float(V))
         check = check_conservation(alpha, q, float(V), theta_min)
 

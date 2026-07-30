@@ -4,6 +4,7 @@ import json
 import math
 import random
 import re
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -179,17 +180,16 @@ def _decision(
 
 
 def _state(**overrides) -> ScorerState:
-    data = {
-        "centroids": {(0, 0): [0.0, 0.1], (0, 1): [0.2, 0.3]},
-        "dk_weights": [[1.0, 1.0]],
-        "conservation_V": 2,
-        "conservation_q": 1.0,
-        "conservation_alpha": 0.2,
-        "conservation_phase": "ACTIVE",
-        "decision_count": 2,
-    }
-    data.update(overrides)
-    return ScorerState(**data)
+    state = ScorerState(
+        centroids={(0, 0): [0.0, 0.1], (0, 1): [0.2, 0.3]},
+        dk_weights=[[1.0, 1.0]],
+        conservation_V=2,
+        conservation_q=1.0,
+        conservation_alpha=0.2,
+        conservation_phase="ACTIVE",
+        decision_count=2,
+    )
+    return replace(state, **overrides)
 
 
 def _make_decision(
@@ -271,7 +271,7 @@ def test_replay_post_transition_dk_weights():
     assert len(state.dk_weights) > 0
     assert any(not np.allclose(vector, 0.0) for vector in state.centroids.values())
     assert state.category_phases is not None
-    assert state.category_phases[0] == "VARIANCE_LEARNING"
+    assert state.category_phases[0] == "MEAN_CONVERGENCE"
     assert comparison.passed is True
 
 

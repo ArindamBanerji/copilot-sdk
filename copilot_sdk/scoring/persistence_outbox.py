@@ -25,6 +25,8 @@ def _json_default(value: Any) -> Any:
 class PersistenceOutbox:
     """Persist failed artifact writes locally until the graph is available."""
 
+    MAX_RETRIES = 10
+
     def __init__(self, domain: str, db_path: Path | None = None) -> None:
         if not domain:
             raise ValueError("domain is required")
@@ -63,6 +65,19 @@ class PersistenceOutbox:
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_failed_artifact_key
                 ON failed_artifacts(decision_id, domain, artifact_type)
                 """
+            )
+            connection.execute(
+                """
+                UPDATE failed_artifacts
+                SET status='abandoned'
+                WHERE domain = ?
+                  AND status IN ('pending', 'failed')
+                  AND (
+                      retry_count >= ?
+                      OR error LIKE '%required positional arguments%'
+                  )
+                """,
+                (self.domain, self.MAX_RETRIES),
             )
 
     def _connect(self) -> sqlite3.Connection:
@@ -115,9 +130,11 @@ class PersistenceOutbox:
                 SELECT id, decision_id, artifact_type, payload, retry_count
                 FROM failed_artifacts
                 WHERE domain = ? AND status IN ('pending', 'failed')
+                  AND error NOT LIKE '%required positional arguments%'
+                  AND retry_count < ?
                 ORDER BY id
                 """,
-                (self.domain,),
+                (self.domain, self.MAX_RETRIES),
             ).fetchall()
 
         succeeded = 0
@@ -131,10 +148,17 @@ class PersistenceOutbox:
                     connection.execute(
                         """
                         UPDATE failed_artifacts
-                        SET status='failed', retry_count=?, error=?
+                        SET status=?, retry_count=?, error=?
                         WHERE id=?
                         """,
-                        (int(row["retry_count"]) + 1, str(exc), int(row["id"])),
+                        (
+                            "abandoned"
+                            if int(row["retry_count"]) + 1 >= self.MAX_RETRIES
+                            else "failed",
+                            int(row["retry_count"]) + 1,
+                            str(exc),
+                            int(row["id"]),
+                        ),
                     )
             else:
                 succeeded += 1
@@ -171,10 +195,13 @@ class PersistenceOutbox:
         with self._connection() as connection:
             row = connection.execute(
                 """
-                SELECT count(*) AS count FROM failed_artifacts
-                WHERE domain = ? AND status IN ('pending', 'failed')
+                SELECT count(*) AS pending_total FROM failed_artifacts
+                WHERE domain = ?
+                  AND status IN ('pending', 'failed')
+                  AND error NOT LIKE '%required positional arguments%'
+                  AND retry_count < ?
                 """,
-                (self.domain,),
+                (self.domain, self.MAX_RETRIES),
             ).fetchone()
-        return int(row["count"] if row is not None else 0)
+        return int(row["pending_total"] if row is not None else 0)
 

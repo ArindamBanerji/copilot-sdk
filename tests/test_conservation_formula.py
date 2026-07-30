@@ -79,32 +79,38 @@ def test_sdk_override_rate_from_decision_history():
 
 def test_sdk_conservation_does_not_use_penalty_ratio_for_theta(tmp_path):
     graph_store = InMemoryGraphStore()
-    _seed_verified(graph_store, total=100, correct=90, overrides=20)
+    _seed_verified(graph_store, total=100, correct=10, overrides=20)
     scorer = _scorer(tmp_path, graph_store)
 
-    pause = scorer._conservation_pause()
+    pause = scorer._evolution_conservation_state()
+    alpha = 1 / scorer._preset.shape.n_categories
 
     assert pause is not None
-    assert pause["reason"] == "conservation_red"
+    assert pause["status"] == "GREEN"
+    assert pause["alpha"] == pytest.approx(alpha)
     assert pause["override_rate"] == pytest.approx(0.2)
-    assert pause["theta_min"] == pytest.approx(23.53 / (0.2 * 100))
-    assert pause["theta_min"] != pytest.approx(23.53 / (10.0 * 100))
+    assert pause["theta_min"] == pytest.approx(23.53 / (alpha * 100))
+    assert pause["theta_min"] != pytest.approx(23.53 / (0.2 * 100))
 
 
-def test_sdk_conservation_uses_override_rate(tmp_path):
+def test_sdk_conservation_uses_category_coverage(tmp_path):
     low_override_store = InMemoryGraphStore()
     high_override_store = InMemoryGraphStore()
     _seed_verified(low_override_store, total=100, correct=90, overrides=5)
     _seed_verified(high_override_store, total=100, correct=90, overrides=50)
 
-    low = _scorer(tmp_path, low_override_store, "dataops")._evolution_conservation_state()
-    high = _scorer(tmp_path, high_override_store, "dataops")._evolution_conservation_state()
+    low_scorer = _scorer(tmp_path, low_override_store, "dataops")
+    high_scorer = _scorer(tmp_path, high_override_store, "dataops")
+    low = low_scorer._evolution_conservation_state()
+    high = high_scorer._evolution_conservation_state()
+    alpha = 1 / low_scorer._preset.shape.n_categories
 
     assert low["override_rate"] == pytest.approx(0.05)
     assert high["override_rate"] == pytest.approx(0.5)
-    assert low["theta_min"] == pytest.approx(23.53 / (0.05 * 100))
-    assert high["theta_min"] == pytest.approx(23.53 / (0.5 * 100))
-    assert low["theta_min"] > high["theta_min"]
+    assert low["alpha"] == pytest.approx(alpha)
+    assert high["alpha"] == pytest.approx(alpha)
+    assert low["theta_min"] == pytest.approx(23.53 / (alpha * 100))
+    assert high["theta_min"] == pytest.approx(23.53 / (alpha * 100))
 
 
 def test_sdk_penalty_ratio_still_available_for_learning_role():
