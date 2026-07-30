@@ -35,13 +35,16 @@ import sys
 import time
 import webbrowser
 from pathlib import Path
+from typing import Any
 from urllib.request import Request, urlopen
 
 from copilot_sdk.config import GraphConfig
+from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
 
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+for _stream in (sys.stdout, sys.stderr):
+    _reconfigure = getattr(_stream, "reconfigure", None)
+    if callable(_reconfigure):
+        _reconfigure(encoding="utf-8", errors="replace")
 
 # --- Configuration ---
 
@@ -99,19 +102,57 @@ AGE_DSN_SOC = _build_age_dsn("soc_copilot")
 AGE_DSN_DATAOPS = _build_age_dsn("soc_copilot")
 
 
+def _build_graph_env(domain: str, dsn: str) -> dict[str, str]:
+    """Build explicit AGE graph environment for one copilot."""
+    env = {
+        "GRAPH_BACKEND": "age",
+        "GRAPH_DSN": dsn,
+        "GRAPH_NAME": "soc_graph",
+        "AGE_GRAPH_NAME": "soc_graph",
+        "GRAPH_DOMAIN": domain,
+    }
+    if domain != "soc":
+        prefix = domain.upper()
+        env.update(
+            {
+                f"{prefix}_ACTIVE_GRAPH_BACKEND": "age",
+                f"{prefix}_ACTIVE_AGE_DSN": dsn,
+                f"{prefix}_ACTIVE_AGE_GRAPH": "soc_graph",
+                f"{prefix}_ACTIVE_AGE_DOMAIN": domain,
+            }
+        )
+    return env
+
+
 def _load_launcher_graph_config(domain: str, runtime_dsn: str) -> GraphConfig:
     """Load typed launcher config while keeping DSNs resolved at runtime."""
-    had_previous = "GRAPH_DSN" in os.environ
-    previous = os.environ.get("GRAPH_DSN")
-    if not previous:
-        os.environ["GRAPH_DSN"] = runtime_dsn
+    keys = {
+        "GRAPH_BACKEND",
+        "GRAPH_DSN",
+        "GRAPH_NAME",
+        "AGE_GRAPH_NAME",
+        "GRAPH_DOMAIN",
+    }
+    if domain != "soc":
+        prefix = domain.upper()
+        keys.update(
+            {
+                f"{prefix}_ACTIVE_GRAPH_BACKEND",
+                f"{prefix}_ACTIVE_AGE_DSN",
+                f"{prefix}_ACTIVE_AGE_GRAPH",
+                f"{prefix}_ACTIVE_AGE_DOMAIN",
+            }
+        )
+    previous = {key: os.environ.get(key) for key in keys}
+    os.environ.update(_build_graph_env(domain, runtime_dsn))
     try:
         return GraphConfig.load(domain)
     finally:
-        if had_previous:
-            os.environ["GRAPH_DSN"] = previous or ""
-        else:
-            os.environ.pop("GRAPH_DSN", None)
+        for key in keys:
+            os.environ.pop(key, None)
+        for key, value in previous.items():
+            if value is not None:
+                os.environ[key] = value
 
 
 _SOC_GRAPH_CONFIG = _load_launcher_graph_config("soc", AGE_DSN_SOC)
@@ -133,12 +174,7 @@ COPILOTS = [
         "fe_path": SOC_REPO / "frontend",
         "requires_age": True,
         "graph_dsn": AGE_DSN_SOC,
-        "env": {
-            "GRAPH_BACKEND": _SOC_GRAPH_CONFIG.backend,
-            "GRAPH_DSN": AGE_DSN_SOC,
-            "GRAPH_NAME": _SOC_GRAPH_CONFIG.graph,
-            "GRAPH_DOMAIN": _SOC_GRAPH_CONFIG.domain,
-        },
+        "env": _build_graph_env("soc", AGE_DSN_SOC),
         "fe_env": {
             "VITE_S2P_API_URL": "http://127.0.0.1:8002",
         },
@@ -149,6 +185,9 @@ COPILOTS = [
         "fe_port": 5174,
         "be_path": SCRIPT_DIR / "apps" / "trading" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "trading" / "frontend",
+        "requires_age": True,
+        "graph_dsn": AGE_DSN_SOC,
+        "env": _build_graph_env("trading", AGE_DSN_SOC),
     },
     {
         "name": "Purchasing",
@@ -156,6 +195,9 @@ COPILOTS = [
         "fe_port": 5175,
         "be_path": SCRIPT_DIR / "apps" / "purchasing" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "purchasing" / "frontend",
+        "requires_age": True,
+        "graph_dsn": AGE_DSN_SOC,
+        "env": _build_graph_env("purchasing", AGE_DSN_SOC),
     },
     {
         "name": "DataOps",
@@ -165,12 +207,7 @@ COPILOTS = [
         "fe_path": SCRIPT_DIR / "apps" / "dataops" / "frontend",
         "requires_age": True,
         "graph_dsn": AGE_DSN_DATAOPS,
-        "env": {
-            "GRAPH_BACKEND": _DATAOPS_GRAPH_CONFIG.backend,
-            "GRAPH_DSN": AGE_DSN_DATAOPS,
-            "GRAPH_NAME": _DATAOPS_GRAPH_CONFIG.graph,
-            "GRAPH_DOMAIN": _DATAOPS_GRAPH_CONFIG.domain,
-        },
+        "env": _build_graph_env("dataops", AGE_DSN_DATAOPS),
     },
     {
         "name": "S2P",
@@ -181,6 +218,9 @@ COPILOTS = [
             str(SCRIPT_DIR.parent / "s2p-copilot"),
         )) / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "s2p" / "frontend",
+        "requires_age": True,
+        "graph_dsn": AGE_DSN_SOC,
+        "env": _build_graph_env("s2p", AGE_DSN_SOC),
         "fe_env": {
             "VITE_API_URL": "http://127.0.0.1:8002",
         },
@@ -211,7 +251,8 @@ def check_health(port: int, path: str = "/health") -> dict | None:
     """Check backend health endpoint."""
     try:
         r = urlopen(f"http://127.0.0.1:{port}{path}", timeout=5)
-        return json.loads(r.read())
+        payload = json.loads(r.read())
+        return payload if isinstance(payload, dict) else None
     except Exception:
         return None
 
@@ -220,11 +261,52 @@ def verify_age(dsn: str) -> bool:
     """Verify AGE/PostgreSQL is reachable."""
     try:
         import psycopg
-        conn = psycopg.connect(dsn, autocommit=True, connect_timeout=5)
+        conn: Any = psycopg.connect(dsn, autocommit=True, connect_timeout=5)
         conn.close()
         return True
     except Exception:
         return False
+
+
+def _shared_graph_config_line() -> str:
+    """Return the configuration-backed shared graph status line."""
+    try:
+        configs = [
+            GraphConfig.load(domain, profile="production")
+            for domain in ALL_COPILOT_DOMAINS
+        ]
+        graphs = {config.graph for config in configs}
+        graph = next(iter(graphs)) if len(graphs) == 1 else ",".join(sorted(graphs))
+    except Exception:
+        graph = _SOC_GRAPH_CONFIG.graph
+    return (
+        f"  Shared judgment graph  {graph}  domains: {','.join(ALL_COPILOT_DOMAINS)}"
+    )
+
+
+def _shared_graph_proof(dsn: str, graph_name: str) -> tuple[int, int, int]:
+    """Read shared AGE counts without starting any copilot backend."""
+    from ci_platform.graph.age_graph_store import AGEGraphStore
+
+    store = AGEGraphStore(dsn=dsn, graph_name=graph_name)
+    try:
+        counts = store._run_query(
+            "MATCH (d:Decision) RETURN count(d) AS decisions, "
+            "count(DISTINCT d.domain) AS domains"
+        )
+        transfer = store._run_query(
+            "MATCH (tp:TransferPattern)-[:FROM_DOMAIN]->() "
+            "RETURN count(tp) AS transfer_edges"
+        )
+        count_row = dict(counts[0]) if counts else {}
+        transfer_row = dict(transfer[0]) if transfer else {}
+        return (
+            int(count_row.get("decisions") or 0),
+            int(count_row.get("domains") or 0),
+            int(transfer_row.get("transfer_edges") or 0),
+        )
+    finally:
+        store.close()
 
 
 def redact_dsn(dsn: str) -> str:
@@ -525,14 +607,17 @@ def kill_port(port: int, name: str = "") -> bool:
     return attempted
 
 
-def known_ports(selected: list[dict] | None = None) -> list[int]:
+def known_ports(selected: list[dict[str, Any]] | None = None) -> list[int]:
     """Return configured backend and frontend ports."""
     copilots = selected or COPILOTS
     ports: list[int] = []
     for c in copilots:
-        ports.append(c["be_port"])
-        if c.get("fe_port") is not None:
-            ports.append(c["fe_port"])
+        be_port = c.get("be_port")
+        if isinstance(be_port, int):
+            ports.append(be_port)
+        fe_port = c.get("fe_port")
+        if isinstance(fe_port, int):
+            ports.append(fe_port)
     return ports
 
 
@@ -576,6 +661,21 @@ def cmd_status(selected: list[dict]):
     print(f"  AGE/PostgreSQL  {'UP ✓' if age_ok else 'DOWN ✗':8s}  "
           f"WSL2 {'running' if wsl_ok else 'stopped'}  "
           f"(host={_WSL2_IP})")
+    print(_shared_graph_config_line())
+    if age_ok:
+        try:
+            decisions, domains, transfer_edges = _shared_graph_proof(
+                AGE_DSN_SOC,
+                _SOC_GRAPH_CONFIG.graph,
+            )
+            print(
+                f"  Graph proof             LIVE ✓  decisions={decisions} "
+                f"domains={domains} transfer_edges={transfer_edges}"
+            )
+        except Exception:
+            print("  Graph proof             UNAVAILABLE (AGE not reachable)")
+    else:
+        print("  Graph proof             UNAVAILABLE (AGE not reachable)")
     print()
 
     for c in selected:
@@ -755,8 +855,7 @@ def cmd_start(selected: list[dict], args):
         # Build environment with copilot-specific vars
         env = os.environ.copy()
         if c.get("env"):
-            for key, value in c["env"].items():
-                env.setdefault(key, value)
+            env.update(c["env"])
         if args.no_reseed:
             env["DEMO_NO_RESEED"] = "1"
         if args.preseed and c["name"].lower() == "soc":
@@ -988,6 +1087,30 @@ def run_preseed(selected: list[dict], *, fail_hard: bool = False):
         print(f"  WARN: Pre-seed failed: {e}")
         if fail_hard:
             raise
+
+
+def cmd_diagnose(selected: list[dict]) -> None:
+    """Fetch layered diagnostics from every selected live backend."""
+    blocking: list[str] = []
+    for copilot in selected:
+        name = copilot["name"]
+        try:
+            payload = _json_request("GET", f"http://127.0.0.1:{copilot['be_port']}/api/diagnostics")
+            print(f"{name}: domain={payload.get('domain')} issues={len(payload.get('issues', []))}")
+            for issue in payload.get("issues", []):
+                print(f"  - {issue}")
+            for layer in ("infrastructure", "scorer_state", "conservation", "j6_readiness", "graph_artifacts"):
+                value = payload.get(layer) or {}
+                status = value.get("status", "unknown")
+                print(f"  {layer}: {status}")
+                if status not in {"ok", "ready", "complete"}:
+                    blocking.append(f"{name}/{layer}")
+        except Exception as exc:
+            print(f"{name}: diagnostics unavailable: {exc}")
+            blocking.append(f"{name}/endpoint")
+    print("VERDICT: " + ("READY" if not blocking else "NOT READY"))
+    if blocking:
+        print("Blocking issues: " + ", ".join(blocking))
     print()
 
 
@@ -1019,7 +1142,7 @@ def _append_baseline_reset_event(result) -> None:
                 v_before = int(json.loads(line).get("v_after", v_before))
             except (TypeError, ValueError, json.JSONDecodeError):
                 continue
-    decisions = []
+    decisions: list[dict[str, str]] = []
     v_after = 0
     for domain, preseed in sorted(result.copilots.items()):
         count = int(preseed.decisions)
@@ -1083,7 +1206,8 @@ def _json_request(method: str, url: str, payload: dict | None = None, timeout: i
     req = Request(url, data=data, headers=headers, method=method)
     with urlopen(req, timeout=timeout) as response:
         text = response.read().decode("utf-8")
-    return json.loads(text) if text else {}
+    payload = json.loads(text) if text else {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def _first_list(payload: dict, keys: tuple[str, ...]) -> list:
@@ -1149,6 +1273,8 @@ def main():
     )
     parser.add_argument("--stop", action="store_true", help="Stop all copilots")
     parser.add_argument("--status", action="store_true", help="Show status")
+    parser.add_argument("--diagnose", action="store_true", help="Show layered diagnostics")
+    parser.add_argument("--dump", action="store_true", help="Write a complete platform state snapshot")
     parser.add_argument("--kill-all", action="store_true",
                         help="Kill listeners on all known copilot ports")
 
@@ -1236,6 +1362,18 @@ def main():
         cmd_stop(selected)
     elif args.status:
         cmd_status(selected)
+    elif args.diagnose:
+        cmd_diagnose(selected)
+    elif args.dump:
+        from copilot_sdk.diagnostics.platform_dump import collect_platform_state, dump_to_file, print_summary
+
+        dump_state = collect_platform_state(
+            age_dsn=AGE_DSN_SOC,
+            graph_name=os.environ.get("AGE_GRAPH_NAME", "soc_graph"),
+        )
+        dump_path = dump_to_file(dump_state)
+        print_summary(dump_state, dump_path=dump_path)
+        sys.exit(0)
     elif args.verify:
         cmd_verify(selected)
     elif args.preseed_only:

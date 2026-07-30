@@ -5,6 +5,7 @@ from __future__ import annotations
 import inspect
 import logging
 import math
+import os
 import threading
 from dataclasses import asdict, is_dataclass
 from typing import Any, Callable
@@ -14,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from copilot_sdk.backend.conservation_utils import compute_conservation_metrics
+from copilot_sdk.backend.diagnostics_models import build_diagnostics
 from copilot_sdk.backend.models import (
     FingerprintResponse,
     LearnResponse,
@@ -212,6 +214,24 @@ def create_scoring_router(
             "alpha": scorer.get_alpha(),
             "engine": ENGINE,
         }
+
+    @router.get("/diagnostics")
+    def diagnostics(request: Request) -> dict[str, Any]:
+        try:
+            extras: dict[str, Any] = {}
+            startup_status = getattr(request.app.state, "l5_startup_status", None)
+            if isinstance(startup_status, dict):
+                extras["l5_startup_status"] = dict(startup_status)
+            if domain == "dataops":
+                extras["active_graph_backend"] = os.environ.get("DATAOPS_ACTIVE_GRAPH_BACKEND", "unavailable")
+                extras["active_config_source"] = "DATAOPS_ACTIVE_GRAPH_BACKEND" if os.environ.get("DATAOPS_ACTIVE_GRAPH_BACKEND") else "unavailable"
+            scorer = get_scorer()
+            result: dict[str, Any] = build_diagnostics(domain, scorer, scorer.graph_store, extras=extras)
+            return result
+        except Exception as exc:
+            logger.exception("Diagnostics failed for %s", domain)
+            result = build_diagnostics(domain, None, None, extras={"error": str(exc)})
+            return result
 
     @router.get("/history", response_model=ScoringHistoryResponse)
     @cached_static("history-summary", copilot=domain)

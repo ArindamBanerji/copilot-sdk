@@ -39,6 +39,10 @@ PROTOCOL_METHODS = frozenset(
         "write_fingerprint",
         "write_centroid_checkpoint",
         "write_evolution_event",
+        "write_transfer_pattern",
+        "get_transfer_patterns",
+        "get_latest_conservation_statuses",
+        "get_iks_trajectory",
         "link_entity",
         "archive_decisions",
         "domain_scoped_reset",
@@ -147,7 +151,7 @@ def test_sdk_rule72_decision_access_is_explicitly_domain_aware() -> None:
                                 f"{node.func.id}({method_arg.value!r})"
                             )
 
-            if _raw_unscoped_decision_query(node):
+            if isinstance(node, ast.Call) and _raw_unscoped_decision_query(node):
                 violations.append(
                     f"{_relative(path)}:{node.lineno}: raw run_query for an "
                     "Decision query has no domain predicate"
