@@ -154,7 +154,8 @@ def test_soc_outcome_projection_from_embedded_fields(soc_projection_client):
     rows = soc_projection_client.query(
         """
         MATCH (d:Decision)
-        WHERE d.outcome IS NOT NULL OR d.correct IS NOT NULL
+        WHERE d.domain = 'soc'
+          AND (d.outcome IS NOT NULL OR d.correct IS NOT NULL)
         RETURN d
         LIMIT 1
         """
@@ -175,7 +176,8 @@ def test_soc_factor_vector_projection_from_embedded_decision_property(soc_projec
     rows = soc_projection_client.query(
         """
         MATCH (d:Decision)
-        WHERE d.factor_vector IS NOT NULL
+        WHERE d.domain = 'soc'
+          AND d.factor_vector IS NOT NULL
         RETURN d
         LIMIT 1
         """
@@ -295,7 +297,9 @@ def test_soc_canonical_edge_vocabulary_matches_jm_v2_7():
 def test_soc_projection_compatibility_before_route_migration(soc_projection_client):
     """Projection sources exist before any SOC production route migration."""
     counts = {
-        "decisions": soc_projection_client.query("MATCH (d:Decision) RETURN count(d) AS cnt")[0]["cnt"],
+        "decisions": soc_projection_client.query(
+            "MATCH (d:Decision) WHERE d.domain = 'soc' RETURN count(d) AS cnt"
+        )[0]["cnt"],
         "alerts": soc_projection_client.query("MATCH (a:Alert) RETURN count(a) AS cnt")[0]["cnt"],
         "profiles": soc_projection_client.query("MATCH (p:ProfileSnapshot) RETURN count(p) AS cnt")[0]["cnt"],
         "shadow": soc_projection_client.query("MATCH (s:ShadowDecision) RETURN count(s) AS cnt")[0]["cnt"],

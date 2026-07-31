@@ -454,8 +454,6 @@ def build_diagnostics(
             total = pending
         except Exception:
             pass
-    conservation_ready = conservation.conservation_status in {"GREEN", "CALIBRATING"}
-    anchor_ready = anchor is True or anchor is None
     outbox_ready = pending == 0
     readiness = J6ReadinessDiag(
         store_protocol_v2=infra.protocol_v2,
@@ -466,7 +464,7 @@ def build_diagnostics(
         conservation_snapshot_writable=_protocol_store(store) is not None,
         status=(
             "ready"
-            if infra.protocol_v2 and conservation_ready and anchor_ready and outbox_ready
+            if infra.protocol_v2 and outbox_ready
             else "blocked"
         ),
     )

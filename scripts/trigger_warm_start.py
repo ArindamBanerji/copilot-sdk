@@ -139,9 +139,12 @@ def run_warm_start(
 ) -> dict[str, Any]:
     if source not in PRESET_REGISTRY or target not in PRESET_REGISTRY:
         raise ValueError("source and target must be configured copilot domains")
-    store = _load_age_store(age_dsn, graph_name)
+    raw_store = _load_age_store(age_dsn, graph_name)
+    from ci_platform.graph.age_sdk_adapter import AGEGraphStoreAdapter
+
+    store = AGEGraphStoreAdapter(store=raw_store)
     try:
-        registry = build_registry(store, source, target)
+        registry = build_registry(raw_store, source, target)
         scorer = CompoundingScorer.from_preset(
             target,
             graph_store=store,

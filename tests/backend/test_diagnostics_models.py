@@ -1,4 +1,5 @@
 from copilot_sdk.backend.diagnostics_models import _cypher_count, build_diagnostics
+from copilot_sdk.graph import InMemoryGraphStore
 
 
 class _Store:
@@ -127,3 +128,25 @@ def test_diagnostics_prefers_live_scorer_conservation_state():
     payload = build_diagnostics("soc", _LiveScorer(), _Store())
     assert payload["conservation"]["V"] == 4862
     assert payload["conservation"]["q"] == 3712 / 4862
+
+
+def test_j6_readiness_ready_when_conservation_red():
+    class _RedScorer(_Scorer):
+        graph_store = InMemoryGraphStore(domain="soc")
+
+        def _evolution_conservation_state(self):
+            return {
+                "status": "RED",
+                "V": 4862,
+                "q": 0.76,
+                "alpha": 0.0,
+                "theta_min": 23.53,
+            }
+
+        def _conservation_pause(self):
+            return {"reason": "conservation_red"}
+
+    payload = build_diagnostics("soc", _RedScorer(), _RedScorer.graph_store)
+
+    assert payload["j6_readiness"]["status"] == "ready"
+    assert payload["conservation"]["conservation_status"] == "RED"

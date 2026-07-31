@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import ast
+import os
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +18,20 @@ from copilot_sdk.backend.scoring_router import (
 from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state
+
+
+@pytest.fixture(autouse=True)
+def isolate_persistence_outbox(tmp_path: Path) -> Iterator[None]:
+    """Give each persistence test an isolated real outbox database."""
+    previous = os.environ.get("CI_PERSISTENCE_OUTBOX_PATH")
+    os.environ["CI_PERSISTENCE_OUTBOX_PATH"] = str(tmp_path / "persistence-outbox.db")
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop("CI_PERSISTENCE_OUTBOX_PATH", None)
+        else:
+            os.environ["CI_PERSISTENCE_OUTBOX_PATH"] = previous
 
 
 def _scorer(mock_preset, store: InMemoryGraphStore) -> CompoundingScorer:

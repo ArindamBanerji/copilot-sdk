@@ -1017,6 +1017,8 @@ class CompoundingScorer:
         decision_id: str | None = None,
     ) -> dict[str, Any]:
         """Capture Type A state artifacts without recording a learning event."""
+        # Phase E reseed-ledger processing must treat this snapshot as the
+        # current V observation, not as a new reseed or learning event.
         result: dict[str, Any] = {
             "conservation": 0,
             "fingerprint": 0,
