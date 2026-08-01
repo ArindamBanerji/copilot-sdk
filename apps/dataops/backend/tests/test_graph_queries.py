@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from fastapi import HTTPException
 
 from app.graph_queries import DataOpsGraphClient, FALLBACK_DIR, READ_ONLY_FORBIDDEN
 
@@ -288,22 +289,45 @@ async def test_graph_connected_blast_radius_returns_nested_tree():
 
 
 @pytest.mark.asyncio
-async def test_graph_miss_recurrence_falls_back_pure_fixture():
+async def test_graph_miss_recurrence_age_required_raises_503():
     fake = GraphMissAGEClient()
     client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=fake)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await client.get_recurrence("ALERT-TIRE-015")
+
+    assert exc_info.value.status_code == 503
+    assert not any("prior_count" in query for query, _params in fake.queries)
+
+
+@pytest.mark.asyncio
+async def test_graph_miss_recurrence_falls_back_pure_fixture(no_graph):
+    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
     payload = await client.get_recurrence("ALERT-TIRE-015")
 
     assert payload["source"] == "fixture"
     assert payload["system"] == "logistics_dhl"
     assert payload["prior_count"] == 9
     assert payload["recurrence_frequency"] == 0.75
+
+
+@pytest.mark.asyncio
+async def test_graph_miss_factors_age_required_raises_503():
+    fake = GraphMissAGEClient()
+    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=fake)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await client.get_factors("ALERT-TIRE-015")
+
+    assert exc_info.value.status_code == 503
+    assert not any("downstream_count" in query for query, _params in fake.queries)
+    assert not any("min_sla" in query for query, _params in fake.queries)
     assert not any("prior_count" in query for query, _params in fake.queries)
 
 
 @pytest.mark.asyncio
-async def test_graph_miss_factors_fall_back_pure_fixture():
-    fake = GraphMissAGEClient()
-    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR, age_client=fake)
+async def test_graph_miss_factors_fall_back_pure_fixture(no_graph):
+    client = DataOpsGraphClient(fallback_dir=FALLBACK_DIR)
     payload = await client.get_factors("ALERT-TIRE-015")
 
     assert payload["source"] == "fixture"
@@ -317,9 +341,6 @@ async def test_graph_miss_factors_fall_back_pure_fixture():
     }
     assert {factor["source"] for factor in payload["factors"].values()} == {"fixture"}
     assert payload["factors"]["recurrence_frequency"]["value"] == 0.75
-    assert not any("downstream_count" in query for query, _params in fake.queries)
-    assert not any("min_sla" in query for query, _params in fake.queries)
-    assert not any("prior_count" in query for query, _params in fake.queries)
 
 
 @pytest.mark.asyncio

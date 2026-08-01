@@ -281,7 +281,11 @@ def test_output_equivalence_for_core_decision_fields(age_graph, tmp_path):
             "live_equivalent", "test_equivalence", "category_a", 0, "approve", 0, 0.9,
             [0.9, 0.1], [0.25, 0.75], ["factor_0", "factor_1"], metadata={"created_at": 1.0},
         )
-        store.write_outcome("live_equivalent", "approve", True, {"actual_index": 0, "verified_at": 10.0})
+        store.write_outcome(
+            "live_equivalent", "approve", True,
+            {"actual_index": 0, "verified_at": 10.0},
+            domain="test_equivalence",
+        )
     finally:
         store.close()
     rows = _cypher(conn, graph, "MATCH (d:Decision) RETURN properties(d)", "props agtype")

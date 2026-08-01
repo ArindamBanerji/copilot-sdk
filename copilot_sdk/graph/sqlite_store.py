@@ -416,6 +416,15 @@ class SQLiteGraphStore:
                 confidence REAL NOT NULL,
                 probabilities_json TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'pending',
+                correct INTEGER,
+                outcome TEXT,
+                verified_at_epoch REAL,
+                quality_signal REAL,
+                override_comment TEXT,
+                verified_by TEXT,
+                analyst_action TEXT,
+                final_action TEXT,
+                was_override INTEGER,
                 created_at REAL NOT NULL
             );
 
@@ -779,6 +788,20 @@ class SQLiteGraphStore:
             self.connection.execute(
                 "ALTER TABLE decisions ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'"
             )
+        if "correct" not in columns:
+            self.connection.execute("ALTER TABLE decisions ADD COLUMN correct INTEGER")
+        for column, definition in (
+            ("outcome", "TEXT"),
+            ("verified_at_epoch", "REAL"),
+            ("quality_signal", "REAL"),
+            ("override_comment", "TEXT"),
+            ("verified_by", "TEXT"),
+            ("analyst_action", "TEXT"),
+            ("final_action", "TEXT"),
+            ("was_override", "INTEGER"),
+        ):
+            if column not in columns:
+                self.connection.execute(f"ALTER TABLE decisions ADD COLUMN {column} {definition}")
         self.connection.execute(
             """
             UPDATE decisions
@@ -1139,24 +1162,29 @@ class SQLiteGraphStore:
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
-        domain: str | None = None,
+        *,
+        domain: str,
+        outcome: str | None = None,
+        verified_at_epoch: float | None = None,
+        quality_signal: float | None = None,
+        override_comment: str | None = None,
+        verified_by: str | None = None,
+        analyst_action: str | None = None,
+        final_action: str | None = None,
+        recommended_action: str | None = None,
+        was_override: bool | None = None,
     ) -> None:
         meta = dict(metadata or {})
         status = "confirmed" if is_correct else "overridden"
+        domain_value = _normalize_domain(domain)
         def persist() -> None:
-            if domain is None:
-                row = self.connection.execute(
-                    "SELECT domain FROM decisions WHERE decision_id = ?",
-                    (decision_id,),
-                ).fetchone()
-            else:
-                row = self.connection.execute(
-                    "SELECT domain FROM decisions WHERE decision_id = ? AND domain = ?",
-                    (decision_id, domain),
-                ).fetchone()
+            row = self.connection.execute(
+                "SELECT domain FROM decisions WHERE decision_id = ? AND domain = ?",
+                (decision_id, domain_value),
+            ).fetchone()
             if row is None:
                 raise KeyError(decision_id)
-            outcome_domain = str(row["domain"] or self.domain)
+            outcome_domain = str(row["domain"])
             existing = self.connection.execute(
                 "SELECT 1 FROM outcomes WHERE decision_id = ? AND domain = ?",
                 (decision_id, outcome_domain),
@@ -1181,8 +1209,35 @@ class SQLiteGraphStore:
                 ),
             )
             cursor = self.connection.execute(
-                "UPDATE decisions SET status = ? WHERE decision_id = ? AND domain = ?",
-                (status, decision_id, outcome_domain),
+                """
+                UPDATE decisions
+                SET status = ?, correct = ?,
+                    outcome = COALESCE(?, outcome),
+                    verified_at_epoch = COALESCE(?, verified_at_epoch),
+                    quality_signal = COALESCE(?, quality_signal),
+                    override_comment = COALESCE(?, override_comment),
+                    verified_by = COALESCE(?, verified_by),
+                    analyst_action = COALESCE(?, analyst_action),
+                    final_action = COALESCE(?, final_action),
+                    recommended_action = COALESCE(?, recommended_action),
+                    was_override = COALESCE(?, was_override)
+                WHERE decision_id = ? AND domain = ?
+                """,
+                (
+                    status,
+                    1 if is_correct else 0,
+                    outcome,
+                    verified_at_epoch,
+                    quality_signal,
+                    override_comment,
+                    verified_by,
+                    analyst_action,
+                    final_action,
+                    recommended_action,
+                    None if was_override is None else (1 if was_override else 0),
+                    decision_id,
+                    outcome_domain,
+                ),
             )
             if cursor.rowcount != 1:
                 raise RuntimeError(f"failed to update decision status for {decision_id}")
@@ -2081,15 +2136,12 @@ class SQLiteGraphStore:
             raise RuntimeError("outbox enqueue did not produce an outbox_id")
         return int(outbox_id)
 
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
-        if domain is None:
-            row = self.connection.execute(
-                "SELECT * FROM decisions WHERE decision_id = ?", (decision_id,)
-            ).fetchone()
-        else:
-            row = self.connection.execute(
-                "SELECT * FROM decisions WHERE decision_id = ? AND domain = ?", (decision_id, domain)
-            ).fetchone()
+    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None:
+        domain_value = _normalize_domain(domain)
+        row = self.connection.execute(
+            "SELECT * FROM decisions WHERE decision_id = ? AND domain = ?",
+            (decision_id, domain_value),
+        ).fetchone()
         if row is None:
             return None
         return self._decision_from_row(row)
@@ -2181,11 +2233,9 @@ class SQLiteGraphStore:
             """
             SELECT COUNT(DISTINCT d.decision_id) AS n
             FROM decisions d
-            LEFT JOIN outcomes o ON o.decision_id = d.decision_id
             WHERE d.domain = ?
               AND (
                   d.status IN ('confirmed', 'overridden')
-                  OR o.decision_id IS NOT NULL
               )
             """,
             (str(domain),),
@@ -2196,9 +2246,8 @@ class SQLiteGraphStore:
         row = self.connection.execute(
             """
             SELECT COUNT(*) AS n
-            FROM outcomes o
-            INNER JOIN decisions d ON d.decision_id = o.decision_id
-            WHERE d.domain = ? AND o.is_correct = 1
+            FROM decisions
+            WHERE domain = ? AND correct = 1
             """,
             (str(domain),),
         ).fetchone()
@@ -2698,9 +2747,21 @@ class SQLiteGraphStore:
         decision_id: str,
         entity_id: str,
         edge_type: str = "DECIDED_ON",
+        *,
+        domain: str,
     ) -> None:
-        decision = self.get_decision(decision_id)
-        domain = str((decision or {}).get("domain") or self.domain)
+        domain_value = str(domain).strip()
+        if not domain_value:
+            raise ValueError("link_decision_to_entity requires a non-empty domain")
+        decision_row = self.connection.execute(
+            "SELECT domain FROM decisions WHERE decision_id = ?",
+            (decision_id,),
+        ).fetchone()
+        if decision_row is not None and str(decision_row["domain"] or "") != domain_value:
+            raise ValueError(
+                "link_decision_to_entity domain does not match the Decision domain"
+            )
+
         def persist() -> None:
             self.connection.execute(
                 """
@@ -2708,7 +2769,7 @@ class SQLiteGraphStore:
                     domain, decision_id, entity_id, entity_type, edge_type, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                (domain, decision_id, entity_id, edge_type, edge_type, time.time()),
+                (domain_value, decision_id, entity_id, edge_type, edge_type, time.time()),
             )
 
         self._run_write(persist)
@@ -2716,16 +2777,16 @@ class SQLiteGraphStore:
     def get_decision_links(
         self,
         decision_id: str | None = None,
-        domain: str | None = None,
+        *,
+        domain: str,
         limit: int | None = None,
     ) -> list[dict[str, Any]]:
-        if domain is not None and str(domain) != self.domain:
-            return []
+        domain_value = _normalize_domain(domain)
         limit_value = _bounded_traversal_limit(limit) if limit is not None else None
         if decision_id is None:
             limit_clause = "" if limit_value is None else "LIMIT ?"
             params: tuple[Any, ...] = (
-                (self.domain,) if limit_value is None else (self.domain, limit_value)
+                (domain_value,) if limit_value is None else (domain_value, limit_value)
             )
             rows = self.connection.execute(
                 f"""
@@ -2740,9 +2801,9 @@ class SQLiteGraphStore:
         else:
             limit_clause = "" if limit_value is None else "LIMIT ?"
             params = (
-                (self.domain, decision_id)
+                (domain_value, decision_id)
                 if limit_value is None
-                else (self.domain, decision_id, limit_value)
+                else (domain_value, decision_id, limit_value)
             )
             rows = self.connection.execute(
                 f"""
@@ -2760,8 +2821,10 @@ class SQLiteGraphStore:
         self,
         entity_id: str,
         max_depth: int,
-        domain: str | None = None,
+        *,
+        domain: str,
     ) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
         depth = _bounded_traversal_depth(max_depth)
         root_id = str(entity_id)
         rows: list[dict[str, Any]] = [
@@ -2775,12 +2838,12 @@ class SQLiteGraphStore:
         if depth == 0:
             return rows
 
-        links = self._get_entity_links(root_id, limit=100)
+        links = self._get_entity_links(root_id, domain=domain_value, limit=100)
         linked_decision_ids = [
             str(link["decision_id"])
             for link in links
         ]
-        if self.get_decision(root_id) is not None and root_id not in linked_decision_ids:
+        if self.get_decision(root_id, domain=domain_value) is not None and root_id not in linked_decision_ids:
             linked_decision_ids.insert(0, root_id)
 
         seen_decisions: set[str] = set()
@@ -2789,10 +2852,8 @@ class SQLiteGraphStore:
             if decision_id in seen_decisions:
                 continue
             seen_decisions.add(decision_id)
-            decision = self.get_decision(decision_id)
-            if decision is None or (
-                domain is not None and decision.get("domain") != str(domain)
-            ):
+            decision = self.get_decision(decision_id, domain=domain_value)
+            if decision is None:
                 continue
             rows.append(
                 {
@@ -2804,7 +2865,9 @@ class SQLiteGraphStore:
             )
             if depth < 2:
                 continue
-            for link in self.get_decision_links(decision_id, limit=100):
+            for link in self.get_decision_links(
+                decision_id, domain=domain_value, limit=100
+            ):
                 neighbor_id = str(link.get("entity_id") or "")
                 if not neighbor_id or neighbor_id in seen_entities:
                     continue
@@ -2823,15 +2886,16 @@ class SQLiteGraphStore:
                 )
                 if depth < 3:
                     continue
-                for neighbor_link in self._get_entity_links(neighbor_id, limit=100):
+                for neighbor_link in self._get_entity_links(
+                    neighbor_id, domain=domain_value, limit=100
+                ):
                     neighbor_decision_id = str(neighbor_link.get("decision_id") or "")
                     if not neighbor_decision_id or neighbor_decision_id in seen_decisions:
                         continue
-                    neighbor_decision = self.get_decision(neighbor_decision_id)
-                    if neighbor_decision is None or (
-                        domain is not None
-                        and neighbor_decision.get("domain") != str(domain)
-                    ):
+                    neighbor_decision = self.get_decision(
+                        neighbor_decision_id, domain=domain_value
+                    )
+                    if neighbor_decision is None:
                         continue
                     seen_decisions.add(neighbor_decision_id)
                     rows.append(
@@ -2844,7 +2908,10 @@ class SQLiteGraphStore:
                     )
         return rows[:100]
 
-    def _get_entity_links(self, entity_id: str, limit: int = 100) -> list[dict[str, Any]]:
+    def _get_entity_links(
+        self, entity_id: str, *, domain: str, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
         rows = self.connection.execute(
             """
             SELECT decision_id, entity_id, edge_type, created_at
@@ -2853,24 +2920,28 @@ class SQLiteGraphStore:
             ORDER BY id ASC
             LIMIT ?
             """,
-            (self.domain, str(entity_id), _bounded_traversal_limit(limit)),
+            (domain_value, str(entity_id), _bounded_traversal_limit(limit)),
         ).fetchall()
         return [dict(row) for row in rows]
 
-    def query_similar(self, entity_id: str, limit: int) -> list[dict[str, Any]]:
+    def query_similar(self, entity_id: str, limit: int, *, domain: str) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
         limit_value = _bounded_traversal_limit(limit)
-        source = self.get_decision(str(entity_id))
+        source = self.get_decision(str(entity_id), domain=domain_value)
         if source is None:
-            for link in self._get_entity_links(str(entity_id), limit=100):
+            for link in self._get_entity_links(
+                str(entity_id), domain=domain_value, limit=100
+            ):
                 if str(link.get("entity_id")) == str(entity_id):
-                    source = self.get_decision(str(link.get("decision_id")))
+                    source = self.get_decision(
+                        str(link.get("decision_id")), domain=domain_value
+                    )
                     break
         if source is None:
             return []
         category = str(source.get("category") or "")
-        domain = str(source.get("domain") or self.domain)
         source_supplier = _decision_supplier(source)
-        candidates = self.get_decisions(domain, category or None, limit=400)
+        candidates = self.get_decisions(domain_value, category or None, limit=400)
         matches: list[dict[str, Any]] = []
         for candidate in candidates:
             if candidate.get("decision_id") == source.get("decision_id"):
@@ -3289,6 +3360,15 @@ class SQLiteGraphStore:
             "confidence": float(row["confidence"]),
             "probabilities": _from_json(row["probabilities_json"]),
             "status": row["status"],
+            "correct": bool(row["correct"]) if row["correct"] is not None else None,
+            "outcome": row["outcome"],
+            "verified_at_epoch": row["verified_at_epoch"],
+            "quality_signal": row["quality_signal"],
+            "override_comment": row["override_comment"],
+            "verified_by": row["verified_by"],
+            "analyst_action": row["analyst_action"],
+            "final_action": row["final_action"],
+            "was_override": bool(row["was_override"]) if row["was_override"] is not None else None,
             "metadata": metadata,
             "created_at": float(row["created_at"]),
         }

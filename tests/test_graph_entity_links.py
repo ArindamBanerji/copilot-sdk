@@ -164,14 +164,14 @@ def _score(scorer: CompoundingScorer):
 def test_link_decision_to_entity_sqlite(tmp_path):
     store = SQLiteGraphStore(tmp_path / "graph.sqlite")
 
-    store.link_decision_to_entity("decision-1", "invoice-1")
+    store.link_decision_to_entity("decision-1", "invoice-1", domain="graph")
 
-    assert store.get_decision_links("decision-1") == [
+    assert store.get_decision_links("decision-1", domain="graph") == [
         {
             "decision_id": "decision-1",
             "entity_id": "invoice-1",
             "edge_type": "DECIDED_ON",
-            "created_at": store.get_decision_links("decision-1")[0]["created_at"],
+            "created_at": store.get_decision_links("decision-1", domain="graph")[0]["created_at"],
         }
     ]
 
@@ -179,14 +179,14 @@ def test_link_decision_to_entity_sqlite(tmp_path):
 def test_link_decision_to_entity_inmemory():
     store = InMemoryGraphStore()
 
-    store.link_decision_to_entity("decision-1", "invoice-1")
+    store.link_decision_to_entity("decision-1", "invoice-1", domain="test")
 
-    assert store.get_decision_links("decision-1") == [
+    assert store.get_decision_links("decision-1", domain="test") == [
         {
             "decision_id": "decision-1",
             "entity_id": "invoice-1",
             "edge_type": "DECIDED_ON",
-            "created_at": store.get_decision_links("decision-1")[0]["created_at"],
+            "created_at": store.get_decision_links("decision-1", domain="test")[0]["created_at"],
         }
     ]
 
@@ -198,13 +198,13 @@ def test_learn_with_context_invoice_creates_link(tmp_path):
 
     scorer.learn(result.decision_id, result.action, context={"invoice_id": "INV-001"})
 
-    assert graph_store.get_decision_links(result.decision_id) == [
+    assert graph_store.get_decision_links(result.decision_id, domain="test") == [
         {
             "decision_id": result.decision_id,
             "entity_id": "INV-001",
             "entity_type": "invoice",
             "edge_type": "DECIDED_ON",
-            "created_at": graph_store.get_decision_links(result.decision_id)[0]["created_at"],
+            "created_at": graph_store.get_decision_links(result.decision_id, domain="test")[0]["created_at"],
         }
     ]
     scorer.graph_store.close()
@@ -217,7 +217,7 @@ def test_learn_without_entity_unchanged(tmp_path):
 
     scorer.learn(result.decision_id, result.action)
 
-    assert graph_store.get_decision_links(result.decision_id) == []
+    assert graph_store.get_decision_links(result.decision_id, domain="test") == []
     scorer.graph_store.close()
 
 

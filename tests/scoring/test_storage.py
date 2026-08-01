@@ -29,7 +29,7 @@ def save_sample_decision(store, decision_id="d-1", category="alpha", created_at=
 def test_save_get_decision_roundtrip(store):
     save_sample_decision(store)
 
-    decision = store.get_decision("d-1")
+    decision = store.get_decision("d-1", domain="mock")
 
     assert decision["decision_id"] == "d-1"
     assert decision["domain"] == "mock"
@@ -52,12 +52,14 @@ def test_save_outcome_and_counts(store):
         actual_action="approve",
         is_correct=True,
         metadata={"actual_index": 0, "verified_at": 2000.0},
+        domain="mock",
     )
     store.write_outcome(
         decision_id="d-2",
         actual_action="review",
         is_correct=False,
         metadata={"actual_index": 1, "verified_at": 2001.0},
+        domain="mock",
     )
 
     assert store.count_verified("mock") == 2
@@ -72,6 +74,7 @@ def test_get_verified_decisions_joins_only_outcomes(store):
         actual_action="approve",
         is_correct=True,
         metadata={"actual_index": 0},
+        domain="mock",
     )
 
     verified = store.get_verified_decisions("mock")
@@ -312,7 +315,7 @@ def test_empty_latest_centroids_returns_none(store):
 
 
 def test_get_missing_decision_raises_key_error(store):
-    assert store.get_decision("missing") is None
+    assert store.get_decision("missing", domain="mock") is None
 
 
 def test_count_categories_with_n(store):
@@ -323,6 +326,7 @@ def test_count_categories_with_n(store):
             actual_action="approve",
             is_correct=True,
             metadata={"actual_index": 0},
+            domain="mock",
         )
     for index in range(2):
         save_sample_decision(store, f"beta-{index}", category="beta", created_at=1100.0 + index)
@@ -331,6 +335,7 @@ def test_count_categories_with_n(store):
             actual_action="review",
             is_correct=False,
             metadata={"actual_index": 1},
+            domain="mock",
         )
 
     assert store.count_categories_with_n("mock", 3) == 1
@@ -344,6 +349,6 @@ def test_decisions_persist_across_store_reopen(temp_db):
 
     reopened = SQLiteGraphStore(temp_db, domain="mock")
     try:
-        assert reopened.get_decision("persisted")["decision_id"] == "persisted"
+        assert reopened.get_decision("persisted", domain="mock")["decision_id"] == "persisted"
     finally:
         reopened.close()

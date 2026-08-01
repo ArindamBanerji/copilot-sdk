@@ -175,19 +175,16 @@ def test_active_age_config_guards(env: dict[str, str], message: str):
 
 
 def test_product_like_config_validates_but_store_construction_is_blocked():
-    config = TradingActiveGraphConfig.from_env(
-        {
-            "TRADING_ACTIVE_GRAPH_BACKEND": "age",
-            "TRADING_ACTIVE_AGE_DSN": "postgresql://example/product",
-            "TRADING_ACTIVE_AGE_GRAPH": "governed_copilot_graph",
-            "TRADING_ACTIVE_AGE_DOMAIN": "trading",
-            "TRADING_ACTIVE_AGE_TEST_MODE": "0",
-        }
-    )
-
-    assert config.graph_kind() == "product"
-    with pytest.raises(TradingActiveGraphConfigError, match="product AGE writes remain blocked"):
-        create_trading_active_graph_store(config, store_factory=lambda **_: FakeAGEStore())
+    with pytest.raises(TradingActiveGraphConfigError, match="allow-listed"):
+        TradingActiveGraphConfig.from_env(
+            {
+                "TRADING_ACTIVE_GRAPH_BACKEND": "age",
+                "TRADING_ACTIVE_AGE_DSN": "postgresql://example/product",
+                "TRADING_ACTIVE_AGE_GRAPH": "governed_copilot_graph",
+                "TRADING_ACTIVE_AGE_DOMAIN": "trading",
+                "TRADING_ACTIVE_AGE_TEST_MODE": "0",
+            }
+        )
 
 
 def test_shared_soc_graph_requires_exact_trading_authorization():

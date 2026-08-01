@@ -45,7 +45,7 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
-from copilot_sdk.config import GraphConfig, GraphConfigError  # noqa: E402
+from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.di import AcquisitionAdvisor, BaseSourceProfiler, IntelligenceMapBuilder  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
@@ -66,6 +66,12 @@ def _resolve_profile() -> str:
     if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
         return "development"
     return "production"
+
+
+def _is_demo_or_test_mode() -> bool:
+    return os.environ.get("DATAOPS_DEMO_MODE") == "1" or _resolve_profile() == "test"
+
+
 DB_FILENAME = "dataops.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 DEFAULT_DB_PATH = DATA_DIR / DB_FILENAME
@@ -103,20 +109,32 @@ def _cors_origins() -> list[str]:
 def _graph_store(db_path: str | Path):
     # Active AGE configuration is owned by DATAOPS_ACTIVE_*; generic AGE
     # settings remain deliberately ignored by the graph-status contract.
+    profile = _resolve_profile()
+    graph_config = None
     try:
-        backend = GraphConfig.load(DOMAIN).backend
+        graph_config = GraphConfig.load(DOMAIN, profile=profile)
+        backend = graph_config.backend
     except GraphConfigError:
-        if _resolve_profile() != "test":
+        if profile != "test":
             raise
         backend = "sqlite"
-    if backend == "age":
-        backend = "sqlite"
+    if graph_config is not None:
+        require_shared_graph(
+            backend=graph_config.backend,
+            graph=graph_config.graph,
+            domain=DOMAIN,
+            profile=profile,
+            test_mode=graph_config.active_test_mode,
+        )
     store = create_graph_store(
         backend=backend,
         domain=DOMAIN,
         db_path=str(db_path),
         decision_id_prefix="DOPS-",
-        profile=_resolve_profile(),
+        dsn=graph_config.dsn if graph_config is not None else None,
+        graph_name=graph_config.graph if graph_config is not None else None,
+        test_mode=graph_config.active_test_mode if graph_config is not None else False,
+        profile=profile,
     )
     setattr(store, "penalty_ratio", 10.0)
     return store
@@ -321,6 +339,8 @@ def _seed_metadata(entry: dict[str, Any], sequence: int, scored_factors: dict[st
     if isinstance(source_factors, dict):
         metadata["seed_factors"] = dict(source_factors)
     metadata.update({
+        "domain": DOMAIN,
+        "provenance": "sample",
         "seed_domain": DOMAIN,
         "seed_index": sequence,
         "seed_id": entry.get("alert_id")
@@ -566,7 +586,7 @@ def create_app(
             startup_state["seeded"] = True
             if os.environ.get("DEMO_NO_RESEED") == "1":
                 print("DEMO_NO_RESEED=1: skipping bundle restore and fixture seeding")
-            elif scoring_db != ":memory:":
+            elif _is_demo_or_test_mode() and scoring_db != ":memory:":
                 if _bundle_path is not False:
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
                 _auto_seed_if_needed(seed_graph_store)

@@ -71,7 +71,7 @@ def test_regime_metadata_persisted_with_decision(client):
     _learn(client, payload["decision_id"], payload["action"])
 
     store = client.app.state.trading_selected_graph_store
-    decision = store.get_decision(payload["decision_id"])
+    decision = store.get_decision(payload["decision_id"], domain="trading")
 
     assert decision is not None
     metadata = decision["metadata"]

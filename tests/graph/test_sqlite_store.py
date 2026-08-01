@@ -49,7 +49,7 @@ def test_sqlite_write_decision_returns_id_and_persists(tmp_path):
         metadata={"entity_id": "invoice-1", "created_at": 10.0, "category_index": 2, "recommended_index": 1},
     )
 
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain="mock")
     assert decision["decision_id"] == decision_id
     assert decision["domain"] == "mock"
     assert decision["entity_id"] == "invoice-1"
@@ -66,8 +66,8 @@ def test_sqlite_write_outcomes_and_counts(tmp_path):
     first = _write(store, "mock", 1)
     second = _write(store, "mock", 2, category="beta")
 
-    store.write_outcome(first, "approve", True, metadata={"actual_index": 0, "verified_at": 20.0})
-    store.write_outcome(second, "approve", False, metadata={"actual_index": 1, "verified_at": 21.0})
+    store.write_outcome(first, "approve", True, metadata={"actual_index": 0, "verified_at": 20.0}, domain="mock")
+    store.write_outcome(second, "approve", False, metadata={"actual_index": 1, "verified_at": 21.0}, domain="mock")
 
     assert store.count_verified("mock") == 2
     assert store.count_correct("mock") == 1
@@ -81,7 +81,7 @@ def test_sqlite_write_outcomes_and_counts(tmp_path):
 def test_sqlite_get_decision_missing_returns_none(tmp_path):
     store = SQLiteGraphStore(tmp_path / "graph.sqlite")
 
-    assert store.get_decision("missing") is None
+    assert store.get_decision("missing", domain="test") is None
 
 
 def test_sqlite_get_decisions_by_category_and_limit(tmp_path):
@@ -100,8 +100,8 @@ def test_domain_isolation_same_file(tmp_path):
     store = SQLiteGraphStore(db_path)
     first = _write(store, "alpha-domain", 1)
     second = _write(store, "beta-domain", 2)
-    store.write_outcome(first, "approve", True)
-    store.write_outcome(second, "approve", False)
+    store.write_outcome(first, "approve", True, domain="alpha-domain")
+    store.write_outcome(second, "approve", False, domain="beta-domain")
 
     assert [d["decision_id"] for d in store.get_all_decisions("alpha-domain")] == [first]
     assert [d["decision_id"] for d in store.get_all_decisions("beta-domain")] == [second]
@@ -128,9 +128,9 @@ def test_sqlite_count_verified_decisions_excludes_pending_and_preserves_all_coun
     overridden = _write(store, "mock", 5)
     other = _write(store, "other", 6)
 
-    store.write_outcome(confirmed, "approve", True)
-    store.write_outcome(overridden, "review", False)
-    store.write_outcome(other, "approve", True)
+    store.write_outcome(confirmed, "approve", True, domain="mock")
+    store.write_outcome(overridden, "review", False, domain="mock")
+    store.write_outcome(other, "approve", True, domain="other")
 
     assert store.count_decisions("mock") == 5
     assert store.count_verified_decisions("mock") == 2
@@ -262,7 +262,7 @@ def test_archive_moves_oldest(tmp_path):
     store = SQLiteGraphStore(tmp_path / "graph.sqlite")
     ids = [_write(store, "mock", index) for index in range(4)]
     for decision_id in ids:
-        store.write_outcome(decision_id, "approve", True)
+        store.write_outcome(decision_id, "approve", True, domain="mock")
 
     assert store.archive_old_decisions("mock", keep_recent=2) == 2
 
@@ -407,7 +407,7 @@ def test_sqlite_concurrent_writes(tmp_path):
 
     def write(index: int) -> None:
         decision_id = _write(store, "mock", index)
-        store.write_outcome(decision_id, "approve", True)
+        store.write_outcome(decision_id, "approve", True, domain="mock")
 
     threads = [threading.Thread(target=write, args=(index,)) for index in range(5)]
     for thread in threads:
@@ -427,7 +427,7 @@ def test_sqlite_concurrent_store_instances_share_write_lock(tmp_path):
     def write(store: SQLiteGraphStore, index: int) -> None:
         try:
             decision_id = _write(store, "mock", index)
-            store.write_outcome(decision_id, "approve", index % 2 == 0)
+            store.write_outcome(decision_id, "approve", index % 2 == 0, domain="mock")
         except BaseException as error:  # pragma: no cover - surfaced by assertion below
             errors.append(error)
 

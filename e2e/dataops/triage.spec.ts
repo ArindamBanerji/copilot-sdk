@@ -6,8 +6,13 @@ async function openFirstTriage(page: Page) {
   await page.goto("/");
   await expect(page.getByText("Alert Root Causes")).toBeVisible();
 
-  const alertSection = page.locator("section", { hasText: "Alert Root Causes" });
-  const triageButtons = alertSection.getByRole("button", { name: "Triage" });
+  const triageButtons = page.getByRole("button", { name: "Triage" });
+  if ((await triageButtons.count()) === 0) {
+    const expandButton = page.getByRole("button", { name: "Expand" }).first();
+    if ((await expandButton.count()) > 0) {
+      await expandButton.click();
+    }
+  }
   if ((await triageButtons.count()) === 0) {
     await clickTab(page, "Triage");
     await expect(page.getByText("Select an alert from Dashboard to triage.")).toBeVisible();

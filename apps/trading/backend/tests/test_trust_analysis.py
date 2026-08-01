@@ -116,6 +116,7 @@ def _trained_real_dk_scorer() -> CompoundingScorer:
             action,
             True,
             metadata={"actual_index": action_index},
+            domain="trading",
         )
     scorer.reestimate_dk_if_due()
     assert scorer.get_dk_weights() is not None

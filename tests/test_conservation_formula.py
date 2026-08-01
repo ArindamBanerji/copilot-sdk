@@ -44,6 +44,7 @@ def _seed_verified(
             actual_action=actual_action,
             is_correct=index < correct,
             metadata={"verified_at": 2000.0 + index},
+            domain=store.domain,
         )
 
 

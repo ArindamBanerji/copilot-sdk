@@ -20,6 +20,7 @@ files = [
 ]
 lines = [
   { path = "copilot_sdk/scoring/scorer.py", line = 234, reason = "development-only SQLite fallback; production rejects at :235-240" },
+  { path = "copilot-sdk/copilot_sdk/scoring/scorer.py", line = 254, reason = "intentional SQLite fallback for non-AGE test/dev profiles" },
 ]
 
 [rules.in_memory_graph_store]
@@ -32,6 +33,9 @@ files = [
 
 [rules.graph_environment]
 paths = ["copilot_sdk/config/graph_config.py", "copilot_sdk/testing/", "tests/"]
+lines = [
+  { path = "copilot-sdk/copilot_sdk/backend/diagnostics_models.py", line = 320, reason = "diagnostics --dump env read, no graph operation" },
+]
 
 [rules.unscoped_decision_match]
 paths = ["tests/"]

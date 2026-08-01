@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import warnings
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -73,7 +74,7 @@ from copilot_sdk.backend import (  # noqa: E402
 from copilot_sdk.outbox import OutboxStore  # noqa: E402
 from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
-from copilot_sdk.config import GraphConfig, GraphConfigError  # noqa: E402
+from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
@@ -120,6 +121,26 @@ FACTOR_NAMES = (
     "price_memory_index",
 )
 FIELD_MAP = {"day_of_week": "day_of_week_factor"}
+
+
+@dataclass(frozen=True)
+class PurchasingPathConfig:
+    """Typed local-path configuration; it never selects the graph backend."""
+
+    scoring_db: str
+
+    @classmethod
+    def from_environment(cls, db_path: str | Path | None) -> "PurchasingPathConfig":
+        if db_path is not None:
+            resolved: str | Path = db_path
+        elif os.environ.get("CI_DATA_DIR"):
+            resolved = Path(os.environ["CI_DATA_DIR"]) / DB_FILENAME
+        else:
+            resolved = DEFAULT_DB_PATH
+
+        if str(resolved) != ":memory:":
+            Path(resolved).parent.mkdir(parents=True, exist_ok=True)
+        return cls(scoring_db=str(resolved))
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173,"
     "http://localhost:5174,"
@@ -145,20 +166,34 @@ def _cors_origins() -> list[str]:
 def _graph_store(db_path: str | Path, *, backend: str | None = None):
     # Active AGE configuration is owned by PURCHASING_ACTIVE_*; generic AGE
     # settings remain deliberately ignored by the graph-status contract.
+    profile = _resolve_profile()
+    graph_config = None
     if backend is None:
         try:
-            backend = GraphConfig.load(DOMAIN).backend
+            graph_config = GraphConfig.load(DOMAIN, profile=profile)
+            backend = graph_config.backend
         except GraphConfigError:
-            if _resolve_profile() != "test":
+            if profile != "test":
                 raise
             backend = "sqlite"
     backend = backend.strip().lower()
+    if graph_config is not None:
+        require_shared_graph(
+            backend=graph_config.backend,
+            graph=graph_config.graph,
+            domain=DOMAIN,
+            profile=profile,
+            test_mode=graph_config.active_test_mode,
+        )
     store = create_graph_store(
         backend=backend,
         domain=DOMAIN,
         db_path=str(db_path),
         decision_id_prefix="PUR-",
-        profile=_resolve_profile(),
+        dsn=graph_config.dsn if graph_config is not None else None,
+        graph_name=graph_config.graph if graph_config is not None else None,
+        test_mode=graph_config.active_test_mode if graph_config is not None else False,
+        profile=profile,
     )
     setattr(store, "penalty_ratio", 3.0)
     return store
@@ -178,15 +213,7 @@ def _fred_commodity_source() -> Any | None:
 
 
 def _resolve_scoring_db(db_path: str | Path | None) -> str:
-    if db_path is not None:
-        resolved = Path(db_path)
-    elif os.environ.get("CI_DATA_DIR"):
-        resolved = Path(os.environ["CI_DATA_DIR"]) / DB_FILENAME
-    else:
-        resolved = DEFAULT_DB_PATH
-    if str(resolved) != ":memory:":
-        resolved.parent.mkdir(parents=True, exist_ok=True)
-    return str(resolved)
+    return PurchasingPathConfig.from_environment(db_path).scoring_db
 
 
 def _coerce_factor(value: Any) -> float:

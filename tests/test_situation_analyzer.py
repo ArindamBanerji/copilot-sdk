@@ -61,7 +61,11 @@ class FakePattern:
     ) -> SituationContext:
         self.calls.append((intent, max_depth))
         decision_id = intent.decision_id or str(intent.scope.get("decision_id") or "")
-        decision = graph_store.get_decision(decision_id) if graph_store is not None else None
+        decision = (
+            graph_store.get_decision(decision_id, domain=intent.domain)
+            if graph_store is not None
+            else None
+        )
         nodes = [
             TraversalNode(
                 id=decision_id or "unknown",
@@ -446,9 +450,9 @@ def test_sqlite_query_context_returns_bounded_results(tmp_path) -> None:
         {"amount_variance_ratio": 0.2},
         metadata={"entity_id": "INV-1"},
     )
-    store.link_decision_to_entity(decision_id, "INV-1")
+    store.link_decision_to_entity(decision_id, "INV-1", domain="demo")
 
-    rows = store.query_context("INV-1", 3)
+    rows = store.query_context("INV-1", 3, domain="demo")
 
     assert isinstance(store, GraphTraversalStore)
     assert rows[0]["node"] == "entity"
@@ -467,9 +471,9 @@ def test_sqlite_query_context_respects_max_depth(tmp_path) -> None:
         {"amount_variance_ratio": 0.2},
         metadata={"entity_id": "INV-1"},
     )
-    store.link_decision_to_entity(decision_id, "INV-1")
+    store.link_decision_to_entity(decision_id, "INV-1", domain="demo")
 
-    rows = store.query_context("INV-1", 1)
+    rows = store.query_context("INV-1", 1, domain="demo")
 
     assert max(row["depth"] for row in rows) <= 1
     store.close()

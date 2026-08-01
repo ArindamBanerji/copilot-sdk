@@ -9,14 +9,14 @@ import re
 
 from fastapi import APIRouter, Request
 
-from copilot_sdk.config import GraphConfig, GraphConfigError
+from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph
 from app.factors import compute_factors
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 
 
 DOMAIN = "purchasing"
 ENV_PREFIX = "PURCHASING"
-ALLOWED_PRODUCT_AGE_GRAPHS = frozenset({"governed_copilot_graph"})
+ALLOWED_PRODUCT_AGE_GRAPHS = frozenset({"soc_graph"})
 HISTORICAL_VISIBILITY_WARNING = (
     "Historical SQLite records are not visible in AGE-active mode unless migrated."
 )
@@ -362,6 +362,16 @@ def create_purchasing_active_graph_store(
             "PURCHASING_SHADOW_AGE=1 conflicts with active AGE"
         )
     config.validate({"PURCHASING_ACTIVE_GRAPH_BACKEND": "age"})
+    try:
+        require_shared_graph(
+            backend=config.requested_backend,
+            graph=config.graph,
+            domain=DOMAIN,
+            profile="test" if config.test_mode else "production",
+            test_mode=config.test_mode,
+        )
+    except GraphConfigError as exc:
+        raise PurchasingActiveGraphConfigError(str(exc)) from exc
     shared_soc_graph = (
         config.graph is not None
         and _shared_graph_is_authorized(

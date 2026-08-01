@@ -359,6 +359,8 @@ def _normalize_live_decision(entry: dict[str, Any]) -> dict[str, Any]:
         "is_correct": _correct_from_decision(entry),
         "date": entry.get("date") or entry.get("timestamp") or "live",
         "source": "live_graph",
+        "domain": DOMAIN,
+        "provenance": "live",
         "factors": entry.get("scored_factors") or entry.get("factors") or entry.get("seed_factors"),
     }
 
@@ -399,6 +401,7 @@ def _normalize_seed_decision(entry: dict[str, Any]) -> dict[str, Any]:
         "is_correct": is_correct,
         "date": entry.get("date") or entry.get("timestamp") or "historical",
         "source": "seed_history",
+        "domain": DOMAIN,
         "factors": entry.get("factors"),
     }
 
@@ -1602,6 +1605,8 @@ def audit_trail(alert_id: str) -> dict[str, Any]:
 
 @router.post("/alert-metadata", status_code=status.HTTP_201_CREATED)
 def store_alert_metadata(payload: dict[str, Any]) -> dict[str, Any]:
+    if not _explicit_demo_mode():
+        raise HTTPException(status_code=403, detail="Alert metadata is available only in demo mode")
     decision_id = payload.get("decision_id")
     if not decision_id:
         raise HTTPException(status_code=400, detail="decision_id is required")
@@ -1617,4 +1622,6 @@ def store_alert_metadata(payload: dict[str, Any]) -> dict[str, Any]:
 
 @router.get("/alert-metadata")
 def alert_metadata() -> dict[str, Any]:
+    if not _explicit_demo_mode():
+        raise HTTPException(status_code=403, detail="Alert metadata is available only in demo mode")
     return {"metadata": _load_json(METADATA_PATH, {}), "source": "demo", "provenance": "demo"}

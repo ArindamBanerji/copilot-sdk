@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import importlib
 from pathlib import Path
 from typing import Any
 
@@ -17,8 +18,6 @@ if str(REPO_ROOT) not in sys.path:
 if str(TRADING_BACKEND) not in sys.path:
     sys.path.insert(0, str(TRADING_BACKEND))
 
-from app.state.key_manifest import TradingKey  # noqa: E402
-from app.state.schemas.trading import TRADING_SCHEMA_BY_KEY  # noqa: E402
 from copilot_sdk.state.schemas import shared as shared_schemas  # noqa: E402
 
 
@@ -88,7 +87,34 @@ def render_shared() -> str:
     return HEADER + "\n".join(emit_model(model) for model in SHARED_MODELS)
 
 
+def _load_trading_schema_models() -> tuple[Any, dict[Any, type[BaseModel]]]:
+    original_path = list(sys.path)
+    original_app_modules = {
+        name: module
+        for name, module in sys.modules.items()
+        if name == "app" or name.startswith("app.")
+    }
+    try:
+        for name in list(sys.modules):
+            if name == "app" or name.startswith("app."):
+                sys.modules.pop(name, None)
+        sys.path.insert(0, str(TRADING_BACKEND))
+        importlib.invalidate_caches()
+        from app.state.key_manifest import TradingKey
+        from app.state.schemas.trading import TRADING_SCHEMA_BY_KEY
+
+        return TradingKey, dict(TRADING_SCHEMA_BY_KEY)
+    finally:
+        for name in list(sys.modules):
+            if name == "app" or name.startswith("app."):
+                sys.modules.pop(name, None)
+        sys.path[:] = original_path
+        sys.modules.update(original_app_modules)
+
+
 def render_trading() -> str:
+    trading_key, trading_schema_by_key = _load_trading_schema_models()
+
     seen: set[type[BaseModel]] = set()
     ordered: list[type[BaseModel]] = []
 
@@ -101,8 +127,8 @@ def render_trading() -> str:
                 add_model(nested)
         ordered.append(model)
 
-    for key in TradingKey:
-        add_model(TRADING_SCHEMA_BY_KEY[key])
+    for key in trading_key:
+        add_model(trading_schema_by_key[key])
     return HEADER + "\n".join(emit_model(model) for model in ordered)
 
 

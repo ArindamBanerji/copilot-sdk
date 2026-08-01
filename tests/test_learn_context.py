@@ -127,6 +127,7 @@ def test_save_outcome_stores_context(tmp_path):
                 "actual_index": 0,
                 "context": {"invoice_id": "INV-001", "amount": 125.5},
             },
+            domain=store.domain,
         )
 
         verified = store.get_verified_decisions("mock")

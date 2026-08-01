@@ -368,6 +368,7 @@ def _seed_verified(
             result.decision_id,
             actual_action,
             is_correct=is_correct,
+            domain="trading",
         )
 
 

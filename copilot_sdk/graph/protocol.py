@@ -33,11 +33,21 @@ class GraphStore(Protocol):
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
-        domain: str | None = None,
+        *,
+        domain: str,
+        outcome: str | None = None,
+        verified_at_epoch: float | None = None,
+        quality_signal: float | None = None,
+        override_comment: str | None = None,
+        verified_by: str | None = None,
+        analyst_action: str | None = None,
+        final_action: str | None = None,
+        recommended_action: str | None = None,
+        was_override: bool | None = None,
     ) -> None:
         ...
 
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
+    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None:
         ...
 
     def get_decisions(
@@ -144,7 +154,8 @@ class GraphTraversalStore(Protocol):
     def get_decision_links(
         self,
         decision_id: str | None = None,
-        domain: str | None = None,
+        *,
+        domain: str,
         limit: int | None = None,
     ) -> list[dict[str, Any]]:
         ...
@@ -153,11 +164,12 @@ class GraphTraversalStore(Protocol):
         self,
         entity_id: str,
         max_depth: int,
-        domain: str | None = None,
+        *,
+        domain: str,
     ) -> list[dict[str, Any]]:
         ...
 
-    def query_similar(self, entity_id: str, limit: int) -> list[dict[str, Any]]:
+    def query_similar(self, entity_id: str, limit: int, *, domain: str) -> list[dict[str, Any]]:
         ...
 
 

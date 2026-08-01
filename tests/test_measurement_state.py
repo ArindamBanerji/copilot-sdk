@@ -57,6 +57,7 @@ def _feed_all_arms(scorer: CompoundingScorer, per_arm: int) -> None:
                     action,
                     True,
                     metadata={"actual_index": action_index},
+                    domain="trading",
                 )
                 index += 1
 

@@ -365,6 +365,7 @@ def _seed_verified(
             actual_action,
             is_correct=correct,
             metadata={"context": {"current_regime": regime}},
+            domain="trading",
         )
     return result.decision_id
 

@@ -496,7 +496,7 @@ def test_existing_decision_and_outcome_paths_still_work(store_factory):
         0.8,
         {"amount": 0.2},
     )
-    store.write_outcome(decision_id, "review", True)
+    store.write_outcome(decision_id, "review", True, domain="s2p")
 
-    assert store.get_decision(decision_id)["decision_id"] == decision_id
+    assert store.get_decision(decision_id, domain="s2p")["decision_id"] == decision_id
     assert len(store.get_verified_decisions("s2p")) == 1

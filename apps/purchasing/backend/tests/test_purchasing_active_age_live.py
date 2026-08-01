@@ -50,7 +50,7 @@ def test_live_active_age_score_learn_status_and_read_safety(tmp_path: Path, purc
     assert score.status_code == 200
     score_payload = score.json()
     decision_id = score_payload["decision_id"]
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain="purchasing")
     assert decision is not None
     assert decision["decision_id"] == decision_id
     assert str(decision.get("status") or "").lower() == "pending"
@@ -64,7 +64,7 @@ def test_live_active_age_score_learn_status_and_read_safety(tmp_path: Path, purc
         json={"decision_id": decision_id, "actual_action": score_payload["action"]},
     )
     assert learn.status_code == 200
-    learned = store.get_decision(decision_id)
+    learned = store.get_decision(decision_id, domain="purchasing")
     assert learned is not None
     assert str(learned.get("status") or learned.get("outcome") or "").lower() == "confirmed"
     assert _has_outcome(learned)

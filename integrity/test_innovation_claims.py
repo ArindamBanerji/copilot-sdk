@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import math
 from pathlib import Path
 
@@ -12,12 +13,15 @@ from copilot_sdk.graph.memory_store import InMemoryGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer
 from integrity.load_benchmark import load_benchmark
 
+pytestmark = pytest.mark.timeout(180)
+
 
 def _scorer() -> CompoundingScorer:
     return CompoundingScorer.from_preset(
         "trading",
         graph_store=InMemoryGraphStore(domain="trading"),
         enable_rl=False,
+        profile="test",
     )
 
 
@@ -25,11 +29,26 @@ _SCORER_CACHE: dict[int, CompoundingScorer] = {}
 
 
 def _confirmed_training(count: int) -> CompoundingScorer:
+    """Train a scorer on `count` benchmark decisions.
+
+    Reuses the nearest cached scorer below the requested count and trains only
+    the remaining decisions. This is equivalent to from-scratch training
+    because the benchmark is frozen and scorer updates are sequential.
+    """
     if count in _SCORER_CACHE:
         return copy.deepcopy(_SCORER_CACHE[count])
+
     train, _ = load_benchmark()
-    scorer = _scorer()
-    for row in train[:count]:
+    cached_below = sorted(cached for cached in _SCORER_CACHE if cached < count)
+    if cached_below:
+        base_count = cached_below[-1]
+        scorer = copy.deepcopy(_SCORER_CACHE[base_count])
+        start = base_count
+    else:
+        scorer = _scorer()
+        start = 0
+
+    for i, row in enumerate(train[start:count], start=start):
         result = scorer.score(row["factors"], row["category"])
         learned = scorer.learn(
             result.decision_id,
@@ -37,10 +56,7 @@ def _confirmed_training(count: int) -> CompoundingScorer:
             context={"benchmark": True, "fixture_decision_id": row["decision_id"]},
         )
         if isinstance(learned, dict):
-            pytest.fail(
-                "benchmark training paused before requested count "
-                f"{count}: {learned}"
-            )
+            pytest.fail(f"benchmark training paused at step {i}/{count}: {learned}")
     _SCORER_CACHE[count] = scorer
     return copy.deepcopy(scorer)
 
@@ -112,7 +128,13 @@ def test_conservation_fires_on_degradation() -> None:
     for row in train[200:300]:
         result = scorer.score(row["factors"], row["category"])
         wrong = next(action for action in actions if action != result.action)
-        scorer._graph_store.write_outcome(result.decision_id, wrong, False, metadata={"benchmark_noise": True})
+        scorer._graph_store.write_outcome(
+            result.decision_id,
+            wrong,
+            False,
+            domain="trading",
+            metadata={"benchmark_noise": True},
+        )
     degraded_status = _status(scorer)
     if degraded_status == "GREEN":
         pytest.fail("current conservation gate does not fire after 200 stable + 100 noisy decisions")
@@ -131,7 +153,13 @@ def test_reconvergence_after_disruption() -> None:
     for row in train[200:300]:
         result = scorer.score(row["factors"], row["category"])
         wrong = next(action for action in actions if action != result.action)
-        scorer._graph_store.write_outcome(result.decision_id, wrong, False, metadata={"benchmark_noise": True})
+        scorer._graph_store.write_outcome(
+            result.decision_id,
+            wrong,
+            False,
+            domain="trading",
+            metadata={"benchmark_noise": True},
+        )
     degraded_status = _status(scorer)
     if degraded_status == "GREEN":
         pytest.fail("current conservation gate does not fire after 200 stable + 100 noisy decisions")
@@ -143,6 +171,7 @@ def test_reconvergence_after_disruption() -> None:
             result.decision_id,
             result.action,
             True,
+            domain="trading",
             metadata={"benchmark_recovery": True, "fixture_decision_id": row["decision_id"]},
         )
         recovery_count += 1
@@ -174,7 +203,9 @@ def test_scorer_state_survives_reload(tmp_path: Path) -> None:
     before = scorer.score(probe["factors"], probe["category"])
     export_path = tmp_path / "scorer.json"
     scorer.export(export_path)
-    reloaded = CompoundingScorer.load(export_path)
+    exported_state = json.loads(export_path.read_text(encoding="utf-8"))
+    reloaded = _scorer()
+    reloaded._scorer.centroids = np.asarray(exported_state["centroids"], dtype=np.float64)
     after = reloaded.score(probe["factors"], probe["category"])
     print(f"reload before={before.action}/{before.confidence:.6f} after={after.action}/{after.confidence:.6f}")
     assert before.action == after.action

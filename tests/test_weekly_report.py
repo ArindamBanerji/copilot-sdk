@@ -100,6 +100,7 @@ def _write_decision(
                 "verified_at": created_at + 1.0,
                 "context": dict(context or {}),
             },
+            domain=DOMAIN,
         )
     return stored_id
 

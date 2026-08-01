@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
-from copilot_sdk.config import GraphConfig
+from copilot_sdk.config import GraphConfig, require_shared_graph
 from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
 from copilot_sdk.scoring.presets import PRESET_REGISTRY
 
@@ -177,6 +177,16 @@ def _load_age_store(age_dsn: str, graph_name: str) -> Any:
     from ci_platform.graph.age_graph_store import AGEGraphStore
 
     configs = [GraphConfig.load(domain, profile="production") for domain in ALL_COPILOT_DOMAINS]
+    for config in configs:
+        require_shared_graph(
+            backend=config.backend,
+            graph=config.graph,
+            domain=config.domain,
+            profile="production",
+            test_mode=config.active_test_mode,
+        )
+    if graph_name != "soc_graph":
+        raise RuntimeError(f"Phase 6 requires graph_name='soc_graph', got {graph_name!r}")
     graphs = {config.graph for config in configs}
     if len(graphs) != 1 or graph_name not in graphs:
         raise RuntimeError(f"GraphConfig does not authorize one shared graph: {sorted(graphs)}")

@@ -288,6 +288,7 @@ def test_conflict_detection_runs_before_conservation_pause_without_changing_paus
             actual_action="review",
             is_correct=False,
             metadata={"outcome": "overridden", "actual_index": 1},
+            domain=graph_store.domain,
         )
     result = scorer.score({"amount": 0.2, "risk": 0.3, "history": 0.4}, "alpha")
     graph_store._decisions[result.decision_id]["metadata"]["probabilities"] = [0.95, 0.05]

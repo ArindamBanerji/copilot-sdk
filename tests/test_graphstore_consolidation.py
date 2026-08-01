@@ -141,7 +141,7 @@ def test_inmemory_decision_id_prefix_default_unchanged():
     )
 
     assert decision_id == "decision-1"
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain="test")
     assert decision["decision_id"] == "decision-1"
     assert decision["metadata"] == {"decision_id": "decision-1", "source": "unit", "entity_id": "decision-1"}
     assert metadata == {"decision_id": "decision-1", "source": "unit"}
@@ -160,7 +160,7 @@ def test_inmemory_no_prefix_metadata_without_decision_id_unchanged():
         metadata=metadata,
     )
 
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain="test")
     assert decision["metadata"] == {"source": "unit", "entity_id": decision_id}
     assert metadata == {"source": "unit"}
 
@@ -178,7 +178,7 @@ def test_inmemory_decision_id_prefix_applied():
     )
 
     assert decision_id == "S2P-decision-1"
-    assert store.get_decision(decision_id)["decision_id"] == "S2P-decision-1"
+    assert store.get_decision(decision_id, domain="test")["decision_id"] == "S2P-decision-1"
 
 
 def test_inmemory_decision_id_prefix_updates_metadata_decision_id():
@@ -194,7 +194,7 @@ def test_inmemory_decision_id_prefix_updates_metadata_decision_id():
         metadata=metadata,
     )
 
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain="test")
     assert decision_id == "S2P-decision-1"
     assert decision["decision_id"] == "S2P-decision-1"
     assert decision["metadata"]["decision_id"] == decision_id
@@ -230,7 +230,7 @@ def test_inmemory_decision_id_prefix_does_not_double_prefix_metadata():
         metadata={"decision_id": "S2P-decision-1"},
     )
 
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain="test")
     assert decision_id == "S2P-decision-1"
     assert decision["metadata"]["decision_id"] == "S2P-decision-1"
     assert "S2P-S2P-" not in decision["metadata"]["decision_id"]
@@ -240,16 +240,16 @@ def test_inmemory_store_has_evolution_and_link_parity():
     store = InMemoryGraphStore()
 
     store.save_evolution_event("test", "variant_generated", "threshold_rule", "variant-1", {"seed": 7})
-    store.link_decision_to_entity("decision-1", "entity-1")
+    store.link_decision_to_entity("decision-1", "entity-1", domain="test")
 
     assert store.get_evolution_events("test")[0]["event_type"] == "variant_generated"
     assert store.get_evolution_events("test")[0]["metadata"] == {"seed": 7}
-    assert store.get_decision_links("decision-1") == [
+    assert store.get_decision_links("decision-1", domain="test") == [
         {
             "decision_id": "decision-1",
             "entity_id": "entity-1",
             "edge_type": "DECIDED_ON",
-            "created_at": store.get_decision_links("decision-1")[0]["created_at"],
+            "created_at": store.get_decision_links("decision-1", domain="test")[0]["created_at"],
         }
     ]
 
@@ -259,16 +259,18 @@ def test_sqlite_store_has_evolution_and_link_parity(tmp_path):
     store = SQLiteGraphStore(db_path)
 
     store.save_evolution_event("graph", "variant_generated", "threshold_rule", "variant-1", {"seed": 7})
-    store.link_decision_to_entity("decision-1", "entity-1", edge_type="REVIEWS")
+    store.link_decision_to_entity(
+        "decision-1", "entity-1", edge_type="REVIEWS", domain="graph"
+    )
 
     events = _sqlite_events(db_path)
     assert events[0]["event_type"] == "variant_generated"
     assert json.loads(events[0]["metadata"]) == {"seed": 7}
-    assert store.get_decision_links("decision-1") == [
+    assert store.get_decision_links("decision-1", domain="graph") == [
         {
             "decision_id": "decision-1",
             "entity_id": "entity-1",
             "edge_type": "REVIEWS",
-            "created_at": store.get_decision_links("decision-1")[0]["created_at"],
+            "created_at": store.get_decision_links("decision-1", domain="graph")[0]["created_at"],
         }
     ]

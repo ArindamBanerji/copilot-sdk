@@ -78,7 +78,7 @@ def test_generated_id_is_valid_for_governed_write(tmp_path):
             factor_vector=[0.1, 0.2],
             factor_names=["signal", "risk"],
         )
-        assert store.get_decision(decision_id)["decision_id"] == decision_id
+        assert store.get_decision(decision_id, domain="trading")["decision_id"] == decision_id
     finally:
         store.close()
 

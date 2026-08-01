@@ -81,7 +81,7 @@ def test_raw_write_is_default_and_preserves_prefixed_id(monkeypatch, tmp_path) -
     try:
         result = _build_scorer(store, governed_writes=None).score(_factors(), "alpha")
         assert result.decision_id.startswith("TRD-")
-        assert store.get_decision(result.decision_id) is not None
+        assert store.get_decision(result.decision_id, domain="mock") is not None
     finally:
         store.close()
 
@@ -90,7 +90,7 @@ def test_governed_sqlite_writes_governed_fields_and_prefix(tmp_path) -> None:
     store = SQLiteGraphStore(tmp_path / "governed.sqlite", domain="mock", decision_id_prefix="TRD-")
     try:
         result = _build_scorer(store).score(_factors(), "alpha")
-        decision = store.get_decision(result.decision_id)
+        decision = store.get_decision(result.decision_id, domain="mock")
         assert decision is not None
         metadata = _metadata(decision)
         assert result.decision_id.startswith("TRD-")
@@ -112,7 +112,7 @@ def test_governed_in_memory_uses_bare_generated_id() -> None:
     try:
         result = _build_scorer(store).score(_factors(), "alpha")
         assert re.fullmatch(r"[0-9a-f]{12}", result.decision_id)
-        assert store.get_decision(result.decision_id) is not None
+        assert store.get_decision(result.decision_id, domain="mock") is not None
     finally:
         store.close()
 
@@ -129,8 +129,8 @@ def test_governed_dual_write_preserves_identity_in_both_stores(tmp_path) -> None
     try:
         result = _build_scorer(store).score(_factors(), "alpha")
         assert result.decision_id.startswith("TRD-")
-        assert primary.get_decision(result.decision_id) is not None
-        assert secondary.get_decision(result.decision_id) is not None
+        assert primary.get_decision(result.decision_id, domain="mock") is not None
+        assert secondary.get_decision(result.decision_id, domain="mock") is not None
     finally:
         store.close()
 
@@ -141,7 +141,7 @@ def test_governed_score_then_learn_uses_compound_outcome_identity(tmp_path) -> N
         scorer = _build_scorer(store)
         result = scorer.score(_factors(), "alpha")
         scorer.learn(result.decision_id, result.action)
-        decision = store.get_decision(result.decision_id)
+        decision = store.get_decision(result.decision_id, domain="mock")
         assert decision is not None
         assert decision["status"] == "confirmed"
         assert store.count_verified("mock") == 1
@@ -153,7 +153,7 @@ def test_governed_metadata_remains_backward_compatible(tmp_path) -> None:
     store = SQLiteGraphStore(tmp_path / "metadata.sqlite", domain="mock")
     try:
         result = _build_scorer(store).score(_factors(), "alpha", metadata={"caller_key": "value"})
-        decision = store.get_decision(result.decision_id)
+        decision = store.get_decision(result.decision_id, domain="mock")
         assert decision is not None
         metadata = _metadata(decision)
         assert metadata["decision_id"] == result.decision_id

@@ -148,7 +148,7 @@ def test_graph_status_ignores_generic_graph_env(tmp_path: Path, monkeypatch: pyt
                 "DATAOPS_ACTIVE_AGE_GRAPH": "governed_copilot_graph",
                 "DATAOPS_ACTIVE_AGE_DOMAIN": "dataops",
             },
-            "product AGE writes remain blocked",
+            "allow-listed",
         ),
     ],
 )
@@ -162,7 +162,7 @@ def test_product_like_config_can_be_live_test_opted_in_for_construction():
         {
             "DATAOPS_ACTIVE_GRAPH_BACKEND": "age",
             "DATAOPS_ACTIVE_AGE_DSN": "postgresql://example/product",
-            "DATAOPS_ACTIVE_AGE_GRAPH": "governed_copilot_graph",
+            "DATAOPS_ACTIVE_AGE_GRAPH": "soc_graph",
             "DATAOPS_ACTIVE_AGE_DOMAIN": "dataops",
             "DATAOPS_ACTIVE_LIVE_AGE_TEST": "1",
         }

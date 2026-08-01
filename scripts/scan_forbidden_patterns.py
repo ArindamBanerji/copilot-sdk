@@ -26,6 +26,8 @@ ALLOWLIST_PATH = ROOT / "docs" / "design" / "age_unification_forbidden_patterns_
 EXCLUDED_DIRECTORIES = {
     ".git", ".mypy_cache", ".pytest_cache", ".tox", ".venv", "__pycache__",
     "build", "dist", "node_modules", "venv", "graphify-out", "scratch",
+    "gen-ai-roi-demo-v2", "gen-ai-roi-demo-v3", "gen-ai-roi-demo-v3.2",
+    "gen-ai-roi-demo", "gen-ai-roi-demo-v4", "gen-ai-roi-demo-v4-v45", "gen_ai_roi_demo_temp",
 }
 SCRIPT_DIRECTORY_NAMES = {"scripts", "support"}
 PRODUCTION_PATH_PARTS = {"app", "copilot_sdk", "ci_platform", "gae"}

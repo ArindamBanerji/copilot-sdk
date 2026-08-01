@@ -133,7 +133,7 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
         outcome: str = "confirmed",
     ) -> FakeLearnResult:
         del actual_action, outcome
-        self.graph_store.get_decision(decision_id)
+        self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         return FakeLearnResult(
             decision_id=decision_id,
             iks_before=0.0,
@@ -240,13 +240,14 @@ class GraphStoreBackedScorer(FakeScorer):
         outcome: str = "confirmed",
     ) -> FakeLearnResult:
         self.learn_calls.append((decision_id, actual_action, outcome))
-        decision = self.graph_store.get_decision(decision_id)
+        decision = self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         if decision is None:
             raise KeyError(decision_id)
         self.graph_store.write_outcome(
             decision_id,
             actual_action,
             actual_action == decision["recommended_action"],
+            domain=self.graph_store.domain,
         )
         return FakeLearnResult(
             decision_id=decision_id,
@@ -291,13 +292,14 @@ class SQLiteL5Scorer(FakeScorer):
         actual_action: str,
         outcome: str = "confirmed",
     ) -> FakeLearnResult:
-        decision = self.graph_store.get_decision(decision_id)
+        decision = self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         if decision is None:
             raise KeyError(decision_id)
         self.graph_store.write_outcome(
             decision_id,
             actual_action,
             actual_action == decision["recommended_action"],
+            domain=self.graph_store.domain,
         )
         return FakeLearnResult(
             decision_id=decision_id,
@@ -421,7 +423,7 @@ class CentroidRuntimeScorer(DKRuntimeScorer):
         actual_action: str,
         outcome: str = "confirmed",
     ) -> FakeLearnResult:
-        self.graph_store.get_decision(decision_id)
+        self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         self.save_centroids_calls += 1
         if self.phase == "MEAN_CONVERGENCE":
             before = self.centroids[("pipeline_failure", actual_action)]

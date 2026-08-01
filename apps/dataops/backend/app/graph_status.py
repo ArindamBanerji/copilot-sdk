@@ -9,13 +9,13 @@ import re
 
 from fastapi import APIRouter, Request
 
-from copilot_sdk.config import GraphConfig, GraphConfigError
+from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph
 from copilot_sdk.scoring.presets.dataops import DataOpsPreset
 
 
 DOMAIN = "dataops"
 ENV_PREFIX = "DATAOPS"
-ALLOWED_PRODUCT_AGE_GRAPHS = frozenset({"governed_copilot_graph"})
+ALLOWED_PRODUCT_AGE_GRAPHS = frozenset({"soc_graph"})
 HISTORICAL_VISIBILITY_WARNING = (
     "Historical SQLite records are not visible in AGE-active mode unless migrated."
 )
@@ -311,6 +311,16 @@ def create_dataops_active_graph_store(
     if config.requested_backend != "age":
         return None
     config.validate({"DATAOPS_ACTIVE_GRAPH_BACKEND": "age"})
+    try:
+        require_shared_graph(
+            backend=config.requested_backend,
+            graph=config.graph,
+            domain=DOMAIN,
+            profile="test" if (config.test_mode or config.live_age_test) else "production",
+            test_mode=config.test_mode or config.live_age_test,
+        )
+    except GraphConfigError as exc:
+        raise DataOpsActiveGraphConfigError(str(exc)) from exc
     shared_soc_graph = (
         config.graph is not None
         and _shared_graph_is_authorized(

@@ -56,7 +56,7 @@ def test_write_decision_returns_primary_identity_and_forwards_arguments():
 
 def test_write_outcome_calls_both_and_returns_none():
     primary, secondary = _pair()
-    assert DualWriteStore(primary, secondary).write_outcome("d1", "buy", True) is None
+    assert DualWriteStore(primary, secondary).write_outcome("d1", "buy", True, domain="trading") is None
     assert primary.count("write_outcome") == secondary.count("write_outcome") == 1
 
 
@@ -77,7 +77,7 @@ def test_all_protocol_write_methods_delegate_to_both_endpoints():
     primary, secondary = _pair()
     dual = DualWriteStore(primary, secondary)
     calls = {
-        "write_outcome": lambda: dual.write_outcome("d1", "buy", True),
+        "write_outcome": lambda: dual.write_outcome("d1", "buy", True, domain="trading"),
         "write_governed_decision": lambda: dual.write_governed_decision("d1", "trading", "cat", 0, "buy", 0, 0.8, [], [], []),
         "write_observation": lambda: dual.write_observation("o1", "trading", "cat", "buy", 0.8, "route", "scorer", "schema"),
         "save_centroids": lambda: dual.save_centroids("trading", "cat", {}),
@@ -97,7 +97,7 @@ def test_all_protocol_write_methods_delegate_to_both_endpoints():
 def test_secondary_failure_does_not_propagate_and_is_logged():
     primary, secondary = _pair(secondary_failures={"write_outcome": RuntimeError("age down")})
     dual = DualWriteStore(primary, secondary)
-    assert dual.write_outcome("d1", "buy", True) is None
+    assert dual.write_outcome("d1", "buy", True, domain="trading") is None
     assert dual.secondary_failures[0]["operation"] == "write_outcome"
     assert dual.secondary_failures[0]["status"] == "SECONDARY_WRITE_FAILURE"
 
@@ -127,7 +127,7 @@ def test_all_reads_delegate_only_to_primary():
         "count_verified_decisions": 2,
     })
     dual = DualWriteStore(primary, secondary)
-    assert dual.get_decision("d1") == {"decision_id": "d1"}
+    assert dual.get_decision("d1", domain="trading") == {"decision_id": "d1"}
     assert dual.get_decisions("trading") == dual.get_all_decisions("trading") == dual.get_verified_decisions("trading") == []
     assert (dual.count_verified("trading"), dual.count_correct("trading"), dual.count_decisions("trading"), dual.count_verified_decisions("trading")) == (2, 1, 3, 2)
     assert dual.load_latest_centroids("trading") == {}
@@ -188,7 +188,7 @@ def test_failure_log_counts_and_flushes_entries():
     primary, secondary = _pair(secondary_failures={"write_outcome": RuntimeError("x")})
     dual = DualWriteStore(primary, secondary)
     for index in range(3):
-        dual.write_outcome(f"d{index}", "buy", True)
+        dual.write_outcome(f"d{index}", "buy", True, domain="trading")
     assert dual.secondary_failure_count == 3
     assert len(dual.flush_secondary_failures()) == 3
     assert dual.secondary_failure_count == 0
@@ -215,7 +215,7 @@ def test_governed_decision_and_outcome_use_same_identity_on_both_stores():
     primary, secondary = _pair()
     dual = DualWriteStore(primary, secondary)
     dual.write_governed_decision("shared-id", "trading", "cat", 2, "buy", 1, 0.8, [0.2, 0.8], [1.0], ["x"], "score", "scorer", "preset", "schema", {"trace": "t"})
-    dual.write_outcome("shared-id", "buy", True, {"verified_at": 1.0})
+    dual.write_outcome("shared-id", "buy", True, {"verified_at": 1.0}, domain="trading")
     governed_primary = next(call for call in primary.calls if call[0] == "write_governed_decision")
     governed_secondary = next(call for call in secondary.calls if call[0] == "write_governed_decision")
     outcome_primary = next(call for call in primary.calls if call[0] == "write_outcome")
@@ -230,7 +230,7 @@ def test_failure_log_is_bounded_fifo_and_warns(caplog):
     dual = DualWriteStore(primary, secondary, max_failures=3)
     with caplog.at_level("WARNING"):
         for index in range(5):
-            dual.write_outcome(f"d{index}", "buy", True)
+            dual.write_outcome(f"d{index}", "buy", True, domain="trading")
     assert [entry["args"]["first_arg"] for entry in dual.secondary_failures] == ["d2", "d3", "d4"]
     assert "dropped 1 oldest entries" in caplog.text
 
@@ -239,7 +239,7 @@ def test_failure_log_persists_and_loads(tmp_path):
     primary, secondary = _pair(secondary_failures={"write_outcome": RuntimeError("age down")})
     log_path = tmp_path / "secondary_failures.json"
     dual = DualWriteStore(primary, secondary)
-    dual.write_outcome("d1", "buy", True)
+    dual.write_outcome("d1", "buy", True, domain="trading")
     dual.persist_failures(str(log_path))
     restored = DualWriteStore(*_pair(), failure_log_path=str(log_path))
     assert restored.secondary_failures == dual.secondary_failures

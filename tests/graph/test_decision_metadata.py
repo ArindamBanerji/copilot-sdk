@@ -29,7 +29,7 @@ def test_in_memory_write_decision_preserves_metadata():
         metadata={"decision_id": "d-meta", "invoice_id": "S2P-INV-0001"},
     )
 
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain=getattr(store, "domain", "test"))
     assert decision["metadata"]["invoice_id"] == "S2P-INV-0001"
 
 
@@ -38,7 +38,7 @@ def test_in_memory_write_decision_without_metadata_still_works():
 
     decision_id = _write_decision(store)
 
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain=getattr(store, "domain", "test"))
     assert decision["decision_id"] == decision_id
     assert decision["metadata"]["entity_id"]
 
@@ -52,7 +52,7 @@ def test_sqlite_write_decision_preserves_metadata(tmp_path):
         metadata={"decision_id": "d-sql", "invoice_id": "S2P-INV-0002"},
     )
 
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain=getattr(store, "domain", "test"))
     assert decision["metadata"]["invoice_id"] == "S2P-INV-0002"
 
 
@@ -62,7 +62,7 @@ def test_sqlite_write_decision_without_metadata_still_works(tmp_path):
 
     decision_id = _write_decision(store)
 
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain=getattr(store, "domain", "test"))
     assert decision["decision_id"] == decision_id
     assert decision["metadata"]["entity_id"]
 
@@ -77,7 +77,7 @@ def test_sqlite_decision_metadata_persists_after_reopen(tmp_path):
 
     reopened = SQLiteGraphStore(db_path)
 
-    decision = reopened.get_decision(decision_id)
+    decision = reopened.get_decision(decision_id, domain=getattr(reopened, "domain", "test"))
     assert decision["metadata"]["invoice_id"] == "S2P-INV-0003"
 
 
@@ -97,7 +97,7 @@ def test_compounding_scorer_score_persists_caller_metadata(tmp_path):
         metadata={"invoice_id": "S2P-INV-0004", "supplier_id": "SUP-001"},
     )
 
-    decision = graph_store.get_decision(result.decision_id)
+    decision = graph_store.get_decision(result.decision_id, domain="s2p")
     assert decision["metadata"]["invoice_id"] == "S2P-INV-0004"
     assert decision["metadata"]["supplier_id"] == "SUP-001"
     assert decision["metadata"]["domain"] == "s2p"

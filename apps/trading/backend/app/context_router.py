@@ -397,8 +397,6 @@ def portfolio_summary() -> dict[str, Any]:
 @router.get("/analytics")
 @cached_static("analytics")
 def analytics(request: Request) -> dict[str, Any]:
-    if not _demo_mode():
-        raise HTTPException(status_code=503, detail="Trading analytics provider unavailable")
     payload = _load_json_optional("analytics_cache.json")
     if isinstance(payload, dict):
         if _explicit_demo_mode():

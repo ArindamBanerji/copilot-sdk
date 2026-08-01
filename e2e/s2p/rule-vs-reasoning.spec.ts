@@ -8,10 +8,12 @@ async function backendHealthy(page: Page): Promise<boolean> {
 }
 
 function waitForScoreResponse(page: Page) {
-  return page.waitForResponse((response) =>
-    response.url().includes("/score") &&
-    response.request().method() === "POST" &&
-    response.status() === 200
+  return page.waitForResponse(
+    (response) =>
+      response.url().includes("/score") &&
+      response.request().method() === "POST" &&
+      response.status() === 200,
+    { timeout: 20_000 },
   );
 }
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from freezegun import freeze_time
+
 from copilot_sdk.di import (
     AccuracyPattern,
     AggregationPattern,
@@ -212,6 +214,7 @@ def test_aggregation_handles_missing_metric():
     assert result["metadata"]["warnings"]
 
 
+@freeze_time("2026-06-15")
 def test_comparison_this_month_vs_last_month():
     now = _now()
     rows = [
@@ -240,6 +243,7 @@ def test_comparison_missing_timestamp_count_metadata():
     assert result["metadata"]["missing_timestamp_count"] == 1
 
 
+@freeze_time("2026-06-15")
 def test_comparison_improvement_trend():
     now = _now()
     this_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)

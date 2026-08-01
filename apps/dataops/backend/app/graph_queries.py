@@ -10,6 +10,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from fastapi import HTTPException
+
 from copilot_sdk.config import GraphConfig
 
 
@@ -138,9 +140,13 @@ class DataOpsGraphClient:
     def graph_source(self) -> str:
         return "graph" if self.is_graph_connected else "fixture"
 
+    def _raise_if_age_required(self) -> None:
+        if self._age_required:
+            raise HTTPException(status_code=503, detail="AGE unavailable")
+
     async def get_pipelines(self) -> dict[str, Any]:
         rows = await self._run_graph(
-            """
+            f"""
             MATCH (system:PipelineSystem)
             WHERE system.domain = {self._serialize("dataops")}
             OPTIONAL MATCH (upstream:PipelineSystem)-[:FEEDS]->(system)
@@ -148,7 +154,7 @@ class DataOpsGraphClient:
             RETURN system, count(DISTINCT upstream) AS upstream_count,
                    count(DISTINCT downstream) AS downstream_count
             ORDER BY system.name
-            """
+             """
         )
         if rows is not None:
             return {
@@ -162,11 +168,12 @@ class DataOpsGraphClient:
                     for row in rows
                 ],
             }
+        self._raise_if_age_required()
         return deepcopy(self._pipelines())
 
     async def get_alerts(self) -> dict[str, Any]:
         rows = await self._run_graph(
-            """
+            f"""
             MATCH (alert:DataQualityAlert)
             WHERE alert.domain = {self._serialize("dataops")}
             OPTIONAL MATCH (alert)-[:AFFECTS]->(system:PipelineSystem)
@@ -183,6 +190,7 @@ class DataOpsGraphClient:
                     alert.setdefault("system", system["name"])
                 alerts.append(alert)
             return {"source": "graph", "alerts": alerts}
+        self._raise_if_age_required()
         return deepcopy(self._alerts())
 
     async def get_system(self, name: str) -> dict[str, Any]:
@@ -209,6 +217,7 @@ class DataOpsGraphClient:
                     "downstream_count": int(row.get("downstream_count") or 0),
                 },
             }
+        self._raise_if_age_required()
         system = next((item for item in self._pipelines()["pipelines"] if item["name"] == name), None)
         if system is None:
             return {"source": "fixture", "error": "System not found", "name": name}
@@ -219,6 +228,7 @@ class DataOpsGraphClient:
         if pair is not None:
             alert, _system = pair
             return {"source": "graph", "alert": alert}
+        self._raise_if_age_required()
         alert = self._find_alert(alert_id)
         if alert is None:
             return {"source": "fixture", "error": "Alert not found", "alert_id": alert_id}
@@ -237,11 +247,13 @@ class DataOpsGraphClient:
         )
         if rows is not None:
             if not rows:
+                self._raise_if_age_required()
                 return self._fixture_blast_radius(alert_id)
             row = rows[0]
             system = row.get("system") or {}
             affected_system = system.get("name") if isinstance(system, dict) else None
             if not affected_system:
+                self._raise_if_age_required()
                 return self._fixture_blast_radius(alert_id)
             edges = [
                 edge for edge in (row.get("edges") or [])
@@ -270,6 +282,7 @@ class DataOpsGraphClient:
                 "min_sla": min(slas, default=_safe_get_float(system, "sla_minutes", 120.0)),
                 "engine": {"graph": "ci_platform.graph.AGEClient"},
             }
+        self._raise_if_age_required()
         return self._fixture_blast_radius(alert_id)
 
     async def get_recurrence(self, alert_id: str) -> dict[str, Any]:
@@ -281,6 +294,7 @@ class DataOpsGraphClient:
                 alert, _system = pair
                 recurrence = await self.compute_recurrence(alert["system"], alert["category"])
         if alert is None:
+            self._raise_if_age_required()
             alert = self._find_alert(alert_id)
             if alert is not None:
                 recurrence = self._fixture_recurrence(alert["system"], alert["category"])
@@ -306,6 +320,7 @@ class DataOpsGraphClient:
                 alert, system = pair
                 use_graph = True
         if alert is None:
+            self._raise_if_age_required()
             alert = self._find_alert(alert_id)
         if not alert:
             return {"source": self.graph_source, "error": "Alert not found", "alert_id": alert_id}
@@ -504,6 +519,7 @@ class DataOpsGraphClient:
                 "downstream_count": downstream_count,
                 "value": round(min(downstream_count / 8, 1.0), 4),
             }
+        self._raise_if_age_required()
         return self._fixture_impact_scope(system_name)
 
     async def compute_downstream_urgency(self, system_name: str) -> dict[str, Any]:
@@ -524,6 +540,7 @@ class DataOpsGraphClient:
                 "value": self._sla_to_urgency(min_sla),
             }
 
+        self._raise_if_age_required()
         return self._fixture_downstream_urgency(system_name)
 
     async def compute_recurrence(self, system_name: str, category: str) -> dict[str, Any]:
@@ -545,12 +562,13 @@ class DataOpsGraphClient:
                 "value": round(min(prior_count / 12, 1.0), 4),
             }
 
+        self._raise_if_age_required()
         return self._fixture_recurrence(system_name, category)
 
     async def _run_graph(self, query: str) -> list[dict[str, Any]] | None:
         if not self._age_client:
             if self._age_required:
-                raise RuntimeError("DataOps AGE graph is configured but not connected")
+                raise HTTPException(status_code=503, detail="AGE unavailable")
             return None
         if READ_ONLY_FORBIDDEN.search(query):
             raise ValueError(f"DataOps graph query is not read-only: {query[:120]}")
@@ -560,7 +578,7 @@ class DataOpsGraphClient:
         except Exception:
             self._graph_connected = False
             if self._age_required:
-                raise
+                raise HTTPException(status_code=503, detail="AGE unavailable")
             return None
 
     def _serialize(self, value: Any) -> str:

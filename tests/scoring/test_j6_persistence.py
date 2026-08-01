@@ -167,6 +167,7 @@ def _verified_scorer(mock_preset, store: InMemoryGraphStore):
         alternate,
         False,
         metadata={"source": "j6-test"},
+        domain=store.domain,
     )
     return scorer, result, alternate
 
@@ -201,6 +202,7 @@ def _seed_capture_decisions(
             preset.shape.action_names[0] if correct else preset.shape.action_names[1],
             correct,
             metadata={"actual_index": 0 if correct else 1},
+            domain=store.domain,
         )
 
 

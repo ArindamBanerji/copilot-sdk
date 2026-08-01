@@ -147,7 +147,7 @@ def test_score_returns_valid_result(mock_preset, store):
     assert 0 <= result.action_index < mock_preset.shape.n_actions
     assert 0.0 <= result.confidence <= 1.0
     assert len(result.probabilities) == mock_preset.shape.n_actions
-    assert store.get_decision(result.decision_id)["recommended_index"] == result.action_index
+    assert store.get_decision(result.decision_id, domain=store.domain)["recommended_index"] == result.action_index
 
 
 def test_scorer_score_writes_to_graph_store(mock_preset, store):
@@ -156,12 +156,12 @@ def test_scorer_score_writes_to_graph_store(mock_preset, store):
 
     result = scorer.score(sample_factors(), "alpha")
 
-    decision = graph_store.get_decision(result.decision_id)
+    decision = graph_store.get_decision(result.decision_id, domain=graph_store.domain)
     assert decision is not None
     assert decision["decision_id"] == result.decision_id
     assert decision["recommended_action"] == result.action
     assert decision["metadata"]["recommended_index"] == result.action_index
-    assert store.get_decision(result.decision_id) is None
+    assert store.get_decision(result.decision_id, domain=store.domain) is None
 
 
 def test_score_read_only_returns_prediction_without_decision_write(mock_preset, store):
@@ -176,7 +176,7 @@ def test_score_read_only_returns_prediction_without_decision_write(mock_preset, 
     assert 0.0 <= result.confidence <= 1.0
     assert len(result.probabilities) == mock_preset.shape.n_actions
     assert graph_store.count_decisions("mock") == 0
-    assert graph_store.get_decision(result.decision_id) is None
+    assert graph_store.get_decision(result.decision_id, domain=graph_store.domain) is None
 
 
 def test_score_probabilities_sum_to_1(mock_preset, store):
@@ -209,7 +209,7 @@ def test_learn_changes_centroids(mock_preset, store):
 
     assert learn.centroid_delta > 0
     assert store.count_verified("mock") == 1
-    assert store.get_centroid_checkpoints("mock")[-1]["iks"] == learn.iks_after
+    assert store.get_centroid_checkpoints("mock", include_v2=True)[-1]["iks"] == learn.iks_after
 
 
 def test_scorer_learn_writes_outcome_to_graph_store(mock_preset, store):
@@ -234,9 +234,9 @@ def test_scorer_learn_writes_centroids_to_graph_store(mock_preset, store):
 
     learn = scorer.learn(result.decision_id, result.action)
 
-    checkpoints = graph_store.get_centroid_checkpoints("test")
+    checkpoints = graph_store.get_centroid_checkpoints("test", include_v2=True)
     assert len(checkpoints) == 1
-    assert checkpoints[0]["decision_id"] == result.decision_id
+    assert checkpoints[0]["metadata"]["decision_id"] == result.decision_id
     assert checkpoints[0]["category"] == "alpha"
     assert checkpoints[0]["metadata"]["iks"] == learn.iks_after
     assert store.get_centroid_checkpoints("mock") == []
@@ -247,7 +247,7 @@ def test_scorer_learn_metadata_roundtrip(mock_preset, store):
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
     result = scorer.score(sample_factors(), "beta")
 
-    decision = graph_store.get_decision(result.decision_id)
+    decision = graph_store.get_decision(result.decision_id, domain=graph_store.domain)
     assert decision["metadata"]["category_index"] == 1
     assert decision["metadata"]["factor_vector"] == [0.25, 0.35, 0.45]
     assert decision["metadata"]["probabilities"] == result.probabilities
@@ -829,6 +829,7 @@ def _seed_verified_history(
             actual_action="review" if is_override else "approve",
             is_correct=is_correct,
             metadata={"actual_index": 1 if is_override else 0, "verified_at": 2000.0 + index},
+            domain=store.domain,
         )
 
 
@@ -848,6 +849,7 @@ def _seed_graph_history(graph_store: InMemoryGraphStore, total: int, correct: in
             actual_action="approve" if is_correct else "review",
             is_correct=is_correct,
             metadata={"verified_at": 2000.0 + index},
+            domain=graph_store.domain,
         )
 
 

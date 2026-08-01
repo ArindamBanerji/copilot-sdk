@@ -1,0 +1,120 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.4, pytest-8.3.5, pluggy-1.5.0 -- C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Scripts\python.exe
+cachedir: .pytest_cache
+Fugue tests will be initialized with options:
+rootdir: C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk
+configfile: pyproject.toml
+plugins: anyio-4.12.0, fugue-0.9.1, asyncio-0.23.5, cov-6.1.0, env-1.1.5, freezegun-0.4.2, timeout-2.3.1, typeguard-4.2.1
+asyncio: mode=Mode.STRICT
+timeout: 60.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 9 items
+
+integrity/test_innovation_claims.py::test_accuracy_improves_with_decisions FAILED [ 11%]
+integrity/test_innovation_claims.py::test_accuracy_improves_with_400 FAILED [ 22%]
+integrity/test_innovation_claims.py::test_dk_weights_converge FAILED     [ 33%]
+integrity/test_innovation_claims.py::test_dk_weights_nonuniform FAILED   [ 44%]
+integrity/test_innovation_claims.py::test_conservation_fires_on_degradation FAILED [ 55%]
+integrity/test_innovation_claims.py::test_conservation_green_on_stable FAILED [ 66%]
+integrity/test_innovation_claims.py::test_reconvergence_after_disruption FAILED [ 77%]
+integrity/test_innovation_claims.py::test_ae_variant_rejected_by_conservation PASSED [ 88%]
+integrity/test_innovation_claims.py::test_scorer_state_survives_reload FAILED [100%]
+
+================================== FAILURES ===================================
+____________________ test_accuracy_improves_with_decisions ____________________
+integrity\test_innovation_claims.py:77: in test_accuracy_improves_with_decisions
+    score_50 = _eval_accuracy(_confirmed_training(50))
+integrity\test_innovation_claims.py:31: in _confirmed_training
+    scorer = _scorer()
+integrity\test_innovation_claims.py:17: in _scorer
+    return CompoundingScorer.from_preset(
+copilot_sdk\scoring\scorer.py:260: in from_preset
+    raise RuntimeError(
+E   RuntimeError: Production scorer requires an AGE-backed GraphStore; SQLite and InMemoryGraphStore are test/development stores.
+_______________________ test_accuracy_improves_with_400 _______________________
+integrity\test_innovation_claims.py:83: in test_accuracy_improves_with_400
+    score_200 = _eval_accuracy(_confirmed_training(200))
+integrity\test_innovation_claims.py:31: in _confirmed_training
+    scorer = _scorer()
+integrity\test_innovation_claims.py:17: in _scorer
+    return CompoundingScorer.from_preset(
+copilot_sdk\scoring\scorer.py:260: in from_preset
+    raise RuntimeError(
+E   RuntimeError: Production scorer requires an AGE-backed GraphStore; SQLite and InMemoryGraphStore are test/development stores.
+__________________________ test_dk_weights_converge ___________________________
+integrity\test_innovation_claims.py:89: in test_dk_weights_converge
+    variance_50 = _dk_variance(_confirmed_training(50))
+integrity\test_innovation_claims.py:31: in _confirmed_training
+    scorer = _scorer()
+integrity\test_innovation_claims.py:17: in _scorer
+    return CompoundingScorer.from_preset(
+copilot_sdk\scoring\scorer.py:260: in from_preset
+    raise RuntimeError(
+E   RuntimeError: Production scorer requires an AGE-backed GraphStore; SQLite and InMemoryGraphStore are test/development stores.
+_________________________ test_dk_weights_nonuniform __________________________
+integrity\test_innovation_claims.py:95: in test_dk_weights_nonuniform
+    scorer = _confirmed_training(400)
+integrity\test_innovation_claims.py:31: in _confirmed_training
+    scorer = _scorer()
+integrity\test_innovation_claims.py:17: in _scorer
+    return CompoundingScorer.from_preset(
+copilot_sdk\scoring\scorer.py:260: in from_preset
+    raise RuntimeError(
+E   RuntimeError: Production scorer requires an AGE-backed GraphStore; SQLite and InMemoryGraphStore are test/development stores.
+___________________ test_conservation_fires_on_degradation ____________________
+integrity\test_innovation_claims.py:108: in test_conservation_fires_on_degradation
+    scorer = _confirmed_training(200)
+integrity\test_innovation_claims.py:31: in _confirmed_training
+    scorer = _scorer()
+integrity\test_innovation_claims.py:17: in _scorer
+    return CompoundingScorer.from_preset(
+copilot_sdk\scoring\scorer.py:260: in from_preset
+    raise RuntimeError(
+E   RuntimeError: Production scorer requires an AGE-backed GraphStore; SQLite and InMemoryGraphStore are test/development stores.
+______________________ test_conservation_green_on_stable ______________________
+integrity\test_innovation_claims.py:123: in test_conservation_green_on_stable
+    scorer = _confirmed_training(200)
+integrity\test_innovation_claims.py:31: in _confirmed_training
+    scorer = _scorer()
+integrity\test_innovation_claims.py:17: in _scorer
+    return CompoundingScorer.from_preset(
+copilot_sdk\scoring\scorer.py:260: in from_preset
+    raise RuntimeError(
+E   RuntimeError: Production scorer requires an AGE-backed GraphStore; SQLite and InMemoryGraphStore are test/development stores.
+_____________________ test_reconvergence_after_disruption _____________________
+integrity\test_innovation_claims.py:128: in test_reconvergence_after_disruption
+    scorer = _confirmed_training(200)
+integrity\test_innovation_claims.py:31: in _confirmed_training
+    scorer = _scorer()
+integrity\test_innovation_claims.py:17: in _scorer
+    return CompoundingScorer.from_preset(
+copilot_sdk\scoring\scorer.py:260: in from_preset
+    raise RuntimeError(
+E   RuntimeError: Production scorer requires an AGE-backed GraphStore; SQLite and InMemoryGraphStore are test/development stores.
+______________________ test_scorer_state_survives_reload ______________________
+integrity\test_innovation_claims.py:171: in test_scorer_state_survives_reload
+    scorer = _confirmed_training(200)
+integrity\test_innovation_claims.py:31: in _confirmed_training
+    scorer = _scorer()
+integrity\test_innovation_claims.py:17: in _scorer
+    return CompoundingScorer.from_preset(
+copilot_sdk\scoring\scorer.py:260: in from_preset
+    raise RuntimeError(
+E   RuntimeError: Production scorer requires an AGE-backed GraphStore; SQLite and InMemoryGraphStore are test/development stores.
+============================== warnings summary ===============================
+..\..\..\proj-envs\python_expts_venv\Lib\site-packages\pytest_freezegun.py:17: 18 warnings
+  C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\pytest_freezegun.py:17: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(pytest.__version__) < LooseVersion('3.6.0'):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED integrity/test_innovation_claims.py::test_accuracy_improves_with_decisions
+FAILED integrity/test_innovation_claims.py::test_accuracy_improves_with_400
+FAILED integrity/test_innovation_claims.py::test_dk_weights_converge - Runtim...
+FAILED integrity/test_innovation_claims.py::test_dk_weights_nonuniform - Runt...
+FAILED integrity/test_innovation_claims.py::test_conservation_fires_on_degradation
+FAILED integrity/test_innovation_claims.py::test_conservation_green_on_stable
+FAILED integrity/test_innovation_claims.py::test_reconvergence_after_disruption
+FAILED integrity/test_innovation_claims.py::test_scorer_state_survives_reload
+================== 8 failed, 1 passed, 18 warnings in 0.61s ===================

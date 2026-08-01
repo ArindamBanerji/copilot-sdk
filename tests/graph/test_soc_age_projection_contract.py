@@ -363,3 +363,11 @@ def test_projection_registry_is_closed():
     assert all(pattern.description and pattern.query_template and pattern.returns for pattern in ProjectionRegistry.PATTERNS.values())
     with pytest.raises(TypeError):
         ProjectionRegistry.PATTERNS["new_pattern"] = ProjectionRegistry.PATTERNS["count_verified"]  # type: ignore[index]
+
+
+def test_projection_registry_renders_all_domain_tokens():
+    for pattern_name in ("count_verified", "count_correct", "profile_snapshot"):
+        rendered = ProjectionRegistry.render(pattern_name, domain="soc")
+        assert "<d2>" not in rendered
+        assert "<d2-correct>" not in rendered
+        assert "d.domain = 'soc'" in rendered

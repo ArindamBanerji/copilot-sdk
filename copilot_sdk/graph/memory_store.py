@@ -552,18 +552,29 @@ class InMemoryGraphStore:
         actual_action: str,
         is_correct: bool,
         metadata: dict[str, Any] | None = None,
-        domain: str | None = None,
+        *,
+        domain: str,
+        outcome: str | None = None,
+        verified_at_epoch: float | None = None,
+        quality_signal: float | None = None,
+        override_comment: str | None = None,
+        verified_by: str | None = None,
+        analyst_action: str | None = None,
+        final_action: str | None = None,
+        recommended_action: str | None = None,
+        was_override: bool | None = None,
     ) -> None:
+        domain_value = _normalize_domain(domain)
         if decision_id not in self._decisions:
             raise KeyError(decision_id)
-        if domain is not None and self._decisions[decision_id].get("domain") != domain:
+        if self._decisions[decision_id].get("domain") != domain_value:
             raise KeyError(decision_id)
         if decision_id in self._outcomes:
             raise ValueError(f"outcome already exists for decision_id: {decision_id}")
         meta = metadata or {}
         self._outcomes[decision_id] = {
             "decision_id": decision_id,
-            "domain": self._decisions[decision_id].get("domain", self.domain),
+            "domain": domain_value,
             "actual_action": actual_action,
             "actual_index": int(meta.get("actual_index", 0)),
             "is_correct": bool(is_correct),
@@ -571,7 +582,23 @@ class InMemoryGraphStore:
             "context": deepcopy(meta.get("context", {})),
             "verified_at": float(meta.get("verified_at", time.time())),
         }
-        self._decisions[decision_id]["status"] = "confirmed" if is_correct else "overridden"
+        decision = self._decisions[decision_id]
+        decision["correct"] = bool(is_correct)
+        decision["status"] = "confirmed" if is_correct else "overridden"
+        optional_fields = {
+            "outcome": outcome,
+            "verified_at_epoch": verified_at_epoch,
+            "quality_signal": quality_signal,
+            "override_comment": override_comment,
+            "verified_by": verified_by,
+            "analyst_action": analyst_action,
+            "final_action": final_action,
+            "recommended_action": recommended_action,
+            "was_override": was_override,
+        }
+        for field, value in optional_fields.items():
+            if value is not None:
+                decision[field] = value
 
     def write_observation(
         self,
@@ -1040,9 +1067,10 @@ class InMemoryGraphStore:
             return "already_applied"
         return "conflict"
 
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None:
+    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None:
+        domain_value = _normalize_domain(domain)
         decision = self._decisions.get(decision_id)
-        if decision is not None and domain is not None and decision.get("domain") != domain:
+        if decision is not None and decision.get("domain") != domain_value:
             return None
         return deepcopy(decision) if decision is not None else None
 
@@ -1100,8 +1128,8 @@ class InMemoryGraphStore:
     def count_correct(self, domain: str) -> int:
         return sum(
             1
-            for outcome in self._outcomes.values()
-            if outcome.get("domain") == domain and outcome["is_correct"]
+            for decision in self._decisions.values()
+            if decision.get("domain") == domain and decision.get("correct") is True
         )
 
     def count_decisions(self, domain: str) -> int:
@@ -1732,12 +1760,20 @@ class InMemoryGraphStore:
         decision_id: str,
         entity_id: str,
         edge_type: str = "DECIDED_ON",
+        *,
+        domain: str,
     ) -> None:
+        domain_value = str(domain).strip()
+        if not domain_value:
+            raise ValueError("link_decision_to_entity requires a non-empty domain")
         decision = self._decisions.get(decision_id)
-        domain = str((decision or {}).get("domain") or self.domain)
+        if decision is not None and str(decision.get("domain") or "") != domain_value:
+            raise ValueError(
+                "link_decision_to_entity domain does not match the Decision domain"
+            )
         self._edges.append(
             {
-                "domain": domain,
+                "domain": domain_value,
                 "decision_id": decision_id,
                 "entity_id": entity_id,
                 "edge_type": edge_type,
@@ -1748,11 +1784,11 @@ class InMemoryGraphStore:
     def get_decision_links(
         self,
         decision_id: str | None = None,
-        domain: str | None = None,
+        *,
+        domain: str,
         limit: int | None = None,
     ) -> list[dict[str, Any]]:
-        if domain is not None and str(domain) != self.domain:
-            return []
+        domain_value = _normalize_domain(domain)
         limit_value = _bounded_traversal_limit(limit) if limit is not None else None
         links = [
             {
@@ -1761,7 +1797,7 @@ class InMemoryGraphStore:
                 if key != "domain"
             }
             for edge in self._edges
-            if edge.get("domain") == self.domain
+            if edge.get("domain") == domain_value
             and (decision_id is None or edge["decision_id"] == decision_id)
         ]
         if limit_value is not None:
@@ -1772,8 +1808,10 @@ class InMemoryGraphStore:
         self,
         entity_id: str,
         max_depth: int,
-        domain: str | None = None,
+        *,
+        domain: str,
     ) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
         depth = _bounded_traversal_depth(max_depth)
         root_id = str(entity_id)
         rows: list[dict[str, Any]] = [
@@ -1786,9 +1824,9 @@ class InMemoryGraphStore:
         ]
         if depth == 0:
             return rows
-        root_links = self._entity_links(root_id, limit=100)
+        root_links = self._entity_links(root_id, domain=domain_value, limit=100)
         linked_decision_ids = [str(edge["decision_id"]) for edge in root_links]
-        if root_id in self._decisions and root_id not in linked_decision_ids:
+        if self.get_decision(root_id, domain=domain_value) is not None and root_id not in linked_decision_ids:
             linked_decision_ids.insert(0, root_id)
         seen: set[str] = set()
         seen_entities: set[str] = {root_id}
@@ -1796,10 +1834,8 @@ class InMemoryGraphStore:
             if decision_id in seen:
                 continue
             seen.add(decision_id)
-            decision = self._decisions.get(decision_id)
-            if decision is None or (
-                domain is not None and decision.get("domain") != str(domain)
-            ):
+            decision = self.get_decision(decision_id, domain=domain_value)
+            if decision is None:
                 continue
             rows.append(
                 {
@@ -1811,7 +1847,9 @@ class InMemoryGraphStore:
             )
             if depth < 2:
                 continue
-            for edge in self.get_decision_links(decision_id, limit=100):
+            for edge in self.get_decision_links(
+                decision_id, domain=domain_value, limit=100
+            ):
                 if edge.get("decision_id") != decision_id:
                     continue
                 neighbor_id = str(edge.get("entity_id") or "")
@@ -1832,15 +1870,16 @@ class InMemoryGraphStore:
                 )
                 if depth < 3:
                     continue
-                for neighbor_edge in self._entity_links(neighbor_id, limit=100):
+                for neighbor_edge in self._entity_links(
+                    neighbor_id, domain=domain_value, limit=100
+                ):
                     neighbor_decision_id = str(neighbor_edge.get("decision_id") or "")
                     if not neighbor_decision_id or neighbor_decision_id in seen:
                         continue
-                    neighbor_decision = self._decisions.get(neighbor_decision_id)
-                    if neighbor_decision is None or (
-                        domain is not None
-                        and neighbor_decision.get("domain") != str(domain)
-                    ):
+                    neighbor_decision = self.get_decision(
+                        neighbor_decision_id, domain=domain_value
+                    )
+                    if neighbor_decision is None:
                         continue
                     seen.add(neighbor_decision_id)
                     rows.append(
@@ -1853,21 +1892,32 @@ class InMemoryGraphStore:
                     )
         return deepcopy(rows[:100])
 
-    def _entity_links(self, entity_id: str, limit: int = 100) -> list[dict[str, Any]]:
+    def _entity_links(
+        self, entity_id: str, *, domain: str, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
         limit_value = _bounded_traversal_limit(limit)
         return [
             deepcopy(edge)
             for edge in self._edges
-            if edge.get("domain") == self.domain and str(edge.get("entity_id")) == str(entity_id)
+            if edge.get("domain") == domain_value
+            and str(edge.get("entity_id")) == str(entity_id)
         ][:limit_value]
 
-    def query_similar(self, entity_id: str, limit: int) -> list[dict[str, Any]]:
+    def query_similar(
+        self, entity_id: str, limit: int, *, domain: str
+    ) -> list[dict[str, Any]]:
+        domain_value = _normalize_domain(domain)
         limit_value = _bounded_traversal_limit(limit)
-        source = self._decisions.get(str(entity_id))
+        source = self.get_decision(str(entity_id), domain=domain_value)
         if source is None:
-            for edge in self._entity_links(str(entity_id), limit=100):
-                if edge.get("domain") == self.domain and str(edge.get("entity_id")) == str(entity_id):
-                    source = self._decisions.get(str(edge.get("decision_id")))
+            for edge in self._entity_links(
+                str(entity_id), domain=domain_value, limit=100
+            ):
+                if str(edge.get("entity_id")) == str(entity_id):
+                    source = self.get_decision(
+                        str(edge.get("decision_id")), domain=domain_value
+                    )
                     break
         if source is None:
             return []
@@ -1875,7 +1925,7 @@ class InMemoryGraphStore:
         source_supplier = _decision_supplier(source)
         matches: list[dict[str, Any]] = []
         for candidate in self._ordered_decisions():
-            if candidate.get("domain") != source.get("domain"):
+            if candidate.get("domain") != domain_value:
                 continue
             if category and candidate.get("category") != category:
                 continue

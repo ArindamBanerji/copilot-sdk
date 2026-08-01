@@ -42,8 +42,8 @@ def _seed_store() -> tuple[InMemoryGraphStore, dict[str, str]]:
         factors={"severity": 0.2},
         metadata={"decision_id": "d3", "entity_id": "entity-3", "created_at": 3.0},
     )
-    store.write_outcome(d1, actual_action="investigate", is_correct=True, metadata={"reward": 0.8})
-    store.write_outcome(d2, actual_action="escalate", is_correct=False, metadata={"reward": -0.2})
+    store.write_outcome(d1, actual_action="investigate", is_correct=True, metadata={"reward": 0.8}, domain="banking")
+    store.write_outcome(d2, actual_action="escalate", is_correct=False, metadata={"reward": -0.2}, domain="banking")
     for index in range(25):
         store.save_centroids(
             "banking",

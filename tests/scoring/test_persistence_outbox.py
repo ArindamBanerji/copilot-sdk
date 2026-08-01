@@ -135,7 +135,7 @@ def test_scorer_records_failed_conservation_write(mock_preset, tmp_path: Path, m
         mock_preset.shape.category_names[0],
     )
     alternate = next(action for action in mock_preset.shape.action_names if action != result.action)
-    store.write_outcome(result.decision_id, alternate, False)
+    store.write_outcome(result.decision_id, alternate, False, domain="mock")
 
     scorer._persist_learning_artifacts(
         result.decision_id,

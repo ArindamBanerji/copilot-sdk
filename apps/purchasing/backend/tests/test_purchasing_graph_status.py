@@ -161,19 +161,16 @@ def test_active_age_config_guards(env: dict[str, str], message: str):
 
 
 def test_product_like_config_validates_but_store_construction_is_blocked():
-    config = PurchasingActiveGraphConfig.from_env(
-        {
-            "PURCHASING_ACTIVE_GRAPH_BACKEND": "age",
-            "PURCHASING_ACTIVE_AGE_DSN": "postgresql://example/product",
-            "PURCHASING_ACTIVE_AGE_GRAPH": "governed_copilot_graph",
-            "PURCHASING_ACTIVE_AGE_DOMAIN": "purchasing",
-            "PURCHASING_ACTIVE_AGE_TEST_MODE": "0",
-        }
-    )
-
-    assert config.graph_kind() == "product"
-    with pytest.raises(PurchasingActiveGraphConfigError, match="product AGE writes remain blocked"):
-        create_purchasing_active_graph_store(config, store_factory=lambda **_: FakeAGEStore())
+    with pytest.raises(PurchasingActiveGraphConfigError, match="allow-listed"):
+        PurchasingActiveGraphConfig.from_env(
+            {
+                "PURCHASING_ACTIVE_GRAPH_BACKEND": "age",
+                "PURCHASING_ACTIVE_AGE_DSN": "postgresql://example/product",
+                "PURCHASING_ACTIVE_AGE_GRAPH": "governed_copilot_graph",
+                "PURCHASING_ACTIVE_AGE_DOMAIN": "purchasing",
+                "PURCHASING_ACTIVE_AGE_TEST_MODE": "0",
+            }
+        )
 
 
 def test_active_age_status_redacts_dsn_and_reports_test_mode(

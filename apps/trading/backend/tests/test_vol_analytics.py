@@ -151,7 +151,9 @@ def test_score_persists_analytics_metadata(tmp_path: Path) -> None:
     )
 
     assert response.status_code == 200
-    decision = client.app.state.trading_selected_graph_store.get_decision(response.json()["decision_id"])
+    decision = client.app.state.trading_selected_graph_store.get_decision(
+        response.json()["decision_id"], domain="trading"
+    )
     assert decision is not None
     assert decision["metadata"]["analytics"]["cluster_id"].startswith("regime:")
     assert decision["metadata"]["analytics"]["implied_vol"] == 0.25

@@ -316,4 +316,5 @@ def _seed_decisions(
             "strong_execution",
             is_correct=is_correct,
             metadata={"context": {"regime": regime}},
+            domain="trading",
         )

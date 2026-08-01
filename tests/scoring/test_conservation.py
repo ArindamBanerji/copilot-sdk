@@ -44,6 +44,7 @@ def _add_verified(
             actual_action="approve" if correct else "review",
             is_correct=correct,
             metadata={"verified_at": float(index)},
+            domain=domain,
         )
 
 

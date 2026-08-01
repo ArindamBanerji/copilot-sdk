@@ -23,6 +23,33 @@ class GraphConfigError(ValueError):
     """Raised when graph configuration is incomplete or unsafe."""
 
 
+def require_shared_graph(
+    *,
+    backend: str,
+    graph: str | None,
+    domain: str,
+    profile: str = "production",
+    test_mode: bool = False,
+) -> None:
+    """Require the JM shared graph at a production AGE startup boundary.
+
+    The low-level factory intentionally remains usable by migration and
+    disposable-test callers.  Copilot startup paths call this explicit guard
+    after resolving their typed configuration.
+    """
+    normalized_backend = str(backend).strip().lower()
+    if normalized_backend not in {"age", "dual_write"}:
+        return
+    if profile != "production" or test_mode:
+        return
+    normalized_graph = str(graph or "").strip()
+    if normalized_graph != "soc_graph":
+        raise GraphConfigError(
+            f"production AGE startup for domain '{domain}' requires graph "
+            f"'soc_graph', got {normalized_graph or '<blank>'!r}"
+        )
+
+
 def _env_name(domain: str) -> str:
     return domain.upper()
 
@@ -264,4 +291,4 @@ def _optional_text(value: Any) -> str | None:
     return str(value).strip()
 
 
-__all__ = ["GraphConfig", "GraphConfigError"]
+__all__ = ["GraphConfig", "GraphConfigError", "require_shared_graph"]

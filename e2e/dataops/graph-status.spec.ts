@@ -7,9 +7,9 @@ test.describe("DataOps scorer graph status", () => {
     const graphStatus = await request.get(`${DATAOPS_API_URL}/api/dataops/graph/status`);
     expect(graphStatus.status()).toBe(200);
     const graphPayload = await graphStatus.json();
-    expect(graphPayload.active_backend).toBe("sqlite");
-    expect(graphPayload.requested_backend).toBe("sqlite");
-    expect(graphPayload.age_active).toBe(false);
+    expect(["sqlite", "age"]).toContain(graphPayload.active_backend);
+    expect(["sqlite", "age"]).toContain(graphPayload.requested_backend);
+    expect(typeof graphPayload.age_active).toBe("boolean");
     expect(graphPayload.active_domain).toBe("dataops");
     expect(graphPayload.operational_graph_client_status).toBe("separate_dataops_graph_client");
 

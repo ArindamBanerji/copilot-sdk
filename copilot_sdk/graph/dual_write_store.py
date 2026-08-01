@@ -303,11 +303,61 @@ class DualWriteStore(GraphStore):
         """Use the primary store as the identity authority during dual-write."""
         return self.primary.generate_decision_id(domain)
 
-    def write_outcome(self, decision_id: str, actual_action: str, is_correct: bool, metadata: dict[str, Any] | None = None, domain: str | None = None) -> None:
+    def write_outcome(
+        self,
+        decision_id: str,
+        actual_action: str,
+        is_correct: bool,
+        metadata: dict[str, Any] | None = None,
+        domain: str | None = None,
+        outcome: str | None = None,
+        verified_at_epoch: float | None = None,
+        quality_signal: float | None = None,
+        override_comment: str | None = None,
+        verified_by: str | None = None,
+        analyst_action: str | None = None,
+        final_action: str | None = None,
+        recommended_action: str | None = None,
+        was_override: bool | None = None,
+    ) -> None:
+        optional = {
+            "outcome": outcome,
+            "verified_at_epoch": verified_at_epoch,
+            "quality_signal": quality_signal,
+            "override_comment": override_comment,
+            "verified_by": verified_by,
+            "analyst_action": analyst_action,
+            "final_action": final_action,
+            "recommended_action": recommended_action,
+            "was_override": was_override,
+        }
+        optional = {key: value for key, value in optional.items() if value is not None}
+        primary_write = cast(Any, self.primary).write_outcome
+        secondary_write = cast(Any, self.secondary).write_outcome
         if domain is None:
-            self._write("write_outcome", lambda: self.primary.write_outcome(decision_id, actual_action, is_correct, metadata), lambda: self.secondary.write_outcome(decision_id, actual_action, is_correct, metadata), (decision_id, actual_action, is_correct), {"metadata": metadata})
+            self._write(
+                "write_outcome",
+                lambda: primary_write(
+                    decision_id, actual_action, is_correct, metadata, domain=None, **optional
+                ),
+                lambda: secondary_write(
+                    decision_id, actual_action, is_correct, metadata, domain=None, **optional
+                ),
+                (decision_id, actual_action, is_correct),
+                {"metadata": metadata, **optional},
+            )
             return
-        self._write("write_outcome", lambda: self.primary.write_outcome(decision_id, actual_action, is_correct, metadata, domain), lambda: self.secondary.write_outcome(decision_id, actual_action, is_correct, metadata, domain), (decision_id, actual_action, is_correct), {"metadata": metadata, "domain": domain})
+        self._write(
+            "write_outcome",
+            lambda: primary_write(
+                decision_id, actual_action, is_correct, metadata, domain=domain, **optional
+            ),
+            lambda: secondary_write(
+                decision_id, actual_action, is_correct, metadata, domain=domain, **optional
+            ),
+            (decision_id, actual_action, is_correct),
+            {"metadata": metadata, "domain": domain, **optional},
+        )
 
     def write_governed_decision(self, decision_id: str, domain: str, category: str, category_index: int, recommended_action: str, recommended_index: int, confidence: float, probabilities: list[float], factor_vector: list[float], factor_names: list[str], source: str = "score", scorer_version: str = "", preset_version: str = "", factor_schema_version: str = "", metadata: dict[str, Any] | None = None) -> None:
         def write_primary() -> None:
@@ -348,7 +398,7 @@ class DualWriteStore(GraphStore):
         return self._write("append_evidence_receipt", lambda: self.primary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), lambda: self.secondary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), (receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route), {"metadata": metadata})
 
     # Reads are intentionally primary-only.
-    def get_decision(self, decision_id: str, domain: str | None = None) -> dict[str, Any] | None: return self.primary.get_decision(decision_id, domain)
+    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None: return self.primary.get_decision(decision_id, domain)
     def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict[str, Any]]: return self.primary.get_decisions(domain, category, limit)
     def get_all_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_all_decisions(domain)
     def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_archived_decisions(domain)

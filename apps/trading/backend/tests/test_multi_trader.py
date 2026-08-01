@@ -145,7 +145,7 @@ def test_score_endpoint_accepts_optional_metadata_trader_id(client) -> None:
     assert response.status_code == 200
     decision_id = response.json()["decision_id"]
     assert decision_id.startswith("TRD-")
-    decision = client.app.state.trading_selected_graph_store.get_decision(decision_id)
+    decision = client.app.state.trading_selected_graph_store.get_decision(decision_id, domain="trading")
     assert decision is not None
     assert decision["metadata"]["trader_id"] == "probe_trader"
 
@@ -161,7 +161,7 @@ def test_score_endpoint_without_metadata_remains_backward_compatible(client) -> 
 
     assert response.status_code == 200
     decision = client.app.state.trading_selected_graph_store.get_decision(
-        response.json()["decision_id"]
+        response.json()["decision_id"], domain="trading"
     )
     assert decision is not None
     assert "trader_id" not in decision["metadata"]

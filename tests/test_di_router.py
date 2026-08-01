@@ -193,6 +193,46 @@ def test_dataops_app_mounts_di_profiles_empty_registry():
     }
 
 
+def test_di_dataops_after_trading_import_still_works():
+    """Legacy backend app packages must not poison the DataOps import boundary."""
+    root = Path(__file__).resolve().parents[1]
+    trading_backend = root / "apps" / "trading" / "backend"
+    dataops_backend = root / "apps" / "dataops" / "backend"
+    original_path = list(sys.path)
+    original_app_modules = {
+        name: module
+        for name, module in sys.modules.items()
+        if name == "app" or name.startswith("app.")
+    }
+
+    def clear_app_modules() -> None:
+        for name in list(sys.modules):
+            if name == "app" or name.startswith("app."):
+                sys.modules.pop(name, None)
+
+    try:
+        clear_app_modules()
+        sys.path.insert(0, str(trading_backend))
+        from app.main import create_app as create_trading_app
+
+        assert create_trading_app(db_path=":memory:", demo_bundle_path=False).title == "Trading Copilot"
+
+        clear_app_modules()
+        sys.path.insert(0, str(dataops_backend))
+        from app.main import create_app as create_dataops_app
+
+        response = TestClient(
+            create_dataops_app(db_path=":memory:", demo_bundle_path=False)
+        ).get("/api/di/profiles")
+
+        assert response.status_code == 200
+        assert response.json()["total"] == 3
+    finally:
+        clear_app_modules()
+        sys.path[:] = original_path
+        sys.modules.update(original_app_modules)
+
+
 def _dataops_app():
     backend_root = Path(__file__).resolve().parents[1] / "apps" / "dataops" / "backend"
     if str(backend_root) not in sys.path:

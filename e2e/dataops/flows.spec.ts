@@ -34,6 +34,12 @@ async function openFirstAlert(page: Page): Promise<boolean> {
   await expect(alertSection).toBeVisible({ timeout: 30_000 });
   const triageButtons = alertSection.getByRole("button", { name: "Triage" });
   if ((await triageButtons.count()) === 0) {
+    const expandButton = page.getByRole("button", { name: "Expand" }).first();
+    if ((await expandButton.count()) > 0) {
+      await expandButton.click();
+    }
+  }
+  if ((await triageButtons.count()) === 0) {
     return false;
   }
   await triageButtons.first().click();

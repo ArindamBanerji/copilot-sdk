@@ -32,10 +32,12 @@ function recommendationControls(page: import("@playwright/test").Page) {
 }
 
 function waitForScoreResponse(page: import("@playwright/test").Page) {
-  return page.waitForResponse((response) =>
-    response.url().includes("/score") &&
-    response.request().method() === "POST" &&
-    response.status() === 200
+  return page.waitForResponse(
+    (response) =>
+      response.url().includes("/score") &&
+      response.request().method() === "POST" &&
+      response.status() === 200,
+    { timeout: 20_000 },
   );
 }
 

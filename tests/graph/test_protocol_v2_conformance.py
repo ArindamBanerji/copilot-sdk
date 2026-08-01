@@ -455,7 +455,7 @@ def test_write_decision(sqlite_store):
         metadata={"created_at": 100.0},
     )
 
-    decision = sqlite_store.get_decision(decision_id)
+    decision = sqlite_store.get_decision(decision_id, domain="test")
 
     assert isinstance(decision_id, str)
     assert decision is not None
@@ -491,8 +491,8 @@ def test_v1_write_decision_generates_distinct_ids(sqlite_store):
         assert first_id
         assert second_id
         assert first_id != second_id
-        assert store.get_decision(first_id)["status"] == "pending"
-        assert store.get_decision(second_id)["status"] == "pending"
+        assert store.get_decision(first_id, domain="test")["status"] == "pending"
+        assert store.get_decision(second_id, domain="test")["status"] == "pending"
         assert store.count_decisions("test") == 2
         assert store.count_verified_decisions("test") == 0
 
@@ -502,7 +502,7 @@ def test_v2_governed_decision_caller_id(sqlite_store):
     # Protocol v2 method/invariant: v2 decision writes are additive to v1.
     _write_governed_decision(sqlite_store, "GOV-1")
 
-    decision = sqlite_store.get_decision("GOV-1")
+    decision = sqlite_store.get_decision("GOV-1", domain="test")
 
     assert decision is not None
     assert decision["decision_id"] == "GOV-1"
@@ -522,7 +522,7 @@ def test_age_v2_governed_decision_caller_id(age_store):
     decision_id = f"AGE-GOV-{uuid.uuid4().hex[:8]}"
     _write_governed_decision(age_store, decision_id, domain=domain)
 
-    decision = age_store.get_decision(decision_id)
+    decision = age_store.get_decision(decision_id, domain=domain)
 
     assert decision is not None
     assert decision["decision_id"] == decision_id
@@ -541,11 +541,11 @@ def test_age_governed_decision_identical_replay_skips(age_store):
     domain = age_store.protocol_v2_test_domain
     decision_id = f"AGE-GOV-IDEMP-{uuid.uuid4().hex[:8]}"
     _write_governed_decision(age_store, decision_id, domain=domain, created_at=100.0)
-    before = age_store.get_decision(decision_id)
+    before = age_store.get_decision(decision_id, domain=domain)
 
     _write_governed_decision(age_store, decision_id, domain=domain, created_at=200.0)
 
-    after = age_store.get_decision(decision_id)
+    after = age_store.get_decision(decision_id, domain=domain)
     assert after == before
     assert age_store.count_decisions(domain) == 1
     assert age_store.count_verified_decisions(domain) == 0
@@ -559,7 +559,7 @@ def test_age_governed_decision_conflict_raises(age_store):
     domain = age_store.protocol_v2_test_domain
     decision_id = f"AGE-GOV-CONFLICT-{uuid.uuid4().hex[:8]}"
     _write_governed_decision(age_store, decision_id, domain=domain, created_at=100.0)
-    before = age_store.get_decision(decision_id)
+    before = age_store.get_decision(decision_id, domain=domain)
 
     with pytest.raises(ValueError, match="conflicting governed decision_id"):
         _write_governed_decision(
@@ -570,7 +570,7 @@ def test_age_governed_decision_conflict_raises(age_store):
             created_at=200.0,
         )
 
-    after = age_store.get_decision(decision_id)
+    after = age_store.get_decision(decision_id, domain=domain)
     assert after == before
     assert age_store.count_decisions(domain) == 1
     assert age_store.count_verified_decisions(domain) == 0
@@ -582,8 +582,8 @@ def test_write_outcome_confirmed(sqlite_store):
     # Protocol v2 method/invariant: write_outcome atomically updates Decision.status.
     _write_governed_decision(sqlite_store, "GOV-1")
 
-    sqlite_store.write_outcome("GOV-1", "approve", True)
-    decision = sqlite_store.get_decision("GOV-1")
+    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
+    decision = sqlite_store.get_decision("GOV-1", domain="test")
 
     assert decision is not None
     assert decision["status"] == "confirmed"
@@ -603,8 +603,9 @@ def test_age_write_outcome_confirmed(age_store):
         "approve",
         True,
         metadata={"actual_index": 0, "reward": 1.0, "verifier": "analyst-a", "verified_at": 123.0},
-    )
-    decision = age_store.get_decision(decision_id)
+    
+        domain=domain,)
+    decision = age_store.get_decision(decision_id, domain=domain)
     outcome = _age_get_outcome(age_store, decision_id)
 
     assert decision is not None
@@ -624,8 +625,8 @@ def test_write_outcome_overridden(sqlite_store):
     # Protocol v2 method/invariant: write_outcome atomically updates Decision.status.
     _write_governed_decision(sqlite_store, "GOV-1")
 
-    sqlite_store.write_outcome("GOV-1", "manual_review", False)
-    decision = sqlite_store.get_decision("GOV-1")
+    sqlite_store.write_outcome("GOV-1", "manual_review", False, domain="test")
+    decision = sqlite_store.get_decision("GOV-1", domain="test")
 
     assert decision is not None
     assert decision["status"] == "overridden"
@@ -645,8 +646,9 @@ def test_age_write_outcome_overridden(age_store):
         "manual_review",
         False,
         metadata={"actual_index": 1, "override_reason": "policy"},
-    )
-    decision = age_store.get_decision(decision_id)
+    
+        domain=domain,)
+    decision = age_store.get_decision(decision_id, domain=domain)
     outcome = _age_get_outcome(age_store, decision_id)
 
     assert decision is not None
@@ -677,13 +679,13 @@ def test_outcome_atomic(sqlite_store):
     sqlite_store.connection.commit()
 
     with pytest.raises(sqlite3.IntegrityError, match="status update blocked"):
-        sqlite_store.write_outcome("GOV-1", "approve", True)
+        sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
 
     outcome = sqlite_store.connection.execute(
         "SELECT * FROM outcomes WHERE decision_id = ?",
         ("GOV-1",),
     ).fetchone()
-    decision = sqlite_store.get_decision("GOV-1")
+    decision = sqlite_store.get_decision("GOV-1", domain="test")
 
     assert outcome is None
     assert decision is not None
@@ -694,17 +696,18 @@ def test_outcome_missing_decision(sqlite_store):
     """write_outcome for a missing decision_id raises."""
     # Protocol v2 method/invariant: write_outcome requires an existing Decision.
     with pytest.raises(KeyError):
-        sqlite_store.write_outcome("missing", "approve", True)
+        sqlite_store.write_outcome("missing", "approve", True, domain="test")
 
 
 @pytest.mark.age
 def test_age_outcome_missing_decision(age_store):
     """AGE write_outcome for a missing Decision raises without creating Outcome."""
     # Protocol v2 AGE Slice 2 invariant: outcomes require a canonical Decision.
+    domain = age_store.protocol_v2_test_domain
     decision_id = f"AGE-MISSING-{uuid.uuid4().hex[:8]}"
 
     with pytest.raises(KeyError):
-        age_store.write_outcome(decision_id, "approve", True)
+        age_store.write_outcome(decision_id, "approve", True, domain=domain)
 
     assert _age_outcome_count(age_store, decision_id) == 0
 
@@ -716,12 +719,12 @@ def test_age_outcome_direct_duplicate_raises(age_store):
     domain = age_store.protocol_v2_test_domain
     decision_id = f"AGE-GOV-{uuid.uuid4().hex[:8]}"
     _write_governed_decision(age_store, decision_id, domain=domain)
-    age_store.write_outcome(decision_id, "approve", True, metadata={"actual_index": 0})
+    age_store.write_outcome(decision_id, "approve", True, metadata={"actual_index": 0}, domain=domain)
 
     with pytest.raises(ValueError, match="outcome already exists"):
-        age_store.write_outcome(decision_id, "manual_review", False, metadata={"actual_index": 1})
+        age_store.write_outcome(decision_id, "manual_review", False, metadata={"actual_index": 1}, domain=domain)
 
-    decision = age_store.get_decision(decision_id)
+    decision = age_store.get_decision(decision_id, domain=domain)
     outcome = _age_get_outcome(age_store, decision_id)
     assert decision is not None
     assert decision["status"] == "confirmed"
@@ -749,7 +752,7 @@ def test_age_outcome_non_pending_decision_raises(age_store):
     )
 
     with pytest.raises(ValueError, match="status is not pending"):
-        age_store.write_outcome(decision_id, "approve", True)
+        age_store.write_outcome(decision_id, "approve", True, domain=domain)
 
     assert _age_outcome_count(age_store, decision_id) == 0
     assert age_store.count_verified_decisions(domain) == 1
@@ -768,12 +771,12 @@ def test_age_count_verified_after_outcome(age_store):
     _write_governed_decision(age_store, overridden_id, domain=domain)
 
     assert age_store.count_verified_decisions(domain) == 0
-    age_store.write_outcome(confirmed_id, "approve", True)
-    age_store.write_outcome(overridden_id, "manual_review", False)
+    age_store.write_outcome(confirmed_id, "approve", True, domain=domain)
+    age_store.write_outcome(overridden_id, "manual_review", False, domain=domain)
 
     assert age_store.count_decisions(domain) == 3
     assert age_store.count_verified_decisions(domain) == 2
-    assert age_store.get_decision(pending_id)["status"] == "pending"
+    assert age_store.get_decision(pending_id, domain=domain)["status"] == "pending"
 
 
 @pytest.mark.age
@@ -796,9 +799,9 @@ def test_age_outcome_no_orphan_on_duplicate(age_store):
     )
 
     with pytest.raises(ValueError, match="outcome already exists"):
-        age_store.write_outcome(decision_id, "approve", True)
+        age_store.write_outcome(decision_id, "approve", True, domain=domain)
 
-    decision = age_store.get_decision(decision_id)
+    decision = age_store.get_decision(decision_id, domain=domain)
     assert decision is not None
     assert decision["status"] == "pending"
     assert _age_outcome_count(age_store, decision_id) == 1
@@ -864,7 +867,7 @@ def test_observation_not_in_V(sqlite_store):
     # Protocol v2 invariant: count_verified_decisions excludes Observation nodes.
     _write_observation(sqlite_store)
     _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True)
+    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
 
     assert sqlite_store.count_decisions("test") == 1
     assert sqlite_store.count_verified_decisions("test") == 1
@@ -878,7 +881,7 @@ def test_age_observation_not_in_V(age_store):
     decision_id = f"AGE-GOV-{uuid.uuid4().hex[:8]}"
     observation_id = f"AGE-OBS-{uuid.uuid4().hex[:8]}"
     _write_governed_decision(age_store, decision_id, domain=domain)
-    age_store.write_outcome(decision_id, "approve", True)
+    age_store.write_outcome(decision_id, "approve", True, domain=domain)
 
     _write_observation(age_store, observation_id, domain=domain)
 
@@ -929,8 +932,8 @@ def test_count_verified_pending(sqlite_store):
     _write_governed_decision(sqlite_store, "GOV-1")
     _write_governed_decision(sqlite_store, "GOV-2", created_at=101.0)
 
-    assert sqlite_store.get_decision("GOV-1")["status"] == "pending"
-    assert sqlite_store.get_decision("GOV-2")["status"] == "pending"
+    assert sqlite_store.get_decision("GOV-1", domain="test")["status"] == "pending"
+    assert sqlite_store.get_decision("GOV-2", domain="test")["status"] == "pending"
     assert sqlite_store.count_decisions("test") == 2
     assert sqlite_store.count_verified_decisions("test") == 0
 
@@ -953,12 +956,12 @@ def test_count_verified_mixed(sqlite_store):
     _write_governed_decision(sqlite_store, "GOV-2", created_at=101.0)
     _write_governed_decision(sqlite_store, "GOV-3", created_at=102.0)
 
-    sqlite_store.write_outcome("GOV-1", "approve", True)
-    sqlite_store.write_outcome("GOV-2", "manual_review", False)
+    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
+    sqlite_store.write_outcome("GOV-2", "manual_review", False, domain="test")
 
-    assert sqlite_store.get_decision("GOV-1")["status"] == "confirmed"
-    assert sqlite_store.get_decision("GOV-2")["status"] == "overridden"
-    assert sqlite_store.get_decision("GOV-3")["status"] == "pending"
+    assert sqlite_store.get_decision("GOV-1", domain="test")["status"] == "confirmed"
+    assert sqlite_store.get_decision("GOV-2", domain="test")["status"] == "overridden"
+    assert sqlite_store.get_decision("GOV-3", domain="test")["status"] == "pending"
     assert sqlite_store.count_decisions("test") == 3
     assert sqlite_store.count_verified_decisions("test") == 2
 
@@ -1039,9 +1042,9 @@ def test_sqlite_status_migration_backfills_from_outcomes(tmp_path):
 
     store = SQLiteGraphStore(db_path, domain="test")
     try:
-        assert store.get_decision("D-1")["status"] == "confirmed"
-        assert store.get_decision("D-2")["status"] == "overridden"
-        assert store.get_decision("D-3")["status"] == "pending"
+        assert store.get_decision("D-1", domain="test")["status"] == "confirmed"
+        assert store.get_decision("D-2", domain="test")["status"] == "overridden"
+        assert store.get_decision("D-3", domain="test")["status"] == "pending"
         assert store.count_verified_decisions("test") == 2
     finally:
         store.close()
@@ -1267,7 +1270,7 @@ def test_age_evidence_missing_decision(age_store):
             metadata={"purpose": "missing"},
         )
 
-    assert age_store.get_decision(decision_id) is None
+    assert age_store.get_decision(decision_id, domain=domain) is None
     assert _age_node_count(age_store, "EvidenceReceipt", "receipt_intent_id", receipt_intent_id) == 0
     assert age_store.count_decisions(domain) == 0
     assert age_store.count_verified_decisions(domain) == 0
@@ -1283,7 +1286,7 @@ def test_age_evidence_no_decision_or_V_side_effect(age_store):
     _write_governed_decision(age_store, decision_id, domain=domain)
     decisions_before = age_store.count_decisions(domain)
     verified_before = age_store.count_verified_decisions(domain)
-    status_before = age_store.get_decision(decision_id)["status"]
+    status_before = age_store.get_decision(decision_id, domain=domain)["status"]
 
     age_store.append_evidence_receipt(
         receipt_intent_id=receipt_intent_id,
@@ -1295,7 +1298,7 @@ def test_age_evidence_no_decision_or_V_side_effect(age_store):
         metadata={"purpose": "side-effect"},
     )
 
-    decision = age_store.get_decision(decision_id)
+    decision = age_store.get_decision(decision_id, domain=domain)
     assert decision is not None
     assert decision["status"] == status_before == "pending"
     assert age_store.count_decisions(domain) == decisions_before
@@ -1380,7 +1383,7 @@ def test_age_evidence_receipt_rollback_on_failure(age_store):
     assert _age_receipt_edge_count(age_store, decision_id, receipt_intent_id, domain) == 0
     assert age_store.count_decisions(domain) == decisions_before
     assert age_store.count_verified_decisions(domain) == verified_before
-    decision = age_store.get_decision(decision_id)
+    decision = age_store.get_decision(decision_id, domain=domain)
     assert decision is not None
     assert decision["status"] == "pending"
 
@@ -1389,7 +1392,7 @@ def test_conservation_status_write(sqlite_store):
     """write_conservation_status persists an auditable conservation snapshot."""
     # Protocol v2 method/invariant: snapshots record V, q, alpha, theta_min, status.
     _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True)
+    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
     decisions_before = sqlite_store.count_decisions("test")
     verified_before = sqlite_store.count_verified_decisions("test")
 
@@ -1426,7 +1429,7 @@ def test_conservation_status_write(sqlite_store):
         """,
         ("CS-1",),
     ).fetchall()
-    decision = sqlite_store.get_decision("GOV-1")
+    decision = sqlite_store.get_decision("GOV-1", domain="test")
 
     assert len(rows) == 1
     assert rows[0]["domain"] == "test"
@@ -1469,7 +1472,7 @@ def test_age_conservation_status_write(age_store):
     decision_id = f"AGE-GOV-{uuid.uuid4().hex[:8]}"
     status_id = f"AGE-CS-{uuid.uuid4().hex[:8]}"
     _write_governed_decision(age_store, decision_id, domain=domain)
-    age_store.write_outcome(decision_id, "approve", True)
+    age_store.write_outcome(decision_id, "approve", True, domain=domain)
     decisions_before = age_store.count_decisions(domain)
     verified_before = age_store.count_verified_decisions(domain)
 
@@ -2082,7 +2085,7 @@ def test_entity_link(sqlite_store):
     assert rows[0]["entity_id"] == "invoice-1"
     assert rows[0]["entity_type"] == "invoice"
     assert rows[0]["domain"] == "test"
-    assert len(memory.get_decision_links("GOV-1")) == 1
+    assert len(memory.get_decision_links("GOV-1", domain="test")) == 1
     assert sqlite_store.count_decisions("test") == decisions_before
     assert sqlite_store.count_verified_decisions("test") == verified_before
 
@@ -2094,7 +2097,7 @@ def test_entity_link(sqlite_store):
             domain="test",
         )
 
-    assert sqlite_store.get_decision("missing") is None
+    assert sqlite_store.get_decision("missing", domain="test") is None
     assert sqlite_store.count_decisions("test") == decisions_before
     assert sqlite_store.count_verified_decisions("test") == verified_before
 
@@ -2230,7 +2233,7 @@ def test_age_entity_link(age_store):
         domain=domain,
     )
     context = _age_get_node(age_store, "DomainContext", "entity_id", entity_id)
-    decision = age_store.get_decision(decision_id)
+    decision = age_store.get_decision(decision_id, domain=domain)
 
     assert context is not None
     assert context["entity_id"] == entity_id
@@ -2278,7 +2281,7 @@ def test_age_entity_link_missing_decision_raises(age_store):
     with pytest.raises(KeyError):
         age_store.link_entity(missing_decision_id, entity_id, "invoice", domain)
 
-    assert age_store.get_decision(missing_decision_id) is None
+    assert age_store.get_decision(missing_decision_id, domain=domain) is None
     assert _age_node_count(age_store, "DomainContext", "entity_id", entity_id) == 0
     assert _age_about_edge_count(age_store, missing_decision_id, entity_id, domain) == 0
     assert age_store.count_decisions(domain) == 0
@@ -2299,20 +2302,20 @@ def test_age_archive_pending(age_store):
     _write_governed_decision(age_store, pending_new, domain=domain, created_at=60.0)
     _write_governed_decision(age_store, confirmed_old, domain=domain, created_at=20.0)
     _write_governed_decision(age_store, other_pending, domain=other_domain, created_at=10.0)
-    age_store.write_outcome(confirmed_old, "approve", True)
+    age_store.write_outcome(confirmed_old, "approve", True, domain=domain)
     verified_before = age_store.count_verified_decisions(domain)
 
     archived = age_store.archive_decisions(domain, before=50.0, status_filter="pending")
 
-    pending_old_decision = age_store.get_decision(pending_old)
+    pending_old_decision = age_store.get_decision(pending_old, domain=domain)
     assert archived == 1
     assert pending_old_decision is not None
     assert pending_old_decision["archived"] is True
     assert pending_old_decision["archive_status"] == "archived"
     assert pending_old_decision["archived_from_status"] == "pending"
-    assert age_store.get_decision(pending_new).get("archived") is None
-    assert age_store.get_decision(confirmed_old).get("archived") is None
-    assert age_store.get_decision(other_pending).get("archived") is None
+    assert age_store.get_decision(pending_new, domain=domain).get("archived") is None
+    assert age_store.get_decision(confirmed_old, domain=domain).get("archived") is None
+    assert age_store.get_decision(other_pending, domain=other_domain).get("archived") is None
     assert age_store.count_decisions(domain) == 2
     assert age_store.count_verified_decisions(domain) == verified_before == 1
     assert age_store.count_decisions(other_domain) == 1
@@ -2326,12 +2329,12 @@ def test_age_archive_verified_requires_confirmation(age_store):
     domain = age_store.protocol_v2_test_domain
     decision_id = f"AGE-C-{uuid.uuid4().hex[:8]}"
     _write_governed_decision(age_store, decision_id, domain=domain, created_at=10.0)
-    age_store.write_outcome(decision_id, "approve", True)
+    age_store.write_outcome(decision_id, "approve", True, domain=domain)
 
     with pytest.raises(ValueError, match="Archiving verified decisions reduces active V"):
         age_store.archive_decisions(domain, before=50.0, status_filter="confirmed")
 
-    decision = age_store.get_decision(decision_id)
+    decision = age_store.get_decision(decision_id, domain=domain)
     assert decision is not None
     assert decision.get("archived") is None
     assert age_store.count_verified_decisions(domain) == 1
@@ -2346,7 +2349,7 @@ def test_age_archive_verified_decreases_active_V(age_store):
     decision_id = f"AGE-C-{uuid.uuid4().hex[:8]}"
     receipt_id = f"AGE-RCP-{uuid.uuid4().hex[:8]}"
     _write_governed_decision(age_store, decision_id, domain=domain, created_at=10.0)
-    age_store.write_outcome(decision_id, "approve", True)
+    age_store.write_outcome(decision_id, "approve", True, domain=domain)
     age_store.append_evidence_receipt(
         receipt_intent_id=receipt_id,
         domain=domain,
@@ -2363,7 +2366,7 @@ def test_age_archive_verified_decreases_active_V(age_store):
         status_filter="confirmed",
         confirm_verified=True,
     )
-    decision = age_store.get_decision(decision_id)
+    decision = age_store.get_decision(decision_id, domain=domain)
 
     assert archived == 1
     assert decision is not None
@@ -2403,10 +2406,10 @@ def test_age_archive_cutoff_respected(age_store):
     archived = age_store.archive_decisions(domain, before=50.0, status_filter="pending")
 
     assert archived == 1
-    assert age_store.get_decision(before_cutoff)["archived"] is True
-    assert age_store.get_decision(at_cutoff).get("archived") is None
-    assert age_store.get_decision(after_cutoff).get("archived") is None
-    assert age_store.get_decision(missing_created_at).get("archived") is None
+    assert age_store.get_decision(before_cutoff, domain=domain)["archived"] is True
+    assert age_store.get_decision(at_cutoff, domain=domain).get("archived") is None
+    assert age_store.get_decision(after_cutoff, domain=domain).get("archived") is None
+    assert age_store.get_decision(missing_created_at, domain=domain).get("archived") is None
     assert age_store.count_decisions(domain) == 3
     assert age_store.count_archived(domain) == 1
 
@@ -2425,8 +2428,8 @@ def test_age_archive_other_domain_isolation(age_store):
     archived = age_store.archive_decisions(domain, before=50.0, status_filter="pending")
 
     assert archived == 1
-    assert age_store.get_decision(target_id)["archived"] is True
-    assert age_store.get_decision(other_id).get("archived") is None
+    assert age_store.get_decision(target_id, domain=domain)["archived"] is True
+    assert age_store.get_decision(other_id, domain=other_domain).get("archived") is None
     assert age_store.count_decisions(domain) == 0
     assert age_store.count_decisions(other_domain) == 1
 
@@ -2442,7 +2445,7 @@ def _populate_age_reset_domain(age_store, domain: str, prefix: str) -> dict[str,
     entity_id = f"{prefix}-entity-{uuid.uuid4().hex[:8]}"
 
     _write_governed_decision(age_store, decision_id, domain=domain, created_at=10.0)
-    age_store.write_outcome(decision_id, "approve", True)
+    age_store.write_outcome(decision_id, "approve", True, domain=domain)
     age_store.write_observation(
         observation_id=observation_id,
         domain=domain,
@@ -2537,7 +2540,7 @@ def _age_reset_domain_snapshot(age_store, domain: str, ids: dict[str, str]) -> d
         "labels": {label: _age_domain_label_count(age_store, label, domain) for label in labels},
         "about_edges": _age_domain_about_edge_count(age_store, domain),
         "receipt_edges": _age_receipt_edge_count(age_store, ids["decision_id"], ids["receipt_id"], domain),
-        "decision_exists": age_store.get_decision(ids["decision_id"]) is not None,
+        "decision_exists": age_store.get_decision(ids["decision_id"], domain=domain) is not None,
         "count_decisions": age_store.count_decisions(domain),
         "count_verified_decisions": age_store.count_verified_decisions(domain),
     }
@@ -2571,8 +2574,8 @@ def test_age_domain_scoped_reset(age_store):
     assert _age_domain_label_count(age_store, "DomainContext", other_domain) > 0
     assert _age_domain_about_edge_count(age_store, domain) == 0
     assert _age_domain_about_edge_count(age_store, other_domain) == 1
-    assert age_store.get_decision(target["decision_id"]) is None
-    assert age_store.get_decision(other["decision_id"]) is not None
+    assert age_store.get_decision(target["decision_id"], domain=domain) is None
+    assert age_store.get_decision(other["decision_id"], domain=other_domain) is not None
     assert _age_receipt_edge_count(age_store, target["decision_id"], target["receipt_id"], domain) == 0
     assert _age_receipt_edge_count(age_store, other["decision_id"], other["receipt_id"], other_domain) == 1
     assert age_store.count_decisions(domain) == 0
@@ -2592,7 +2595,7 @@ def test_age_domain_scoped_reset_rejects_unsafe_domain(age_store):
     with pytest.raises(ValueError, match="pytest_protocol_v2"):
         age_store.domain_scoped_reset(unsafe_domain)
 
-    assert age_store.get_decision(decision_id) is not None
+    assert age_store.get_decision(decision_id, domain=unsafe_domain) is not None
     assert age_store.count_decisions(unsafe_domain) == 1
 
 
@@ -2667,8 +2670,8 @@ def test_legacy_link_decision_to_entity_duplicate_is_harmless(sqlite_store):
     decisions_before = sqlite_store.count_decisions("test")
     verified_before = sqlite_store.count_verified_decisions("test")
 
-    sqlite_store.link_decision_to_entity("GOV-1", "invoice-1")
-    sqlite_store.link_decision_to_entity("GOV-1", "invoice-1")
+    sqlite_store.link_decision_to_entity("GOV-1", "invoice-1", domain="test")
+    sqlite_store.link_decision_to_entity("GOV-1", "invoice-1", domain="test")
 
     rows = sqlite_store.connection.execute(
         """
@@ -2697,16 +2700,16 @@ def test_archive_pending(sqlite_store):
         _write_governed_decision(store, "P-NEW", created_at=60.0)
         _write_governed_decision(store, "C-OLD", created_at=20.0)
         _write_governed_decision(store, "OTHER-P", domain="other", created_at=10.0)
-        store.write_outcome("C-OLD", "approve", True)
+        store.write_outcome("C-OLD", "approve", True, domain="test")
         verified_before = store.count_verified_decisions("test")
 
         archived = store.archive_decisions("test", before=50.0, status_filter="pending")
 
         assert archived == 1
-        assert store.get_decision("P-OLD") is None
-        assert store.get_decision("P-NEW") is not None
-        assert store.get_decision("C-OLD") is not None
-        assert store.get_decision("OTHER-P") is not None
+        assert store.get_decision("P-OLD", domain="test") is None
+        assert store.get_decision("P-NEW", domain="test") is not None
+        assert store.get_decision("C-OLD", domain="test") is not None
+        assert store.get_decision("OTHER-P", domain="other") is not None
         assert store.count_verified_decisions("test") == verified_before
         assert store.count_archived("test") == 1
 
@@ -2721,10 +2724,10 @@ def test_archive_verified(sqlite_store):
         _write_governed_decision(store, "C-NEW", created_at=60.0)
         _write_governed_decision(store, "P-OLD", created_at=10.0)
         _write_governed_decision(store, "OTHER-C", domain="other", created_at=10.0)
-        store.write_outcome("C-OLD", "approve", True)
-        store.write_outcome("O-OLD", "review", False)
-        store.write_outcome("C-NEW", "approve", True)
-        store.write_outcome("OTHER-C", "approve", True)
+        store.write_outcome("C-OLD", "approve", True, domain="test")
+        store.write_outcome("O-OLD", "review", False, domain="test")
+        store.write_outcome("C-NEW", "approve", True, domain="test")
+        store.write_outcome("OTHER-C", "approve", True, domain="other")
 
         with pytest.raises(ValueError, match="Archiving verified decisions reduces active V"):
             store.archive_decisions("test", before=50.0, status_filter="confirmed")
@@ -2737,11 +2740,11 @@ def test_archive_verified(sqlite_store):
         )
 
         assert archived == 1
-        assert store.get_decision("C-OLD") is None
-        assert store.get_decision("O-OLD") is not None
-        assert store.get_decision("C-NEW") is not None
-        assert store.get_decision("P-OLD") is not None
-        assert store.get_decision("OTHER-C") is not None
+        assert store.get_decision("C-OLD", domain="test") is None
+        assert store.get_decision("O-OLD", domain="test") is not None
+        assert store.get_decision("C-NEW", domain="test") is not None
+        assert store.get_decision("P-OLD", domain="test") is not None
+        assert store.get_decision("OTHER-C", domain="other") is not None
         assert store.count_verified_decisions("test") == 2
         assert store.count_verified_decisions("other") == 1
         assert store.count_archived("test") == 1
@@ -2750,7 +2753,7 @@ def test_archive_verified(sqlite_store):
 def _populate_reset_domain(store, domain: str, prefix: str) -> None:
     _write_governed_decision(store, f"{prefix}-D", domain=domain, created_at=10.0)
     _write_governed_decision(store, f"{prefix}-ARCH", domain=domain, created_at=1.0)
-    store.write_outcome(f"{prefix}-D", "approve", True)
+    store.write_outcome(f"{prefix}-D", "approve", True, domain=domain)
     store.link_entity(f"{prefix}-D", f"{prefix}-entity", "invoice", domain)
     store.write_observation(
         observation_id=f"{prefix}-OBS",
@@ -2840,11 +2843,11 @@ def test_domain_scoped_reset(sqlite_store):
         assert store.count_decisions("alpha") == 0
         assert store.count_verified_decisions("alpha") == 0
         assert store.count_archived("alpha") == 0
-        assert store.get_decision("A-D") is None
+        assert store.get_decision("A-D", domain="alpha") is None
         assert store.count_decisions("beta") == 1
         assert store.count_verified_decisions("beta") == 1
         assert store.count_archived("beta") == 1
-        assert store.get_decision("B-D") is not None
+        assert store.get_decision("B-D", domain="beta") is not None
 
     sqlite_tables = (
         "observations",
@@ -2877,7 +2880,7 @@ def test_local_idempotent_replay_does_not_duplicate_class_a_records(sqlite_store
     # depending on the future outbox worker or AGE migration replay.
     _write_governed_decision(sqlite_store, "GOV-1")
     _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True)
+    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
     first_receipt = _append_receipt(sqlite_store, "RCP-1")
     replay_receipt = _append_receipt(sqlite_store, "RCP-1")
 
@@ -3047,7 +3050,7 @@ def test_v1_scorer_compatibility(tmp_path):
         result = scorer.score(factors, category)
 
         assert isinstance(result.decision_id, str)
-        decision = scorer.graph_store.get_decision(result.decision_id)
+        decision = scorer.graph_store.get_decision(result.decision_id, domain=scorer._domain)
         assert decision is not None
         assert decision["status"] == "pending"
         assert scorer.graph_store.count_decisions("s2p") == 1
@@ -3060,16 +3063,16 @@ def test_outcome_direct_duplicate_raises(sqlite_store):
     """A direct duplicate write_outcome call raises."""
     # Protocol v2 invariant: one Outcome per Decision for direct calls.
     _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True)
+    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
 
     with pytest.raises(ValueError, match="outcome already exists"):
-        sqlite_store.write_outcome("GOV-1", "manual_review", False)
+        sqlite_store.write_outcome("GOV-1", "manual_review", False, domain="test")
 
     outcome = sqlite_store.connection.execute(
         "SELECT actual_action, actual_index, is_correct FROM outcomes WHERE decision_id = ?",
         ("GOV-1",),
     ).fetchone()
-    decision = sqlite_store.get_decision("GOV-1")
+    decision = sqlite_store.get_decision("GOV-1", domain="test")
 
     assert outcome is not None
     assert outcome["actual_action"] == "approve"
@@ -3083,14 +3086,14 @@ def test_outcome_replay_identical_skips(sqlite_store):
     """Outbox replay of an identical outcome skips without duplication."""
     # Protocol v2 invariant: identical replay is idempotent.
     _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True)
+    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
 
     replay_decision = sqlite_store._check_outcome_replay("GOV-1", "approve", True)
     outcome_count = sqlite_store.connection.execute(
         "SELECT COUNT(*) AS n FROM outcomes WHERE decision_id = ?",
         ("GOV-1",),
     ).fetchone()["n"]
-    decision = sqlite_store.get_decision("GOV-1")
+    decision = sqlite_store.get_decision("GOV-1", domain="test")
 
     assert replay_decision == "already_applied"
     assert int(outcome_count) == 1
@@ -3102,14 +3105,14 @@ def test_outcome_replay_conflicting_errors(sqlite_store):
     """Outbox replay of a conflicting outcome quarantines or errors."""
     # Protocol v2 invariant: conflicting Class A replay is never silently ignored.
     _write_governed_decision(sqlite_store, "GOV-1")
-    sqlite_store.write_outcome("GOV-1", "approve", True)
+    sqlite_store.write_outcome("GOV-1", "approve", True, domain="test")
 
     replay_decision = sqlite_store._check_outcome_replay("GOV-1", "manual_review", False)
     outcome = sqlite_store.connection.execute(
         "SELECT actual_action, actual_index, is_correct FROM outcomes WHERE decision_id = ?",
         ("GOV-1",),
     ).fetchone()
-    decision = sqlite_store.get_decision("GOV-1")
+    decision = sqlite_store.get_decision("GOV-1", domain="test")
 
     assert replay_decision == "conflict"
     assert outcome is not None
@@ -3163,7 +3166,7 @@ def test_preview_no_decision_write(sqlite_store):
     _write_observation(sqlite_store, "OBS-PREVIEW")
 
     assert sqlite_store.count_decisions("test") == 0
-    assert sqlite_store.get_decision("OBS-PREVIEW") is None
+    assert sqlite_store.get_decision("OBS-PREVIEW", domain="test") is None
 
 
 @pytest.mark.age
@@ -3177,7 +3180,7 @@ def test_age_preview_no_decision_write(age_store):
 
     assert _age_observation_count(age_store, observation_id) == 1
     assert age_store.count_decisions(domain) == 0
-    assert age_store.get_decision(observation_id) is None
+    assert age_store.get_decision(observation_id, domain=domain) is None
 
 
 def test_outbox_replay_ordering(sqlite_store):
@@ -3381,11 +3384,11 @@ def test_write_outcome_domain_is_optional_and_scopes_sqlite_store(sqlite_store):
     """Explicit domain succeeds; omitted domain keeps the v1 call path working."""
     _write_governed_decision(sqlite_store, "OUTCOME-DOMAIN", domain="test")
     sqlite_store.write_outcome("OUTCOME-DOMAIN", "approve", True, domain="test")
-    assert sqlite_store.get_decision("OUTCOME-DOMAIN")["status"] == "confirmed"
+    assert sqlite_store.get_decision("OUTCOME-DOMAIN", domain="test")["status"] == "confirmed"
 
     _write_governed_decision(sqlite_store, "OUTCOME-LEGACY", domain="test")
-    sqlite_store.write_outcome("OUTCOME-LEGACY", "approve", True)
-    assert sqlite_store.get_decision("OUTCOME-LEGACY")["status"] == "confirmed"
+    sqlite_store.write_outcome("OUTCOME-LEGACY", "approve", True, domain="test")
+    assert sqlite_store.get_decision("OUTCOME-LEGACY", domain="test")["status"] == "confirmed"
 
 
 def test_age_write_outcome_compound_domain_identity(age_store):
@@ -3504,7 +3507,7 @@ def test_age_write_outcome_domain_preserves_status_transition(age_store):
 
     age_store.write_outcome(decision_id, "approve", True, domain=domain)
 
-    decision = age_store.get_decision(decision_id)
+    decision = age_store.get_decision(decision_id, domain=domain)
     outcome = _age_get_outcome(age_store, decision_id)
     assert decision is not None
     assert decision["status"] == "confirmed"

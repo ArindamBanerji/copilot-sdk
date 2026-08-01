@@ -53,7 +53,7 @@ def test_live_active_age_score_learn_route_surface_and_read_safety(tmp_path: Pat
     assert score.status_code == 200
     score_payload = score.json()
     decision_id = score_payload["decision_id"]
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain="trading")
     assert decision is not None
     assert decision["decision_id"] == decision_id
     assert str(decision.get("status") or "").lower() == "pending"
@@ -64,7 +64,7 @@ def test_live_active_age_score_learn_route_surface_and_read_safety(tmp_path: Pat
     )
     assert social.status_code == 200
     social_payload = social.json()
-    assert store.get_decision(social_payload["decision_id"]) is not None
+    assert store.get_decision(social_payload["decision_id"], domain="trading") is not None
 
     webhook = client.post(
         "/api/trading/webhook/tradingview",
@@ -79,7 +79,7 @@ def test_live_active_age_score_learn_route_surface_and_read_safety(tmp_path: Pat
         },
     )
     assert webhook.status_code == 200
-    assert store.get_decision(webhook.json()["decision_id"]) is not None
+    assert store.get_decision(webhook.json()["decision_id"], domain="trading") is not None
 
     prescore = client.post(
         "/api/trading/prescore",
@@ -93,7 +93,7 @@ def test_live_active_age_score_learn_route_surface_and_read_safety(tmp_path: Pat
         json={"decision_id": decision_id, "actual_action": score_payload["action"]},
     )
     assert learn.status_code == 200
-    learned = store.get_decision(decision_id)
+    learned = store.get_decision(decision_id, domain="trading")
     assert learned is not None
     assert str(learned.get("status") or learned.get("outcome") or "").lower() == "confirmed"
     assert _has_outcome(learned)

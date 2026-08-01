@@ -11,7 +11,7 @@ from typing import Any, Mapping
 
 from ci_platform.graph.age_client import AGEClient
 from ci_platform.graph.agtype import normalize_agtype_value
-from copilot_sdk.config import GraphConfig
+from copilot_sdk.config import GraphConfig, require_shared_graph
 
 
 _SAFE_DOMAIN_RE = re.compile(r"^[a-zA-Z0-9_-]{1,200}$")
@@ -233,6 +233,12 @@ class AGEProjection:
             graph_name = graph_name or config.graph
         if not dsn or not graph_name:
             raise ValueError(f"GraphConfig for {domain!r} must provide DSN and graph name")
+        require_shared_graph(
+            backend="age",
+            graph=graph_name,
+            domain=domain,
+            profile="production",
+        )
         self.dsn = dsn
         self.graph_name = graph_name
         self.domain = domain
@@ -262,15 +268,13 @@ class AGEProjection:
         return int(parse_projection_json(rows[0].get("cnt", 0))) if rows else 0
 
     def count_correct(self) -> int:
-        """Return D2-correct decisions, using canonical or legacy outcome data."""
+        """Return D2-correct decisions from the materialized Decision property."""
         domain = AGEClient.serialize_for_age(self.domain)
         rows = self._query(
             "MATCH (d:Decision) "
-            "OPTIONAL MATCH (d)-[:HAS_OUTCOME]->(o:Outcome) "
             f"WHERE d.domain = {domain} "
             "AND (d.archived IS NULL OR d.archived <> true) "
-            "AND ((d.status IS NOT NULL AND d.status IN ['confirmed', 'overridden'] AND o.is_correct = true) "
-            "OR (d.status IS NULL AND d.correct = true)) "
+            "AND d.correct = true "
             "RETURN count(DISTINCT d.decision_id) AS cnt"
         )
         return int(parse_projection_json(rows[0].get("cnt", 0))) if rows else 0

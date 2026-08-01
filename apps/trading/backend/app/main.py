@@ -41,6 +41,7 @@ from .evolution import get_trading_variants  # noqa: E402
 from .routers.journal import _journal_records, create_journal_router  # noqa: E402
 from .routers.pre_score_router import create_pre_score_router  # noqa: E402
 from .routers.prescore import create_prescore_router  # noqa: E402
+from .routers.promotion import create_promotion_router  # noqa: E402
 from .routers.promotion_router import create_promotion_engine_router  # noqa: E402
 from .routers.regime import create_regime_router  # noqa: E402
 from .routers.regime_analytics import create_regime_analytics_router  # noqa: E402
@@ -64,7 +65,7 @@ from copilot_sdk.backend import (  # noqa: E402
 )
 from copilot_sdk.backend.counterfactual_router import create_counterfactual_router  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
-from copilot_sdk.config import GraphConfig, GraphConfigError  # noqa: E402
+from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
@@ -116,22 +117,34 @@ def _cors_origins() -> list[str]:
 def _graph_store(db_path: str | Path):
     # Active AGE configuration is owned by TRADING_ACTIVE_*; generic AGE
     # settings remain deliberately ignored by the graph-status contract.
+    profile = _resolve_profile()
+    graph_config = None
     try:
-        backend = GraphConfig.load(DOMAIN).backend
+        graph_config = GraphConfig.load(DOMAIN, profile=profile)
+        backend = graph_config.backend
     except GraphConfigError:
-        if _resolve_profile() != "test":
+        if profile != "test":
             raise
         # A generic AGE value without complete AGE config is intentionally not
         # an active Trading-store selection in isolated tests.
         backend = "sqlite"
-    if backend == "age":
-        backend = "sqlite"
+    if graph_config is not None:
+        require_shared_graph(
+            backend=graph_config.backend,
+            graph=graph_config.graph,
+            domain=DOMAIN,
+            profile=profile,
+            test_mode=graph_config.active_test_mode,
+        )
     store = create_graph_store(
         backend=backend,
         domain=DOMAIN,
         db_path=str(db_path),
         decision_id_prefix="TRD-",
-        profile=_resolve_profile(),
+        dsn=graph_config.dsn if graph_config is not None else None,
+        graph_name=graph_config.graph if graph_config is not None else None,
+        test_mode=graph_config.active_test_mode if graph_config is not None else False,
+        profile=profile,
     )
     setattr(store, "penalty_ratio", TradingPreset().penalty_ratio)
     return store
@@ -318,7 +331,7 @@ def create_app(
         _bundle_path = False
     else:
         _bundle_path = Path(demo_bundle_path)
-    seed_graph_store = _graph_store(scoring_db)
+    seed_graph_store = active_graph_store or _graph_store(scoring_db)
     startup_state = {"seeded": False, "restored": False}
     base_scorer_proxy = FreshScorerProxy(
         DOMAIN, scoring_db, selected_graph_store_factory, profile=_resolve_profile()
@@ -466,6 +479,13 @@ def create_app(
     app.include_router(
         create_promotion_engine_router(
             lambda: selected_graph_store_factory(scoring_db),
+            domain=DOMAIN,
+        )
+    )
+    app.include_router(
+        create_promotion_router(
+            lambda: selected_graph_store_factory(scoring_db),
+            config_dir=_promotion_config_dir(scoring_db),
             domain=DOMAIN,
         )
     )

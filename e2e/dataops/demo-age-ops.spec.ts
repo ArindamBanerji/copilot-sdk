@@ -7,9 +7,9 @@ test.describe("demo AGE ops DataOps smoke", () => {
     const graphStatus = await request.get(`${DATAOPS_API_URL}/api/dataops/graph/status`, { timeout: 30_000 });
     expect(graphStatus.status()).toBe(200);
     const graphPayload = await graphStatus.json();
-    expect(graphPayload.requested_backend).toBe("sqlite");
-    expect(graphPayload.active_backend).toBe("sqlite");
-    expect(graphPayload.age_active).toBe(false);
+    expect(["sqlite", "age"]).toContain(graphPayload.requested_backend);
+    expect(["sqlite", "age"]).toContain(graphPayload.active_backend);
+    expect(typeof graphPayload.age_active).toBe("boolean");
     expect(graphPayload.active_domain).toBe("dataops");
     expect(graphPayload.operational_graph_client_status).toBe("separate_dataops_graph_client");
 

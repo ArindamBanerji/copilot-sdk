@@ -28,7 +28,7 @@ def test_memory_write_decision_returns_id_and_stores_fields():
         metadata={"entity_id": "invoice-1", "source": "unit", "created_at": 10.0},
     )
 
-    decision = store.get_decision(decision_id)
+    decision = store.get_decision(decision_id, domain="mock")
     assert decision["decision_id"] == decision_id
     assert decision["domain"] == "mock"
     assert decision["entity_id"] == "invoice-1"
@@ -43,7 +43,7 @@ def test_memory_write_outcome_links_to_decision():
     store = InMemoryGraphStore()
     decision_id = _write(store, "mock", 1)
 
-    store.write_outcome(decision_id, "approve", True, metadata={"verified_at": 20.0})
+    store.write_outcome(decision_id, "approve", True, metadata={"verified_at": 20.0}, domain="mock")
 
     verified = store.get_verified_decisions("mock")
     assert len(verified) == 1
@@ -57,7 +57,7 @@ def test_memory_write_outcome_missing_decision_raises():
     store = InMemoryGraphStore()
 
     with pytest.raises(KeyError):
-        store.write_outcome("missing", "approve", True)
+        store.write_outcome("missing", "approve", True, domain="mock")
 
 
 def test_memory_counts_empty_and_after_outcomes():
@@ -68,8 +68,8 @@ def test_memory_counts_empty_and_after_outcomes():
     first = _write(store, "mock", 1)
     second = _write(store, "mock", 2)
     _write(store, "other", 3)
-    store.write_outcome(first, "approve", True)
-    store.write_outcome(second, "approve", False)
+    store.write_outcome(first, "approve", True, domain="mock")
+    store.write_outcome(second, "approve", False, domain="mock")
 
     assert store.count_decisions("mock") == 2
     assert store.count_verified("mock") == 2
@@ -84,9 +84,9 @@ def test_memory_count_verified_decisions_excludes_pending_and_preserves_all_coun
     overridden = _write(store, "mock", 5)
     other = _write(store, "other", 6)
 
-    store.write_outcome(confirmed, "approve", True)
-    store.write_outcome(overridden, "review", False)
-    store.write_outcome(other, "approve", True)
+    store.write_outcome(confirmed, "approve", True, domain="mock")
+    store.write_outcome(overridden, "review", False, domain="mock")
+    store.write_outcome(other, "approve", True, domain="other")
 
     assert len(pending) == 3
     assert store.count_decisions("mock") == 5
@@ -96,7 +96,7 @@ def test_memory_count_verified_decisions_excludes_pending_and_preserves_all_coun
 
 
 def test_memory_get_decision_missing_returns_none():
-    assert InMemoryGraphStore().get_decision("missing") is None
+    assert InMemoryGraphStore().get_decision("missing", domain="test") is None
 
 
 def test_memory_get_decisions_all_category_and_limit():
@@ -114,8 +114,8 @@ def test_memory_domain_isolation():
     store = InMemoryGraphStore()
     first = _write(store, "mock", 1)
     second = _write(store, "other", 2)
-    store.write_outcome(first, "approve", True)
-    store.write_outcome(second, "approve", False)
+    store.write_outcome(first, "approve", True, domain="mock")
+    store.write_outcome(second, "approve", False, domain="other")
 
     assert [d["decision_id"] for d in store.get_all_decisions("mock")] == [first]
     assert [d["decision_id"] for d in store.get_all_decisions("other")] == [second]
@@ -211,7 +211,7 @@ def test_memory_store_archive():
     store = InMemoryGraphStore()
     ids = [_write(store, "mock", index) for index in range(4)]
     for decision_id in ids:
-        store.write_outcome(decision_id, "approve", True)
+        store.write_outcome(decision_id, "approve", True, domain="mock")
 
     assert store.archive_old_decisions("mock", keep_recent=2) == 2
 
@@ -268,7 +268,7 @@ def test_memory_rl_state_uses_copies():
 def test_memory_reset_clears_and_close_noop():
     store = InMemoryGraphStore()
     decision_id = _write(store, "mock", 1)
-    store.write_outcome(decision_id, "approve", True)
+    store.write_outcome(decision_id, "approve", True, domain="mock")
     store.save_centroids("mock", "alpha", [[1.0]], decision_id=decision_id)
     store.save_evolution_event("mock", "event")
     store.save_rl_state("thompson", {"alpha": [1.0]})

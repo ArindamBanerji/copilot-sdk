@@ -229,7 +229,13 @@ def _self_store() -> InMemoryGraphStore:
         factors={"severity": 0.8},
         metadata={"decision_id": "d1", "created_at": 1.0},
     )
-    store.write_outcome(d1, actual_action="investigate", is_correct=True, metadata={"reward": 0.8})
+    store.write_outcome(
+        d1,
+        actual_action="investigate",
+        is_correct=True,
+        metadata={"reward": 0.8},
+        domain=store.domain,
+    )
     store.save_centroids("banking", "fraud_review", {"centroid": [0.1]}, metadata={"iks": 10.0}, decision_id=d1)
     return store
 

@@ -708,6 +708,7 @@ def test_graph_store_count_verified(tmp_path):
             actual_action="order_as_planned",
             is_correct=True,
             metadata={"actual_index": 0},
+            domain="purchasing",
         )
     finally:
         store.close()
@@ -729,12 +730,14 @@ def test_graph_store_count_correct(tmp_path):
             actual_action="order_as_planned",
             is_correct=True,
             metadata={"actual_index": 0},
+            domain="purchasing",
         )
         store.write_outcome(
             decision_id="d-2",
             actual_action="order_more",
             is_correct=False,
             metadata={"actual_index": 1},
+            domain="purchasing",
         )
     finally:
         store.close()
@@ -888,6 +891,7 @@ def _seed_verified_history(db_path: Path, total: int) -> None:
                 actual_action=actual_action,
                 is_correct=True,
                 metadata={"actual_index": actual_index},
+                domain="purchasing",
             )
     finally:
         store.close()

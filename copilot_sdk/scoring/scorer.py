@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import hashlib
 import json
 import logging
@@ -27,13 +26,16 @@ from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
 from copilot_sdk.evolution.protocol import EvolutionStore
 from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
 from copilot_sdk.scoring.persistence_outbox import PersistenceOutbox
+from copilot_sdk.stats.bootstrap import block_bootstrap_mean_se
 
 
-def _ensure_gae_path() -> None:
+def _ensure_gae_path() -> Path:
     workspace = Path(__file__).resolve().parents[3]
-    gae_path = workspace / "graph-attention-engine-v50"
+    default_gae_path = workspace / "graph-attention-engine-v50"
+    gae_path = Path(os.environ.get("CLAUDE_GAE", str(default_gae_path)))
     if gae_path.exists() and str(gae_path) not in sys.path:
         sys.path.insert(0, str(gae_path))
+    return gae_path
 
 
 _ensure_gae_path()
@@ -1001,7 +1003,7 @@ class CompoundingScorer:
                     iks=self._compute_iks(persist_artifacts=False),
                     decision_time_start=self._extract_decision_timestamp(row),
                     decision_time_end=self._extract_decision_timestamp(row),
-                    write_legacy=not self._consolidation_enabled,
+                    write_legacy=False,
                 )
             except Exception as exc:
                 logger.warning(
@@ -1536,7 +1538,7 @@ class CompoundingScorer:
             correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
         accuracy = correct / verified
         fingerprint = self.fingerprint(
-            persist=persist_artifacts,
+            persist=False,
             decision_id=decision_id,
         )
         mean_sigma = (
@@ -1709,7 +1711,7 @@ class CompoundingScorer:
         consolidation: bool = False,
         decision_time_start: str | None = None,
         decision_time_end: str | None = None,
-        write_legacy: bool = True,
+        write_legacy: bool = False,
         checkpoint_id: str | None = None,
         capture_reason: str | None = None,
     ) -> bool:
@@ -1722,6 +1724,12 @@ class CompoundingScorer:
             })
         if capture_reason is not None:
             metadata["capture_reason"] = capture_reason
+        metadata.update(
+            {
+                "decision_time_start": decision_time_start,
+                "decision_time_end": decision_time_end,
+            }
+        )
         persisted = False
         checkpoint_payload: dict[str, Any] = {}
         if write_legacy:
@@ -1744,10 +1752,8 @@ class CompoundingScorer:
         if not isinstance(self._graph_store, ProtocolV2GraphStore):
             return persisted
         try:
-            # NOTE: Legacy checkpoint creates HAS_CENTROID_CHECKPOINT edge.
-            # V2 checkpoint stores richer metadata without the edge.
-            # When V2 adds edge creation, legacy path should be removed.
-            # Until then, both writes are intentional.
+            # V2 is the default checkpoint path.  The legacy path remains
+            # available only for callers that explicitly opt in above.
             factor_names = list(self._preset.shape.factor_names)
             factor_names_hash = hashlib.sha256(
                 json.dumps(factor_names, separators=(",", ":")).encode("utf-8")
@@ -1796,7 +1802,11 @@ class CompoundingScorer:
                 )
             )
             if archived > 0:
-                print(f"[{self._domain}] archived {archived} old decisions")
+                logger.info(
+                    "Archived %d old decisions",
+                    archived,
+                    extra={"domain": self._domain},
+                )
         except Exception as exc:
             logger.warning("Decision archive failed for %s: %s", self._domain, exc)
 
@@ -1958,11 +1968,7 @@ def _conservation_dispersion(store: Any) -> dict[str, float] | None:
 
 
 def _block_bootstrap_mean_se(q_window: list[float]) -> Any:
-    quant_root = Path(__file__).resolve().parents[2]
-    if str(quant_root) not in sys.path:
-        sys.path.insert(0, str(quant_root))
-    quant_module = importlib.import_module("ci_trading.quant")
-    return getattr(quant_module, "block_bootstrap_mean_se")(q_window, block=20, n_boot=200)
+    return block_bootstrap_mean_se(q_window, block=20, n_boot=200)
 
 
 def _reject_sample_provenance(factors: dict[str, Any]) -> None:

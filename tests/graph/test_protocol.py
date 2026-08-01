@@ -76,18 +76,21 @@ def test_protocol_write_decision_is_domain_first():
     ]
 
 
-def test_protocol_write_outcome_accepts_optional_domain_parameter():
+def test_protocol_write_outcome_requires_domain_parameter():
     signature = inspect.signature(GraphStore.write_outcome)
 
-    assert list(signature.parameters) == [
+    # Keep this focused on the stable contract: future optional outcome
+    # metadata must not require updating an exact full-parameter list.
+    assert list(signature.parameters)[:4] == [
         "self",
         "decision_id",
         "actual_action",
         "is_correct",
-        "metadata",
-        "domain",
     ]
-    assert signature.parameters["domain"].default is None
+    assert "domain" in signature.parameters
+    domain_parameter = signature.parameters["domain"]
+    assert domain_parameter.kind is inspect.Parameter.KEYWORD_ONLY
+    assert domain_parameter.default is inspect.Parameter.empty
 
 
 def test_protocol_queries_are_domain_scoped():

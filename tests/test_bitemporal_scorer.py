@@ -110,9 +110,9 @@ def test_learn_checkpoint_has_per_decision_time_range(tmp_path: Path) -> None:
 
     scorer.learn(result.decision_id, result.action)
 
-    checkpoint = graph_store.get_centroid_checkpoints("test")[0]
-    assert checkpoint["decision_time_start"] == "2026-05-19T10:00:00Z"
-    assert checkpoint["decision_time_end"] == "2026-05-19T10:00:00Z"
+    checkpoint = graph_store.get_centroid_checkpoints("test", include_v2=True)[-1]
+    assert checkpoint["metadata"]["decision_time_start"] == "2026-05-19T10:00:00Z"
+    assert checkpoint["metadata"]["decision_time_end"] == "2026-05-19T10:00:00Z"
     scorer.graph_store.close()
 
 
@@ -127,9 +127,9 @@ def test_non_consolidated_no_timestamp_passes_none(tmp_path: Path) -> None:
     decision["metadata"].pop("created_at", None)
     scorer.learn(second.decision_id, second.action)
 
-    checkpoint = graph_store.get_centroid_checkpoints("test")[-1]
-    assert checkpoint["decision_time_start"] is None
-    assert checkpoint["decision_time_end"] is None
+    checkpoint = graph_store.get_centroid_checkpoints("test", include_v2=True)[-1]
+    assert checkpoint["metadata"]["decision_time_start"] is None
+    assert checkpoint["metadata"]["decision_time_end"] is None
     scorer.graph_store.close()
 
 
@@ -142,9 +142,9 @@ def test_consolidation_flush_passes_batch_time_range(tmp_path: Path) -> None:
     scorer.learn(second.decision_id, second.action)
     assert scorer.flush_centroids(reason="end-of-batch") == 2
 
-    checkpoint = graph_store.get_centroid_checkpoints("test")[0]
-    assert checkpoint["decision_time_start"] == "2026-05-19T10:00:00Z"
-    assert checkpoint["decision_time_end"] == "2026-05-20T10:00:00Z"
+    checkpoint = graph_store.get_centroid_checkpoints("test", include_v2=True)[-1]
+    assert checkpoint["metadata"]["decision_time_start"] == "2026-05-19T10:00:00Z"
+    assert checkpoint["metadata"]["decision_time_end"] == "2026-05-20T10:00:00Z"
     scorer.graph_store.close()
 
 
@@ -156,9 +156,9 @@ def test_consolidate_true_passes_batch_time_range(tmp_path: Path) -> None:
     scorer.learn(first.decision_id, first.action)
     scorer.learn(second.decision_id, second.action, consolidate=True)
 
-    checkpoint = graph_store.get_centroid_checkpoints("test")[0]
-    assert checkpoint["decision_time_start"] == "2026-05-18T10:00:00Z"
-    assert checkpoint["decision_time_end"] == "2026-05-19T10:00:00Z"
+    checkpoint = graph_store.get_centroid_checkpoints("test", include_v2=True)[-1]
+    assert checkpoint["metadata"]["decision_time_start"] == "2026-05-18T10:00:00Z"
+    assert checkpoint["metadata"]["decision_time_end"] == "2026-05-19T10:00:00Z"
     scorer.graph_store.close()
 
 

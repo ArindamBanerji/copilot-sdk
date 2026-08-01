@@ -1,0 +1,31 @@
+
+PRODUCTION: copilot-sdk/copilot_sdk/backend/diagnostics_models.py:320: direct GRAPH_* environment access: infra.graph_backend = str(backend or os.environ.get("GRAPH_BACKEND") or "unavailable")
+PRODUCTION: copilot-sdk/copilot_sdk/scoring/scorer.py:254: SQLiteGraphStore construction: graph_store = SQLiteGraphStore(db_path, domain=preset.name)
+PRODUCTION: gen-ai-roi-demo/backend/app/db/neo4j.py:228: unscoped Decision query: MATCH (decision:Decision {id: $triggered_by})
+PRODUCTION: gen-ai-roi-demo/backend/app/services/seed_neo4j.py:292: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (a:Alert {id: $alert_id}) CREATE (d)-[:FOR_ALERT]->(a)",
+PRODUCTION: gen-ai-roi-demo/backend/app/services/seed_neo4j.py:299: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (ctx:DecisionContext {id: $context_id}) CREATE (d)-[:HAD_CONTEXT]->(ctx)",
+PRODUCTION: gen-ai-roi-demo/backend/app/services/seed_neo4j.py:306: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (e:EvolutionEvent {id: $evolution_id}) CREATE (d)-[:TRIGGERED_EVOLUTION {impact: $impact, magnitude: $magnitude, timestamp: datetime()}]->(e)",
+PRODUCTION: gen-ai-roi-demo-v2/backend/app/db/neo4j.py:228: unscoped Decision query: MATCH (decision:Decision {id: $triggered_by})
+PRODUCTION: gen-ai-roi-demo-v2/backend/app/services/seed_neo4j.py:292: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (a:Alert {id: $alert_id}) CREATE (d)-[:FOR_ALERT]->(a)",
+PRODUCTION: gen-ai-roi-demo-v2/backend/app/services/seed_neo4j.py:299: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (ctx:DecisionContext {id: $context_id}) CREATE (d)-[:HAD_CONTEXT]->(ctx)",
+PRODUCTION: gen-ai-roi-demo-v2/backend/app/services/seed_neo4j.py:306: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (e:EvolutionEvent {id: $evolution_id}) CREATE (d)-[:TRIGGERED_EVOLUTION {impact: $impact, magnitude: $magnitude, timestamp: datetime()}]->(e)",
+PRODUCTION: gen-ai-roi-demo-v3/backend/app/db/neo4j.py:228: unscoped Decision query: MATCH (decision:Decision {id: $triggered_by})
+PRODUCTION: gen-ai-roi-demo-v3/backend/app/services/seed_neo4j.py:295: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (a:Alert {id: $alert_id}) CREATE (d)-[:FOR_ALERT]->(a)",
+PRODUCTION: gen-ai-roi-demo-v3/backend/app/services/seed_neo4j.py:302: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (ctx:DecisionContext {id: $context_id}) CREATE (d)-[:HAD_CONTEXT]->(ctx)",
+PRODUCTION: gen-ai-roi-demo-v3/backend/app/services/seed_neo4j.py:309: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (e:EvolutionEvent {id: $evolution_id}) CREATE (d)-[:TRIGGERED_EVOLUTION {impact: $impact, magnitude: $magnitude, timestamp: datetime()}]->(e)",
+PRODUCTION: gen-ai-roi-demo-v3.2/backend/app/db/neo4j.py:228: unscoped Decision query: MATCH (decision:Decision {id: $triggered_by})
+PRODUCTION: gen-ai-roi-demo-v3.2/backend/app/services/seed_neo4j.py:295: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (a:Alert {id: $alert_id}) CREATE (d)-[:FOR_ALERT]->(a)",
+PRODUCTION: gen-ai-roi-demo-v3.2/backend/app/services/seed_neo4j.py:302: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (ctx:DecisionContext {id: $context_id}) CREATE (d)-[:HAD_CONTEXT]->(ctx)",
+PRODUCTION: gen-ai-roi-demo-v3.2/backend/app/services/seed_neo4j.py:309: unscoped Decision query: "MATCH (d:Decision {id: $decision_id}), (e:EvolutionEvent {id: $evolution_id}) CREATE (d)-[:TRIGGERED_EVOLUTION {impact: $impact, magnitude: $magnitude, timestamp: datetime()}]->(e)",
+PRODUCTION: gen-ai-roi-demo-v4/backend/app/db/neo4j.py:228: unscoped Decision query: MATCH (decision:Decision {id: $triggered_by})
+PRODUCTION: gen-ai-roi-demo-v4/backend/app/domains/soc/factors.py:249: unscoped Decision query: MATCH (d:Decision)-[:DECIDED_ON]->(a:Alert)
+PRODUCTION: gen-ai-roi-demo-v4/backend/app/routers/triage.py:528: unscoped Decision query: MATCH (d:Decision {id: $decision_id})
+PRODUCTION: gen-ai-roi-demo-v4-v45/backend/app/db/neo4j.py:228: unscoped Decision query: MATCH (decision:Decision {id: $triggered_by})
+PRODUCTION: gen-ai-roi-demo-v4-v45/backend/app/domains/soc/factors.py:249: unscoped Decision query: MATCH (d:Decision)-[:DECIDED_ON]->(a:Alert)
+PRODUCTION: gen-ai-roi-demo-v4-v45/backend/app/routers/triage.py:587: unscoped Decision query: MATCH (d:Decision {id: $decision_id})
+PRODUCTION: gen-ai-roi-demo-v4-v45/backend/app/services/simulation.py:358: unscoped Decision query: MATCH (d:Decision {id: $decision_id})
+PRODUCTION: gen-ai-roi-demo-v4-v45/backend/app/services/state_manager.py:88: unscoped Decision query: "MATCH (d:Decision) "
+PRODUCTION: gen-ai-roi-demo-v4-v45/backend/app/services/state_manager.py:149: unscoped Decision query: "MATCH (d:Decision) "
+  PRODUCTION: 27
+FAIL: 27 production forbidden graph-access pattern(s) found
+
