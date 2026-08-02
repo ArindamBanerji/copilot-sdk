@@ -52,6 +52,7 @@ class AgentEvolver:
         decisions: list[dict[str, Any]],
         conservation_state: dict[str, Any] | None = None,
         seed: Any | None = None,
+        decision_id: str | None = None,
     ) -> dict[str, Any]:
         baseline = self._active_rules.get(rule_name)
         if baseline is None:
@@ -63,7 +64,7 @@ class AgentEvolver:
                 "gate_result": None,
             }
 
-        plateau_result = self._plateau_result(rule_name)
+        plateau_result = self._plateau_result(rule_name, decision_id=decision_id)
         if plateau_result is not None:
             return plateau_result
 
@@ -76,7 +77,7 @@ class AgentEvolver:
                 "error": str(exc),
                 "seed": seed,
             }
-            self._record("rejected", rule_name, variant_id, metadata=metadata)
+            self._record("rejected", rule_name, variant_id, metadata=metadata, decision_id=decision_id)
             return {
                 "promoted": False,
                 "reason": "generation_failed",
@@ -85,16 +86,16 @@ class AgentEvolver:
                 "gate_result": {},
             }
         variant_id = self._variant_id(variant)
-        self._record("variant_generated", rule_name, variant_id)
-        self._record("shadow_started", rule_name, variant_id)
+        self._record("variant_generated", rule_name, variant_id, decision_id=decision_id)
+        self._record("shadow_started", rule_name, variant_id, decision_id=decision_id)
         shadow_results = self.shadow_runner.run_shadow(variant, decisions, baseline=baseline)
-        self._record("shadow_completed", rule_name, variant_id, metadata=shadow_results)
+        self._record("shadow_completed", rule_name, variant_id, metadata=shadow_results, decision_id=decision_id)
         gate_result = self.promotion_gate.evaluate(shadow_results, conservation_state=conservation_state)
         if gate_result["promoted"]:
             self._active_rules[rule_name] = variant
-            self._record("promoted", rule_name, variant_id, metadata=gate_result)
+            self._record("promoted", rule_name, variant_id, metadata=gate_result, decision_id=decision_id)
         else:
-            self._record("rejected", rule_name, variant_id, metadata=gate_result)
+            self._record("rejected", rule_name, variant_id, metadata=gate_result, decision_id=decision_id)
         return {
             "promoted": bool(gate_result["promoted"]),
             "reason": gate_result["reason"],
@@ -122,15 +123,18 @@ class AgentEvolver:
         rule_name: str,
         variant_id: str,
         metadata: dict[str, Any] | None = None,
+        decision_id: str | None = None,
     ) -> None:
-        self.ledger.append(
-            EvolutionEvent(
-                event_type=event_type,
-                rule_name=rule_name,
-                variant_id=variant_id,
-                metadata=metadata or {},
-            )
+        event = EvolutionEvent(
+            event_type=event_type,
+            rule_name=rule_name,
+            variant_id=variant_id,
+            metadata=metadata or {},
         )
+        if decision_id is None:
+            self.ledger.append(event)
+        else:
+            self.ledger.append(event, decision_id=decision_id)
 
     def _rule_name(self, rule: Any) -> str:
         name = getattr(rule, "name", None)
@@ -148,7 +152,12 @@ class AgentEvolver:
             return str(value)
         return f"variant-{uuid.uuid4().hex[:12]}"
 
-    def _plateau_result(self, rule_name: str) -> dict[str, Any] | None:
+    def _plateau_result(
+        self,
+        rule_name: str,
+        *,
+        decision_id: str | None = None,
+    ) -> dict[str, Any] | None:
         if not self.plateau_config.enabled:
             return None
 
@@ -185,7 +194,13 @@ class AgentEvolver:
             "min_improvement_rate": self.plateau_config.min_improvement_rate,
             "cooldown": cooldown,
         }
-        self._record("plateau_detected", rule_name, "plateau", metadata=metadata)
+        self._record(
+            "plateau_detected",
+            rule_name,
+            "plateau",
+            metadata=metadata,
+            decision_id=decision_id,
+        )
         return self._skipped_result(
             rule_name,
             plateau_detected=True,

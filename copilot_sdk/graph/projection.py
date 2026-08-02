@@ -7,9 +7,8 @@ import json
 import re
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Mapping, cast
 
-from ci_platform.graph.age_client import AGEClient
 from ci_platform.graph.agtype import normalize_agtype_value
 from copilot_sdk.config import GraphConfig, require_shared_graph
 
@@ -76,9 +75,9 @@ class ProjectionRegistry:
             return pattern.query_template
         if not _SAFE_DOMAIN_RE.fullmatch(str(domain)):
             raise ValueError(f"unsupported graph domain: {domain}")
-        predicate = f"d.domain = '{domain}'"
+        predicate = d2_predicate("d", str(domain))
         query = pattern.query_template.replace("<d2>", predicate, 1)
-        query = query.replace("<d2-correct>", predicate, 1)
+        query = query.replace("<d2-correct>", d2_correct_predicate("d", str(domain)), 1)
         if query == pattern.query_template:
             query = query.replace(
                 "MATCH (d:Decision)",
@@ -86,6 +85,18 @@ class ProjectionRegistry:
                 1,
             )
         return query
+
+
+def d2_predicate(alias: str, domain: str) -> str:
+    """Return the canonical domain-scoped verified-decision predicate."""
+    if not _SAFE_DOMAIN_RE.fullmatch(domain):
+        raise ValueError(f"unsupported graph domain: {domain}")
+    return f"{alias}.domain = '{domain}' AND {alias}.status IN ['confirmed', 'overridden']"
+
+
+def d2_correct_predicate(alias: str, domain: str) -> str:
+    """Return the canonical domain-scoped verified-and-correct predicate."""
+    return f"{d2_predicate(alias, domain)} AND {alias}.correct = true"
 
 
 def parse_projection_json(value: Any) -> Any:
@@ -222,42 +233,42 @@ def classify_domain_context(
 
 
 class AGEProjection:
-    """Read-only projection from a shared AGE graph for one safe domain."""
+    """Read-only projection from an authorized AGE client for one safe domain."""
 
-    def __init__(self, dsn: str | None = None, graph_name: str | None = None, domain: str = "") -> None:
+    def __init__(self, client: Any, graph_name: str | None = None, domain: str = "") -> None:
         if not _SAFE_DOMAIN_RE.fullmatch(domain):
             raise ValueError(f"unsupported graph domain: {domain}")
-        if dsn is None or graph_name is None:
-            config = GraphConfig.load(domain)
-            dsn = dsn or config.dsn
-            graph_name = graph_name or config.graph
-        if not dsn or not graph_name:
-            raise ValueError(f"GraphConfig for {domain!r} must provide DSN and graph name")
+        if client is None:
+            raise ValueError("an authorized AGE client is required")
+        if graph_name is None:
+            graph_name = GraphConfig.load(domain).graph
+        if not graph_name:
+            raise ValueError("graph name is required")
         require_shared_graph(
             backend="age",
             graph=graph_name,
             domain=domain,
             profile="production",
         )
-        self.dsn = dsn
+        self._client = client
         self.graph_name = graph_name
         self.domain = domain
-        self._client = AGEClient(dsn=dsn, graph_name=graph_name)
 
     def _query(self, cypher: str) -> list[dict[str, Any]]:
         if _MUTATION_RE.search(cypher):
             raise ValueError("AGEProjection permits read-only Cypher only")
-        return asyncio.run(self._client.run_query(cypher, None))
+        run_query = getattr(self._client, "run_query", None)
+        if callable(run_query):
+            return asyncio.run(run_query(cypher, None))
+        query = getattr(self._client, "query", None)
+        if callable(query):
+            return cast(list[dict[str, Any]], query(cypher))
+        raise TypeError("projection client must provide run_query() or query()")
 
     def _d2_where(self, alias: str = "d") -> str:
-        domain = AGEClient.serialize_for_age(self.domain)
         return (
-            f"{alias}.domain = {domain} "
+            f"{d2_predicate(alias, self.domain)} "
             f"AND ({alias}.archived IS NULL OR {alias}.archived <> true) "
-            "AND ("
-            f"({alias}.status IS NOT NULL AND {alias}.status IN ['confirmed', 'overridden']) "
-            f"OR ({alias}.status IS NULL AND {alias}.outcome IS NOT NULL)"
-            ")"
         )
 
     def count_verified(self) -> int:
@@ -269,12 +280,10 @@ class AGEProjection:
 
     def count_correct(self) -> int:
         """Return D2-correct decisions from the materialized Decision property."""
-        domain = AGEClient.serialize_for_age(self.domain)
         rows = self._query(
             "MATCH (d:Decision) "
-            f"WHERE d.domain = {domain} "
+            f"WHERE {d2_correct_predicate('d', self.domain)} "
             "AND (d.archived IS NULL OR d.archived <> true) "
-            "AND d.correct = true "
             "RETURN count(DISTINCT d.decision_id) AS cnt"
         )
         return int(parse_projection_json(rows[0].get("cnt", 0))) if rows else 0

@@ -342,33 +342,52 @@ class CompoundingScorer:
         })
         decision_metadata.setdefault("entity_id", decision_id)
         if self._governed_writes:
-            governed_store.write_governed_decision(
-                decision_id=decision_id,
-                domain=self._domain,
-                category=category,
-                category_index=category_index,
-                recommended_action=action,
-                recommended_index=action_index,
-                confidence=float(gae_result.confidence),
-                probabilities=probabilities,
-                factor_vector=factor_vector.tolist(),
-                factor_names=list(self._preset.shape.factor_names),
-                source="compounding_scorer",
-                scorer_version="copilot_sdk.compounding_scorer.v1",
-                preset_version=f"{self._preset.name}.v1",
-                factor_schema_version=f"{self._preset.name}.factor_schema.v1",
-                metadata=decision_metadata,
-            )
+            decision_payload: dict[str, Any] = {
+                "decision_id": decision_id,
+                "domain": self._domain,
+                "category": category,
+                "category_index": category_index,
+                "recommended_action": action,
+                "recommended_index": action_index,
+                "confidence": float(gae_result.confidence),
+                "probabilities": probabilities,
+                "factor_vector": factor_vector.tolist(),
+                "factor_names": list(self._preset.shape.factor_names),
+                "source": "compounding_scorer",
+                "scorer_version": "copilot_sdk.compounding_scorer.v1",
+                "preset_version": f"{self._preset.name}.v1",
+                "factor_schema_version": f"{self._preset.name}.factor_schema.v1",
+                "metadata": decision_metadata,
+                "_governed": True,
+            }
+            try:
+                governed_store.write_governed_decision(
+                    **{key: value for key, value in decision_payload.items() if key != "_governed"}
+                )
+            except Exception as exc:
+                self._record_persistence_failure(decision_id, "decision", decision_payload, exc)
         else:
-            stored_id = self._graph_store.write_decision(
-                self._domain,
-                category=category,
-                action=action,
-                confidence=float(gae_result.confidence),
-                factors=factor_values,
-                metadata=decision_metadata,
-            )
-            decision_id = stored_id
+            decision_payload = {
+                "decision_id": decision_id,
+                "domain": self._domain,
+                "category": category,
+                "action": action,
+                "confidence": float(gae_result.confidence),
+                "factors": factor_values,
+                "metadata": decision_metadata,
+            }
+            try:
+                stored_id = self._graph_store.write_decision(
+                    **{
+                        key: value
+                        for key, value in decision_payload.items()
+                        if key != "decision_id"
+                    }
+                )
+            except Exception as exc:
+                self._record_persistence_failure(decision_id, "decision", decision_payload, exc)
+            else:
+                decision_id = stored_id
 
         return ScoreResult(
             decision_id=decision_id,
@@ -546,6 +565,15 @@ class CompoundingScorer:
     def get_verified_count(self) -> int:
         """Return the current verified-decision count from the GraphStore."""
         return int(self._graph_store.count_verified_decisions(self._domain))
+
+    def domain_scoped_reset(self) -> None:
+        """Reset this scorer's domain and discard pending persistence replays."""
+        reset = getattr(self._graph_store, "domain_scoped_reset", None)
+        if not callable(reset):
+            raise AttributeError("graph store does not support domain_scoped_reset")
+        reset(self._domain)
+        if self._outbox is not None:
+            self._outbox.clear()
 
     def learn(
         self,
@@ -1855,6 +1883,7 @@ class CompoundingScorer:
         ledger = InMemoryEvolutionLedger(
             evolution_store=cast(EvolutionStore, self._graph_store),
             domain=self._domain,
+            outbox=self._outbox,
         )
         evolver = AgentEvolver(
             ledger=ledger,
@@ -1875,12 +1904,14 @@ class CompoundingScorer:
             if len(decisions) < 10:
                 return
             conservation_state = self._evolution_conservation_state()
+            decision_id = str(decisions[-1].get("decision_id")) if decisions[-1].get("decision_id") else None
             active_rules = self._evolver.get_active_rules()
             for rule_name in list(active_rules):
                 self._evolver.evolve(
                     rule_name,
                     decisions,
                     conservation_state=conservation_state,
+                    decision_id=decision_id,
                 )
         except Exception as exc:
             logger.warning("Evolution run failed: %s", exc)

@@ -342,7 +342,11 @@ def test_projection_count_matches_conformance_count(soc_projection_client):
         sys.path.insert(0, str(ci_platform_path))
     from ci_platform.graph import AGEGraphStoreAdapter  # noqa: PLC0415
 
-    projection = AGEProjection(soc_projection_client.dsn, soc_projection_client.graph_name, "soc")
+    projection = AGEProjection(
+        client=soc_projection_client,
+        graph_name=soc_projection_client.graph_name,
+        domain="soc",
+    )
     store = AGEGraphStoreAdapter(dsn=soc_projection_client.dsn, graph_name=soc_projection_client.graph_name)
     try:
         assert projection.count_verified() == store.count_verified("soc")

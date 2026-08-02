@@ -86,6 +86,9 @@ def _restore(store: Any, bundle: dict[str, Any], domain: str) -> bool | None:
                 )
                 rows_written += _rowcount(cursor)
             for decision, outcome in outcomes:
+                correctness = _coerce_correctness(outcome.get("is_correct"))
+                if correctness is None:
+                    continue
                 cursor = connection.execute(
                     """
                     INSERT OR REPLACE INTO outcomes (
@@ -96,6 +99,16 @@ def _restore(store: Any, bundle: dict[str, Any], domain: str) -> bool | None:
                     _outcome_values(decision, outcome, domain),
                 )
                 rows_written += _rowcount(cursor)
+                connection.execute(
+                    "UPDATE decisions SET status = ? WHERE decision_id = ? AND domain = ?",
+                    (
+                        (
+                            "confirmed" if correctness else "overridden"
+                        ),
+                        str(decision["decision_id"]),
+                        domain,
+                    ),
+                )
             for checkpoint in checkpoints:
                 cursor = connection.execute(
                     """
@@ -238,16 +251,37 @@ def _outcome_values(
 ) -> tuple[Any, ...]:
     actual_action = outcome.get("actual_action") or decision.get("recommended_action") or decision.get("action") or ""
     context = outcome.get("context", decision.get("context"))
-    is_correct = bool(outcome.get("is_correct", True))
+    is_correct = _coerce_correctness(outcome.get("is_correct"))
     return (
         str(decision["decision_id"]),
         domain,
         str(actual_action),
         int(outcome.get("actual_index", decision.get("recommended_index", 0))),
-        1 if is_correct else 0,
+        None if is_correct is None else (1 if is_correct else 0),
         float(outcome.get("verified_at", decision.get("verified_at", decision.get("created_at", time.time())))),
         _to_json(context) if context is not None else None,
     )
+
+
+def _coerce_correctness(value: Any) -> bool | None:
+    """Normalize bundle correctness without treating missing values as verified."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        if value == 1:
+            return True
+        if value == 0:
+            return False
+        return None
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1"}:
+            return True
+        if normalized in {"false", "0"}:
+            return False
+    return None
 
 
 def _checkpoint_values(

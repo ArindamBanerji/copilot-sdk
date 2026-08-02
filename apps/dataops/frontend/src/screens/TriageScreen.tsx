@@ -78,7 +78,8 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     recurrence: null,
     recommendation: null,
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(selectedAlertId));
+  const [loadedAlertId, setLoadedAlertId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [score, setScore] = useState<ScoreResponse | null>(null);
@@ -105,6 +106,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     }
 
     let cancelled = false;
+    setLoadedAlertId(null);
     setLoading(true);
     setError(null);
     setSelectedAction(null);
@@ -123,14 +125,15 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
 
     Promise.all([
       getAlert(selectedAlertId),
-      getAlertDeps(selectedAlertId),
-      getAlertFactors(selectedAlertId),
-      getAlertRecurrence(selectedAlertId),
-      getAeRecommendation(selectedAlertId),
+      getAlertDeps(selectedAlertId).catch(() => null),
+      getAlertFactors(selectedAlertId).catch(() => null),
+      getAlertRecurrence(selectedAlertId).catch(() => null),
+      getAeRecommendation(selectedAlertId).catch(() => null),
     ])
       .then(([detail, deps, factors, recurrence, recommendation]) => {
         if (!cancelled) {
           setData({ detail, deps, factors, recurrence, recommendation });
+          setLoadedAlertId(selectedAlertId);
         }
 
         const loadedAlert = detail.alert || null;
@@ -229,6 +232,11 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     [data.recommendation],
   );
   const applyFixReady = Boolean(selectedAlertId && score && rewardLine && APPLY_FIX_DEMO.conservationPreview.safe);
+  const dataReady =
+    Boolean(selectedAlertId) &&
+    !loading &&
+    loadedAlertId === selectedAlertId &&
+    data.detail?.alert != null;
 
   async function handleAction(action: string) {
     if (!alert?.category || !selectedAlertId) {
@@ -332,7 +340,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
   }
 
   return (
-    <div data-screen-ready="true" className="grid gap-4">
+    <div data-screen-ready={String(dataReady)} className="grid gap-4">
       <section className="copilot-card p-5">
         <div className="mb-4 flex items-center justify-between gap-4">
           <button type="button" className="copilot-button-secondary px-3 py-2 text-sm" onClick={onBack}>

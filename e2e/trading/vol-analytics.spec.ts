@@ -15,7 +15,7 @@ test("V1 risk-adjusted quality panel renders", async ({ page }) => {
   await gotoAnalysis(page);
   await expect(page.getByTestId("vol-sharpe-card")).toContainText(/Risk-Adjusted Decision Quality/i);
   await expect(page.getByTestId("vol-sharpe-card")).toContainText(/By market condition|Accumulating decisions/i);
-  await expect(page.getByTestId("vol-sharpe-card").getByText(/measured|accumulating/i)).toBeVisible();
+  await expect(page.getByTestId("vol-sharpe-card").getByText(/measured|accumulating/i).first()).toBeVisible();
 });
 
 test("V2 VRP attribution panel renders", async ({ page }) => {
@@ -38,7 +38,7 @@ test("V1 and V2 panels use decision-quality and volatility language", async ({ p
 
 test("volatility cards show provenance", async ({ page }) => {
   await gotoAnalysis(page);
-  await expect(page.getByTestId("vol-sharpe-card").getByText(/accumulating|measured/i)).toBeVisible();
+  await expect(page.getByTestId("vol-sharpe-card").getByText(/accumulating|measured/i).first()).toBeVisible();
   await expect(page.getByTestId("vrp-attribution-card").getByText(/accumulating|measured|instrument validated/i).first()).toBeVisible();
 });
 

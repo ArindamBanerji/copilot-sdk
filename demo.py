@@ -111,6 +111,7 @@ def _build_graph_env(domain: str, dsn: str) -> dict[str, str]:
         "AGE_GRAPH_NAME": "soc_graph",
         "GRAPH_DOMAIN": domain,
         "DEMO_MODE": "1",
+        "DATAOPS_DEMO_MODE": "1",
     }
     if domain != "soc":
         prefix = domain.upper()

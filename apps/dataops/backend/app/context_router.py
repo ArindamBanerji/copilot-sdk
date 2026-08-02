@@ -820,12 +820,14 @@ async def alerts() -> dict[str, Any]:
 
 
 @router.get("/alert-groups")
-def alert_groups() -> dict[str, Any]:
-    pipelines_payload = _load_json(DATA_DIR / "fallback" / "pipelines.json", {})
-    alerts_payload = _load_json(DATA_DIR / "fallback" / "alerts.json", {})
+async def alert_groups() -> dict[str, Any]:
+    graph = _graph_client()
+    pipelines_payload = await graph.get_pipelines()
+    alerts_payload = await graph.get_alerts()
     raw_pipelines = pipelines_payload.get("pipelines", []) if isinstance(pipelines_payload, dict) else []
     raw_alerts = alerts_payload.get("alerts", []) if isinstance(alerts_payload, dict) else []
-    raw_alerts = _inject_alert_runtime_fields([alert for alert in raw_alerts if isinstance(alert, dict)])
+    if alerts_payload.get("source") == "fixture" and isinstance(raw_alerts, list):
+        raw_alerts = _inject_alert_runtime_fields([alert for alert in raw_alerts if isinstance(alert, dict)])
 
     pipelines = {
         str(pipeline.get("name")): pipeline

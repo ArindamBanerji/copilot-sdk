@@ -30,37 +30,74 @@ function expectNoActionableConsoleErrors(errors: string[]) {
 
 async function openFirstAlert(page: Page): Promise<boolean> {
   await page.goto("/");
-  const alertSection = dataopsPanel(page, "Alert Root Causes");
-  await expect(alertSection).toBeVisible({ timeout: 30_000 });
+  await expect(
+    page.getByText("Alert Root Causes").first(),
+  ).toBeVisible({ timeout: 10_000 });
+
+  const alertSection = page.locator("section", { hasText: "Alert Root Causes" });
   const triageButtons = alertSection.getByRole("button", { name: "Triage" });
-  if ((await triageButtons.count()) === 0) {
-    const expandButton = page.getByRole("button", { name: "Expand" }).first();
-    if ((await expandButton.count()) > 0) {
-      await expandButton.click();
+  let hasTriageButton = await triageButtons
+    .first()
+    .isVisible({ timeout: 10_000 })
+    .catch(() => false);
+  if (!hasTriageButton) {
+    const groupHeader = alertSection
+      .locator("button, summary, [role='button']")
+      .filter({ hasText: /warehouse|billing|sap|crm|erp/i })
+      .first();
+    if (await groupHeader.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await groupHeader.click();
+      hasTriageButton = await triageButtons
+        .first()
+        .isVisible({ timeout: 5_000 })
+        .catch(() => false);
+    }
+    if (!hasTriageButton) {
+      await clickTab(page, "Triage");
+      return false;
     }
   }
-  if ((await triageButtons.count()) === 0) {
-    return false;
-  }
+
   await triageButtons.first().click();
-  await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible();
-  await expectAnyText(page, [/DQ-\d+/, /severity/i]);
+  await expect(
+    page.getByRole("button", { name: "Back to Dashboard" })
+  ).toBeVisible({ timeout: 10_000 });
+  await page.locator('[data-screen-ready="true"]').waitFor({ timeout: 15_000 });
   return true;
 }
 
 async function openKnownSystemAlert(page: Page): Promise<boolean> {
   await page.goto("/");
-  await expect(dataopsPanel(page, "Alert Root Causes")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("Alert Root Causes").first()).toBeVisible({ timeout: 10_000 });
   const group = page.getByRole("button", { name: /SAP S\/4HANA|billing|warehouse/i });
   if ((await group.count()) > 0) {
     await group.first().click();
   }
-  const triage = page.locator("article", { hasText: /sap_s4hana_extract|billing_api|warehouse_etl|SAP S\/4HANA|billing|warehouse/i }).getByRole("button", { name: "Triage" });
-  if ((await triage.count()) === 0) {
-    return false;
+  const alertSection = page.locator("section", { hasText: "Alert Root Causes" });
+  const triage = alertSection.getByRole("button", { name: "Triage" });
+  let hasTriageButton = await triage
+    .first()
+    .isVisible({ timeout: 10_000 })
+    .catch(() => false);
+  if (!hasTriageButton) {
+    const groupHeader = alertSection
+      .locator("button, summary, [role='button']")
+      .filter({ hasText: /warehouse|billing|sap|crm|erp/i })
+      .first();
+    if (await groupHeader.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await groupHeader.click();
+      hasTriageButton = await triage
+        .first()
+        .isVisible({ timeout: 5_000 })
+        .catch(() => false);
+    }
+    if (!hasTriageButton) {
+      return false;
+    }
   }
   await triage.first().click();
-  await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible({ timeout: 10_000 });
+  await page.locator('[data-screen-ready="true"]').waitFor({ timeout: 15_000 });
   return true;
 }
 

@@ -70,7 +70,7 @@ test("alert groups show counts and multiple systems", async ({ page }) => {
   const alerts = dashboardPanel(page, "Alert Root Causes");
   await expect(alerts).toBeVisible();
   await expect(alerts.getByText(/\d+\s+alert|\d+\s+root causes/i).first()).toBeVisible();
-  await expect(alerts.getByText(/SAP MM|SAP FI|Celonis P2P|QMS Pirelli|Warehouse WMS|BI Analytics|Logistics DHL|Supplier Portal|MES Production/i).first()).toBeVisible();
+  await expect(alerts.getByText(/warehouse_etl|billing_api|crm_sync|erp_export|hr_feed|payment_gateway|inventory_feed|marketing_db|iot_sensors/i).first()).toBeVisible();
 });
 
 test("IKS value visible and numeric", async ({ page }) => {

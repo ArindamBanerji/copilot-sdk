@@ -827,6 +827,7 @@ class InMemoryGraphStore:
         shadow_batch_size: int | None = None,
         min_shadow_batches: int | None = None,
         metadata: dict[str, Any] | None = None,
+        decision_id: str | None = None,
     ) -> None:
         event_id = str(event_id)
         event_payload = {
@@ -846,6 +847,7 @@ class InMemoryGraphStore:
         if existing is not None:
             existing_payload = {key: existing[key] for key in event_payload}
             if existing_payload == event_payload:
+                self._link_evolution_decision(decision_id, event_id, str(domain))
                 return None
             raise ValueError(f"conflicting evolution event_id: {event_id}")
         self._protocol_evolution_events[event_id] = {
@@ -868,7 +870,35 @@ class InMemoryGraphStore:
                 "min_shadow_batches": event_payload["min_shadow_batches"],
             }
         )
+        self._link_evolution_decision(decision_id, event_id, str(domain))
         return None
+
+    def _link_evolution_decision(
+        self,
+        decision_id: str | None,
+        event_id: str,
+        domain: str,
+    ) -> None:
+        if decision_id is None:
+            return
+        decision = self._decisions.get(str(decision_id))
+        if decision is None or decision.get("domain") != domain:
+            return
+        edge = {
+            "domain": domain,
+            "decision_id": str(decision_id),
+            "event_id": str(event_id),
+            "edge_type": "TRIGGERED_EVOLUTION",
+            "created_at": time.time(),
+        }
+        if not any(
+            existing.get("edge_type") == edge["edge_type"]
+            and existing.get("decision_id") == edge["decision_id"]
+            and existing.get("event_id") == edge["event_id"]
+            and existing.get("domain") == domain
+            for existing in self._edges
+        ):
+            self._edges.append(edge)
 
     def write_transfer_pattern(
         self,
@@ -1096,6 +1126,8 @@ class InMemoryGraphStore:
         for decision in self._ordered_decisions():
             if decision.get("domain") != domain:
                 continue
+            if decision.get("status") not in {"confirmed", "overridden"}:
+                continue
             outcome = self._outcomes.get(decision["decision_id"])
             if outcome is None:
                 continue
@@ -1112,24 +1144,25 @@ class InMemoryGraphStore:
         return deepcopy(verified)
 
     def count_verified(self, domain: str) -> int:
-        return len(self.get_verified_decisions(domain))
+        return self.count_verified_decisions(domain)
 
     def count_verified_decisions(self, domain: str) -> int:
         return sum(
             1
             for decision in self._decisions.values()
             if decision.get("domain") == domain
-            and (
-                decision.get("status") in {"confirmed", "overridden"}
-                or decision.get("decision_id") in self._outcomes
-            )
+            and decision.get("status") in {"confirmed", "overridden"}
         )
 
     def count_correct(self, domain: str) -> int:
         return sum(
             1
             for decision in self._decisions.values()
-            if decision.get("domain") == domain and decision.get("correct") is True
+            if (
+                decision.get("domain") == domain
+                and decision.get("status") in {"confirmed", "overridden"}
+                and decision.get("correct") is True
+            )
         )
 
     def count_decisions(self, domain: str) -> int:
@@ -1137,13 +1170,10 @@ class InMemoryGraphStore:
 
     def count_categories_with_n(self, domain: str, n: int) -> int:
         counts: dict[str, int] = {}
-        for decision_id, decision in self._decisions.items():
+        for decision in self._decisions.values():
             if decision.get("domain") != domain:
                 continue
-            if not (
-                decision.get("status") in {"confirmed", "overridden"}
-                or decision_id in self._outcomes
-            ):
+            if decision.get("status") not in {"confirmed", "overridden"}:
                 continue
             category = str(decision.get("category") or "")
             counts[category] = counts.get(category, 0) + 1

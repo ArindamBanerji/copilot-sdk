@@ -1,0 +1,2244 @@
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+INFO:     Started server process [21784]
+INFO:     Waiting for application startup.
+Persistence failed: domain=dataops decision=capture:startup_restore artifact=centroid_checkpoint error=ValueError: conflicting checkpoint_id: dataops:checkpoint:9019e3ece7c8aac39a8cf9e02077d354
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8030 (Press CTRL+C to quit)
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_utils.py", line 77, in collapse_excgroups
+  |     yield
+  |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 783, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 416, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "C:\Program Files\Python311\Lib\contextlib.py", line 155, in __exit__
+    |     self.gen.throw(typ, value, traceback)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_utils.py", line 83, in collapse_excgroups
+    |     raise exc
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\main.py", line 678, in direct_testclient_autoseed
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\cors.py", line 93, in __call__
+    |     await self.simple_response(scope, receive, send, request_headers=headers)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\cors.py", line 144, in simple_response
+    |     await self.app(scope, receive, send)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_exception_handler.py", line 62, in wrapped_app
+    |     raise exc
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_exception_handler.py", line 51, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_exception_handler.py", line 62, in wrapped_app
+    |     raise exc
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_exception_handler.py", line 51, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\fastapi\routing.py", line 301, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\context_router.py", line 815, in alerts
+    |     payload = await _graph_client().get_alerts()
+    |                     ^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\context_router.py", line 77, in _graph_client
+    |     return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\graph_queries.py", line 114, in __init__
+    |     active_config = _load_topology_config()
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\graph_queries.py", line 65, in _load_topology_config
+    |     return GraphConfig.load("dataops", profile=profile)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\copilot_sdk\config\graph_config.py", line 183, in load
+    |     config.validate(profile=profile)
+    |   File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\copilot_sdk\config\graph_config.py", line 263, in validate
+    |     raise GraphConfigError(f"missing AGE DSN for domain '{self.domain}'")
+    | copilot_sdk.config.graph_config.GraphConfigError: missing AGE DSN for domain 'dataops'
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 416, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "C:\Program Files\Python311\Lib\contextlib.py", line 155, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_utils.py", line 83, in collapse_excgroups
+    raise exc
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\main.py", line 678, in direct_testclient_autoseed
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_exception_handler.py", line 62, in wrapped_app
+    raise exc
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_exception_handler.py", line 51, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_exception_handler.py", line 62, in wrapped_app
+    raise exc
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\_exception_handler.py", line 51, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\context_router.py", line 815, in alerts
+    payload = await _graph_client().get_alerts()
+                    ^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\context_router.py", line 77, in _graph_client
+    return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\graph_queries.py", line 114, in __init__
+    active_config = _load_topology_config()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\apps\dataops\backend\app\graph_queries.py", line 65, in _load_topology_config
+    return GraphConfig.load("dataops", profile=profile)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\copilot_sdk\config\graph_config.py", line 183, in load
+    config.validate(profile=profile)
+  File "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk\copilot_sdk\config\graph_config.py", line 263, in validate
+    raise GraphConfigError(f"missing AGE DSN for domain '{self.domain}'")
+copilot_sdk.config.graph_config.GraphConfigError: missing AGE DSN for domain 'dataops'
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Celonis health check failed; using cache fallback: Celonis live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\Python311\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+SAP live fetch failed for /API_PURCHASEORDER_PROCESS_SRV/A_PurchaseOrder; using sap_purchase_orders.json: SAP live connection is not configured
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+graph config collision field=dsn file=<empty> env=<redacted> winner=env

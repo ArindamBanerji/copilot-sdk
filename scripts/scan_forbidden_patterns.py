@@ -29,6 +29,13 @@ EXCLUDED_DIRECTORIES = {
     "gen-ai-roi-demo-v2", "gen-ai-roi-demo-v3", "gen-ai-roi-demo-v3.2",
     "gen-ai-roi-demo", "gen-ai-roi-demo-v4", "gen-ai-roi-demo-v4-v45", "gen_ai_roi_demo_temp",
 }
+ACTIVE_SCAN_REPOSITORIES = (
+    "copilot-sdk",
+    "ci-platform",
+    "gen-ai-roi-demo-v4-v50",
+    "s2p-copilot",
+    "graph-attention-engine-v50",
+)
 SCRIPT_DIRECTORY_NAMES = {"scripts", "support"}
 PRODUCTION_PATH_PARTS = {"app", "copilot_sdk", "ci_platform", "gae"}
 
@@ -55,6 +62,15 @@ PATTERN_RULES = (
     ),
 )
 DECISION_MATCH = re.compile(r"\bMATCH\s*\(\s*[A-Za-z_]\w*\s*:\s*Decision\b", re.IGNORECASE)
+READ_MODEL_CYPHER_MUTATION = re.compile(
+    r"(?:\bSET\s+d\s*\.\s*(?:correct|status)\s*=|"
+    r"(?:f|r|fr|rf)?['\"]d\s*\.\s*(?:correct|status)\s*=)",
+    re.IGNORECASE,
+)
+READ_MODEL_PYTHON_MUTATION = re.compile(
+    r"\bd\s*\[\s*['\"](?:correct|status)['\"]\s*\]\s*=",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -163,11 +179,18 @@ def resolve_scan_root(repo: str | None) -> Path:
 
 
 def iter_python_files(scan_root: Path) -> Iterable[Path]:
-    for directory, subdirectories, filenames in os.walk(scan_root):
-        subdirectories[:] = [name for name in subdirectories if name not in EXCLUDED_DIRECTORIES]
-        for filename in filenames:
-            if filename.endswith(".py"):
-                yield Path(directory) / filename
+    if scan_root.resolve() == WORKSPACE_ROOT.resolve():
+        roots = [WORKSPACE_ROOT / name for name in ACTIVE_SCAN_REPOSITORIES]
+    else:
+        roots = [scan_root]
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for directory, subdirectories, filenames in os.walk(root):
+            subdirectories[:] = [name for name in subdirectories if name not in EXCLUDED_DIRECTORIES]
+            for filename in filenames:
+                if filename.endswith(".py"):
+                    yield Path(directory) / filename
 
 
 def normalized_path(path: Path) -> str:
@@ -599,14 +622,68 @@ def scan_unscoped_decision_queries(
     return findings
 
 
+def enclosing_function_name(source: str, line: int) -> str | None:
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return None
+    candidates = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.lineno <= line <= (node.end_lineno or node.lineno)
+    ]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda node: node.lineno).name
+
+
+def scan_read_model_mutations(
+    path: Path,
+    source: str,
+    allowlist: dict[str, AllowlistRule],
+) -> list[Finding]:
+    findings: list[Finding] = []
+    base_category = classify_path(path)
+    code_source = code_only_source(source)
+    for line, text in enumerate(source.splitlines(), start=1):
+        code_text = source_line(code_source, line)
+        if text.lstrip().startswith("#") or not (
+            READ_MODEL_CYPHER_MUTATION.search(text)
+            or READ_MODEL_PYTHON_MUTATION.search(text)
+            or READ_MODEL_PYTHON_MUTATION.search(code_text)
+        ):
+            continue
+        reason = allowlist_match(path, "correctness_read_model_write", line, text, allowlist)
+        allowed_writer = (
+            path_matches(path, "ci-platform/ci_platform/graph/age_graph_store.py")
+            and enclosing_function_name(source, line) == "write_outcome"
+            and reason is not None
+        )
+        category = "ALLOWLISTED" if allowed_writer else base_category
+        findings.append(
+            Finding(
+                path,
+                line,
+                "property-scoped Decision read-model mutation",
+                text,
+                category,
+                reason or "" if allowed_writer else "",
+            )
+        )
+    return findings
+
+
 def scan_file(
     path: Path,
     allowlist: dict[str, AllowlistRule],
     context_lines: int,
 ) -> list[Finding]:
     source = read_source(path)
-    return scan_pattern_rules(path, source, allowlist) + scan_unscoped_decision_queries(
-        path, source, allowlist, context_lines
+    return (
+        scan_pattern_rules(path, source, allowlist)
+        + scan_unscoped_decision_queries(path, source, allowlist, context_lines)
+        + scan_read_model_mutations(path, source, allowlist)
     )
 
 

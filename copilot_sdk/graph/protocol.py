@@ -293,6 +293,7 @@ class ProtocolV2GraphStore(GraphStore, Protocol):
         shadow_batch_size: int | None = None,
         min_shadow_batches: int | None = None,
         metadata: dict[str, Any] | None = None,
+        decision_id: str | None = None,
     ) -> None:
         ...
 

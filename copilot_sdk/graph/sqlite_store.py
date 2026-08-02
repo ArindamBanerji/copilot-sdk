@@ -516,6 +516,7 @@ class SQLiteGraphStore:
                 event_type TEXT NOT NULL,
                 rule_name TEXT NOT NULL,
                 variant_id TEXT NOT NULL,
+                decision_id TEXT,
                 source_copilot TEXT,
                 source_rule TEXT,
                 metric REAL,
@@ -910,6 +911,8 @@ class SQLiteGraphStore:
         columns = self._columns("evolution_events")
         if "event_id" not in columns:
             self.connection.execute("ALTER TABLE evolution_events ADD COLUMN event_id TEXT")
+        if "decision_id" not in columns:
+            self.connection.execute("ALTER TABLE evolution_events ADD COLUMN decision_id TEXT")
         if "source_copilot" not in columns:
             self.connection.execute("ALTER TABLE evolution_events ADD COLUMN source_copilot TEXT")
         if "source_rule" not in columns:
@@ -1872,6 +1875,7 @@ class SQLiteGraphStore:
         shadow_batch_size: int | None = None,
         min_shadow_batches: int | None = None,
         metadata: dict[str, Any] | None = None,
+        decision_id: str | None = None,
     ) -> None:
         event_payload = {
             "event_id": str(event_id),
@@ -1890,7 +1894,8 @@ class SQLiteGraphStore:
         def persist() -> None:
             existing = self.connection.execute(
                 """
-                SELECT event_id, domain, event_type, rule_name, variant_id,
+                    SELECT event_id, domain, event_type, rule_name, variant_id,
+                           decision_id,
                        source_copilot, source_rule, metric, shadow_batch_size,
                        min_shadow_batches, metadata_json
                 FROM evolution_events
@@ -1921,17 +1926,27 @@ class SQLiteGraphStore:
                     "metadata_json": existing["metadata_json"],
                 }
                 if existing_payload == event_payload:
+                    if decision_id is not None and existing["decision_id"] is None:
+                        decision = self.connection.execute(
+                            "SELECT domain FROM decisions WHERE decision_id = ?",
+                            (str(decision_id),),
+                        ).fetchone()
+                        if decision is not None and str(decision["domain"]) == event_payload["domain"]:
+                            self.connection.execute(
+                                "UPDATE evolution_events SET decision_id = ? WHERE event_id = ? AND domain = ?",
+                                (str(decision_id), event_payload["event_id"], event_payload["domain"]),
+                            )
                     return None
                 raise ValueError(f"conflicting evolution event_id: {event_payload['event_id']}")
             created_at = time.time()
             self.connection.execute(
                 """
                 INSERT INTO evolution_events (
-                    event_id, domain, event_type, rule_name, variant_id,
+                    event_id, domain, event_type, rule_name, variant_id, decision_id,
                     source_copilot, source_rule, metric, shadow_batch_size,
                     min_shadow_batches, metadata_json, created_at, metadata,
                     timestamp
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     event_payload["event_id"],
@@ -1939,6 +1954,9 @@ class SQLiteGraphStore:
                     event_payload["event_type"],
                     event_payload["rule_name"],
                     event_payload["variant_id"],
+                    self._matching_evolution_decision_id(
+                        decision_id, str(event_payload["domain"])
+                    ),
                     event_payload["source_copilot"],
                     event_payload["source_rule"],
                     event_payload["metric"],
@@ -1954,6 +1972,17 @@ class SQLiteGraphStore:
 
         self._run_write(persist)
         return None
+
+    def _matching_evolution_decision_id(self, decision_id: str | None, domain: str) -> str | None:
+        if decision_id is None:
+            return None
+        row = self.connection.execute(
+            "SELECT domain FROM decisions WHERE decision_id = ?",
+            (str(decision_id),),
+        ).fetchone()
+        if row is None or str(row["domain"]) != domain:
+            return None
+        return str(decision_id)
 
     def link_entity(
         self,
@@ -2203,6 +2232,7 @@ class SQLiteGraphStore:
             FROM decisions d
             INNER JOIN outcomes o ON d.decision_id = o.decision_id
             WHERE d.domain = ?
+              AND d.status IN ('confirmed', 'overridden')
             ORDER BY d.created_at ASC, d.decision_id ASC
             """,
             (str(domain),),
@@ -2217,16 +2247,7 @@ class SQLiteGraphStore:
         return int(row["n"])
 
     def count_verified(self, domain: str) -> int:
-        row = self.connection.execute(
-            """
-            SELECT COUNT(*) AS n
-            FROM outcomes o
-            INNER JOIN decisions d ON d.decision_id = o.decision_id
-            WHERE d.domain = ?
-            """,
-            (str(domain),),
-        ).fetchone()
-        return int(row["n"])
+        return self.count_verified_decisions(domain)
 
     def count_verified_decisions(self, domain: str) -> int:
         row = self.connection.execute(
@@ -2247,7 +2268,9 @@ class SQLiteGraphStore:
             """
             SELECT COUNT(*) AS n
             FROM decisions
-            WHERE domain = ? AND correct = 1
+            WHERE domain = ?
+              AND status IN ('confirmed', 'overridden')
+              AND correct = 1
             """,
             (str(domain),),
         ).fetchone()
@@ -3142,10 +3165,7 @@ class SQLiteGraphStore:
             FROM decisions d
             LEFT JOIN outcomes o ON d.decision_id = o.decision_id
             WHERE d.domain = ?
-              AND (
-                  d.status IN ('confirmed', 'overridden')
-                  OR o.decision_id IS NOT NULL
-              )
+              AND d.status IN ('confirmed', 'overridden')
             GROUP BY d.category
             HAVING cnt >= ?
             """,

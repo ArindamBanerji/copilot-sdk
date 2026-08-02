@@ -46,7 +46,7 @@ class EvolutionRule(Protocol):
 
 @runtime_checkable
 class EvolutionLedger(Protocol):
-    def append(self, event: EvolutionEvent) -> None:
+    def append(self, event: EvolutionEvent, *, decision_id: str | None = None) -> None:
         ...
 
     def get_events(

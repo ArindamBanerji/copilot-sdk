@@ -188,8 +188,36 @@ class PersistenceOutbox:
             graph_store.append_evidence_receipt(**payload)
         elif artifact_type == "centroid_checkpoint":
             graph_store.write_centroid_checkpoint(**payload)
+        elif artifact_type == "decision":
+            replay_payload = dict(payload)
+            governed = bool(replay_payload.pop("_governed", False))
+            if governed:
+                graph_store.write_governed_decision(**replay_payload)
+            else:
+                replayed_decision_id = str(replay_payload.pop("decision_id", decision_id))
+                metadata = dict(replay_payload.get("metadata") or {})
+                metadata["decision_id"] = replayed_decision_id
+                replay_payload["metadata"] = metadata
+                graph_store.write_decision(**replay_payload)
+        elif artifact_type == "evolution":
+            if hasattr(graph_store, "write_evolution_event"):
+                graph_store.write_evolution_event(**payload)
+            else:
+                payload.pop("event_id", None)
+                graph_store.save_evolution_event(**payload)
         else:
             raise ValueError(f"unsupported artifact type: {artifact_type}")
+
+    def clear(self) -> None:
+        """Remove pending or failed records for this domain without deleting the DB."""
+        with self._connection() as connection:
+            connection.execute(
+                """
+                DELETE FROM failed_artifacts
+                WHERE domain = ? AND status IN ('pending', 'failed')
+                """,
+                (self.domain,),
+            )
 
     def pending_count(self) -> int:
         with self._connection() as connection:

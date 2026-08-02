@@ -2,6 +2,15 @@
 
 The default mode is read-only.  Use ``--apply`` to set ``Decision.correct``
 for existing SDK outcomes whose decision has no derived correctness value.
+
+TIMING NOTE: This backfill must run after a copilot's rows land in AGE
+(post-migration), not as a one-time standalone. Each copilot migration step
+should include a backfill gate: (1) migrate copilot rows to AGE, (2) run the
+backfill for that domain, (3) assert the backfill count is non-zero so rows
+were fixed, and (4) only then trust ``count_correct`` for that domain.
+Running the backfill before migration produces zero rows and silently no-ops;
+freshly migrated rows can then arrive with ``Decision.correct`` NULL and the
+undercount reappears.
 """
 
 from __future__ import annotations
@@ -47,14 +56,35 @@ def _backfill_query(domain: str) -> str:
     quoted_domain = _literal(domain)
     return f"""
         MATCH (d:Decision)-[:HAS_OUTCOME]->(o:Outcome)
-        WHERE d.domain = {quoted_domain} AND d.correct IS NULL
+        WHERE d.domain = {quoted_domain}
+          AND d.correct IS NULL
+          AND (
+              o.is_correct = true OR o.is_correct = 1 OR o.is_correct = 'true'
+              OR o.is_correct = false OR o.is_correct = 0 OR o.is_correct = 'false'
+          )
         SET d.correct = CASE
             WHEN o.is_correct = true THEN true
             WHEN o.is_correct = 1 THEN true
             WHEN o.is_correct = 'true' THEN true
-            ELSE false
+            WHEN o.is_correct = false THEN false
+            WHEN o.is_correct = 0 THEN false
+            WHEN o.is_correct = 'false' THEN false
         END
-        RETURN count(d) AS backfilled
+        RETURN count(DISTINCT d) AS backfilled
+        """
+
+
+def _unclassifiable_query(domain: str) -> str:
+    quoted_domain = _literal(domain)
+    return f"""
+        MATCH (d:Decision)-[:HAS_OUTCOME]->(o:Outcome)
+        WHERE d.domain = {quoted_domain}
+          AND d.correct IS NULL
+          AND NOT (
+              o.is_correct = true OR o.is_correct = 1 OR o.is_correct = 'true'
+              OR o.is_correct = false OR o.is_correct = 0 OR o.is_correct = 'false'
+          )
+        RETURN count(DISTINCT d) AS unclassifiable
         """
 
 
@@ -71,6 +101,7 @@ def run_backfill(
     graph_name: str,
     *,
     apply: bool = False,
+    force: bool = False,
     domains: Sequence[str] = SDK_DOMAINS,
 ) -> dict[str, int]:
     """Report or apply correctness read-model backfills by domain."""
@@ -83,6 +114,24 @@ def run_backfill(
         raise ValueError("soc is already authoritative and is read-only for this backfill")
 
     report: dict[str, int] = {}
+    unclassifiable_total = 0
+    for domain in selected:
+        rows = _cypher(
+            connection,
+            graph_name,
+            _unclassifiable_query(domain),
+            "unclassifiable agtype",
+        )
+        unclassifiable = int(rows[0][0]) if rows else 0
+        report[f"{domain}_unclassifiable"] = unclassifiable
+        unclassifiable_total += unclassifiable
+
+    if apply and unclassifiable_total and not force:
+        raise ValueError(
+            f"Found {unclassifiable_total} decisions with unclassifiable is_correct values. "
+            "Fix the source data first."
+        )
+
     for domain in selected:
         query = _backfill_query(domain) if apply else _dry_run_query(domain)
         column = "backfilled agtype" if apply else "pending agtype"
@@ -101,9 +150,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--domain", "--domains", action="append", dest="domains")
     parser.add_argument("--dry-run", action="store_true", help="report only; this is the default")
     parser.add_argument("--apply", action="store_true", help="update Decision.correct")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="apply classifiable values while leaving unclassifiable values NULL",
+    )
     args = parser.parse_args(argv)
     if args.dry_run and args.apply:
         parser.error("--dry-run and --apply are mutually exclusive")
+    if args.force and not args.apply:
+        parser.error("--force requires --apply")
     if not args.age_dsn:
         parser.error("--age-dsn or AGE_DSN/GRAPH_DSN is required")
 
@@ -116,6 +172,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             connection,
             args.graph_name,
             apply=args.apply,
+            force=args.force,
             domains=domains,
         )
     finally:

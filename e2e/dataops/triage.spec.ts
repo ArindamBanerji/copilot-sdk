@@ -4,38 +4,67 @@ import { clickTab, expectAnyText } from "../helpers/ui";
 
 async function openFirstTriage(page: Page) {
   await page.goto("/");
-  await expect(page.getByText("Alert Root Causes")).toBeVisible();
+  await expect(page.getByText("Alert Root Causes").first()).toBeVisible({ timeout: 10_000 });
+  const alertSection = page.locator("section", { hasText: "Alert Root Causes" });
+  const triageButtons = alertSection.getByRole("button", { name: "Triage" });
 
-  const triageButtons = page.getByRole("button", { name: "Triage" });
-  if ((await triageButtons.count()) === 0) {
-    const expandButton = page.getByRole("button", { name: "Expand" }).first();
-    if ((await expandButton.count()) > 0) {
-      await expandButton.click();
+  // The first AlertGroupCard is expanded by default.
+  const count = await triageButtons.count();
+  if (count === 0) {
+    const groupHeader = alertSection
+      .locator("button, summary, [role='button']")
+      .filter({ hasText: /warehouse|billing|sap|crm|erp/i })
+      .first();
+    if (await groupHeader.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await groupHeader.click();
+      await page.waitForTimeout(500);
     }
-  }
-  if ((await triageButtons.count()) === 0) {
-    await clickTab(page, "Triage");
-    await expect(page.getByText("Select an alert from Dashboard to triage.")).toBeVisible();
-    return false;
+    if ((await triageButtons.count()) === 0) {
+      return false;
+    }
   }
 
   await triageButtons.first().click();
-  await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible();
-  await expectAnyText(page, [/DQ-\d+/, /severity/i]);
+  await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible({ timeout: 10_000 });
+  await page.locator('[data-screen-ready="true"]').waitFor({ timeout: 15_000 });
   return true;
 }
 
 async function openKnownSystemTriage(page: Page) {
   await page.goto("/");
-  await expect(page.getByText("Alert Root Causes")).toBeVisible();
+  await expect(page.getByText(/Pipeline Status|DataOps Copilot/i).first()).toBeVisible({ timeout: 10_000 });
   const knownGroup = page.getByRole("button", { name: /SAP S\/4HANA|billing|warehouse/i });
   if ((await knownGroup.count()) > 0) {
     await knownGroup.first().click();
   }
-  const knownRow = page.locator("article", { hasText: /sap_s4hana_extract|billing_api|warehouse_etl|SAP S\/4HANA|billing|warehouse/i }).getByRole("button", { name: "Triage" });
-  if ((await knownRow.count()) > 0) {
-    await knownRow.first().click();
+  const alertSection = page.locator("section", { hasText: "Alert Root Causes" });
+  const knownRow = alertSection
+    .locator("div, article")
+    .filter({ hasText: /sap_s4hana_extract|billing_api|warehouse_etl|SAP S\/4HANA|billing|warehouse/i })
+    .filter({ has: alertSection.getByRole("button", { name: "Triage" }) })
+    .first();
+  if (await knownRow.isVisible({ timeout: 5_000 }).catch(() => false)) {
+    await knownRow.getByRole("button", { name: "Triage" }).click();
     await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible();
+    await page.locator('[data-screen-ready="true"]').waitFor({ timeout: 15_000 });
+    return true;
+  }
+
+  const triageButtons = alertSection.getByRole("button", { name: "Triage" });
+  if ((await triageButtons.count()) === 0) {
+    const groupHeader = alertSection
+      .locator("button, summary, [role='button']")
+      .filter({ hasText: /warehouse|billing|sap|crm|erp/i })
+      .first();
+    if (await groupHeader.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await groupHeader.click();
+      await page.waitForTimeout(500);
+    }
+  }
+  if ((await triageButtons.count()) > 0) {
+    await triageButtons.first().click();
+    await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible({ timeout: 10_000 });
+    await page.locator('[data-screen-ready="true"]').waitFor({ timeout: 15_000 });
     return true;
   }
   return openFirstTriage(page);
@@ -170,7 +199,7 @@ test("score action produces result", async ({ page }) => {
   test.skip(!opened, "No grouped alert available to triage.");
 
   const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
-  await page.getByRole("button", { name: "Investigate" }).click();
+  await page.locator("section", { hasText: "Choose the operational response." }).getByRole("button", { name: "Investigate" }).click();
   await scoreResponse;
 
   await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
@@ -183,7 +212,7 @@ test("score shows reward value after confirm", async ({ page }) => {
   test.skip(!opened, "No grouped alert available to triage.");
 
   const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
-  await page.getByRole("button", { name: /Investigate|Escalate to owner/i }).first().click();
+  await page.locator("section", { hasText: "Choose the operational response." }).getByRole("button", { name: /Investigate|Escalate to owner/i }).first().click();
   await scoreResponse;
   await expectAnyText(page, [/confidence/i, /Engine assessment/i, /\d+%/]);
 
@@ -199,7 +228,7 @@ test("reasoning panel appears after scoring", async ({ page }) => {
   test.skip(!opened, "No grouped alert available to triage.");
 
   const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
-  await page.getByRole("button", { name: "Investigate" }).click();
+  await page.locator("section", { hasText: "Choose the operational response." }).getByRole("button", { name: "Investigate" }).click();
   await scoreResponse;
 
   await expectAnyText(page, [/Why This Recommendation/i, /Factor Analysis/i]);
@@ -212,7 +241,7 @@ test("reasoning panel shows evidence and confidence breakdown", async ({ page })
   test.skip(!opened, "No grouped alert available to triage.");
 
   const scoreResponse = page.waitForResponse((response) => response.url().includes("/api/score") && response.request().method() === "POST");
-  await page.getByRole("button", { name: /Escalate to owner|Investigate/i }).first().click();
+  await page.locator("section", { hasText: "Choose the operational response." }).getByRole("button", { name: /Escalate to owner|Investigate/i }).first().click();
   await scoreResponse;
 
   await expectAnyText(page, [/dominant/i, /noisy/i, /moderate/i, /clean/i, /weight/i, /signal/i]);

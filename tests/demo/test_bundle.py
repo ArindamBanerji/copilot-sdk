@@ -255,6 +255,19 @@ def test_unverified_decisions_have_no_outcomes(tmp_path):
         store.close()
 
 
+def test_bundle_restore_none_correctness_stays_pending(tmp_path):
+    store = _store(tmp_path)
+    decision = {**_bundle()["decisions"][0], "verified": True, "is_correct": None}
+    data = _bundle(decisions=[decision])
+    try:
+        assert restore_bundle_if_empty(store, _write_bundle(tmp_path, data), domain=DOMAIN) is True
+        restored = store.get_all_decisions(DOMAIN)[0]
+        assert restored["status"] == "pending"
+        assert restored["correct"] is None
+    finally:
+        store.close()
+
+
 def test_empty_noop_bundle_returns_false(tmp_path):
     store = _store(tmp_path)
     data = {

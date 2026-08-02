@@ -20,7 +20,7 @@ files = [
 ]
 lines = [
   { path = "copilot_sdk/scoring/scorer.py", line = 234, reason = "development-only SQLite fallback; production rejects at :235-240" },
-  { path = "copilot-sdk/copilot_sdk/scoring/scorer.py", line = 254, reason = "intentional SQLite fallback for non-AGE test/dev profiles" },
+  { path = "copilot_sdk/scoring/scorer.py", line = 254, reason = "development-only SQLite fallback; production rejects SQLite and requires an injected AGE-backed store" },
 ]
 
 [rules.in_memory_graph_store]
@@ -34,7 +34,7 @@ files = [
 [rules.graph_environment]
 paths = ["copilot_sdk/config/graph_config.py", "copilot_sdk/testing/", "tests/"]
 lines = [
-  { path = "copilot-sdk/copilot_sdk/backend/diagnostics_models.py", line = 320, reason = "diagnostics --dump env read, no graph operation" },
+  { path = "copilot_sdk/backend/diagnostics_models.py", line = 320, reason = "diagnostics --dump env read, no graph operation or store selection" },
 ]
 
 [rules.unscoped_decision_match]
@@ -53,8 +53,15 @@ lines = [
   { path = "copilot_sdk/di/nl_query.py", line = 134, reason = "base template rendered with domain by _query_template()" },
   { path = "copilot_sdk/di/nl_query.py", line = 135, reason = "base template rendered with domain by _query_template()" },
   { path = "copilot_sdk/di/nl_query.py", line = 136, reason = "base template rendered with domain by _query_template()" },
-  { path = "copilot_sdk/graph/projection.py", line = 45, reason = "registry template rendered with domain by ProjectionRegistry.render() at :72" },
+  { path = "copilot_sdk/graph/projection.py", line = 44, reason = "registry template rendered with domain by ProjectionRegistry.render() at :72" },
   { path = "copilot_sdk/graph/projection.py", line = 50, reason = "registry template rendered with domain by ProjectionRegistry.render() at :72" },
+  { path = "copilot_sdk/graph/projection.py", line = 49, reason = "non-D2 factor-vector registry template is domain-scoped by ProjectionRegistry.render()" },
+  { path = "copilot_sdk/graph/projection.py", line = 83, reason = "non-D2 registry fallback is domain-scoped by ProjectionRegistry.render()" },
   { path = "copilot_sdk/graph/projection.py", line = 84, reason = "query replacement marker inside render(), never executed directly" },
+]
+
+[rules.correctness_read_model_write]
+files = [
+  { path = "ci-platform/ci_platform/graph/age_graph_store.py", reason = "write_outcome is the sole CQRS contract writer for d.correct/d.status per no-amend policy v1" },
 ]
 
