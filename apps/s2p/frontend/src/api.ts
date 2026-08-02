@@ -60,26 +60,40 @@ import type {
   WhatIfResponse
 } from "./types";
 
-export const API_URL = import.meta.env.VITE_API_URL || "";
+export const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8002";
+export const DEFAULT_DEADLINE_MS = 15_000;
 
-export async function apiGet<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`);
-  if (!response.ok) {
-    throw new Error(`GET ${path} failed with ${response.status}`);
+export async function apiGet<T>(path: string, deadlineMs = DEFAULT_DEADLINE_MS): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), deadlineMs);
+  try {
+    const response = await fetch(`${API_URL}${path}`, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`GET ${path} failed with ${response.status}`);
+    }
+    return response.json() as Promise<T>;
+  } finally {
+    clearTimeout(timer);
   }
-  return response.json() as Promise<T>;
 }
 
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!response.ok) {
-    throw new Error(`POST ${path} failed with ${response.status}`);
+export async function apiPost<T>(path: string, body: unknown, deadlineMs = DEFAULT_DEADLINE_MS): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), deadlineMs);
+  try {
+    const response = await fetch(`${API_URL}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`POST ${path} failed with ${response.status}`);
+    }
+    return response.json() as Promise<T>;
+  } finally {
+    clearTimeout(timer);
   }
-  return response.json() as Promise<T>;
 }
 
 export interface CohortExperiment {
@@ -134,8 +148,12 @@ export async function getPreviewQueue(): Promise<PreviewQueueResponse> {
   }));
 }
 
+export async function getPreviewQueueStrict(): Promise<PreviewQueueResponse> {
+  return apiGet<PreviewQueueResponse>("/api/s2p/preview/queue");
+}
+
 export async function fetchPreviewQueue(): Promise<PreviewQueueResponse> {
-  return getPreviewQueue();
+  return getPreviewQueueStrict();
 }
 
 export async function getPreviewConservation(): Promise<ConservationStatus | null> {
@@ -179,12 +197,12 @@ export async function verifyDecision(payload: unknown): Promise<unknown | null> 
   return apiPost<unknown>("/api/s2p/outcome", payload).catch(() => null);
 }
 
-export async function scoreInvoice(payload: ScoreInvoiceRequest): Promise<ScoreInvoiceResponse | null> {
-  return apiPost<ScoreInvoiceResponse>("/api/s2p/score", payload).catch(() => null);
+export async function scoreInvoice(payload: ScoreInvoiceRequest): Promise<ScoreInvoiceResponse> {
+  return apiPost<ScoreInvoiceResponse>("/api/s2p/score", payload);
 }
 
-export async function learnDecision(payload: LearnDecisionRequest): Promise<LearnDecisionResponse | null> {
-  return apiPost<LearnDecisionResponse>("/api/learn", payload).catch(() => null);
+export async function learnDecision(payload: LearnDecisionRequest): Promise<LearnDecisionResponse> {
+  return apiPost<LearnDecisionResponse>("/api/learn", payload);
 }
 
 export async function getEvidenceTemplate(

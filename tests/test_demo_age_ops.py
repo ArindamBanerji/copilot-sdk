@@ -5,6 +5,7 @@ import io
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -23,21 +24,24 @@ class _FakeProcess:
 
 
 def _args(**overrides) -> argparse.Namespace:
-    values = {
-        "diag_mode": False,
-        "age_use_pool": False,
-        "health_timeout": 0,
+    args = demo.create_parser().parse_args([])
+    defaults = {
         "no_browser": True,
-        "no_reseed": False,
-        "preseed": False,
-        "graph": False,
-        "diag_backend_port": 8001,
         "diag_graph_dsn": "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable",
         "diag_graph_name": "soc_graph_test",
         "diag_contract": Path("scratch/temp/test_contract.json"),
     }
-    values.update(overrides)
-    return argparse.Namespace(**values)
+    for key, value in {**defaults, **overrides}.items():
+        setattr(args, key, value)
+    return cast(argparse.Namespace, args)
+
+
+def test_args_helper_includes_all_parser_attributes() -> None:
+    parser_defaults = demo.create_parser().parse_args([])
+    helper_defaults = _args()
+
+    for attribute in vars(parser_defaults):
+        assert hasattr(helper_defaults, attribute), f"_args() missing: {attribute}"
 
 
 def _selected_copilot(tmp_path: Path, *, name: str = "Trading") -> dict:

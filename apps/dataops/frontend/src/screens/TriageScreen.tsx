@@ -6,6 +6,7 @@ import {
   getAlertDeps,
   getAlertFactors,
   getAlertRecurrence,
+  getConservationStatus,
   getFingerprint,
   getProcessSignals,
   getSimilar,
@@ -65,7 +66,6 @@ const APPLY_FIX_DEMO = {
     status: "GREEN",
     currentAutomation: 0.35,
     projectedAutomation: 0.38,
-    thetaMin: 0.67,
     safe: true,
   },
 } as const;
@@ -99,6 +99,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
   const [fingerprint, setFingerprint] = useState<FingerprintResponse | null>(null);
   const [applyFixOpen, setApplyFixOpen] = useState(false);
   const [appliedFix, setAppliedFix] = useState<ApplyFixResponse | null>(null);
+  const [conservationThetaMin, setConservationThetaMin] = useState<number | undefined>();
 
   useEffect(() => {
     if (!selectedAlertId) {
@@ -107,6 +108,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
 
     let cancelled = false;
     setLoadedAlertId(null);
+    setConservationThetaMin(undefined);
     setLoading(true);
     setError(null);
     setSelectedAction(null);
@@ -129,11 +131,13 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       getAlertFactors(selectedAlertId).catch(() => null),
       getAlertRecurrence(selectedAlertId).catch(() => null),
       getAeRecommendation(selectedAlertId).catch(() => null),
+      getConservationStatus().catch(() => null),
     ])
-      .then(([detail, deps, factors, recurrence, recommendation]) => {
+      .then(([detail, deps, factors, recurrence, recommendation, conservation]) => {
         if (!cancelled) {
           setData({ detail, deps, factors, recurrence, recommendation });
           setLoadedAlertId(selectedAlertId);
+          setConservationThetaMin(conservation?.thetaMin ?? undefined);
         }
 
         const loadedAlert = detail.alert || null;
@@ -464,7 +468,10 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
         entityId={APPLY_FIX_DEMO.entityId}
         supplier={APPLY_FIX_DEMO.supplier}
         matchingParameter={APPLY_FIX_DEMO.matchingParameter}
-        conservationPreview={APPLY_FIX_DEMO.conservationPreview}
+        conservationPreview={{
+          ...APPLY_FIX_DEMO.conservationPreview,
+          thetaMin: conservationThetaMin,
+        }}
         onClose={() => setApplyFixOpen(false)}
         onApplied={handleApplyFixApplied}
       />

@@ -108,15 +108,24 @@ export function TriageScreen() {
   const [loading, setLoading] = useState(true);
   const [scoring, setScoring] = useState(false);
   const [learning, setLearning] = useState(false);
+  const [queueError, setQueueError] = useState<string | null>(null);
+  const [scoreError, setScoreError] = useState<string | null>(null);
+  const [learnError, setLearnError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     fetchPreviewQueue()
       .then((data) => {
         if (cancelled) return;
+        setQueueError(null);
         setQueue(data);
         const first = data.exceptions?.[0];
         if (first) setSelectedId(invoiceId(first));
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setQueueError(err instanceof Error ? err.message : "Failed to load invoice queue");
+        setQueue({ exceptions: [], total: 0 });
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -161,23 +170,30 @@ export function TriageScreen() {
   async function handleScore() {
     if (!selected) return;
     setScoring(true);
+    setScoreError(null);
+    setScore(null);
     setLearnResult(null);
     setSubmitError("");
     setOverrideOpen(false);
     setOverrideReason("");
     setSituation(null);
     setSituationLoading(false);
-    const result = await scoreInvoice({
-      event_id: invoiceId(selected),
-      category: selectedCategory,
-      amount: Number(selected.amount ?? 0),
-      supplier_id: supplierId(selected),
-      supplier_name: supplierName(selected),
-    });
-    setScore(result);
-    const nextAction = recommendedAction(result, selected);
-    setOverrideAction(S2P_ACTIONS.includes(nextAction as S2PAction) ? (nextAction as S2PAction) : "hold_for_review");
-    setScoring(false);
+    try {
+      const result = await scoreInvoice({
+        event_id: invoiceId(selected),
+        category: selectedCategory,
+        amount: Number(selected.amount ?? 0),
+        supplier_id: supplierId(selected),
+        supplier_name: supplierName(selected),
+      });
+      setScore(result);
+      const nextAction = recommendedAction(result, selected);
+      setOverrideAction(S2P_ACTIONS.includes(nextAction as S2PAction) ? (nextAction as S2PAction) : "hold_for_review");
+    } catch (err: unknown) {
+      setScoreError(err instanceof Error ? err.message : "Scoring failed");
+    } finally {
+      setScoring(false);
+    }
   }
 
   async function handleLearn(actualAction: string, outcome: "confirm" | "override", reasonCode?: S2PReasonCode) {
@@ -187,28 +203,36 @@ export function TriageScreen() {
       return;
     }
     setSubmitError("");
+    setLearnError(null);
     setLearning(true);
     const activeVariantId =
       conservationState === "GREEN" ? score.active_variant?.id ?? score.activeVariant?.id : undefined;
-    const result = await learnDecision({
-      decision_id: decisionId,
-      actual_action: actualAction,
-      outcome: outcome === "confirm" ? "confirmed" : "override",
-      ...(activeVariantId ? { variant_id: activeVariantId } : {}),
-      ...(outcome === "override" && reasonCode ? { reason_code: reasonCode } : {}),
-      context: {
-        amount: Number(selected.amount ?? 0),
-        at_risk: outcome === "override" ? Number(selected.amount ?? 0) : 0,
-        recovery_pct: outcome === "confirm" ? 100 : 0,
+    try {
+      const result = await learnDecision({
+        decision_id: decisionId,
+        actual_action: actualAction,
+        outcome: outcome === "confirm" ? "confirmed" : "override",
+        ...(activeVariantId ? { variant_id: activeVariantId } : {}),
         ...(outcome === "override" && reasonCode ? { reason_code: reasonCode } : {}),
-      },
-    });
-    setLearnResult(result);
-    setLearning(false);
+        context: {
+          amount: Number(selected.amount ?? 0),
+          at_risk: outcome === "override" ? Number(selected.amount ?? 0) : 0,
+          recovery_pct: outcome === "confirm" ? 100 : 0,
+          ...(outcome === "override" && reasonCode ? { reason_code: reasonCode } : {}),
+        },
+      });
+      setLearnResult(result);
+    } catch (err: unknown) {
+      setLearnError(err instanceof Error ? err.message : "Learning failed");
+    } finally {
+      setLearning(false);
+    }
   }
 
+  const queueSettled = !loading && (queue !== null || queueError !== null);
+
   return (
-    <section data-screen-ready={String(queue !== null && !loading)} className="space-y-6">
+    <section data-screen-ready={String(queueSettled)} className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Invoice exception workflow</p>
         <h1 className="mt-1 text-3xl font-semibold text-slate-950">Exception Triage</h1>
@@ -230,6 +254,8 @@ export function TriageScreen() {
           </div>
           {loading ? (
             <p className="mt-4 text-sm text-slate-500">Loading invoice queue...</p>
+          ) : queueError ? (
+            <p className="mt-4 text-sm" style={{ color: "var(--copilot-danger)" }}>{queueError}</p>
           ) : invoices.length === 0 ? (
             <p className="mt-4 text-sm text-slate-500">No invoice exceptions available.</p>
           ) : (
@@ -295,6 +321,7 @@ export function TriageScreen() {
                 {scoring ? "Scoring..." : "Score"}
               </button>
             </div>
+            {scoreError ? <p className="mt-3 text-sm" style={{ color: "var(--copilot-danger)" }}>{scoreError}</p> : null}
           </article>
 
           <SituationPanel
@@ -394,6 +421,7 @@ export function TriageScreen() {
                   </div>
                 ) : null}
                 {submitError ? <p className="mt-3 text-sm font-medium text-red-700">{submitError}</p> : null}
+                {learnError ? <p className="mt-3 text-sm" style={{ color: "var(--copilot-danger)" }}>{learnError}</p> : null}
               </article>
 
               <div className="grid gap-4 xl:grid-cols-2">

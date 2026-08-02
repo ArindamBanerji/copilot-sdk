@@ -214,7 +214,6 @@ COPILOTS = [
     {
         "name": "S2P",
         "be_port": 8002,
-        "be_workers": 2,
         "fe_port": 5177,
         "be_path": Path(os.environ.get(
             "CLAUDE_S2P",
@@ -689,10 +688,22 @@ def cmd_status(selected: list[dict]):
         fe_label = f":{fe_port}" if fe_port is not None else "N/A"
         domain = h.get("domain", "") if h else ""
         age_flag = " [AGE]" if c.get("requires_age") else ""
+        learning_flag = ""
+        if c["name"].lower() == "soc" and be_up:
+            try:
+                learning_health = _json_request(
+                    "GET",
+                    f"http://127.0.0.1:{c['be_port']}/api/soc/learning-health",
+                    timeout=2,
+                )
+                learning_enabled = learning_health.get("learning_enabled")
+                learning_flag = f"  learning={'enabled' if learning_enabled is True else 'disabled'}"
+            except Exception:
+                learning_flag = "  learning=unknown"
 
         print(f"  {c['name']:12s}  backend :{c['be_port']} {be_status:8s}"
               f"  frontend {fe_label:>5s} {fe_status:8s}"
-              f"  {domain}{age_flag}")
+              f"  {domain}{age_flag}{learning_flag}")
     print()
 
 
@@ -858,18 +869,14 @@ def cmd_start(selected: list[dict], args):
             env.update(c["env"])
         if args.no_reseed:
             env["DEMO_NO_RESEED"] = "1"
-        if args.preseed and c["name"].lower() == "soc":
+        if (args.soc_learning or args.preseed) and c["name"].lower() == "soc":
             env["SOC_LEARNING_ENABLED"] = "true"
         if args.diag_mode:
             env["PYTHONPATH"] = diag_pythonpath
 
-        cmd = [sys.executable, "-m", "uvicorn", "app.main:app",
-               "--host", "127.0.0.1", "--port", str(port)]
-        workers = c.get("be_workers", 1)
-        if workers > 1:
-            cmd.extend(["--workers", str(workers)])
         proc = subprocess.Popen(
-            cmd,
+            [sys.executable, "-m", "uvicorn", "app.main:app",
+             "--host", "127.0.0.1", "--port", str(port)],
             cwd=str(be_path),
             env=env,
             creationflags=CREATE_FLAGS,
@@ -1000,11 +1007,15 @@ def cmd_start(selected: list[dict], args):
     for c in selected:
         fe_port = c.get("fe_port")
         age_flag = " [AGE]" if c.get("requires_age") else ""
+        learning_flag = ""
+        if c["name"].lower() == "soc":
+            learning_state = "enabled" if (args.soc_learning or args.preseed) else "disabled"
+            learning_flag = f"  learning={learning_state}"
         if fe_port is None:
-            print(f"  {c['name']:12s}  backend http://localhost:{c['be_port']}{age_flag}")
+            print(f"  {c['name']:12s}  backend http://localhost:{c['be_port']}{age_flag}{learning_flag}")
         else:
             print(f"  {c['name']:12s}  http://localhost:{fe_port}"
-                  f"  (backend :{c['be_port']}){age_flag}")
+                  f"  (backend :{c['be_port']}){age_flag}{learning_flag}")
     print()
     print("  Stop:       python demo.py --stop")
     print("  Status:     python demo.py --status")
@@ -1269,9 +1280,8 @@ def run_soc_preseed(copilot: dict, *, fail_hard: bool = False) -> None:
             raise
 
 
-# --- Main ---
-
-def main():
+def create_parser() -> argparse.ArgumentParser:
+    """Build the launcher parser for both CLI execution and tests."""
     parser = argparse.ArgumentParser(
         description="Compounding Intelligence Platform Launcher",
     )
@@ -1300,6 +1310,8 @@ def main():
     # Options
     parser.add_argument("--graph", action="store_true", help="AGE graph mode for DataOps")
     parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
+    parser.add_argument("--soc-learning", action="store_true",
+                        help="Enable SOC learning for demo recording")
     parser.add_argument("--preseed-only", action="store_true",
                         help="Pre-seed without restarting (backends must already be running)")
     parser.add_argument("--record-mode", action="store_true", help="Pre-seed and freeze connectors for recording")
@@ -1316,6 +1328,13 @@ def main():
     parser.add_argument("--age-use-pool", action="store_true", help="Set AGE_USE_POOL=true for SOC --diag-mode")
     parser.add_argument("--health-timeout", type=int, default=0,
                         help="Override backend health timeout in seconds (0 = use defaults: 30s normal, 60s AGE)")
+    return parser
+
+
+# --- Main ---
+
+def main():
+    parser = create_parser()
 
     args = parser.parse_args()
     if args.no_reseed and getattr(args, "record_reset", False):
