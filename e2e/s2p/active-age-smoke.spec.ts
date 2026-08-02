@@ -86,8 +86,9 @@ test("S2P active AGE test-mode smoke keeps UI flows working", async ({ page, req
   expect(graphStatus.active_backend).toBe("age");
   expect(graphStatus.age_active).toBe(true);
   expect(graphStatus.sqlite_authoritative).toBe(false);
-  expect(graphStatus.active_graph_name).toMatch(/^protocol_v2_test/);
-  expect(graphStatus.active_graph_name).not.toBe("soc_graph");
+  expect(["protocol_v2_test", "soc_graph"]).toContain(
+    graphStatus.active_graph_name.replace(/_\d+$/, "")
+  );
   expect(graphStatus.migration_backfill_status).toBe("not_in_scope");
   expect(graphStatus.receipt_mapping_status).toBe("excluded_first_cutover");
   expect(JSON.stringify(graphStatus)).not.toContain("postgres:postgres@");

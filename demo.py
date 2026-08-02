@@ -214,6 +214,7 @@ COPILOTS = [
     {
         "name": "S2P",
         "be_port": 8002,
+        "be_workers": 2,
         "fe_port": 5177,
         "be_path": Path(os.environ.get(
             "CLAUDE_S2P",
@@ -223,9 +224,6 @@ COPILOTS = [
         "requires_age": True,
         "graph_dsn": AGE_DSN_SOC,
         "env": _build_graph_env("s2p", AGE_DSN_SOC),
-        "fe_env": {
-            "VITE_API_URL": "http://127.0.0.1:8002",
-        },
     },
 ]
 
@@ -865,9 +863,13 @@ def cmd_start(selected: list[dict], args):
         if args.diag_mode:
             env["PYTHONPATH"] = diag_pythonpath
 
+        cmd = [sys.executable, "-m", "uvicorn", "app.main:app",
+               "--host", "127.0.0.1", "--port", str(port)]
+        workers = c.get("be_workers", 1)
+        if workers > 1:
+            cmd.extend(["--workers", str(workers)])
         proc = subprocess.Popen(
-            [sys.executable, "-m", "uvicorn", "app.main:app",
-             "--host", "127.0.0.1", "--port", str(port)],
+            cmd,
             cwd=str(be_path),
             env=env,
             creationflags=CREATE_FLAGS,

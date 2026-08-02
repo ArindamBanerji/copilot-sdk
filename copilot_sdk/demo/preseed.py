@@ -278,7 +278,10 @@ class DemoPreseed:
                 raise ValueError(f"{domain} preseed tripped conservation at decision {index}")
             learned_count += 1
 
-        iks = float(getattr(last_learn, "iks_after", scorer._compute_iks()))
+        # Synthetic learns skip repeated history scans; compute the complete
+        # final IKS once after the domain has been seeded.
+        iks = float(scorer._compute_iks())
+        scorer.fingerprint(persist=True)
         accuracy = round(correct_count / learned_count, 3) if learned_count else 0.0
         conservation = "CALIBRATING" if domain == "soc" and total < 300 else "GREEN"
         return CopilotPreseedResult(

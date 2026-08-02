@@ -67,6 +67,9 @@ class _Scorer:
         def pending_count(self):
             return 0
 
+        def count_abandoned(self):
+            return 0
+
     _outbox = _Outbox()
 
 
@@ -91,6 +94,27 @@ def test_diagnostics_reports_live_scorer_store_and_conservation_state():
     assert payload["graph_artifacts"]["decisions"] == 500
     assert payload["j6_readiness"]["outbox_path"] == "outbox.db"
     assert payload["j6_readiness"]["outbox_pending"] == 0
+    assert payload["infrastructure"]["outbox_pending"] == 0
+    assert payload["infrastructure"]["outbox_abandoned"] == 0
+
+
+def test_diagnostics_outbox_reflects_pending_and_abandoned_counts():
+    class _PendingOutbox:
+        db_path = "outbox.db"
+
+        def pending_count(self):
+            return 3
+
+        def count_abandoned(self):
+            return 2
+
+    class _PendingScorer(_Scorer):
+        _outbox = _PendingOutbox()
+
+    payload = build_diagnostics("trading", _PendingScorer(), _Store())
+
+    assert payload["infrastructure"]["outbox_pending"] == 3
+    assert payload["infrastructure"]["outbox_abandoned"] == 2
 
 
 def test_diagnostics_finds_age_query_through_nested_active_store():

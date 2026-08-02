@@ -3,13 +3,19 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sqlite3
 import tempfile
 import time
 from contextlib import contextmanager
+from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
+
+CURRENT_PAYLOAD_SCHEMA = 1
+_LOG = logging.getLogger(__name__)
 
 
 def _json_default(value: Any) -> Any:
@@ -19,6 +25,10 @@ def _json_default(value: Any) -> Any:
         return tolist()
     if isinstance(value, Path):
         return str(value)
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return float(value)
     raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 
@@ -56,10 +66,22 @@ class PersistenceOutbox:
                     error TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     retry_count INTEGER NOT NULL DEFAULT 0,
-                    status TEXT NOT NULL DEFAULT 'pending'
+                    status TEXT NOT NULL DEFAULT 'pending',
+                    schema_version INTEGER NOT NULL DEFAULT 1
                 )
                 """
             )
+            existing_cols = {
+                row["name"]
+                for row in connection.execute(
+                    "PRAGMA table_info(failed_artifacts)"
+                ).fetchall()
+            }
+            if "schema_version" not in existing_cols:
+                connection.execute(
+                    "ALTER TABLE failed_artifacts "
+                    "ADD COLUMN schema_version INTEGER NOT NULL DEFAULT 1"
+                )
             connection.execute(
                 """
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_failed_artifact_key
@@ -72,10 +94,7 @@ class PersistenceOutbox:
                 SET status='abandoned'
                 WHERE domain = ?
                   AND status IN ('pending', 'failed')
-                  AND (
-                      retry_count >= ?
-                      OR error LIKE '%required positional arguments%'
-                  )
+                  AND retry_count >= ?
                 """,
                 (self.domain, self.MAX_RETRIES),
             )
@@ -101,16 +120,27 @@ class PersistenceOutbox:
         payload: dict[str, Any],
         error: str,
     ) -> None:
-        serialized = json.dumps(payload, default=_json_default, sort_keys=True)
+        try:
+            serialized = json.dumps(payload, default=_json_default, sort_keys=True)
+        except TypeError:
+            _LOG.error(
+                "outbox could not serialize payload domain=%s decision_id=%s type=%s",
+                self.domain,
+                decision_id,
+                artifact_type,
+                exc_info=True,
+            )
+            raise
         with self._connection() as connection:
             connection.execute(
                 """
                 INSERT INTO failed_artifacts
-                    (decision_id, domain, artifact_type, payload, error, created_at)
-                VALUES (?, ?, ?, ?, ?, ?)
+                    (decision_id, domain, artifact_type, payload, error, created_at, schema_version)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(decision_id, domain, artifact_type)
                 DO UPDATE SET payload=excluded.payload, error=excluded.error,
-                    retry_count=failed_artifacts.retry_count + 1, status='pending'
+                    retry_count=failed_artifacts.retry_count + 1, status='pending',
+                    schema_version=excluded.schema_version
                 """,
                 (
                     str(decision_id),
@@ -119,6 +149,7 @@ class PersistenceOutbox:
                     serialized,
                     str(error),
                     str(time.time()),
+                    CURRENT_PAYLOAD_SCHEMA,
                 ),
             )
 
@@ -127,12 +158,21 @@ class PersistenceOutbox:
         with self._connection() as connection:
             rows = connection.execute(
                 """
-                SELECT id, decision_id, artifact_type, payload, retry_count
+                SELECT id, decision_id, artifact_type, payload, retry_count, schema_version
                 FROM failed_artifacts
                 WHERE domain = ? AND status IN ('pending', 'failed')
-                  AND error NOT LIKE '%required positional arguments%'
                   AND retry_count < ?
-                ORDER BY id
+                ORDER BY
+                  CASE artifact_type
+                    WHEN 'decision' THEN 0
+                    WHEN 'evidence_receipt' THEN 1
+                    WHEN 'centroid_checkpoint' THEN 2
+                    WHEN 'fingerprint' THEN 3
+                    WHEN 'evolution' THEN 4
+                    WHEN 'conservation' THEN 5
+                    ELSE 6
+                  END,
+                  id
                 """,
                 (self.domain, self.MAX_RETRIES),
             ).fetchall()
@@ -144,6 +184,13 @@ class PersistenceOutbox:
                 self._replay(graph_store, row["decision_id"], row["artifact_type"], json.loads(row["payload"]))
             except Exception as exc:
                 failed += 1
+                schema_stale = int(row["schema_version"]) < CURRENT_PAYLOAD_SCHEMA
+                incompatible = isinstance(exc, TypeError) or schema_stale
+                new_status = (
+                    "abandoned"
+                    if incompatible or int(row["retry_count"]) + 1 >= self.MAX_RETRIES
+                    else "failed"
+                )
                 with self._connection() as connection:
                     connection.execute(
                         """
@@ -152,13 +199,19 @@ class PersistenceOutbox:
                         WHERE id=?
                         """,
                         (
-                            "abandoned"
-                            if int(row["retry_count"]) + 1 >= self.MAX_RETRIES
-                            else "failed",
+                            new_status,
                             int(row["retry_count"]) + 1,
                             str(exc),
                             int(row["id"]),
                         ),
+                    )
+                if new_status == "abandoned":
+                    _LOG.warning(
+                        "outbox abandoned artifact domain=%s decision_id=%s type=%s error=%s",
+                        self.domain,
+                        row["decision_id"],
+                        row["artifact_type"],
+                        str(exc),
                     )
             else:
                 succeeded += 1
@@ -226,10 +279,38 @@ class PersistenceOutbox:
                 SELECT count(*) AS pending_total FROM failed_artifacts
                 WHERE domain = ?
                   AND status IN ('pending', 'failed')
-                  AND error NOT LIKE '%required positional arguments%'
                   AND retry_count < ?
                 """,
                 (self.domain, self.MAX_RETRIES),
             ).fetchone()
         return int(row["pending_total"] if row is not None else 0)
+
+    def count_abandoned(self) -> int:
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT count(*) AS n FROM failed_artifacts "
+                "WHERE domain = ? AND status = 'abandoned'",
+                (self.domain,),
+            ).fetchone()
+        return int(row["n"] if row is not None else 0)
+
+    def export_abandoned(self) -> list[dict[str, Any]]:
+        """Return abandoned artifacts for recovery and inspection."""
+        with self._connection() as connection:
+            rows = connection.execute(
+                "SELECT decision_id, artifact_type, payload, error, retry_count "
+                "FROM failed_artifacts WHERE domain = ? AND status = 'abandoned' "
+                "ORDER BY id",
+                (self.domain,),
+            ).fetchall()
+        return [
+            {
+                "decision_id": row["decision_id"],
+                "artifact_type": row["artifact_type"],
+                "payload": json.loads(row["payload"]),
+                "error": row["error"],
+                "retry_count": int(row["retry_count"]),
+            }
+            for row in rows
+        ]
 

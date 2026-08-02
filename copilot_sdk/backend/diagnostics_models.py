@@ -19,6 +19,8 @@ class InfrastructureDiag(BaseModel):
     protocol_v2: bool = False
     status: str = "fail"
     error: str | None = None
+    outbox_pending: int = 0
+    outbox_abandoned: int = 0
 
 
 class ScorerDiag(BaseModel):
@@ -448,12 +450,19 @@ def build_diagnostics(
 
     outbox = getattr(live_scorer, "_outbox", None) if live_scorer is not None else None
     pending = total = None
+    abandoned = 0
     if outbox is not None:
         try:
             pending = int(_call(outbox, "pending_count"))
             total = pending
-        except Exception:
-            pass
+        except Exception as exc:
+            issues.append(f"infrastructure outbox pending: {type(exc).__name__}: {exc}")
+        try:
+            abandoned = int(_call(outbox, "count_abandoned"))
+        except Exception as exc:
+            issues.append(f"infrastructure outbox abandoned: {type(exc).__name__}: {exc}")
+    infra.outbox_pending = pending if pending is not None else 0
+    infra.outbox_abandoned = abandoned
     outbox_ready = pending == 0
     readiness = J6ReadinessDiag(
         store_protocol_v2=infra.protocol_v2,

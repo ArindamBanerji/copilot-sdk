@@ -597,16 +597,23 @@ class CompoundingScorer:
         factor_vector = np.asarray(_decision_field(decision, "factor_vector", []), dtype=np.float64)
         category_index = int(_decision_field(decision, "category_index", 0))
         confidence = float(_decision_field(decision, "confidence", 0.0))
-        self._detect_judgment_conflict(
-            decision_id=decision_id,
-            decision=decision,
-            predicted_index=predicted_index,
-            actual_correct=is_correct,
-            factor_vector=factor_vector,
-            confidence=confidence,
-        )
+        if context and (context.get("benchmark") is True or context.get("preseed") is True):
+            # Synthetic benchmark/preseed runs do not represent live judgments.
+            # Avoid recomputing the full verified-history fingerprint on every
+            # synthetic learn; production conflict detection remains unchanged.
+            self._last_conflict = None
+        else:
+            self._detect_judgment_conflict(
+                decision_id=decision_id,
+                decision=decision,
+                predicted_index=predicted_index,
+                actual_correct=is_correct,
+                factor_vector=factor_vector,
+                confidence=confidence,
+            )
 
-        conservation_pause = self._conservation_pause()
+        synthetic_preseed = bool(context and context.get("preseed") is True)
+        conservation_pause = None if synthetic_preseed else self._conservation_pause()
         if conservation_pause is not None:
             conservation_pause["decision_id"] = decision_id
             if persist_artifacts:
@@ -672,7 +679,10 @@ class CompoundingScorer:
                             exc,
                         )
             return conservation_pause
-        iks_before = self._compute_iks(persist_artifacts=False)
+        iks_before = self._compute_iks(
+            persist_artifacts=False,
+            skip_history_scan=synthetic_preseed,
+        )
         before_centroids = self._scorer.centroids.copy()
 
         old_eta = self._scorer.eta
@@ -732,6 +742,7 @@ class CompoundingScorer:
         iks_after = self._compute_iks(
             persist_artifacts=persist_artifacts,
             decision_id=decision_id,
+            skip_history_scan=synthetic_preseed,
         )
         self._last_checkpoint_decision_id = decision_id
         self._last_checkpoint_category = category
@@ -800,6 +811,7 @@ class CompoundingScorer:
                 metadata=outcome_metadata,
                 evidence_already_persisted=True,
                 checkpoint_already_persisted=checkpoint_already_persisted,
+                skip_history_scan=synthetic_preseed,
             )
 
         return LearnResult(
@@ -937,6 +949,7 @@ class CompoundingScorer:
         metadata: dict[str, Any] | None = None,
         evidence_already_persisted: bool = False,
         checkpoint_already_persisted: bool = False,
+        skip_history_scan: bool = False,
     ) -> None:
         """Persist learning artifacts after a successful update.
 
@@ -961,15 +974,16 @@ class CompoundingScorer:
 
         self._persist_conservation_snapshot(decision_id)
 
-        try:
-            fingerprint = self.fingerprint(persist=False)
-            self._persist_fingerprint(fingerprint, decision_id=decision_id)
-        except Exception as exc:
-            logger.warning(
-                "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
-                self._domain, decision_id, "fingerprint", type(exc).__name__, exc,
-            )
-            self._record_persistence_failure(decision_id, "fingerprint", {}, exc)
+        if not skip_history_scan:
+            try:
+                fingerprint = self.fingerprint(persist=False)
+                self._persist_fingerprint(fingerprint, decision_id=decision_id)
+            except Exception as exc:
+                logger.warning(
+                    "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
+                    self._domain, decision_id, "fingerprint", type(exc).__name__, exc,
+                )
+                self._record_persistence_failure(decision_id, "fingerprint", {}, exc)
 
         if not evidence_already_persisted:
             try:
@@ -1550,6 +1564,7 @@ class CompoundingScorer:
         *,
         persist_artifacts: bool = True,
         decision_id: str | None = None,
+        skip_history_scan: bool = False,
     ) -> float:
         try:
             verified = self._graph_store.count_verified(self._domain)
@@ -1565,20 +1580,24 @@ class CompoundingScorer:
             verified_decisions = _verified_decisions(self._graph_store) or []
             correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
         accuracy = correct / verified
-        fingerprint = self.fingerprint(
-            persist=False,
-            decision_id=decision_id,
-        )
-        mean_sigma = (
-            sum(factor.sigma for factor in fingerprint.factors) / len(fingerprint.factors)
-            if fingerprint.factors
-            else 0.5
-        )
-        fingerprint_component = max(0.0, min((1.0 - mean_sigma / 0.5) * 25.0, 25.0))
-        coverage = _count_categories_with_n(
-            self._graph_store.get_verified_decisions(self._domain),
-            10,
-        ) / self._preset.shape.n_categories
+        if skip_history_scan:
+            fingerprint_component = 0.0
+            coverage = 0.0
+        else:
+            fingerprint = self.fingerprint(
+                persist=False,
+                decision_id=decision_id,
+            )
+            mean_sigma = (
+                sum(factor.sigma for factor in fingerprint.factors) / len(fingerprint.factors)
+                if fingerprint.factors
+                else 0.5
+            )
+            fingerprint_component = max(0.0, min((1.0 - mean_sigma / 0.5) * 25.0, 25.0))
+            coverage = _count_categories_with_n(
+                self._graph_store.get_verified_decisions(self._domain),
+                10,
+            ) / self._preset.shape.n_categories
 
         iks = (
             min(verified / 500.0, 1.0) * 25.0

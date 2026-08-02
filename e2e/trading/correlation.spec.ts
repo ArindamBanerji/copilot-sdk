@@ -44,7 +44,7 @@ test("Correlation panel shows pairs or insufficient data", async ({ page }) => {
   await expect(panel).toBeVisible({ timeout: 15_000 });
   await expect(
     panel
-      .getByText(/Top correlated pairs|Need at least 2 tickers|fewer than 2 tickers|insufficient|unavailable|yfinance is unavailable|numpy is unavailable/i)
+      .getByText(/Top correlated pairs|Need at least 2 tickers|At least two tickers|fewer than 2 tickers|insufficient|unavailable|yfinance is unavailable|numpy is unavailable|correlation monitoring/i)
       .first(),
   ).toBeVisible({ timeout: 15_000 });
 });
