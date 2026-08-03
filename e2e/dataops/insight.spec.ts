@@ -146,3 +146,67 @@ test("what-if reordering shows estimated impact", async ({ page }) => {
   await expect(whatIf.getByText(/Estimated impact|No transformation graph available/i).first()).toBeVisible();
   await expect(whatIf.getByText(/Move steps to estimate impact|savings|speedup|min|No transformation graph available/i).first()).toBeVisible();
 });
+
+test("test_centroid_timeline_visible_on_insight", async ({ page }) => {
+  await gotoInsight(page);
+
+  await expect(page.getByTestId("centroid-timeline")).toBeVisible();
+  await expect(page.getByText("Centroid Timeline")).toBeVisible();
+});
+
+test("test_centroid_timeline_shows_category_lines", async ({ page }) => {
+  await gotoInsight(page);
+
+  const timeline = page.getByTestId("centroid-timeline");
+  await expect(timeline).toBeVisible();
+  await expect(timeline.getByTestId("centroid-timeline-chart")).toBeVisible();
+  expect(await timeline.locator(".recharts-line").count()).toBeGreaterThan(0);
+});
+
+test("test_centroid_timeline_shows_iks_or_drift", async ({ page }) => {
+  await gotoInsight(page);
+
+  const timeline = page.getByTestId("centroid-timeline");
+  await expect(timeline).toBeVisible();
+  await expect(timeline.getByTestId("centroid-current-drift")).toBeVisible();
+  await expect(timeline.getByText(/Current drift|IKS/i).first()).toBeVisible();
+});
+
+test("test_centroid_timeline_loads_data", async ({ page }) => {
+  const historyResponse = page.waitForResponse((response) => response.url().includes("/api/self/centroid-history"));
+  await gotoInsight(page);
+
+  await expect((await historyResponse).status()).toBe(200);
+  await expect(page.getByTestId("centroid-timeline")).toBeVisible();
+});
+
+test("test_decision_explorer_visible_on_insight", async ({ page }) => {
+  await gotoInsight(page);
+  await expect(page.getByTestId("decision-explorer")).toBeVisible();
+});
+
+test("test_decision_explorer_shows_table_or_empty", async ({ page }) => {
+  await gotoInsight(page);
+  const panel = page.getByTestId("decision-explorer");
+  await expect(panel.getByRole("table").or(panel.getByText(/No decisions match these filters/i))).toBeVisible();
+});
+
+test("test_decision_explorer_shows_columns", async ({ page }) => {
+  await gotoInsight(page);
+  const panel = page.getByTestId("decision-explorer");
+  if (await panel.getByRole("table").count()) {
+    await expect(panel.getByRole("columnheader", { name: "Decision" })).toBeVisible();
+    await expect(panel.getByRole("columnheader", { name: "Category" })).toBeVisible();
+    await expect(panel.getByRole("columnheader", { name: "Action" })).toBeVisible();
+    await expect(panel.getByRole("columnheader", { name: "Outcome" })).toBeVisible();
+    await expect(panel.getByRole("columnheader", { name: "Timestamp" })).toBeVisible();
+  } else {
+    await expect(panel.getByTestId("decision-summary")).toBeVisible();
+  }
+});
+
+test("test_decision_explorer_has_filter_or_summary", async ({ page }) => {
+  await gotoInsight(page);
+  const panel = page.getByTestId("decision-explorer");
+  await expect(panel.getByTestId("decision-summary").or(panel.locator("select").first())).toBeVisible();
+});

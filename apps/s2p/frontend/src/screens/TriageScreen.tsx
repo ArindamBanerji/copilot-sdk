@@ -186,6 +186,10 @@ export function TriageScreen() {
         supplier_id: supplierId(selected),
         supplier_name: supplierName(selected),
       });
+      if (!result) {
+        setScoreError("Scoring failed");
+        return;
+      }
       setScore(result);
       const nextAction = recommendedAction(result, selected);
       setOverrideAction(S2P_ACTIONS.includes(nextAction as S2PAction) ? (nextAction as S2PAction) : "hold_for_review");
@@ -221,6 +225,10 @@ export function TriageScreen() {
           ...(outcome === "override" && reasonCode ? { reason_code: reasonCode } : {}),
         },
       });
+      if (!result) {
+        setLearnError("Learning failed");
+        return;
+      }
       setLearnResult(result);
     } catch (err: unknown) {
       setLearnError(err instanceof Error ? err.message : "Learning failed");

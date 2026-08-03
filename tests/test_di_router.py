@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import sys
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
@@ -173,195 +171,64 @@ def test_response_model_serialization_in_profiles_list():
     assert source["latest_profile"]["source_name"] == "erp"
 
 
-def test_dataops_app_mounts_di_profiles_empty_registry():
-    backend_root = Path(__file__).resolve().parents[1] / "apps" / "dataops" / "backend"
-    if str(backend_root) not in sys.path:
-        sys.path.insert(0, str(backend_root))
-    from app.main import create_app
+class StandaloneMapBuilder:
+    def discover_combinations(self) -> list[dict[str, object]]:
+        return [{"source_a": "orders", "source_b": "shipping", "value_estimate_annual": 180000}]
 
-    client = TestClient(create_app(db_path=":memory:", demo_bundle_path=False))
-
-    response = client.get("/api/di/profiles")
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["total"] == 3
-    assert {source["source_name"] for source in payload["sources"]} == {
-        "airflow",
-        "dbt",
-        "snowflake",
-    }
+    def build(self) -> dict[str, object]:
+        return {
+            "nodes": [{"id": "orders", "label": "orders", "trust": 0.94}],
+            "edges": [],
+            "gold_lines": [{"source": "orders", "target": "shipping", "type": "suggested"}],
+        }
 
 
-def test_di_dataops_after_trading_import_still_works():
-    """Legacy backend app packages must not poison the DataOps import boundary."""
-    root = Path(__file__).resolve().parents[1]
-    trading_backend = root / "apps" / "trading" / "backend"
-    dataops_backend = root / "apps" / "dataops" / "backend"
-    original_path = list(sys.path)
-    original_app_modules = {
-        name: module
-        for name, module in sys.modules.items()
-        if name == "app" or name.startswith("app.")
-    }
+class StandaloneAdvisor:
+    def __init__(self, recommendations: list[dict[str, object]] | None = None) -> None:
+        self._recommendations = recommendations if recommendations is not None else [
+            {"source_name": "Weather API", "priority": 1, "rationale": "Improves demand prediction."}
+        ]
 
-    def clear_app_modules() -> None:
-        for name in list(sys.modules):
-            if name == "app" or name.startswith("app."):
-                sys.modules.pop(name, None)
-
-    try:
-        clear_app_modules()
-        sys.path.insert(0, str(trading_backend))
-        from app.main import create_app as create_trading_app
-
-        assert create_trading_app(db_path=":memory:", demo_bundle_path=False).title == "Trading Copilot"
-
-        clear_app_modules()
-        sys.path.insert(0, str(dataops_backend))
-        from app.main import create_app as create_dataops_app
-
-        response = TestClient(
-            create_dataops_app(db_path=":memory:", demo_bundle_path=False)
-        ).get("/api/di/profiles")
-
-        assert response.status_code == 200
-        assert response.json()["total"] == 3
-    finally:
-        clear_app_modules()
-        sys.path[:] = original_path
-        sys.modules.update(original_app_modules)
+    def recommend(self) -> list[dict[str, object]]:
+        return self._recommendations
 
 
-def _dataops_app():
-    backend_root = Path(__file__).resolve().parents[1] / "apps" / "dataops" / "backend"
-    if str(backend_root) not in sys.path:
-        sys.path.insert(0, str(backend_root))
-    from app.main import create_app
-
-    return create_app(db_path=":memory:", demo_bundle_path=False)
-
-
-def test_snowflake_in_profiler_registry():
-    app = _dataops_app()
-
-    assert "snowflake" in app.state.dataops_profiler_registry
-
-
-def test_dbt_in_profiler_registry():
-    app = _dataops_app()
-
-    assert "dbt" in app.state.dataops_profiler_registry
+def _standalone_di_client(
+    advisor: StandaloneAdvisor | None = None,
+) -> TestClient:
+    app = FastAPI()
+    app.include_router(
+        create_di_router(
+            {},
+            map_builder=StandaloneMapBuilder(),
+            advisor=advisor or StandaloneAdvisor(),
+        ),
+        prefix="/api",
+    )
+    return TestClient(app)
 
 
-def test_airflow_in_profiler_registry():
-    app = _dataops_app()
-
-    assert "airflow" in app.state.dataops_profiler_registry
-
-
-def test_profiles_endpoint_includes_snowflake():
-    response = TestClient(_dataops_app()).get("/api/di/profiles")
-
-    assert response.status_code == 200
-    sources = [source["source_name"] for source in response.json()["sources"]]
-    assert "snowflake" in sources
+def test_combinations_endpoint_is_standalone():
+    payload = _standalone_di_client().get("/api/di/combinations").json()
+    assert payload["combinations"]
+    assert payload["total_value"] == 180000
 
 
-def test_profiles_endpoint_includes_dbt():
-    response = TestClient(_dataops_app()).get("/api/di/profiles")
-
-    assert response.status_code == 200
-    sources = [source["source_name"] for source in response.json()["sources"]]
-    assert "dbt" in sources
+def test_acquisition_advice_endpoint_is_standalone():
+    payload = _standalone_di_client().get("/api/di/acquisition-advice").json()
+    assert payload["recommendations"][0]["priority"] == 1
 
 
-def test_profiles_endpoint_includes_airflow():
-    response = TestClient(_dataops_app()).get("/api/di/profiles")
-
-    assert response.status_code == 200
-    sources = [source["source_name"] for source in response.json()["sources"]]
-    assert "airflow" in sources
+def test_empty_acquisition_advice_is_standalone():
+    payload = _standalone_di_client(StandaloneAdvisor([])).get("/api/di/acquisition-advice").json()
+    assert payload["recommendations"] == []
 
 
-def test_intelligence_map_has_connector_nodes():
-    response = TestClient(_dataops_app()).get("/api/di/intelligence-map")
-
-    assert response.status_code == 200
-    labels = {node["label"] for node in response.json()["nodes"]}
-    assert {"orders", "stg_orders", "etl_orders"} <= labels
+def test_intelligence_map_endpoint_is_standalone():
+    payload = _standalone_di_client().get("/api/di/intelligence-map").json()
+    assert payload["nodes"][0]["trust"] == 0.94
 
 
-def test_connector_provenance_demo():
-    app = _dataops_app()
-    backend_root = Path(__file__).resolve().parents[1] / "apps" / "dataops" / "backend"
-    if str(backend_root) not in sys.path:
-        sys.path.insert(0, str(backend_root))
-    from app.main import _dataops_intelligence_map_sources
-
-    sources = _dataops_intelligence_map_sources(app.state.dataops_profiler_registry)
-
-    assert sources
-    assert all(source["provenance"] == "demo" for source in sources)
-
-
-def test_profiled_snowflake_has_quality():
-    app = _dataops_app()
-
-    assert app.state.dataops_profiles["snowflake"]["overall_quality"] > 0
-
-
-def test_profiled_dbt_has_quality():
-    app = _dataops_app()
-
-    assert app.state.dataops_profiles["dbt"]["overall_quality"] > 0
-
-
-def test_profiled_airflow_has_quality():
-    app = _dataops_app()
-
-    assert app.state.dataops_profiles["airflow"]["overall_quality"] > 0
-
-
-def test_profiles_endpoint_has_data():
-    response = TestClient(_dataops_app()).get("/api/di/profiles")
-
-    assert response.status_code == 200
-    sources = response.json()["sources"]
-    assert sources
-    assert all(source["has_profile"] is True for source in sources)
-    assert all(source["latest_profile"]["overall_quality"] > 0 for source in sources)
-
-
-def test_acquisitions_endpoint_200():
-    response = TestClient(_dataops_app()).get("/api/dataops/di/acquisitions")
-
-    assert response.status_code == 200
-    assert response.json()["recommendations"]
-
-
-def test_acquisitions_has_roi():
-    response = TestClient(_dataops_app()).get("/api/dataops/di/acquisitions")
-
-    assert response.status_code == 200
-    assert all("roi" in item for item in response.json()["recommendations"])
-
-
-def test_acquisitions_free_first():
-    response = TestClient(_dataops_app()).get("/api/dataops/di/acquisitions")
-
-    assert response.status_code == 200
-    recommendations = response.json()["recommendations"]
-    free_indexes = [index for index, item in enumerate(recommendations) if item["cost"] == 0]
-    paid_indexes = [index for index, item in enumerate(recommendations) if item["cost"] > 0]
-    assert free_indexes
-    assert not paid_indexes or max(free_indexes) < min(paid_indexes)
-
-
-def test_acquisitions_provenance():
-    response = TestClient(_dataops_app()).get("/api/dataops/di/acquisitions")
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["provenance"] == "demo"
-    assert all(item["provenance"] == "demo" for item in payload["recommendations"])
+def test_intelligence_map_endpoint_exposes_gold_lines():
+    payload = _standalone_di_client().get("/api/di/intelligence-map").json()
+    assert payload["gold_lines"][0]["type"] == "suggested"

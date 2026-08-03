@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from copilot_sdk.di import BaseSourceProfiler
+from copilot_sdk.di import AcquisitionAdvisor, BaseSourceProfiler, IntelligenceMapBuilder
 
 
 class ProfileRefreshRequest(BaseModel):
@@ -54,12 +54,17 @@ class DIRefreshResponse(BaseModel):
 def create_di_router(
     profiler_registry: dict[str, BaseSourceProfiler],
     *,
+    map_builder: Any | None = None,
+    map_sources: list[dict[str, Any]] | None = None,
+    advisor: Any | None = None,
     cache_ttl_seconds: int | None = 300,
 ) -> APIRouter:
     """Create domain-agnostic Data Intelligence source profile endpoints."""
 
     router = APIRouter()
     cache: dict[str, dict[str, Any]] = {}
+    resolved_map_builder = map_builder or IntelligenceMapBuilder()
+    resolved_advisor = advisor or AcquisitionAdvisor()
 
     def _profiler(source_name: str) -> BaseSourceProfiler:
         try:
@@ -141,5 +146,50 @@ def create_di_router(
             "profile": profile_payload,
             **_cache_metadata(cache[source_name], generated_at),
         }
+
+    @router.get("/di/combinations")
+    def combinations() -> dict[str, Any]:
+        discovered = resolved_map_builder.discover_combinations()
+        combinations_payload = [
+            item.to_dict() if hasattr(item, "to_dict") else dict(item)
+            for item in discovered
+        ]
+        total_value = sum(
+            float(item.get("value_estimate_annual", item.get("annual_value", 0.0)) or 0.0)
+            for item in combinations_payload
+        )
+        return {
+            "combinations": combinations_payload,
+            "total_value": round(total_value, 2),
+        }
+
+    @router.get("/di/acquisition-advice")
+    def acquisition_advice() -> dict[str, Any]:
+        result = resolved_advisor.recommend()
+        recommendations = result.get("recommendations", []) if isinstance(result, dict) else result
+        return {"recommendations": list(recommendations)}
+
+    @router.get("/di/intelligence-map")
+    def intelligence_map() -> dict[str, Any]:
+        result = (
+            resolved_map_builder.build(sources=map_sources)
+            if map_sources is not None
+            else resolved_map_builder.build()
+        )
+        payload = result.to_dict() if hasattr(result, "to_dict") else dict(result)
+        if not payload.get("gold_lines"):
+            payload["gold_lines"] = [
+                {
+                    "source": item.get("source_a"),
+                    "target": item.get("source_b"),
+                    "value": item.get("value_estimate_annual", 0.0),
+                    "type": "suggested",
+                }
+                for item in resolved_map_builder.discover_combinations()
+            ]
+        for node in payload.get("nodes", []):
+            if "trust" not in node and "brightness" in node:
+                node["trust"] = node["brightness"]
+        return payload
 
     return router

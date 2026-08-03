@@ -36,6 +36,8 @@ from .graph_queries import DataOpsGraphClient  # noqa: E402
 from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.dataops_status import router as dataops_status_router  # noqa: E402
 from .routers.query import create_query_router  # noqa: E402
+from .routers.di_enrichment_router import create_dataops_di_enrichment_router  # noqa: E402
+from .routers.trust_router import create_trust_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
@@ -612,6 +614,10 @@ def create_app(
         ),
         prefix="/api",
     )
+    app.include_router(
+        create_trust_router(DOMAIN, scorer_provider=lambda: scorer_proxy),
+        prefix="/api",
+    )
     app.include_router(create_transfer_router(scorer_proxy))
     app.include_router(
         create_conservation_router(
@@ -632,8 +638,20 @@ def create_app(
     def dataops_acquisitions_response() -> dict[str, Any]:
         return _dataops_acquisition_recommendations()
 
-    app.include_router(create_di_router(dataops_profiler_registry), prefix="/api")
+    app.include_router(
+        create_di_router(
+            dataops_profiler_registry,
+            map_builder=IntelligenceMapBuilder(),
+            map_sources=_dataops_intelligence_map_sources(dataops_profiler_registry),
+            advisor=AcquisitionAdvisor(),
+        ),
+        prefix="/api",
+    )
     app.include_router(create_di_router(dataops_profiler_registry), prefix="/api/dataops")
+    app.include_router(
+        create_dataops_di_enrichment_router(scorer_provider=lambda: scorer_proxy),
+        prefix="/api/di",
+    )
     app.include_router(
         create_evolution_router(
             graph_store_factory=lambda: selected_graph_store,

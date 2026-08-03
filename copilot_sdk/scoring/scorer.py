@@ -161,6 +161,8 @@ class CompoundingScorer:
         self._last_checkpoint_action: str | None = None
         self._last_checkpoint_iks: float | None = None
         self._last_persisted_fingerprint_signature: str | None = None
+        self._verified_decisions_cache: list[dict[str, Any]] | None = None
+        self._fingerprint_cache: FingerprintResult | None = None
         try:
             self._outbox: PersistenceOutbox | None = PersistenceOutbox(self._domain)
             drained, failed = self._outbox.drain(self._graph_store)
@@ -572,6 +574,8 @@ class CompoundingScorer:
         if not callable(reset):
             raise AttributeError("graph store does not support domain_scoped_reset")
         reset(self._domain)
+        self._verified_decisions_cache = None
+        self._fingerprint_cache = None
         if self._outbox is not None:
             self._outbox.clear()
 
@@ -722,6 +726,8 @@ class CompoundingScorer:
             metadata=outcome_metadata,
             domain=self._domain,
         )
+        self._verified_decisions_cache = None
+        self._fingerprint_cache = None
         if persist_artifacts:
             self._persist_evidence_receipt(
                 decision_id=decision_id,
@@ -832,10 +838,12 @@ class CompoundingScorer:
         persist: bool = True,
         decision_id: str | None = None,
     ) -> FingerprintResult:
-        result = compute_fingerprint(
-            self._graph_store.get_verified_decisions(self._domain),
-            list(self._preset.shape.factor_names),
-        )
+        if self._fingerprint_cache is None:
+            self._fingerprint_cache = compute_fingerprint(
+                self._verified_decisions(),
+                list(self._preset.shape.factor_names),
+            )
+        result = self._fingerprint_cache
         if persist:
             self._persist_fingerprint(result, decision_id=decision_id)
         return result
@@ -1567,18 +1575,17 @@ class CompoundingScorer:
         skip_history_scan: bool = False,
     ) -> float:
         try:
-            verified = self._graph_store.count_verified(self._domain)
-        except Exception:
-            verified_decisions = _verified_decisions(self._graph_store) or []
+            verified_decisions = self._verified_decisions()
             verified = len(verified_decisions)
+        except Exception:
+            verified = self._graph_store.count_verified(self._domain)
         if verified == 0:
             return 0.0
 
         try:
-            correct = self._graph_store.count_correct(self._domain)
-        except Exception:
-            verified_decisions = _verified_decisions(self._graph_store) or []
             correct = sum(1 for decision in verified_decisions if _is_correct_decision(decision))
+        except Exception:
+            correct = self._graph_store.count_correct(self._domain)
         accuracy = correct / verified
         if skip_history_scan:
             fingerprint_component = 0.0
@@ -1595,7 +1602,7 @@ class CompoundingScorer:
             )
             fingerprint_component = max(0.0, min((1.0 - mean_sigma / 0.5) * 25.0, 25.0))
             coverage = _count_categories_with_n(
-                self._graph_store.get_verified_decisions(self._domain),
+                self._conservation_verified_decisions(),
                 10,
             ) / self._preset.shape.n_categories
 
@@ -1618,8 +1625,12 @@ class CompoundingScorer:
 
     def _conservation_pause(self) -> dict[str, Any] | None:
         try:
-            verified, correct, override_rate = _conservation_stats(self._graph_store)
-            category_coverage = self._category_coverage()
+            verified_decisions = self._conservation_verified_decisions()
+            verified, correct, override_rate = _conservation_stats(
+                self._graph_store,
+                verified_decisions=verified_decisions,
+            )
+            category_coverage = self._category_coverage_from_decisions(verified_decisions)
         except Exception:
             return None
         if verified <= 0:
@@ -1630,7 +1641,11 @@ class CompoundingScorer:
         q = correct / verified
         recent_window = max(int(getattr(self._preset, "conservation_recent_window", 100)), 1)
         recent_q_threshold = float(getattr(self._preset, "conservation_recent_q_threshold", 0.75))
-        recent_quality = _recent_quality(self._graph_store, window=recent_window)
+        recent_quality = _recent_quality(
+            self._graph_store,
+            window=recent_window,
+            verified_decisions=verified_decisions,
+        )
         if recent_quality is not None:
             recent_count, recent_q = recent_quality
             if recent_count >= recent_window and recent_q < recent_q_threshold:
@@ -1649,7 +1664,10 @@ class CompoundingScorer:
                     "recent_window": recent_count,
                 }
         theta_min = compute_theta_min(category_coverage, verified)
-        dispersion = _conservation_dispersion(self._graph_store)
+        dispersion = _conservation_dispersion(
+            self._graph_store,
+            verified_decisions=verified_decisions,
+        )
         effective_q = q
         if dispersion is not None and float(dispersion.get("inflation", 0.0)) > 1.3:
             logger.info(
@@ -1968,15 +1986,36 @@ class CompoundingScorer:
 
     def _category_coverage(self) -> float:
         """Return JM alpha: configured categories with verified data / all categories."""
+        return self._category_coverage_from_decisions(self._conservation_verified_decisions())
+
+    def _category_coverage_from_decisions(
+        self,
+        verified_decisions: list[dict[str, Any]],
+    ) -> float:
+        """Return JM alpha from a verified-decision snapshot."""
         total_categories = int(self._preset.shape.n_categories)
         if total_categories <= 0:
             return 0.0
-        verified_decisions = _conservation_verified_decisions(self._graph_store)
         covered_categories = _count_categories_with_n(
             verified_decisions,
             CONSERVATION_CATEGORY_MIN_VERIFIED,
         )
         return min(1.0, covered_categories / total_categories)
+
+    def _verified_decisions(self) -> list[dict[str, Any]]:
+        if self._verified_decisions_cache is None:
+            decisions = self._graph_store.get_verified_decisions(self._domain)
+            self._verified_decisions_cache = [
+                decision for decision in decisions if _is_verified_decision(decision)
+            ]
+        return self._verified_decisions_cache
+
+    def _conservation_verified_decisions(self) -> list[dict[str, Any]]:
+        return [
+            decision
+            for decision in self._verified_decisions()
+            if not _is_benchmark_decision(decision)
+        ]
 
     @property
     def graph_store(self) -> GraphStore:
@@ -1993,8 +2032,13 @@ def _conservation_counts(store: Any) -> tuple[int, int]:
     return verified, correct
 
 
-def _conservation_dispersion(store: Any) -> dict[str, float] | None:
-    verified_decisions = _conservation_verified_decisions(store)
+def _conservation_dispersion(
+    store: Any,
+    *,
+    verified_decisions: list[dict[str, Any]] | None = None,
+) -> dict[str, float] | None:
+    if verified_decisions is None:
+        verified_decisions = _conservation_verified_decisions(store)
     if not verified_decisions:
         return None
     q_window = [
@@ -2061,8 +2105,14 @@ def _dk_factor_dispersion_weights(
     return np.tile(weights.reshape(1, n_dims), (n_categories, 1))
 
 
-def _recent_quality(store: Any, *, window: int) -> tuple[int, float] | None:
-    verified_decisions = _conservation_verified_decisions(store)
+def _recent_quality(
+    store: Any,
+    *,
+    window: int,
+    verified_decisions: list[dict[str, Any]] | None = None,
+) -> tuple[int, float] | None:
+    if verified_decisions is None:
+        verified_decisions = _conservation_verified_decisions(store)
     if not verified_decisions:
         return None
     recent = verified_decisions[-max(int(window), 1):]
@@ -2072,11 +2122,20 @@ def _recent_quality(store: Any, *, window: int) -> tuple[int, float] | None:
     return len(recent), correct / len(recent)
 
 
-def _conservation_stats(store: Any) -> tuple[int, int, float]:
-    domain = _store_domain(store)
-    verified = max(int(store.count_verified(domain)), 0)
-    correct = max(int(store.count_correct(domain)), 0)
-    decisions = _conservation_verified_decisions(store)
+def _conservation_stats(
+    store: Any,
+    *,
+    verified_decisions: list[dict[str, Any]] | None = None,
+) -> tuple[int, int, float]:
+    if verified_decisions is None:
+        domain = _store_domain(store)
+        verified = max(int(store.count_verified(domain)), 0)
+        correct = max(int(store.count_correct(domain)), 0)
+        decisions = _conservation_verified_decisions(store)
+    else:
+        decisions = verified_decisions
+        verified = len(decisions)
+        correct = sum(1 for decision in decisions if _is_correct_decision(decision))
     overrides = sum(1 for decision in decisions if _is_override_decision(decision))
     override_rate = overrides / verified if verified > 0 else 0.0
     return verified, correct, override_rate

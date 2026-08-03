@@ -122,3 +122,122 @@ test("operational rules panel shows governed rule statuses", async ({ page }) =>
   await expect(rules.getByText(/^Scheduling Rule$/i).first()).toBeVisible();
   await expect(rules.getByText(/quality|resource|memory|off-peak/i).first()).toBeVisible();
 });
+
+test("test_accuracy_alerts_visible_on_evidence", async ({ page }) => {
+  await gotoEvidence(page);
+
+  await expect(page.getByTestId("accuracy-alerts")).toBeVisible();
+  await expect(page.getByText("Accuracy Alerts")).toBeVisible();
+});
+
+test("test_accuracy_alerts_shows_6_categories", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("accuracy-alerts");
+  await expect(panel.getByTestId("accuracy-category")).toHaveCount(6);
+});
+
+test("test_accuracy_alerts_shows_threshold_or_bars", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("accuracy-alerts");
+  await expect(panel.getByText(/Threshold:/i)).toBeVisible();
+  await expect(panel.getByTestId("accuracy-category-list")).toBeVisible();
+});
+
+test("test_accuracy_alerts_color_coding", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("accuracy-alerts");
+  await expect(panel.locator('[data-accuracy-level="green"]').first()).toBeVisible();
+  await expect(panel.locator('[data-accuracy-level="red"], [data-accuracy-level="amber"]').first()).toBeVisible();
+});
+
+test("test_rule_genealogy_visible_on_evidence", async ({ page }) => {
+  await gotoEvidence(page);
+
+  await expect(page.getByTestId("rule-genealogy")).toBeVisible();
+  await expect(page.getByTestId("rule-genealogy").getByRole("heading", { name: "Rule Genealogy" })).toBeVisible();
+});
+
+test("test_rule_genealogy_shows_rules_or_empty", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("rule-genealogy");
+  await expect(panel.getByText(/No lifecycle rules recorded yet|Rules tracked/i).first()).toBeVisible();
+});
+
+test("test_rule_genealogy_shows_status_badges", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("rule-genealogy");
+  await expect(panel.getByText(/promoted|rejected|shadow|proposed/i).first()).toBeVisible();
+});
+
+test("test_rule_genealogy_shows_promoted_or_rejected", async ({ page }) => {
+  await gotoEvidence(page);
+
+  const panel = page.getByTestId("rule-genealogy");
+  await expect(panel.getByText(/promoted|rejected|shadow|The system that admits failure/i).first()).toBeVisible();
+});
+
+test("test_rule_lifecycle_visible_on_evidence", async ({ page }) => {
+  await gotoEvidence(page);
+  await expect(page.getByTestId("rule-lifecycle")).toBeVisible();
+});
+
+test("test_rule_lifecycle_shows_rules_or_empty", async ({ page }) => {
+  await gotoEvidence(page);
+  const panel = page.getByTestId("rule-lifecycle");
+  await expect(panel.getByTestId("rule-lifecycle-track").or(panel.getByText(/No rules have entered/i))).toBeVisible();
+});
+
+test("test_rule_lifecycle_shows_status_markers", async ({ page }) => {
+  await gotoEvidence(page);
+  const panel = page.getByTestId("rule-lifecycle");
+  if (await panel.getByTestId("rule-lifecycle-track").count()) {
+    await expect(panel.getByText(/proposed/i).first()).toBeVisible();
+    await expect(panel.getByText(/shadow/i).first()).toBeVisible();
+    await expect(panel.getByText(/promoted/i).first()).toBeVisible();
+    await expect(panel.getByText(/rejected/i).first()).toBeVisible();
+  } else {
+    await expect(panel.getByTestId("rule-lifecycle-summary")).toBeVisible();
+  }
+});
+
+test("test_rule_lifecycle_shows_summary", async ({ page }) => {
+  await gotoEvidence(page);
+  await expect(page.getByTestId("rule-lifecycle-summary")).toBeVisible();
+  await expectAnyText(page, [/Active/i, /Shadow-testing/i, /Rejected/i, /Promoted/i]);
+});
+
+test("test_audit_trail_visible_on_evidence", async ({ page }) => {
+  await gotoEvidence(page);
+  await expect(page.getByTestId("audit-trail")).toBeVisible();
+});
+
+test("test_audit_trail_shows_events_or_empty", async ({ page }) => {
+  await gotoEvidence(page);
+  const panel = page.getByTestId("audit-trail");
+  await expect(panel.getByTestId("audit-events").or(panel.getByText(/No audit events match/i))).toBeVisible();
+});
+
+test("test_audit_trail_shows_type_badges", async ({ page }) => {
+  await gotoEvidence(page);
+  const panel = page.getByTestId("audit-trail");
+  if (await panel.getByTestId("audit-event-type").count()) {
+    await expect(panel.getByTestId("audit-event-type").first()).toBeVisible();
+  } else {
+    await expect(panel.getByTestId("audit-event-filter")).toBeVisible();
+  }
+});
+
+test("test_audit_trail_shows_timestamps", async ({ page }) => {
+  await gotoEvidence(page);
+  const panel = page.getByTestId("audit-trail");
+  if (await panel.getByTestId("audit-event-timestamp").count()) {
+    await expect(panel.getByTestId("audit-event-timestamp").first()).toBeVisible();
+  } else {
+    await expect(panel.getByTestId("audit-recent-summary")).toBeVisible();
+  }
+});

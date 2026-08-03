@@ -55,3 +55,40 @@ def test_explicit_fingerprint_persist_true_still_works(mock_preset) -> None:
     scorer.fingerprint(persist=True)
 
     assert len(store._fingerprints) == 1
+
+
+def test_fingerprint_cache_invalidates_after_outcome(mock_preset) -> None:
+    scorer, _store = _make_scorer(mock_preset)
+    category = mock_preset.shape.category_names[0]
+
+    before = scorer.fingerprint(persist=False)
+    assert scorer.fingerprint(persist=False) is before
+
+    result = scorer.score(
+        {name: 0.5 for name in mock_preset.shape.factor_names},
+        category,
+    )
+    scorer.learn(result.decision_id, result.action)
+
+    after = scorer.fingerprint(persist=False)
+    assert after is not before
+    assert after.decisions_analyzed == 1
+    assert scorer.fingerprint(persist=False) is after
+
+
+def test_verified_decision_cache_invalidates_after_outcome(mock_preset) -> None:
+    scorer, _store = _make_scorer(mock_preset)
+    category = mock_preset.shape.category_names[0]
+
+    before = scorer._verified_decisions()
+    assert scorer._verified_decisions() is before
+
+    result = scorer.score(
+        {name: 0.5 for name in mock_preset.shape.factor_names},
+        category,
+    )
+    scorer.learn(result.decision_id, result.action)
+
+    after = scorer._verified_decisions()
+    assert after is not before
+    assert len(after) == 1

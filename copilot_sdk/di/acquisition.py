@@ -41,12 +41,12 @@ class AcquisitionAdvisor:
 
     def recommend(
         self,
-        domain: str,
-        current_sources: list[str],
+        domain: str = "dataops",
+        current_sources: list[str] | None = None,
         decisions: list[dict[str, Any]] | None = None,
         decisions_per_year: int | None = None,
     ) -> dict[str, Any]:
-        connected = {source.casefold() for source in current_sources}
+        connected = {source.casefold() for source in (current_sources or [])}
         engine = self.valuation_engine or DataValuationEngine(domain, decisions_per_year=decisions_per_year)
         annual_decisions = decisions_per_year
         provenance = "derived"

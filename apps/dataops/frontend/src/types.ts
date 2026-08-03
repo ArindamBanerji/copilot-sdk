@@ -342,6 +342,22 @@ export interface FingerprintResponse {
   decisionsAnalyzed?: number;
 }
 
+export interface TrustFactor {
+  name: string;
+  dkWeight: number;
+  label: "reliable" | "moderate" | "noisy" | string;
+  rank: number;
+}
+
+export interface TrustResponse {
+  factors: TrustFactor[];
+  overallTrust: number;
+  conservationStatus: string;
+  verifiedDecisions: number;
+  iks: number | null;
+  narrative: string;
+}
+
 export type EvolutionStatus = "promoted" | "rejected" | "shadow" | "created";
 
 export interface EvolutionVariant {
@@ -500,10 +516,13 @@ export interface CentroidCheckpoint {
   decisionId?: string;
   decision_id?: string;
   category?: string;
-  centroids?: Record<string, unknown>;
+  centroids?: Record<string, unknown> | unknown[];
+  iks?: number;
   metadata?: Record<string, unknown>;
   createdAt?: string;
   created_at?: string;
+  checkpointTime?: string;
+  checkpoint_time?: string;
 }
 
 export interface SelfCentroidHistoryResponse {

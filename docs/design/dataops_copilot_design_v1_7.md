@@ -1,4 +1,4 @@
-# DataOps Copilot Design v1.6
+# DataOps Copilot Design v1.7
 **Date:** May 20, 2026 · **Supersedes:** v1.5 (May 12)
 **Changes (v1.6):** §29-§41 NEW — Data Intelligence product definition
 layer. Reframes from "better DataOps" to "Data Intelligence" — data
@@ -28,7 +28,7 @@ the authoritative source for these sections. Key sections:*
 
 ---
 
-*DataOps Copilot Design v1.6 · May 20, 2026*
+*DataOps Copilot Design v1.7 · May 20, 2026*
 *BUILT: 149 tests, 26 endpoints, D-1→D-6, OE-1→OE-5, IKS 19.0.*
 *Enterprise: real SAP (api.sap.com) + real Celonis (Developer Portal).*
 *Process-Tech Fusion: WHERE→WHY→WHAT→LEARN→TRANSFER.*
@@ -1245,6 +1245,574 @@ AFTER DI PHASE C (~14 weeks):
 
 ---
 
+
+---
+
+
+## §39A — The Reification Gap
+
+DataOps Level 1-3 is COMPLETE (OE-1→OE-5, SC-9/SC-10, 261 backend tests).
+The CompoundingScorer computes per-factor DK weights, conservation tracks
+per-source reliability, AgentEvolver discovers operational rules, and the
+graph stores every verified decision with source attribution.
+
+None of this is SURFACED as "data intelligence." The machinery exists.
+The presentation doesn't. This addendum defines 6 immediate items (SC-TRUST
+through SC-DIGEST) that reify what's already computed, plus execution-ready
+MAP addendums for DI-1 and DI-2.
+
+**Principle:** No new math. No new scoring. No new graph schema. These items
+wrap EXISTING scorer methods (`get_dk_weights`, `compute_fingerprint`,
+`_compute_iks`, `_category_coverage`, evolution ledger reads) in endpoints
+and UI components that make the intelligence VISIBLE.
+
+---
+
+## §39B — Immediate Items (use existing machinery)
+
+### SC-TRUST: Source Trust Card (Dashboard tab)
+
+**MAP ID:** SC-TRUST
+**Tier:** 5.1 (immediate, before DI-1)
+**Effort:** 1-2d
+**Repo:** copilot-sdk (apps/dataops)
+**Depends on:** Nothing — uses existing `get_dk_weights()` + `compute_fingerprint()`
+**Tab:** Dashboard (add as top card)
+
+**What:** One card showing per-source trust scores derived from DK weights.
+Each pipeline system gets a trust score (0-1), status badge (GREEN/AMBER/RED),
+verified count, and trend arrow. Click → drill into per-factor contribution.
+
+**Why it matters:** Changes the narrative from "we monitor pipelines" to
+"we measure which data you can trust." The Level 5 elevator pitch in one card.
+
+**Endpoint:**
+```
+GET /api/dataops/intelligence/source-trust
+Returns: [
+  {source: "sap_mm_api", trust: 0.89, status: "GREEN", verified: 142, trend: "improving"},
+  {source: "erp_connector", trust: 0.71, status: "AMBER", verified: 67, trend: "stable"},
+  {source: "sftp_daily", trust: 0.43, status: "RED", verified: 23, trend: "declining"},
+]
+```
+
+**Implementation:**
+```
+Backend:
+  apps/dataops/backend/app/routers/intelligence_router.py (NEW)
+    - compute_source_trust(scorer, domain) → list[SourceTrust]
+    - Maps DK weight matrix to per-source trust via FACTOR_TO_SOURCE mapping:
+        impact_scope → cross-system (all sources)
+        source_reliability → the source itself
+        recurrence_frequency → monitoring system
+        downstream_urgency → consumer systems
+        data_freshness → ingestion pipeline
+        business_criticality → business context
+    - Trust = weighted average of DK weights for factors associated with source
+    - Status: trust ≥ 0.7 → GREEN, ≥ 0.4 → AMBER, else RED
+    - Trend: compare current DK weights vs 50-decisions-ago checkpoint
+
+Frontend:
+  apps/dataops/frontend/src/components/SourceTrustCard.tsx (NEW)
+    - Table: source name, trust bar, status badge, verified count, trend arrow
+    - Click row → expand per-factor DK weight breakdown
+    - Provenance label: "Trust scores from N verified decisions" (T-R)
+
+Tests (~8):
+  test_source_trust_endpoint_returns_all_sources
+  test_trust_score_range_0_to_1
+  test_status_thresholds (GREEN ≥ 0.7, AMBER ≥ 0.4)
+  test_trend_computation_from_checkpoints
+  test_factor_to_source_mapping_covers_all_factors
+  test_empty_decisions_returns_neutral_trust
+  test_provenance_label_present
+  test_frontend_typecheck (npx tsc --noEmit)
+```
+
+---
+
+### SC-IKS-ATTR: IKS Attribution (Insight tab)
+
+**MAP ID:** SC-IKS-ATTR
+**Tier:** 5.1
+**Effort:** 2-3d
+**Repo:** copilot-sdk (apps/dataops)
+**Depends on:** Nothing — uses evolution ledger + centroid checkpoints + fingerprint history
+**Tab:** Insight (add as panel below BottleneckPanel)
+
+**What:** Causal attribution for IKS changes. "IKS went from 55 → 72. Why?"
+Connects evolution events, schema changes, category coverage shifts, and
+fingerprint stability changes to IKS deltas.
+
+**Endpoint:**
+```
+GET /api/dataops/intelligence/iks-attribution?window=30
+Returns: {
+  current_iks: 72.1,
+  period_start_iks: 55.3,
+  attributions: [
+    {period: "Week 3-4", iks_delta: +8.2,
+     cause: "Rule promoted: pre-join filter for schema_change",
+     evidence_type: "evolution_event", evidence_id: "EVT-042"},
+    {period: "Week 5", iks_delta: +3.1,
+     cause: "Schema change resolved (MATKL_V2 stabilized)",
+     evidence_type: "schema_impact", evidence_id: "SI-017"},
+    {period: "Week 6", iks_delta: -1.4,
+     cause: "New category introduced (transform_drift)",
+     evidence_type: "coverage_change", detail: "coverage 0.83 → 0.67"},
+    {period: "Week 7-8", iks_delta: +6.9,
+     cause: "source_reliability factor stabilized (σ 0.31 → 0.14)",
+     evidence_type: "fingerprint_change"}
+  ],
+  unattributed_delta: 0.0
+}
+```
+
+**Implementation:**
+```
+Backend:
+  apps/dataops/backend/app/services/iks_attribution.py (NEW)
+    - IKSAttribution dataclass (period, iks_delta, cause, evidence_type, evidence_id)
+    - compute_iks_attribution(graph_store, scorer, domain, window_days) → list[IKSAttribution]
+    - Algorithm:
+      1. Get centroid checkpoints with IKS values over window
+      2. Segment into periods where IKS changed significantly (|delta| > 1.0)
+      3. For each period, check:
+         a. Evolution events (rule promoted/rejected/rollback)
+         b. Schema impact events (from OE-3 data)
+         c. Category coverage changes (new categories activated)
+         d. Fingerprint σ changes (factor stability shifts)
+      4. Attribute each IKS delta to the strongest correlated event
+      5. Any remaining delta → "organic learning" (more verified decisions)
+
+Frontend:
+  apps/dataops/frontend/src/components/IKSAttributionPanel.tsx (NEW)
+    - Timeline visualization: vertical bar for each period
+    - Color = positive (green) / negative (red) delta
+    - Hover → cause + evidence link
+    - Click → navigate to Evidence tab with evidence_id highlighted
+
+Tests (~10):
+  test_attribution_covers_full_delta (sum of deltas ≈ total IKS change)
+  test_evolution_event_attributed (rule promotion → IKS increase)
+  test_coverage_change_attributed (new category → IKS decrease)
+  test_fingerprint_change_attributed (σ drop → IKS increase)
+  test_empty_window_returns_empty
+  test_unattributed_delta_bounded (≤ 20% of total)
+```
+
+---
+
+### SC-FORECAST: Learning Forecast (Curve tab)
+
+**MAP ID:** SC-FORECAST
+**Tier:** 5.1
+**Effort:** 1-2d
+**Repo:** copilot-sdk (apps/dataops)
+**Depends on:** Nothing — uses trajectory + conservation + verified rate
+**Tab:** Curve (add below ConservationProjection)
+
+**What:** Predicts WHEN the next milestone will be reached. "At current
+learning rate, GREEN in 3 weeks. Verify 10 transform_drift decisions
+to reach GREEN 2 weeks earlier."
+
+**Endpoint:**
+```
+GET /api/dataops/intelligence/learning-forecast
+Returns: {
+  current_iks: 64.2,
+  current_status: "AMBER",
+  green_threshold: {iks: 72.0, verified_needed: 50, accuracy_needed: 0.68},
+  forecast: {
+    weeks_to_green: 3.2,
+    bottleneck_category: "transform_drift",
+    bottleneck_reason: "Only 8 verified decisions (need 20+ for stable σ)",
+    acceleration_tip: "Verify 10 transform_drift decisions → GREEN ~1 week earlier"
+  },
+  learning_rate: {
+    decisions_per_week: 15.4,
+    accuracy_trend: "improving (+2pp/week)",
+    coverage_trend: "stable (5/6 categories)"
+  }
+}
+```
+
+**Implementation:**
+```
+Backend:
+  apps/dataops/backend/app/services/learning_forecast.py (NEW)
+    - LearningForecast dataclass
+    - compute_learning_forecast(scorer, graph_store, domain) → LearningForecast
+    - Algorithm:
+      1. Current IKS + conservation status
+      2. Verified decision rate (decisions/week from last 30 days)
+      3. Accuracy trend (rolling 50-decision window slope)
+      4. Category with lowest coverage → bottleneck
+      5. Linear projection: weeks_to_green = (green_iks - current_iks) / iks_per_week
+      6. Bottleneck analysis: which category, if verified, accelerates most?
+
+Frontend:
+  apps/dataops/frontend/src/components/LearningForecastCard.tsx (NEW)
+    - Current status badge + IKS number
+    - "Estimated GREEN in: 3.2 weeks" with progress bar
+    - Bottleneck callout with verification recommendation
+    - Trend sparklines (decisions/week, accuracy, coverage)
+
+Tests (~6):
+  test_forecast_weeks_positive
+  test_bottleneck_is_lowest_coverage_category
+  test_acceleration_tip_references_bottleneck
+  test_already_green_returns_zero_weeks
+  test_no_decisions_returns_unknown
+  test_trend_computation_from_recent_window
+```
+
+---
+
+### SC-DIGEST: Daily Learning Digest (Dashboard tab)
+
+**MAP ID:** SC-DIGEST
+**Tier:** 5.1
+**Effort:** 2d
+**Repo:** copilot-sdk (apps/dataops)
+**Depends on:** Nothing — uses fingerprint + evolution + conservation
+**Tab:** Dashboard (add below SourceTrustCard)
+
+**What:** "What did the system learn today?" Data-focused, not executive.
+Shows verified decisions, factor changes, source promotions, rules promoted.
+
+**Endpoint:**
+```
+GET /api/dataops/intelligence/digest?period=today
+Returns: {
+  period: "2026-07-31",
+  decisions_verified: 4,
+  factor_changes: [
+    {name: "source_reliability", sigma_before: 0.31, sigma_after: 0.22,
+     interpretation: "stabilizing"}
+  ],
+  source_status_changes: [
+    {source: "sap_mm_api", from: "AMBER", to: "GREEN", cause: "15 consecutive correct"}
+  ],
+  rules_promoted: [
+    {name: "auto-escalate quality_anomaly from erp_connector",
+     accuracy: 0.73, shadow_decisions: 15}
+  ],
+  rules_rejected: [],
+  iks_delta: +2.1,
+  highlight: "source_reliability factor stabilized — sap_mm_api moved to GREEN"
+}
+```
+
+**Implementation:**
+```
+Backend:
+  apps/dataops/backend/app/services/learning_digest.py (NEW)
+    - LearningDigest dataclass
+    - compute_digest(scorer, graph_store, domain, period) → LearningDigest
+    - Algorithm:
+      1. Count decisions verified in period (from graph_store)
+      2. Compare fingerprint now vs fingerprint at period start (σ deltas)
+      3. Check evolution events in period (promoted/rejected rules)
+      4. Compute source trust changes (from SC-TRUST data)
+      5. Compute IKS delta over period
+      6. Generate one-line highlight (most significant change)
+
+Frontend:
+  apps/dataops/frontend/src/components/LearningDigestCard.tsx (NEW)
+    - Compact card with period selector (today / this week / this month)
+    - Key metrics: decisions verified, IKS delta, rules promoted
+    - Expandable sections for factor changes, source changes, rules
+    - Highlight banner at top
+
+Tests (~8):
+  test_digest_covers_requested_period
+  test_factor_changes_have_before_after
+  test_source_changes_reference_trust_status
+  test_rules_promoted_have_accuracy
+  test_highlight_picks_most_significant
+  test_empty_period_returns_zeros
+  test_iks_delta_computed_correctly
+  test_period_options (today, week, month)
+```
+
+---
+
+## §39C — Foundation Items (gate Level 5-6)
+
+### DI-1: Source Profiler (full spec)
+
+**MAP ID:** DI-1 (SOURCE-PROFILER)
+**Tier:** 4.5 (after Loom, parallel with S2P Tier 3)
+**Effort:** 2w
+**Repo:** copilot-sdk (SDK module + DataOps app)
+**Depends on:** SC-TRUST (validates the factor→source mapping)
+
+Full spec in PD v1.6 §40.1. Key addition from this addendum:
+
+The Source Profiler is NOT new computation. It's a structured
+extraction of what `get_dk_weights()`, `compute_fingerprint()`,
+and `_category_coverage()` already compute. The Codex prompt
+MUST reference these existing methods, not reinvent.
+
+```
+Prompt: P-DI1-SOURCE-PROFILER
+  Repo: copilot-sdk
+  Create:
+    copilot_sdk/intelligence/__init__.py
+    copilot_sdk/intelligence/source_profiler.py
+      SourceProfile, ColumnProfile, ConsumerProfile dataclasses (§40.1)
+      compute_source_profiles(graph_store, scorer, domain) → list[SourceProfile]
+      Uses: scorer.get_dk_weights(), scorer.fingerprint(), graph_store.count_verified()
+    copilot_sdk/intelligence/trust_api.py
+      TrustQuery, TrustResponse for external agent consumption
+  Modify:
+    apps/dataops/backend/app/routers/intelligence_router.py (extend)
+      6 new endpoints (§40.1)
+  Create:
+    apps/dataops/frontend/src/screens/IntelligenceScreen.tsx (NEW tab or extend Insight)
+    apps/dataops/frontend/src/components/SourceProfileCard.tsx
+    apps/dataops/frontend/src/components/ColumnProfileTable.tsx
+  Tests: ~25 (backend) + ~8 (E2E)
+  NON-NEGOTIABLES:
+    - SourceProfile.trust_score is DK-derived, not hardcoded
+    - ProvenanceBadge on all trust scores (T-R from verified decisions)
+    - External trust API returns provenance tier with every score
+    - No new scorer methods — use existing get_dk_weights() + fingerprint()
+```
+
+### DI-2: Intelligence Map v1
+
+**MAP ID:** DI-2 (INTELLIGENCE-MAP-V1)
+**Tier:** 4.5 (after DI-1)
+**Effort:** 2w
+**Repo:** copilot-sdk (DataOps frontend)
+**Depends on:** DI-1
+
+Full spec in PD v1.6 §40.4. Key addition:
+
+```
+Prompt: P-DI2-INTELLIGENCE-MAP
+  Repo: copilot-sdk
+  Create:
+    apps/dataops/frontend/src/components/IntelligenceMap.tsx
+      D3 force simulation (d3 is available in the React stack)
+      Nodes: circle, radius = log(volume), opacity = trust_score
+      Edges: line, strokeWidth = |correlation|
+      Animation: Day 1 → Month 12 (d3.transition, 5s interpolation)
+    apps/dataops/backend/app/routers/intelligence_router.py (extend)
+      GET /api/dataops/intelligence/map → graph data for viz
+      WS  /api/dataops/ws/learning-events → centroid update stream
+  Tests: ~5 (E2E) + visual verification
+  NON-NEGOTIABLES:
+    - Node brightness = DK trust weight (from DI-1 SourceProfile)
+    - Animation must work without WebSocket (static mode for demo)
+    - No hardcoded node positions — force simulation computes layout
+```
+
+---
+
+## §39D — MAP Addendum (paste into MAP v5.224+)
+
+### New Tier: 5.1 — DataOps Self-Computation Reification
+
+| # | ID | What | Effort | Dep | Status |
+|---|---|---|---|---|---|
+| — | **SC-TRUST** | Source Trust Card on Dashboard. DK weights → per-source trust. | 1-2d | — | READY |
+| — | **SC-IKS-ATTR** | IKS Attribution. "WHY did accuracy improve?" | 2-3d | — | READY |
+| — | **SC-FORECAST** | Learning Forecast. "WHEN will we reach GREEN?" | 1-2d | — | READY |
+| — | **SC-DIGEST** | Daily Learning Digest. "What did the system learn today?" | 2d | SC-TRUST | READY |
+
+**Total: ~8-9d. All use existing scorer methods. No new math.**
+
+### Updated Tier 4.5: DataOps Intelligence Foundation
+
+| # | ID | What | Effort | Dep | Status |
+|---|---|---|---|---|---|
+| — | **DI-1** | Source Profiler. Per-source, per-column trust from DK weights. 6 endpoints. Trust API. | 2w | SC-TRUST | READY (§40.1) |
+| — | **DI-2** | Intelligence Map v1. D3 force-directed graph. Day 1 → Month 12. | 2w | DI-1 | READY (§40.4) |
+
+### Execution Order
+
+```
+IMMEDIATE (Tier 5.1, ~9d):
+  SC-TRUST (1-2d) ── unblocks SC-DIGEST + validates factor→source mapping
+       │
+       ├── SC-DIGEST (2d)
+       │
+  SC-IKS-ATTR (2-3d) ── independent
+  SC-FORECAST (1-2d) ── independent
+
+AFTER LOOM (Tier 4.5, ~4w):
+  DI-1 (2w) ── unblocks ALL Level 5-6
+       │
+       └── DI-2 (2w) ── THE hero visual
+
+LATER (Tier 5.5-6.5, ~9w):
+  DI-3 → DI-4 → DI-5 → DI-6 → DI-7 → DI-8
+  (unchanged from PD v1.6 §39)
+```
+
+### Cross-Reference to PD v1.6
+
+| Addendum item | PD section | Relationship |
+|---|---|---|
+| SC-TRUST | §40.1 (Source Profiler) | **Prerequisite** — validates the factor→source mapping before DI-1 builds the full profiler |
+| SC-IKS-ATTR | §29 (Self-Computation) | **Extension** — adds causal attribution to existing SC panels |
+| SC-FORECAST | §29 (Self-Computation) | **Extension** — adds predictive layer to conservation projection |
+| SC-DIGEST | §29 (Self-Computation) | **Extension** — adds temporal digest to existing dashboard |
+| DI-1 | §40.1 | **Same item** — prompt now references existing scorer methods |
+| DI-2 | §40.4 | **Same item** — unchanged |
+
+---
+
+## §39E — Codex Prompt: SC-TRUST (paste-ready)
+
+```text
+/model gpt-5.3
+Echo the current model name in the first line of output.
+TASK: SC-TRUST — Source Trust Card for DataOps Dashboard.
+WORKING DIRECTORY:
+C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\kaggle_experiments\claude_projects\copilot-sdk
+
+RULES: Do NOT use git.
+
+ACTIVATE:
+& "C:\Users\baner\CopyFolder\IoT_thoughts\python-projects\proj-envs\python_expts_venv\Scripts\Activate.ps1"
+
+CONTEXT:
+DataOps CompoundingScorer computes DK weights (per-category × per-factor importance).
+These weights implicitly encode which data sources are reliable — a high-weight factor
+means its source is discriminating well. This endpoint surfaces those weights as
+per-source trust scores.
+
+STEP 1 — Discovery:
+  python -c "
+import os
+# Check existing intelligence router
+for root, dirs, files in os.walk('apps/dataops/backend/app/routers'):
+    for f in files:
+        if f.endswith('.py') and 'intelligence' in f.lower():
+            path = os.path.join(root, f)
+            print(f'{path} ({sum(1 for _ in open(path))} lines)')
+
+# Check DK weights availability
+for root, dirs, files in os.walk('apps/dataops/backend/app'):
+    for f in files:
+        if f.endswith('.py'):
+            path = os.path.join(root, f)
+            src = open(path).read()
+            if 'dk_weights' in src or 'get_dk_weights' in src:
+                for i, line in enumerate(src.splitlines(), 1):
+                    if 'dk_weights' in line or 'get_dk_weights' in line:
+                        print(f'{path}:{i}: {line.strip()}')
+"
+
+  python -c "
+# Verify scorer has get_dk_weights
+from copilot_sdk.scoring.scorer import CompoundingScorer
+print('get_dk_weights' in dir(CompoundingScorer))
+print('fingerprint' in dir(CompoundingScorer))
+"
+
+STEP 2 — Implementation:
+
+ALLOWED FILES — CREATE:
+  apps/dataops/backend/app/routers/intelligence_router.py (if not exists)
+  apps/dataops/backend/app/services/source_trust.py
+  apps/dataops/backend/tests/test_source_trust.py
+  apps/dataops/frontend/src/components/SourceTrustCard.tsx
+
+ALLOWED FILES — MODIFY:
+  apps/dataops/backend/app/main.py (mount intelligence router)
+  apps/dataops/frontend/src/screens/DashboardScreen.tsx (add SourceTrustCard)
+  apps/dataops/frontend/src/api.ts (add fetchSourceTrust)
+
+FORBIDDEN:
+  copilot_sdk/scoring/scorer.py — do NOT modify the scorer
+  copilot_sdk/graph/ — do NOT modify GraphStore
+
+FILE 1: apps/dataops/backend/app/services/source_trust.py
+
+  FACTOR_TO_SOURCE = {
+      "impact_scope": "cross_system",
+      "source_reliability": "source_direct",
+      "recurrence_frequency": "monitoring",
+      "downstream_urgency": "consumer_systems",
+      "data_freshness": "ingestion_pipeline",
+      "business_criticality": "business_context",
+  }
+
+  PIPELINE_SYSTEMS = [
+      "sap_mm_api", "erp_connector", "sftp_daily", "salesforce_api",
+      "warehouse_etl", "data_lake_ingestion", "api_gateway",
+      "batch_processor", "streaming_pipeline"
+  ]
+
+  @dataclass
+  class SourceTrust:
+      source: str
+      trust: float           # 0.0 to 1.0, from DK weights
+      status: str            # GREEN (≥0.7), AMBER (≥0.4), RED (<0.4)
+      verified: int          # decisions involving this source
+      trend: str             # "improving", "stable", "declining"
+      dk_contribution: dict  # per-factor DK weight for this source
+
+  def compute_source_trust(scorer, graph_store, domain) -> list[SourceTrust]:
+      dk_weights = scorer.get_dk_weights()
+      fingerprint = scorer.fingerprint(persist=False)
+      # ... map DK weights to per-source trust via FACTOR_TO_SOURCE
+      # ... compute trend from fingerprint history
+      # ... return sorted by trust descending
+
+FILE 2: intelligence_router.py endpoint
+
+  @router.get("/intelligence/source-trust")
+  def source_trust() -> list[dict]:
+      # ... use _scorer_provider() to get CompoundingScorer
+      # ... call compute_source_trust(scorer, graph_store, "dataops")
+      # ... return with provenance label
+
+FILE 3: SourceTrustCard.tsx
+
+  - Table rows: source name, trust bar (width = trust%), status badge, trend arrow
+  - Click row → expand per-factor breakdown
+  - Footer: "Trust scores from N verified decisions" (provenance)
+
+TESTS (~8):
+  test_source_trust_returns_all_systems
+  test_trust_range_0_to_1
+  test_status_green_above_07
+  test_status_amber_above_04
+  test_status_red_below_04
+  test_trend_from_fingerprint_history
+  test_dk_contribution_per_source
+  test_empty_decisions_returns_neutral
+
+SUBSTANTIATION DECLARATION (Rule 66):
+  Surfaced values: per-source trust scores (T-R from DK weights on verified decisions ██)
+  Generated data: none
+  Labeling: trust scores from verified decisions = real-pending(██)
+  Magnitude guard: trust 0.89 is from DK weights on 142 verified decisions (T-R)
+
+VALIDATION:
+  python -m pytest apps/dataops/backend/tests/test_source_trust.py -v --timeout=60
+  python -m pytest apps/dataops/backend/tests/ -q --timeout=120
+  cd apps/dataops/frontend; npx tsc --noEmit; cd ../../..
+
+EXIT: Source Trust Card renders on Dashboard. Trust scores derived from DK weights.
+```
+
+---
+
+*DataOps Copilot Design v1.7 Addendum A · July 31, 2026*
+*4 immediate items (SC-TRUST, SC-IKS-ATTR, SC-FORECAST, SC-DIGEST) — ~9d total.*
+*All use existing scorer methods. No new math. No new graph schema.*
+*SC-TRUST (1-2d) is the fastest path: one card changes the narrative.*
+*DI-1 + DI-2 follow after Loom (~4w). Full Level 5-6 follows (~9w more).*
+
+---
+
 ## §40 — Engineering Specifications (Level 5-6)
 
 ### L.1 Source Profiler (DI-1)
@@ -1580,7 +2148,7 @@ this. The graph found it. THAT is data intelligence."
 
 ---
 
-*DataOps Copilot Design v1.6 · May 20, 2026*
+*DataOps Copilot Design v1.7 · May 20, 2026*
 *Category: Data Intelligence (not "better DataOps").*
 *Shift: from data-as-infrastructure to data-as-intelligence.*
 *6-level hierarchy: Level 1-2 (everyone) → Level 6 (us only).*

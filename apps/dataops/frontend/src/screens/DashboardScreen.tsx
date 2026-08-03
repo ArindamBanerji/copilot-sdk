@@ -9,6 +9,7 @@ import {
   getConservationStatus,
   getPipelines,
   getTrajectory,
+  getTrust,
   numberOr,
   postConservationWhatIf,
 } from "../api";
@@ -21,6 +22,7 @@ import type {
   DataOpsAlert,
   PipelineSystem,
   TrajectoryResponse,
+  TrustResponse,
 } from "../types";
 import AEImpactPanel from "../components/AEImpactPanel";
 import AccuracyAlertPanel from "../components/AccuracyAlertPanel";
@@ -34,6 +36,7 @@ import PipelineGrid from "../components/PipelineGrid";
 import ProcessTimelinePanel from "../components/ProcessTimelinePanel";
 import ProvenanceBadge from "../components/ProvenanceBadge";
 import { SAPDataBadge } from "../components/SAPDataBadge";
+import TrustCard from "../components/TrustCard";
 
 interface DashboardScreenProps {
   onSelectAlert: (alertId: string) => void;
@@ -47,6 +50,7 @@ interface DashboardState {
   conservation: ConservationState | null;
   history: ConservationHistory | null;
   trajectory: TrajectoryResponse | null;
+  trust: TrustResponse | null;
 }
 
 export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps) {
@@ -58,6 +62,7 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
     conservation: null,
     history: null,
     trajectory: null,
+    trust: null,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,12 +81,13 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
       getAeImpact(),
       getConservationHistory(),
       getTrajectory().catch(() => null),
+      getTrust().catch(() => null),
     ])
-      .then(([pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory]) => {
+      .then(([pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory, trust]) => {
         if (cancelled) {
           return;
         }
-        setState({ pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory });
+        setState({ pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory, trust });
       })
       .catch((caught: unknown) => {
         if (!cancelled) {
@@ -167,6 +173,8 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
         </div>
         <AEImpactPanel impact={state.aeImpact} compact />
       </section>
+
+      <TrustCard trust={state.trust} />
 
       <ProcessTimelinePanel />
 

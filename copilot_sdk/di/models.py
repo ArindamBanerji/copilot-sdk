@@ -39,3 +39,17 @@ class SourceProfile:
         payload = asdict(self)
         payload["last_profiled"] = self.last_profiled.isoformat()
         return payload
+
+
+@dataclass(frozen=True)
+class ConsumerProfile:
+    """Quality and satisfaction profile for one source consumer."""
+
+    consumer_id: str
+    source_id: str
+    quality_bar: dict[str, str]
+    satisfaction_rate: float
+    last_issue: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

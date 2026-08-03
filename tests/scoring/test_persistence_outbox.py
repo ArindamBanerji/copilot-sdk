@@ -3,6 +3,7 @@ from __future__ import annotations
 import sqlite3
 import logging
 import re
+import time
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -207,6 +208,102 @@ def test_outbox_deduplicates_pending_artifact(tmp_path: Path) -> None:
     store = _ReplayStore()
     assert outbox.drain(store) == (1, 0)
     assert store.calls[0][1]["V"] == 2
+
+
+def test_enqueue_creates_pending_row(tmp_path: Path) -> None:
+    outbox_path = tmp_path / "enqueue.db"
+    outbox = PersistenceOutbox("soc", outbox_path)
+
+    outbox.enqueue("conservation", {"domain": "soc", "V": 10})
+
+    assert outbox.pending_count() == 1
+    with sqlite3.connect(outbox_path) as connection:
+        row = connection.execute(
+            "SELECT status, origin FROM failed_artifacts"
+        ).fetchone()
+    assert row == ("pending", "deferred")
+
+
+def test_enqueue_drain_round_trip(tmp_path: Path) -> None:
+    outbox = PersistenceOutbox("soc", tmp_path / "enqueue-round-trip.db")
+    payload = {"status_id": "c", "domain": "soc"}
+    outbox.enqueue("conservation", payload)
+    store = _ReplayStore()
+
+    assert outbox.drain(store) == (1, 0)
+    assert ("conservation", payload) in store.calls
+    assert outbox.pending_count() == 0
+
+
+def test_enqueue_idempotency_upsert(tmp_path: Path) -> None:
+    outbox = PersistenceOutbox("soc", tmp_path / "enqueue-upsert.db")
+    key = "soc:cons:gen1"
+    outbox.enqueue("conservation", {"V": 10}, idempotency_key=key)
+    outbox.enqueue("conservation", {"V": 15}, idempotency_key=key)
+
+    assert outbox.pending_count() == 1
+    store = _ReplayStore()
+    assert outbox.drain(store) == (1, 0)
+    assert store.calls[0][1]["V"] == 15
+
+
+def test_enqueue_different_keys_coexist(tmp_path: Path) -> None:
+    outbox = PersistenceOutbox("soc", tmp_path / "enqueue-keys.db")
+    outbox.enqueue(
+        "conservation", {"V": 10}, idempotency_key="soc:cons:gen1"
+    )
+    outbox.enqueue(
+        "centroid_checkpoint",
+        {"c": 1},
+        idempotency_key="soc:centroid:cat1:act1:dec1",
+    )
+
+    assert outbox.pending_count() == 2
+
+
+def test_enqueue_and_failure_both_drain(tmp_path: Path) -> None:
+    outbox = PersistenceOutbox("soc", tmp_path / "enqueue-failure.db")
+    outbox.enqueue("conservation", {"V": 10})
+    outbox.record_failure("d-1", "decision", {"id": "d-1"}, "err")
+    store = _ReplayStore()
+
+    assert outbox.pending_count() == 2
+    assert outbox.drain(store) == (2, 0)
+
+
+def test_enqueue_does_not_accept_outcome(tmp_path: Path) -> None:
+    outbox = PersistenceOutbox("soc", tmp_path / "enqueue-outcome.db")
+
+    with pytest.raises(ValueError, match="fail-closed"):
+        outbox.enqueue("outcome", {"decision_id": "d-1"})
+
+
+def test_periodic_drain_fires(tmp_path: Path) -> None:
+    outbox = PersistenceOutbox("soc", tmp_path / "periodic.db")
+    outbox.enqueue("conservation", {"V": 10})
+    store = _ReplayStore()
+
+    timer = outbox.start_periodic_drain(store, interval_seconds=0.2)
+    time.sleep(0.5)
+    outbox.stop_periodic_drain()
+    timer.cancel()
+
+    assert outbox.pending_count() == 0
+
+
+def test_existing_failure_path_unchanged(tmp_path: Path) -> None:
+    outbox_path = tmp_path / "failure-origin.db"
+    outbox = PersistenceOutbox("soc", outbox_path)
+    outbox.record_failure("d-1", "conservation", {"V": 1}, "err")
+
+    with sqlite3.connect(outbox_path) as connection:
+        row = connection.execute(
+            "SELECT origin, status FROM failed_artifacts"
+        ).fetchone()
+    assert row == ("failure", "failed")
+    store = _ReplayStore()
+    assert outbox.drain(store) == (1, 0)
+    assert outbox.pending_count() == 0
 
 
 def test_outbox_replays_decision_before_conservation(tmp_path: Path) -> None:

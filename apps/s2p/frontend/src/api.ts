@@ -61,39 +61,25 @@ import type {
 } from "./types";
 
 export const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8002";
-export const DEFAULT_DEADLINE_MS = 15_000;
 
-export async function apiGet<T>(path: string, deadlineMs = DEFAULT_DEADLINE_MS): Promise<T> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), deadlineMs);
-  try {
-    const response = await fetch(`${API_URL}${path}`, { signal: controller.signal });
-    if (!response.ok) {
-      throw new Error(`GET ${path} failed with ${response.status}`);
-    }
-    return response.json() as Promise<T>;
-  } finally {
-    clearTimeout(timer);
+export async function apiGet<T>(path: string): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`);
+  if (!response.ok) {
+    throw new Error(`GET ${path} failed with ${response.status}`);
   }
+  return response.json() as Promise<T>;
 }
 
-export async function apiPost<T>(path: string, body: unknown, deadlineMs = DEFAULT_DEADLINE_MS): Promise<T> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), deadlineMs);
-  try {
-    const response = await fetch(`${API_URL}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    if (!response.ok) {
-      throw new Error(`POST ${path} failed with ${response.status}`);
-    }
-    return response.json() as Promise<T>;
-  } finally {
-    clearTimeout(timer);
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(`POST ${path} failed with ${response.status}`);
   }
+  return response.json() as Promise<T>;
 }
 
 export interface CohortExperiment {
@@ -153,7 +139,7 @@ export async function getPreviewQueueStrict(): Promise<PreviewQueueResponse> {
 }
 
 export async function fetchPreviewQueue(): Promise<PreviewQueueResponse> {
-  return getPreviewQueueStrict();
+  return getPreviewQueue();
 }
 
 export async function getPreviewConservation(): Promise<ConservationStatus | null> {
@@ -197,12 +183,12 @@ export async function verifyDecision(payload: unknown): Promise<unknown | null> 
   return apiPost<unknown>("/api/s2p/outcome", payload).catch(() => null);
 }
 
-export async function scoreInvoice(payload: ScoreInvoiceRequest): Promise<ScoreInvoiceResponse> {
-  return apiPost<ScoreInvoiceResponse>("/api/s2p/score", payload);
+export async function scoreInvoice(payload: ScoreInvoiceRequest): Promise<ScoreInvoiceResponse | null> {
+  return apiPost<ScoreInvoiceResponse>("/api/s2p/score", payload).catch(() => null);
 }
 
-export async function learnDecision(payload: LearnDecisionRequest): Promise<LearnDecisionResponse> {
-  return apiPost<LearnDecisionResponse>("/api/learn", payload);
+export async function learnDecision(payload: LearnDecisionRequest): Promise<LearnDecisionResponse | null> {
+  return apiPost<LearnDecisionResponse>("/api/learn", payload).catch(() => null);
 }
 
 export async function getEvidenceTemplate(
@@ -229,15 +215,9 @@ export async function fetchS2PSimilar(invoiceId: string, limit = 5): Promise<Sim
 }
 
 export async function fetchSituation(decisionId: string, maxDepth = 3): Promise<SituationResponse | null> {
-  try {
-    const resp = await fetch(
-      `${API_URL}/api/s2p/situation/${encodeURIComponent(decisionId)}?max_depth=${maxDepth}`
-    );
-    if (!resp.ok) return null;
-    return (await resp.json()) as SituationResponse;
-  } catch {
-    return null;
-  }
+  return apiGet<SituationResponse>(
+    `/api/s2p/situation/${encodeURIComponent(decisionId)}?max_depth=${maxDepth}`
+  ).catch(() => null);
 }
 
 export async function getSimilarInvoices(invoiceId: string, limit = 5): Promise<SimilarResponse | null> {
@@ -480,12 +460,7 @@ export async function fetchExpansionProof(category?: string): Promise<ExpansionP
 }
 
 async function apiGetNullable<T>(path: string): Promise<T | null> {
-  try {
-    const response = await fetch(`${API_URL}${path}`);
-    return response.ok ? ((await response.json()) as T) : null;
-  } catch {
-    return null;
-  }
+  return apiGet<T>(path).catch(() => null);
 }
 
 export async function fetchIntents(): Promise<unknown | null> {

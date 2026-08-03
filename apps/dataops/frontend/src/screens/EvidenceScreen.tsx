@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { EvolutionPanel } from "../../../../../copilot_sdk/frontend";
 import { getAeImpact, getEvolutionVariants, getPatternOrigin } from "../api";
 import AEImpactPanel from "../components/AEImpactPanel";
+import AuditTrailPanel from "../components/AuditTrailPanel";
 import AuditTrailViewer from "../components/AuditTrailViewer";
+import AccuracyAlertsPanel from "../components/AccuracyAlertsPanel";
 import CohortStatusPanel from "../components/CohortStatusPanel";
 import CrossSystemPanel from "../components/CrossSystemPanel";
 import OperationalRulesPanel from "../components/OperationalRulesPanel";
 import PatternOriginCard from "../components/PatternOriginCard";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
+import RuleGenealogyPanel from "../components/RuleGenealogyPanel";
 import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
 import SchemaImpactPanel from "../components/SchemaImpactPanel";
 import TransferStatusPanel from "../components/TransferStatusPanel";
@@ -59,12 +62,15 @@ export default function EvidenceScreen() {
       <AEImpactPanel impact={impact} />
       <EvolutionPanel variants={variants} title="AgentEvolver Audit Trail" />
       <RuleGenealogyTree />
-      <RuleLifecyclePanel />
       <AuditTrailViewer />
       <SchemaImpactPanel />
       <OperationalRulesPanel />
+      <AccuracyAlertsPanel />
+      <RuleGenealogyPanel />
+      <RuleLifecyclePanel />
       <PatternOriginCard origin={origin} />
       <TransferStatusPanel />
+      <AuditTrailPanel />
     </div>
   );
 }

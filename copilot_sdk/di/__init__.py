@@ -12,7 +12,7 @@ from copilot_sdk.di.enrichment import (
     GraphEnrichmentReport,
     GraphEnrichmentResult,
 )
-from copilot_sdk.di.models import ProfileConfig, SourceProfile
+from copilot_sdk.di.models import ConsumerProfile, ProfileConfig, SourceProfile
 from copilot_sdk.di.integrator import JoinCandidate, SourceIntegrator
 from copilot_sdk.di.intelligence_map import (
     IKSBadge,
@@ -47,6 +47,7 @@ __all__ = [
     "NLQueryRouter",
     "ProfileConfig",
     "SourceProfile",
+    "ConsumerProfile",
     "BaseSourceProfiler",
     "JoinCandidate",
     "SourceIntegrator",

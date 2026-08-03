@@ -4,6 +4,7 @@ import { getFingerprint, getIncident } from "../api";
 import AcquisitionPanel from "../components/AcquisitionPanel";
 import BottleneckPanel from "../components/BottleneckPanel";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
+import CentroidTimelinePanel from "../components/CentroidTimelinePanel";
 import DecisionExplorerPanel from "../components/DecisionExplorerPanel";
 import IncidentReplayCard from "../components/IncidentReplayCard";
 import { IntelligenceMapPanel } from "../components/IntelligenceMapPanel";
@@ -97,7 +98,6 @@ export default function InsightScreen() {
         perCategoryPrecision={fingerprint?.perCategoryPrecision}
         decisionsAnalyzed={fingerprint?.decisionsAnalyzed}
       />
-      <DecisionExplorerPanel />
       <IncidentReplayCard incident={incident} />
       <BottleneckPanel />
       <ProcessTimelinePanel />
@@ -106,6 +106,8 @@ export default function InsightScreen() {
       <IntelligenceMapPanel />
       <CrossGraphInsightCard />
       <WhatIfReordering />
+      <CentroidTimelinePanel />
+      <DecisionExplorerPanel />
     </div>
   );
 }

@@ -74,18 +74,50 @@ class IntelligenceMapBuilder:
 
     def build(
         self,
-        sources: list[dict[str, Any]],
+        sources: list[dict[str, Any]] | None = None,
         correlations: list[dict[str, Any]] | None = None,
         valuations: list[Any] | None = None,
         iks_by_domain: dict[str, int] | None = None,
     ) -> IntelligenceMapData:
-        nodes = [self._node(source, index) for index, source in enumerate(sources)]
+        source_rows = self._default_sources() if sources is None else sources
+        nodes = [self._node(source, index) for index, source in enumerate(source_rows)]
         edges = [self._edge(item) for item in correlations or []]
         gold_lines = self.add_suggestions(valuations or [])
         badges = self.add_iks_badges(iks_by_domain or {})
         clusters = self.group_by_domain(nodes)
         narrative = self._narrative(nodes, gold_lines, badges)
         return IntelligenceMapData(nodes, edges, gold_lines, badges, clusters, narrative)
+
+    def discover_combinations(self) -> list[dict[str, Any]]:
+        """Return deterministic demo combinations for the standalone DI endpoint."""
+        return [
+            {
+                "source_a": "orders",
+                "source_b": "etl_orders",
+                "correlation_strength": 0.87,
+                "value_estimate_annual": 180000.0,
+                "description": "Customer orders plus pipeline reliability improves churn prediction.",
+                "status": "discovered",
+            }
+        ]
+
+    def _default_sources(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "id": "orders",
+                "name": "orders",
+                "domain": "dataops",
+                "source_reliability": 0.94,
+                "record_count": 120000,
+            },
+            {
+                "id": "etl_orders",
+                "name": "etl_orders",
+                "domain": "dataops",
+                "source_reliability": 0.82,
+                "record_count": 30000,
+            },
+        ]
 
     def add_suggestions(self, valuations: list[Any]) -> list[MapEdge]:
         lines = []

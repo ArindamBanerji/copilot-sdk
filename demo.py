@@ -30,6 +30,7 @@ import argparse
 import asyncio
 import json
 import os
+import platform
 import subprocess
 import sys
 import time
@@ -874,9 +875,15 @@ def cmd_start(selected: list[dict], args):
         if args.diag_mode:
             env["PYTHONPATH"] = diag_pythonpath
 
+        backend_command = [
+            sys.executable, "-m", "uvicorn", "app.main:app",
+            "--host", "127.0.0.1", "--port", str(port),
+        ]
+        if platform.system() == "Windows":
+            backend_command.extend(["--loop", "asyncio"])
+
         proc = subprocess.Popen(
-            [sys.executable, "-m", "uvicorn", "app.main:app",
-             "--host", "127.0.0.1", "--port", str(port)],
+            backend_command,
             cwd=str(be_path),
             env=env,
             creationflags=CREATE_FLAGS,

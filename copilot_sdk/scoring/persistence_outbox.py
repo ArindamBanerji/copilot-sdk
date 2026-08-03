@@ -7,6 +7,7 @@ import logging
 import os
 import sqlite3
 import tempfile
+import threading
 import time
 from contextlib import contextmanager
 from datetime import date, datetime
@@ -66,8 +67,10 @@ class PersistenceOutbox:
                     error TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     retry_count INTEGER NOT NULL DEFAULT 0,
-                    status TEXT NOT NULL DEFAULT 'pending',
-                    schema_version INTEGER NOT NULL DEFAULT 1
+                    status TEXT NOT NULL DEFAULT 'failed',
+                    schema_version INTEGER NOT NULL DEFAULT 1,
+                    origin TEXT NOT NULL DEFAULT 'failure',
+                    idempotency_key TEXT
                 )
                 """
             )
@@ -82,6 +85,23 @@ class PersistenceOutbox:
                     "ALTER TABLE failed_artifacts "
                     "ADD COLUMN schema_version INTEGER NOT NULL DEFAULT 1"
                 )
+            if "origin" not in existing_cols:
+                connection.execute(
+                    "ALTER TABLE failed_artifacts "
+                    "ADD COLUMN origin TEXT NOT NULL DEFAULT 'failure'"
+                )
+            if "idempotency_key" not in existing_cols:
+                connection.execute(
+                    "ALTER TABLE failed_artifacts "
+                    "ADD COLUMN idempotency_key TEXT"
+                )
+            connection.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_idempotency_key
+                ON failed_artifacts(idempotency_key)
+                WHERE idempotency_key IS NOT NULL AND status = 'pending'
+                """
+            )
             connection.execute(
                 """
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_failed_artifact_key
@@ -135,12 +155,13 @@ class PersistenceOutbox:
             connection.execute(
                 """
                 INSERT INTO failed_artifacts
-                    (decision_id, domain, artifact_type, payload, error, created_at, schema_version)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (decision_id, domain, artifact_type, payload, error, created_at,
+                     schema_version, origin, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'failure', 'failed')
                 ON CONFLICT(decision_id, domain, artifact_type)
                 DO UPDATE SET payload=excluded.payload, error=excluded.error,
-                    retry_count=failed_artifacts.retry_count + 1, status='pending',
-                    schema_version=excluded.schema_version
+                    retry_count=failed_artifacts.retry_count + 1, status='failed',
+                    schema_version=excluded.schema_version, origin='failure'
                 """,
                 (
                     str(decision_id),
@@ -150,6 +171,39 @@ class PersistenceOutbox:
                     str(error),
                     str(time.time()),
                     CURRENT_PAYLOAD_SCHEMA,
+                ),
+            )
+
+    def enqueue(
+        self,
+        artifact_type: str,
+        payload: dict[str, Any],
+        idempotency_key: str | None = None,
+    ) -> None:
+        """Proactively defer a derived artifact for later persistence."""
+        if artifact_type == "outcome":
+            raise ValueError("outcome is fail-closed (§12b) and must not be deferred")
+        serialized = json.dumps(payload, default=_json_default, sort_keys=True)
+        with self._connection() as connection:
+            if idempotency_key:
+                connection.execute(
+                    "DELETE FROM failed_artifacts "
+                    "WHERE idempotency_key = ? AND status = 'pending'",
+                    (idempotency_key,),
+                )
+            connection.execute(
+                "INSERT INTO failed_artifacts "
+                "(domain, decision_id, artifact_type, payload, error, created_at, "
+                "retry_count, status, schema_version, origin, idempotency_key) "
+                "VALUES (?, ?, ?, ?, '', ?, 0, 'pending', ?, 'deferred', ?)",
+                (
+                    self.domain,
+                    "",
+                    artifact_type,
+                    serialized,
+                    str(time.time()),
+                    CURRENT_PAYLOAD_SCHEMA,
+                    idempotency_key,
                 ),
             )
 
@@ -284,6 +338,43 @@ class PersistenceOutbox:
                 (self.domain, self.MAX_RETRIES),
             ).fetchone()
         return int(row["pending_total"] if row is not None else 0)
+
+    def start_periodic_drain(
+        self,
+        graph_store: Any,
+        interval_seconds: float = 5.0,
+    ) -> threading.Timer:
+        """Start a daemon timer that periodically drains the outbox."""
+        self.stop_periodic_drain()
+        stop_event = threading.Event()
+        self._periodic_stop_event = stop_event
+
+        def _drain_tick() -> None:
+            try:
+                if self.pending_count() > 0:
+                    self.drain(graph_store)
+            except Exception:
+                _LOG.warning("periodic drain failed", exc_info=True)
+            if stop_event.is_set():
+                return
+            timer = threading.Timer(interval_seconds, _drain_tick)
+            timer.daemon = True
+            timer.start()
+            self._periodic_timer = timer
+
+        timer = threading.Timer(interval_seconds, _drain_tick)
+        timer.daemon = True
+        timer.start()
+        self._periodic_timer = timer
+        return timer
+
+    def stop_periodic_drain(self) -> None:
+        stop_event = getattr(self, "_periodic_stop_event", None)
+        if stop_event:
+            stop_event.set()
+        timer = getattr(self, "_periodic_timer", None)
+        if timer:
+            timer.cancel()
 
     def count_abandoned(self) -> int:
         with self._connection() as connection:

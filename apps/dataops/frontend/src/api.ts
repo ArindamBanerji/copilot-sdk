@@ -43,6 +43,7 @@ import type {
   SelfDecisionExplorerResponse,
   TransformationsResponse,
   TransferStatusResponse,
+  TrustResponse,
 } from "./types";
 
 export const BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8030";
@@ -248,6 +249,10 @@ export async function getTransferStatus(): Promise<TransferStatusResponse | null
       cumulativeSavings: numberOr(summary.cumulativeSavings ?? summary.cumulative_savings, 0),
     },
   };
+}
+
+export async function getTrust(): Promise<TrustResponse> {
+  return apiGet<TrustResponse>("/api/dataops/trust");
 }
 
 export interface CrossSystemAlert {
