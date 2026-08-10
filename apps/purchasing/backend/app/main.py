@@ -6,7 +6,7 @@ import json
 import os
 import sys
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -18,8 +18,9 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[4]
 WORKSPACE_ROOT = REPO_ROOT.parent
 GAE_PATH = WORKSPACE_ROOT / "graph-attention-engine-v50"
+CI_PLATFORM_PATH = WORKSPACE_ROOT / "ci-platform"
 
-for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
+for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH, CI_PLATFORM_PATH):
     if path.exists() and str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
@@ -29,7 +30,10 @@ from .graph_status import (  # noqa: E402
     initialize_purchasing_active_graph_config,
     router as purchasing_graph_status_router,
 )
-from .evolution import get_purchasing_variants  # noqa: E402
+from .evolution import (  # noqa: E402
+    get_purchasing_variant_specs,
+    get_purchasing_variants,
+)
 from .routers.auto_order_router import create_auto_order_router  # noqa: E402
 from .routers.alert_router import create_alert_router  # noqa: E402
 from .routers.chain_router import create_chain_router, reset_chain_state  # noqa: E402
@@ -64,7 +68,10 @@ from .services.waste_tracker import WasteTracker  # noqa: E402
 from .services.predictive_par import PredictivePar, demo_par_items  # noqa: E402
 from .connectors.commodity_provider import CommodityDataProvider  # noqa: E402
 from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
-from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
+from copilot_sdk.backend.transfer_router import (  # noqa: E402
+    create_self_transfer_router,
+    create_transfer_router,
+)
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
     create_evolution_router,
@@ -72,12 +79,14 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.outbox import OutboxStore  # noqa: E402
+from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider  # noqa: E402
+from .evolution.evolver_config import PURCHASING_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
-from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
+from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
 from copilot_sdk.reporting.weekly import (  # noqa: E402
     WeeklyReportGenerator,
     purchasing_cost_extractor,
@@ -87,6 +96,7 @@ from copilot_sdk.scoring.presets.purchasing import PurchasingPreset  # noqa: E40
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.transfer.chain_transfer import ChainTransfer  # noqa: E402
+from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
 
 
 DOMAIN = "purchasing"
@@ -255,7 +265,7 @@ def _result_value(result: Any, key: str, default: Any = None) -> Any:
     return getattr(result, key, default)
 
 
-def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: SQLiteGraphStore) -> dict[str, int]:
+def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> dict[str, int]:
     try:
         entries = json.loads(SEED_FIXTURE_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -318,7 +328,7 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: SQLiteGraphStore
     return {"decisions_seeded": decisions_seeded, "outcomes_seeded": outcomes_seeded}
 
 
-def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
+def _auto_seed_if_needed(graph_store: GraphStore) -> int:
     try:
         count = int(graph_store.count_decisions(DOMAIN))
     except Exception as exc:
@@ -439,6 +449,14 @@ def create_app(
     )
 
     scoring_db = _resolve_scoring_db(db_path)
+    # Stable supplier/item context only; mutable decisions and conservation
+    # authority remain graph-backed and are intentionally excluded.
+    entity_cache = EntityCache(
+        max_size=200,
+        ttl_seconds=300,
+        source="purchasing.entity_context_cache",
+    )
+    entity_context_cache = EntityContextCacheAdapter(entity_cache, enabled=True)
     outbox_store = OutboxStore(DATA_DIR / OUTBOX_DB_FILENAME)
     active_graph_config = initialize_purchasing_active_graph_config()
     active_graph_store = create_purchasing_active_graph_store(
@@ -468,6 +486,15 @@ def create_app(
     scorer_proxy = FreshScorerProxy(
         DOMAIN, scoring_db, selected_graph_store_factory, profile=_resolve_profile()
     )
+
+    conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
+    evolver_config = replace(
+        PURCHASING_EVOLVER_CONFIG,
+        conservation_state_provider=conservation_provider,
+    )
+    evolver = PromptVariantEvolver(config=evolver_config)
+    evolver.register_variants(get_purchasing_variant_specs())
+    app.state.evolver = evolver
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
         "dk_source": "cold-start",
@@ -505,6 +532,8 @@ def create_app(
     app.state.purchasing_selected_graph_store = scorer_proxy.graph_store
     app.state.outbox_store = outbox_store
     app.state.l5_startup_status = l5_startup_status
+    app.state.entity_cache = entity_cache
+    app.state.entity_context_cache = entity_context_cache
     auto_order_gate = AutoOrderGate()
 
     @app.get("/api/health")
@@ -520,6 +549,9 @@ def create_app(
             "iks_score": iks["iks_score"],
             "iks_available": iks["available"],
             "iks_verified_count": iks["verified_count"],
+            "cache_hits": entity_cache.stats().hits,
+            "cache_misses": entity_cache.stats().misses,
+            "cache_size": entity_cache.stats().size,
         }
 
     def _load_order_rows() -> list[dict[str, Any]]:
@@ -682,14 +714,17 @@ def create_app(
             db_path=scoring_db,
             scorer_factory=lambda: scorer_proxy,
             dk_welford_tracker=dk_welford_tracker,
+            entity_context_cache=entity_context_cache,
         ),
         prefix="/api",
     )
     app.include_router(create_transfer_router(scorer_proxy))
+    app.include_router(create_self_transfer_router(scorer_proxy))
     app.include_router(
           create_evolution_router(
               graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
               domain=DOMAIN,
+              evolver_factory=lambda: app.state.evolver,
               variant_provider=lambda: _purchasing_variants_with_config(
                   selected_graph_store_factory(scoring_db)
               ),
@@ -704,7 +739,13 @@ def create_app(
         ),
         prefix="/api",
     )
-    mount_self_computation_router(app, selected_graph_store_factory(scoring_db))
+    mount_self_computation_router(
+        app,
+        selected_graph_store_factory(scoring_db),
+        domain=DOMAIN,
+        scorer_provider=lambda: scorer_proxy,
+        evolver_provider=lambda: app.state.evolver,
+    )
     context_router_module.set_evolution_store_factory(lambda: selected_graph_store_factory(scoring_db))
     app.include_router(context_router_module.router, prefix="/api/context")
     app.include_router(create_evidence_router(scorer_proxy))
@@ -781,6 +822,7 @@ def create_app(
     @app.get("/health")
     def health() -> dict[str, Any]:
         iks = build_iks_summary(lambda: selected_graph_store_factory(scoring_db))
+        cache_stats = entity_cache.stats()
         return {
             "status": "ok",
             "domain": DOMAIN,
@@ -789,6 +831,9 @@ def create_app(
             "iks_available": iks["available"],
             "iks_status": "available" if iks["available"] else "unavailable",
             "iks_verified_count": iks["verified_count"],
+            "cache_hits": cache_stats.hits,
+            "cache_misses": cache_stats.misses,
+            "cache_size": cache_stats.size,
         }
 
     @app.get("/api/purchasing/fingerprint")

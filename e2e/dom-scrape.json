@@ -69,6 +69,10 @@
         {
           "tag": "h2",
           "text": "Decision History"
+        },
+        {
+          "tag": "h2",
+          "text": "Learned source reliability"
         }
       ],
       "testIds": [
@@ -85,7 +89,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating EvidenceAccumulating248 / 277 decisions2 of 0 arms "
+          "text": "Day-Zero HonestyAccumulating EvidenceAccumulating254 / 283 decisions2 of 0 arms "
         },
         {
           "testId": "provenance-badge",
@@ -100,7 +104,7 @@
         {
           "testId": "regime-panel",
           "tag": "section",
-          "text": "Market contextMarket Regimescraped_externalRanging marketConfidence40%Volatility"
+          "text": "Market contextMarket RegimecachedRanging marketConfidence35%VolatilityModerate v"
         },
         {
           "testId": "regime-badge",
@@ -110,7 +114,7 @@
         {
           "testId": "regime-confidence",
           "tag": "div",
-          "text": "40%"
+          "text": "35%"
         },
         {
           "testId": "regime-hurst",
@@ -120,7 +124,7 @@
         {
           "testId": "regime-history",
           "tag": "div",
-          "text": "90-day regime history1 records"
+          "text": "90-day regime history2 records"
         },
         {
           "testId": "regime-performance",
@@ -131,6 +135,71 @@
           "testId": "regime-recommendation",
           "tag": "div",
           "text": "Regime recommendationCurrent: ranging conditions."
+        },
+        {
+          "testId": "data-trust-badge",
+          "tag": "section",
+          "text": "Data TrustLearned source reliabilityTradingOptions delta1.00Research depth0.92Si"
+        },
+        {
+          "testId": "data-trust-factors",
+          "tag": "div",
+          "text": "Options delta1.00Research depth0.92Signal confidence0.90Market conditions0.66Tim"
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Options delta1.00"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Research depth0.92"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Signal confidence0.90"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Market conditions0.66"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Timing quality0.57"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-contrast",
+          "tag": "p",
+          "text": "Highest 1.00 · Lowest 0.57 · Spread 0.43"
         }
       ],
       "buttons": [
@@ -299,7 +368,8 @@
         "Thesis Breakdown",
         "Dataset",
         "Calendar Heatmap",
-        "Decision History"
+        "Decision History",
+        "Learned source reliability"
       ]
     },
     "Log Trade": {
@@ -543,15 +613,7 @@
         },
         {
           "tag": "h3",
-          "text": "EXECUTION_THRESHOLD_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "EXECUTION_THRESHOLD_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "REVENGE_COOLDOWN_v1"
+          "text": "Loading evolution lineage"
         },
         {
           "tag": "h2",
@@ -559,43 +621,7 @@
         },
         {
           "tag": "h3",
-          "text": "EXECUTION_THRESHOLD_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "EXECUTION_THRESHOLD_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "REVENGE_COOLDOWN_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "REVENGE_COOLDOWN_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "ALERT_THRESHOLD_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "ALERT_THRESHOLD_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "PATTERN_SENSITIVITY_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "PATTERN_SENSITIVITY_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "REGIME_BOUNDARY_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "REGIME_BOUNDARY_v2"
+          "text": "Loading lifecycle"
         }
       ],
       "testIds": [
@@ -607,7 +633,7 @@
         {
           "testId": "regime-panel",
           "tag": "section",
-          "text": "Market contextMarket Regimescraped_externalRanging marketConfidence40%Volatility"
+          "text": "Market contextMarket RegimecachedRanging marketConfidence35%VolatilityModerate v"
         },
         {
           "testId": "regime-badge",
@@ -617,7 +643,7 @@
         {
           "testId": "regime-confidence",
           "tag": "div",
-          "text": "40%"
+          "text": "35%"
         },
         {
           "testId": "regime-hurst",
@@ -627,7 +653,7 @@
         {
           "testId": "regime-history",
           "tag": "div",
-          "text": "90-day regime history1 records"
+          "text": "90-day regime history2 records"
         },
         {
           "testId": "regime-performance",
@@ -657,7 +683,7 @@
         {
           "testId": "vol-sharpe-clusters",
           "tag": "table",
-          "text": "Market conditionDecisionsQuality scoreStateranging23715.33measuredunclassified6-"
+          "text": "Market conditionDecisionsQuality scoreStateranging24315.52measuredunclassified6-"
         },
         {
           "testId": "vrp-attribution-card",
@@ -697,27 +723,7 @@
         {
           "testId": "counterfactual-card",
           "tag": "section",
-          "text": "What If?██ LearnedOriginal score0.59Perturbed score0.42Delta-0.17Changed: signal"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "██ Learned"
-        },
-        {
-          "testId": "counterfactual-base-score",
-          "tag": "div",
-          "text": "Original score0.59"
-        },
-        {
-          "testId": "counterfactual-perturbed-score",
-          "tag": "div",
-          "text": "Perturbed score0.42"
-        },
-        {
-          "testId": "counterfactual-delta",
-          "tag": "div",
-          "text": "Delta-0.17"
+          "text": "What If?Calculating counterfactual..."
         }
       ],
       "buttons": [
@@ -748,11 +754,6 @@
         },
         {
           "text": "Trade Detail",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Try sample",
           "ariaLabel": "",
           "name": ""
         }
@@ -794,17 +795,9 @@
         "Regime Analysis",
         "Risk Management",
         "Rule Genealogy",
-        "EXECUTION_THRESHOLD_v1",
-        "EXECUTION_THRESHOLD_v2",
-        "REVENGE_COOLDOWN_v1",
+        "Loading evolution lineage",
         "Rule Lifecycle",
-        "REVENGE_COOLDOWN_v2",
-        "ALERT_THRESHOLD_v1",
-        "ALERT_THRESHOLD_v2",
-        "PATTERN_SENSITIVITY_v1",
-        "PATTERN_SENSITIVITY_v2",
-        "REGIME_BOUNDARY_v1",
-        "REGIME_BOUNDARY_v2"
+        "Loading lifecycle"
       ]
     },
     "Performance": {
@@ -934,7 +927,7 @@
         },
         {
           "tag": "h2",
-          "text": "Accumulating Evidence"
+          "text": "Measurement State"
         },
         {
           "tag": "h2",
@@ -966,7 +959,7 @@
         },
         {
           "tag": "h2",
-          "text": "Saturday"
+          "text": "Tuesday"
         },
         {
           "tag": "h2",
@@ -1091,6 +1084,10 @@
         {
           "tag": "h3",
           "text": "Order"
+        },
+        {
+          "tag": "h2",
+          "text": "Learned source reliability"
         }
       ],
       "testIds": [
@@ -1102,7 +1099,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating497 / 525 decisions2 of 0 arms "
+          "text": "Day-Zero HonestyMeasurement StateUnable to load measurement state.Retry"
         },
         {
           "testId": "spend-summary-panel",
@@ -1167,12 +1164,12 @@
         {
           "testId": "commodity-index-card",
           "tag": "div",
-          "text": "Protein→ 1.002near average"
+          "text": "Protein→ 1.037near average"
         },
         {
           "testId": "commodity-index-card",
           "tag": "div",
-          "text": "Produce→ 1.048near average"
+          "text": "Produce→ 1.021near average"
         },
         {
           "testId": "commodity-index-card",
@@ -1182,7 +1179,7 @@
         {
           "testId": "commodity-index-card",
           "tag": "div",
-          "text": "Beverages→ 1.033near average"
+          "text": "Beverages→ 1.050near average"
         },
         {
           "testId": "par-level-panel",
@@ -1218,6 +1215,71 @@
           "testId": "transfer-badge",
           "tag": "div",
           "text": "Warm-started from trading: 1 patterns"
+        },
+        {
+          "testId": "data-trust-badge",
+          "tag": "section",
+          "text": "Data TrustLearned source reliabilityPurchasingPrice memory1.00Demand forecast0.0"
+        },
+        {
+          "testId": "data-trust-factors",
+          "tag": "div",
+          "text": "Price memory1.00Demand forecast0.01Supplier lead time0.01Waste history0.00Day-of"
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Price memory1.00"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Demand forecast0.01"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Supplier lead time0.01"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Waste history0.00"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-factor",
+          "tag": "div",
+          "text": "Day-of-week signal0.00"
+        },
+        {
+          "testId": "data-trust-bar",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "data-trust-contrast",
+          "tag": "p",
+          "text": "Highest 1.00 · Lowest 0.00 · Spread 1.00"
         }
       ],
       "buttons": [
@@ -1243,6 +1305,11 @@
         },
         {
           "text": "Performance",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Retry",
           "ariaLabel": "",
           "name": ""
         },
@@ -1380,7 +1447,7 @@
       "roleHeadings": [],
       "visibleText": [
         "Purchasing Copilot",
-        "Accumulating Evidence",
+        "Measurement State",
         "Spend dashboard",
         "Period7 days14 days30 days90 days",
         "Price alert details",
@@ -1390,7 +1457,7 @@
         "Category price indices",
         "Recommended par levels",
         "Conservation-gated auto-ordering",
-        "Saturday",
+        "Tuesday",
         "No event pressure",
         "4 items need attention",
         "Real inventory, ranked by reorder pressure",
@@ -1404,7 +1471,8 @@
         "Today's decisions",
         "Ground Beef",
         "Order",
-        "Chicken Breast"
+        "Chicken Breast",
+        "Learned source reliability"
       ]
     },
     "Order": {
@@ -1412,87 +1480,9 @@
         {
           "tag": "h1",
           "text": "Purchasing Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "Prioritized supplier orders"
-        },
-        {
-          "tag": "h1",
-          "text": "Score the next purchase"
-        },
-        {
-          "tag": "h2",
-          "text": "Order, receipt, and invoice checks"
-        },
-        {
-          "tag": "h2",
-          "text": "Tomorrow's order is mostly inventory history"
-        },
-        {
-          "tag": "h2",
-          "text": "Saturday"
-        },
-        {
-          "tag": "h2",
-          "text": "No event pressure"
-        },
-        {
-          "tag": "h2",
-          "text": "Stockout costs far more than waste"
-        },
-        {
-          "tag": "h2",
-          "text": "Seven scorer inputs"
         }
       ],
-      "testIds": [
-        {
-          "testId": "order-queue-panel",
-          "tag": "section",
-          "text": "Order queuePrioritized supplier ordersPending orders0High priority0ConservationG"
-        },
-        {
-          "testId": "queue-summary",
-          "tag": "div",
-          "text": "Pending orders0High priority0ConservationGREEN"
-        },
-        {
-          "testId": "queue-table",
-          "tag": "div",
-          "text": "No pending orders in the queue."
-        },
-        {
-          "testId": "order-item-select",
-          "tag": "select",
-          "text": "Chicken BreastGround BeefSalmon FilletPork ChopsTofu BlocksMixed GreensTomatoesA"
-        },
-        {
-          "testId": "match-queue-summary",
-          "tag": "div",
-          "text": "Pending matches0Auto-matched1Needs review0"
-        },
-        {
-          "testId": "match-results-table",
-          "tag": "div",
-          "text": "DEMO-MATCH-1Demo SupplierChickenFull Match100%$1,000No discrepancies found."
-        },
-        {
-          "testId": "match-result-row",
-          "tag": "details",
-          "text": "DEMO-MATCH-1Demo SupplierChickenFull Match100%$1,000No discrepancies found."
-        },
-        {
-          "testId": "match-confidence",
-          "tag": "span",
-          "text": "100%"
-        },
-        {
-          "testId": "match-discrepancies",
-          "tag": "div",
-          "text": "No discrepancies found."
-        }
-      ],
+      "testIds": [],
       "buttons": [
         {
           "text": "Dashboard",
@@ -1518,27 +1508,11 @@
           "text": "Performance",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "Score This Order",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
       "visibleText": [
-        "Purchasing Copilot",
-        "Prioritized supplier orders",
-        "Score the next purchase",
-        "Whether They Show UpHighAbove averageAverageBelow averageLow",
-        "Quantity",
-        "Order, receipt, and invoice checks",
-        "DEMO-MATCH-1Demo SupplierChickenFull Match100%$1,000",
-        "Tomorrow's order is mostly inventory history",
-        "Saturday",
-        "No event pressure",
-        "Stockout costs far more than waste",
-        "Seven scorer inputs"
+        "Purchasing Copilot"
       ]
     },
     "Analysis": {
@@ -1872,256 +1846,6 @@
           "text": "Beverages",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "PUR-637d6be5ea57",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ee0cd3342399",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-9f838baae2a2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-337f4633f1a9",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-f5799cb9467c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-aa8bfba84655",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c48dbc5e68e1",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e705fece838c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-2729be515f06",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-af588a270a66",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-d36ef2306226",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ddb79804c907",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-15877dc2a0a2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-257f7582a53e",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ab96bc079bfa",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-28afb400cf09",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-46089dc6acf2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-675fe878bfc0",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7ee050af8bf4",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-a47e84d16f53",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ce52c1bbb162",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-af8e7fd24649",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c1ec49ecb5fb",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c0a3f78eb6e2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8283521ab380",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8c52b8a75aa8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8e0d4bf9046c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-d1c1abc547ab",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c51aa02d1e13",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-d2142ada9d10",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-be6ec53a5db3",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-057cb5468c8f",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-632c6be63756",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-28a74bbdaa31",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-078a6ea35453",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8934ed765b54",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-020537658238",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-88245a71dbea",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-3f12edc108cf",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-9d58f4cdb564",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-86cdca8d7224",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-a55056ea092f",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b0b4b96dca72",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-17d31dcc30dc",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-95b39707f251",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8e784bd7a715",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-092b18baab5c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b2f1c8fc0326",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e29326330c7f",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-5a977eb9b3e5",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
@@ -2135,11 +1859,6 @@
         "YOUR BLIND SPOTS",
         "Purchasing decision history",
         "verified only",
-        "Decision",
-        "Category",
-        "Action",
-        "Confidence",
-        "Verified",
         "Apply AE Friday produce rule",
         "Where ordering is consistent",
         "Friday is the stress test",
@@ -2234,15 +1953,7 @@
         },
         {
           "tag": "h4",
-          "text": "WASTE_THRESHOLD_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "WASTE_THRESHOLD_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "LEAD_TIME_BUFFER_v1"
+          "text": "Loading evolution lineage"
         },
         {
           "tag": "h3",
@@ -2250,63 +1961,7 @@
         },
         {
           "tag": "h4",
-          "text": "WASTE_THRESHOLD_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "WASTE_THRESHOLD_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "LEAD_TIME_BUFFER_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "LEAD_TIME_BUFFER_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "ORDER_QUANTITY_THRESHOLD_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "ORDER_QUANTITY_THRESHOLD_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "WEATHER_SENSITIVITY_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "WEATHER_SENSITIVITY_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "EVENT_LEAD_TIME_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "EVENT_LEAD_TIME_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "PRICE_MEMORY_ALERT_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "PRICE_MEMORY_ALERT_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "variant-bc143356d053"
-        },
-        {
-          "tag": "h4",
-          "text": "variant-99ad88ebb4d8"
-        },
-        {
-          "tag": "h4",
-          "text": "variant-bb32a302714a"
+          "text": "Loading lifecycle"
         },
         {
           "tag": "h3",
@@ -2353,12 +2008,12 @@
         {
           "testId": "rule-genealogy-panel",
           "tag": "section",
-          "text": "SC-13 Rule GenealogyPurchasing rule lineagestep 1WASTE_THRESHOLD_v1Current food-"
+          "text": "SC-13 Rule GenealogyPurchasing rule lineageLoading evolution lineageReading purc"
         },
         {
           "testId": "rule-lifecycle-panel",
           "tag": "section",
-          "text": "SC-15 Rule LifecycleRule promotion statesWASTE_THRESHOLD_v1Current food-service "
+          "text": "SC-15 Rule LifecycleRule promotion statesLoading lifecycleReading purchasing evo"
         },
         {
           "testId": "supplier-loading",
@@ -2368,17 +2023,17 @@
         {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Sample"
+          "text": "Unlabeled"
         },
         {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Sample"
+          "text": "Unlabeled"
         },
         {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Sample"
+          "text": "Unlabeled"
         }
       ],
       "buttons": [
@@ -2404,106 +2059,6 @@
         },
         {
           "text": "Performance",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-637d6be5ea57decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-9f838baae2a2decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-f5799cb9467cdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-aa8bfba84655decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c48dbc5e68e1decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e705fece838cdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-2729be515f06decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-d36ef2306226decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ab96bc079bfadecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-28afb400cf09decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-675fe878bfc0decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7ee050af8bf4decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ce52c1bbb162decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-af8e7fd24649decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8283521ab380decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8c52b8a75aa8decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8e0d4bf9046cdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c51aa02d1e13decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-057cb5468c8fdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-632c6be63756decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
@@ -2628,15 +2183,14 @@
         "variant-99ad88ebb4d8",
         "variant-bb32a302714a",
         "Purchasing rule lineage",
+        "Loading evolution lineage",
         "Rule promotion states",
+        "Loading lifecycle",
         "Decision to outcome chain",
         "Stop ordering Tuesday like Friday",
         "Plan the next catering rush before service",
         "Guest count",
         "CuisineMixedAmericanItalian",
-        "Category",
-        "Quantity",
-        "Est cost",
         "Know who arrives before the rush",
         "Waste pattern by category",
         "protein",
@@ -2662,22 +2216,6 @@
         },
         {
           "tag": "h2",
-          "text": "Year 1: $180,000 savings at current pace"
-        },
-        {
-          "tag": "h3",
-          "text": "Where savings came from"
-        },
-        {
-          "tag": "h3",
-          "text": "This week"
-        },
-        {
-          "tag": "h3",
-          "text": "Bank proof"
-        },
-        {
-          "tag": "h2",
           "text": "Supply Disruption Recovery"
         },
         {
@@ -2690,31 +2228,11 @@
         },
         {
           "tag": "h2",
-          "text": "Your Chicago team's experience helps Miami"
-        },
-        {
-          "tag": "h3",
-          "text": "Transfer opportunity"
-        },
-        {
-          "tag": "h3",
-          "text": "Purchasing power"
-        },
-        {
-          "tag": "h2",
           "text": "What needs a manager today"
         },
         {
           "tag": "h2",
-          "text": "Your system knows 73% of patterns"
-        },
-        {
-          "tag": "h2",
           "text": "Cohort measurement readiness"
-        },
-        {
-          "tag": "h2",
-          "text": "Supplier reliability and price trend"
         },
         {
           "tag": "h2",
@@ -2752,29 +2270,14 @@
           "text": "Sample"
         },
         {
-          "testId": "economic-dashboard-card",
-          "tag": "section",
-          "text": "ROI DashboardYear 1: $180,000 savings at current paceSample dataMonth target$9,6"
-        },
-        {
-          "testId": "group-dashboard-card",
-          "tag": "section",
-          "text": "Chain IntelligenceYour Chicago team's experience helps MiamiSample dataGroup acc"
-        },
-        {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Sample"
+          "text": "Unlabeled"
         },
         {
           "testId": "iks-tracker-panel",
           "tag": "section",
-          "text": "Institutional knowledgeYour system knows 73% of patternsIKS is computed from ver"
-        },
-        {
-          "testId": "iks-gauge",
-          "tag": "div",
-          "text": "73%"
+          "text": "Loading IKS..."
         },
         {
           "testId": "cohort-status-panel",
@@ -2804,157 +2307,7 @@
         {
           "testId": "supplier-scorecard-panel",
           "tag": "section",
-          "text": "Supplier scorecardsSupplier reliability and price trendQBO order history plus ve"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
+          "text": "Loading supplier scorecards..."
         }
       ],
       "buttons": [
@@ -3004,34 +2357,11 @@
         "Purchasing Copilot",
         "20 orders to learn what takes 11 years of gut instinct.",
         "Downtown discipline becomes the baseline for all four",
-        "Year 1: $180,000 savings at current pace",
-        "Where savings came from",
-        "This week",
-        "Bank proof",
         "Supply Disruption Recovery",
         "Payment Timing Intelligence",
         "Audit & Compliance Pack",
-        "Your Chicago team's experience helps Miami",
-        "Location",
-        "Decisions",
-        "Accuracy",
-        "Food cost",
-        "Learning",
-        "Transfer opportunity",
-        "Purchasing power",
         "What needs a manager today",
-        "Your system knows 73% of patterns",
         "Cohort measurement readiness",
-        "Supplier reliability and price trend",
-        "Supplier",
-        "Tier",
-        "On-time",
-        "Price trend",
-        "Exceptions",
-        "Summary",
-        "improving",
-        "stable",
-        "declining",
         "Trajectory",
         "Switching cost",
         "Automation Projection",
@@ -3039,12 +2369,6 @@
         "Waste and stockouts are now measurable",
         "The cost leak is concentrated",
         "Prep waste has a dollar target",
-        "Item",
-        "Waste",
-        "Kitchen benchmark",
-        "Trend",
-        "Cost",
-        "Recommendation",
         "Where ordering is consistent"
       ]
     }
@@ -3106,6 +2430,26 @@
         },
         {
           "tag": "h2",
+          "text": "Source reliability"
+        },
+        {
+          "tag": "h2",
+          "text": "Data Products"
+        },
+        {
+          "tag": "h3",
+          "text": "Customer 360"
+        },
+        {
+          "tag": "h3",
+          "text": "Operations Health"
+        },
+        {
+          "tag": "h3",
+          "text": "Alert Intelligence"
+        },
+        {
+          "tag": "h2",
           "text": "Tire Procure-to-Pay Flow"
         },
         {
@@ -3126,7 +2470,7 @@
         },
         {
           "tag": "h2",
-          "text": "Alert Root Causes"
+          "text": "Alert Queue"
         },
         {
           "tag": "h2",
@@ -3147,9 +2491,59 @@
       ],
       "testIds": [
         {
+          "testId": "enterprise-health",
+          "tag": "section",
+          "text": "Enterprise HealthProcess-Tech FusiondegradedSAP S/4HANAFixture3 recordsCelonisFi"
+        },
+        {
+          "testId": "enterprise-system-sap-s-4hana",
+          "tag": "div",
+          "text": "SAP S/4HANAFixture3 records"
+        },
+        {
+          "testId": "enterprise-system-celonis",
+          "tag": "div",
+          "text": "CelonisFixture2 KPIs"
+        },
+        {
+          "testId": "enterprise-system-graph",
+          "tag": "div",
+          "text": "GraphLive9 nodes"
+        },
+        {
+          "testId": "enterprise-impact",
+          "tag": "div",
+          "text": "Combined impact: 1 invoice exceptions · Match Invoice to GR"
+        },
+        {
           "testId": "provenance-badge",
           "tag": "span",
           "text": "Sample"
+        },
+        {
+          "testId": "trust-card",
+          "tag": "section",
+          "text": "SC-TRUSTSource reliabilityTrust profile unavailable."
+        },
+        {
+          "testId": "products-card",
+          "tag": "section",
+          "text": "Data IntelligenceData Products3 data products. Average IKS: 49.Customer 360matur"
+        },
+        {
+          "testId": "di-product",
+          "tag": "article",
+          "text": "Customer 360mature75GREEN2 sources"
+        },
+        {
+          "testId": "di-product",
+          "tag": "article",
+          "text": "Operations Healthdeveloping49GREEN2 sources"
+        },
+        {
+          "testId": "di-product",
+          "tag": "article",
+          "text": "Alert Intelligenceemerging23GREEN2 sources"
         }
       ],
       "buttons": [
@@ -3179,67 +2573,102 @@
           "name": ""
         },
         {
-          "text": "CRM Synccrm_sync2 medium alerts4 alertsCollapse",
+          "text": "DQ-002highpayments_hourlyFirst-time ⚡payment_gatewaypipeline failureAEAuto appro",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Triage",
+          "text": "DQ-006highrevenue_martFirst-time ⚡billing_apischema changeAEAuto approve48%",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Triage",
+          "text": "DQ-012highlead_scoringFirst-time ⚡marketing_dbquality anomalyAEAuto approve48%",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Triage",
+          "text": "DQ-010mediumsettlement_batchesFirst-time ⚡payment_gatewayvolume anomaly",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Triage",
+          "text": "DQ-013mediumpolicy_scoresFirst-time ⚡hr_feedquality anomaly",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Marketing DBmarketing_db1 critical/high alerts3 alertsExpand",
+          "text": "DQ-004lowrisk_featuresFirst-time ⚡warehouse_etlpipeline failure",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Warehouse ETLwarehouse_etlNo high-severity alerts3 alertsExpand",
+          "text": "DQ-017highbilling_exportsFirst-time ⚡billing_apifreshness violation",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Billing APIbilling_api2 critical/high alerts2 alertsExpand",
+          "text": "DQ-003mediumcustomer_eventsFirst-time ⚡crm_syncpipeline failure",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "ERP Exporterp_export1 medium alerts2 alertsExpand",
+          "text": "DQ-007mediumidentity_dimFirst-time ⚡hr_feedschema change",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "HR Feedhr_feed2 medium alerts2 alertsExpand",
+          "text": "DQ-014mediumsupplier_riskFirst-time ⚡erp_exportquality anomaly",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Payment Gatewaypayment_gateway1 critical/high alerts2 alertsExpand",
+          "text": "DQ-020mediumcustomer_360First-time ⚡crm_synctransform drift",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Inventory Feedinventory_feedNo high-severity alerts1 alertsExpand",
+          "text": "DQ-001loworders_dailyRecurring (12x)warehouse_etlpipeline failureAEAuto approve8",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "IoT Sensorsiot_sensorsNo high-severity alerts1 alertsExpand",
+          "text": "DQ-005lowproduct_catalogSeen 3x beforeerp_exportschema changeAEAuto approve82%",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-008lowtraffic_countsSeen 3x beforeiot_sensorsvolume anomalyAEAuto approve82%",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-009lowpartner_uploadsSeen 3x beforecrm_syncvolume anomalyAEAuto approve82%",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-011lowinventory_snapshotsRecurring (12x)inventory_feedquality anomalyAEAuto a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-015lowuser_activitySeen 3x beforecrm_syncfreshness violationAEAuto approve82%",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-016lowsearch_indexSeen 3x beforemarketing_dbfreshness violationAEAuto approve",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-018lowfeature_storeSeen 3x beforewarehouse_etltransform driftAEAuto approve82",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-019lowcampaign_attributionSeen 3x beforemarketing_dbtransform driftAEAuto app",
           "ariaLabel": "",
           "name": ""
         }
@@ -3259,12 +2688,17 @@
         "Payment Gateway",
         "Warehouse ETL",
         "AgentEvolver Impact",
+        "Source reliability",
+        "Data Products",
+        "Customer 360",
+        "Operations Health",
+        "Alert Intelligence",
         "Tire Procure-to-Pay Flow",
         "Create Purchase Requisition",
         "Approve Purchase Order",
         "Match Invoice to GR",
         "Process Payment",
-        "Alert Root Causes",
+        "Alert Queue",
         "Conservation",
         "Threshold6%",
         "Automation Projection",
@@ -3360,10 +2794,6 @@
         },
         {
           "tag": "h2",
-          "text": "Decision Explorer"
-        },
-        {
-          "tag": "h2",
           "text": "Incident Replay"
         },
         {
@@ -3429,9 +2859,124 @@
         {
           "tag": "h2",
           "text": "What-if: Reorder Warehouse Etl"
+        },
+        {
+          "tag": "h2",
+          "text": "Centroid Timeline"
+        },
+        {
+          "tag": "h2",
+          "text": "Data Source Trust"
+        },
+        {
+          "tag": "h3",
+          "text": "airflow"
+        },
+        {
+          "tag": "h3",
+          "text": "dbt"
+        },
+        {
+          "tag": "h3",
+          "text": "snowflake"
+        },
+        {
+          "tag": "h2",
+          "text": "Decision Explorer"
         }
       ],
-      "testIds": [],
+      "testIds": [
+        {
+          "testId": "intelligence-map",
+          "tag": "section",
+          "text": "Intelligence MapSource trust and quality graphDI source profiles rendered from t"
+        },
+        {
+          "testId": "gold-line",
+          "tag": "g",
+          "text": "Suggested connection: $180K/yr.$180K/yr"
+        },
+        {
+          "testId": "gold-line-stroke",
+          "tag": "line",
+          "text": ""
+        },
+        {
+          "testId": "gold-line-label",
+          "tag": "text",
+          "text": "$180K/yr"
+        },
+        {
+          "testId": "intelligence-map-legend",
+          "tag": "div",
+          "text": "━━━ Existing correlation┅┅┅ Suggested (gold) — $ value"
+        },
+        {
+          "testId": "centroid-timeline",
+          "tag": "section",
+          "text": "SC-11 · TRAJECTORY OF INTELLIGENCECentroid Timeline50 checkpoints from GraphStor"
+        },
+        {
+          "testId": "centroid-current-drift",
+          "tag": "div",
+          "text": "Current drift0.000"
+        },
+        {
+          "testId": "centroid-phases",
+          "tag": "div",
+          "text": "bootstraplearningconverged"
+        },
+        {
+          "testId": "centroid-timeline-chart",
+          "tag": "div",
+          "text": "17790519941779082720177915222117791522541779155674177915570017791557251779155750"
+        },
+        {
+          "testId": "source-profile-panel",
+          "tag": "section",
+          "text": "Source ProfilerData Source TrustExpand a source to inspect column trust and cons"
+        },
+        {
+          "testId": "source-profile",
+          "tag": "article",
+          "text": "airfloworchestration60%moderateInspect details"
+        },
+        {
+          "testId": "source-profile-toggle-airflow",
+          "tag": "button",
+          "text": "airfloworchestration60%moderateInspect details"
+        },
+        {
+          "testId": "source-profile",
+          "tag": "article",
+          "text": "dbttransformation80%reliableInspect details"
+        },
+        {
+          "testId": "source-profile-toggle-dbt",
+          "tag": "button",
+          "text": "dbttransformation80%reliableInspect details"
+        },
+        {
+          "testId": "source-profile",
+          "tag": "article",
+          "text": "snowflakewarehouse_metadata60%moderateInspect details"
+        },
+        {
+          "testId": "source-profile-toggle-snowflake",
+          "tag": "button",
+          "text": "snowflakewarehouse_metadata60%moderateInspect details"
+        },
+        {
+          "testId": "decision-explorer",
+          "tag": "section",
+          "text": "SC-14Decision Explorer951 GraphStore decisionsCategoryAllfreshness violationpipe"
+        },
+        {
+          "testId": "decision-summary",
+          "tag": "div",
+          "text": "Decisions50Accuracy24%Common actionpause downstreamOutcome filterall"
+        }
+      ],
       "buttons": [
         {
           "text": "Dashboard",
@@ -3455,6 +3000,26 @@
         },
         {
           "text": "Curve",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Ask",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "airfloworchestration60%moderateInspect details",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "dbttransformation80%reliableInspect details",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "snowflakewarehouse_metadata60%moderateInspect details",
           "ariaLabel": "",
           "name": ""
         },
@@ -3707,11 +3272,6 @@
           "text": "36267b24e92e",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "Ask",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
@@ -3723,15 +3283,6 @@
         "Moderate",
         "YOUR BLIND SPOTS",
         "Category Precision",
-        "Decision Explorer",
-        "ActionAllauto approveescalate to ownerinvestigatepause downstream",
-        "Verified only",
-        "Decision",
-        "Category",
-        "Action",
-        "Confidence",
-        "Timestamp",
-        "Verified",
         "Incident Replay",
         "Pipeline Bottleneck: Warehouse Etl",
         "SystemWarehouse EtlBilling ApiPayment GatewayCrm Sync",
@@ -3745,12 +3296,34 @@
         "OpenMeteo Weather",
         "Project44 Shipment Tracking",
         "Source trust and quality graph",
+        "$180K/yr",
         "SAP, Celonis, and graph evidence aligned",
         "Process mining signal",
         "Signal unavailable",
         "Enterprise graph context",
         "Change type",
-        "What-if: Reorder Warehouse Etl"
+        "What-if: Reorder Warehouse Etl",
+        "Centroid Timeline",
+        "Drift",
+        "IKS",
+        "bootstrap",
+        "learning",
+        "converged",
+        "Data Source Trust",
+        "airflow",
+        "dbt",
+        "snowflake",
+        "Decision Explorer",
+        "ActionAllauto approveescalate to ownerinvestigatepause downstream",
+        "OutcomeAllcorrectincorrectpending",
+        "Verified only",
+        "Decision",
+        "Category",
+        "Action",
+        "Outcome",
+        "Confidence",
+        "Timestamp",
+        "Verified"
       ]
     },
     "Evidence": {
@@ -3801,10 +3374,6 @@
         },
         {
           "tag": "h2",
-          "text": "Rule Lifecycle"
-        },
-        {
-          "tag": "h2",
           "text": "Audit Trail"
         },
         {
@@ -3818,6 +3387,22 @@
         {
           "tag": "h3",
           "text": "V-DO-SCHED-001"
+        },
+        {
+          "tag": "h2",
+          "text": "Accuracy Alerts"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Genealogy"
+        },
+        {
+          "tag": "h3",
+          "text": "dataops-off-peak-scheduling-v1"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Lifecycle"
         },
         {
           "tag": "h2",
@@ -3838,6 +3423,10 @@
         {
           "tag": "h3",
           "text": "Billing Api to Payments Gateway"
+        },
+        {
+          "tag": "h2",
+          "text": "Audit Trail"
         }
       ],
       "testIds": [
@@ -3865,6 +3454,426 @@
           "testId": "cohort-status-progress",
           "tag": "p",
           "text": "0/30 shown, 0/30 control"
+        },
+        {
+          "testId": "accuracy-alerts",
+          "tag": "section",
+          "text": "SC-12 · SELF-COMPUTATIONAccuracy AlertsPer-category accuracy across 417 verified"
+        },
+        {
+          "testId": "accuracy-alert-summary",
+          "tag": "div",
+          "text": "Below threshold2 categories"
+        },
+        {
+          "testId": "accuracy-category-list",
+          "tag": "div",
+          "text": "Freshness Violation25/26 correct · stablegreen96%StablePipeline Failure165/233 c"
+        },
+        {
+          "testId": "accuracy-category",
+          "tag": "div",
+          "text": "Freshness Violation25/26 correct · stablegreen96%Stable"
+        },
+        {
+          "testId": "accuracy-category",
+          "tag": "div",
+          "text": "Pipeline Failure165/233 correct · stableamber71%Stable"
+        },
+        {
+          "testId": "accuracy-category",
+          "tag": "div",
+          "text": "Quality Anomaly4/8 correct · stableAlert50%Needs attention"
+        },
+        {
+          "testId": "accuracy-category",
+          "tag": "div",
+          "text": "Schema Change87/118 correct · stableamber74%Stable"
+        },
+        {
+          "testId": "accuracy-category",
+          "tag": "div",
+          "text": "Transform Drift4/6 correct · stableAlert67%Needs attention"
+        },
+        {
+          "testId": "accuracy-category",
+          "tag": "div",
+          "text": "Volume Anomaly25/26 correct · stablegreen96%Stable"
+        },
+        {
+          "testId": "rule-genealogy",
+          "tag": "section",
+          "text": "SC-13 · OPERATIONAL EVOLUTIONRule GenealogyHow AgentEvolver proposed, tested, pr"
+        },
+        {
+          "testId": "rule-genealogy-summary",
+          "tag": "div",
+          "text": "Rules tracked1"
+        },
+        {
+          "testId": "rule-genealogy-list",
+          "tag": "div",
+          "text": "dataops-off-peak-scheduling-v1Schedule resource-intensive quality checks during "
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "dataops-off-peak-scheduling-v1Schedule resource-intensive quality checks during "
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Shadow"
+        },
+        {
+          "testId": "rule-genealogy-narrative",
+          "tag": "div",
+          "text": "The system that admits failure: rejected rules remain visible as evidence of lea"
+        },
+        {
+          "testId": "rule-lifecycle",
+          "tag": "section",
+          "text": "SC-15Rule LifecycleProposals move through shadow testing before promotion or rej"
+        },
+        {
+          "testId": "rule-lifecycle-summary",
+          "tag": "div",
+          "text": "Active0Shadow-testing1Rejected0Promoted0"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "shadow"
+        },
+        {
+          "testId": "rule-lifecycle-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "audit-trail",
+          "tag": "section",
+          "text": "SC-16Audit TrailChronological record of scores, learning, rule changes, and cons"
+        },
+        {
+          "testId": "audit-recent-summary",
+          "tag": "span",
+          "text": "0 events in last 24h"
+        },
+        {
+          "testId": "audit-event-filter",
+          "tag": "select",
+          "text": "All eventsscorelearnrule promotedrule rejectedconservation eventconfiguration ch"
+        },
+        {
+          "testId": "audit-search",
+          "tag": "input",
+          "text": ""
+        },
+        {
+          "testId": "audit-events",
+          "tag": "div",
+          "text": "5/9/2026, 4:44:45 PMlearntransform_drift auto_approvemigration5/9/2026, 4:44:38 "
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:45 PMlearntransform_drift auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:45 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:38 PMlearntransform_drift auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:38 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:32 PMlearnfreshness_violation escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:32 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:26 PMlearnfreshness_violation auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:26 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:20 PMlearnfreshness_violation auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:20 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:13 PMlearnquality_anomaly escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:13 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:07 PMlearnquality_anomaly escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:07 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:01 PMlearnquality_anomaly escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:01 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:55 PMlearnquality_anomaly auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:55 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:48 PMlearnvolume_anomaly investigatemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:48 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:42 PMlearnvolume_anomaly auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:42 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:36 PMlearnvolume_anomaly auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:36 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:30 PMlearnschema_change escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:30 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:23 PMlearnschema_change escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:23 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:17 PMlearnschema_change pause_downstreammigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:17 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:11 PMlearnpipeline_failure auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:11 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:05 PMlearnpipeline_failure escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:05 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:42:58 PMlearnpipeline_failure pause_downstreammigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:42:58 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:42:52 PMlearnpipeline_failure auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:42:52 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 3:31:29 PMlearnpipeline_failure pause_downstreammigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 3:31:29 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
         }
       ],
       "buttons": [
@@ -4007,17 +4016,20 @@
         "SCHEDULING_CRITERIA_v2",
         "dataops-off-peak-scheduling-v1",
         "Rule Genealogy",
-        "Rule Lifecycle",
         "Audit Trail",
         "Schema Impact: Warehouse Etl",
         "SystemWarehouse EtlBilling ApiPayment GatewayCrm Sync",
         "Operational Rules",
         "V-DO-SCHED-001",
+        "Accuracy Alerts",
+        "Rule Lifecycle",
         "Pattern Origin",
         "Pattern Transfer Status",
         "Erp Core to Billing Api",
         "Erp Core to Warehouse Sync",
-        "Billing Api to Payments Gateway"
+        "Billing Api to Payments Gateway",
+        "Event typeAll eventsscorelearnrule promotedrule rejectedconservation eventconfiguration change",
+        "Search"
       ]
     },
     "Curve": {
@@ -4071,6 +4083,7 @@
       "visibleText": [
         "DataOps Copilot",
         "Trajectory",
+        "Decision 0",
         "Disruption Annotation",
         "Centroid Evolution"
       ]
@@ -4152,7 +4165,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating182 / 212 decisions5 of 25 arms"
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating191 / 221 decisions2 of 25 arms"
         }
       ],
       "buttons": [
@@ -4307,22 +4320,22 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000792%Boreal Equipment Maintenancequantity_mismatch · $14,966",
+          "text": "S2P-INV-000591%Yangtze Raw Materialsprice_variance · $41,290",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "S2P-INV-001091%Helix Lab Suppliesquantity_mismatch · $8,565",
+          "text": "S2P-INV-000788%Boreal Equipment Maintenancequantity_mismatch · $14,966",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "S2P-INV-000590%Yangtze Raw Materialsprice_variance · $41,290",
+          "text": "S2P-INV-001088%Helix Lab Suppliesquantity_mismatch · $8,565",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "S2P-INV-000483%Novatek IT Servicescontract_gap · $30,171",
+          "text": "S2P-INV-000685%Meridian Office Servicesprice_variance · $1,403",
           "ariaLabel": "",
           "name": ""
         },
@@ -4958,7 +4971,7 @@
         },
         {
           "tag": "h2",
-          "text": "GREEN"
+          "text": "n/a"
         },
         {
           "tag": "h2",

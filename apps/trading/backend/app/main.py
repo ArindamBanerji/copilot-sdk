@@ -18,8 +18,9 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[4]
 WORKSPACE_ROOT = REPO_ROOT.parent
 GAE_PATH = WORKSPACE_ROOT / "graph-attention-engine-v50"
+CI_PLATFORM_PATH = WORKSPACE_ROOT / "ci-platform"
 
-for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH):
+for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH, CI_PLATFORM_PATH):
     if path.exists() and str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
@@ -35,7 +36,9 @@ from .routers.cohort_status_router import create_cohort_status_router  # noqa: E
 from .routers.correlation import create_correlation_router  # noqa: E402
 from .routers.data_import import router as data_import_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
-from .routers.evolution_router import create_trading_evolution_router  # noqa: E402
+from .routers.evolution_router import (  # noqa: E402
+    create_trading_evolution_router,
+)
 from .routers.execution_router import create_execution_router  # noqa: E402
 from .evolution import get_trading_variants  # noqa: E402
 from .routers.journal import _journal_records, create_journal_router  # noqa: E402
@@ -47,15 +50,20 @@ from .routers.regime import create_regime_router  # noqa: E402
 from .routers.regime_analytics import create_regime_analytics_router  # noqa: E402
 from .routers.regime_router import create_regime_router as create_regime_classifier_router  # noqa: E402
 from .routers.regime_status import create_regime_status_router  # noqa: E402
+from .routers.situation_router import create_situation_router  # noqa: E402
 from .routers.social import create_social_router  # noqa: E402
 from .routers.vix_timing import create_vix_timing_router  # noqa: E402
 from .routers.webhook import create_webhook_router  # noqa: E402
 from .services.journal_query import JournalQueryService  # noqa: E402
 from .services.regime_monitor import RegimeMonitor  # noqa: E402
 from .services.regime_scoring import TradingRegimeScorerProxy, build_regime_context  # noqa: E402
+from .services.trading_evolver import TradingAgentEvolver  # noqa: E402
 from .state import create_trading_tab_state_cache  # noqa: E402
 from .state.compute_helpers import compute_counterfactual_default  # noqa: E402
-from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
+from copilot_sdk.backend.transfer_router import (  # noqa: E402
+    create_self_transfer_router,
+    create_transfer_router,
+)
 from copilot_sdk.backend.archetype_router import create_archetype_router  # noqa: E402
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
@@ -65,15 +73,17 @@ from copilot_sdk.backend import (  # noqa: E402
 )
 from copilot_sdk.backend.counterfactual_router import create_counterfactual_router  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.evolution import ScorerBackedProvider  # noqa: E402
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
-from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
+from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
 from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
 from copilot_sdk.state import cached_static, create_invalidation_header_middleware, create_tab_state_router  # noqa: E402
+from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
 
 
 DOMAIN = "trading"
@@ -211,7 +221,7 @@ def _result_value(result: Any, key: str, default: Any = None) -> Any:
     return getattr(result, key, default)
 
 
-def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: SQLiteGraphStore) -> dict[str, int]:
+def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> dict[str, int]:
     try:
         entries = json.loads(SEED_FIXTURE_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -275,7 +285,7 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: SQLiteGraphStore
     return {"decisions_seeded": decisions_seeded, "outcomes_seeded": outcomes_seeded}
 
 
-def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
+def _auto_seed_if_needed(graph_store: GraphStore) -> int:
     try:
         count = int(graph_store.count_decisions(DOMAIN))
     except Exception as exc:
@@ -314,6 +324,14 @@ def create_app(
     )
 
     scoring_db = _resolve_scoring_db(db_path)
+    # Stable instrument/market context only; decisions and learning authority
+    # remain in the graph store and are never cached.
+    entity_cache = EntityCache(
+        max_size=200,
+        ttl_seconds=300,
+        source="trading.entity_context_cache",
+    )
+    entity_context_cache = EntityContextCacheAdapter(entity_cache, enabled=True)
     active_graph_config = initialize_trading_active_graph_config()
     active_graph_store = create_trading_active_graph_store(
         active_graph_config,
@@ -367,6 +385,25 @@ def create_app(
         "conservation_state": None,
     }
 
+    trading_store_factory = lambda: selected_graph_store_factory(scoring_db)
+    conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
+    trading_evolver = TradingAgentEvolver(
+        baseline_scorer=scorer_proxy,
+        store_factory=trading_store_factory,
+        conservation_provider=conservation_provider,
+        regime_break_provider=lambda: regime_monitor.is_regime_break,
+    )
+    trading_evolver.register_variants(get_trading_variants())
+    app.state.trading_evolver = trading_evolver
+    app.state.evolver = trading_evolver
+
+    def record_trading_outcome(decision: dict[str, Any], success: bool) -> None:
+        trading_evolver.record_verified_outcome(
+            decision.get("variant_id"),
+            success,
+            category=decision.get("category"),
+        )
+
     def _run_startup_seed_once() -> None:
         if not startup_state["seeded"]:
             startup_state["seeded"] = True
@@ -394,6 +431,8 @@ def create_app(
     app.state.trading_regime_monitor = regime_monitor
     app.state.trading_tab_state_cache = tab_state_cache
     app.state.l5_startup_status = l5_startup_status
+    app.state.entity_cache = entity_cache
+    app.state.entity_context_cache = entity_context_cache
     app.middleware("http")(create_invalidation_header_middleware(DOMAIN))
     app.include_router(
         create_scoring_router(
@@ -401,6 +440,8 @@ def create_app(
             db_path=scoring_db,
             scorer_factory=lambda: scorer_proxy,
             dk_welford_tracker=dk_welford_tracker,
+            outcome_recorder=record_trading_outcome,
+            entity_context_cache=entity_context_cache,
         ),
         prefix="/api",
     )
@@ -412,6 +453,7 @@ def create_app(
         )
     )
     app.include_router(create_transfer_router(scorer_proxy))
+    app.include_router(create_self_transfer_router(scorer_proxy))
     app.include_router(create_archetype_router())
     app.include_router(
         create_evolution_router(
@@ -422,6 +464,7 @@ def create_app(
     )
     app.include_router(
         create_trading_evolution_router(
+            evolver=trading_evolver,
             graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
             domain=DOMAIN,
             regime_break_provider=lambda: regime_monitor.is_regime_break,
@@ -436,7 +479,13 @@ def create_app(
         ),
         prefix="/api",
     )
-    mount_self_computation_router(app, selected_graph_store_factory(scoring_db))
+    mount_self_computation_router(
+        app,
+        selected_graph_store_factory(scoring_db),
+        domain=DOMAIN,
+        scorer_provider=lambda: scorer_proxy,
+        evolver_provider=lambda: app.state.evolver,
+    )
     app.include_router(context_router, prefix="/api/context")
     app.include_router(create_evidence_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_journal_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
@@ -499,6 +548,7 @@ def create_app(
     app.include_router(create_regime_classifier_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_regime_analytics_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_regime_status_router(regime_monitor))
+    app.include_router(create_situation_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_social_router(scorer_proxy))
     app.include_router(create_vix_timing_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(
@@ -523,11 +573,15 @@ def create_app(
         return await call_next(request)
 
     @app.get("/health")
-    def health() -> dict[str, str]:
+    def health() -> dict[str, Any]:
+        cache_stats = entity_cache.stats()
         return {
             "status": "ok",
             "domain": DOMAIN,
             "engine": "copilot_sdk.scoring + gae.profile_scorer",
+            "cache_hits": cache_stats.hits,
+            "cache_misses": cache_stats.misses,
+            "cache_size": cache_stats.size,
         }
 
     @app.get("/api/trading/fingerprint")

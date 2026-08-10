@@ -1,6 +1,6 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, waitForAppShell } from "../helpers/ui";
+import { clickTab, waitForScreenReady } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
 
@@ -63,14 +63,14 @@ test("Queue priority scores bounded 0-1", async ({ request }) => {
 
 test("Order tab shows queue panel", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   await expect(page.getByTestId("queue-summary")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Queue table has items", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   const table = page.getByTestId("queue-table");
   await expect(table).toBeVisible({ timeout: 20_000 });
@@ -78,7 +78,7 @@ test("Queue table has items", async ({ page }) => {
 
 test("Queue items show priority", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   await expect(page.getByTestId("queue-table")).toBeVisible({ timeout: 20_000 });
   const queueItems = page.getByTestId("queue-item");

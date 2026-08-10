@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { DayZeroCard, DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
+import { DataTrustBadge, DayZeroCard, DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import {
   BASE,
   getAnalytics,
@@ -47,6 +47,16 @@ interface DashboardState {
   variants: Variant[];
   wasteByItem: Record<string, WasteHistory>;
 }
+
+const PURCHASING_TRUST_LABELS: Record<string, string> = {
+  expected_demand: "Demand forecast",
+  day_of_week: "Day-of-week signal",
+  weather_forecast: "Weather forecast",
+  event_flag: "Event signal",
+  historical_waste: "Waste history",
+  supplier_lead_time: "Supplier lead time",
+  price_memory_index: "Price memory",
+};
 
 function decisionId(decision: HistoryDecision) {
   return decision.decisionId ?? decision.id ?? String(decision.timestamp ?? Math.random());
@@ -218,6 +228,13 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
           renderCard={(order) => <OrderCard order={order} />}
         />
       </section>
+
+      <DataTrustBadge
+        apiBase={BASE}
+        copilot="Purchasing"
+        factorLabels={PURCHASING_TRUST_LABELS}
+        accent="var(--purchasing-primary, #b45309)"
+      />
     </div>
   );
 }

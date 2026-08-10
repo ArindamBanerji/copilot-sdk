@@ -10,6 +10,7 @@ from fastapi import APIRouter
 from app.routers.journal import _journal_records
 from app.services.promotion import PromotionService, _metrics, strategy_key
 from copilot_sdk.backend.conservation_router import _check_payload, _state_counts
+from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -42,7 +43,7 @@ def create_promotion_router(
     def evaluate_promotion() -> dict[str, Any]:
         service = _service()
         trades = _records()
-        conservation = _conservation_status(graph_store_factory)
+        conservation = _conservation_status(graph_store_factory, domain)
         events = service.evaluate(trades, conservation)
         return {
             "events": events,
@@ -81,7 +82,10 @@ def _strategy_rows(trades: list[dict[str, Any]], service: PromotionService) -> l
     return rows
 
 
-def _conservation_status(graph_store_factory: GraphStoreFactory | None) -> dict[str, Any]:
+def _conservation_status(
+    graph_store_factory: GraphStoreFactory | None,
+    domain: str = "trading",
+) -> dict[str, Any]:
     if graph_store_factory is None:
         return {"status": "GREEN", "passed": True}
     store = None
@@ -95,6 +99,8 @@ def _conservation_status(graph_store_factory: GraphStoreFactory | None) -> dict[
             correct_count=counts["correct_count"],
             total_decisions=counts["total_decisions"],
             penalty_ratio=counts["penalty_ratio"],
+            categories_with_data=store.count_categories_with_n(domain, 1),
+            total_categories=len(TradingPreset().shape.category_names),
         )
         return {**counts, **_check_payload(check)}
     except Exception:

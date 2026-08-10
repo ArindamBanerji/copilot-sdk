@@ -62,6 +62,142 @@ export interface DIProfilesResponse {
   total?: number;
 }
 
+export interface DISearchAsset {
+  assetId: string;
+  assetName: string;
+  assetType: string;
+  sourceConnector: string;
+  trustTier: number;
+  trustScore: number;
+  freshnessHours: number | null;
+  qualityStatus: string;
+  qualityIssues: string[];
+  matchReason: string;
+  iks: number;
+}
+
+export interface DISearchResponse {
+  results: DISearchAsset[];
+  total: number;
+  filtersApplied: Record<string, unknown>;
+  qualitySummary: string;
+}
+
+export interface SourceAttribution {
+  sourceId?: string;
+  source?: string;
+  trust?: number;
+  contribution?: string;
+  weight?: number;
+  freshnessHours?: number | null;
+  recordsUsed?: number;
+  trustAvailable?: boolean;
+}
+
+export interface QueryResponse {
+  answer?: string;
+  confidence?: number;
+  confidenceLabel?: string;
+  sourceAttribution?: SourceAttribution[];
+  computationPath?: string[];
+  qualityWarning?: string | null;
+  evidence?: string;
+  query?: {
+    intent?: string;
+    metric?: string;
+    timeWindow?: string | null;
+    domain?: string;
+    supported?: boolean;
+    reason?: string | null;
+  };
+  metadata?: {
+    generatedAt?: string;
+    dataAsOf?: string | null;
+    cache?: string;
+    engineVersion?: string;
+    queryId?: string;
+  };
+}
+
+export interface DIProduct {
+  productId?: string;
+  productName?: string;
+  iks?: number;
+  conservationStatus?: string;
+  verifiedDecisions?: number;
+  sources?: string[];
+  maturityLabel?: string;
+}
+
+export interface DIProductsResponse {
+  products?: DIProduct[];
+}
+
+export interface SelfDiagnosticsResponse {
+  measurementState?: {
+    state?: string;
+    decisionsVerified?: number;
+    decisionsNeeded?: number;
+    armsMeasured?: number;
+    armsTotal?: number;
+    accuracy?: number | null;
+    iks?: number | null;
+    message?: string;
+    provenance?: string;
+  };
+}
+
+export interface DISourceTrustColumn {
+  name?: string;
+  trust?: number;
+  label?: string;
+}
+
+export interface DISourceTrustResponse {
+  sourceId?: string;
+  trustScore?: number;
+  trustLabel?: string;
+  conservationStatus?: string;
+  recommendation?: string;
+  columns?: DISourceTrustColumn[];
+}
+
+export interface DISourceConsumer {
+  consumerId?: string;
+  sourceId?: string;
+  qualityBar?: Record<string, string>;
+  satisfactionRate?: number;
+  lastIssue?: string | null;
+}
+
+export interface DISourceConsumersResponse {
+  sourceId?: string;
+  consumers?: DISourceConsumer[];
+}
+
+export interface DIMapNode {
+  id?: string;
+  label?: string;
+  domain?: string;
+  trust?: number;
+  qualityScore?: number;
+  recordCount?: number;
+}
+
+export interface DIGoldLine {
+  source?: string;
+  target?: string;
+  value?: number;
+  type?: string;
+  rationale?: string;
+}
+
+export interface DIIntelligenceMapResponse {
+  nodes?: DIMapNode[];
+  edges?: Array<Record<string, unknown>>;
+  goldLines?: DIGoldLine[];
+}
+
 export interface PipelineSystem {
   name: string;
   displayName?: string;
@@ -358,6 +494,25 @@ export interface TrustResponse {
   narrative: string;
 }
 
+export interface DIPerturbationStatus {
+  enabled: boolean;
+  active: boolean;
+  sourceName?: string | null;
+  factorName?: string | null;
+  decisionsInjected: number;
+  expiresInSeconds?: number | null;
+}
+
+export interface DIPerturbationResult {
+  before: Record<string, number>;
+  after: Record<string, number>;
+  delta: Record<string, number>;
+  sourceName: string;
+  factorName: string;
+  decisionsInjected: number;
+  revertable: boolean;
+}
+
 export type EvolutionStatus = "promoted" | "rejected" | "shadow" | "created";
 
 export interface EvolutionVariant {
@@ -512,6 +667,15 @@ export interface CentroidHistoryResponse {
   totalDecisions?: number;
 }
 
+export interface CheckpointQuality {
+  window_size: number | null;
+  verified_count: number | null;
+  correct_count: number | null;
+  rolling_accuracy: number | null;
+  window_end?: string | null;
+  policy_version: string | null;
+}
+
 export interface CentroidCheckpoint {
   decisionId?: string;
   decision_id?: string;
@@ -523,6 +687,7 @@ export interface CentroidCheckpoint {
   created_at?: string;
   checkpointTime?: string;
   checkpoint_time?: string;
+  quality: CheckpointQuality | null;
 }
 
 export interface SelfCentroidHistoryResponse {
@@ -759,6 +924,12 @@ export interface EnterpriseHealth {
   graph?: EnterpriseSystemHealth;
   overall?: "healthy" | "degraded" | "disconnected" | string;
   engineVersion?: string;
+  combinedImpact?: {
+    openPurchaseOrderValue?: number;
+    exceptionInvoiceCount?: number;
+    bottleneckActivity?: string | null;
+    bottleneckDurationSeconds?: number | null;
+  };
 }
 
 export interface SapPurchaseOrder {

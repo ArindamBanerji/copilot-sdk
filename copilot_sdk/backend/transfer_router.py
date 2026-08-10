@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import time
+import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
@@ -13,7 +15,9 @@ from copilot_sdk.backend.transfer import (
     TransferDetector,
     load_fingerprints_with_warnings,
 )
+from copilot_sdk.backend.models import TransferListResponse
 from copilot_sdk.graph.protocol import GraphStore
+from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
 from copilot_sdk.transfer import TransferPattern
 from copilot_sdk.transfer.category_mappings import get_mapping, list_available_transfers
 from copilot_sdk.transfer.registry import SharedPatternRegistry
@@ -25,6 +29,11 @@ class TransferExecuteRequest(BaseModel):
     source_domain: str
     target_domain: str
     dry_run: bool = True
+
+
+class CrossCopilotTransferRequest(BaseModel):
+    source_domain: str
+    target_domain: str
 
 
 def create_transfer_router(
@@ -166,6 +175,139 @@ def create_transfer_router(
     return router
 
 
+def create_self_transfer_router(scorer: Any) -> APIRouter:
+    """Expose the governed cross-copilot transfer contract on ``/api/self``.
+
+    The legacy ``/api/transfer`` router remains available for existing UI
+    consumers.  This router is the shared-graph API: it records one
+    TransferPattern event and applies only semantic, shape-safe patterns.
+    """
+
+    router = APIRouter(prefix="/api/self", tags=["Cross-Copilot Transfer"])
+
+    @router.get("/transfers", response_model=TransferListResponse)
+    def list_transfers(direction: str = "all") -> dict[str, Any]:
+        own_domain = _own_domain(scorer)
+        normalized_direction = str(direction or "all").strip().lower()
+        if normalized_direction not in {"all", "incoming", "outgoing"}:
+            raise HTTPException(status_code=400, detail="direction must be all, incoming, or outgoing")
+        store = _graph_store(scorer)
+        if store is None or not callable(getattr(store, "get_transfer_patterns", None)):
+            return {"domain": own_domain, "direction": normalized_direction, "total": 0, "transfers": []}
+        if normalized_direction == "incoming":
+            rows = store.get_transfer_patterns(target_domain=own_domain)
+        elif normalized_direction == "outgoing":
+            rows = store.get_transfer_patterns(source_domain=own_domain)
+        else:
+            rows = [
+                *store.get_transfer_patterns(source_domain=own_domain),
+                *store.get_transfer_patterns(target_domain=own_domain),
+            ]
+        unique = {str(row.get("pattern_id")): row for row in rows}
+        transfers = sorted(unique.values(), key=lambda row: (row.get("created_at", 0), row.get("pattern_id", "")))
+        return {
+            "domain": own_domain,
+            "direction": normalized_direction,
+            "total": len(transfers),
+            "transfers": transfers,
+        }
+
+    @router.post("/transfer")
+    @serialize_mutation(lambda *args, **kwargs: _own_domain(scorer), event="cross_copilot_transfer")
+    def transfer(request: CrossCopilotTransferRequest) -> dict[str, Any]:
+        source_domain = _clean_domain(request.source_domain)
+        target_domain = _clean_domain(request.target_domain)
+        own_domain = _own_domain(scorer)
+        _validate_transfer_domains(source_domain, target_domain, own_domain)
+
+        mapping = get_mapping(source_domain, target_domain)
+        if mapping is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No semantic transfer mapping for {source_domain} to {target_domain}",
+            )
+
+        source_state = _source_conservation_state(scorer, source_domain)
+        target_state = _target_conservation_state(scorer, target_domain)
+        transfer_id = _transfer_id(source_domain, target_domain, mapping)
+        if source_state != "GREEN" or target_state != "GREEN":
+            return {
+                "status": "blocked",
+                "transfer_id": transfer_id,
+                "source_domain": source_domain,
+                "target_domain": target_domain,
+                "source_conservation": source_state,
+                "target_conservation": target_state,
+                "reason": "Transfer requires GREEN conservation for both copilots",
+            }
+
+        store = _graph_store(scorer)
+        existing = [] if store is None else store.get_transfer_patterns(
+            source_domain=source_domain,
+            target_domain=target_domain,
+        )
+        if existing:
+            return {
+                "status": "skipped",
+                "transfer_id": transfer_id,
+                "source_domain": source_domain,
+                "target_domain": target_domain,
+                "patterns_applied": 0,
+                "reason": "transfer_already_recorded",
+            }
+
+        patterns, provenance = _patterns_for_execute(
+            scorer,
+            source_domain,
+            target_domain,
+            mapping,
+            None,
+        )
+        summary = scorer.warm_start(patterns)
+        applied = int(summary.get("applied", 0)) if isinstance(summary, dict) else 0
+        if isinstance(summary, dict) and bool(summary.get("skipped")):
+            return {
+                "status": "skipped",
+                "transfer_id": transfer_id,
+                "source_domain": source_domain,
+                "target_domain": target_domain,
+                "patterns_applied": 0,
+                "reason": str(summary.get("reason") or "warm_start_guard"),
+            }
+        if applied <= 0 or store is None:
+            return {
+                "status": "skipped",
+                "transfer_id": transfer_id,
+                "source_domain": source_domain,
+                "target_domain": target_domain,
+                "patterns_applied": applied,
+                "reason": "no_compatible_patterns",
+            }
+
+        store.write_transfer_pattern(
+            pattern_id=transfer_id,
+            source_domain=source_domain,
+            target_domain=target_domain,
+            pattern_type="semantic_pattern_transfer",
+            factor_mapping=mapping,
+            confidence=float(summary.get("score", 0.0)) if isinstance(summary, dict) else 0.0,
+            validation_status="validated",
+            conservation_status=target_state,
+            metadata={"provenance": provenance, "patterns_applied": applied},
+        )
+        return {
+            "status": "applied",
+            "transfer_id": transfer_id,
+            "source_domain": source_domain,
+            "target_domain": target_domain,
+            "patterns_applied": applied,
+            "provenance": provenance,
+            "shape_safe": True,
+        }
+
+    return router
+
+
 def _find_warm_start_info(
     scorer: Any,
     explicit_info: dict[str, Any] | None,
@@ -274,6 +416,55 @@ def _own_domain(scorer: Any) -> str:
     return value or "unknown"
 
 
+def _graph_store(scorer: Any) -> Any | None:
+    return getattr(scorer, "graph_store", None) or getattr(scorer, "_graph_store", None)
+
+
+def _validate_transfer_domains(source_domain: str, target_domain: str, own_domain: str) -> None:
+    known = {str(domain) for domain in ALL_COPILOT_DOMAINS}
+    if source_domain not in known or target_domain not in known:
+        raise HTTPException(status_code=404, detail="Source or target copilot was not found")
+    if source_domain == target_domain:
+        raise HTTPException(status_code=400, detail="Source and target copilots must differ")
+    if target_domain != own_domain:
+        raise HTTPException(status_code=400, detail=f"This router can apply transfers only to {own_domain}")
+
+
+def _transfer_id(source_domain: str, target_domain: str, mapping: dict[str, str]) -> str:
+    canonical = "|".join(
+        (source_domain, target_domain, json.dumps(mapping, sort_keys=True, separators=(",", ":")))
+    )
+    return "TR-" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:32]
+
+
+def _target_conservation_state(scorer: Any, target_domain: str) -> str:
+    store = _graph_store(scorer)
+    if store is not None and callable(getattr(store, "get_latest_conservation_statuses", None)):
+        try:
+            statuses = store.get_latest_conservation_statuses(domains=[target_domain])
+            if statuses and statuses[0].get("status"):
+                return _normalize_conservation_state(statuses[0]["status"])
+        except Exception:
+            pass
+    if store is not None and callable(getattr(store, "get_conservation_state", None)):
+        try:
+            state = store.get_conservation_state(target_domain)
+            if isinstance(state, dict) and state.get("status"):
+                return _normalize_conservation_state(state["status"])
+        except Exception:
+            pass
+    provider = getattr(scorer, "conservation_state", None)
+    if callable(provider):
+        try:
+            result = provider()
+            if isinstance(result, dict):
+                return _normalize_conservation_state(result.get("status") or result.get("state"))
+            return _normalize_conservation_state(result)
+        except Exception:
+            pass
+    return "UNKNOWN"
+
+
 def _opportunity_status(
     own_domain: str,
     fingerprints: dict[str, Any],
@@ -299,6 +490,21 @@ def _clean_domain(value: Any) -> str:
 
 
 def _source_conservation_state(scorer: Any, source_domain: str) -> str:
+    store = _graph_store(scorer)
+    if store is not None and callable(getattr(store, "get_latest_conservation_statuses", None)):
+        try:
+            statuses = store.get_latest_conservation_statuses(domains=[source_domain])
+            if statuses and statuses[0].get("status"):
+                return _normalize_conservation_state(statuses[0]["status"])
+        except Exception:
+            pass
+    if store is not None and callable(getattr(store, "get_conservation_state", None)):
+        try:
+            state = store.get_conservation_state(source_domain)
+            if isinstance(state, dict) and state.get("status"):
+                return _normalize_conservation_state(state["status"])
+        except Exception:
+            pass
     states = getattr(scorer, "source_conservation_states", None)
     if isinstance(states, dict):
         if source_domain not in states:
@@ -475,7 +681,12 @@ def _demo_patterns_for_mapping(
                 win_rate=0.75,
                 centroid_delta=[0.03 for _ in range(factor_count)],
                 confidence=0.8,
-                metadata={"source_category": source_category},
+                metadata={
+                    "source_category": source_category,
+                    "source_domain": source_domain,
+                    "source_fingerprint_id": f"demo-{source_domain}",
+                    "factor_mapping": {"semantic_category": target_category},
+                },
             )
         )
     return patterns

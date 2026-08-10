@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import json
 import os
+import asyncio
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter
+
+from app.enterprise_router import build_enterprise_health
 
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
@@ -53,22 +56,16 @@ def sap_status() -> dict[str, Any]:
 
 @router.get("/enterprise-health")
 def enterprise_health_alias() -> dict[str, Any]:
-    sap = _enterprise_sap_health()
-    celonis = _enterprise_celonis_health()
-    graph = _enterprise_graph_health()
-    connected = [sap["connected"], celonis["connected"], graph["connected"]]
-    if all(connected):
-        overall = "healthy"
-    elif any(connected):
-        overall = "degraded"
-    else:
-        overall = "disconnected"
-    return {
-        "sap": sap,
-        "celonis": celonis,
-        "graph": graph,
-        "overall": overall,
-    }
+    try:
+        _sap_status()
+    except Exception:
+        return {
+            "sap": {"connected": False, "record_count": 0, "last_sync": None},
+            "celonis": _enterprise_celonis_health(),
+            "graph": _enterprise_graph_health(),
+            "overall": "degraded",
+        }
+    return asyncio.run(build_enterprise_health())
 
 
 def _enterprise_sap_health() -> dict[str, Any]:

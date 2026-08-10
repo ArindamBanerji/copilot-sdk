@@ -8,7 +8,7 @@ import re
 import sys
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from fastapi import HTTPException
 
@@ -59,9 +59,6 @@ def _load_topology_config() -> GraphConfig:
             for key, value in previous.items():
                 if value is not None:
                     os.environ[key] = value
-        elif not has_dataops_backend:
-            os.environ["DATAOPS_ACTIVE_GRAPH_BACKEND"] = "sqlite"
-            os.environ["CI_ALLOW_SQLITE_FALLBACK"] = "1"
         return GraphConfig.load("dataops", profile=profile)
     finally:
         for key in _TOPOLOGY_ENV_KEYS:
@@ -71,8 +68,11 @@ def _load_topology_config() -> GraphConfig:
                 os.environ[key] = value
 
 
-def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
+def _load_json(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"DataOps fixture must be a JSON object: {path}")
+    return value
 
 
 def _ci_platform_path() -> Path:
@@ -87,7 +87,7 @@ def _load_age_client_class() -> type[Any] | None:
         from ci_platform.graph.age_client import AGEClient
     except Exception:
         return None
-    return AGEClient
+    return cast(type[Any], AGEClient)
 
 
 def _safe_get_float(payload: dict[str, Any], key: str, default: float = 0.0) -> float:
@@ -229,10 +229,10 @@ class DataOpsGraphClient:
             alert, _system = pair
             return {"source": "graph", "alert": alert}
         self._raise_if_age_required()
-        alert = self._find_alert(alert_id)
-        if alert is None:
+        fixture_alert = self._find_alert(alert_id)
+        if fixture_alert is None:
             return {"source": "fixture", "error": "Alert not found", "alert_id": alert_id}
-        return {"source": "fixture", "alert": deepcopy(alert)}
+        return {"source": "fixture", "alert": deepcopy(fixture_alert)}
 
     async def get_blast_radius(self, alert_id: str) -> dict[str, Any]:
         rows = await self._run_graph(
@@ -286,8 +286,8 @@ class DataOpsGraphClient:
         return self._fixture_blast_radius(alert_id)
 
     async def get_recurrence(self, alert_id: str) -> dict[str, Any]:
-        alert = None
-        recurrence = None
+        alert: dict[str, Any] | None = None
+        recurrence: dict[str, Any] | None = None
         if self.is_graph_connected:
             pair = await self._graph_alert_and_system(alert_id)
             if pair is not None:
@@ -298,7 +298,7 @@ class DataOpsGraphClient:
             alert = self._find_alert(alert_id)
             if alert is not None:
                 recurrence = self._fixture_recurrence(alert["system"], alert["category"])
-        if not alert:
+        if not alert or recurrence is None:
             return {"source": self.graph_source, "error": "Alert not found", "alert_id": alert_id}
 
         return {
@@ -574,7 +574,12 @@ class DataOpsGraphClient:
             raise ValueError(f"DataOps graph query is not read-only: {query[:120]}")
         self.last_query = query
         try:
-            return await self._age_client.run_query(query, None)
+            result = await self._age_client.run_query(query, None)
+            if result is None:
+                return None
+            if not isinstance(result, list) or not all(isinstance(row, dict) for row in result):
+                raise TypeError("AGE query result must be a list of dictionaries")
+            return cast(list[dict[str, Any]], result)
         except Exception:
             self._graph_connected = False
             if self._age_required:

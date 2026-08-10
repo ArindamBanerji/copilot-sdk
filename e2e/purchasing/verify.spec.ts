@@ -1,7 +1,7 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
 import { PURCHASING_FACTORS } from "../fixtures/purchasing-factors";
-import { clickTab, waitForAppShell } from "../helpers/ui";
+import { clickTab, waitForScreenReady } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
 const ACTIONS = ["order_as_planned", "order_more", "order_less", "skip"];
@@ -130,7 +130,7 @@ test("Verify kitchen language in reason codes", async ({ request }) => {
 
 test("Reason selector visible after scoring", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   await scoreInUi(page);
 
@@ -139,7 +139,7 @@ test("Reason selector visible after scoring", async ({ page }) => {
 
 test("Conservation status shown after verify", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   await scoreInUi(page);
 

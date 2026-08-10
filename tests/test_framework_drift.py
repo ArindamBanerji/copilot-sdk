@@ -30,7 +30,7 @@ S2P_FRAMEWORK_DIR = (
 # ---------------------------------------------------------------------------
 KNOWN_DRIFT = {
     "override_detector.py": "SOC-only. Not in SDK. Expected.",
-    "audit.py": "app.framework.feedback_store and app.db.neo4j imports guarded with try/except ImportError. SDK standalone requirement.",
+    "audit.py": "app.framework.feedback_store and app.db.graph_client imports guarded with try/except ImportError. SDK standalone requirement.",
     "composite_gate.py": "Import path adapted: app.framework → copilot_sdk.framework. SDK namespace requirement.",
     "feedback_base.py": "Import path adapted: app.framework → copilot_sdk.framework. SDK namespace requirement.",
     "decision_history.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",

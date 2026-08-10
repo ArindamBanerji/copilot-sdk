@@ -34,7 +34,8 @@ export async function gotoTab(page: Page, tabName: string, timeout = 15_000) {
 }
 
 export async function waitForScreenReady(page: Page, timeout = 15_000) {
-  await page.locator('[data-screen-ready="true"]').first().waitFor({ state: "attached", timeout });
+  await page.locator('main > [data-screen-ready="true"]').waitFor({ state: "attached", timeout });
+  await expect(page.locator('main [data-panel-ready="false"]')).toHaveCount(0, { timeout });
 }
 
 export async function navigateToTab(page: Page, tabName: string) {

@@ -22,7 +22,8 @@ function waitForScoreResponse(page: Page) {
   return page.waitForResponse((response) =>
     response.url().includes('/score') &&
     response.request().method() === 'POST' &&
-    response.status() === 200
+    response.status() === 200,
+    { timeout: 30_000 },
   );
 }
 

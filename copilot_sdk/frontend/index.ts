@@ -21,6 +21,8 @@ export type { EvolutionPanelProps, EvolutionStatus, EvolutionVariant } from "./E
 
 export { default as ConservationSlider } from "./ConservationSlider";
 export type { ConservationSliderProps, ConservationStatusLevel } from "./ConservationSlider";
+export { default as DayZeroPanel } from "./DayZeroPanel";
+export type { MeasurementStateView } from "./DayZeroPanel";
 
 export { default as ReasoningPanel } from "./ReasoningPanel";
 export type {
@@ -42,6 +44,9 @@ export type {
 
 export { default as TransferBadge } from "./TransferBadge";
 export type { TransferBadgeProps } from "./TransferBadge";
+
+export { default as DataTrustBadge } from "./DataTrustBadge";
+export type { DataTrustBadgeProps, DataTrustFactor } from "./DataTrustBadge";
 
 export { default as DayZeroCard } from "./components/DayZeroCard";
 export type { DayZeroCardProps, MeasurementStateName, MeasurementStatus } from "./components/DayZeroCard";

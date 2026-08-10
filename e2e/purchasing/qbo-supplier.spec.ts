@@ -1,13 +1,13 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, waitForAppShell } from "../helpers/ui";
+import { clickTab, waitForScreenReady } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
 
-async function gotoInventoryTab(page: Parameters<typeof waitForAppShell>[0]) {
+async function gotoInventoryTab(page: Parameters<typeof waitForScreenReady>[0]) {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Inventory");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
 }
 
 test("QBO vendors API returns supplier list", async ({ request }) => {

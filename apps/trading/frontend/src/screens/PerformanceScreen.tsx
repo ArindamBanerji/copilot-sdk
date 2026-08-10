@@ -17,6 +17,7 @@ import PromotionDashboard from "../components/PromotionDashboard";
 import RegimeAnalyticsPanel from "../components/RegimeAnalyticsPanel";
 import RegimeStatusPanel from "../components/RegimeStatusPanel";
 import RejectionMomentPanel from "../components/RejectionMomentPanel";
+import ReConvergencePanel from "../components/ReConvergencePanel";
 import RiskManagementCard from "../components/RiskManagementCard";
 import RollingMetrics from "../components/RollingMetrics";
 import StrategySafetyBreakdownPanel from "../components/StrategySafetyBreakdownPanel";
@@ -118,6 +119,7 @@ export default function PerformanceScreen() {
         daysActive={daysActive}
       />
       <CentroidTimeline />
+      <ReConvergencePanel />
       <AuditTrail />
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <RegimeStatusPanel />

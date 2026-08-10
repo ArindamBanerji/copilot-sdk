@@ -1,6 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
+import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors, waitForScreenReady } from "../helpers/ui";
 
 function panelByHeading(page: Page, heading: string | RegExp): Locator {
   return page
@@ -31,17 +31,20 @@ function expectNoActionableConsoleErrors(errors: string[]) {
 
 async function gotoDashboard(page: Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expect(panelByHeading(page, "Pipeline Status")).toBeVisible({ timeout: 15_000 });
 }
 
 async function gotoInsight(page: Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Insight");
   await expectAnyText(page, [/Pipeline Bottleneck/i, /Loading DataOps insight/i]);
 }
 
 async function gotoEvidence(page: Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Evidence");
   await expectAnyText(page, [/AgentEvolver Impact/i, /Loading evolution evidence/i]);
 }

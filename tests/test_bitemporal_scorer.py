@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 import pytest
@@ -41,7 +42,7 @@ class BitemporalPreset:
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:
-        return np.array([[[0.2, 0.3, 0.4], [0.8, 0.7, 0.6]]], dtype=np.float64)
+        return cast(np.ndarray, np.array([[[0.2, 0.3, 0.4], [0.8, 0.7, 0.6]]], dtype=np.float64))
 
 
 def _build_scorer(
@@ -62,7 +63,7 @@ def _build_scorer(
         graph_store=graph_store,
         consolidation_enabled=consolidation_enabled,
     )
-    wrapper._conservation_pause = lambda: None
+    setattr(wrapper, "_conservation_pause", lambda: None)
     return wrapper, graph_store
 
 
@@ -211,6 +212,47 @@ def test_warm_start_checkpoint_has_null_decision_range(tmp_path: Path) -> None:
     scorer.graph_store.close()
 
 
+def test_warm_start_skips_when_learned_checkpoint_exists(tmp_path: Path) -> None:
+    scorer = CompoundingScorer.from_preset(
+        "s2p",
+        db_path=str(tmp_path / "s2p.sqlite"),
+        profile="test",
+        graph_store=InMemoryGraphStore(),
+    )
+    domain = scorer._domain
+    original_mu = scorer._scorer.centroids.copy()
+    scorer.graph_store.write_centroid_checkpoint(
+        checkpoint_id="learned-1",
+        domain=domain,
+        category="learned",
+        action="hold_for_review",
+        centroids=original_mu,
+        decisions_count=1,
+        verified_count=1,
+        iks=1.0,
+        shape=[int(value) for value in original_mu.shape],
+        factor_names_hash="test-factor-hash",
+    )
+    pattern = TransferPattern(
+        pattern_id="learned-guard-pattern",
+        source_copilot="dataops",
+        pattern_type="centroid_delta",
+        category="price_variance",
+        action="auto_approve",
+        win_rate=0.8,
+        centroid_delta=[0.5 for _ in range(8)],
+        confidence=0.9,
+    )
+
+    result = scorer.warm_start([pattern])
+
+    np.testing.assert_array_equal(scorer._scorer.centroids, original_mu)
+    assert result["skipped"] is True
+    checkpoints = scorer.graph_store.get_centroid_checkpoints(domain, include_v2=True)
+    assert [c for c in checkpoints if c.get("category") == "warm_start"] == []
+    scorer.graph_store.close()
+
+
 def test_centroid_history_accepts_checkpoint_time_filters() -> None:
     class CapturingStore(InMemoryGraphStore):
         def __init__(self) -> None:
@@ -234,6 +276,7 @@ def test_centroid_history_accepts_checkpoint_time_filters() -> None:
     assert store.kwargs == {
         "domain": "test",
         "limit": 50,
+        "include_v2": True,
         "checkpoint_time_start": "2026-05-19T00:00:00Z",
         "checkpoint_time_end": "2026-05-20T00:00:00Z",
     }
@@ -262,6 +305,7 @@ def test_centroid_history_accepts_decision_time_filters() -> None:
     assert store.kwargs == {
         "domain": "test",
         "limit": 50,
+        "include_v2": True,
         "decision_time_start": "2026-05-19T00:00:00Z",
         "decision_time_end": "2026-05-20T00:00:00Z",
         "category": "alpha",

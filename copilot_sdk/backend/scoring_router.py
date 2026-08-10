@@ -57,6 +57,63 @@ class LearnRequest(BaseModel):
     context: dict[str, Any] | None = None
 
 
+_MUTABLE_CONTEXT_TOKENS = {
+    "decision",
+    "decisions",
+    "outcome",
+    "outcomes",
+    "reward",
+    "correct",
+    "conservation",
+    "dk",
+    "l5",
+    "verified",
+}
+
+
+def _stable_context(value: Any) -> Any:
+    """Return a JSON-like context snapshot without mutable authority state."""
+    if isinstance(value, dict):
+        return {
+            str(key): _stable_context(item)
+            for key, item in value.items()
+            if not any(token in str(key).lower() for token in _MUTABLE_CONTEXT_TOKENS)
+        }
+    if isinstance(value, list):
+        return [_stable_context(item) for item in value]
+    if isinstance(value, tuple):
+        return [_stable_context(item) for item in value]
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    return str(value)
+
+
+def _context_identifier(domain: str, category: str, context: Any) -> str:
+    """Build a stable cache identity without using decision identifiers."""
+    import hashlib
+    import json
+
+    if isinstance(context, dict):
+        for name in (
+            "ticker",
+            "symbol",
+            "supplier_id",
+            "supplier",
+            "pipeline_id",
+            "source_id",
+            "entity_id",
+        ):
+            value = context.get(name)
+            if value not in (None, ""):
+                return str(value)
+    encoded = json.dumps(
+        {"domain": domain, "category": category, "context": context},
+        sort_keys=True,
+        default=str,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()[:24]
+
+
 def create_scoring_router(
     domain: str,
     db_path: str | None = None,
@@ -64,6 +121,9 @@ def create_scoring_router(
     learning_store: Any | None = None,
     dk_welford_tracker: DKWelfordTracker | None = None,
     profile: str = "production",
+    query_cache_invalidator: Callable[[], None] | None = None,
+    outcome_recorder: Callable[[dict[str, Any], bool], None] | None = None,
+    entity_context_cache: Any | None = None,
 ) -> APIRouter:
     """Create a domain-parametric scoring router."""
 
@@ -93,11 +153,40 @@ def create_scoring_router(
                 ) from exc
         return scorer_cache["scorer"]
 
+    async def load_stable_context(request: ScoreRequest) -> None:
+        """Read-through cache only the stable context portion of a score request.
+
+        Decisions, outcomes, conservation, DK, and L5 state are deliberately
+        excluded by ``_stable_context``.  The scorer still receives the
+        request's current values; cached values only fill stable context that
+        is absent from a repeated request.
+        """
+        if entity_context_cache is None:
+            return
+        context = request.context or {}
+        stable = _stable_context(context)
+        identifier = _context_identifier(domain, request.category, stable)
+        kind = {
+            "trading": "instrument",
+            "purchasing": "supplier",
+            "dataops": "pipeline",
+        }.get(domain, "entity")
+        cached = await entity_context_cache.get_context(
+            domain,
+            kind,
+            identifier,
+            lambda: stable,
+            source=f"{domain}.score_context",
+        )
+        if isinstance(cached, dict):
+            request.context = {**cached, **context}
+
     @router.post("/score", response_model=ScoreResponse)
-    def score(request: ScoreRequest) -> dict[str, Any]:
+    async def score(request: ScoreRequest) -> dict[str, Any]:
         with mutation_lock_scope(domain):
             scorer = get_scorer()
             try:
+                await load_stable_context(request)
                 result = _score_with_optional_metadata(scorer, request)
             except AssertionError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -107,6 +196,8 @@ def create_scoring_router(
             payload["engine"] = ENGINE
             payload = _score_response_payload(payload)
             apply_cache_invalidation_event(domain, "score")
+            if query_cache_invalidator is not None:
+                query_cache_invalidator()
             return payload
 
     @router.post("/learn", response_model=LearnResponse)
@@ -115,6 +206,10 @@ def create_scoring_router(
             scorer = get_scorer()
             try:
                 decision = _get_decision(scorer, request.decision_id, domain=domain)
+                if str(decision.get("status") or "").lower() in {"confirmed", "overridden"}:
+                    raise ValueError(
+                        f"decision already has a verified outcome: {request.decision_id}"
+                    )
                 is_correct = request.actual_action == decision.get("recommended_action")
                 reward = _signed_reward(
                     domain=domain,
@@ -136,6 +231,8 @@ def create_scoring_router(
                     request.decision_id,
                     request.actual_action,
                     request.outcome,
+                    consolidate=bool((request.context or {}).get("consolidate")),
+                    context=request.context,
                 )
             except KeyError as exc:
                 raise HTTPException(status_code=404, detail=f"Unknown decision: {request.decision_id}") from exc
@@ -143,6 +240,16 @@ def create_scoring_router(
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+            if outcome_recorder is not None:
+                outcome_recorder(
+                    {
+                        "decision_id": request.decision_id,
+                        "category": category,
+                        "variant_id": _decision_variant_id(decision),
+                    },
+                    bool(is_correct),
+                )
 
             payload = _json_safe(result)
             _shape_learn_payload(
@@ -189,6 +296,8 @@ def create_scoring_router(
                 persistence_lock=l5_dk_lock,
             )
             apply_cache_invalidation_event(domain, "learn")
+            if query_cache_invalidator is not None:
+                query_cache_invalidator()
             return payload
 
     @router.get("/fingerprint", response_model=FingerprintResponse)
@@ -260,6 +369,20 @@ def create_scoring_router(
         return measurement_payload()
 
     return router
+
+
+def _decision_variant_id(decision: dict[str, Any]) -> str | None:
+    for key in ("variant_id", "selected_variant_id", "evolution_variant_id"):
+        value = decision.get(key)
+        if value:
+            return str(value)
+    for container_key in ("metadata", "context", "factors"):
+        container = decision.get(container_key)
+        if isinstance(container, dict):
+            value = _decision_variant_id(container)
+            if value:
+                return value
+    return None
 
 
 def create_measurement_state_router(

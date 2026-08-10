@@ -335,12 +335,22 @@ export interface ConservationState {
   [key: string]: unknown;
 }
 
+export interface CheckpointQuality {
+  window_size: number | null;
+  verified_count: number | null;
+  correct_count: number | null;
+  rolling_accuracy: number | null;
+  window_end?: string | null;
+  policy_version: string | null;
+}
+
 export interface CentroidCheckpoint {
   decisionId?: string;
   category?: string;
   centroids?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   createdAt?: string;
+  quality: CheckpointQuality | null;
   [key: string]: unknown;
 }
 

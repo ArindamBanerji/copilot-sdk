@@ -36,6 +36,7 @@ export default function CounterfactualCard(_props: { analytics?: Analytics }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sampleRefusal, setSampleRefusal] = useState<string | null>(null);
+  const [signalAlignment, setSignalAlignment] = useState(20);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +68,24 @@ export default function CounterfactualCard(_props: { analytics?: Analytics }) {
     setSampleRefusal(payload.error || "F-22: sample-provenance value cannot enter scoring");
   }
 
+  async function rescore() {
+    setLoading(true);
+    setError(null);
+    try {
+      const payload = await postCounterfactual({
+        base_factors: BASE_FACTORS,
+        perturbed_factors: { ...BASE_FACTORS, signal_alignment: signalAlignment / 100 },
+        category: "trend_following",
+      });
+      setResult(payload);
+    } catch (loadError) {
+      console.debug("counterfactual re-score unavailable", loadError);
+      setError("Counterfactual unavailable.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <section className="copilot-card p-4" data-testid="counterfactual-card">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -83,14 +102,31 @@ export default function CounterfactualCard(_props: { analytics?: Analytics }) {
             <Stat label="Delta" value={delta(result?.delta)} testId="counterfactual-delta" />
           </div>
           <p className="text-sm trading-muted">
-            Changed: signal alignment (0.8 to 0.2)
+            Signal alignment: {signalAlignment}%
           </p>
+          <div className="rounded-md border px-3 py-3" style={{ borderColor: "var(--copilot-border)" }}>
+            <label htmlFor="counterfactual-signal-alignment" className="text-sm font-semibold">Perturb signal alignment</label>
+            <input
+              id="counterfactual-signal-alignment"
+              data-testid="counterfactual-factor-slider"
+              className="mt-2 w-full"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={signalAlignment}
+              onChange={(event) => setSignalAlignment(Number(event.target.value))}
+            />
+            <button type="button" className="trading-button mt-3" onClick={() => void rescore()}>
+              Re-score
+            </button>
+          </div>
           <div className="rounded-md border px-3 py-3" style={{ borderColor: "var(--copilot-border)" }}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">Try feeding sample data</div>
                 <div className="text-sm trading-muted">
-                  {sampleRefusal ? `Refused: ${sampleRefusal}` : "Sample values must be rejected before scoring."}
+                  {sampleRefusal ? `REFUSED: ${sampleRefusal}` : "Sample values must be rejected before scoring."}
                 </div>
               </div>
               <button type="button" className="trading-button" onClick={() => void trySample()}>

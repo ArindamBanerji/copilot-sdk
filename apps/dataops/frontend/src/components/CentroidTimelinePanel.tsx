@@ -72,6 +72,7 @@ export default function CentroidTimelinePanel() {
 
   const current = chart.rows[chart.rows.length - 1];
   const currentDrift = typeof current.drift === "number" ? current.drift : 0;
+  const currentQuality = data?.checkpoints?.[data.checkpoints.length - 1]?.quality;
 
   return (
     <section data-testid="centroid-timeline" className="copilot-card p-5">
@@ -91,6 +92,17 @@ export default function CentroidTimelinePanel() {
           <p className="text-xs font-semibold uppercase tracking-wide dataops-muted">Current drift</p>
           <p className="mt-1 text-lg font-semibold" style={{ color: "var(--copilot-primary)" }}>{currentDrift.toFixed(3)}</p>
         </div>
+        {currentQuality?.rolling_accuracy != null && (
+          <div data-testid="centroid-quality" className="rounded-md px-3 py-2" style={{ background: "rgba(16, 185, 129, 0.1)" }}>
+            <p className="text-xs font-semibold uppercase tracking-wide dataops-muted">Rolling accuracy</p>
+            <p className="mt-1 text-lg font-semibold" style={{ color: "#047857" }}>
+              {(currentQuality.rolling_accuracy * 100).toFixed(1)}%
+              <span className="ml-1 text-xs font-normal dataops-muted">
+                ({currentQuality.correct_count}/{currentQuality.verified_count})
+              </span>
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2 text-xs" data-testid="centroid-phases">

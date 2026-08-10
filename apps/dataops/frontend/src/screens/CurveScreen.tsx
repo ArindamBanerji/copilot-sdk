@@ -10,20 +10,18 @@ export default function CurveScreen() {
   const [trajectory, setTrajectory] = useState<TrajectoryResponse | null>(null);
   const [centroidHistory, setCentroidHistory] = useState<CentroidHistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [trajectoryLoaded, setTrajectoryLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setTrajectoryLoaded(false);
     setError(null);
-    Promise.all([
-      getTrajectory(),
-      getCentroidHistory().catch(() => null),
-    ])
-      .then(([result, centroidResult]) => {
+    getTrajectory()
+      .then((result) => {
         if (!cancelled) {
           setTrajectory(result);
-          setCentroidHistory(centroidResult);
         }
       })
       .catch((caught) => {
@@ -33,9 +31,17 @@ export default function CurveScreen() {
       })
       .finally(() => {
         if (!cancelled) {
+          setTrajectoryLoaded(true);
           setLoading(false);
         }
       });
+    getCentroidHistory()
+      .then((result) => {
+        if (!cancelled) {
+          setCentroidHistory(result);
+        }
+      })
+      .catch(() => null);
     return () => {
       cancelled = true;
     };
@@ -46,9 +52,10 @@ export default function CurveScreen() {
   }
 
   const points = trajectory?.points || [];
+  const dataReady = trajectoryLoaded && !loading;
 
   return (
-    <div data-screen-ready="true" className="grid gap-4">
+    <div data-screen-ready={String(dataReady)} className="grid gap-4">
       {error ? <Frame message={error} tone="error" /> : null}
       <TrajectoryChart
         points={points}

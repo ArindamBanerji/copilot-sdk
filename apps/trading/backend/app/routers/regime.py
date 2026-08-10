@@ -10,6 +10,7 @@ from app.routers.journal import _journal_records
 from app.services.regime import RegimeService
 from app.services.regime_recommender import RegimeRecommender
 from copilot_sdk.backend.conservation_router import _check_payload, _state_counts
+from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.state.cached_static import cached_static
 
 
@@ -60,7 +61,7 @@ def create_regime_router(
         trades = _journal_records(graph_store_factory, domain)
         current = service.get_current_regime()
         accuracy = service.get_regime_accuracy(trades)
-        conservation = _conservation_status(graph_store_factory)
+        conservation = _conservation_status(graph_store_factory, domain)
         payload = RegimeRecommender().recommend(
             str(current.get("regime") or "ranging"),
             accuracy,
@@ -128,7 +129,10 @@ def _regime_break_active(provider: Callable[[], bool] | None) -> bool:
         return False
 
 
-def _conservation_status(graph_store_factory: GraphStoreFactory | None) -> dict[str, Any] | None:
+def _conservation_status(
+    graph_store_factory: GraphStoreFactory | None,
+    domain: str = "trading",
+) -> dict[str, Any] | None:
     if graph_store_factory is None:
         return None
     store = None
@@ -142,6 +146,8 @@ def _conservation_status(graph_store_factory: GraphStoreFactory | None) -> dict[
             correct_count=counts["correct_count"],
             total_decisions=counts["total_decisions"],
             penalty_ratio=counts["penalty_ratio"],
+            categories_with_data=store.count_categories_with_n(domain, 1),
+            total_categories=len(TradingPreset().shape.category_names),
         )
         return {**counts, **_check_payload(check)}
     except Exception:

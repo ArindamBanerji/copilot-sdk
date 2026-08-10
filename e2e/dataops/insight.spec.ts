@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForScreenReady } from "../helpers/ui";
 
 function insightPanel(page: import("@playwright/test").Page, heading: string | RegExp) {
   return page.locator("section, article").filter({
@@ -10,6 +10,7 @@ function insightPanel(page: import("@playwright/test").Page, heading: string | R
 async function gotoInsight(page: import("@playwright/test").Page) {
   await page.goto("/");
   await clickTab(page, "Insight");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/Your profile/i, /Loading DataOps insight/i]);
 }
 
@@ -209,4 +210,69 @@ test("test_decision_explorer_has_filter_or_summary", async ({ page }) => {
   await gotoInsight(page);
   const panel = page.getByTestId("decision-explorer");
   await expect(panel.getByTestId("decision-summary").or(panel.locator("select").first())).toBeVisible();
+});
+
+test("source profile visible on insight", async ({ page }) => {
+  await gotoInsight(page);
+
+  await expect(page.getByTestId("source-profile-panel")).toBeVisible();
+});
+
+test("source profile shows sources", async ({ page }) => {
+  await gotoInsight(page);
+
+  await expect(page.getByTestId("source-profile")).toHaveCount(3);
+});
+
+test("source profile shows trust scores", async ({ page }) => {
+  await gotoInsight(page);
+
+  const panel = page.getByTestId("source-profile-panel");
+  await expect(panel.getByText(/\d+%/).first()).toBeVisible();
+  await expect(panel.getByText(/reliable|moderate|noisy/i).first()).toBeVisible();
+});
+
+test("source profile is expandable", async ({ page }) => {
+  await gotoInsight(page);
+
+  const panel = page.getByTestId("source-profile-panel");
+  const toggle = panel.getByTestId(/^source-profile-toggle-/).first();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(panel.getByRole("heading", { name: "Column trust" }).or(panel.getByText("Loading source details"))).toBeVisible({ timeout: 15_000 });
+});
+
+test("intelligence map shows gold lines", async ({ page }) => {
+  await gotoInsight(page);
+  await page.locator('[data-testid="intelligence-map"][data-screen-ready="true"]').waitFor({ timeout: 15_000 });
+
+  await expect(page.getByTestId("gold-line")).not.toHaveCount(0);
+});
+
+test("gold lines have dollar annotations", async ({ page }) => {
+  await gotoInsight(page);
+  await page.locator('[data-testid="intelligence-map"][data-screen-ready="true"]').waitFor({ timeout: 15_000 });
+
+  const label = page.getByTestId("gold-line-label");
+  await expect(label).not.toHaveCount(0);
+  await expect(label.first()).toContainText(/\$[\d,.]+K?\/yr/i);
+});
+
+test("gold lines are dashed", async ({ page }) => {
+  await gotoInsight(page);
+  await page.locator('[data-testid="intelligence-map"][data-screen-ready="true"]').waitFor({ timeout: 15_000 });
+
+  const dashedGoldLine = page.getByTestId("gold-line-stroke");
+  await expect(dashedGoldLine).not.toHaveCount(0);
+  expect(await dashedGoldLine.first().getAttribute("stroke-dasharray")).toBeTruthy();
+});
+
+test("intelligence map legend shows gold suggestions", async ({ page }) => {
+  await gotoInsight(page);
+  await page.locator('[data-testid="intelligence-map"][data-screen-ready="true"]').waitFor({ timeout: 15_000 });
+
+  const legend = page.getByTestId("intelligence-map-legend");
+  await expect(legend).toBeVisible();
+  await expect(legend).toContainText("Suggested (gold)");
 });

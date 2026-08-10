@@ -22,8 +22,7 @@ ENV_KEYS = (
     "TRADING_ACTIVE_AGE_TEST_MODE", "PURCHASING_ACTIVE_AGE_TEST_MODE",
     "DATAOPS_ACTIVE_AGE_TEST_MODE", "DATAOPS_ACTIVE_LIVE_AGE_TEST",
     "S2P_ACTIVE_AGE_TEST_MODE", "TRADING_SHADOW_AGE", "PURCHASING_SHADOW_AGE",
-    "DATAOPS_SHADOW_AGE", "S2P_SHADOW_AGE", "NEO4J_URI", "NEO4J_USER",
-    "NEO4J_PASSWORD", "NARRATIVE_PROVIDER",
+    "DATAOPS_SHADOW_AGE", "S2P_SHADOW_AGE", "NARRATIVE_PROVIDER",
 )
 
 
@@ -56,6 +55,8 @@ def test_load_from_toml_for_each_domain(monkeypatch: pytest.MonkeyPatch) -> None
         assert config.domain == domain
         assert config.backend == "age"
         assert config.graph == "soc_graph"
+        assert not hasattr(config, "graph_uri")
+        assert not hasattr(config, "graph_password")
 
 
 def test_env_override_wins_and_source_is_recorded(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

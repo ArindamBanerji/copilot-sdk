@@ -5,6 +5,12 @@ from copilot_sdk.evolution.autonomous_promotion import AutonomousPromotionGate, 
 from copilot_sdk.evolution.context_selector import ContextAwareSelector, SelectionContext
 from copilot_sdk.evolution.credit_attribution import StepCredit, StepCreditAssigner, StepRecord
 from copilot_sdk.evolution.gate import DefaultPromotionGate
+from copilot_sdk.evolution.conservation_contract import (
+    CachedAsyncProvider,
+    ConservationState,
+    ConservationStateProvider,
+    ScorerBackedProvider,
+)
 from copilot_sdk.evolution.ledger import InMemoryEvolutionLedger
 from copilot_sdk.evolution.prompt_evolver import PromptEvolverConfig, PromptVariantEvolver
 from copilot_sdk.evolution.protocol import (
@@ -30,6 +36,9 @@ __all__ = [
     "AutonomousPromotionGate",
     "ContextAwareSelector",
     "DefaultPromotionGate",
+    "CachedAsyncProvider",
+    "ConservationState",
+    "ConservationStateProvider",
     "DefaultShadowRunner",
     "EVOLUTION_EVENT_TYPES",
     "EvolutionEvent",
@@ -44,6 +53,7 @@ __all__ = [
     "PromptEvolverConfig",
     "PromptVariantEvolver",
     "SelectionContext",
+    "ScorerBackedProvider",
     "ShadowRunner",
     "VariantSelector",
     "StepCredit",

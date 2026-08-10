@@ -624,36 +624,6 @@ def _decision_factors(decision: dict[str, Any]) -> dict[str, float] | None:
     return factors if factors else None
 
 
-def _average_factors(decisions: list[dict[str, Any]]) -> dict[str, float]:
-    totals = {name: 0.0 for name in FACTOR_NAMES}
-    counts = {name: 0 for name in FACTOR_NAMES}
-    for decision in decisions:
-        factors = _decision_factors(decision)
-        if not factors:
-            continue
-        for name, value in factors.items():
-            totals[name] += value
-            counts[name] += 1
-    return {
-        name: round(totals[name] / counts[name], 3) if counts[name] else 0.5
-        for name in FACTOR_NAMES
-    }
-
-
-def _top_centroid_shifts(centroid: dict[str, float]) -> list[dict[str, Any]]:
-    shifts = [
-        {
-            "factor": name,
-            "from": 0.5,
-            "to": round(value, 3),
-            "delta": round(value - 0.5, 3),
-        }
-        for name, value in centroid.items()
-    ]
-    shifts.sort(key=lambda item: abs(item["delta"]), reverse=True)
-    return shifts[:3]
-
-
 def _load_transformations() -> dict[str, list[dict[str, Any]]]:
     payload = _load_json(DATA_DIR / "transformations.json", {"systems": {}})
     systems = payload.get("systems", {}) if isinstance(payload, dict) else {}
@@ -1030,40 +1000,6 @@ def accuracy_by_category() -> dict[str, Any]:
         "overall_accuracy": round(total_correct / total_decisions, 3) if total_decisions else None,
         "categories_declining": declining,
         "categories_improving": improving,
-        "total_decisions": total_decisions,
-    }
-
-
-@router.get("/centroid-history")
-def centroid_history(category: str | None = None) -> dict[str, Any]:
-    normalized_category = str(category).strip() if category else None
-    decisions = [
-        decision
-        for decision in _all_context_decisions()
-        if _decision_factors(decision)
-        and (not normalized_category or decision.get("category") == normalized_category)
-    ]
-    current_centroid = _average_factors(decisions)
-    total_decisions = len(decisions)
-    snapshots = [
-        {
-            "decision_index": 0,
-            "label": "Initial (generic)",
-            "centroids_sample": {name: 0.5 for name in FACTOR_NAMES},
-            "top_shifts": [],
-            "note": "Factory defaults before any decisions",
-        },
-        {
-            "decision_index": total_decisions,
-            "label": f"Current ({total_decisions} decisions)",
-            "centroids_sample": current_centroid,
-            "top_shifts": _top_centroid_shifts(current_centroid),
-            "note": "Decision-derived centroid estimate from DataOps history",
-        },
-    ]
-    return {
-        "snapshots": snapshots,
-        "factor_names": list(FACTOR_NAMES),
         "total_decisions": total_decisions,
     }
 

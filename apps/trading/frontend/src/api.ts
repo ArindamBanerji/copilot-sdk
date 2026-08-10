@@ -14,6 +14,11 @@ import type {
   PrescoreResponse,
   RegimeDetailResponse,
   RegimeVrpResponse,
+  SituationAbstentionResponse,
+  SituationConditionedStatsResponse,
+  SituationRegimeResponse,
+  SituationRejectionsResponse,
+  SituationSharpeResponse,
   RegimeStatusResponse,
   PromotionResponse,
   RegimeResponse,
@@ -348,6 +353,26 @@ export function fetchVrpAttribution(): Promise<VrpAttributionResponse> {
 
 export function fetchRegimeVrp(): Promise<RegimeVrpResponse> {
   return apiGet<RegimeVrpResponse>("/api/trading/analytics/regime-vrp");
+}
+
+export function fetchSituationRegime(): Promise<SituationRegimeResponse> {
+  return apiGet<SituationRegimeResponse>("/api/trading/situation/regime");
+}
+
+export function fetchSituationConditionedStats(): Promise<SituationConditionedStatsResponse> {
+  return apiGet<SituationConditionedStatsResponse>("/api/trading/situation/conditioned-stats");
+}
+
+export function fetchSituationSharpeAdjustment(): Promise<SituationSharpeResponse> {
+  return apiGet<SituationSharpeResponse>("/api/trading/situation/sharpe-adjustment");
+}
+
+export function fetchSituationAbstention(): Promise<SituationAbstentionResponse> {
+  return apiGet<SituationAbstentionResponse>("/api/trading/situation/abstention");
+}
+
+export function fetchSituationRejections(): Promise<SituationRejectionsResponse> {
+  return apiGet<SituationRejectionsResponse>("/api/trading/situation/regime-rejections");
 }
 
 export function fetchDispersionFollow(): Promise<DispersionFollowResponse> {
@@ -686,8 +711,32 @@ export interface RejectionSummaryResponse {
   provenance?: string;
 }
 
+export interface EvolutionEvent {
+  event_type?: string;
+  variant_id?: string;
+  reason?: string | null;
+  timestamp?: string | number | null;
+  metrics?: Record<string, unknown>;
+}
+
+export interface EvolutionSummaryResponse {
+  domain?: string;
+  evolution_enabled?: boolean;
+  variant_stats?: Array<{
+    variant_id?: string;
+    total?: number;
+    successes?: number;
+    success_rate?: number;
+  }>;
+  recent_events?: EvolutionEvent[];
+}
+
 export function fetchRejectionSummary(): Promise<RejectionSummaryResponse | null> {
   return safeApiGet<RejectionSummaryResponse>("/api/trading/evolution/rejection-summary");
+}
+
+export function fetchEvolutionSummary(): Promise<EvolutionSummaryResponse | null> {
+  return safeApiGet<EvolutionSummaryResponse>("/api/self/evolution/summary");
 }
 
 export interface CounterfactualResponse {

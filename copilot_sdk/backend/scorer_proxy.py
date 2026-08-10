@@ -131,6 +131,12 @@ class FreshScorerProxy:
             finally:
                 self._close_scorer_store(scorer)
 
+    def get_conservation_state(self) -> dict[str, Any]:
+        """Return the scorer-backed conservation state for evolution gates."""
+
+        with self._lock:
+            return dict(self._scorer()._evolution_conservation_state() or {"status": "UNKNOWN"})
+
     def get_category_phase(self, category: str):
         with self._lock:
             scorer = self._scorer()

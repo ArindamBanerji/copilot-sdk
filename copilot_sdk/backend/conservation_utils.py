@@ -60,22 +60,131 @@ class ConservationMetrics(TypedDict):
 
 def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, Any]:
     counts = state_counts(state, domain=domain)
+    categories_total = category_count(state, domain=domain)
+    store = state_store(state)
+    if isinstance(state, dict):
+        categories_total = int(
+            state.get("total_categories")
+            or state.get("categories_total")
+            or categories_total
+        )
+        categories_with_data = int(
+            state.get("categories_with_data")
+            or state.get("categories_with_data_count")
+            or 0
+        )
+    else:
+        categories_with_data = (
+            count_categories_with_data(store, domain) if store is not None else 0
+        )
     check = conservation_status(
         verified_count=counts["verified_count"],
         correct_count=counts["correct_count"],
         total_decisions=counts["total_decisions"],
         penalty_ratio=counts["penalty_ratio"],
+        categories_with_data=categories_with_data,
+        total_categories=categories_total,
+    )
+    verified_count = int(counts["verified_count"])
+    correct_count = int(counts["correct_count"])
+    alpha = (
+        float(categories_with_data / categories_total)
+        if categories_total > 0
+        else 0.0
+    )
+    q = float(correct_count / verified_count) if verified_count > 0 else 0.0
+    baseline_q = _baseline_q(state, q)
+    relative_trigger_ratio = 0.7
+    relative_trigger = relative_trigger_ratio * baseline_q
+    signal = _finite_or_none(check.signal)
+    theta_min = _finite_or_none(check.theta_min)
+    headroom = (
+        signal - theta_min
+        if signal is not None and theta_min is not None
+        else None
     )
     payload = {
         "engine": ENGINE_STATUS,
         "domain": domain,
         **counts,
         **check_payload(check),
+        # CC-4 panel fields.  Keep the conservation V explicit and use
+        # additive headroom (signal - floor); the what-if route retains the
+        # legacy ratio returned directly by check_payload().
+        "alpha": alpha,
+        "q": q,
+        "V": verified_count,
+        "headroom": headroom,
+        "baseline": baseline_q,
+        "baseline_q": baseline_q,
+        "relative_trigger": relative_trigger,
+        "relative_trigger_ratio": relative_trigger_ratio,
+        "categories_total": int(categories_total),
+        "total_categories": int(categories_total),
+        "categories_with_data": int(categories_with_data),
+        "reason": _conservation_reason(
+            status=str(check.status),
+            alpha=alpha,
+            q=q,
+            V=verified_count,
+            signal=signal,
+            theta_min=theta_min,
+            headroom=headroom,
+            baseline_q=baseline_q,
+            relative_trigger=relative_trigger,
+        ),
     }
     adjuster = getattr(state, "conservation_status_adjuster", None)
     if callable(adjuster):
         return adjuster(payload)
     return payload
+
+
+def _baseline_q(state: Any, current_q: float) -> float:
+    """Resolve a supplied quality baseline, falling back to current quality."""
+
+    candidates: list[Any] = []
+    if isinstance(state, dict):
+        candidates.extend([state.get("baseline_q"), state.get("baseline")])
+    else:
+        candidates.extend([
+            getattr(state, "baseline_q", None),
+            getattr(state, "baseline", None),
+        ])
+    for candidate in candidates:
+        try:
+            value = float(candidate)
+        except (TypeError, ValueError):
+            continue
+        if 0.0 <= value <= 1.0:
+            return value
+    return float(max(0.0, min(1.0, current_q)))
+
+
+def _conservation_reason(
+    *,
+    status: str,
+    alpha: float,
+    q: float,
+    V: int,
+    signal: float | None,
+    theta_min: float | None,
+    headroom: float | None,
+    baseline_q: float,
+    relative_trigger: float,
+) -> str:
+    """Return a plain-language, auditable explanation of the gate state."""
+
+    if V <= 0 or signal is None or theta_min is None:
+        return "No verified decisions are available; conservation remains RED until evidence accumulates."
+    relation = "exceeds" if signal > theta_min else "meets" if signal == theta_min else "is below"
+    quality_relation = "above" if q >= relative_trigger else "below"
+    return (
+        f"Signal {signal:.2f} {relation} theta_min {theta_min:.4f} with "
+        f"headroom {headroom or 0.0:.2f}. Accuracy {q * 100:.1f}% is "
+        f"{quality_relation} 70% of baseline ({baseline_q * 100:.1f}%). "
+        f"Status is {status} with α={alpha:.2f} across {V} verified decisions."
+    )
 
 
 def compute_conservation_metrics(
@@ -89,7 +198,7 @@ def compute_conservation_metrics(
         raise RuntimeError("conservation metrics require a domain")
 
     counts = state_counts(state, domain=effective_domain)
-    categories_total = category_count(state)
+    categories_total = category_count(state, domain=effective_domain)
     categories_with_data = count_categories_with_data(store, effective_domain)
 
     verified_count = int(counts["verified_count"])
@@ -105,6 +214,8 @@ def compute_conservation_metrics(
             correct_count=correct_count,
             total_decisions=total_decisions,
             penalty_ratio=float(counts["penalty_ratio"]),
+            categories_with_data=categories_with_data,
+            total_categories=categories_total,
         )
     else:
         alpha = categories_with_data / categories_total if categories_total > 0 else 0.0
@@ -213,8 +324,13 @@ def store_domain(store: Any, fallback: str) -> str:
     return str(getattr(store, "domain", fallback) or fallback)
 
 
-def category_count(state: Any) -> int:
+def category_count(state: Any, domain: str | None = None) -> int:
     preset = preset_for_state(state)
+    if preset is None and domain:
+        from copilot_sdk.scoring.presets import PRESET_REGISTRY
+
+        preset_cls = PRESET_REGISTRY.get(str(domain))
+        preset = preset_cls() if preset_cls is not None else None
     shape = getattr(preset, "shape", None)
     value = getattr(shape, "n_categories", None)
     if value is None:
@@ -243,7 +359,13 @@ def preset_for_state(state: Any) -> Any | None:
 
 
 def count_categories_with_data(store: _ConservationStore, domain: str) -> int:
-    value = int(store.count_categories_with_n(domain, 1))
+    counter = getattr(store, "count_categories_with_n", None)
+    if not callable(counter):
+        # Older GraphStore-compatible adapters expose decision counts but not
+        # category coverage. Treat coverage as zero rather than failing the
+        # status panel; the resulting state remains conservatively RED.
+        return 0
+    value = int(counter(domain, 1))
     if value < 0:
         raise ValueError("categories_with_data must be non-negative")
     return value

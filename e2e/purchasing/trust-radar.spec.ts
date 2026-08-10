@@ -1,13 +1,13 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, waitForAppShell } from "../helpers/ui";
+import { clickTab, waitForScreenReady } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
 
 async function gotoAnalysis(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Analysis");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
 }
 
 test("Trust weights API returns categories", async ({ request }) => {

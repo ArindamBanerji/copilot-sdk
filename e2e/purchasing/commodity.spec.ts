@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { waitForAppShell } from "../helpers/ui";
+import { waitForScreenReady } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
 
@@ -38,19 +38,19 @@ test("Commodity provenance is not sample when live", async ({ request }) => {
 
 test("Dashboard shows commodity price panel", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("commodity-price-panel")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Commodity index cards visible", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   const cards = page.getByTestId("commodity-index-card");
   await expect(cards.first()).toBeVisible({ timeout: 20_000 });
 });
 
 test("Commodity provenance badge visible", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("commodity-provenance")).toBeVisible({ timeout: 20_000 });
 });

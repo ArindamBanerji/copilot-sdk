@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Protocol
 
 from copilot_sdk.evolution.gate import DefaultPromotionGate
+from copilot_sdk.evolution.conservation_contract import ConservationStateProvider
 from copilot_sdk.evolution.protocol import EvolutionEvent, EvolutionLedger
 from copilot_sdk.evolution.variant_store import InMemoryVariantStore, VariantSpec, VariantStats
 
@@ -40,7 +41,7 @@ class PromptEvolverConfig:
     on_outcome_recorded: Callable[[dict[str, Any]], None] | None = None
     on_promoted: Callable[[dict[str, Any]], None] | None = None
     on_rejected: Callable[[dict[str, Any]], None] | None = None
-    conservation_state_provider: Callable[[], Any] | None = None
+    conservation_state_provider: Callable[[], Any] | ConservationStateProvider | None = None
 
     def __post_init__(self) -> None:
         self.categories = [str(category) for category in self.categories]
@@ -71,6 +72,12 @@ class PromptVariantEvolver:
     @property
     def store(self) -> InMemoryVariantStore:
         return self._store
+
+    @property
+    def config(self) -> PromptEvolverConfig:
+        """Return the live configuration used by this evolver."""
+
+        return self._config
 
     def register_variants(self, specs: list[VariantSpec]) -> None:
         for spec in specs:
@@ -294,7 +301,9 @@ class PromptVariantEvolver:
         if provider is None:
             return None
         try:
-            return provider()
+            if callable(provider):
+                return provider()
+            return provider.get_state()
         except Exception:
             return None
 

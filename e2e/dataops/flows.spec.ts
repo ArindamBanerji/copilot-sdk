@@ -1,6 +1,11 @@
 import { type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
+import { clickTab as navigateTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors, waitForScreenReady } from "../helpers/ui";
+
+async function clickTab(page: Page, name: string) {
+  await navigateTab(page, name);
+  await waitForScreenReady(page);
+}
 
 function dataopsPanel(page: Page, heading: string | RegExp) {
   return page.locator("section, article").filter({
@@ -30,6 +35,7 @@ function expectNoActionableConsoleErrors(errors: string[]) {
 
 async function openFirstAlert(page: Page): Promise<boolean> {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expect(
     page.getByText("Alert Root Causes").first(),
   ).toBeVisible({ timeout: 10_000 });
@@ -68,6 +74,7 @@ async function openFirstAlert(page: Page): Promise<boolean> {
 
 async function openKnownSystemAlert(page: Page): Promise<boolean> {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expect(page.getByText("Alert Root Causes").first()).toBeVisible({ timeout: 10_000 });
   const group = page.getByRole("button", { name: /SAP S\/4HANA|billing|warehouse/i });
   if ((await group.count()) > 0) {
@@ -121,6 +128,7 @@ test("full triage lifecycle: dashboard, alert, score, confirm, back", async ({ p
 test("score learn cycle preserves visible IKS and reward state", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForScreenReady(page);
   await expect(page.getByText("IKS").first()).toBeVisible();
   await expect(page.getByLabel(/^IKS \d+$/).first()).toBeVisible();
 
@@ -156,6 +164,7 @@ test("triage with Celonis context for billing, SAP, or warehouse", async ({ page
 
 test("insight exploration: fingerprint, incident, evidence, curve", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await clickTab(page, "Insight");
   await expect(page.getByRole("heading", { name: "Fingerprint" })).toBeVisible();
@@ -181,6 +190,7 @@ test("insight exploration: fingerprint, incident, evidence, curve", async ({ pag
 
 test("evidence deep exploration shows impact lifecycle audit trail and genealogy", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await clickTab(page, "Evidence");
   await expectAnyText(page, [/AgentEvolver Impact/i, /Auto-resolved/i, /Accuracy/i]);
@@ -199,6 +209,7 @@ test("evidence deep exploration shows impact lifecycle audit trail and genealogy
 test("tab navigation all 5 tabs and no blank screens", async ({ page }) => {
   const errors = collectConsoleErrors(page);
   await page.goto("/");
+  await waitForScreenReady(page);
 
   for (const tab of ["Dashboard", "Triage", "Insight", "Evidence", "Curve"]) {
     await clickTab(page, tab);
@@ -211,6 +222,7 @@ test("tab navigation all 5 tabs and no blank screens", async ({ page }) => {
 
 test("conservation track record visible and interactive", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   // Conservation section exists on dashboard
   await expect(page.getByText(/conservation|auto.resolve/i).first()).toBeVisible({ timeout: 5000 });
@@ -230,6 +242,7 @@ test("conservation track record visible and interactive", async ({ page }) => {
 
 test("dashboard alert groups expand and collapse", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expect(page.getByText("Alert Root Causes")).toBeVisible();
 
   const groupButtons = page.locator("section", { hasText: "Alert Root Causes" }).getByRole("button").filter({ hasText: /alerts|No alerts|root/i });
@@ -307,6 +320,7 @@ test("score alert then Curve shows IKS and centroid evolution", async ({ page })
 test("full round trip visits Dashboard, Triage, Insight, Evidence, and Curve", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/Pipeline Status/i, /Alert Root Causes/i]);
 
   const opened = await openFirstAlert(page);
@@ -330,6 +344,7 @@ test("full round trip visits Dashboard, Triage, Insight, Evidence, and Curve", a
 
 test("Insight bottleneck then Evidence schema impact round trip", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/Pipeline Status/i, /Alert Root Causes/i]);
 
   await clickTab(page, "Insight");
@@ -353,6 +368,7 @@ test("Insight bottleneck then Evidence schema impact round trip", async ({ page 
 
 test("Process-Tech Fusion: enterprise health to bottleneck to cross-graph round trip", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/Enterprise Health/i, /Process-Tech Fusion/i]);
   await expectAnyText(page, [/SAP S\/4HANA/i, /Celonis/i, /Graph/i]);
 
@@ -376,6 +392,7 @@ test("Process-Tech Fusion: enterprise health to bottleneck to cross-graph round 
 
 test("full Level 3 story shows bottleneck schema rules genealogy and curve", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/Pipeline Status/i, /AgentEvolver Impact/i, /Alert Root Causes/i]);
 
   await clickTab(page, "Insight");
@@ -408,6 +425,7 @@ test("full Level 3 story shows bottleneck schema rules genealogy and curve", asy
 
 test("self-computation round trip: all 4 tabs show SC features", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/SC-12/i, /Accuracy Alerts/i, /No verified decisions yet/i]);
 
   await clickTab(page, "Insight");
@@ -422,6 +440,7 @@ test("self-computation round trip: all 4 tabs show SC features", async ({ page }
 
 test("accuracy alert to decision explorer drill-down", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/Accuracy Alerts/i, /threshold/i, /verified decisions/i]);
 
   await clickTab(page, "Insight");
@@ -432,6 +451,7 @@ test("accuracy alert to decision explorer drill-down", async ({ page }) => {
 
 test("centroid evolution to audit trail narrative", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Curve");
   await expectAnyText(page, [/Centroid History/i, /centroid/i, /No centroid history yet/i]);
 
@@ -441,6 +461,7 @@ test("centroid evolution to audit trail narrative", async ({ page }) => {
 
 test("evidence screen shows all three SC components", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Evidence");
 
   await expectAnyText(page, [/SC-13/i, /Rule Genealogy/i]);
@@ -450,8 +471,10 @@ test("evidence screen shows all three SC components", async ({ page }) => {
 
 test("self-computation features survive page reload", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/Accuracy Alerts/i, /SC-12/i]);
   await page.reload();
+  await waitForScreenReady(page);
   await expectAnyText(page, [/Accuracy Alerts/i, /SC-12/i, /No verified decisions yet/i]);
 
   await clickTab(page, "Insight");
@@ -460,6 +483,7 @@ test("self-computation features survive page reload", async ({ page }) => {
 
 test("DataOps SC regression after Trading and Purchasing port", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/SC-12/i, /Accuracy Alerts/i, /threshold/i]);
 
   await clickTab(page, "Insight");
@@ -474,6 +498,7 @@ test("DataOps SC regression after Trading and Purchasing port", async ({ page })
 
 test("OE-5 what-if shows impact change on reorder interaction", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Insight");
 
   const whatIf = page.locator("section", { hasText: /What-if: Reorder/i }).first();

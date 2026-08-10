@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from copilot_sdk.di.valuation import DataValuationEngine
+from copilot_sdk.di.valuation import DataValuationEngine, DataValuationModel
+from copilot_sdk.di.catalog import CatalogEntry, ExternalDataCatalog
 
 
 @dataclass
@@ -35,9 +36,16 @@ EXTERNAL_CATALOG = [
 class AcquisitionAdvisor:
     """Recommend external data sources ranked by expected value."""
 
-    def __init__(self, catalog: list[ExternalDataSource] | None = None, valuation_engine: DataValuationEngine | None = None) -> None:
+    def __init__(
+        self,
+        catalog: list[ExternalDataSource] | None = None,
+        valuation_engine: DataValuationEngine | None = None,
+        external_catalog: ExternalDataCatalog | None = None,
+    ) -> None:
         self.catalog = list(EXTERNAL_CATALOG if catalog is None else catalog)
         self.valuation_engine = valuation_engine
+        self.valuation_model: DataValuationModel | None = None
+        self.external_catalog = external_catalog
 
     def recommend(
         self,
@@ -45,9 +53,25 @@ class AcquisitionAdvisor:
         current_sources: list[str] | None = None,
         decisions: list[dict[str, Any]] | None = None,
         decisions_per_year: int | None = None,
+        accuracy: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         connected = {source.casefold() for source in (current_sources or [])}
         engine = self.valuation_engine or DataValuationEngine(domain, decisions_per_year=decisions_per_year)
+        sources: list[tuple[ExternalDataSource, CatalogEntry | None]]
+        if self.external_catalog is not None:
+            entries = self.external_catalog.for_domain(domain)
+            sources = [(self._source_from_catalog(entry, domain), entry) for entry in entries]
+        else:
+            sources = [(source, None) for source in self.catalog]
+        self.valuation_model = (
+            DataValuationModel(
+                decisions,
+                accuracy or {},
+                [{"source_name": source.name, "improvement_pp": source.improvement_pp} for source, _ in sources],
+            )
+            if decisions is not None
+            else None
+        )
         annual_decisions = decisions_per_year
         provenance = "derived"
         provenance_note = None
@@ -59,7 +83,7 @@ class AcquisitionAdvisor:
                 provenance = "demo"
                 provenance_note = "Annual decision count assumed (12,000). Connect data for actual rate."
         recommendations = []
-        for source in self.catalog:
+        for source, catalog_entry in sources:
             if domain not in source.domains or source.name.casefold() in connected:
                 continue
             valuation = engine.valuate_single(
@@ -70,8 +94,18 @@ class AcquisitionAdvisor:
                 f"{source.name} improves {domain} prediction",
                 0.75,
             )
+            if self.valuation_model is not None:
+                computed_value = self.valuation_model.compute_value(source.name, source.improvement_pp)
+                valuation = type(valuation)(
+                    **{
+                        **valuation.to_dict(),
+                        "annual_value": computed_value,
+                        "decision_value": self.valuation_model._avg_decision_value(),
+                        "decisions_per_year": int(self.valuation_model._annualize(len(decisions or []))),
+                    }
+                )
             valued = engine.with_acquisition_cost(valuation, source.annual_cost)
-            recommendations.append(self._recommendation(source, valued))
+            recommendations.append(self._recommendation(source, valued, self.valuation_model, catalog_entry))
         recommendations = self.free_first(recommendations)
         narrative = self._recommendation_narrative(recommendations)
         response = {
@@ -114,19 +148,32 @@ class AcquisitionAdvisor:
             ),
         )
 
-    def _recommendation(self, source: ExternalDataSource, valuation: Any) -> dict[str, Any]:
+    def _recommendation(
+        self,
+        source: ExternalDataSource,
+        valuation: Any,
+        valuation_model: DataValuationModel | None = None,
+        catalog_entry: CatalogEntry | None = None,
+    ) -> dict[str, Any]:
         data = valuation.to_dict()
         roi = data["roi_multiple"]
         priority = _priority(roi)
         cost = float(source.annual_cost)
         value = float(data["annual_value"])
+        catalog_note = ""
+        if catalog_entry is not None:
+            catalog_note = (
+                f" Catalog: {catalog_entry.cost_tier}, {catalog_entry.integration}, "
+                f"+{_pp(source.improvement_pp)}pp."
+            )
         narrative = (
             f"Add {source.name} ({'free' if cost == 0 else '$' + _money(cost) + '/year'}): "
             f"+{_pp(source.improvement_pp)} predictive power. ${_money(value)}/year. ROI: "
-            f"{'infinite' if roi == 'infinite' else str(round(float(roi))) + 'x'}."
+            f"{'infinite' if roi == 'infinite' else str(round(float(roi))) + 'x'}." + catalog_note
         )
-        return {
+        result = {
             "source": source.name,
+            "source_name": source.name,
             "provider": source.provider,
             "signal": source.signal,
             "cost": cost,
@@ -136,6 +183,30 @@ class AcquisitionAdvisor:
             "payback_months": data["payback_months"],
             "narrative": narrative,
         }
+        if valuation_model is not None:
+            result.update(
+                {
+                    "computed_value_annual": value,
+                    "methodology": valuation_model.methodology(source.name, source.improvement_pp),
+                    "confidence": valuation_model.confidence(),
+                }
+            )
+        if catalog_entry is not None:
+            result["catalog_entry"] = catalog_entry.to_dict()
+        return result
+
+    @staticmethod
+    def _source_from_catalog(entry: CatalogEntry, domain: str) -> ExternalDataSource:
+        cost = {"free": 0.0, "freemium": 480.0, "paid": 12000.0}.get(entry.cost_tier, 0.0)
+        return ExternalDataSource(
+            name=entry.provider_name,
+            provider=entry.provider_id,
+            signal=entry.data_type,
+            annual_cost=cost,
+            domains=list(entry.domains),
+            description=entry.description,
+            improvement_pp=float(entry.expected_improvement_pp.get(domain, 0.0)),
+        )
 
     def _recommendation_narrative(self, recommendations: list[dict[str, Any]]) -> str:
         if not recommendations:

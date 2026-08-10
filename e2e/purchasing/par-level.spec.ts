@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { waitForAppShell } from "../helpers/ui";
+import { waitForScreenReady } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
 
@@ -62,13 +62,13 @@ test("Par provenance is not sample", async ({ request }) => {
 
 test("Dashboard shows par level panel", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("par-level-panel")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Par recommendation cards visible", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("par-level-panel")).toBeVisible({ timeout: 20_000 });
   const parCards = page.getByTestId("par-recommendation-card");
   const parCount = await parCards.count();
@@ -81,7 +81,7 @@ test("Par recommendation cards visible", async ({ page }) => {
 
 test("Par savings shows estimate label", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   const summary = page.getByTestId("par-level-summary");
   await expect(summary).toBeVisible({ timeout: 20_000 });
   await expect(summary).toContainText("estimate");

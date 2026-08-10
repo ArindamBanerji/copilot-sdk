@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { expectAnyText, waitForAppShell } from "../helpers/ui";
+import { expectAnyText, waitForAppShell, waitForScreenReady } from "../helpers/ui";
 
 function dashboardPanel(page: import("@playwright/test").Page, heading: string | RegExp) {
   return page.locator("section, article").filter({
@@ -9,6 +9,7 @@ function dashboardPanel(page: import("@playwright/test").Page, heading: string |
 
 async function gotoDashboard(page: import("@playwright/test").Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await waitForAppShell(page);
   await expect(page.getByText("Pipeline Status")).toBeVisible({ timeout: 15_000 });
 }
@@ -32,10 +33,67 @@ test("pipeline grid shows systems", async ({ page }) => {
 
 test("enterprise health bar shows connection status", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expectAnyText(page, [/Enterprise Health/i, /Process-Tech Fusion/i]);
   await expectAnyText(page, [/SAP S\/4HANA/i, /Celonis/i, /Graph/i]);
   await expectAnyText(page, [/Live/i, /cached/i, /unavailable/i, /connected/i]);
+});
+
+test("enterprise health on dashboard", async ({ page }) => {
+  await gotoDashboard(page);
+
+  await expect(page.getByTestId("enterprise-health")).toBeVisible();
+});
+
+test("enterprise shows 3 systems", async ({ page }) => {
+  await gotoDashboard(page);
+
+  const health = page.getByTestId("enterprise-health");
+  await expect(health.getByText("SAP S/4HANA")).toBeVisible();
+  await expect(health.getByText("Celonis")).toBeVisible();
+  await expect(health.getByText(/Graph/i)).toBeVisible();
+});
+
+test("enterprise shows impact", async ({ page }) => {
+  await gotoDashboard(page);
+
+  await expect(page.getByTestId("enterprise-impact")).toBeVisible();
+  await expectAnyText(page, [/invoice exceptions/i, /Match Invoice to GR/i]);
+});
+
+test("enterprise badges visible", async ({ page }) => {
+  await gotoDashboard(page);
+
+  await expectAnyText(page, [/SAP S\/4HANA.*Fixture|SAP S\/4HANA.*Live/i]);
+  await expectAnyText(page, [/Celonis.*Fixture|Celonis.*Live/i]);
+});
+
+test("products card visible on dashboard", async ({ page }) => {
+  await gotoDashboard(page);
+
+  await expect(page.getByTestId("products-card")).toBeVisible();
+});
+
+test("products card shows 3 products", async ({ page }) => {
+  await gotoDashboard(page);
+
+  const products = page.getByTestId("products-card");
+  await expect(products.getByTestId("di-product")).toHaveCount(3);
+});
+
+test("products card shows IKS scores", async ({ page }) => {
+  await gotoDashboard(page);
+
+  const products = page.getByTestId("products-card");
+  await expect(products.getByLabel(/IKS \d+/)).toHaveCount(3);
+});
+
+test("products card shows conservation badges", async ({ page }) => {
+  await gotoDashboard(page);
+
+  const products = page.getByTestId("products-card");
+  await expect(products.getByText("GREEN").first()).toBeVisible();
 });
 
 test("pipeline status shows system names with criticality", async ({ page }) => {
@@ -51,6 +109,7 @@ test("pipeline status shows system names with criticality", async ({ page }) => 
 
 test("AgentEvolver impact shows auto-resolved count and accuracy", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expect(page.getByText("AgentEvolver Impact")).toBeVisible();
   await expectAnyText(page, [/Auto-resolved/i, /Accuracy/i, /Hours saved/i]);
@@ -59,6 +118,7 @@ test("AgentEvolver impact shows auto-resolved count and accuracy", async ({ page
 
 test("alerts grouped by root cause", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expect(page.getByText("Alert Root Causes")).toBeVisible();
   await expectAnyText(page, [/\d+ root causes/i, /critical\/high alerts/i, /Root-system alerts only/i, /DQ-\d+/]);
@@ -66,6 +126,7 @@ test("alerts grouped by root cause", async ({ page }) => {
 
 test("alert groups show counts and multiple systems", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   const alerts = dashboardPanel(page, "Alert Root Causes");
   await expect(alerts).toBeVisible();
@@ -75,6 +136,7 @@ test("alert groups show counts and multiple systems", async ({ page }) => {
 
 test("IKS value visible and numeric", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expect(page.getByText("IKS").first()).toBeVisible();
   await expect(page.getByLabel(/^IKS \d+$/).first()).toBeVisible();
@@ -91,14 +153,16 @@ test("SAP systems visible", async ({ page }) => {
 
 test("conservation slider renders", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expect(page.getByRole("heading", { name: /^Conservation$/ })).toBeVisible();
-  await expect(page.getByRole("slider")).toBeVisible();
+  await expect(page.getByRole("slider", { name: /Threshold/i })).toBeVisible();
   await expectAnyText(page, [/Threshold/i, /theta min/i, /Penalty ratio/i]);
 });
 
 test("conservation shows live decision count", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expect(page.getByRole("heading", { name: /^Conservation$/ })).toBeVisible();
   await expectAnyText(page, [/decisions/i, /verified/i, /accuracy/i, /IKS/i]);
@@ -106,6 +170,7 @@ test("conservation shows live decision count", async ({ page }) => {
 
 test("conservation timeline shows events", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expect(page.getByText("Conservation Timeline")).toBeVisible();
   await expectAnyText(page, [/approved/i, /denied/i, /No conservation events available/i, /Signal/i]);
@@ -113,6 +178,7 @@ test("conservation timeline shows events", async ({ page }) => {
 
 test("conservation projection shows automation targets", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expect(page.getByText("Automation Projection")).toBeVisible();
   await expectAnyText(page, [/55%/, /75%/, /90%/, /target/i]);
@@ -121,6 +187,7 @@ test("conservation projection shows automation targets", async ({ page }) => {
 
 test("projection shows three target levels", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expect(page.getByText("Automation Projection")).toBeVisible();
   await expect(page.getByText(/55%/).first()).toBeVisible();
@@ -130,6 +197,7 @@ test("projection shows three target levels", async ({ page }) => {
 
 test("conservation projection shows timeline or accuracy gap", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expect(page.getByText("Automation Projection")).toBeVisible();
   await expectAnyText(page, [
@@ -144,6 +212,7 @@ test("conservation projection shows timeline or accuracy gap", async ({ page }) 
 
 test("accuracy by category shows alert levels", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expectAnyText(page, [/Accuracy Alerts/i, /accuracy.*alert/i, /No verified decisions yet/i]);
   await expectAnyText(page, [/threshold/i, /verified decisions/i, /category/i, /SC-12/i]);
@@ -151,6 +220,7 @@ test("accuracy by category shows alert levels", async ({ page }) => {
 
 test("SC-12 accuracy panel shows per-category bars", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   const panel = page.locator("section", { hasText: /Accuracy Alerts|No verified decisions yet/i }).first();
   await expect(panel).toBeVisible();
@@ -159,6 +229,7 @@ test("SC-12 accuracy panel shows per-category bars", async ({ page }) => {
 
 test("SC-12 accuracy panel shows alert threshold or percent", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
 
   await expectAnyText(page, [/SC-12/i, /Accuracy Alerts/i, /No verified decisions yet/i]);
   await expectAnyText(page, [/threshold/i, /alert/i, /below/i, /%/, /verified decisions/i]);

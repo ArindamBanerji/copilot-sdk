@@ -56,17 +56,17 @@ class SimilarCasesBase(abc.ABC):
     def get_theta(self, category: str) -> float:
         """Return per-category cosine similarity threshold for retrieval."""
 
-    # ── Neo4j query ──────────────────────────────────────────────────────────
+    # ── AGE query ──────────────────────────────────────────────────────────
 
     async def _fetch_verified_decisions(
         self,
         category: str,
-        neo4j_client: Any,
+        graph_client: Any,
         limit: int = SIMILAR_CASES_MAX_SCAN,
         domain: str | None = None,
     ) -> List[Dict[str, Any]]:
         """
-        Fetch up to *limit* verified Decision nodes for *category* from Neo4j,
+        Fetch up to *limit* verified Decision nodes for *category* from AGE,
         most-recent first.
 
         Returns a list of dicts with keys:
@@ -77,7 +77,7 @@ class SimilarCasesBase(abc.ABC):
             params = {"category": category, "limit": limit}
             if domain is not None:
                 params["domain"] = domain
-            rows = await neo4j_client.run_query(
+            rows = await graph_client.run_query(
                 """
                 MATCH (d:Decision)
                 WHERE d.category = $category"""
@@ -97,7 +97,7 @@ class SimilarCasesBase(abc.ABC):
                 params,
             )
         except Exception as exc:
-            log.warning("[SIMILAR-CASES] Neo4j query failed for category=%r: %s", category, exc)
+            log.warning("[SIMILAR-CASES] AGE query failed for category=%r: %s", category, exc)
             return []
 
         results = []
@@ -127,7 +127,7 @@ class SimilarCasesBase(abc.ABC):
         self,
         factor_vector: List[float],
         category: str,
-        neo4j_client: Any,
+        graph_client: Any,
         k: int = SIMILAR_CASES_K,
         domain: str | None = None,
     ) -> List[Dict[str, Any]]:
@@ -139,7 +139,7 @@ class SimilarCasesBase(abc.ABC):
 
         Each returned dict adds a 'similarity' key (float in [0,1]).
         """
-        decisions = await self._fetch_verified_decisions(category, neo4j_client, domain=domain)
+        decisions = await self._fetch_verified_decisions(category, graph_client, domain=domain)
 
         if len(decisions) < SIMILAR_CASES_MIN_PRIOR:
             log.debug(

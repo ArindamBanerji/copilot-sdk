@@ -1,14 +1,14 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { collectConsoleErrors, clickTab, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
+import { collectConsoleErrors, clickTab, expectNoConsoleErrors, waitForScreenReady } from "../helpers/ui";
 
 const BACKEND = process.env.PURCHASING_BACKEND || "http://127.0.0.1:8020";
 const states = ["INSTRUMENT_VALIDATED", "ACCUMULATING", "MEASURED"];
 
 async function gotoPanel(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Performance");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("cohort-status-panel")).toBeVisible({ timeout: 20_000 });
 }
 

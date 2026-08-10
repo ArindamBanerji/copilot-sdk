@@ -172,24 +172,36 @@ def select_evolution_summary(raw: dict[str, Any]) -> dict[str, Any]:
     parameter_entries = [{"kind": "parameter", **entry} for entry in list(raw.get("parameter_log") or [])]
     variant_entries = [{"kind": "variant", **entry} for entry in variants]
     active_variant = next((entry for entry in variants if str(entry.get("status", "")).lower() == "promoted"), None)
+    conservation_state = _conservation_label(raw)
     return {
         "variants": variants,
         "log": json_safe(variant_entries + parameter_entries),
         "active": {
             "variant": active_variant,
             "parameter_adjustments": raw.get("active_adjustments"),
-            "conservation_state": "GREEN",
+            "conservation_state": conservation_state,
             "bounds": raw.get("bounds"),
         },
         "proposals": {
             "proposals": [],
             "provenance": "demo",
             "note": "Based on synthetic evidence. Real proposals require accumulated verified decisions.",
-            "conservation_state": "GREEN",
+            "conservation_state": conservation_state,
         },
         "rejection_summary": raw.get("rejection_summary"),
         "promoted": [],
     }
+
+
+def _conservation_label(raw: dict[str, Any]) -> str:
+    for key in ("status", "conservation_status", "state"):
+        value = raw.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip().upper()
+    conservation = raw.get("conservation")
+    if isinstance(conservation, dict):
+        return _conservation_label(conservation)
+    return "UNKNOWN"
 
 
 def compute_promotion_dashboard(graph_store_factory: GraphStoreFactory) -> list[dict[str, Any]]:

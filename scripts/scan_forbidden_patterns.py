@@ -48,7 +48,7 @@ class PatternRule:
 
 
 PATTERN_RULES = (
-    PatternRule("neo4j_driver", "direct GraphDatabase.driver", re.compile(r"\bGraphDatabase\.driver\s*\(")),
+    PatternRule("graph_driver", "direct GraphDatabase.driver", re.compile(r"\bGraphDatabase\.driver\s*\(")),
     PatternRule("psycopg_connect", "direct psycopg.connect", re.compile(r"\bpsycopg\.connect\s*\(")),
     PatternRule("sqlite_graph_store", "SQLiteGraphStore construction", re.compile(r"\bSQLiteGraphStore\s*\(")),
     PatternRule("in_memory_graph_store", "InMemoryGraphStore construction", re.compile(r"\bInMemoryGraphStore\s*\(")),

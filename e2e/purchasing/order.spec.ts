@@ -1,11 +1,12 @@
 import { type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForScreenReady } from "../helpers/ui";
 
 const BACKEND = "http://127.0.0.1:8020";
 
 async function gotoOrder(page: Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   await expect(page.getByRole("heading", { name: "Score the next purchase" })).toBeVisible();
 }

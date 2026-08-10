@@ -126,6 +126,17 @@ Rules:
 - For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
 - After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
 
+## Mypy Gate (Standing Rule #86)
+
+**Every code change must pass mypy on all changed files before completion.**
+
+This is mandatory. mypy errors in files you changed = NOT DONE.
+
+After completing all code changes and before declaring success, run:
+`python -m mypy <every changed Python file>`
+
+Run mypy before pytest. Do not weaken annotations or suppress errors with `# type: ignore`. A failed mypy gate means the task is incomplete.
+
 ## Rule #63 — Test Double Completeness
 
 No mock/monkeypatch in test code unless the external dependency is

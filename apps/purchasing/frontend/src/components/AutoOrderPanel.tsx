@@ -89,14 +89,14 @@ export default function AutoOrderPanel() {
 
   if (loading) {
     return (
-      <section className="purchase-card" data-testid="auto-order-status">
+      <section className="purchase-card" data-testid="auto-order-status" data-panel-ready="false">
         Loading auto-ordering controls...
       </section>
     );
   }
 
   return (
-    <section className="purchase-card auto-order-panel">
+    <section className="purchase-card auto-order-panel" data-panel-ready="true">
       <div className="purchase-card-header" style={{ alignItems: "flex-start", gap: 16 }}>
         <div>
           <p className="purchase-kicker">Auto-order</p>

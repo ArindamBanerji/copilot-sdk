@@ -256,6 +256,12 @@ class TradingActiveAGEGraphStore:
             raise ValueError("Trading active AGE store only accepts domain 'trading'")
         preset = TradingPreset()
         decision_metadata = dict(metadata or {})
+        if "regime_tag" not in decision_metadata:
+            regime_metadata = decision_metadata.get("regime_metadata")
+            if isinstance(regime_metadata, dict):
+                regime_tag = regime_metadata.get("regime")
+                if regime_tag in {"trending", "ranging", "volatile"}:
+                    decision_metadata["regime_tag"] = regime_tag
         decision_id = str(decision_metadata.get("decision_id") or "").strip()
         if not decision_id:
             raise ValueError("Trading active AGE write_decision requires metadata.decision_id")

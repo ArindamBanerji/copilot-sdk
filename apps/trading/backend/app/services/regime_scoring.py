@@ -59,6 +59,9 @@ class TradingRegimeScorerProxy:
             )
             invalidate_cache_event("trading", "regime_break")
         tagged_metadata = dict(metadata or {})
+        # Keep the canonical headline regime flat for graph consumers while
+        # retaining the richer regime_metadata payload for analytics.
+        tagged_metadata["regime_tag"] = str(regime_context["regime"])
         tagged_metadata["regime_metadata"] = {
             **regime_context,
             "tagged_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),

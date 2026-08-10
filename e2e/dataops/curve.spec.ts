@@ -1,10 +1,11 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText, expectTrajectoryOrEmpty } from "../helpers/ui";
+import { clickTab, expectAnyText, expectTrajectoryOrEmpty, waitForScreenReady } from "../helpers/ui";
 
 async function gotoCurve(page: import("@playwright/test").Page) {
   await page.goto("/");
   await clickTab(page, "Curve");
   await expectAnyText(page, [/Trajectory/i, /Loading DataOps learning curve/i]);
+  await waitForScreenReady(page);
 }
 
 test("trajectory chart renders", async ({ page }) => {

@@ -1,11 +1,11 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForScreenReady } from "../helpers/ui";
 
 async function gotoInventory(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Inventory");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
 }
 
 test("delivery today endpoint returns schedule", async ({ page }) => {

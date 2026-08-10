@@ -3,28 +3,85 @@
 from __future__ import annotations
 
 import math
+import hashlib
+import json
+from collections.abc import Callable
 from typing import Any
 
-from fastapi import APIRouter, Query, Request
+import numpy as np
+from fastapi import APIRouter, HTTPException, Query, Request
+from pydantic import BaseModel
 
 from copilot_sdk.backend.models import (
     AccuracyByCategoryResponse,
     CentroidHistoryResponse,
+    CounterfactualResponse,
+    DiagnosticsResponse,
     DecisionFlowResponse,
+    EvolutionSummaryResponse,
     SelfDecisionsResponse,
 )
+from copilot_sdk.backend.evolution_router import build_evolution_summary
 from copilot_sdk.graph import GraphStore
+from copilot_sdk.scoring.measurement_state import compute_measurement_state
+from copilot_sdk.scoring.trust_traps import TrustTrapDetector, trap_asdict
 
 
-def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
+StoreProvider = GraphStore | Callable[[], GraphStore]
+ScorerProvider = Any | Callable[[], Any]
+
+
+class ReplayScoreRequest(BaseModel):
+    checkpoint_id: str
+    category: str | None = None
+    factors: dict[str, float] | None = None
+    factor_vector: list[float] | None = None
+
+
+def create_self_computation_router(
+    graph_store: StoreProvider,
+    *,
+    prefix: str = "/api/self",
+    domain: str | None = None,
+    scorer_provider: ScorerProvider | None = None,
+    evolver_provider: Callable[[], Any] | None = None,
+) -> APIRouter:
     """Create GraphStore-backed self-computation endpoints for one app instance."""
-    router = APIRouter(prefix="/api/self", tags=["self-computation"])
+    router = APIRouter(prefix=prefix, tags=["self-computation"])
 
     def _gs() -> GraphStore:
-        return graph_store
+        return graph_store() if callable(graph_store) else graph_store
 
     def _domain() -> str:
-        return str(getattr(graph_store, "domain", "") or "")
+        return str(domain or getattr(_gs(), "domain", "") or "")
+
+    def _scorer() -> Any:
+        if scorer_provider is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Counterfactual scoring is unavailable for this router",
+            )
+        scorer = scorer_provider() if callable(scorer_provider) else scorer_provider
+        unwrap = getattr(scorer, "_scorer", None)
+        if not hasattr(scorer, "score_with_centroids") and callable(unwrap):
+            scorer = unwrap()
+        if not hasattr(scorer, "score_read_only") or not hasattr(
+            scorer, "score_with_centroids"
+        ):
+            raise HTTPException(
+                status_code=503,
+                detail="Counterfactual scoring is unavailable for this scorer",
+            )
+        return scorer
+
+    def _trap_scorer() -> Any | None:
+        if scorer_provider is None:
+            return None
+        scorer = scorer_provider() if callable(scorer_provider) else scorer_provider
+        unwrap = getattr(scorer, "_scorer", None)
+        if not hasattr(scorer, "rollback_to_checkpoint") and callable(unwrap):
+            scorer = unwrap()
+        return scorer
 
     @router.get("/centroid-history", response_model=CentroidHistoryResponse)
     def centroid_history(
@@ -46,9 +103,280 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
         active_filters: dict[str, Any] = {
             key: value for key, value in filters.items() if value is not None
         }
-        checkpoints = _gs().get_centroid_checkpoints(_domain(), limit=limit, **active_filters)
-        normalized = [_json_safe(checkpoint) for checkpoint in checkpoints]
+        checkpoints = _gs().get_centroid_checkpoints(
+            _domain(), limit=limit, include_v2=True, **active_filters
+        )
+        normalized = []
+        for checkpoint in checkpoints:
+            checkpoint_dict = _json_safe(checkpoint)
+            checkpoint_metadata = checkpoint_dict.get("metadata")
+            if isinstance(checkpoint_metadata, dict):
+                checkpoint_dict.setdefault(
+                    "centroid_distance_to_canonical",
+                    checkpoint_metadata.get("centroid_distance_to_canonical"),
+                )
+                checkpoint_dict.setdefault("regime_tag", checkpoint_metadata.get("regime_tag"))
+            if checkpoint_dict.get("quality_window_size") is None:
+                checkpoint_dict["quality"] = None
+            else:
+                checkpoint_dict["quality"] = {
+                    "window_size": checkpoint_dict.get("quality_window_size"),
+                    "verified_count": checkpoint_dict.get("quality_verified_count"),
+                    "correct_count": checkpoint_dict.get("quality_correct_count"),
+                    "rolling_accuracy": checkpoint_dict.get("rolling_accuracy"),
+                    "window_end": checkpoint_dict.get("quality_window_end"),
+                    "policy_version": checkpoint_dict.get("quality_policy_version"),
+                }
+            normalized.append(checkpoint_dict)
         return {"checkpoints": normalized, "total": len(normalized)}
+
+    @router.post("/regime-reinit")
+    def regime_reinit(
+        regime_tag: str,
+        strategy: str = "A",
+        blend_weight: float = 0.5,
+        v_discount: float = 0.5,
+    ) -> dict[str, Any]:
+        scorer = _scorer()
+        reinitializer = getattr(scorer, "reinitialize_from_regime", None)
+        if not callable(reinitializer):
+            raise HTTPException(status_code=501, detail="Regime re-initialization is unavailable")
+        return reinitializer(
+            regime_tag=regime_tag,
+            strategy=strategy,
+            blend_weight=blend_weight,
+            v_discount=v_discount,
+        )
+
+    @router.get("/evolution/summary", response_model=EvolutionSummaryResponse)
+    def evolution_summary(request: Request) -> dict[str, Any]:
+        provider = evolver_provider
+        if provider is None:
+            provider = lambda: getattr(request.app.state, "evolver", None)
+        evolver = provider()
+        return build_evolution_summary(evolver, _domain())
+
+    @router.get("/diagnostics", response_model=DiagnosticsResponse)
+    def diagnostics() -> dict[str, Any]:
+        """Return canonical convergence, epsilon-firm, and IKS diagnostics."""
+        scorer = _scorer()
+        distance_method = getattr(scorer, "compute_centroid_distance_to_canonical", None)
+        epsilon_method = getattr(scorer, "compute_epsilon_firm", None)
+        distance = distance_method() if callable(distance_method) else None
+        epsilon = epsilon_method() if callable(epsilon_method) else None
+        iks_method = getattr(scorer, "_compute_checkpoint_iks", None)
+        if not callable(iks_method):
+            iks_method = getattr(scorer, "compute_iks", None)
+        iks = iks_method() if callable(iks_method) else None
+        measurement_state = compute_measurement_state(scorer).to_dict()
+        return {
+            "centroid_distance_to_canonical": distance,
+            "epsilon_firm": epsilon,
+            "iks": iks,
+            "measurement_state": measurement_state,
+            "domain": _domain(),
+        }
+
+    @router.get(
+        "/centroid-history/{checkpoint_id}/counterfactual",
+        response_model=CounterfactualResponse,
+    )
+    def counterfactual(
+        checkpoint_id: str,
+        window: int = Query(20, ge=1, le=400),
+    ) -> dict[str, Any]:
+        store = _gs()
+        current_domain = _domain()
+        checkpoints = store.get_centroid_checkpoints(
+            current_domain,
+            limit=None,
+            include_v2=True,
+        )
+        checkpoint = next(
+            (
+                item
+                for item in checkpoints
+                if item.get("checkpoint_id") is not None
+                and str(item.get("checkpoint_id")) == checkpoint_id
+            ),
+            None,
+        )
+        if checkpoint is None:
+            raise HTTPException(status_code=404, detail="Checkpoint not found")
+
+        raw_centroids = checkpoint.get("centroids")
+        if raw_centroids is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Checkpoint does not contain a centroid tensor",
+            )
+        try:
+            checkpoint_centroids = np.asarray(raw_centroids, dtype=np.float64)
+        except (TypeError, ValueError):
+            raise HTTPException(
+                status_code=422,
+                detail="Checkpoint does not contain a centroid tensor",
+            ) from None
+        if checkpoint_centroids.size == 0 or checkpoint_centroids.ndim != 3:
+            raise HTTPException(
+                status_code=422,
+                detail="Checkpoint does not contain a centroid tensor",
+            )
+
+        scorer = _scorer()
+        shape = scorer._preset.shape
+        expected_shape = (
+            int(shape.n_categories),
+            int(shape.n_actions),
+            int(shape.n_factors),
+        )
+        if tuple(checkpoint_centroids.shape) != expected_shape:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Checkpoint centroid shape does not match the current "
+                    f"preset: {tuple(checkpoint_centroids.shape)} != {expected_shape}"
+                ),
+            )
+
+        factor_hash = str(checkpoint.get("factor_names_hash") or "")
+        current_hash = _factor_names_hash(list(shape.factor_names))
+        if factor_hash != current_hash:
+            raise HTTPException(
+                status_code=409,
+                detail="Checkpoint factor_names_hash does not match the current preset",
+            )
+
+        verified = store.get_verified_decisions(current_domain)[-window:]
+        details: list[dict[str, Any]] = []
+        for decision in verified:
+            factors = decision.get("factors")
+            category = str(decision.get("category") or "")
+            if not isinstance(factors, dict) or not category:
+                continue
+            factor_values = {str(key): float(value) for key, value in factors.items()}
+            baseline = scorer.score_read_only(factor_values, category)
+            ablated = scorer.score_with_centroids(
+                checkpoint_centroids.copy(), factor_values, category
+            )
+            details.append(
+                {
+                    "decision_id": str(decision.get("decision_id") or ""),
+                    "category": category,
+                    "baseline_action": baseline.action,
+                    "counterfactual_action": ablated.action,
+                    "changed": baseline.action != ablated.action,
+                }
+            )
+
+        changed = sum(1 for detail in details if detail["changed"])
+        rescored = len(details)
+        checkpoint_time = _safe_float(
+            checkpoint.get("created_at")
+            if checkpoint.get("created_at") is not None
+            else checkpoint.get("checkpoint_time")
+        )
+        return {
+            "analysis_type": "centroid_ablation",
+            "description": (
+                "Decisions rescored with this checkpoint's centroids and the "
+                "current kernel + temperature; isolates the centroid contribution."
+            ),
+            "checkpoint_id": checkpoint_id,
+            "checkpoint_time": checkpoint_time,
+            "baseline": "latest_centroids",
+            "held_fixed": ["dk_weights", "temperature"],
+            "window_requested": window,
+            "decisions_rescored": rescored,
+            "would_change": changed,
+            "change_rate": changed / rescored if rescored else None,
+            "details": details,
+        }
+
+    @router.get("/centroid-history/{checkpoint_id}/lineage")
+    def checkpoint_lineage(checkpoint_id: str) -> dict[str, Any]:
+        result = _gs().get_checkpoint_lineage(_domain(), checkpoint_id)
+        if result is None:
+            raise HTTPException(status_code=404, detail="No lineage found for this checkpoint")
+        return {
+            "checkpoint_id": checkpoint_id,
+            "triggered_by": _json_safe(result),
+            "edge_type": "SNAPSHOT_AFTER",
+        }
+
+    @router.get("/centroid-history/{checkpoint_id}/replay")
+    def checkpoint_replay(checkpoint_id: str) -> dict[str, Any]:
+        """Return the complete model state captured at a checkpoint."""
+        checkpoint = _find_checkpoint(_gs(), _domain(), checkpoint_id)
+        if checkpoint is None:
+            raise HTTPException(status_code=404, detail="Checkpoint not found")
+        metadata = checkpoint.get("metadata")
+        metadata = metadata if isinstance(metadata, dict) else {}
+        return {
+            "checkpoint_id": checkpoint_id,
+            "centroids": _json_safe(checkpoint.get("centroids")),
+            "dk_weights": _json_safe(metadata.get("dk_weights")),
+            "temperature": _safe_float(metadata.get("temperature")),
+            "quality": _checkpoint_quality_payload(checkpoint),
+            "iks": _safe_float(checkpoint.get("iks")),
+            "created_at": _safe_float(
+                checkpoint.get("created_at_epoch", checkpoint.get("created_at"))
+            ),
+        }
+
+    @router.post("/replay-score")
+    def replay_score(payload: ReplayScoreRequest) -> dict[str, Any]:
+        """Score a factor vector using the model state at a checkpoint."""
+        checkpoint = _find_checkpoint(_gs(), _domain(), payload.checkpoint_id)
+        if checkpoint is None:
+            raise HTTPException(status_code=404, detail="Checkpoint not found")
+        scorer = _scorer()
+        metadata = checkpoint.get("metadata")
+        metadata = metadata if isinstance(metadata, dict) else {}
+        category = payload.category or str(checkpoint.get("category") or "")
+        if not category:
+            raise HTTPException(status_code=422, detail="category is required for replay")
+        factors = payload.factors
+        if factors is None and payload.factor_vector is not None:
+            names = list(scorer._preset.shape.factor_names)
+            if len(payload.factor_vector) != len(names):
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"factor_vector must contain {len(names)} values",
+                )
+            factors = {
+                name: float(value) for name, value in zip(names, payload.factor_vector, strict=True)
+            }
+        if factors is None:
+            raise HTTPException(status_code=422, detail="factors or factor_vector is required")
+        try:
+            result = scorer.score_with_model_state(
+                np.asarray(checkpoint.get("centroids"), dtype=np.float64),
+                {str(key): float(value) for key, value in factors.items()},
+                category,
+                dk_weights=metadata.get("dk_weights"),
+                temperature=_safe_float(metadata.get("temperature")),
+            )
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return {
+            "checkpoint_id": payload.checkpoint_id,
+            "action": result.action,
+            "action_index": result.action_index,
+            "confidence": result.confidence,
+            "probabilities": result.probabilities,
+            "category": result.category,
+            "factors": result.factors,
+        }
+
+    @router.get("/decisions/{decision_id}/checkpoints")
+    def decision_checkpoints(decision_id: str) -> dict[str, Any]:
+        results = _gs().get_decision_checkpoints(_domain(), decision_id)
+        return {
+            "decision_id": decision_id,
+            "checkpoints": _json_safe(results),
+            "edge_type": "SNAPSHOT_AFTER",
+        }
 
     @router.get("/accuracy-by-category", response_model=AccuracyByCategoryResponse)
     def accuracy_by_category(
@@ -84,6 +412,22 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
             "threshold": threshold,
             "overall_verified": len(verified),
         }
+
+    @router.get("/trust-traps")
+    def trust_traps() -> dict[str, Any]:
+        detector = TrustTrapDetector(_trap_scorer(), _gs(), _domain())
+        traps = detector.scan()
+        return {"traps": [trap_asdict(trap) for trap in traps], "total": len(traps)}
+
+    @router.post("/rollback")
+    def rollback(checkpoint_id: str = Query(..., min_length=1)) -> dict[str, Any]:
+        scorer = _trap_scorer()
+        if scorer is None or not hasattr(scorer, "rollback_to_checkpoint"):
+            raise HTTPException(status_code=503, detail="Checkpoint rollback is unavailable for this scorer")
+        try:
+            return dict(scorer.rollback_to_checkpoint(checkpoint_id))
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @router.get("/decisions", response_model=SelfDecisionsResponse)
     def decisions(
@@ -177,9 +521,24 @@ def create_self_computation_router(graph_store: GraphStore) -> APIRouter:
     return router
 
 
-def mount_self_computation_router(app: Any, graph_store: GraphStore) -> None:
-    """Mount GraphStore-backed self-computation endpoints on a FastAPI app."""
-    app.include_router(create_self_computation_router(graph_store))
+def mount_self_computation_router(
+    app: Any,
+    store_provider: StoreProvider,
+    prefix: str = "/api/self",
+    domain: str | None = None,
+    scorer_provider: ScorerProvider | None = None,
+    evolver_provider: Callable[[], Any] | None = None,
+) -> None:
+    """Mount shared self-computation endpoints using a store or lazy provider."""
+    app.include_router(
+        create_self_computation_router(
+            store_provider,
+            prefix=prefix,
+            domain=domain,
+            scorer_provider=scorer_provider,
+            evolver_provider=evolver_provider,
+        )
+    )
 
 
 def _matches_decision(
@@ -250,6 +609,35 @@ def _get_centroid_checkpoints(
     limit: int,
 ) -> list[dict[str, Any]]:
     return list(store.get_centroid_checkpoints(domain, limit=limit))
+
+
+def _find_checkpoint(
+    store: GraphStore,
+    domain: str,
+    checkpoint_id: str,
+) -> dict[str, Any] | None:
+    checkpoints = store.get_centroid_checkpoints(domain, limit=None, include_v2=True)
+    return next(
+        (
+            checkpoint
+            for checkpoint in checkpoints
+            if str(checkpoint.get("checkpoint_id") or "") == str(checkpoint_id)
+        ),
+        None,
+    )
+
+
+def _checkpoint_quality_payload(checkpoint: dict[str, Any]) -> dict[str, Any] | None:
+    if checkpoint.get("quality_window_size") is None:
+        return None
+    return {
+        "window_size": checkpoint.get("quality_window_size"),
+        "verified_count": checkpoint.get("quality_verified_count"),
+        "correct_count": checkpoint.get("quality_correct_count"),
+        "rolling_accuracy": checkpoint.get("rolling_accuracy"),
+        "window_end": checkpoint.get("quality_window_end"),
+        "policy_version": checkpoint.get("quality_policy_version"),
+    }
 
 
 def _category_flow_stats(
@@ -410,6 +798,12 @@ def _safe_float(value: Any) -> float | None:
     if not math.isfinite(number):
         return None
     return number
+
+
+def _factor_names_hash(factor_names: list[str]) -> str:
+    return hashlib.sha256(
+        json.dumps(list(factor_names), separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
 
 
 def _safe_mean(values: Any) -> float:

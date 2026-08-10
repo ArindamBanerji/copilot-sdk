@@ -19,6 +19,9 @@ trading = ["yfinance>=0.2.40", "pandas>=2.0,<2.3", "pandas-ta==0.3.14b0"]
 [tool.setuptools.packages.find]
 include = ["copilot_sdk*", "ci_trading*"]
 
+[tool.setuptools.package-data]
+copilot_sdk = ["di/data/*.json"]
+
 [tool.mypy]
 python_version = "3.11"
 ignore_missing_imports = true

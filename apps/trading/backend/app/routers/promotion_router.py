@@ -106,6 +106,8 @@ def _conservation_status(
             correct_count=counts["correct_count"],
             total_decisions=counts["total_decisions"],
             penalty_ratio=counts["penalty_ratio"],
+            categories_with_data=store.count_categories_with_n(domain, 1),
+            total_categories=len(TradingPreset().shape.category_names),
         )
         return {**counts, **_check_payload(check)}
     except Exception:

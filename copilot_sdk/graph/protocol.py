@@ -101,6 +101,24 @@ class GraphStore(Protocol):
     ) -> list[dict[str, Any]]:
         ...
 
+    def load_latest_checkpoint_for_regime(
+        self, domain: str, regime_tag: str
+    ) -> dict[str, Any] | None:
+        """Return the newest checkpoint carrying the requested regime tag."""
+        ...
+
+    def get_checkpoint_lineage(
+        self, domain: str, checkpoint_id: str
+    ) -> dict[str, Any] | None:
+        """Return the domain-scoped Decision linked by SNAPSHOT_AFTER."""
+        ...
+
+    def get_decision_checkpoints(
+        self, domain: str, decision_id: str
+    ) -> list[dict[str, Any]]:
+        """Return checkpoints linked to a domain-scoped Decision."""
+        ...
+
     def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
         ...
 
@@ -276,7 +294,14 @@ class ProtocolV2GraphStore(GraphStore, Protocol):
         iks: float,
         shape: list[int],
         factor_names_hash: str,
+        quality_window_size: int | None = None,
+        quality_verified_count: int | None = None,
+        quality_correct_count: int | None = None,
+        rolling_accuracy: float | None = None,
+        quality_window_end: str | None = None,
+        quality_policy_version: str | None = None,
         metadata: dict[str, Any] | None = None,
+        decision_id: str | None = None,
     ) -> None:
         ...
 

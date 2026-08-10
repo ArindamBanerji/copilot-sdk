@@ -209,7 +209,7 @@ def test_learn_changes_centroids(mock_preset, store):
 
     assert learn.centroid_delta > 0
     assert store.count_verified("mock") == 1
-    assert store.get_centroid_checkpoints("mock", include_v2=True)[-1]["iks"] == learn.iks_after
+    assert store.get_centroid_checkpoints("mock", include_v2=True)[-1]["iks"] == scorer._compute_checkpoint_iks()
 
 
 def test_scorer_learn_writes_outcome_to_graph_store(mock_preset, store):
@@ -238,8 +238,32 @@ def test_scorer_learn_writes_centroids_to_graph_store(mock_preset, store):
     assert len(checkpoints) == 1
     assert checkpoints[0]["metadata"]["decision_id"] == result.decision_id
     assert checkpoints[0]["category"] == "alpha"
-    assert checkpoints[0]["metadata"]["iks"] == learn.iks_after
+    assert checkpoints[0]["metadata"]["iks"] == scorer._compute_checkpoint_iks()
+    assert checkpoints[0]["metadata"]["composite_iks"] == learn.iks_after
     assert store.get_centroid_checkpoints("mock") == []
+
+
+def test_checkpoint_iks_is_canonical_centroid_drift(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+    scorer._scorer.centroids = scorer._scorer.centroids + 0.1
+
+    scorer._save_centroids_checkpoint(
+        decision_id="iks-checkpoint",
+        category="alpha",
+        action="approve",
+        iks=99.0,
+        checkpoint_id="iks-checkpoint",
+    )
+
+    checkpoint = graph_store.get_centroid_checkpoints("test", include_v2=True)[0]
+    drift = np.linalg.norm(
+        scorer._scorer.centroids - mock_preset.bootstrap_centroids,
+        axis=2,
+    ).mean()
+    expected = 100.0 * min(float(drift) / 0.20, 1.0)
+    assert checkpoint["iks"] == pytest.approx(round(expected, 1))
+    assert checkpoint["metadata"]["composite_iks"] == 99.0
 
 
 def test_scorer_learn_metadata_roundtrip(mock_preset, store):

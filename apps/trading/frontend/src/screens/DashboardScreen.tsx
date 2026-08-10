@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DayZeroCard, DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
+import { DataTrustBadge, DayZeroCard, DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import {
   API_BASE,
   getAnalytics,
@@ -37,6 +37,19 @@ interface TickerPanelProps {
   disabled: boolean;
   onTickers: (tickers: Record<string, TickerData>) => void;
 }
+
+const TRADING_TRUST_LABELS: Record<string, string> = {
+  signal_alignment: "Research depth",
+  market_regime: "Market conditions",
+  position_sizing: "Position sizing",
+  timing_quality: "Timing quality",
+  risk_reward_actual: "Risk/reward",
+  emotional_indicator: "Emotional signal",
+  signal_confidence: "Signal confidence",
+  options_delta_exposure: "Options delta",
+  options_iv_percentile: "Options IV",
+  options_gamma_risk: "Options gamma",
+};
 
 function getDecisionId(decision: TradeHistoryDecision): string | undefined {
   return decision.decisionId || (typeof decision.id === "string" ? decision.id : undefined);
@@ -275,6 +288,13 @@ export default function DashboardScreen({
             onClick={() => onSelectTrade(trade.decisionId)}
           />
         )}
+      />
+
+      <DataTrustBadge
+        apiBase={API_BASE}
+        copilot="Trading"
+        factorLabels={TRADING_TRUST_LABELS}
+        accent="var(--trading-primary, #b91c1c)"
       />
     </div>
   );

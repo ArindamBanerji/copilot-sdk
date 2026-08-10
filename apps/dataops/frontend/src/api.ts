@@ -13,6 +13,11 @@ import type {
   DataOpsAlert,
   DecisionExplorerResponse,
   DIProfilesResponse,
+  DIProductsResponse,
+  DIIntelligenceMapResponse,
+  DISourceConsumersResponse,
+  DISourceTrustResponse,
+  DISearchResponse,
   FactorAutoFillResponse,
   FingerprintResponse,
   Health,
@@ -44,6 +49,10 @@ import type {
   TransformationsResponse,
   TransferStatusResponse,
   TrustResponse,
+  SelfDiagnosticsResponse,
+  DIPerturbationStatus,
+  DIPerturbationResult,
+  QueryResponse,
 } from "./types";
 
 export const BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8030";
@@ -195,6 +204,36 @@ export async function fetchDIProfiles(): Promise<DIProfilesResponse | null> {
   return safeApiGet<DIProfilesResponse>("/api/di/profiles");
 }
 
+export async function searchDIAssets(query: string, filters: Record<string, string | number> = {}): Promise<DISearchResponse> {
+  const params = new URLSearchParams({ q: query });
+  Object.entries(filters).forEach(([key, value]) => params.set(key, String(value)));
+  return apiGet<DISearchResponse>(`/api/di/search?${params.toString()}`);
+}
+
+export async function fetchDIProducts(): Promise<DIProductsResponse | null> {
+  return safeApiGet<DIProductsResponse>("/api/di/products");
+}
+
+export async function queryDataOps(question: string): Promise<QueryResponse> {
+  return apiPost<QueryResponse>("/api/di/query", {
+    question,
+    context: { domain: "dataops" },
+  });
+}
+
+export async function fetchDIIntelligenceMap(): Promise<DIIntelligenceMapResponse | null> {
+  return safeApiGet<DIIntelligenceMapResponse>("/api/di/intelligence-map");
+}
+
+
+export async function fetchDISourceTrust(sourceId: string): Promise<DISourceTrustResponse | null> {
+  return safeApiGet<DISourceTrustResponse>(`/api/di/sources/${encodeURIComponent(sourceId)}/trust`);
+}
+
+export async function fetchDISourceConsumers(sourceId: string): Promise<DISourceConsumersResponse | null> {
+  return safeApiGet<DISourceConsumersResponse>(`/api/di/sources/${encodeURIComponent(sourceId)}/consumers`);
+}
+
 export async function getPipelines(): Promise<PipelineSystem[]> {
   const payload = await apiGet<{ pipelines?: PipelineSystem[] }>("/api/context/pipelines");
   return payload.pipelines || [];
@@ -253,6 +292,27 @@ export async function getTransferStatus(): Promise<TransferStatusResponse | null
 
 export async function getTrust(): Promise<TrustResponse> {
   return apiGet<TrustResponse>("/api/dataops/trust");
+}
+
+export async function getSelfDiagnostics(): Promise<SelfDiagnosticsResponse | null> {
+  return safeApiGet<SelfDiagnosticsResponse>("/api/self/diagnostics");
+}
+
+export async function getDIPerturbationStatus(): Promise<DIPerturbationStatus> {
+  return apiGet<DIPerturbationStatus>("/api/di/perturb/status");
+}
+
+export async function perturbDI(body: {
+  sourceName: string;
+  perturbation: string;
+  magnitude: number;
+  decisions: number;
+}): Promise<DIPerturbationResult> {
+  return apiPost<DIPerturbationResult>("/api/di/perturb", body);
+}
+
+export async function revertDIPerturbation(): Promise<Record<string, unknown>> {
+  return apiPost<Record<string, unknown>>("/api/di/perturb/revert", {});
 }
 
 export interface CrossSystemAlert {
@@ -350,7 +410,7 @@ export async function getCentroidHistory(category?: string): Promise<CentroidHis
     params.set("category", category);
   }
   const query = params.toString();
-  return apiGet<CentroidHistoryResponse>(`/api/context/centroid-history${query ? `?${query}` : ""}`);
+  return apiGet<CentroidHistoryResponse>(`/api/self/centroid-history${query ? `?${query}` : ""}`);
 }
 
 export async function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {

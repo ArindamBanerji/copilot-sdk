@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchCentroidHistory } from "../api";
 import type { CentroidCheckpoint } from "../types";
 
-function centroidValues(checkpoint: CentroidCheckpoint): Record<string, number> {
-  const raw = checkpoint.centroids;
+function centroidValues(checkpoint?: CentroidCheckpoint): Record<string, number> {
+  const raw = checkpoint?.centroids;
   if (!raw) return {};
   if (Array.isArray(raw)) {
     return Object.fromEntries(raw.slice(0, 6).map((value, index) => [`factor_${index + 1}`, Number(value) || 0]));
@@ -29,11 +29,12 @@ export function CentroidTimelineChart() {
     };
   }, []);
 
-  const latest = useMemo(() => centroidValues(checkpoints?.[checkpoints.length - 1] ?? {}), [checkpoints]);
+  const latest = useMemo(() => centroidValues(checkpoints?.[checkpoints.length - 1]), [checkpoints]);
+  const latestQuality = checkpoints?.[checkpoints.length - 1]?.quality;
   const entries = Object.entries(latest).slice(0, 8);
 
   return (
-    <section className="purchase-card">
+    <section className="purchase-card" data-panel-ready={String(checkpoints !== null)}>
       <p className="purchase-kicker">SC-11 Centroid History</p>
       <h3 className="purchase-title">Learning centroid timeline</h3>
       {!checkpoints ? (
@@ -46,6 +47,11 @@ export function CentroidTimelineChart() {
             <span>{checkpoints.length} checkpoints</span>
             <span>factor weight</span>
           </div>
+          {latestQuality?.rolling_accuracy != null ? (
+            <p data-testid="centroid-quality" className="text-sm text-slate-600">
+              Rolling accuracy: {(latestQuality.rolling_accuracy * 100).toFixed(1)}% ({latestQuality.correct_count}/{latestQuality.verified_count})
+            </p>
+          ) : null}
           {entries.map(([key, value]) => (
             <div key={key}>
               <div className="flex items-center justify-between text-sm">
@@ -65,4 +71,3 @@ export function CentroidTimelineChart() {
     </section>
   );
 }
-

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import inspect
 import json
 import logging
 import math
@@ -13,7 +15,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional, cast
+from typing import Any, Coroutine, Optional, cast
 
 import numpy as np
 
@@ -41,6 +43,7 @@ def _ensure_gae_path() -> Path:
 _ensure_gae_path()
 
 from gae.dk_estimator import CoordinateDescentEstimator  # noqa: E402
+from gae.calibration import compute_theta_min  # noqa: E402
 from gae.profile_scorer import (  # noqa: E402
     DecisionCountPolicy,
     FixedAlpha,
@@ -58,6 +61,20 @@ CONSERVATION_CATEGORY_MIN_VERIFIED = 1
 # the first nine verified outcomes in an explicit calibration warm-up; mature
 # domains still use the full alpha*q gate from the tenth outcome onward.
 CONSERVATION_MIN_VERIFIED = 10
+REGIME_CALIBRATION_THRESHOLD = 10
+
+# JM canonical checkpoint IKS: centroid drift from the domain bootstrap prior.
+# The scorer's composite learning-health metric remains available through
+# ``_compute_iks``; checkpoint history uses this separate canonical value.
+CANONICAL_IKS_D_MAX = 0.20
+QUALITY_WINDOW_SIZE = 400
+QUALITY_POLICY_VERSION = "quality.v1"
+
+
+def _factor_names_hash(factor_names: list[str]) -> str:
+    return hashlib.sha256(
+        json.dumps(list(factor_names), separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
 
 
 def _resolve_governed_writes(governed_writes: bool | None) -> bool:
@@ -70,30 +87,6 @@ def _resolve_governed_writes(governed_writes: bool | None) -> bool:
     if governed_writes is not None:
         return bool(governed_writes)
     return os.environ.get("SCORER_GOVERNED_WRITES", "").strip() == "1"
-
-
-def compute_theta_min(alpha: float, verified: int | float) -> float | None:
-    """Return the canonical conservation threshold.
-
-    ``alpha`` is category coverage: the fraction of configured categories with
-    at least one verified decision. It is not the analyst override rate or the
-    domain penalty ratio used for asymmetric loss or reward scaling.
-
-    Returns None when inputs are invalid or alpha is zero (no override baseline).
-    """
-    try:
-        alpha_value = float(alpha)
-        verified_value = float(verified)
-    except (TypeError, ValueError):
-        return None
-    if (
-        not np.isfinite(alpha_value)
-        or not np.isfinite(verified_value)
-        or alpha_value <= 0
-        or verified_value <= 0
-    ):
-        return None
-    return 23.53 / (alpha_value * verified_value)
 
 
 @dataclass(frozen=True)
@@ -137,6 +130,10 @@ class CompoundingScorer:
     ):
         self._preset = preset
         self._scorer = scorer
+        # The preset bootstrap is the immutable canonical prior.  Persisting
+        # this separately from the live scorer state makes convergence metrics
+        # comparable after a restart or checkpoint restore.
+        self._canonical_mu = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
         self._graph_store = graph_store
         self._domain = str(getattr(graph_store, "domain", preset.name) or preset.name)
         self._reward_fn = reward_function
@@ -163,6 +160,7 @@ class CompoundingScorer:
         self._last_persisted_fingerprint_signature: str | None = None
         self._verified_decisions_cache: list[dict[str, Any]] | None = None
         self._fingerprint_cache: FingerprintResult | None = None
+        self._calibration_overlay: dict[str, Any] | None = None
         try:
             self._outbox: PersistenceOutbox | None = PersistenceOutbox(self._domain)
             drained, failed = self._outbox.drain(self._graph_store)
@@ -173,6 +171,34 @@ class CompoundingScorer:
             logger.warning("Persistence outbox unavailable for %s: %s", self._domain, exc)
         if self._evolve:
             self._setup_evolution()
+
+    def compute_centroid_distance_to_canonical(self) -> float | None:
+        """Return the raw Frobenius distance from current to canonical centroids."""
+        canonical = getattr(self, "_canonical_mu", None)
+        if canonical is None:
+            return None
+        current = np.asarray(self._scorer.centroids, dtype=np.float64)
+        canonical_array = np.asarray(canonical, dtype=np.float64)
+        if current.shape != canonical_array.shape:
+            return None
+        from gae.convergence import centroid_distance_to_canonical
+
+        return float(centroid_distance_to_canonical(current, canonical_array))
+
+    def compute_epsilon_firm(self) -> dict[str, Any] | None:
+        """Return normalized canonical distance and the gamma>1 threshold."""
+        distance = self.compute_centroid_distance_to_canonical()
+        if distance is None:
+            return None
+        tensor_cells = int(np.asarray(self._scorer.centroids).size)
+        normalized = distance / max(float(tensor_cells) ** 0.5, 1.0)
+        return {
+            "epsilon_firm": float(normalized),
+            "raw_distance": float(distance),
+            "threshold": 0.128,
+            "clears_threshold": bool(normalized > 0.128),
+            "tensor_cells": tensor_cells,
+        }
 
     def _predict(
         self,
@@ -264,6 +290,23 @@ class CompoundingScorer:
                     "SQLite and InMemoryGraphStore are test/development stores."
                 )
         centroids = graph_store.load_latest_centroids(preset.name)
+        latest_checkpoints = graph_store.get_centroid_checkpoints(
+            preset.name,
+            include_v2=True,
+            limit=1,
+        )
+        if latest_checkpoints:
+            stored_hash = latest_checkpoints[-1].get("factor_names_hash")
+            current_hash = _factor_names_hash(list(preset.shape.factor_names))
+            if stored_hash and stored_hash != current_hash:
+                logger.warning(
+                    "Factor schema changed for %s: stored=%s current=%s. "
+                    "Falling back to bootstrap centroids.",
+                    preset.name,
+                    str(stored_hash)[:8],
+                    current_hash[:8],
+                )
+                centroids = None
         if centroids is None:
             centroids = np.array(preset.bootstrap_centroids, dtype=np.float64, copy=True)
 
@@ -426,6 +469,81 @@ class CompoundingScorer:
             factors=factor_values,
         )
 
+    def score_with_centroids(
+        self,
+        centroids: np.ndarray,
+        factors: dict[str, float],
+        category: str,
+    ) -> ScoreResult:
+        """Score with alternate centroids and the live kernel and temperature.
+
+        This is a centroid ablation, not a point-in-time replay.  The live
+        scorer is never assigned to, learned from, or persisted by this path.
+        """
+        return self.score_with_model_state(
+            centroids,
+            factors,
+            category,
+            dk_weights=self.get_dk_weights(),
+            temperature=self.get_temperature(),
+        )
+
+    def score_with_model_state(
+        self,
+        centroids: np.ndarray,
+        factors: dict[str, float],
+        category: str,
+        *,
+        dk_weights: list[list[float]] | None = None,
+        temperature: float | None = None,
+    ) -> ScoreResult:
+        """Score without mutation using an historical centroid model state."""
+        (
+            category_index,
+            factor_values,
+            factor_vector,
+            _gae_result,
+            _action_index,
+            _action,
+            _probabilities,
+        ) = self._predict(factors, category)
+
+        live = self._scorer
+        temporary = ProfileScorer(
+            mu=np.asarray(centroids, dtype=np.float64).copy(),
+            actions=list(self._preset.shape.action_names),
+            categories=list(self._preset.shape.category_names),
+            kernel=getattr(live, "kernel", None),
+            factor_mask=(
+                None
+                if getattr(live, "factor_mask", None) is None
+                else np.asarray(live.factor_mask, dtype=np.float64).copy()
+            ),
+            scoring_kernel=getattr(live, "scoring_kernel", None),
+            eta_override=0.0,
+        )
+        if dk_weights is not None:
+            weights = np.asarray(dk_weights, dtype=np.float64)
+            expected = (
+                self._preset.shape.n_categories,
+                self._preset.shape.n_factors,
+            )
+            if weights.shape != expected or not np.all(np.isfinite(weights)):
+                raise ValueError(f"DK weight shape/value mismatch: {weights.shape} != {expected}")
+            temporary._dk_weights = weights.copy()
+        temporary.tau = float(live.tau if temperature is None else temperature)
+
+        result = temporary.score(factor_vector, category_index)
+        return ScoreResult(
+            decision_id=f"cf-{uuid.uuid4().hex[:12]}",
+            action=str(result.action_name),
+            action_index=int(result.action_index),
+            confidence=float(result.confidence),
+            probabilities=[float(value) for value in result.probabilities],
+            category=category,
+            factors=factor_values,
+        )
+
     def reestimate_dk_if_due(self) -> bool:
         """Run GAE DK re-estimation and report whether active weights changed."""
         before = getattr(self._scorer, "_dk_weights", None)
@@ -474,6 +592,25 @@ class CompoundingScorer:
         if weights is None:
             return None
         return cast(list[list[float]], np.asarray(weights, dtype=np.float64).copy().tolist())
+
+    def get_temperature(self) -> float:
+        """Return the active scorer temperature τ."""
+        return float(getattr(self._scorer, "tau", self._preset.temperature))
+
+    def _checkpoint_dk_weights(self) -> list[list[float]]:
+        """Return the explicit DK tensor used by a checkpoint replay.
+
+        Before variance learning initializes DK, the scorer uses isotropic
+        unit weights. Persisting that effective tensor makes the checkpoint
+        replayable without claiming that learned DK weights existed.
+        """
+        weights = self.get_dk_weights()
+        if weights is not None:
+            return weights
+        return cast(list[list[float]], np.ones(
+            (self._preset.shape.n_categories, self._preset.shape.n_factors),
+            dtype=np.float64,
+        ).tolist())
 
     def get_centroid(self, category: str, action: str) -> list[float] | None:
         """Return a copy of the current centroid vector for category/action."""
@@ -568,6 +705,190 @@ class CompoundingScorer:
         """Return the current verified-decision count from the GraphStore."""
         return int(self._graph_store.count_verified_decisions(self._domain))
 
+    def get_conservation_state(self) -> dict[str, Any]:
+        """Return the complete explainable conservation-panel payload.
+
+        The evolution gate consumes the smaller internal state returned by
+        ``_evolution_conservation_state``.  The status panel needs the
+        additional derived metrics and explanation supplied by the shared
+        backend payload builder.
+        """
+
+        from copilot_sdk.backend.conservation_utils import (
+            compute_conservation_status_payload,
+        )
+
+        payload = cast(dict[str, Any], compute_conservation_status_payload(self._domain, self))
+        overlay = self._calibration_overlay
+        if overlay is None:
+            return payload
+        actual_v = self.get_verified_count()
+        new_verified = max(0, actual_v - int(overlay["actual_V"]))
+        overlay["new_regime_verified"] = new_verified
+        if new_verified >= int(overlay["threshold"]):
+            self._calibration_overlay = None
+            return payload
+        effective_v = min(
+            actual_v,
+            int(overlay["effective_V_base"]) + new_verified,
+        )
+        alpha = float(payload.get("alpha") or 0.0)
+        q = float(payload.get("q") or 0.0)
+        theta_min = compute_theta_min(alpha, effective_v)
+        signal = alpha * q * effective_v
+        payload.update(
+            {
+                "status": "CALIBRATING",
+                "phase": "CALIBRATING",
+                "actual_V": actual_v,
+                "effective_V": effective_v,
+                "signal": signal,
+                "theta_min": theta_min,
+                "headroom": signal - theta_min if theta_min is not None else None,
+                "calibration": dict(overlay),
+                "reason": (
+                    f"Regime {overlay['regime_tag']} is calibrating: "
+                    f"{new_verified}/{overlay['threshold']} new verified decisions."
+                ),
+            }
+        )
+        return payload
+
+    def reinitialize_from_regime(
+        self,
+        regime_tag: str,
+        strategy: str = "A",
+        blend_weight: float = 0.5,
+        v_discount: float = 0.5,
+    ) -> dict[str, Any]:
+        """Atomically restore a prior regime model with calibration evidence."""
+        strategy = str(strategy).upper()
+        if strategy not in {"A", "B", "C"}:
+            return {"success": False, "reason": f"unknown_strategy_{strategy}"}
+        if not 0.0 <= float(blend_weight) <= 1.0:
+            return {"success": False, "reason": "invalid_blend_weight"}
+        if not 0.0 <= float(v_discount) <= 1.0:
+            return {"success": False, "reason": "invalid_v_discount"}
+
+        loader = getattr(self._graph_store, "load_latest_checkpoint_for_regime", None)
+        checkpoint = loader(self._domain, regime_tag) if callable(loader) else None
+        if checkpoint is None:
+            checkpoints = self._graph_store.get_centroid_checkpoints(
+                self._domain, include_v2=True, limit=None
+            )
+            matching = [
+                item for item in checkpoints
+                if str((item.get("metadata") or {}).get("regime_tag") or "")
+                == str(regime_tag)
+            ]
+            checkpoint = max(
+                enumerate(matching),
+                key=lambda item: (
+                    float(
+                        item[1].get(
+                            "created_at_epoch", item[1].get("created_at", 0.0)
+                        )
+                        or 0.0
+                    ),
+                    item[0],
+                ),
+                default=None,
+            )
+            checkpoint = None if checkpoint is None else checkpoint[1]
+        if checkpoint is None:
+            return {"success": False, "reason": "no_checkpoint_for_regime"}
+
+        raw_centroids = checkpoint.get("centroids")
+        restored = np.asarray(raw_centroids, dtype=np.float64)
+        current = np.asarray(self._scorer.centroids, dtype=np.float64)
+        if restored.shape != current.shape or not np.all(np.isfinite(restored)):
+            return {"success": False, "reason": "checkpoint_centroid_shape_or_value_invalid"}
+
+        old_centroids = current.copy()
+        old_dk = getattr(self._scorer, "_dk_weights", None)
+        old_dk = None if old_dk is None else np.asarray(old_dk, dtype=np.float64).copy()
+        old_tau = self.get_temperature()
+        old_overlay = None if self._calibration_overlay is None else dict(self._calibration_overlay)
+        prior_v = int(checkpoint.get("verified_count") or checkpoint.get("decisions_count") or 0)
+        actual_v = self.get_verified_count()
+        effective_base = min(actual_v, max(0, int(float(v_discount) * prior_v)))
+        fallback_reason: str | None = None
+
+        def apply_state(_transaction: Any = None) -> None:
+            nonlocal fallback_reason
+            if strategy in {"A", "C"}:
+                next_centroids = restored.copy()
+            else:
+                next_centroids = (
+                    float(blend_weight) * restored
+                    + (1.0 - float(blend_weight)) * current
+                )
+            self._scorer.centroids = next_centroids
+            if strategy == "C":
+                metadata = checkpoint.get("metadata") or {}
+                dk = metadata.get("dk_weights", checkpoint.get("dk_weights"))
+                tau = metadata.get("temperature", checkpoint.get("temperature"))
+                if dk is None or tau is None:
+                    fallback_reason = "legacy_checkpoint_missing_model_state"
+                else:
+                    self.load_dk_weights_from_l5(dk)
+                    self._scorer.tau = float(tau)
+            self._calibration_overlay = {
+                "phase": "CALIBRATING",
+                "regime_tag": str(regime_tag),
+                "strategy": strategy,
+                "reset_at": time.time(),
+                "actual_V": actual_v,
+                "effective_V_base": effective_base,
+                "effective_V": effective_base,
+                "discount": float(v_discount),
+                "prior_regime_V": prior_v,
+                "new_regime_verified": 0,
+                "threshold": REGIME_CALIBRATION_THRESHOLD,
+            }
+
+        try:
+            transaction_runner = getattr(self._graph_store, "run_transaction", None)
+            if callable(transaction_runner):
+                result = transaction_runner(apply_state)
+                if inspect.isawaitable(result):
+                    asyncio.run(cast(Coroutine[Any, Any, Any], result))
+            else:
+                apply_state()
+            event_writer = getattr(self._graph_store, "save_evolution_event", None)
+            if callable(event_writer):
+                event_writer(
+                    self._domain,
+                    event_type="regime_reinitialize",
+                    rule_name="",
+                    variant_id="",
+                    metadata={
+                        "regime_tag": str(regime_tag),
+                        "strategy": strategy,
+                        "checkpoint_id": checkpoint.get("checkpoint_id"),
+                        "fallback_reason": fallback_reason,
+                        "effective_V": effective_base,
+                    },
+                )
+        except Exception:
+            self._scorer.centroids = old_centroids
+            if old_dk is None:
+                if hasattr(self._scorer, "_dk_weights"):
+                    self._scorer._dk_weights = None
+            else:
+                self._scorer._dk_weights = old_dk
+            self._scorer.tau = old_tau
+            self._calibration_overlay = old_overlay
+            raise
+        return {
+            "success": True,
+            "strategy": strategy,
+            "regime_tag": str(regime_tag),
+            "checkpoint_id": checkpoint.get("checkpoint_id"),
+            "fallback_reason": fallback_reason,
+            "calibration": dict(self._calibration_overlay or {}),
+        }
+
     def domain_scoped_reset(self) -> None:
         """Reset this scorer's domain and discard pending persistence replays."""
         reset = getattr(self._graph_store, "domain_scoped_reset", None)
@@ -592,6 +913,7 @@ class CompoundingScorer:
         decision = self._graph_store.get_decision(decision_id, domain=self._domain)
         if decision is None:
             raise KeyError(decision_id)
+        regime_tag = _decision_regime_tag(decision)
         assert actual_action in self._preset.shape.action_names, f"unknown action: {actual_action}"
 
         actual_index = self._preset.shape.action_names.index(actual_action)
@@ -659,6 +981,7 @@ class CompoundingScorer:
                             iks=self._compute_iks(persist_artifacts=False),
                             boundary="conservation_pause",
                             decisions_in_batch=int(conservation_pause["verified_count"]),
+                            regime_tag=regime_tag,
                         )
                 except Exception as exc:
                     logger.warning(
@@ -771,6 +1094,7 @@ class CompoundingScorer:
                         consolidation=True,
                         decision_time_start=self._batch_decision_time_start,
                         decision_time_end=self._batch_decision_time_end,
+                        regime_tag=regime_tag,
                     )
                     checkpoint_already_persisted = True
                 self._batch_decision_count = 0
@@ -785,6 +1109,7 @@ class CompoundingScorer:
                     iks=iks_after,
                     decision_time_start=decision_timestamp,
                     decision_time_end=decision_timestamp,
+                    regime_tag=regime_tag,
                 )
                 checkpoint_already_persisted = True
         reward_raw, reward = self._compute_rl_reward(decision, actual_action, outcome, context)
@@ -958,6 +1283,8 @@ class CompoundingScorer:
         evidence_already_persisted: bool = False,
         checkpoint_already_persisted: bool = False,
         skip_history_scan: bool = False,
+        transaction: Any | None = None,
+        raise_on_error: bool = False,
     ) -> None:
         """Persist learning artifacts after a successful update.
 
@@ -1054,8 +1381,12 @@ class CompoundingScorer:
                     decision_time_start=self._extract_decision_timestamp(row),
                     decision_time_end=self._extract_decision_timestamp(row),
                     write_legacy=False,
+                    transaction=transaction,
+                    raise_on_error=raise_on_error,
                 )
             except Exception as exc:
+                if raise_on_error:
+                    raise
                 logger.warning(
                     "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
                     self._domain, decision_id, "centroid_checkpoint", type(exc).__name__, exc,
@@ -1133,19 +1464,31 @@ class CompoundingScorer:
                 checkpoint_digest = hashlib.sha256(
                     f"{self._domain}|{capture_reason}|{centroid_digest}|{verified}".encode("utf-8")
                 ).hexdigest()[:32]
-                result["checkpoint"] = int(
-                    self._save_centroids_checkpoint(
-                        decision_id=capture_key,
-                        category=self._preset.shape.category_names[0],
-                        action=self._preset.shape.action_names[0],
-                        iks=self._compute_iks(persist_artifacts=False),
-                        boundary=capture_reason,
-                        decisions_in_batch=verified,
-                        write_legacy=False,
-                        checkpoint_id=f"{self._domain}:checkpoint:{checkpoint_digest}",
-                        capture_reason=capture_reason,
-                    )
+                checkpoint_id = f"{self._domain}:checkpoint:{checkpoint_digest}"
+                existing_checkpoints = self._graph_store.get_centroid_checkpoints(
+                    self._domain,
+                    include_v2=True,
+                    limit=1000,
                 )
+                if any(
+                    str(checkpoint.get("checkpoint_id")) == checkpoint_id
+                    for checkpoint in existing_checkpoints
+                ):
+                    logger.info("Startup checkpoint already exists, skipping: %s", checkpoint_id)
+                else:
+                    result["checkpoint"] = int(
+                        self._save_centroids_checkpoint(
+                            decision_id=capture_key,
+                            category=self._preset.shape.category_names[0],
+                            action=self._preset.shape.action_names[0],
+                            iks=self._compute_iks(persist_artifacts=False),
+                            boundary=capture_reason,
+                            decisions_in_batch=verified,
+                            write_legacy=False,
+                            checkpoint_id=checkpoint_id,
+                            capture_reason=capture_reason,
+                        )
+                    )
         except Exception as exc:
             errors.append(f"checkpoint: {type(exc).__name__}: {exc}")
             logger.warning("State capture checkpoint failed for %s: %s", self._domain, exc)
@@ -1153,6 +1496,9 @@ class CompoundingScorer:
         return result
 
     def _capture_conservation_state(self) -> dict[str, float | int | str] | None:
+        if not self._domain:
+            logger.debug("Skipping conservation capture: domain not set")
+            return None
         paused = self._conservation_pause()
         if paused is not None:
             return {
@@ -1340,6 +1686,12 @@ class CompoundingScorer:
             consolidation=True,
             decision_time_start=self._batch_decision_time_start,
             decision_time_end=self._batch_decision_time_end,
+            regime_tag=_decision_regime_tag(
+                self._graph_store.get_decision(
+                    self._last_checkpoint_decision_id,
+                    domain=self._domain,
+                ) or {}
+            ),
         )
         self._batch_decision_count = 0
         self._batch_decision_time_start = None
@@ -1367,6 +1719,66 @@ class CompoundingScorer:
             self._graph_store.get_verified_decisions(self._domain),
             self._preset.shape,
         )
+
+    def rollback_to_checkpoint(self, checkpoint_id: str) -> dict[str, Any]:
+        """Restore centroids to a V2 checkpoint targeted by SNAPSHOT_AFTER."""
+        checkpoints = self._graph_store.get_centroid_checkpoints(
+            self._domain,
+            limit=None,
+            include_v2=True,
+        )
+        checkpoint = next(
+            (
+                item for item in checkpoints
+                if str(item.get("checkpoint_id") or "") == str(checkpoint_id)
+            ),
+            None,
+        )
+        if checkpoint is None:
+            raise ValueError(f"Checkpoint {checkpoint_id} not found")
+
+        lineage = self._graph_store.get_checkpoint_lineage(self._domain, checkpoint_id)
+        if lineage is None:
+            raise ValueError(f"Checkpoint {checkpoint_id} has no SNAPSHOT_AFTER lineage")
+
+        raw_centroids = checkpoint.get("centroids")
+        restored = np.asarray(raw_centroids, dtype=np.float64)
+        current = np.asarray(self._scorer.centroids)
+        if restored.shape != current.shape:
+            raise ValueError(
+                f"Checkpoint {checkpoint_id} shape {restored.shape} does not match current {current.shape}"
+            )
+        self._scorer.centroids = np.array(restored, dtype=np.float64, copy=True)
+        self._verified_decisions_cache = None
+
+        current_count = self.get_verified_count()
+        checkpoint_count = int(checkpoint.get("verified_count") or checkpoint.get("decisions_count") or 0)
+        decisions_undone = max(0, current_count - checkpoint_count)
+        lineage_decision_id = str(
+            lineage.get("decision_id")
+            or lineage.get("metadata", {}).get("decision_id")
+            or checkpoint.get("decision_id")
+            or ""
+        )
+        event_writer = getattr(self._graph_store, "save_evolution_event", None)
+        if callable(event_writer):
+            event_writer(
+                self._domain,
+                event_type="decision_rollback",
+                metadata={
+                    "checkpoint_id": str(checkpoint_id),
+                    "edge_type": "SNAPSHOT_AFTER",
+                    "lineage_decision_id": lineage_decision_id,
+                    "decisions_undone": decisions_undone,
+                },
+            )
+        return {
+            "rolled_back": True,
+            "checkpoint_id": str(checkpoint_id),
+            "lineage_decision_id": lineage_decision_id,
+            "decisions_undone": decisions_undone,
+            "restored_iks": checkpoint.get("iks"),
+        }
 
     def get_phase(self) -> str:
         """Return the current SDK phase from GraphStore verification counts."""
@@ -1398,6 +1810,23 @@ class CompoundingScorer:
         blend_weight: float = 0.25,
     ) -> dict[str, Any]:
         """Apply shared transfer patterns to the active GAE centroid tensor."""
+        existing = self._graph_store.get_centroid_checkpoints(
+            self._domain,
+            limit=None,
+            include_v2=True,
+        )
+        if any(record.get("category") != "warm_start" for record in existing):
+            logger.info(
+                "warm_start skipped: learned checkpoint exists for %s",
+                self._domain,
+            )
+            return {
+                "applied": 0,
+                "score": 0.0,
+                "skipped": True,
+                "reason": "learned_checkpoint_exists",
+            }
+
         from copilot_sdk.transfer.registry import SharedPatternRegistry
         from copilot_sdk.transfer.warm_start import (
             applied_patterns,
@@ -1614,6 +2043,42 @@ class CompoundingScorer:
         )
         return round(iks, 1)
 
+    def _compute_checkpoint_iks(self) -> float:
+        """Return the JM canonical centroid-drift IKS for checkpoint history."""
+        from copilot_sdk.framework.iks_base import compute_iks
+
+        result = compute_iks(
+            np.asarray(self._scorer.centroids, dtype=np.float64),
+            np.asarray(self._preset.bootstrap_centroids, dtype=np.float64),
+            CANONICAL_IKS_D_MAX,
+        )
+        return float(result["current"])
+
+    def _checkpoint_quality(self, decision_time_end: str | None) -> dict[str, Any]:
+        """Compute the explicit rolling accuracy contract for a new checkpoint."""
+        verified = self._graph_store.get_verified_decisions(self._domain)
+        window = verified[-QUALITY_WINDOW_SIZE:]
+        verified_count = len(window)
+        correct_count = sum(
+            1
+            for decision in window
+            if decision.get("is_correct") is True or decision.get("correct") is True
+        )
+        window_end: str | None = decision_time_end
+        if window_end is None and window:
+            candidate = window[-1].get("created_at") or window[-1].get("verified_at")
+            window_end = str(candidate) if candidate is not None else None
+        return {
+            "quality_window_size": QUALITY_WINDOW_SIZE,
+            "quality_verified_count": verified_count,
+            "quality_correct_count": correct_count,
+            "rolling_accuracy": (
+                correct_count / verified_count if verified_count > 0 else None
+            ),
+            "quality_window_end": window_end,
+            "quality_policy_version": QUALITY_POLICY_VERSION,
+        }
+
     def _refresh_dk_after_learn(self) -> None:
         """Refresh DK weights once enough verified decisions exist."""
         if self.get_verified_count() < 400:
@@ -1779,8 +2244,20 @@ class CompoundingScorer:
         write_legacy: bool = False,
         checkpoint_id: str | None = None,
         capture_reason: str | None = None,
+        regime_tag: str | None = None,
+        transaction: Any | None = None,
+        raise_on_error: bool = False,
     ) -> bool:
-        metadata: dict[str, Any] = {"iks": iks}
+        checkpoint_iks = self._compute_checkpoint_iks()
+        quality_data = self._checkpoint_quality(decision_time_end)
+        metadata: dict[str, Any] = {
+            "iks": checkpoint_iks,
+            "composite_iks": float(iks),
+            "centroid_distance_to_canonical": self.compute_centroid_distance_to_canonical(),
+            "dk_weights": self._checkpoint_dk_weights(),
+            "temperature": self.get_temperature(),
+            "regime_tag": regime_tag,
+        }
         if consolidation:
             metadata.update({
                 "boundary": boundary,
@@ -1820,9 +2297,7 @@ class CompoundingScorer:
             # V2 is the default checkpoint path.  The legacy path remains
             # available only for callers that explicitly opt in above.
             factor_names = list(self._preset.shape.factor_names)
-            factor_names_hash = hashlib.sha256(
-                json.dumps(factor_names, separators=(",", ":")).encode("utf-8")
-            ).hexdigest()
+            factor_names_hash = _factor_names_hash(factor_names)
             checkpoint_payload = {
                 "checkpoint_id": checkpoint_id or f"{self._domain}:checkpoint:{uuid.uuid4().hex}",
                 "domain": self._domain,
@@ -1831,14 +2306,22 @@ class CompoundingScorer:
                 "centroids": self._scorer.centroids,
                 "decisions_count": int(decisions_in_batch or 1),
                 "verified_count": self.get_verified_count(),
-                "iks": float(iks),
+                "iks": checkpoint_iks,
                 "shape": [int(value) for value in self._scorer.centroids.shape],
                 "factor_names_hash": factor_names_hash,
+                **quality_data,
                 "metadata": {**metadata, "decision_id": decision_id},
             }
-            self._graph_store.write_centroid_checkpoint(**checkpoint_payload)
+            checkpoint_writer = (
+                transaction.write_centroid_checkpoint
+                if transaction is not None
+                else self._graph_store.write_centroid_checkpoint
+            )
+            checkpoint_writer(**checkpoint_payload)
             return True
         except Exception as exc:
+            if raise_on_error:
+                raise
             logger.warning(
                 "Persistence failed: domain=%s decision=%s artifact=%s error=%s: %s",
                 self._domain, decision_id, "centroid_checkpoint", type(exc).__name__, exc,
@@ -1954,6 +2437,20 @@ class CompoundingScorer:
             logger.warning("Evolution run failed: %s", exc)
 
     def _evolution_conservation_state(self) -> dict[str, Any] | None:
+        if self._calibration_overlay is not None:
+            panel = self.get_conservation_state()
+            if self._calibration_overlay is not None:
+                return {
+                    "status": "CALIBRATING",
+                    "verified_count": int(panel.get("V") or 0),
+                    "effective_V": int(panel.get("effective_V") or 0),
+                    "correct_count": int(panel.get("correct_count") or 0),
+                    "q": float(panel.get("q") or 0.0),
+                    "theta_min": panel.get("theta_min"),
+                    "alpha": float(panel.get("alpha") or 0.0),
+                    "category_coverage": float(panel.get("alpha") or 0.0),
+                    "override_rate": 0.0,
+                }
         try:
             verified, correct, override_rate = _conservation_stats(self._graph_store)
             category_coverage = self._category_coverage()
@@ -2096,13 +2593,13 @@ def _dk_factor_dispersion_weights(
 ) -> np.ndarray:
     vectors = np.asarray([vector for vector, _category, _action in decisions], dtype=np.float64)
     if vectors.ndim != 2 or vectors.shape[1] != n_dims:
-        return np.ones((n_categories, n_dims), dtype=np.float64)
+        return cast(np.ndarray, np.ones((n_categories, n_dims), dtype=np.float64))
     variances = np.var(vectors, axis=0)
     mean_variance = float(np.mean(variances))
     if mean_variance <= 0.0:
-        return np.ones((n_categories, n_dims), dtype=np.float64)
+        return cast(np.ndarray, np.ones((n_categories, n_dims), dtype=np.float64))
     weights = np.clip(variances / mean_variance, 0.25, 4.0)
-    return np.tile(weights.reshape(1, n_dims), (n_categories, 1))
+    return cast(np.ndarray, np.tile(weights.reshape(1, n_dims), (n_categories, 1)))
 
 
 def _recent_quality(
@@ -2171,6 +2668,17 @@ def _decision_field(decision: dict[str, Any], key: str, default: Any = None) -> 
         if isinstance(nested_metadata, dict) and key in nested_metadata:
             return nested_metadata[key]
     return default
+
+
+def _decision_regime_tag(decision: dict[str, Any]) -> str | None:
+    """Return a canonical regime tag from a Decision, if one was supplied."""
+    candidate = _decision_field(decision, "regime_tag")
+    if candidate is None:
+        metadata = decision.get("metadata")
+        nested = metadata.get("regime_metadata") if isinstance(metadata, dict) else None
+        candidate = nested.get("regime") if isinstance(nested, dict) else None
+    tag = str(candidate).strip().lower() if candidate is not None else ""
+    return tag if tag in {"trending", "ranging", "volatile"} else None
 
 
 def _normalize_decision_timestamp(value: Any) -> str | None:

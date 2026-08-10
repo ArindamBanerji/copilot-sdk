@@ -31,7 +31,10 @@ def _timestamp_value(value: Any) -> float:
     try:
         return float(value)
     except (TypeError, ValueError):
-        return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp()
+        try:
+            return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp()
+        except ValueError:
+            return time.time()
 
 
 def _json_default(value: Any) -> Any:
@@ -570,7 +573,21 @@ class InMemoryGraphStore:
         if self._decisions[decision_id].get("domain") != domain_value:
             raise KeyError(decision_id)
         if decision_id in self._outcomes:
-            raise ValueError(f"outcome already exists for decision_id: {decision_id}")
+            existing = self._outcomes[decision_id]
+            same_action = str(existing.get("actual_action")) == str(actual_action)
+            existing_correct = existing.get("is_correct")
+            same_correct = (
+                existing_correct is None
+                or bool(existing_correct) == bool(is_correct)
+            )
+            if same_action and same_correct:
+                return None
+            raise ValueError(
+                "outcome already exists with a different action for decision_id: "
+                f"{decision_id}"
+            )
+        if self._decisions[decision_id].get("status") != "pending":
+            raise ValueError(f"decision status is not pending for decision_id: {decision_id}")
         meta = metadata or {}
         self._outcomes[decision_id] = {
             "decision_id": decision_id,
@@ -786,9 +803,18 @@ class InMemoryGraphStore:
         iks: float,
         shape: list[int],
         factor_names_hash: str,
+        quality_window_size: int | None = None,
+        quality_verified_count: int | None = None,
+        quality_correct_count: int | None = None,
+        rolling_accuracy: float | None = None,
+        quality_window_end: str | None = None,
+        quality_policy_version: str | None = None,
         metadata: dict[str, Any] | None = None,
+        decision_id: str | None = None,
     ) -> None:
         checkpoint_id = str(checkpoint_id)
+        metadata = deepcopy(metadata or {})
+        decision_id = str(decision_id or metadata.get("decision_id") or "") or None
         checkpoint_payload = {
             "checkpoint_id": checkpoint_id,
             "domain": str(domain),
@@ -800,7 +826,14 @@ class InMemoryGraphStore:
             "iks": float(iks),
             "shape": [int(value) for value in shape],
             "factor_names_hash": str(factor_names_hash),
-            "metadata": deepcopy(metadata or {}),
+            "quality_window_size": quality_window_size,
+            "quality_verified_count": quality_verified_count,
+            "quality_correct_count": quality_correct_count,
+            "rolling_accuracy": rolling_accuracy,
+            "quality_window_end": quality_window_end,
+            "quality_policy_version": quality_policy_version,
+            "metadata": metadata,
+            "decision_id": decision_id,
         }
         existing = self._protocol_centroid_checkpoints.get(checkpoint_id)
         if existing is not None:
@@ -919,6 +952,7 @@ class InMemoryGraphStore:
         pattern_id = str(pattern_id)
         payload = {
             "pattern_id": pattern_id,
+            "domain": str(self.domain),
             "source_domain": str(source_domain),
             "target_domain": str(target_domain),
             "pattern_type": str(pattern_type),
@@ -1360,7 +1394,7 @@ class InMemoryGraphStore:
                 "decisions_count": self.count_decisions(str(domain)),
                 "iks": float((metadata or {}).get("iks", 0.0)),
                 "metadata": deepcopy(metadata or {}),
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": time.time(),
                 "decision_time_start": kwargs.get("decision_time_start"),
                 "decision_time_end": kwargs.get("decision_time_end"),
                 "checkpoint_time": kwargs.get("checkpoint_time") or _utc_iso_now(),
@@ -1373,9 +1407,18 @@ class InMemoryGraphStore:
             for checkpoint in self._centroid_checkpoints
             if checkpoint.get("domain") == domain
         ]
+        checkpoints.extend(
+            checkpoint
+            for checkpoint in self._protocol_centroid_checkpoints.values()
+            if checkpoint.get("domain") == domain
+        )
         if not checkpoints:
             return None
-        return deepcopy(checkpoints[-1]["centroids"])
+        latest = max(
+            checkpoints,
+            key=lambda checkpoint: _timestamp_value(checkpoint.get("created_at", 0.0)),
+        )
+        return deepcopy(latest["centroids"])
 
     def save_rl_state(self, key: str, data: dict) -> None:
         self._rl_state[(self.domain, str(key))] = deepcopy(dict(data))
@@ -1410,13 +1453,70 @@ class InMemoryGraphStore:
                 for checkpoint in self._protocol_centroid_checkpoints.values()
                 if checkpoint.get("domain") == domain
             )
-            checkpoints.sort(key=lambda checkpoint: _timestamp_value(checkpoint.get("created_at", 0.0)))
+        normalized: list[dict[str, Any]] = []
+        for checkpoint in checkpoints:
+            item = deepcopy(checkpoint)
+            item["created_at"] = _timestamp_value(item.get("created_at", 0.0))
+            normalized.append(item)
+        checkpoints = sorted(
+            normalized,
+            key=lambda checkpoint: checkpoint["created_at"],
+            reverse=limit_value is None,
+        )
         if limit_value is None:
-            return deepcopy(checkpoints)
+            return checkpoints
         limit_value = max(int(limit_value), 0)
         if limit_value == 0:
             return []
-        return deepcopy(checkpoints[-limit_value:])
+        return checkpoints[-limit_value:]
+
+    def load_latest_checkpoint_for_regime(
+        self, domain: str, regime_tag: str
+    ) -> dict[str, Any] | None:
+        checkpoints = self.get_centroid_checkpoints(
+            str(domain), include_v2=True, limit=None
+        )
+        matching = [
+            checkpoint
+            for checkpoint in checkpoints
+            if str((checkpoint.get("metadata") or {}).get("regime_tag") or "")
+            == str(regime_tag)
+        ]
+        if not matching:
+            return None
+        return max(
+            enumerate(matching),
+            key=lambda item: (
+                float(
+                    item[1].get(
+                        "created_at_epoch", item[1].get("created_at", 0.0)
+                    )
+                    or 0.0
+                ),
+                item[0],
+            ),
+        )[1]
+
+    def get_checkpoint_lineage(
+        self, domain: str, checkpoint_id: str
+    ) -> dict[str, Any] | None:
+        checkpoint = self._protocol_centroid_checkpoints.get(str(checkpoint_id))
+        if not checkpoint or checkpoint.get("domain") != str(domain):
+            return None
+        decision_id = checkpoint.get("decision_id") or checkpoint.get("metadata", {}).get("decision_id")
+        if not decision_id:
+            return None
+        return self.get_decision(str(decision_id), str(domain))
+
+    def get_decision_checkpoints(
+        self, domain: str, decision_id: str
+    ) -> list[dict[str, Any]]:
+        return [
+            deepcopy(checkpoint)
+            for checkpoint in self._protocol_centroid_checkpoints.values()
+            if checkpoint.get("domain") == str(domain)
+            and str(checkpoint.get("decision_id") or checkpoint.get("metadata", {}).get("decision_id") or "") == str(decision_id)
+        ]
 
     def save_evolution_event(
         self,

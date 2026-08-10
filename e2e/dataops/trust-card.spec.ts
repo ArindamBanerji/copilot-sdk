@@ -1,9 +1,10 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { waitForAppShell } from "../helpers/ui";
+import { waitForAppShell, waitForScreenReady } from "../helpers/ui";
 
 async function gotoDashboard(page: import("@playwright/test").Page) {
   await page.goto("/");
   await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("trust-card")).toBeVisible({ timeout: 20_000 });
 }
 

@@ -8,6 +8,7 @@ import {
   getConservationHistory,
   getConservationStatus,
   getPipelines,
+  getSelfDiagnostics,
   getTrajectory,
   getTrust,
   numberOr,
@@ -23,6 +24,7 @@ import type {
   PipelineSystem,
   TrajectoryResponse,
   TrustResponse,
+  SelfDiagnosticsResponse,
 } from "../types";
 import AEImpactPanel from "../components/AEImpactPanel";
 import AccuracyAlertPanel from "../components/AccuracyAlertPanel";
@@ -32,11 +34,15 @@ import ConservationProjection from "../components/ConservationProjection";
 import ConservationTimeline from "../components/ConservationTimeline";
 import { CelonisBadge } from "../components/CelonisBadge";
 import { EnterpriseHealthBar } from "../components/EnterpriseHealthBar";
+import EnterpriseValueCard from "../components/EnterpriseValueCard";
 import PipelineGrid from "../components/PipelineGrid";
 import ProcessTimelinePanel from "../components/ProcessTimelinePanel";
+import DataProductsCard from "../components/DataProductsCard";
 import ProvenanceBadge from "../components/ProvenanceBadge";
 import { SAPDataBadge } from "../components/SAPDataBadge";
 import TrustCard from "../components/TrustCard";
+import NLQueryPanel from "../components/NLQueryPanel";
+import { DayZeroPanel } from "../../../../../copilot_sdk/frontend";
 
 interface DashboardScreenProps {
   onSelectAlert: (alertId: string) => void;
@@ -51,6 +57,7 @@ interface DashboardState {
   history: ConservationHistory | null;
   trajectory: TrajectoryResponse | null;
   trust: TrustResponse | null;
+  diagnostics: SelfDiagnosticsResponse | null;
 }
 
 export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps) {
@@ -63,42 +70,68 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
     history: null,
     trajectory: null,
     trust: null,
+    diagnostics: null,
   });
   const [loading, setLoading] = useState(true);
+  const [dashboardLoaded, setDashboardLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [whatIfPending, setWhatIfPending] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setDashboardLoaded(false);
     setError(null);
 
-    Promise.all([
-      getPipelines(),
-      getAlerts(),
-      getAlertGroups().catch(() => null),
-      getConservationStatus(),
-      getAeImpact(),
-      getConservationHistory(),
-      getTrajectory().catch(() => null),
-      getTrust().catch(() => null),
-    ])
-      .then(([pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory, trust]) => {
-        if (cancelled) {
-          return;
+    getConservationStatus()
+      .then((conservation) => {
+        if (!cancelled) {
+          setState((current) => ({ ...current, conservation }));
         }
-        setState({ pipelines, alerts, alertGroups, conservation, aeImpact, history, trajectory, trust });
       })
       .catch((caught: unknown) => {
         if (!cancelled) {
-          setError(caught instanceof Error ? caught.message : "Could not load dashboard.");
+          setError(caught instanceof Error ? caught.message : "Could not load conservation status.");
         }
       })
       .finally(() => {
         if (!cancelled) {
+          setDashboardLoaded(true);
           setLoading(false);
         }
       });
+
+    getPipelines().then((pipelines) => {
+      if (!cancelled) {
+        setState((current) => ({ ...current, pipelines }));
+      }
+    }).catch(() => null);
+    getAlerts().then((alerts) => {
+      if (!cancelled) {
+        setState((current) => ({ ...current, alerts }));
+      }
+    }).catch(() => null);
+    getAeImpact().then((aeImpact) => {
+      if (!cancelled) {
+        setState((current) => ({ ...current, aeImpact }));
+      }
+    }).catch(() => null);
+    getConservationHistory().then((history) => {
+      if (!cancelled) {
+        setState((current) => ({ ...current, history }));
+      }
+    }).catch(() => null);
+
+    Promise.all([
+      getAlertGroups().catch(() => ({ groups: [], ungrouped: [], totalAlerts: 0, totalGroups: 0 })),
+      getTrajectory().catch(() => null),
+      getTrust().catch(() => null),
+      getSelfDiagnostics(),
+    ]).then(([alertGroups, trajectory, trust, diagnostics]) => {
+      if (!cancelled) {
+        setState((current) => ({ ...current, alertGroups, trajectory, trust, diagnostics }));
+      }
+    });
 
     return () => {
       cancelled = true;
@@ -141,8 +174,10 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
     return <DashboardFrame message="Loading DataOps dashboard..." />;
   }
 
+  const dataReady = dashboardLoaded && !loading && state.alertGroups !== null;
+
   if (error) {
-    return <DashboardFrame message={error} tone="error" ready />;
+    return <DashboardFrame message={error} tone="error" ready={dataReady} />;
   }
 
   const conservation = state.conservation;
@@ -152,12 +187,15 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
   const provenanceSource = sourceFrom(state.alerts[0]) ?? "sample";
 
   return (
-    <div data-screen-ready="true" className="grid gap-5">
+    <div data-screen-ready={String(dataReady)} className="grid gap-5">
       <EnterpriseHealthBar />
+      <EnterpriseValueCard />
       <div className="flex flex-wrap items-center gap-2">
         <TransferBadge apiBase={BASE} />
-        <ProvenanceBadge source={provenanceSource} />
+      <ProvenanceBadge source={provenanceSource} />
       </div>
+
+      <DayZeroPanel measurementState={state.diagnostics?.measurementState ?? null} />
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div>
@@ -175,6 +213,8 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
       </section>
 
       <TrustCard trust={state.trust} />
+
+      <DataProductsCard />
 
       <ProcessTimelinePanel />
 
@@ -229,6 +269,8 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
           <AccuracyAlertPanel />
         </div>
       </section>
+
+      <NLQueryPanel />
     </div>
   );
 }

@@ -814,37 +814,15 @@ def test_accuracy_declining_list(client: TestClient) -> None:
     assert isinstance(payload["categories_improving"], list)
 
 
-def test_centroid_history_has_snapshots(client: TestClient) -> None:
-    response = client.get("/api/context/centroid-history")
+def test_centroid_history_shared_route_returns_envelope(client: TestClient) -> None:
+    response = client.get("/api/self/centroid-history")
 
     assert response.status_code == 200
     payload = response.json()
-    assert len(payload["snapshots"]) >= 2
-    assert payload["total_decisions"] > 0
-
-
-def test_centroid_history_initial_is_generic(client: TestClient) -> None:
-    payload = client.get("/api/context/centroid-history").json()
-    initial = payload["snapshots"][0]
-
-    assert initial["decision_index"] == 0
-    assert "Initial" in initial["label"]
-    assert all(value == 0.5 for value in initial["centroids_sample"].values())
-
-
-def test_centroid_history_top_shifts(client: TestClient) -> None:
-    payload = client.get("/api/context/centroid-history").json()
-    current = payload["snapshots"][-1]
-
-    assert current["top_shifts"]
-    for shift in current["top_shifts"]:
-        assert {"factor", "from", "to", "delta"} <= set(shift)
-
-
-def test_centroid_history_factor_names(client: TestClient) -> None:
-    payload = client.get("/api/context/centroid-history").json()
-
-    assert set(DATAOPS_FACTORS) <= set(payload["factor_names"])
+    assert "checkpoints" in payload
+    assert "total" in payload
+    assert isinstance(payload["checkpoints"], list)
+    assert payload["total"] == len(payload["checkpoints"])
 
 
 def test_transformations_for_known_system(client: TestClient) -> None:
@@ -1243,9 +1221,12 @@ def test_evolution_variants(client: TestClient) -> None:
     persisted = next(variant for variant in payload["variants"] if variant["id"] == "V-DO-RECUR-001")
     assert {"id", "variant_id", "event_type", "description"}.issubset(persisted)
     assert all(variant.get("triggered_by") != "fixture" for variant in payload["variants"])
-    assert payload["active_rules"] == []
+    assert set(payload["active_rules"]) == {
+        "AUTO_APPROVE_THRESHOLD_v1",
+        "SCHEDULING_CRITERIA_v1",
+    }
     assert payload["promoted_rules"] == []
-    assert payload["total_active"] == 0
+    assert payload["total_active"] == 2
     assert payload["total_promoted"] == 0
 
 

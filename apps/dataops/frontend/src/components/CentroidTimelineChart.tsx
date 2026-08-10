@@ -45,6 +45,7 @@ export default function CentroidTimelineChart() {
 
   const checkpoints = data?.checkpoints || [];
   const chart = useMemo(() => buildRows(checkpoints), [checkpoints]);
+  const latestQuality = checkpoints[checkpoints.length - 1]?.quality;
 
   if (error) {
     return null;
@@ -67,6 +68,11 @@ export default function CentroidTimelineChart() {
             Centroid History
           </h2>
           <p className="mt-1 text-sm dataops-muted">{data?.total ?? checkpoints.length} checkpoints from GraphStore.</p>
+          {latestQuality?.rolling_accuracy != null && (
+            <p data-testid="centroid-quality" className="mt-1 text-sm dataops-muted">
+              Rolling accuracy: {(latestQuality.rolling_accuracy * 100).toFixed(1)}% ({latestQuality.correct_count}/{latestQuality.verified_count})
+            </p>
+          )}
         </div>
       </div>
       <div className="mt-4 h-72">

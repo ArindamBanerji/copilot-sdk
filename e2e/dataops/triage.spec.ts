@@ -1,9 +1,10 @@
 import { type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForScreenReady } from "../helpers/ui";
 
 async function openFirstTriage(page: Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expect(page.getByText("Alert Root Causes").first()).toBeVisible({ timeout: 10_000 });
   const alertSection = page.locator("section", { hasText: "Alert Root Causes" });
   const triageButtons = alertSection.getByRole("button", { name: "Triage" });
@@ -26,12 +27,13 @@ async function openFirstTriage(page: Page) {
 
   await triageButtons.first().click();
   await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible({ timeout: 10_000 });
-  await page.locator('[data-screen-ready="true"]').waitFor({ timeout: 15_000 });
+  await waitForScreenReady(page);
   return true;
 }
 
 async function openKnownSystemTriage(page: Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expect(page.getByText(/Pipeline Status|DataOps Copilot/i).first()).toBeVisible({ timeout: 10_000 });
   const knownGroup = page.getByRole("button", { name: /SAP S\/4HANA|billing|warehouse/i });
   if ((await knownGroup.count()) > 0) {
@@ -46,7 +48,7 @@ async function openKnownSystemTriage(page: Page) {
   if (await knownRow.isVisible({ timeout: 5_000 }).catch(() => false)) {
     await knownRow.getByRole("button", { name: "Triage" }).click();
     await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible();
-    await page.locator('[data-screen-ready="true"]').waitFor({ timeout: 15_000 });
+    await waitForScreenReady(page);
     return true;
   }
 
@@ -64,7 +66,7 @@ async function openKnownSystemTriage(page: Page) {
   if ((await triageButtons.count()) > 0) {
     await triageButtons.first().click();
     await expect(page.getByRole("button", { name: "Back to Dashboard" })).toBeVisible({ timeout: 10_000 });
-    await page.locator('[data-screen-ready="true"]').waitFor({ timeout: 15_000 });
+    await waitForScreenReady(page);
     return true;
   }
   return openFirstTriage(page);

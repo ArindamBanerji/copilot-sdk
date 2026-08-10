@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
+import { waitForScreenReady } from "../helpers/ui";
 
 const DATAOPS_API_URL = process.env.DATAOPS_API_URL || "http://127.0.0.1:8030";
 
@@ -22,6 +23,7 @@ test.describe("demo AGE ops DataOps smoke", () => {
     expect(conservation.status()).toBe(200);
 
     await page.goto("/");
+    await waitForScreenReady(page);
     await expect(page.locator("main")).not.toBeEmpty();
     await expect(page.getByText(/Alert Root Causes|DataOps|Triage/i).first()).toBeVisible();
   });

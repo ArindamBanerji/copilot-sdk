@@ -21,6 +21,7 @@ export default function CentroidTimelineChart() {
   }, []);
 
   const rows = useMemo(() => flatten(data), [data]);
+  const latestQuality = data?.checkpoints?.[data.checkpoints.length - 1]?.quality;
   if (loading) return <section className="copilot-card p-4 text-sm trading-muted">Loading centroid history...</section>;
   if (rows.length === 0) return <section className="copilot-card p-4 text-sm trading-muted">No centroid history yet. Log trades to see learning.</section>;
 
@@ -29,6 +30,11 @@ export default function CentroidTimelineChart() {
       <p className="text-xs font-semibold uppercase" style={{ color: "var(--copilot-primary)" }}>SC-11</p>
       <h2 className="mt-1 text-xl font-semibold">Centroid History</h2>
       <p className="mt-1 text-sm trading-muted">{data?.total ?? 0} checkpoints from GraphStore.</p>
+      {latestQuality?.rolling_accuracy != null ? (
+        <p data-testid="centroid-quality" className="mt-1 text-sm trading-muted">
+          Rolling accuracy: {(latestQuality.rolling_accuracy * 100).toFixed(1)}% ({latestQuality.correct_count}/{latestQuality.verified_count})
+        </p>
+      ) : null}
       <div className="mt-4 grid gap-3">
         {rows.map((row) => (
           <div key={row.key}>

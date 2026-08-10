@@ -1,31 +1,31 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, waitForAppShell } from "../helpers/ui";
+import { clickTab, waitForScreenReady } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
 
 async function gotoAnalysis(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Analysis");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
 }
 
 async function gotoPerformance(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Performance");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
 }
 
 test("provenance badge visible on dashboard", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("provenance-badge").first()).toBeVisible({ timeout: 20_000 });
 });
 
 test("badge shows external for live data", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("provenance-badge").first()).toContainText(/External|░░|Cached/, {
     timeout: 20_000,
   });
@@ -38,13 +38,13 @@ test("badge shows sample for fixture data when fixture source is active", async 
   test.skip(!["sample", "fixture"].includes(String(data.source)), "No fixture-backed purchasing source active");
 
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("commodity-provenance")).toContainText(/sample/i, { timeout: 20_000 });
 });
 
 test("commodity panel shows provenance", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("commodity-price-panel")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("commodity-provenance")).toBeVisible({ timeout: 20_000 });
 });
@@ -54,7 +54,7 @@ test("spend dashboard shows provenance", async ({ page, request }) => {
   expect(response.status()).toBe(200);
 
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("spend-summary-panel")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("provenance-badge").first()).toBeVisible({ timeout: 20_000 });
 });
@@ -69,7 +69,7 @@ test("par recommendations show provenance", async ({ page, request }) => {
   }
 
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByTestId("par-level-panel")).toBeVisible({ timeout: 20_000 });
 });
 

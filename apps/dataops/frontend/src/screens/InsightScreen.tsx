@@ -8,9 +8,10 @@ import CentroidTimelinePanel from "../components/CentroidTimelinePanel";
 import DecisionExplorerPanel from "../components/DecisionExplorerPanel";
 import IncidentReplayCard from "../components/IncidentReplayCard";
 import { IntelligenceMapPanel } from "../components/IntelligenceMapPanel";
-import NLQueryPanel from "../components/NLQueryPanel";
 import { ProcessTimelinePanel } from "../components/ProcessTimelinePanel";
 import ProfileArchetype from "../components/ProfileArchetype";
+import SourceProfilePanel from "../components/SourceProfilePanel";
+import SearchPanel from "../components/SearchPanel";
 import WhatIfReordering from "../components/WhatIfReordering";
 import type { FingerprintResponse, Incident } from "../types";
 
@@ -45,11 +46,13 @@ export default function InsightScreen() {
   const [fingerprint, setFingerprint] = useState<FingerprintResponse | null>(null);
   const [incident, setIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState(true);
+  const [criticalLoaded, setCriticalLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setCriticalLoaded(false);
     setError(null);
     Promise.all([getFingerprint(), getIncident()])
       .then(([fingerprintResult, incidentResult]) => {
@@ -65,6 +68,7 @@ export default function InsightScreen() {
       })
       .finally(() => {
         if (!cancelled) {
+          setCriticalLoaded(true);
           setLoading(false);
         }
       });
@@ -87,8 +91,10 @@ export default function InsightScreen() {
     return <Frame message="Loading DataOps insight..." />;
   }
 
+  const dataReady = criticalLoaded && !loading;
+
   return (
-    <div data-screen-ready="true" className="grid gap-4">
+    <div data-screen-ready={String(dataReady)} className="grid gap-4">
       {error ? <Frame message={error} tone="error" /> : null}
       <ProfileArchetype factors={factors} />
       <FingerprintPanel
@@ -101,12 +107,13 @@ export default function InsightScreen() {
       <IncidentReplayCard incident={incident} />
       <BottleneckPanel />
       <ProcessTimelinePanel />
-      <NLQueryPanel />
       <AcquisitionPanel />
       <IntelligenceMapPanel />
       <CrossGraphInsightCard />
       <WhatIfReordering />
       <CentroidTimelinePanel />
+      <SourceProfilePanel />
+      <SearchPanel />
       <DecisionExplorerPanel />
     </div>
   );

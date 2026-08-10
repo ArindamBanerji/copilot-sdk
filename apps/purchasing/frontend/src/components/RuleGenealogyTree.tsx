@@ -33,7 +33,7 @@ export function RuleGenealogyTree() {
   const lineage = buildLineage(variants, events);
 
   return (
-    <section className="purchase-card" data-testid="rule-genealogy-panel">
+    <section className="purchase-card" data-testid="rule-genealogy-panel" data-panel-ready={String(status !== "loading")}>
       <p className="purchase-kicker">SC-13 Rule Genealogy</p>
       <h3 className="purchase-title">Purchasing rule lineage</h3>
       <div className="mt-4 grid gap-3 md:grid-cols-3">

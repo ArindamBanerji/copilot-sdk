@@ -88,6 +88,12 @@ export function CentroidExplorer({ decisionId }: { decisionId?: string }) {
         </span>
       </div>
 
+      {decisionId ? (
+        <p className="mt-3 font-mono text-xs text-slate-500" data-testid="centroid-decision-id">
+          Decision {decisionId}
+        </p>
+      ) : null}
+
       {!decisionId ? (
         <p className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-500">
           Select or score a decision to view centroid explanation.

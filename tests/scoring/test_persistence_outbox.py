@@ -423,10 +423,13 @@ def test_outbox_replay_covers_every_enqueued_artifact() -> None:
     scorer_source = (source_root / "copilot_sdk/scoring/scorer.py").read_text()
     ledger_source = (source_root / "copilot_sdk/evolution/ledger.py").read_text()
     replay_body = outbox_source.split("    def _replay(", 1)[1].split("    def clear(", 1)[0]
-    replayable = set(re.findall(r'artifact_type == "([a-z_]+)"', replay_body))
+    replayable = set(re.findall(r'artifact_type == "([a-z0-9_]+)"', replay_body))
     enqueued = {
         "decision",
         "conservation",
+        "l5_conservation",
+        "l5_centroid",
+        "dk_weights",
         "evidence_receipt",
         "fingerprint",
         "centroid_checkpoint",

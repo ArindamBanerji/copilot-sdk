@@ -107,3 +107,30 @@ test("no console errors on regime panel", async ({ page }) => {
 
   expect(unexpected).toEqual([]);
 });
+
+test("situation-conditioned regime panel renders", async ({ page }) => {
+  await gotoAnalysis(page);
+  await expect(page.getByTestId("situation-conditioned")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("situation-abstention")).toBeVisible();
+  await expect(page.getByTestId("situation-rejections")).toBeVisible();
+});
+
+test("volatility panel shows the illustrative Sharpe adjustment", async ({ page }) => {
+  await gotoAnalysis(page);
+  await expect(page.getByTestId("volatility-panel")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("volatility-raw-sharpe")).toContainText("2.1");
+  await expect(page.getByTestId("volatility-adjusted-sharpe")).toContainText("1.2");
+});
+
+test("all situation endpoints return 200", async ({ request }) => {
+  for (const path of [
+    "/api/trading/situation/regime",
+    "/api/trading/situation/conditioned-stats",
+    "/api/trading/situation/sharpe-adjustment",
+    "/api/trading/situation/abstention",
+    "/api/trading/situation/regime-rejections",
+  ]) {
+    const response = await request.get(`${BACKEND}${path}`);
+    expect(response.status(), path).toBe(200);
+  }
+});

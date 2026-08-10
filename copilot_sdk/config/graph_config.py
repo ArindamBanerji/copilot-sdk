@@ -78,9 +78,6 @@ class GraphConfig:
     live_age_test: bool
     port: int | None
     sources: tuple[tuple[str, Source], ...]
-    neo4j_uri: str | None = None
-    neo4j_user: str | None = None
-    neo4j_password: str | None = None
     narrative_provider: str | None = None
 
     @property
@@ -108,9 +105,6 @@ class GraphConfig:
                 "dsn": ("GRAPH_DSN", "AGE_DSN"),
                 "graph": ("GRAPH_NAME", "AGE_GRAPH_NAME"),
                 "domain": ("GRAPH_DOMAIN",),
-                "neo4j_uri": ("NEO4J_URI",),
-                "neo4j_user": ("NEO4J_USER",),
-                "neo4j_password": ("NEO4J_PASSWORD",),
                 "narrative_provider": ("NARRATIVE_PROVIDER",),
             }
         else:
@@ -131,7 +125,7 @@ class GraphConfig:
         fields = (
             "domain", "backend", "expected_backend", "dsn", "graph", "prefix",
             "active_test_mode", "shadow_age", "live_age_test", "port",
-            "neo4j_uri", "neo4j_user", "neo4j_password", "narrative_provider",
+            "narrative_provider",
         )
         for field in fields:
             names = env_specs.get(field, ())
@@ -175,9 +169,6 @@ class GraphConfig:
             live_age_test=_as_bool(values["live_age_test"]),
             port=_as_int(values["port"]),
             sources=tuple(sorted(sources.items())),
-            neo4j_uri=_optional_text(values.get("neo4j_uri")),
-            neo4j_user=_optional_text(values.get("neo4j_user")),
-            neo4j_password=_optional_text(values.get("neo4j_password")),
             narrative_provider=_optional_text(values.get("narrative_provider")),
         )
         config.validate(profile=profile)
@@ -222,8 +213,8 @@ class GraphConfig:
     def _default(field: str, domain: str) -> Any:
         return {
             "domain": domain,
-            "backend": "sqlite",
-            "expected_backend": "sqlite",
+            "backend": "age",
+            "expected_backend": "age",
             "dsn": "",
             "graph": "soc_graph",
             "prefix": f"{domain.upper()}-",
@@ -231,9 +222,6 @@ class GraphConfig:
             "shadow_age": False,
             "live_age_test": False,
             "port": None,
-            "neo4j_uri": None,
-            "neo4j_user": None,
-            "neo4j_password": None,
             "narrative_provider": None,
         }[field]
 

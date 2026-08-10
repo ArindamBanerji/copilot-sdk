@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import warnings
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +27,11 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH, CI_PLATFORM_PATH):
 
 from . import context_router as context_router_module  # noqa: E402
 from .ae_router import create_ae_router  # noqa: E402
-from .evolution import get_dataops_variants  # noqa: E402
+from .evolution import (  # noqa: E402
+    get_dataops_variant_specs,
+    get_dataops_variants,
+)
+from .enterprise_router import router as enterprise_router  # noqa: E402
 from .graph_status import (  # noqa: E402
     DataOpsActiveGraphConfig,
     create_dataops_active_graph_store,
@@ -37,8 +42,12 @@ from .routers.cohort_status_router import create_cohort_status_router  # noqa: E
 from .routers.dataops_status import router as dataops_status_router  # noqa: E402
 from .routers.query import create_query_router  # noqa: E402
 from .routers.di_enrichment_router import create_dataops_di_enrichment_router  # noqa: E402
+from .routers.perturbation_router import create_perturbation_router  # noqa: E402
 from .routers.trust_router import create_trust_router  # noqa: E402
-from copilot_sdk.backend.transfer_router import create_transfer_router  # noqa: E402
+from copilot_sdk.backend.transfer_router import (  # noqa: E402
+    create_self_transfer_router,
+    create_transfer_router,
+)
 from copilot_sdk.backend import (  # noqa: E402
     create_conservation_router,
     create_di_router,
@@ -47,17 +56,37 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
+from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider  # noqa: E402
+from .evolution.evolver_config import DATAOPS_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
-from copilot_sdk.di import AcquisitionAdvisor, BaseSourceProfiler, IntelligenceMapBuilder  # noqa: E402
-from copilot_sdk.graph import SQLiteGraphStore  # noqa: E402
+from copilot_sdk.di import (  # noqa: E402
+    AcquisitionAdvisor,
+    BaseSourceProfiler,
+    ClaudeQueryParser,
+    DataOpsEnterpriseProvider,
+    DIQueryService,
+    IntelligenceMapBuilder,
+)
+from copilot_sdk.di.intelligence_map import enrich_payload_with_suggestions  # noqa: E402
+from copilot_sdk.di.perturbation import PerturbationService  # noqa: E402
+from copilot_sdk.di.catalog import ExternalDataCatalog  # noqa: E402
+from copilot_sdk.di.search_service import DISearchService  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
+from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
+from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
 
 
 DOMAIN = "dataops"
+
+DATAOPS_QUERY_SOURCE_ID_MAP = {
+    "compounding_scorer": "snowflake",
+    "dataops_active_age_score": "airflow",
+    "migration": "dbt",
+}
 logger = logging.getLogger(__name__)
 
 
@@ -238,7 +267,10 @@ def _profile_dataops_sources(profiler_registry: dict[str, BaseSourceProfiler]) -
     profiles: dict[str, dict[str, Any]] = {}
     for source_name, profiler in profiler_registry.items():
         try:
-            profiles[source_name] = profiler.profile(_dataops_profile_entity_ids(source_name)).to_dict()
+            profile = profiler.profile(_dataops_profile_entity_ids(source_name)).to_dict()
+            profile.setdefault("source_name", source_name)
+            profile["trust_tier"] = int(getattr(profiler.connector, "trust_tier", 3))
+            profiles[source_name] = profile
         except Exception:
             continue
     return profiles
@@ -269,7 +301,7 @@ def _dataops_profile_summaries(
 
 
 def _dataops_acquisition_recommendations() -> dict[str, Any]:
-    advisor = AcquisitionAdvisor()
+    advisor = AcquisitionAdvisor(external_catalog=ExternalDataCatalog())
     payload = advisor.recommend(
         "dataops",
         current_sources=["snowflake", "dbt", "airflow"],
@@ -361,7 +393,7 @@ def _result_value(result: Any, key: str, default: Any = None) -> Any:
     return getattr(result, key, default)
 
 
-def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: SQLiteGraphStore) -> dict[str, int]:
+def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> dict[str, int]:
     try:
         entries = json.loads(SEED_FIXTURE_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -427,7 +459,7 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: SQLiteGraphStore
     return {"decisions_seeded": decisions_seeded, "outcomes_seeded": outcomes_seeded}
 
 
-def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
+def _auto_seed_if_needed(graph_store: GraphStore) -> int:
     try:
         count = int(graph_store.count_decisions(DOMAIN))
     except Exception as exc:
@@ -451,7 +483,7 @@ def _auto_seed_if_needed(graph_store: SQLiteGraphStore) -> int:
     return seeded["decisions_seeded"]
 
 
-def _seed_demo_evolution_events_if_needed(graph_store: SQLiteGraphStore) -> None:
+def _seed_demo_evolution_events_if_needed(graph_store: GraphStore) -> None:
     try:
         existing = graph_store.get_evolution_events(domain=DOMAIN, rule_name="resource_quality_scheduling_signal", limit=1)
     except Exception as exc:
@@ -547,6 +579,14 @@ def create_app(
     )
 
     scoring_db = _resolve_scoring_db(db_path)
+    # Stable pipeline/system metadata only; mutable decisions and conservation
+    # authority remain graph-backed and are intentionally excluded.
+    entity_cache = EntityCache(
+        max_size=200,
+        ttl_seconds=300,
+        source="dataops.entity_context_cache",
+    )
+    entity_context_cache = EntityContextCacheAdapter(entity_cache, enabled=True)
     if demo_bundle_path is None:
         _bundle_path = REPO_ROOT / "demo" / f"{DOMAIN}_demo_bundle.json"
     elif demo_bundle_path is False:
@@ -569,9 +609,47 @@ def create_app(
     app.state.dataops_profiler_registry = dataops_profiler_registry
     dataops_profiles = _profile_dataops_sources(dataops_profiler_registry)
     app.state.dataops_profiles = dataops_profiles
+    di_query_profiles = {
+        **dataops_profiles,
+        "sap_s4hana": {
+            "source_name": "SAP S/4HANA",
+            "trust": 0.99,
+            "trust_tier": 1,
+            "freshness_hours": 2.0,
+        },
+        "celonis_p2p": {
+            "source_name": "Celonis P2P",
+            "trust": 0.87,
+            "trust_tier": 2,
+            "freshness_hours": 2.0,
+        },
+    }
+    di_query_provider = DataOpsEnterpriseProvider(
+        selected_graph_store,
+        invoice_path=DATA_DIR / "sap_supplier_invoices.json",
+        source_profiles=di_query_profiles,
+    )
+    di_query_service = DIQueryService(
+        di_query_provider,
+        allowed_domains={DOMAIN},
+        source_id_map=DATAOPS_QUERY_SOURCE_ID_MAP,
+        claude_parser=ClaudeQueryParser() if os.environ.get("ANTHROPIC_API_KEY") else None,
+    )
+    app.state.di_query_service = di_query_service
     scorer_proxy = FreshScorerProxy(
         DOMAIN, scoring_db, graph_store_factory, profile=_resolve_profile()
     )
+
+    conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
+    evolver_config = replace(
+        DATAOPS_EVOLVER_CONFIG,
+        conservation_state_provider=conservation_provider,
+    )
+    evolver = PromptVariantEvolver(config=evolver_config)
+    evolver.register_variants(get_dataops_variant_specs())
+    app.state.evolver = evolver
+    perturbation_service = PerturbationService()
+    app.state.di_perturbation_service = perturbation_service
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
         "dk_source": "cold-start",
@@ -605,20 +683,29 @@ def create_app(
             app.state.l5_startup_status = status
 
     app.state.l5_startup_status = l5_startup_status
+    app.state.entity_cache = entity_cache
+    app.state.entity_context_cache = entity_context_cache
     app.include_router(
         create_scoring_router(
             DOMAIN,
             db_path=scoring_db,
             scorer_factory=lambda: scorer_proxy,
             dk_welford_tracker=dk_welford_tracker,
+            query_cache_invalidator=di_query_service.invalidate_cache,
+            entity_context_cache=entity_context_cache,
         ),
         prefix="/api",
     )
     app.include_router(
-        create_trust_router(DOMAIN, scorer_provider=lambda: scorer_proxy),
+        create_trust_router(
+            DOMAIN,
+            scorer_provider=lambda: scorer_proxy,
+            perturbation_provider=lambda: perturbation_service,
+        ),
         prefix="/api",
     )
     app.include_router(create_transfer_router(scorer_proxy))
+    app.include_router(create_self_transfer_router(scorer_proxy))
     app.include_router(
         create_conservation_router(
             DOMAIN,
@@ -638,28 +725,66 @@ def create_app(
     def dataops_acquisitions_response() -> dict[str, Any]:
         return _dataops_acquisition_recommendations()
 
+    dataops_map_builder = IntelligenceMapBuilder()
+    dataops_catalog = ExternalDataCatalog()
+    dataops_map_builder.enrich_from_connectors(
+        [profiler.connector for profiler in dataops_profiler_registry.values()]
+    )
+    app.state.dataops_map_builder = dataops_map_builder
     app.include_router(
         create_di_router(
             dataops_profiler_registry,
-            map_builder=IntelligenceMapBuilder(),
+            map_builder=dataops_map_builder,
             map_sources=_dataops_intelligence_map_sources(dataops_profiler_registry),
-            advisor=AcquisitionAdvisor(),
+            advisor=AcquisitionAdvisor(external_catalog=dataops_catalog),
+            catalog=dataops_catalog,
+            query_service=di_query_service,
+            search_service=DISearchService(
+                [profiler.connector for profiler in dataops_profiler_registry.values()],
+                dataops_profiler_registry,
+            ),
         ),
         prefix="/api",
     )
-    app.include_router(create_di_router(dataops_profiler_registry), prefix="/api/dataops")
+    app.include_router(
+        create_di_router(
+            dataops_profiler_registry,
+            advisor=AcquisitionAdvisor(external_catalog=dataops_catalog),
+            catalog=dataops_catalog,
+            query_service=di_query_service,
+            search_service=DISearchService(
+                [profiler.connector for profiler in dataops_profiler_registry.values()],
+                dataops_profiler_registry,
+            ),
+        ),
+        prefix="/api/dataops",
+    )
     app.include_router(
         create_dataops_di_enrichment_router(scorer_provider=lambda: scorer_proxy),
+        prefix="/api/di",
+    )
+    app.include_router(
+        create_perturbation_router(
+            scorer_provider=lambda: scorer_proxy,
+            service=perturbation_service,
+        ),
         prefix="/api/di",
     )
     app.include_router(
         create_evolution_router(
             graph_store_factory=lambda: selected_graph_store,
             domain=DOMAIN,
+            evolver_factory=lambda: app.state.evolver,
             variant_provider=lambda: _dataops_variants_with_config(selected_graph_store),
         )
     )
-    mount_self_computation_router(app, selected_graph_store)
+    mount_self_computation_router(
+        app,
+        selected_graph_store,
+        domain=DOMAIN,
+        scorer_provider=lambda: scorer_proxy,
+        evolver_provider=lambda: app.state.evolver,
+    )
     context_router_module.set_evolution_store_factory(lambda: selected_graph_store)
     app.include_router(context_router_module.router, prefix="/api/context")
     app.include_router(
@@ -671,7 +796,10 @@ def create_app(
     )
     app.include_router(dataops_graph_status_router)
     app.include_router(dataops_status_router)
-    app.include_router(create_query_router(lambda: selected_graph_store))
+    app.include_router(enterprise_router, prefix="/api/dataops")
+    app.include_router(
+        create_query_router(lambda: selected_graph_store, query_service=di_query_service)
+    )
     app.include_router(
         create_cohort_status_router(graph_store_factory=lambda: selected_graph_store)
     )
@@ -679,7 +807,13 @@ def create_app(
     @app.get("/api/di/intelligence-map")
     def dataops_intelligence_map() -> dict[str, Any]:
         sources = _dataops_intelligence_map_sources(dataops_profiler_registry)
-        return IntelligenceMapBuilder().build(sources=sources).to_dict()
+        payload = dataops_map_builder.build(sources=sources).to_dict()
+        if not payload.get("gold_lines"):
+            enrich_payload_with_suggestions(
+                payload,
+                _dataops_acquisition_recommendations().get("recommendations", []),
+            )
+        return payload
 
     @app.get("/api/dataops/di/intelligence-map")
     def dataops_prefixed_intelligence_map() -> dict[str, Any]:
@@ -699,6 +833,7 @@ def create_app(
     def health() -> dict[str, Any]:
         graph = DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
         graph_source = graph.graph_source
+        cache_stats = entity_cache.stats()
         return {
             "status": "ok" if graph_source == "graph" else "error",
             "domain": DOMAIN,
@@ -708,6 +843,9 @@ def create_app(
                 "copilot_sdk.scoring + gae.profile_scorer + gae.calibration + "
                 "gae.evolution + ci_platform.graph"
             ),
+            "cache_hits": cache_stats.hits,
+            "cache_misses": cache_stats.misses,
+            "cache_size": cache_stats.size,
         }
 
     return app

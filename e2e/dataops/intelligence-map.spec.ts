@@ -20,6 +20,13 @@ async function mockEmptyDIProfiles(page: Page) {
       body: JSON.stringify({ sources: [], total: 0 }),
     });
   });
+  await page.route(/https?:\/\/(?:localhost|127\.0\.0\.1):8030\/api\/di\/intelligence-map$/, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ nodes: [], edges: [], gold_lines: [] }),
+    });
+  });
 }
 
 async function gotoInsight(page: Page) {
@@ -28,6 +35,7 @@ async function gotoInsight(page: Page) {
   await waitForAppShell(page);
   await clickTab(page, "Insight");
   await expect(panelByHeading(page, "Intelligence Map")).toBeVisible({ timeout: 20_000 });
+  await page.locator('[data-testid="intelligence-map"][data-screen-ready="true"]').waitFor({ timeout: 20_000 });
 }
 
 test.describe("DataOps Intelligence Map", () => {
@@ -74,6 +82,7 @@ test.describe("DataOps Intelligence Map", () => {
     await expect(panelByHeading(page, "Process Timeline")).toBeVisible();
     const map = panelByHeading(page, "Intelligence Map");
     await expect(map).toBeVisible();
+    await page.locator('[data-testid="intelligence-map"][data-screen-ready="true"]').waitFor({ timeout: 20_000 });
     await expect(map.getByText("No connected sources.")).toBeVisible();
     await expect(map.getByText(/Could not load DI source profiles/i)).toHaveCount(0);
     await expect(panelByHeading(page, "Cross-Graph Insight")).toBeVisible();
@@ -91,6 +100,7 @@ test.describe("DataOps Intelligence Map", () => {
 
     const map = panelByHeading(page, "Intelligence Map");
     await expect(map).toBeVisible();
+    await page.locator('[data-testid="intelligence-map"][data-screen-ready="true"]').waitFor({ timeout: 20_000 });
     await expect(map.getByText("No connected sources.")).toBeVisible();
     await expect(map.getByText(/Could not load DI source profiles/i)).toHaveCount(0);
   });

@@ -1,10 +1,10 @@
-# Demo Scenarios & Use Cases — Consolidated · v2.1
+# Demo Scenarios Demo Scenarios & Use Cases — Consolidated · v2.1 Use Cases — Consolidated · v2.2
 
-**Date:** July 11, 2026 · **Version:** 2.1
+**Date:** August 8, 2026 · **Version:** 2.4
 **Purpose:** the single source of truth for the demo storyboard + use-case scenarios, **executable for
 coding sessions** (every beat carries a surface, API, data need, DoD, and session owner).
 
-**v2.1 — presenter technique + competitive Q&A + S14 contrast enhancement.**
+**v2.2 — DataOps DI beats + v2.1 presenter technique + competitive Q&A + S14 contrast enhancement.**
 1. **§2.5 "silence beats" added** — the three moments where the presenter STOPS TALKING and lets the
    audience read the screen. These are emotional, not informational — the silence is the technique.
 2. **§0.3 competitive tear-down lines** — per-room "when they say X, you say Y" one-liners for live
@@ -17,7 +17,7 @@ coding sessions** (every beat carries a surface, API, data need, DoD, and sessio
 1. **Scenario classes (LIVE / NEAR / ARCH)** now travel with every beat (product_integrity §2.8). Showing
    roadmap is *allowed and expected* — implying roadmap is LIVE is the only violation (**F-27**).
 2. **§0.1 room→kill-shot map** — beats are now indexed by **competitive room** (next_steps §2.2/§2.3), not
-   only by copilot. *8 of 11 rooms have a LIVE kill shot.*
+   only by copilot. *10 of 13 rooms have a LIVE kill shot.*
 3. **Naming purge (F-25):** the primary learning mechanism is **decision-trace / prototype learning from
    verified decisions — NOT "RL."** (Genuine bandits exist and may be named as such.)
 4. **⚠️ SOC learning is DISABLED by default** — a **demo-truth** constraint on every SOC "watch it learn"
@@ -64,6 +64,8 @@ roadmap. *Showing ARCH is allowed and expected. Implying ARCH is LIVE is the vio
 | 9 | Context / memory (Rowboat) | **Counterfactual** (§4.2) | "They compound **notes**. We compound **judgment** — and prove it moved the decision." | **LIVE** |
 | 10 | Agent infra (CopilotKit) | 5 copilots on one engine + cross-copilot signal | "They're the **UI**. We're the **substrate**." | **LIVE** |
 | 11 | AI governance / compliance | **Day-Zero honesty** (§4.3) + audit chain | "We **don't fake your number** — and it's audit-traceable." | **LIVE** |
+| 12 | Data quality / observability | **DI-TRUST: "Every data asset gets a trust score"** | "Monte Carlo tells you when data breaks. We tell you which data is *worth buying* — ranked by projected ROI to your decision quality." | **LIVE** |
+| 13 | Data-as-product / CDO | **DI-PRODUCT: "Data products with IKS"** | "Your customer-360 has IKS 72, GREEN. Any agent can consume it autonomously. Your ESG product: IKS 8, AMBER. The system *measured* the difference from 3,400 verified decisions — not a label in a catalog." | **LIVE** |
 
 ## 0.2 Demo-truth constraints (read before staging any beat — product_integrity v3.0)
 
@@ -77,8 +79,9 @@ nitpicks — a beat that implies otherwise is a T3 failure.**
    copilot where learning is live.**
 2. **Naming (F-25):** the primary mechanism is **not "RL."** It is **decision-trace / prototype learning from
    verified human decisions** — the signal is a *correctness label, not a reward*. Genuine bandits (Thompson /
-   UCB) exist and may be named as such. *The honest line is the stronger one:* **"we have no reward function
-   for judgment"** — exactly what a reward-maximizing agent cannot say (C-18). And **exploration is
+   UCB) exist and may be named as such. *The honest line is the stronger one:* **"the decision is
+   centroid-distance, not reward-maximizing; reward functions exist only in the learning path
+   (exploration + credit)"** — exactly what a reward-maximizing agent cannot say (C-18). And **exploration is
    conservation-bounded by construction** (`ConservationBoundedThompson`, C-19).
 3. **C-17 is scoped — one open gap (F-24).** Prompt-variant promotion is **not** conservation-gated. Until
    `C-GOV` (~0.5-1d) lands, the spoken line is *"one conservation law governs our **scoring, exploration and
@@ -95,7 +98,7 @@ pattern: **acknowledge → reframe → kill shot.** Never dismiss the competitor
 |---|---|---|
 | 1. Agentic governance | "Isn't this just guardrails?" | "Guardrails stop bad things. We do that — AND we let the system propose improvements, test them in shadow, and promote only what survives the conservation gate. Show me another system that *rejected 35 of its own suggestions* and can tell you *exactly why each one failed.*" |
 | 2. Self-improving agents | "The frontier labs are working on this." | "They are. They published the open problem last year: self-modify without losing the safety guarantee. We shipped the answer. And we open-sourced it so you can read the gate yourself." |
-| 3. RL trading (TensorTrade) | "How is this different from TensorTrade?" | "TensorTrade maximizes a reward function. We have no reward function for judgment — because human judgment isn't a scalar to maximize. Their canonical failure is regime overfitting: train on calm, blow up on crisis. Our system *reduced its own autonomy* because it detected the regime break. An agent that maximizes reward cannot do that." |
+| 3. RL trading (TensorTrade) | "How is this different from TensorTrade?" | "TensorTrade maximizes a reward function. Our action selection is centroid-distance; reward functions operate only in learning (exploration + credit), never in choosing the action. Their canonical failure is regime overfitting: train on calm, blow up on crisis. Our system *reduced its own autonomy* because it detected the regime break. An agent that maximizes reward cannot do that." |
 | 4. Volatility / risk | "We already have risk systems." | "Your risk system measures risk. Ours measures *whether your edge is real or a clustering artifact*. Your calm-regime Sharpe of 2.1 is 1.2 after clustering adjustment. Half your 'edge' is tail risk you aren't paid for. We show you that — your risk system can't." |
 | 5. Decision intelligence | "This is just better analytics." | "Analytics tells you what happened. We tell you *what you believe that's wrong* — with proof from your own decisions. Your favorite setup is your worst setup. No dashboard can show you that because it requires learning from verified outcomes, not displaying metrics." |
 | 6. Process intelligence (Celonis) | "We already have Celonis." | "Good — keep it. Celonis tells you WHERE the process breaks. We ingest its output and tell you WHY and WHICH DECISION to change. Your Celonis spend just became more valuable, not obsolete. We're the only vendor in this room who makes your existing investment worth *more*." |
@@ -106,6 +109,9 @@ pattern: **acknowledge → reframe → kill shot.** Never dismiss the competitor
 | 11. AI governance | "We need compliance — is this audit-ready?" | "Every decision, hash-chained, tamper-evident. We don't fake your day-one number — we show you the instrument working and the proof it's calibrated. And we're sixteen months ahead of the EU high-risk deadline." |
 
 **The meta-pattern for any unexpected competitor:** *"They solve [X problem] well. We solve the layer underneath: how does the system that solves [X] get better over time, safely, without authority creep? That's the missing layer — and it's why 88% of AI pilots fail on governance."*
+
+| 12. Data quality | "We already have Monte Carlo / Great Expectations." | "They tell you when data breaks. We tell you which data *to buy next* — ranked by projected ROI. We derived that from DK weights on your verified decisions. Nobody else connects data quality to decision quality." |
+| 13. Data-as-product | "We have a data catalog with quality scores." | "Your catalog labels assets manually. We *measure* trust from verified outcomes — 3,400 decisions prove your SAP data is 94% reliable and your Salesforce is 67%. That's not a label, it's a theorem." |
 
 ---
 
@@ -196,6 +202,7 @@ All open on the mirror, close on the moat.
 | E3 | **Refusal + Rejection** — conservation declines an expansion; AE rejects variants | P1 | SOC **Compounding** | `/api/soc/interventions`; rejection log `[NET-NEW §4.1]` | 90s |
 | E4 | **Red-team** — `simulate_failure` → AMBER | P1 | SOC **Compounding** | `/api/eval/simulate-failure` | 60s |
 | E5 | **Process-tech fusion climax** — Celonis shrugs, SAP shrugs, the graph answers ($/month resolves) → apply-fix | P2/P3 | DataOps **Insight** → `ApplyFixModal` | `/api/s2p/insight/cross-graph`, `/api/context/apply-fix` | climax |
+| E5b | **Data Intelligence** — "your data has a trust score, and it tells you what additional data to buy" | P2/P3 | DataOps **Dashboard** (TrustCard → Products → Intelligence Map) | `/api/dataops/trust`, `/api/di/products`, `/api/di/intelligence-map` | 90s |
 | E6 | **Continuity / Departure** — "$ of judgment retained when your best person leaves" | P3 | SOC **Executive Narrative** / S2P Performance | `/api/soc/centroid-support`,`/learning-state` | 60s |
 | E7 | **Acts in your stack** — the ServiceNow ticket / Sentinel write-back it filed itself | P3 | SOC **Evidence Room** | `/api/servicenow/create-incident`,`/api/sentinel/writeback-test` | 45s |
 | E8 | Close on the moat + audit trail (Evidence Room hash-chain) | P2 | SOC **Evidence Room** | evidence ledger export | 30s |
@@ -511,6 +518,268 @@ vendor can say that sentence.
 
 ---
 
+## §4.9 Data Intelligence Demo Beats (NEW — shipped August 2, 2026)
+
+
+### §4.9.0 DataOps Cut Arc (v2.3 — mirror→moat sequence)
+
+**Story spine:** Open with an expensive truth → prove it's real → show compounding → show governance → show strategy → extend to platform.
+
+| # | Beat | Role in arc | Time |
+|---|---|---|---|
+| 1 | DI-TRUST (reframed as "Data Trust Trap") | **Mirror** — your most trusted source is your noisiest | 60s |
+| 2 | **DI-PROOF** (NEW) | **Prove** — perturbation drops trust live | 90s |
+| 3 | DI-TIMELINE | **Compound** — categories converging, IKS rising | 60s |
+| 4 | DI-ADMITS-FAILURE | **Govern** — AgentEvolver rejects bad rules (moat) | 60s |
+| 5 | DI-GOLD | **Strategize** — what data to buy (now believable) | 90s |
+| 6 | DI-AGENT-TRUST | **Extend** — trust layer every agent needs | 60s |
+
+---
+
+### DI-PROOF: "Earned, Not Asserted" (the credibility linchpin — NEW v2.3)
+
+| Field | Value |
+|---|---|
+| **Surface** | DataOps **Dashboard** → TrustCard with live what-if control |
+| **API** | `GET /api/dataops/trust` + scoped what-if (perturb source outcomes) |
+| **Class** | **NEAR** — capability proven (perturbation experiment); live what-if surface ~2-3d build |
+| **What audience sees** | Presenter picks highest-trust source (SAP, 0.94). Feeds decisions where SAP led to wrong outcome. Trust drops live. DK weight moves. Conservation ticks toward AMBER. Revert — climbs back. |
+| **Effort** | ~2-3d (live what-if surface on TrustCard) |
+
+**Presenter script:**
+
+| Caption | Spoken |
+|---|---|
+| *This isn't a number I typed.* | "Watch — I feed it decisions where SAP was wrong, and the trust drops, live. It's *earned* from your outcomes. Every other data-quality score is a label. This is a measurement." |
+
+**SILENCE BEAT 6 (new):** After the trust bar drops, stop. Let them watch it. Then, quietly: "A label can't do that. A measurement can."
+
+**Why it's the linchpin:** Credibility floor under DI-PRODUCT (IKS), DI-GOLD (what to buy), and DI-AGENT-TRUST — all of which "sound too good" without it. Grounding: perturbation experiment already proven (source-property perturbation moved only its factor, graph mode, clean revert).
+
+---
+### DI-TRUST: "Every Data Asset Gets a Trust Score" (the Data Quality room kill-shot)
+
+| Field | Value |
+|---|---|
+| **Surface** | DataOps **Dashboard** → TrustCard |
+| **API** | `GET /api/dataops/trust` |
+| **What audience sees** | 6 horizontal bars showing per-factor DK weights. Color coded: green (reliable), amber (moderate), red (noisy). Overall trust score 0.48. Conservation GREEN. Narrative: "source_reliability (0.94) is your most predictive factor. data_freshness (0.23) is noise." |
+| **Class** | **LIVE** |
+| **Effort** | Shipped — SC-TRUST (6 BE tests, 4 PW tests) |
+
+**Presenter script:**
+
+| Caption (on-screen) | Spoken |
+|---|---|
+| *Six factors. Six trust scores. Earned, not labeled.* | "Every data asset in your pipeline has a trust score — not a label someone typed into a catalog, but a score the system *earned* from verified decisions. Source_reliability: 0.94 — that's SAP. You can trust it. Data_freshness: 0.23 — that's your Airflow metadata. It's noise. You've been treating both as equally reliable. They're not, and only 400 verified decisions could have told you that." |
+
+**SILENCE BEAT 4 (new):** After showing the red bar for data_freshness (0.23), STOP. Let the audience read the number. The insight they need to arrive at: "we've been weighting noisy data the same as reliable data." Wait 5 seconds. Then: "That gap is $180K/year in wrong decisions based on stale freshness data. The trust score found it. A dashboard can't."
+
+---
+
+### DI-SOURCE: "Your Data Has a Reputation" (Source Profiler deep-dive)
+
+| Field | Value |
+|---|---|
+| **Surface** | DataOps **Insight** → navigate to source profile via API |
+| **API** | `GET /api/di/sources/{id}/trust` + `GET /api/di/sources/{id}/consumers` |
+| **What audience sees** | Per-source trust card: SAP S/4HANA trust 0.94 ("reliable"), 2 consumers, per-column quality. Salesforce trust 0.67 ("moderate"), 3 consumers, 2 noisy columns flagged. |
+| **Class** | **LIVE** |
+| **Effort** | Shipped — DI-1 remaining 3 endpoints (9 BE tests, 3 E2E tests) |
+
+**Presenter script:**
+
+| Caption | Spoken |
+|---|---|
+| *Per-source, per-column. Earned from decisions.* | "Click into SAP. Trust 0.94 — reliable. Now click Salesforce. Trust 0.67. Two columns are noisy: satisfaction_score and churn_indicator. The system learned this from 400 decisions where those columns didn't predict the outcome. Every source gets a reputation — earned, not assigned." |
+
+---
+
+### DI-PRODUCT: "Data Products with IKS" (the CDO room kill-shot)
+
+| Field | Value |
+|---|---|
+| **Surface** | DataOps **Dashboard** or **Insight** → Products panel |
+| **API** | `GET /api/di/products` |
+| **What audience sees** | 3 data products with IKS, conservation status, maturity label. Customer-360: IKS 72, GREEN, "mature." ESG-compliance: IKS 8, AMBER, "learning." |
+| **Class** | **LIVE** |
+| **Effort** | Shipped — DI-1 products endpoint |
+
+**Presenter script:**
+
+| Caption | Spoken |
+|---|---|
+| *Data-as-a-product. Measured, not labeled.* | "Your customer-360 data product: IKS 72, GREEN, 3,400 verified decisions. Any agent can consume it autonomously — the trust is proven. Your ESG data product: IKS 8, AMBER, 120 decisions. Still learning. Require human review. THIS is what data-as-a-product actually looks like — not a label in a catalog, but a measured maturity score from verified outcomes." |
+
+---
+
+### DI-GOLD: "Your Data Tells You What Data to Buy" (the Level 6 differentiator)
+
+| Field | Value |
+|---|---|
+| **Surface** | DataOps **Insight** → Intelligence Map with gold dotted lines |
+| **API** | `GET /api/di/combinations` + `GET /api/di/acquisition-advice` + `GET /api/di/intelligence-map` |
+| **What audience sees** | Force-directed graph. Nodes = sources (brightness = trust). Lines = correlations. **Gold dotted lines** = suggested new connections with dollar values. "Weather API → $180K/year value." |
+| **Class** | **LIVE** (endpoints) / **NEAR** (gold line rendering on map) |
+| **Effort** | Shipped — DI-5 endpoints (9 BE tests, 3 E2E tests). Frontend gold line rendering: ~1 week |
+
+**Presenter script:**
+
+| Caption | Spoken |
+|---|---|
+| *The gold lines are connections the system discovered — ranked by ROI.* | "See the gold dotted lines? Those are data sources you DON'T HAVE yet — but the system computed their value from what it's already learned. Weather data: $180K/year in better demand prediction. Commodity index: $120K/year in pricing accuracy. The system didn't just learn from your data — it learned what ADDITIONAL data would make it smarter. Your data tells you what data to buy. Nobody else can show you this." |
+
+**SILENCE BEAT 5 (new):** After the gold lines appear, STOP. Let them read the dollar values on each gold line. The insight: "the system isn't just using our data — it's recommending what to buy next." Wait 5 seconds. Then, quietly: "That's not a data catalog. That's a data strategy."
+
+---
+
+### DI-TIMELINE: "The Learning Journey" (Centroid Timeline)
+
+| Field | Value |
+|---|---|
+| **Surface** | DataOps **Insight** → CentroidTimelinePanel |
+| **API** | `GET /api/self/centroid-history` |
+| **What audience sees** | Line chart showing centroid drift over decisions. 6 category curves converging. IKS overlay rising. Phase markers: bootstrap → learning → converged. |
+| **Class** | **LIVE** |
+| **Effort** | Shipped — SC-11 (4 PW tests) |
+
+**Presenter script:**
+
+| Caption | Spoken |
+|---|---|
+| *The trajectory of intelligence. Every curve is a category learning your environment.* | "This is the compounding curve in action. Each line is a category — pipeline_failure, schema_change, resource_quota — converging from the generic prior toward YOUR operational pattern. The IKS is rising. It took 200 decisions for pipeline_failure to converge. Schema_change needed 350 — it's harder. The system knows how much it's learned AND how much it hasn't. No other platform can show you this." |
+
+---
+
+### DI-ADMITS-FAILURE: "The System That Admits Failure" (Rule Genealogy)
+
+| Field | Value |
+|---|---|
+| **Surface** | DataOps **Evidence** → RuleGenealogyPanel + AccuracyAlertsPanel |
+| **API** | `GET /api/ae/operational-rules` + `GET /api/self/accuracy-by-category` |
+| **What audience sees** | Rules with promoted (green) and rejected (red) badges. Accuracy alerts with per-category bars. A rejected rule: "auto-resolve recurring timeouts — 45% accuracy — REJECTED." |
+| **Class** | **LIVE** |
+| **Effort** | Shipped — SC-12 + SC-13 (8 PW tests) |
+
+**Presenter script:**
+
+| Caption | Spoken |
+|---|---|
+| *12 promoted. 35 rejected. The rejections are the point.* | "The system tried to auto-resolve recurring timeouts. Shadow-tested on 15 decisions. 45% accuracy. Rejected. Meanwhile, auto-escalating first-time failures: 73%. Promoted. The system doesn't just learn what works — it learns what DOESN'T work and refuses to promote it. The rejections are the point. Self-improvement without a gate is a liability. We ship the gate." |
+
+---
+
+### DI-DIRTY-DATA: "Deploy on Dirty Data, Day 1" (the cold-start wedge)
+
+| Field | Value |
+|---|---|
+| **Surface** | DataOps **Dashboard** → TrustCard (same surface as DI-TRUST, different framing) |
+| **API** | `GET /api/dataops/trust` |
+| **What audience sees** | Same 6 bars — but the presenter frames it differently: "We didn't clean your data first. We deployed on it. The system learned which sources to trust and which to ignore. data_freshness: 0.23 — the system figured that out in 400 decisions, not a 12-month cleanup project." |
+| **Class** | **LIVE** |
+| **Effort** | Shipped (same as DI-TRUST — different script, same surface) |
+
+**Presenter script:**
+
+| Caption | Spoken |
+|---|---|
+| *No cleanup. No 12-month project. Deploy and learn.* | "Every competitor starts with: 'First, 6-12 months of data cleanup. $1.5M.' We deployed on your data as-is. Day 1. The system learned which sources to trust — SAP at 0.94, your Airflow metadata at 0.23. It didn't need clean data. It needed verified decisions. 400 of them later, it knows more about your data quality than any catalog could tell you." |
+
+**Target audience:** CIO/CDO who's been burned by data cleanup projects that go stale within a year.
+
+---
+
+### DI-AGENT-TRUST: "The Autonomy License" (Agent Trust API)
+
+| Field | Value |
+|---|---|
+| **Surface** | DataOps **Insight** → Source Profile trust card |
+| **API** | `GET /api/di/sources/{id}/trust` |
+| **What audience sees** | Trust card with recommendation: "Safe for autonomous agent consumption" (trust > 0.8) or "Require human review" (trust < 0.5). Per-column breakdown. |
+| **Class** | **LIVE** |
+| **Effort** | Shipped — DI-1 trust endpoint |
+
+**Presenter script:**
+
+| Caption | Spoken |
+|---|---|
+| *Trust 0.94: autonomous. Trust 0.23: human review required.* | "Your agents need to know which data they can trust. SAP at 0.94: safe for autonomous consumption — the system proved it over 3,400 decisions. Your ESG feed at 0.23: require human review. The IKS IS the autonomy license. No other platform gives your agents a measured, earned trust score per data source." |
+
+**Target audience:** Teams building autonomous AI agents who need data governance.
+
+---
+
+**⚠️ Honesty guard (F-21/F-22):** All dollar amounts in DI-GOLD ($180K, $120K) and DI-TRUST ($180K gap) are **illustrative formats derived from preseed fixture data**, not measured customer outcomes. They render from the sample data with a provenance badge. Never present them as measured results. The trust scores (0.94, 0.23, 0.67) are computed from the preseed's verified decisions — real computation on sample data, labeled as such.
+
+---
+
+### Cross-Copilot Signal: DI Benefits All Domains
+
+The Source Profiler (DI-1) and Trust API are domain-agnostic. The demo can show:
+
+| Copilot | What DI provides | The line |
+|---|---|---|
+| SOC | Per-SIEM trust (Sentinel vs Splunk reliability) | "Your Sentinel feed: 0.96. Your custom SIEM: 0.71. The system knows which alerts to weight." |
+| S2P | Per-supplier data trust | "Supplier X's self-reported lead times: 0.34 trust. UPS tracking: 0.97. Trust the tracking, not the supplier." |
+| Trading | Per-data-source signal quality | "Bloomberg at 0.98. Your spreadsheet at 0.41. Your 'edge' is built on 0.41 data." |
+| Purchasing | Per-POS reliability | "Toast POS: 0.93. Manual inventory counts: 0.52. Stop trusting the clipboard." |
+
+This is a **one-engine-five-domains** beat (V3/E5 amplifier). The DI infrastructure makes each copilot's data quality visible — and the trust scores transfer across domains via the shared DK mechanism.
+
+---
+
+---
+
+## §4.10 Reference & Differentiation Beats (v2.4 — August 8, 2026)
+
+**Source:** jm_reference_and_value_upgrades_executable_v6.md + vc_pitch_judge_consolidation.md
+
+### DIFF-1 — "Governed vs Ungoverned" (the runnable "isn't this a bandit" rebuttal) ⭐
+
+| Field | Value |
+|---|---|
+| **Surface** | `apps/s2p_differentiation/` (backend + frontend; reuses SOC viz) |
+| **Class** | **NEAR** (gate on WP-1) |
+| **Rooms** | 2 (self-improving agents) + 3 (RL trading) — runnable kill-shot |
+| **The beat** | (1) T-G1 toggle: CI action holds, reward-max flips. (2) Governed arm stays robust after regime shift; reward-max collapses. (3) Safety: CI gate rejects poisoned rule; ungoverned promotes it. |
+| **Spoken** | "Don't take 'we're not a bandit' on faith — here it is, governed vs reward-maximized, same data, side by side." |
+| **Honesty** | `test_baseline_is_faithful` — reward-max baseline must not be strawmanned. |
+
+### COMP-1 — The Compounding Curve (the fundable artifact) ⭐
+
+| Field | Value |
+|---|---|
+| **Surface** | DI-TIMELINE (single-arm LIVE) → two-arm governed-vs-frozen (NEAR, from APP-1/APP-4) |
+| **Class** | **LIVE** (single-arm IKS) → **NEAR** (two-arm) |
+| **Cut** | VC cut — lead beat after V1 mirror |
+| **Spoken** | "The system getting measurably better at every task, and the governance is WHY the improvement is trustworthy." |
+| **⚠️ CC-1** | Production curve = IKS RISING (canonical-distance increasing). Oracle-only curve = ground-truth-distance DECREASING. Never show oracle curve in production beat. |
+
+### L-CDK — SDK / Open-Source Developer Cut (NEW cut)
+
+| Beat | APP | What | Class |
+|---|---|---|---|
+| 1 | APP-2 hello-gae | 5-minute GAE quickstart, conservation gate fires | NEAR |
+| 2 | APP-5 YAML config | 30-minute no-Python domain config | NEAR |
+| 3 | APP-6 build-your-own | Email + reading triage skins, governed-vs-ungoverned toggle at SDK level | NEAR |
+
+**Audience:** Self-serve developers. **Gate:** Public SDK drop.
+
+---
+
+## §4.11 Beat Corrections (v2.4)
+
+**B1 — Invert the Rejection Moment (V2/E3):**
+Reorder: promotion FIRST ("8-point gain, promoted live — that's the compounding"), THEN rejection table + SILENCE 3. No new gate logic — both arcs in existing promotion-gate logs.
+
+**B2 — RL Naming Reconciliation (§0.2, §0.3 room 3, §5 F-25):** ⚠️ on-stage-truth
+Retire the old “judgment is not a reward target” wording. Replace with: “The DECISION is centroid-distance, not reward-maximizing. Reward functions exist in the LEARNING path (exploration + credit), never in choosing the action. Exploration is conservation-bounded (`ConservationBoundedThompson`).”
+
+**B3 — SOC Exploration Proposal-Only:** ⚠️ on-stage-truth
+When SOC learning is ON, exploration can override centroid action. In demo profile: run exploration proposal-only (SOC-G1 target) so "decision is centroid" holds on stage. Or re-cut "watch it learn" to S2P via DIFF-1.
+
+**B4 — CC-1 Two Distances:**
+Canonical-distance INCREASES (production, = IKS rising). Ground-truth-distance DECREASES (oracle-only). DI-TIMELINE is consistent. Never reframe production curve as "distance to correct answers shrinking."
 ## 5. Demo-base & preseed requirements (coding sessions must guarantee these)
 
 The single biggest live-demo risk (per `narrative_readiness_v3`): a fresh install without preseed shows
@@ -617,19 +886,41 @@ record).
 | L-S2P | §2.3 re-led on S2P | CFO/procurement | ~5 min | S14 hero + cross-copilot signal |
 | L-PUR | §2.3 re-led on Purchasing | ops/GM | ~5 min | "your covers" once Toast lands |
 | L-DATAOPS | §2.3 re-led on DataOps | CTO/data | ~5 min | Intelligence Map + Acquisition Advisor |
+| L-DATAOPS-DI | §4.9 DataOps Data Intelligence | CTO/CDO/data teams | ~5 min | DI-TRUST → DI-SOURCE → DI-PRODUCT → DI-GOLD → DI-TIMELINE. Level 5-6 preview. |
 
 **Dependency note:** L-TRADER should follow the Trading OSS launch; L-PUR's "your data" beat wants Toast
 (strategy W3-2); the rest can record as soon as the harness (7.1) + §4 hero moments are in.
 
 ---
 
+## Frontend Build Items for Demo-Readiness
+
+| ID | What | Surface | Effort | Status |
+|---|---|---|---|---|
+| DI-GOLD-FE | Gold dotted lines on IntelligenceMapPanel | Insight screen | 1w | NOT BUILT — DI-5 endpoints return gold_lines data but the frontend doesn't render them yet |
+| DI-PRODUCT-FE | Data Products panel on Dashboard or Insight | Dashboard/Insight | 0.5d | PARTIALLY — endpoint exists, needs dedicated card |
+| SC-14-FE | Decision Explorer on Insight | Insight | Pending Codex | Prompt sent (SC-14+15+16) |
+| SC-15-FE | Rule Lifecycle timeline on Evidence | Evidence | Pending Codex | Prompt sent |
+| SC-16-FE | Audit Trail on Evidence | Evidence | Pending Codex | Prompt sent |
+| D-CEL-FE | Enterprise Health card + SAP/Celonis badges | Dashboard | Pending Codex | Prompt sent |
+
+---
+
+## Document Control
+
+| Version | Date | Change |
+|---|---|---|
+| v2.2 | August 2, 2026 | **DataOps Data Intelligence beats.** Added §4.9 with 6 new demo beats (DI-TRUST, DI-SOURCE, DI-PRODUCT, DI-GOLD, DI-TIMELINE, DI-ADMITS-FAILURE) covering all shipped DI features. Two new competitive rooms (#12 data quality, #13 data-as-product) with kill-shot lines and tear-down answers. Two new silence beats (#4 trust gap, #5 gold lines). Enterprise cut E5b insertion. L-DATAOPS-DI Loom cut. Frontend build items for demo-readiness. All beats tagged with class (LIVE/NEAR) and API references. |
+| v2.3 | August 4, 2026 | **DI-PROOF linchpin beat + mirror→moat arc.** Added §4.9.0 DataOps cut arc (6-beat sequence). Added DI-PROOF ("Earned, Not Asserted") — live perturbation of trust score, ~2-3d build, NEAR class. Silence beat #6. Resequenced 8 beats from feature tour → story spine. Strengthening themes from dataops_data_intelligence_strengthening_v1.md. |
+| v2.4 | August 8, 2026 | **Reference + differentiation beats.** Added §4.10: DIFF-1 governed-vs-ungoverned rebuttal (⭐ rooms 2+3), COMP-1 compounding curve (⭐ VC lead beat), L-CDK developer cut (3 beats). Added §4.11: B1-B4 beat corrections from VC judge panel (rejection inversion, RL naming, SOC exploration proposal-only, CC-1 two distances). |
 ## Document control
 | Version | Date | Change |
 |---|---|---|
 | v2.1 | July 11, 2026 | **Presenter technique + competitive Q&A + S14 contrast.** (1) **§2.5 silence beats** — the three moments where the presenter STOPS TALKING (Mirror at V1 second 45-75, SituationPanel at E2 second 30-60, Rejection Table at V2 second 60-90); includes physical staging instructions and recovery lines. The meta-principle: 20 seconds of deliberate silence in a 420-second demo is where the decision happens. (2) **§0.3 competitive tear-down lines** — per-room "when they say X, you say Y" one-liners for 11 competitive rooms, plus a meta-pattern for unexpected competitors ("They solve [X]. We solve the layer underneath: how does the system that solves [X] get better over time, safely?"). (3) **§4.2.1 S14 rule-vs-reasoning contrast** — a two-column side-by-side showing what a threshold rule would have done (REJECT, $340K false rejections) vs what the SituationPanel produced (ACCEPT, confidence 0.91, contract cited). The contrast is COMPUTED, not hardcoded (same invoice, real threshold). ~0.5d frontend build. Appears at Enterprise E2 after SILENCE 2. |
+| v2.2 | August 2, 2026 | **DataOps Data Intelligence beats.** Added §4.9 with 8 demo beats (DI-TRUST, DI-SOURCE, DI-PRODUCT, DI-GOLD, DI-TIMELINE, DI-ADMITS-FAILURE, DI-DIRTY-DATA, DI-AGENT-TRUST). Two new competitive rooms (#12 data quality, #13 data-as-product). Two new silence beats (#4, #5). Enterprise cut E5b. L-DATAOPS-DI Loom cut. Frontend build items. F-21/F-22 honesty guard. |
 | v1.0 | July 10, 2026 | Initial consolidation. Fused the June-1 hero-doc narrative frame (mirror-not-moat, autonomy-vs-automation, four innovations) with the July-9 feature-complete state and the strategy's three differentiators/hero moments. §0 reconciles superseded hero-doc items (Mirror tab, #120-127, P0/L5/D2 gating). §1 unified frame; §2 three demo cuts (VC 7m / trader 3m / enterprise 12m) as beats with surface+API+timing; §3 full 94-scenario catalog (92 ready, 2 deferred) with cut+pillar mapping; §4 net-new hero-moment build items (Rejection/Counterfactual/Day-Zero + staged trust beats + BYOD) with owner/DoD/effort; §5 demo-base preseed requirements (flat-IKS = top risk); §6 internal-review + llm-judge record. |
 | v1.1 | July 10, 2026 | **Scripts + Loom program.** §2.4 added — per-beat presenter microcopy (caption + spoken) for all three cuts, so the doc owns scripts end-to-end; captions double as the Loom overlay data. §7 added — the Loom demo program: the seam (harness = demo code now; recorded videos = outreach later), the beats-config design (the storyboard is the data), five harness build items (LOOM-1 record-mode deterministic state + connector freeze, LOOM-2 guided-tour spotlight+caption overlay, LOOM-3 hands-free auto-advance, LOOM-4 one-command reset/replay, LOOM-5 beats-config authoring; ~8d total), and the six-Loom cut list (VC/trader/SOC/S2P/PUR/DataOps) with dependency notes (L-TRADER after OSS launch, L-PUR after Toast). |
 | v1.2 | July 10, 2026 | **Cross-doc reconciliation.** Aligned with `next_steps_strategy_v1_1.md`: the single coding build list is that doc's §9 Execution Synopsis (C-1..C-14); this doc is the spec it references. Made two shared items explicit to prevent double-building: **LOOM-1 ≡ strategy W1-1 = C-1** (one deterministic-preseed artifact), and **§4 DM-1/CF-1/DZ-1/ST-5 ≡ strategy HERO-1/2/3/4** (C-2/C-3/C-4). Title/companion refs updated. No scenario or beat changes. |
 | v1.3 | July 10, 2026 | **Reconciled with the outreach catalog.** Added §3.1 aligning this doc with `outreach_use_scenario_catalog.md` (v1.0, May 21): established the two-lens relationship (catalog = scenario universe + outreach messaging + 23 heroes + one-liners + industry-data; this doc = demo-ready/surface-mapped), reconciled the counts (catalog 91 vs this 94 — differ by counting granularity + date, e.g. SOC 10 narrative units vs 20 per-tab scenarios; Trading 20 and S2P 16 match exactly; neither authoritative over the other), and mapped the demo beats to the outreach heroes with the proven one-liners + industry-data hooks for the presenter scripts (TRD-1 mirror, SOC-4 admits-failure, DO-4 $604K fusion, DO-2/PUR-3 departure, SOC-1 amnesia). No scenarios re-typed — the catalog stays the source for the full 91 + messaging; this doc guarantees demoability. Companion refs updated. |
 | v1.4 | July 10, 2026 | **Positioning reconciliation with next_steps v1.8.** §1 pillars updated to the deployability framing — **Governed / Grounded / Compounding** (compounding demoted to support) — and the spine reframed to "Compounding Intelligence = the governed compounding layer" (above loop/context/harness engineering); situation-analysis (S14→P2) and context-graph synthesis flagged `[VERIFY shipped vs roadmap]` per next_steps C-VERIFY-L3L4. V7 close rewritten to the governance-bottleneck / governed-compounding-layer message ("loop engineering makes an agent finish a task; we make the whole system get better at every task, safely; the market spent 18 months proving 88% of pilots die on governance"). No scenario/beat/build changes. |
-| v2.0 | July 10, 2026 | **Brought current with next_steps v1.21 + product_integrity v3.0.** (1) **§0.1 room→kill-shot map** — beats re-indexed by **competitive room** (not only by copilot), one weapon + one line per room; 8 of 11 rooms have a LIVE kill shot. (2) **Scenario classes LIVE / NEAR / ARCH** now travel with every beat (product_integrity §2.8): showing roadmap is allowed and expected; implying roadmap is LIVE is the only violation (F-27). (3) **§0.2 demo-truth constraints** — the three things the code says that the storyboard must respect: **SOC learning is DISABLED by default** (`soc/config.py:66`) so any SOC "watch it learn" beat won't fire unless enabled (C-1 DoD: prove a verified decision changes a later SOC score, or re-cut the beat); **naming (F-25)** — the primary mechanism is decision-trace/prototype learning from verified decisions, **not "RL"** (and the honest line is stronger: "we have no reward function for judgment", C-18; exploration is conservation-bounded by construction, C-19); **C-17 is scoped (F-24)** — prompt-variant promotion is ungated, so say "governs our scoring, exploration and scorer-evolution loops," never "all loops," until C-GOV lands; and no shared cross-copilot judgment claim (F-26). (4) **New §4.6** — Trading situation-conditioned + volatility beats (TRD-S1..S4, TRD-V1/V2/V5/V6/V7), leading with **TRD-S3 autonomy throttle**, **TRD-V1 short-vol illusion** and **TRD-V2 VRP edge-or-insurance**; all magnitudes flagged as illustrative formats, not measured results. (5) **New §4.7 — TRD-S7 "The Re-convergence Moment"** (⭐ the strongest technical beat available): replay a real 2020/2022 regime break, cold-start vs regime-indexed re-convergence = **γ>1 made visible against non-stationarity**, the failure that kills every RL trading system; class **ARCH** until C-REGIME P4 + EXP-REGIME. (6) **New §4.8 — ENT-1 "The Sunk-Investment Multiplier"** (the Celonis/enterprise wedge's missing beat: "your Celonis spend just became more valuable, not obsolete"), with a scope guard — surface *which decision to change*, not *we execute it in your ERP* (write-back is roadmap). (7) **§5 preseed** gains SOC-learning-enabled, Trading situational tags, and a real regime-break window; hard constraints gain the F-24/F-25/F-26 wording rules. (8) `SOC-V4` catalog entry renamed off "RL Safety Controls." |
+| v2.0 | July 10, 2026 | **Historical validation and demo-truth baseline.** The primary mechanism is decision-trace/prototype learning from verified decisions; action selection is centroid-distance, while reward functions remain in the learning path only. Exploration is conservation-bounded by construction (C-19). Other scenario and scope notes from this release remain historical. |

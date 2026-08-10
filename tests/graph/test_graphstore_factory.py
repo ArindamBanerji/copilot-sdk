@@ -51,7 +51,7 @@ def test_graphstore_factory_sqlite_can_resolve_ci_data_dir(tmp_path: Path):
 
 def test_graphstore_factory_rejects_invalid_backend():
     with pytest.raises(ValueError, match="invalid graph backend"):
-        create_graph_store(backend="neo4j", env={})
+        create_graph_store(backend="graph", env={})
 
 
 def test_graphstore_factory_age_requires_dsn():

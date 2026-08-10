@@ -49,6 +49,20 @@ def _from_json(value: str) -> Any:
     return json.loads(value)
 
 
+def _normalize_created_at(value: Any) -> float:
+    """Normalize legacy ISO timestamps and current epoch timestamps."""
+    if isinstance(value, bool):
+        return float(value)
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+        except ValueError:
+            pass
+    return time.time()
+
+
 def _normalize_centroid_vector(centroid_vector: Any) -> list[float]:
     if isinstance(centroid_vector, (str, bytes, bytearray)):
         raise TypeError("centroid_vector must be a non-string iterable of numeric values")
@@ -455,7 +469,13 @@ class SQLiteGraphStore:
                 created_at REAL NOT NULL,
                 decision_time_start TEXT,
                 decision_time_end TEXT,
-                checkpoint_time TEXT
+                checkpoint_time TEXT,
+                quality_window_size INTEGER,
+                quality_verified_count INTEGER,
+                quality_correct_count INTEGER,
+                rolling_accuracy REAL,
+                quality_window_end TEXT,
+                quality_policy_version TEXT
             );
 
              CREATE TABLE IF NOT EXISTS l5_centroids (
@@ -714,6 +734,7 @@ class SQLiteGraphStore:
         self._ensure_decision_status_column()
         self._ensure_outcome_columns()
         self._ensure_centroid_columns()
+        self._backfill_centroid_timestamps()
         self._ensure_l5_dk_weight_columns()
         self._ensure_evolution_columns()
         self._ensure_entity_edge_columns()
@@ -736,6 +757,19 @@ class SQLiteGraphStore:
             self._ensure_domain_column(table)
         self._create_indexes()
         self.connection.commit()
+
+    def _backfill_centroid_timestamps(self) -> None:
+        """Persist numeric epochs for legacy checkpoint timestamp values."""
+        rows = self.connection.execute(
+            "SELECT id, created_at FROM centroid_checkpoints"
+        ).fetchall()
+        for row in rows:
+            value = _normalize_created_at(row["created_at"])
+            if not isinstance(row["created_at"], (int, float)) or float(row["created_at"]) != value:
+                self.connection.execute(
+                    "UPDATE centroid_checkpoints SET created_at = ? WHERE id = ?",
+                    (value, int(row["id"])),
+                )
 
     def _create_indexes(self) -> None:
         self.connection.executescript(
@@ -871,6 +905,18 @@ class SQLiteGraphStore:
             self.connection.execute(
                 "ALTER TABLE centroid_checkpoints ADD COLUMN checkpoint_time TEXT"
             )
+        for column, definition in (
+            ("quality_window_size", "INTEGER"),
+            ("quality_verified_count", "INTEGER"),
+            ("quality_correct_count", "INTEGER"),
+            ("rolling_accuracy", "REAL"),
+            ("quality_window_end", "TEXT"),
+            ("quality_policy_version", "TEXT"),
+        ):
+            if column not in columns:
+                self.connection.execute(
+                    f"ALTER TABLE centroid_checkpoints ADD COLUMN {column} {definition}"
+                )
         self.connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_cc_checkpoint_time "
             "ON centroid_checkpoints(checkpoint_time)"
@@ -1182,18 +1228,31 @@ class SQLiteGraphStore:
         domain_value = _normalize_domain(domain)
         def persist() -> None:
             row = self.connection.execute(
-                "SELECT domain FROM decisions WHERE decision_id = ? AND domain = ?",
+                "SELECT domain, status FROM decisions WHERE decision_id = ? AND domain = ?",
                 (decision_id, domain_value),
             ).fetchone()
             if row is None:
                 raise KeyError(decision_id)
             outcome_domain = str(row["domain"])
             existing = self.connection.execute(
-                "SELECT 1 FROM outcomes WHERE decision_id = ? AND domain = ?",
+                "SELECT actual_action, is_correct FROM outcomes WHERE decision_id = ? AND domain = ?",
                 (decision_id, outcome_domain),
             ).fetchone()
             if existing is not None:
-                raise ValueError(f"outcome already exists for decision_id: {decision_id}")
+                same_action = str(existing["actual_action"]) == str(actual_action)
+                existing_correct = existing["is_correct"]
+                same_correct = (
+                    existing_correct is None
+                    or bool(existing_correct) == bool(is_correct)
+                )
+                if same_action and same_correct:
+                    return
+                raise ValueError(
+                    "outcome already exists with a different action for decision_id: "
+                    f"{decision_id}"
+                )
+            if str(row["status"]) != "pending":
+                raise ValueError(f"decision status is not pending for decision_id: {decision_id}")
             self.connection.execute(
                 """
                 INSERT INTO outcomes (
@@ -1565,8 +1624,17 @@ class SQLiteGraphStore:
         iks: float,
         shape: list[int],
         factor_names_hash: str,
+        quality_window_size: int | None = None,
+        quality_verified_count: int | None = None,
+        quality_correct_count: int | None = None,
+        rolling_accuracy: float | None = None,
+        quality_window_end: str | None = None,
+        quality_policy_version: str | None = None,
         metadata: dict[str, Any] | None = None,
+        decision_id: str | None = None,
     ) -> None:
+        metadata = dict(metadata or {})
+        decision_id = str(decision_id or metadata.get("decision_id") or "") or None
         checkpoint_payload = {
             "checkpoint_id": str(checkpoint_id),
             "domain": str(domain),
@@ -1578,7 +1646,14 @@ class SQLiteGraphStore:
             "iks": float(iks),
             "shape_json": _to_json([int(value) for value in shape]),
             "factor_names_hash": str(factor_names_hash),
+            "quality_window_size": quality_window_size,
+            "quality_verified_count": quality_verified_count,
+            "quality_correct_count": quality_correct_count,
+            "rolling_accuracy": rolling_accuracy,
+            "quality_window_end": quality_window_end,
+            "quality_policy_version": quality_policy_version,
             "metadata_json": _to_json(dict(metadata or {})),
+            "decision_id": decision_id,
         }
 
         def persist() -> None:
@@ -1586,7 +1661,10 @@ class SQLiteGraphStore:
                 """
                 SELECT checkpoint_id, domain, category, action, centroids_json,
                        decisions_count, verified_count, iks, shape_json,
-                       factor_names_hash, metadata_json
+                       factor_names_hash, quality_window_size, decision_id,
+                       quality_verified_count, quality_correct_count,
+                       rolling_accuracy, quality_window_end,
+                       quality_policy_version, metadata_json
                 FROM centroid_checkpoints
                 WHERE checkpoint_id = ?
                 """,
@@ -1604,6 +1682,13 @@ class SQLiteGraphStore:
                     "iks": float(existing["iks"]),
                     "shape_json": existing["shape_json"],
                     "factor_names_hash": existing["factor_names_hash"],
+                    "decision_id": existing["decision_id"],
+                    "quality_window_size": existing["quality_window_size"],
+                    "quality_verified_count": existing["quality_verified_count"],
+                    "quality_correct_count": existing["quality_correct_count"],
+                    "rolling_accuracy": existing["rolling_accuracy"],
+                    "quality_window_end": existing["quality_window_end"],
+                    "quality_policy_version": existing["quality_policy_version"],
                     "metadata_json": existing["metadata_json"],
                 }
                 if existing_payload == checkpoint_payload:
@@ -1616,8 +1701,11 @@ class SQLiteGraphStore:
                 INSERT INTO centroid_checkpoints (
                     checkpoint_id, domain, category, action, centroids_json,
                     decisions_count, verified_count, iks, shape_json,
-                    factor_names_hash, metadata_json, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    factor_names_hash, quality_window_size, decision_id,
+                    quality_verified_count, quality_correct_count,
+                    rolling_accuracy, quality_window_end,
+                    quality_policy_version, metadata_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     checkpoint_payload["checkpoint_id"],
@@ -1630,6 +1718,13 @@ class SQLiteGraphStore:
                     checkpoint_payload["iks"],
                     checkpoint_payload["shape_json"],
                     checkpoint_payload["factor_names_hash"],
+                    checkpoint_payload["quality_window_size"],
+                    checkpoint_payload["decision_id"],
+                    checkpoint_payload["quality_verified_count"],
+                    checkpoint_payload["quality_correct_count"],
+                    checkpoint_payload["rolling_accuracy"],
+                    checkpoint_payload["quality_window_end"],
+                    checkpoint_payload["quality_policy_version"],
                     checkpoint_payload["metadata_json"],
                     time.time(),
                 ),
@@ -1657,6 +1752,7 @@ class SQLiteGraphStore:
     ) -> None:
         payload = {
             "pattern_id": str(pattern_id),
+            "domain": str(self.domain),
             "source_domain": str(source_domain),
             "target_domain": str(target_domain),
             "pattern_type": str(pattern_type),
@@ -1681,6 +1777,7 @@ class SQLiteGraphStore:
             if existing is not None:
                 existing_payload = {
                     "pattern_id": existing["pattern_id"],
+                    "domain": existing["domain"],
                     "source_domain": existing["source_domain"],
                     "target_domain": existing["target_domain"],
                     "pattern_type": existing["pattern_type"],
@@ -1700,14 +1797,15 @@ class SQLiteGraphStore:
             self.connection.execute(
                 """
                 INSERT INTO transfer_patterns (
-                    pattern_id, source_domain, target_domain, pattern_type,
+                    pattern_id, domain, source_domain, target_domain, pattern_type,
                     source_rule, target_rule, factor_mapping, confidence,
                     validation_status, conservation_status, source_fingerprint_id,
                     evolution_event_id, metadata, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     payload["pattern_id"],
+                    payload["domain"],
                     payload["source_domain"],
                     payload["target_domain"],
                     payload["pattern_type"],
@@ -1749,6 +1847,7 @@ class SQLiteGraphStore:
         return [
             {
                 "pattern_id": row["pattern_id"],
+                "domain": row["domain"],
                 "source_domain": row["source_domain"],
                 "target_domain": row["target_domain"],
                 "pattern_type": row["pattern_type"],
@@ -2624,17 +2723,23 @@ class SQLiteGraphStore:
         self._run_write(persist)
 
     def load_latest_centroids(self, domain: str) -> Any | None:
-        row = self.connection.execute(
+        rows = self.connection.execute(
             """
-            SELECT centroids_json FROM centroid_checkpoints
-            WHERE domain = ? AND checkpoint_id IS NULL
-            ORDER BY id DESC LIMIT 1
+            SELECT centroids_json, created_at, id FROM centroid_checkpoints
+            WHERE domain = ?
             """,
             (str(domain),),
-        ).fetchone()
-        if row is None:
+        ).fetchall()
+        if not rows:
             return None
-        return np.asarray(_from_json(row["centroids_json"]), dtype=np.float64)
+        row = max(rows, key=lambda item: (_normalize_created_at(item["created_at"]), int(item["id"])))
+        try:
+            value = np.asarray(_from_json(row["centroids_json"]), dtype=np.float64)
+        except (TypeError, ValueError):
+            # A checkpoint payload may be readable history metadata without
+            # being a numeric centroid tensor. It must not poison startup.
+            return None
+        return value if value.ndim > 0 else None
 
     def save_rl_state(self, key: str, data: dict) -> None:
         def persist() -> None:
@@ -2678,27 +2783,68 @@ class SQLiteGraphStore:
         where, params = _checkpoint_where_clause(
             domain=str(domain), include_v2=include_v2, **kwargs
         )
+        rows = self.connection.execute(
+            f"""
+            SELECT * FROM centroid_checkpoints
+            {where}
+            """,
+            params,
+        ).fetchall()
+        checkpoints = [self._checkpoint_from_row(row) for row in rows]
+        checkpoints.sort(
+            key=lambda item: (float(item["created_at"]), int(item["id"])),
+            reverse=limit is None,
+        )
         if limit is None:
-            rows = self.connection.execute(
-                f"""
-                SELECT * FROM centroid_checkpoints
-                {where}
-                ORDER BY id ASC
-                """,
-                params,
-            ).fetchall()
-        else:
-            rows = self.connection.execute(
-                f"""
-                SELECT * FROM centroid_checkpoints
-                {where}
-                ORDER BY id DESC
-                LIMIT ?
-                """,
-                (*params, max(int(limit), 0)),
-            ).fetchall()
-            rows = list(reversed(rows))
-        return [self._checkpoint_from_row(row) for row in rows]
+            return checkpoints
+        return checkpoints[-max(int(limit), 0):]
+
+    def load_latest_checkpoint_for_regime(
+        self, domain: str, regime_tag: str
+    ) -> dict[str, Any] | None:
+        checkpoints = self.get_centroid_checkpoints(
+            str(domain), include_v2=True, limit=None
+        )
+        matching = [
+            checkpoint
+            for checkpoint in checkpoints
+            if str((checkpoint.get("metadata") or {}).get("regime_tag") or "")
+            == str(regime_tag)
+        ]
+        if not matching:
+            return None
+        return max(
+            enumerate(matching),
+            key=lambda item: (
+                float(
+                    item[1].get(
+                        "created_at_epoch", item[1].get("created_at", 0.0)
+                    )
+                    or 0.0
+                ),
+                item[0],
+            ),
+        )[1]
+
+    def get_checkpoint_lineage(
+        self, domain: str, checkpoint_id: str
+    ) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT decision_id FROM centroid_checkpoints WHERE checkpoint_id = ? AND domain = ?",
+            (str(checkpoint_id), str(domain)),
+        ).fetchone()
+        if row is None or not row["decision_id"]:
+            return None
+        return self.get_decision(str(row["decision_id"]), str(domain))
+
+    def get_decision_checkpoints(
+        self, domain: str, decision_id: str
+    ) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            "SELECT * FROM centroid_checkpoints WHERE domain = ? AND decision_id = ? ORDER BY created_at",
+            (str(domain), str(decision_id)),
+        ).fetchall()
+        return [self._checkpoint_from_row(row) for row in rows if row["checkpoint_id"]]
 
     def save_evolution_event(
         self,
@@ -3390,7 +3536,7 @@ class SQLiteGraphStore:
             "final_action": row["final_action"],
             "was_override": bool(row["was_override"]) if row["was_override"] is not None else None,
             "metadata": metadata,
-            "created_at": float(row["created_at"]),
+            "created_at": _normalize_created_at(row["created_at"]),
         }
 
     def _verified_from_row(self, row: sqlite3.Row) -> dict[str, Any]:
@@ -3457,12 +3603,23 @@ class SQLiteGraphStore:
             "domain": row["domain"],
             "decision_id": row["decision_id"],
             "category": row["category"],
+            "action": row["action"],
             "centroids": np.asarray(_from_json(row["centroids_json"]), dtype=np.float64),
             "decisions_count": int(row["decisions_count"]),
             "verified_count": int(row["verified_count"]),
             "iks": float(row["iks"]),
             "shape": _from_json(row["shape_json"]),
             "factor_names_hash": row["factor_names_hash"],
+            "quality_window_size": row["quality_window_size"],
+            "quality_verified_count": row["quality_verified_count"],
+            "quality_correct_count": row["quality_correct_count"],
+            "rolling_accuracy": (
+                float(row["rolling_accuracy"])
+                if row["rolling_accuracy"] is not None
+                else None
+            ),
+            "quality_window_end": row["quality_window_end"],
+            "quality_policy_version": row["quality_policy_version"],
             "metadata": _from_json(row["metadata_json"]),
             "created_at": float(row["created_at"]),
             "decision_time_start": row["decision_time_start"],

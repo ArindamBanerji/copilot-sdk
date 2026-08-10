@@ -1,11 +1,11 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForScreenReady } from "../helpers/ui";
 
 async function gotoPerformance(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Performance");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
 }
 
 test("multi-unit dashboard endpoint returns locations", async ({ page }) => {

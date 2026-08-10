@@ -40,35 +40,9 @@ def _cli_profile() -> str:
     return "production" if any(os.environ.get(key, "").strip() for key in age_keys) else "development"
 
 
-def _age_configured() -> bool:
-    backend = os.environ.get("TRADING_ACTIVE_GRAPH_BACKEND", "").strip().lower()
-    dsn_configured = any(
-        os.environ.get(key, "").strip()
-        for key in ("TRADING_ACTIVE_AGE_DSN", "GRAPH_DSN", "AGE_DSN")
-    )
-    return backend in {"age", "dual_write"} or dsn_configured
-
-
 def _load_cli_graph_config(profile: str) -> GraphConfig:
-    """Load typed graph configuration, allowing local CLI SQLite development."""
-    if _age_configured():
-        return GraphConfig.load(DOMAIN, profile=profile)
-
-    previous_backend = os.environ.get("TRADING_ACTIVE_GRAPH_BACKEND")
-    previous_fallback = os.environ.get("CI_ALLOW_SQLITE_FALLBACK")
-    os.environ["TRADING_ACTIVE_GRAPH_BACKEND"] = "sqlite"
-    os.environ["CI_ALLOW_SQLITE_FALLBACK"] = "1"
-    try:
-        return GraphConfig.load(DOMAIN, profile="development")
-    finally:
-        if previous_backend is None:
-            os.environ.pop("TRADING_ACTIVE_GRAPH_BACKEND", None)
-        else:
-            os.environ["TRADING_ACTIVE_GRAPH_BACKEND"] = previous_backend
-        if previous_fallback is None:
-            os.environ.pop("CI_ALLOW_SQLITE_FALLBACK", None)
-        else:
-            os.environ["CI_ALLOW_SQLITE_FALLBACK"] = previous_fallback
+    """Load typed AGE graph configuration; never substitute SQLite."""
+    return GraphConfig.load(DOMAIN, profile=profile)
 DEFAULT_DB_PATH = os.path.expanduser("~/.ci-platform/trading/trading.db")
 SELF_CONFIRM_WARNING = (
     "Recorded action matches system recommendation. If this is the "

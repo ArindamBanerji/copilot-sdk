@@ -20,7 +20,8 @@ for path in (BACKEND_ROOT, REPO_ROOT):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from copilot_sdk.graph.sqlite_store import SQLiteGraphStore  # noqa: E402
+from copilot_sdk.config import GraphConfig  # noqa: E402
+from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
 from copilot_sdk.scoring import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.presets import PurchasingPreset  # noqa: E402
 from gae.calibration import conservation_status  # noqa: E402
@@ -43,16 +44,24 @@ ACTION_NAMES = tuple(SHAPE.action_names)
 FACTOR_NAMES = tuple(SHAPE.factor_names)
 
 
-def _store(db_path: Path) -> SQLiteGraphStore:
-    db_path = db_path.expanduser()
-    if str(db_path) != ":memory:":
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-    return SQLiteGraphStore(str(db_path), domain=DOMAIN)
+def _store(db_path: Path):
+    config = GraphConfig.load(DOMAIN, profile=_cli_profile())
+    if config.backend != "age":
+        raise RuntimeError("Purchasing CLI requires AGE; SQLite is not a production Decision store")
+    return create_graph_store(
+        backend=config.backend,
+        domain=config.domain,
+        db_path=str(db_path.expanduser()),
+        dsn=config.dsn,
+        graph_name=config.graph,
+        test_mode=config.active_test_mode,
+        profile=_cli_profile(),
+    )
 
 
 def _scorer(db_path: Path) -> CompoundingScorer:
     resolved = str(db_path.expanduser())
-    store = SQLiteGraphStore(resolved, domain=DOMAIN)
+    store = _store(db_path)
     return CompoundingScorer.from_preset(
         DOMAIN, db_path=resolved, graph_store=store, profile=_cli_profile()
     )
@@ -360,6 +369,8 @@ def conservation(ctx: click.Context) -> None:
             correct_count=correct,
             total_decisions=total,
             penalty_ratio=PRESET.penalty_ratio,
+            categories_with_data=store.count_categories_with_n(DOMAIN, 1),
+            total_categories=len(PRESET.shape.category_names),
         )
     finally:
         store.close()

@@ -9,6 +9,7 @@ export default function CentroidTimeline() {
 
   const checkpoints = Array.isArray(data?.checkpoints) ? data.checkpoints : [];
   const rows = useMemo(() => buildRows(checkpoints), [checkpoints]);
+  const latestQuality = checkpoints[checkpoints.length - 1]?.quality;
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +38,11 @@ export default function CentroidTimeline() {
           </p>
           <h2 className="mt-1 text-xl font-semibold">Centroid Timeline</h2>
           <p className="mt-1 text-sm trading-muted">{data?.total ?? checkpoints.length} checkpoints from trading GraphStore decisions.</p>
+          {latestQuality?.rolling_accuracy != null ? (
+            <p data-testid="centroid-quality" className="mt-1 text-sm trading-muted">
+              Rolling accuracy: {(latestQuality.rolling_accuracy * 100).toFixed(1)}% ({latestQuality.correct_count}/{latestQuality.verified_count})
+            </p>
+          ) : null}
         </div>
       </div>
 

@@ -244,7 +244,11 @@ def create_graph_store(
         from copilot_sdk.graph.dual_write_store import DualWriteStore
 
         adapter_cls = _load_age_adapter()
-        secondary = cast(GraphStore, adapter_cls(dsn=str(selected_dsn), graph_name=selected_graph))
+        secondary_adapter = adapter_cls(
+            dsn=str(selected_dsn), graph_name=selected_graph
+        )
+        setattr(secondary_adapter, "domain", selected_domain)
+        secondary = cast(GraphStore, secondary_adapter)
         logger.info(
             "creating dual-write GraphStore for domain=%s path=%s graph_name=%s",
             selected_domain,
@@ -282,4 +286,6 @@ def create_graph_store(
         selected_graph,
         read_only_soc_projection,
     )
-    return cast(GraphStore, adapter_cls(dsn=str(selected_dsn), graph_name=selected_graph))
+    adapter = adapter_cls(dsn=str(selected_dsn), graph_name=selected_graph)
+    setattr(adapter, "domain", selected_domain)
+    return cast(GraphStore, adapter)

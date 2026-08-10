@@ -1,11 +1,11 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText, expectTrajectoryOrEmpty } from "../helpers/ui";
+import { clickTab, expectAnyText, expectTrajectoryOrEmpty, waitForScreenReady } from "../helpers/ui";
 
 async function gotoPerformance(page: import("@playwright/test").Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Performance");
-  // Wait for loading to finish, then check content (not tab button)
-  await page.waitForTimeout(1000);
+  await waitForScreenReady(page);
   await expectAnyText(page, [/trajectory/i, /performance/i, /IKS/i, /loading/i]);
 }
 

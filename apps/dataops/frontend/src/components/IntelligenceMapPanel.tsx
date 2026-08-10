@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchDIProfiles } from "../api";
-import type { DIProfileSummary, DIProfilesResponse, DISourceSummary } from "../types";
+import { fetchDIIntelligenceMap, fetchDIProfiles } from "../api";
+import type { DIMapNode, DIProfileSummary, DIProfilesResponse, DISourceSummary } from "../types";
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -41,40 +41,84 @@ type RawGoldLine = Record<string, unknown>;
 type RawIksBadge = Record<string, unknown>;
 
 interface IntelligenceMapPayload extends DIProfilesResponse {
+  nodes?: DIMapNode[];
+  edges?: RawGoldLine[];
+  goldLines?: RawGoldLine[];
+  gold_lines?: RawGoldLine[];
   suggestedEdges?: RawGoldLine[];
   suggested_edges?: RawGoldLine[];
   iksBadges?: RawIksBadge[] | Record<string, unknown>;
   iks_badges?: RawIksBadge[] | Record<string, unknown>;
+  acquisitionAdvice?: AcquisitionAdviceResponse;
+}
+
+interface AcquisitionAdviceResponse {
+  recommendations?: Array<{
+    source?: string;
+    source_name?: string;
+    provider?: string;
+    signal?: string;
+    annual_value?: number;
+    computed_value_annual?: number;
+    narrative?: string;
+  }>;
 }
 
 const MAP_WIDTH = 720;
 const MIN_RADIUS = 22;
 const MAX_RADIUS = 46;
 
+async function fetchAcquisitionAdvice(): Promise<AcquisitionAdviceResponse | null> {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || "http://127.0.0.1:8030"}/api/di/acquisition-advice`);
+    if (!response.ok) {
+      return null;
+    }
+    return await response.json() as AcquisitionAdviceResponse;
+  } catch {
+    return null;
+  }
+}
+
 export function IntelligenceMapPanel() {
   const [state, setState] = useState<LoadState>("loading");
-  const [data, setData] = useState<DIProfilesResponse | null>(null);
+  const [data, setData] = useState<IntelligenceMapPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setState("loading");
-    fetchDIProfiles()
-      .then((payload) => {
+    setLoading(true);
+    setDataLoaded(false);
+    Promise.all([fetchDIProfiles(), fetchDIIntelligenceMap(), fetchAcquisitionAdvice()])
+      .then(([profiles, map, acquisitionAdvice]) => {
         if (cancelled) {
           return;
         }
-        if (!payload) {
+        if (!profiles && !map) {
           setState("error");
           setData(null);
           return;
         }
-        setData(payload);
+        setData({
+          ...(profiles || {}),
+          ...(map || {}),
+          acquisitionAdvice: acquisitionAdvice || undefined,
+        } as IntelligenceMapPayload);
         setState("ready");
       })
       .catch(() => {
         if (!cancelled) {
           setState("error");
           setData(null);
+          setDataLoaded(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setDataLoaded(true);
+          setLoading(false);
         }
       });
     return () => {
@@ -83,17 +127,22 @@ export function IntelligenceMapPanel() {
   }, []);
 
   const sources = data?.sources || [];
-  const nodes = useMemo(() => buildNodes(sources), [sources]);
-  const mapPayload = data as IntelligenceMapPayload | null;
-  const suggestedEdges = mapPayload?.suggestedEdges ?? mapPayload?.suggested_edges ?? [];
-  const iksBadgePayload = mapPayload?.iksBadges ?? mapPayload?.iks_badges ?? [];
-  const goldLines = useMemo(() => buildGoldLines(nodes, suggestedEdges), [nodes, suggestedEdges]);
+  const mapAssets = data?.nodes || [];
+  const mapGoldLines = data?.goldLines ?? data?.gold_lines ?? data?.suggestedEdges ?? data?.suggested_edges ?? [];
+  const rawGoldLines = mapGoldLines.length > 0
+    ? mapGoldLines
+    : buildAcquisitionGoldLines(data?.acquisitionAdvice);
+  const nodes = useMemo(() => buildNodes(sources, mapAssets, rawGoldLines), [sources, mapAssets, rawGoldLines]);
+  const iksBadgePayload = data?.iksBadges ?? data?.iks_badges ?? [];
+  const goldLines = useMemo(() => buildGoldLines(nodes, rawGoldLines), [nodes, rawGoldLines]);
+  const correlationEdges = data?.edges || [];
   const domainClusters = useMemo(() => buildDomainClusters(nodes, iksBadgePayload), [nodes, iksBadgePayload]);
   const mapHeight = Math.max(190, Math.ceil(Math.max(nodes.length, 1) / Math.min(4, Math.max(1, nodes.length))) * 112 + 80);
+  const dataReady = !loading && dataLoaded;
 
   if (state === "loading") {
     return (
-      <section className="copilot-card p-5">
+      <section data-testid="intelligence-map" data-screen-ready={String(dataReady)} className="copilot-card p-5">
         <PanelHeader total={0} />
         <p className="mt-4 text-sm dataops-muted">Loading intelligence map...</p>
       </section>
@@ -102,7 +151,7 @@ export function IntelligenceMapPanel() {
 
   if (state === "error") {
     return (
-      <section className="copilot-card p-5">
+      <section data-testid="intelligence-map" data-screen-ready={String(dataReady)} className="copilot-card p-5">
         <PanelHeader total={0} />
         <p className="mt-4 text-sm" style={{ color: "var(--copilot-danger)" }}>
           Could not load DI source profiles.
@@ -113,7 +162,7 @@ export function IntelligenceMapPanel() {
 
   if (nodes.length === 0) {
     return (
-      <section className="copilot-card p-5">
+      <section data-testid="intelligence-map" data-screen-ready={String(dataReady)} className="copilot-card p-5">
         <PanelHeader total={data?.total ?? 0} />
         <div className="mt-5 rounded-md border border-dashed border-white/15 bg-white/[0.03] p-5">
           <p className="text-sm font-semibold" style={{ color: "var(--copilot-text)" }}>
@@ -128,7 +177,7 @@ export function IntelligenceMapPanel() {
   }
 
   return (
-    <section className="copilot-card p-5">
+    <section data-testid="intelligence-map" data-screen-ready={String(dataReady)} className="copilot-card p-5">
       <PanelHeader total={data?.total ?? nodes.length} />
       <div className="mt-5 overflow-hidden rounded-md border border-white/10 bg-slate-950/30">
         <svg
@@ -165,6 +214,26 @@ export function IntelligenceMapPanel() {
               </g>
             );
           })}
+          {correlationEdges.map((edge, index) => {
+            const source = nodes.find((node) => node.id === findNodeId(nodes, optionalString(edge.source ?? edge.source_id)));
+            const target = nodes.find((node) => node.id === findNodeId(nodes, optionalString(edge.target ?? edge.target_id)));
+            if (!source || !target) {
+              return null;
+            }
+            return (
+              <line
+                key={`correlation-${index}`}
+                className="correlation-edge"
+                x1={source.x}
+                y1={source.y}
+                x2={target.x}
+                y2={target.y}
+                stroke={optionalNumber(edge.correlation ?? edge.weight) !== null && (optionalNumber(edge.correlation ?? edge.weight) ?? 0) >= 0 ? "#34d399" : "#f87171"}
+                strokeWidth={Math.max(1, Math.abs(optionalNumber(edge.correlation ?? edge.weight) ?? 0) * 3)}
+                opacity="0.55"
+              />
+            );
+          })}
           {goldLines.map((line) => {
             const source = nodes.find((node) => node.id === line.sourceId);
             const target = nodes.find((node) => node.id === line.targetId);
@@ -174,9 +243,11 @@ export function IntelligenceMapPanel() {
             const midX = (source.x + target.x) / 2;
             const midY = (source.y + target.y) / 2 - 10;
             return (
-              <g key={line.id}>
+              <g key={line.id} className="gold-line-group" data-testid="gold-line">
                 <title>{line.narrative}</title>
-                <line
+                  <line
+                    className="gold-line"
+                    data-testid="gold-line-stroke"
                   x1={source.x}
                   y1={source.y}
                   x2={target.x}
@@ -187,7 +258,7 @@ export function IntelligenceMapPanel() {
                   opacity="0.9"
                 />
                 <rect x={midX - 43} y={midY - 14} width="86" height="22" rx="4" fill="rgba(15, 23, 42, 0.92)" stroke="#fbbf24" />
-                <text x={midX} y={midY + 1} textAnchor="middle" className="fill-amber-100 text-[11px] font-semibold">
+                <text data-testid="gold-line-label" className="gold-label fill-amber-100 text-[11px] font-semibold" x={midX} y={midY + 1} textAnchor="middle">
                   {line.label}
                 </text>
               </g>
@@ -235,6 +306,11 @@ export function IntelligenceMapPanel() {
         </span>
         <span>WebSocket pulsing deferred to DI-7.1</span>
         <span>Brighter = higher trust</span>
+      </div>
+
+      <div data-testid="intelligence-map-legend" className="mt-3 flex flex-wrap gap-4 text-xs dataops-muted">
+        <span>━━━ Existing correlation</span>
+        <span className="text-amber-200">┅┅┅ Suggested (gold) — $ value</span>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
@@ -311,13 +387,35 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function buildNodes(sources: DISourceSummary[]): MapNode[] {
-  const count = sources.length;
+function buildNodes(sources: DISourceSummary[], mapAssets: DIMapNode[] = [], goldLines: RawGoldLine[] = []): MapNode[] {
+  const augmentedSources = [...sources];
+  goldLines.forEach((edge) => {
+    const keys = [edge.sourceId ?? edge.source_id ?? edge.source, edge.targetId ?? edge.target_id ?? edge.target];
+    keys.forEach((key) => {
+      const asset = findMapAsset(mapAssets, optionalString(key));
+      const assetName = optionalString(asset?.label ?? asset?.id);
+      if (asset && assetName && !augmentedSources.some((source) => sourceEntryMatches(source, assetName))) {
+        augmentedSources.push({
+          sourceName: assetName,
+          entityType: optionalString(asset.domain) || "data asset",
+          hasProfile: true,
+          latestProfile: {
+            sourceName: assetName,
+            entityType: optionalString(asset.domain) || "data asset",
+            overallQuality: optionalNumber(asset.qualityScore ?? asset.trust) ?? undefined,
+            recordCount: optionalNumber(asset.recordCount) ?? undefined,
+          },
+        });
+      }
+    });
+  });
+
+  const count = augmentedSources.length;
   const columns = Math.min(4, Math.max(1, Math.ceil(Math.sqrt(Math.max(count, 1)))));
   const cellWidth = MAP_WIDTH / (columns + 1);
   const cellHeight = 112;
 
-  return sources.map((source, index) => {
+  return augmentedSources.map((source, index) => {
     const profile = latestProfile(source);
     const sourceName = text(source.sourceName ?? source.source_name, `source-${index + 1}`);
     const entityType = text(source.entityType ?? source.entity_type, "unknown entity");
@@ -363,15 +461,33 @@ function buildGoldLines(nodes: MapNode[], suggestedEdges: RawGoldLine[] = []): G
     if (!sourceId || !targetId || sourceId === targetId) {
       return [];
     }
-    const annualValue = optionalNumber(edge.annualValue ?? edge.annual_value) ?? 0;
-    const label = optionalString(edge.label) || `${formatMoney(annualValue)}/year`;
+    const annualValue = optionalNumber(edge.annualValue ?? edge.annual_value ?? edge.value) ?? 0;
+    const label = optionalString(edge.label) || `${formatMoney(annualValue)}/yr`;
     return [{
       id: optionalString(edge.id) || `${sourceId}-${targetId}-suggested-${index}`,
       sourceId,
       targetId,
       label,
       annualValue,
-      narrative: optionalString(edge.narrative) || `Suggested connection: ${label}.`,
+      narrative: optionalString(edge.narrative ?? edge.rationale) || `Suggested connection: ${label}.`,
+    }];
+  });
+}
+
+function buildAcquisitionGoldLines(advice?: AcquisitionAdviceResponse): RawGoldLine[] {
+  return (advice?.recommendations || []).flatMap((recommendation, index) => {
+    const source = optionalString(recommendation.source_name ?? recommendation.source ?? recommendation.provider);
+    const target = optionalString(recommendation.signal);
+    if (!source || !target) {
+      return [];
+    }
+    return [{
+      id: `acquisition-${index}-${normalizeKey(source)}-${normalizeKey(target)}`,
+      source,
+      target,
+      value: recommendation.computed_value_annual ?? recommendation.annual_value ?? 0,
+      narrative: recommendation.narrative,
+      type: "suggested",
     }];
   });
 }
@@ -588,6 +704,18 @@ function formatMoney(value: number): string {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
+}
+
+function findMapAsset(assets: DIMapNode[], key: string | null): DIMapNode | null {
+  if (!key) {
+    return null;
+  }
+  const normalized = normalizeKey(key);
+  return assets.find((asset) => normalizeKey(asset.id || "") === normalized || normalizeKey(asset.label || "") === normalized) || null;
+}
+
+function sourceEntryMatches(source: DISourceSummary, key: string): boolean {
+  return normalizeKey(String(source.sourceName || source.source_name || "")) === normalizeKey(key);
 }
 
 function findNodeId(nodes: MapNode[], key: string | null): string | null {

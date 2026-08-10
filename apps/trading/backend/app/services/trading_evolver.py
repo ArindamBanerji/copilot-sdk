@@ -186,6 +186,7 @@ class TradingAgentEvolver:
         self._variants: dict[str, dict[str, Any]] = {}
         self._results: dict[str, list[dict[str, Any]]] = {}
         self._log: list[dict[str, Any]] = []
+        self._outcomes: dict[str, dict[str, int]] = {}
         self._active_variant: dict[str, Any] | None = None
         self._last_shadow_store: Any | None = None
 
@@ -196,6 +197,48 @@ class TradingAgentEvolver:
     @property
     def last_shadow_store(self) -> Any | None:
         return self._last_shadow_store
+
+    def register_variants(self, variants: list[dict[str, Any]]) -> list[str]:
+        """Register configured active/shadow variants exactly once at startup."""
+        registered: list[str] = []
+        for raw_variant in variants:
+            variant = deepcopy(dict(raw_variant))
+            variant_id = str(variant.get("variant_id") or variant.get("id") or "")
+            if not variant_id:
+                raise ValueError("Trading variants require a variant_id or id")
+            variant["variant_id"] = variant_id
+            variant.setdefault("id", variant_id)
+            self._variants[variant_id] = variant
+            self._outcomes.setdefault(variant_id, {"successes": 0, "failures": 0})
+            registered.append(variant_id)
+        return registered
+
+    @property
+    def registered_variants(self) -> list[dict[str, Any]]:
+        return [deepcopy(variant) for variant in self._variants.values()]
+
+    def record_verified_outcome(
+        self,
+        variant_id: str | None,
+        success: bool,
+        category: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Record one verified outcome for a registered variant."""
+        normalized_id = str(variant_id or "")
+        if not normalized_id or normalized_id not in self._variants:
+            return None
+        counts = self._outcomes.setdefault(normalized_id, {"successes": 0, "failures": 0})
+        key = "successes" if bool(success) else "failures"
+        counts[key] += 1
+        payload = {
+            "event_type": "outcome_recorded",
+            "variant_id": normalized_id,
+            "success": bool(success),
+            "category": category,
+            "created_at": _now_iso(),
+        }
+        self._log.append(payload)
+        return deepcopy(payload)
 
     def generate_variant(self) -> dict[str, Any]:
         variant = self._generator.generate()
@@ -374,6 +417,8 @@ class TradingAgentEvolver:
                 "avg_improvement_pp": round(sum(improvements) / len(improvements), 4) if improvements else 0.0,
                 "status": status,
                 "results": deepcopy(results),
+                "successes": int(self._outcomes.get(variant_id, {}).get("successes", 0)),
+                "failures": int(self._outcomes.get(variant_id, {}).get("failures", 0)),
             })
         return variants
 
@@ -388,9 +433,21 @@ class _DefaultBaseline:
         return decision.get("recommended_action") or decision.get("action")
 
 
-def create_default_trading_evolver() -> TradingAgentEvolver:
-    return TradingAgentEvolver(
-        baseline_scorer=_DefaultBaseline(),
-        store_factory=lambda: object(),
+def create_default_trading_evolver(
+    *,
+    baseline_scorer: Any | None = None,
+    store_factory: Callable[[], Any] | None = None,
+    conservation_provider: Callable[[], Any] | None = None,
+    regime_break_provider: Callable[[], bool] | None = None,
+) -> TradingAgentEvolver:
+    evolver = TradingAgentEvolver(
+        baseline_scorer=baseline_scorer or _DefaultBaseline(),
+        store_factory=store_factory or (lambda: object()),
         factor_names=TRADING_FACTOR_NAMES,
+        conservation_provider=conservation_provider or _default_conservation_state,
+        regime_break_provider=regime_break_provider or (lambda: False),
     )
+    from app.evolution.evolver_config import get_trading_variants
+
+    evolver.register_variants(get_trading_variants())
+    return evolver

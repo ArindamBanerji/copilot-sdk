@@ -1,7 +1,9 @@
 import { expect, test } from "../fixtures/copilot-fixture";
+import { waitForScreenReady } from "../helpers/ui";
 
 async function gotoDashboard(page: import("@playwright/test").Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expect(page.getByRole("heading", { name: "Purchasing Copilot" })).toBeVisible();
 }
 

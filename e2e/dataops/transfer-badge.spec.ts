@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { collectConsoleErrors, expectNoConsoleErrors } from "../helpers/ui";
+import { collectConsoleErrors, expectNoConsoleErrors, waitForScreenReady } from "../helpers/ui";
 
 const BACKEND_URL = "http://127.0.0.1:8030";
 
@@ -16,6 +16,7 @@ test("transfer status controls dashboard badge", async ({ page, request }) => {
   }
 
   await page.goto("/");
+  await waitForScreenReady(page);
   const badge = page.getByTestId("transfer-badge");
 
   if (status.warm_started === true) {

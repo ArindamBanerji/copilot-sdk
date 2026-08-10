@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from typing import Any
 
 
@@ -15,6 +16,126 @@ DOMAIN_DECISION_VALUES = {
 }
 
 CONSERVATIVE_FACTOR = 0.70
+
+
+class DataValuationModel:
+    """Compute annual economic value from verified decision history."""
+
+    def __init__(
+        self,
+        decisions: list[Any],
+        accuracy: dict[str, Any],
+        trust_profiles: list[Any],
+    ) -> None:
+        self._decisions = list(decisions)
+        self._accuracy = dict(accuracy)
+        self._trust_profiles = list(trust_profiles)
+
+    def compute_value(self, source_name: str, improvement_pp: float) -> float:
+        """Return annual value for adding ``source_name``."""
+        decisions_per_year = self._annualize(len(self._decisions))
+        avg_value = self._avg_decision_value()
+        accuracy_gap = max(0.0, 1.0 - self._category_accuracy(source_name))
+        trust_uplift = max(0.0, min(float(improvement_pp), 100.0)) / 100.0
+        return round(decisions_per_year * avg_value * accuracy_gap * trust_uplift, 2)
+
+    def compute_all_recommendations(self) -> list[dict[str, Any]]:
+        """Compute deterministic valuations for the supplied source profiles."""
+        results: list[dict[str, Any]] = []
+        for profile in self._trust_profiles:
+            item = _as_mapping(profile)
+            source_name = str(item.get("source_name", item.get("name", item.get("source", ""))))
+            if not source_name:
+                continue
+            improvement = _number(item.get("improvement_pp", item.get("improvement", item.get("lift_pp", 0.0))))
+            value = self.compute_value(source_name, improvement)
+            results.append(
+                {
+                    "source_name": source_name,
+                    "computed_value_annual": value,
+                    "annual_value": value,
+                    "improvement_pp": improvement,
+                    "methodology": self.methodology(source_name, improvement),
+                    "confidence": self.confidence(),
+                }
+            )
+        return results
+
+    def methodology(self, source_name: str, improvement_pp: float) -> str:
+        return (
+            f"{self._annualize(len(self._decisions)):.0f} decisions/yr × "
+            f"${self._avg_decision_value():,.2f}/avg × "
+            f"{1.0 - self._category_accuracy(source_name):.3f} accuracy gap × "
+            f"{float(improvement_pp):.1f}pp improvement"
+        )
+
+    def confidence(self) -> str:
+        count = len(self._decisions)
+        return "high" if count >= 100 else "moderate" if count >= 20 else "low"
+
+    def _annualize(self, count: int) -> float:
+        if count <= 0:
+            return 0.0
+        dates: list[datetime] = []
+        for decision in self._decisions:
+            date = _decision_date(decision)
+            if date is not None:
+                dates.append(date)
+        if len(dates) >= 2:
+            span_days = max((max(dates) - min(dates)).total_seconds() / 86400.0, 1.0)
+            return round(count * 365.0 / span_days, 2)
+        return float(count * 4)
+
+    def _avg_decision_value(self) -> float:
+        amounts = []
+        for decision in self._decisions:
+            item = _as_mapping(decision)
+            for key in ("amount", "invoice_amount", "decision_value", "transaction_amount", "value"):
+                if item.get(key) is not None:
+                    amount = _number(item[key])
+                    if amount >= 0:
+                        amounts.append(amount)
+                    break
+        return round(sum(amounts) / len(amounts), 2) if amounts else 0.0
+
+    def _category_accuracy(self, source_name: str) -> float:
+        normalized = source_name.casefold()
+        for key, value in self._accuracy.items():
+            if str(key).casefold() == normalized:
+                if isinstance(value, dict):
+                    value = value.get("accuracy", value.get("current_accuracy", value.get("score", 0.0)))
+                return max(0.0, min(1.0, _number(value)))
+        for key in ("default", "overall", "accuracy"):
+            if key in self._accuracy:
+                return max(0.0, min(1.0, _number(self._accuracy[key])))
+        return 0.0
+
+
+def _as_mapping(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    if hasattr(value, "to_dict"):
+        result = value.to_dict()
+        return result if isinstance(result, dict) else {}
+    return {}
+
+
+def _number(value: Any) -> float:
+    try:
+        return float(value or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _decision_date(decision: Any) -> datetime | None:
+    item = _as_mapping(decision)
+    raw = next((item.get(key) for key in ("timestamp", "created_at", "decision_at", "date") if item.get(key)), None)
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(str(raw).replace("Z", "+00:00")).replace(tzinfo=None)
+    except ValueError:
+        return None
 
 
 @dataclass

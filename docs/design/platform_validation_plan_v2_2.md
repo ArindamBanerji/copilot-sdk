@@ -504,7 +504,7 @@ commercial smoke script) must be built before these checks can run.
 | C-07 | "When your expert leaves, 15,000 decisions stay" | Persistence test | J6 persistence wiring |
 | C-10 | "Every decision traceable — graph-persisted audit chain" | Audit hash, edges | Area 11 integrity |
 | C-17 | "One conservation law governs every compounding loop" | §7.3 GC checks | **SCOPED until C-GOV** |
-| C-18 | "No reward function for judgment" | Centroid learning | T3 naming scan |
+| C-18 | "Centroid decision; learning-path rewards only" | Centroid learning | T3 naming scan |
 
 **Governed-compounding checks (GC-01..GC-08, from PI §7.3):**
 

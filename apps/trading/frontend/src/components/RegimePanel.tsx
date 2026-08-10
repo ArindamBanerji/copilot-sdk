@@ -3,11 +3,22 @@ import {
   getRegimeCurrent,
   getRegimeHistory,
   getRegimePerformance,
+  fetchSituationAbstention,
+  fetchSituationConditionedStats,
+  fetchSituationRegime,
+  fetchSituationRejections,
   type RegimeCurrentResponse,
   type RegimeHistoryEntry,
   type RegimePerformanceCell,
   type RegimePerformanceResponse,
 } from "../api";
+import type {
+  SituationAbstentionResponse,
+  SituationConditionedStatsResponse,
+  SituationRegimeResponse,
+  SituationRejectionsResponse,
+} from "../types";
+import ProvenanceBadge from "./ProvenanceBadge";
 
 const regimes = ["trending", "ranging", "volatile"] as const;
 
@@ -79,6 +90,10 @@ export default function RegimePanel() {
   const [current, setCurrent] = useState<RegimeCurrentResponse | null>(null);
   const [history, setHistory] = useState<RegimeHistoryEntry[]>([]);
   const [performance, setPerformance] = useState<RegimePerformanceResponse | null>(null);
+  const [situation, setSituation] = useState<SituationRegimeResponse | null>(null);
+  const [conditioned, setConditioned] = useState<SituationConditionedStatsResponse | null>(null);
+  const [abstention, setAbstention] = useState<SituationAbstentionResponse | null>(null);
+  const [rejections, setRejections] = useState<SituationRejectionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
@@ -93,12 +108,24 @@ export default function RegimePanel() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getRegimeCurrent(), getRegimeHistory(), getRegimePerformance()])
-      .then(([nextCurrent, nextHistory, nextPerformance]) => {
+    Promise.all([
+      getRegimeCurrent(),
+      getRegimeHistory(),
+      getRegimePerformance(),
+      fetchSituationRegime(),
+      fetchSituationConditionedStats(),
+      fetchSituationAbstention(),
+      fetchSituationRejections(),
+    ])
+      .then(([nextCurrent, nextHistory, nextPerformance, nextSituation, nextConditioned, nextAbstention, nextRejections]) => {
         if (cancelled) return;
         setCurrent(nextCurrent);
         setHistory(nextHistory);
         setPerformance(nextPerformance);
+        setSituation(nextSituation);
+        setConditioned(nextConditioned);
+        setAbstention(nextAbstention);
+        setRejections(nextRejections);
         setLoadError(false);
       })
       .catch((error) => {
@@ -160,6 +187,42 @@ export default function RegimePanel() {
         <div className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
           <div className="text-xs uppercase tracking-wide trading-muted">Updated</div>
           <div className="mt-1 truncate text-sm font-semibold">{current?.timestamp || "-"}</div>
+        </div>
+      </div>
+
+      <div data-testid="situation-conditioned" className="mt-5 rounded-md border p-4" style={{ borderColor: "var(--copilot-border)" }}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-wide trading-muted">TRD-S1 / S2 / S3</p>
+            <h3 className="mt-1 text-base font-semibold">Situation-conditioned discipline</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`rounded-full border px-2 py-1 text-xs font-semibold ${situation?.conservationStatus === "AMBER" ? "border-amber-300/50 bg-amber-500/15 text-amber-100" : "border-emerald-300/50 bg-emerald-500/15 text-emerald-100"}`}>
+              Conservation {situation?.conservationStatus || "-"}
+            </span>
+            <ProvenanceBadge source={situation?.provenance || "illustrative"} />
+          </div>
+        </div>
+        <p className="mt-2 text-sm trading-muted">{situation?.message || conditioned?.mirrorMessage || "Loading situation context..."}</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {(["trending", "choppy", "volatile"] as const).map((item) => {
+            const row = conditioned?.regimes?.[item];
+            return <div key={item} data-testid={`situation-regime-${item}`} className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
+              <div className="text-xs uppercase tracking-wide trading-muted">{item}</div>
+              <div className="mt-1 text-lg font-semibold">{typeof row?.accuracy === "number" ? `${Math.round(row.accuracy * 100)}% accuracy` : "Accumulating"}</div>
+              <div className="text-xs trading-muted">{row?.decisionCount ?? 0} decisions · {row?.tradeFrequencyMultiplier ?? 1}x frequency</div>
+            </div>;
+          })}
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className={`rounded-md border p-3 ${abstention?.abstentionRecommended ? "border-amber-300/50 bg-amber-500/10" : "border-white/10"}`} data-testid="situation-abstention">
+            <div className="text-xs uppercase tracking-wide trading-muted">TRD-S2 situational abstention</div>
+            <p className="mt-1 text-sm">{abstention?.message || "Checking regime sufficiency..."}</p>
+          </div>
+          <div className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }} data-testid="situation-rejections">
+            <div className="text-xs uppercase tracking-wide trading-muted">TRD-S4 regime-scoped rejection</div>
+            <p className="mt-1 text-sm">{rejections?.message || "Checking rejected variants..."}</p>
+          </div>
         </div>
       </div>
 

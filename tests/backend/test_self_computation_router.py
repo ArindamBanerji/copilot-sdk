@@ -70,6 +70,36 @@ def test_centroid_history_empty_store() -> None:
     assert payload == {"checkpoints": [], "total": 0}
 
 
+def test_centroid_history_includes_v2_checkpoints() -> None:
+    store = InMemoryGraphStore(domain="test")
+    store.save_centroids(
+        "test",
+        "warm_start",
+        {"legacy": [0.1]},
+        metadata={"source": "warm_start"},
+    )
+    store.write_centroid_checkpoint(
+        checkpoint_id="v2_1",
+        domain="test",
+        category="schema",
+        action="investigate",
+        centroids={"v2": [0.9]},
+        decisions_count=1,
+        verified_count=0,
+        iks=0.0,
+        shape=[1, 1, 1],
+        factor_names_hash="test-hash",
+    )
+
+    response = _client(store).get("/api/self/centroid-history")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 2
+    assert [item.get("checkpoint_id") for item in payload["checkpoints"]].count("v2_1") == 1
+    assert len(payload["checkpoints"]) == 2
+
+
 def test_centroid_history_normalizes_numpy_like_centroids() -> None:
     class ArrayLike:
         def tolist(self) -> list[list[float]]:

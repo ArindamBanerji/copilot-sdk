@@ -1,0 +1,13 @@
+# Level-2 YAML Configuration
+# Start from a built-in preset and override what you need.
+# Run: python -m examples.yaml_config.run domain.yaml
+
+from: trading  # base preset
+
+overrides:
+  penalty_ratio: 5.0  # was 3.0 — make false negatives costlier
+  factors:
+    thesis_conviction:
+      weight: 1.5  # emphasize this factor
+    risk_reward:
+      weight: 0.8  # de-emphasize

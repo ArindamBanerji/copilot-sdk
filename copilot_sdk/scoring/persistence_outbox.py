@@ -102,10 +102,12 @@ class PersistenceOutbox:
                 WHERE idempotency_key IS NOT NULL AND status = 'pending'
                 """
             )
+            connection.execute("DROP INDEX IF EXISTS uq_failed_artifact_key")
             connection.execute(
                 """
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_failed_artifact_key
                 ON failed_artifacts(decision_id, domain, artifact_type)
+                WHERE origin = 'failure'
                 """
             )
             connection.execute(
@@ -152,27 +154,41 @@ class PersistenceOutbox:
             )
             raise
         with self._connection() as connection:
-            connection.execute(
+            updated = connection.execute(
                 """
-                INSERT INTO failed_artifacts
-                    (decision_id, domain, artifact_type, payload, error, created_at,
-                     schema_version, origin, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'failure', 'failed')
-                ON CONFLICT(decision_id, domain, artifact_type)
-                DO UPDATE SET payload=excluded.payload, error=excluded.error,
-                    retry_count=failed_artifacts.retry_count + 1, status='failed',
-                    schema_version=excluded.schema_version, origin='failure'
+                UPDATE failed_artifacts
+                SET payload=?, error=?, retry_count=retry_count + 1,
+                    status='failed', schema_version=?, origin='failure'
+                WHERE decision_id=? AND domain=? AND artifact_type=?
+                  AND origin='failure'
                 """,
                 (
+                    serialized,
+                    str(error),
+                    CURRENT_PAYLOAD_SCHEMA,
                     str(decision_id),
                     self.domain,
                     str(artifact_type),
-                    serialized,
-                    str(error),
-                    str(time.time()),
-                    CURRENT_PAYLOAD_SCHEMA,
                 ),
             )
+            if updated.rowcount == 0:
+                connection.execute(
+                    """
+                    INSERT INTO failed_artifacts
+                        (decision_id, domain, artifact_type, payload, error, created_at,
+                         schema_version, origin, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'failure', 'failed')
+                    """,
+                    (
+                        str(decision_id),
+                        self.domain,
+                        str(artifact_type),
+                        serialized,
+                        str(error),
+                        str(time.time()),
+                        CURRENT_PAYLOAD_SCHEMA,
+                    ),
+                )
 
     def enqueue(
         self,
@@ -289,6 +305,17 @@ class PersistenceOutbox:
     ) -> None:
         if artifact_type == "conservation":
             graph_store.write_conservation_status(**payload)
+        elif artifact_type == "l5_conservation":
+            graph_store.update_conservation_state(**payload)
+        elif artifact_type == "l5_centroid":
+            graph_store.update_centroid(**payload)
+        elif artifact_type == "dk_weights":
+            lock = getattr(graph_store, "_persistence_outbox_dk_lock", None)
+            if lock is None:
+                graph_store.update_dk_weights(**payload)
+            else:
+                with lock:
+                    graph_store.update_dk_weights(**payload)
         elif artifact_type == "fingerprint":
             graph_store.write_fingerprint(**payload)
         elif artifact_type == "evidence_receipt":

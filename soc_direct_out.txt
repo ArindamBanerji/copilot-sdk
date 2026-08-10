@@ -1,0 +1,36 @@
+[AUTH] SAML disabled -- all routes open
+[STARTUP] BACKEND_PORT=8001 written to .env
+[STARTUP] Backend=AGE | Client=AGEClient | Nodes=45265 | Status=VERIFIED
+[STARTUP] correct_decisions=3712, verified=4862, accuracy=76.3%
+[STARTUP] Evolution shadow index rebuilt: 16 variants
+[OverrideDetector] ACTIVATED -- 104 correct-override examples loaded.
+[DOMAIN] Active domain: SOC Copilot (soc)
+[DOMAIN] Factors: 6, Actions: 5, Situations: 6
+[GAE] Loaded bootstrap checkpoint (step=4983, drift=0.0097)
+[GAE] ProfileScorer attached (actions=['escalate', 'investigate', 'suppress', 'monitor'], tau=0.1)
+[GAE] LearningState ready: W.shape=(4, 6), step=4983
+[STARTUP] Promotion rollback handler registered
+[STARTUP] decision_count already current (4983), skipping AGE sync
+[STARTUP] Verified decision_count from graph: 4862
+[SNAPSHOT] GraphSnapshot initialized: 4862 verified decisions, correct=3712, IKS=94.2, override_rate=0.000
+[AUDIT] Rebuilt 4862 entries from AGE
+[STARTUP] Audit ledger rebuilt: 4862 entries
+[WARMUP] Domain warm-up complete in 0.0s
+[WARMUP] LLM narrator initialized
+[NARRATIVE] Provider initialized: template
+[STATE] Registered reset handler: feedback
+[STATE] Registered reset handler: trust
+[STATE] Registered reset handler: policy
+[STATE] Registered reset handler: audit
+[STATE] Registered reset handler: evolver
+[STATE] Registered reset handler: confidence_history
+[STATE] Registered reset handler: learning_state
+[STATE] Registered reset handler: rl_engine
+[STATE] Registered reset handler: platform_caches
+[STATE] Registered reset handler: baseline_caches
+[STATE] Registered reset handler: servicenow_mock
+[TRUST] Seeded 12 historical trust snapshots for 'travel_login_anomaly' -- current trust=0.23, human_review_required=True
+[TRIAGE] Seeded 15 historical confidence snapshots
+[CONNECTOR] Registry initialized -- 0 connector(s) registered
+[F6] Campaign nodes exist -- skipping startup recorrelation.
+[OK] Disconnected from AGE

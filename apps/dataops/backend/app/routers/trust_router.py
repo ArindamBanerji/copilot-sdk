@@ -10,7 +10,11 @@ from fastapi import APIRouter, HTTPException
 from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload
 
 
-def create_trust_router(domain: str, scorer_provider: Callable[[], Any]) -> APIRouter:
+def create_trust_router(
+    domain: str,
+    scorer_provider: Callable[[], Any],
+    perturbation_provider: Callable[[], Any] | None = None,
+) -> APIRouter:
     """Create a router that exposes learned factor reliability for ``domain``."""
 
     router = APIRouter()
@@ -23,6 +27,17 @@ def create_trust_router(domain: str, scorer_provider: Callable[[], Any]) -> APIR
             factors = _factor_payload(fingerprint.get("factors"))
             if not factors:
                 raise RuntimeError("scorer fingerprint has no factors")
+
+            perturbation = perturbation_provider() if perturbation_provider is not None else None
+            overlay = perturbation.overlay(factors) if perturbation is not None else None
+            if overlay is not None:
+                for factor in factors:
+                    if factor["name"] in overlay["factors"]:
+                        factor["dk_weight"] = float(overlay["factors"][factor["name"]])
+                        factor["label"] = _trust_label(factor["dk_weight"])
+                factors.sort(key=lambda factor: (-factor["dk_weight"], factor["name"]))
+                for rank, factor in enumerate(factors, start=1):
+                    factor["rank"] = rank
 
             trajectory = _as_mapping(scorer.trajectory())
             graph_store = getattr(scorer, "graph_store", None)

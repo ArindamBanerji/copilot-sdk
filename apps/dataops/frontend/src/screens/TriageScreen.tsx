@@ -79,7 +79,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     recommendation: null,
   });
   const [loading, setLoading] = useState(Boolean(selectedAlertId));
-  const [loadedAlertId, setLoadedAlertId] = useState<string | null>(null);
+  const [criticalSettled, setCriticalSettled] = useState(!selectedAlertId);
   const [error, setError] = useState<string | null>(null);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [score, setScore] = useState<ScoreResponse | null>(null);
@@ -107,7 +107,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     }
 
     let cancelled = false;
-    setLoadedAlertId(null);
+    setCriticalSettled(false);
     setConservationThetaMin(undefined);
     setLoading(true);
     setError(null);
@@ -136,7 +136,6 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       .then(([detail, deps, factors, recurrence, recommendation, conservation]) => {
         if (!cancelled) {
           setData({ detail, deps, factors, recurrence, recommendation });
-          setLoadedAlertId(selectedAlertId);
           setConservationThetaMin(conservation?.thetaMin ?? undefined);
         }
 
@@ -207,6 +206,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       })
       .finally(() => {
         if (!cancelled) {
+          setCriticalSettled(true);
           setLoading(false);
         }
       });
@@ -239,8 +239,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
   const dataReady =
     Boolean(selectedAlertId) &&
     !loading &&
-    loadedAlertId === selectedAlertId &&
-    data.detail?.alert != null;
+    criticalSettled;
 
   async function handleAction(action: string) {
     if (!alert?.category || !selectedAlertId) {
@@ -327,7 +326,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
 
   if (!selectedAlertId) {
     return (
-      <section data-screen-ready="true" className="copilot-card p-6">
+      <section data-screen-ready={String(!selectedAlertId)} className="copilot-card p-6">
         <button type="button" className="copilot-button-secondary mb-4 px-3 py-2 text-sm" onClick={onBack}>
           Back to Dashboard
         </button>

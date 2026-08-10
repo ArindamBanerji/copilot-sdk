@@ -40,7 +40,7 @@ export default function AuditExportPanel() {
 
   if (loading) {
     return (
-      <section className="purchase-card">
+      <section className="purchase-card" data-panel-ready="false">
         <p className="purchase-kicker">Quarterly review</p>
         <h2 className="purchase-title">Audit &amp; Compliance Pack</h2>
         <p>Loading audit pack...</p>
@@ -49,7 +49,7 @@ export default function AuditExportPanel() {
   }
   if (error) {
     return (
-      <section className="purchase-card error-card">
+      <section className="purchase-card error-card" data-panel-ready="true">
         <p className="purchase-kicker">Audit pack unavailable</p>
         <h2 className="purchase-title">Audit &amp; Compliance Pack</h2>
         <p>{error}</p>
@@ -60,7 +60,7 @@ export default function AuditExportPanel() {
   const proof = pack?.sections?.conservation_proof;
   const hash = pack?.sections?.hash_chain_verification;
   return (
-    <section className="purchase-card">
+    <section className="purchase-card" data-panel-ready="true">
       <div className="purchase-card-header">
         <div>
           <p className="purchase-kicker">Quarterly review</p>

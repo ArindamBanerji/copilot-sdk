@@ -1,11 +1,12 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { collectConsoleErrors, clickTab, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
+import { collectConsoleErrors, clickTab, expectNoConsoleErrors, waitForAppShell, waitForScreenReady } from "../helpers/ui";
 
 const BACKEND = process.env.DATAOPS_BACKEND || "http://127.0.0.1:8030";
 const states = ["INSTRUMENT_VALIDATED", "ACCUMULATING", "MEASURED"];
 
 async function gotoPanel(page: import("@playwright/test").Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await waitForAppShell(page);
   await clickTab(page, "Evidence");
   await waitForAppShell(page);

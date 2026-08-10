@@ -8,7 +8,8 @@ function statusFor(system?: EnterpriseSystemHealth) {
   }
 
   const connected = system.connected === true || system.live === true;
-  return { label: connected ? "Connected" : "Offline", connected };
+  const label = system.source === "fixture" ? "Fixture" : connected ? "Live" : "Offline";
+  return { label, connected };
 }
 
 function HealthPill({
@@ -26,7 +27,7 @@ function HealthPill({
     : "border-slate-500/40 bg-slate-500/10 text-slate-200";
 
   return (
-    <div className={`rounded-md border px-3 py-2 ${tone}`}>
+    <div data-testid={`enterprise-system-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} className={`rounded-md border px-3 py-2 ${tone}`}>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-current/70">{label}</p>
       <p className="mt-1 text-sm font-semibold">{status.label}</p>
       <p className="mt-0.5 text-xs text-current/70">{metric}</p>
@@ -61,7 +62,7 @@ export function EnterpriseHealthBar() {
       : "border-slate-500/40 bg-slate-500/10 text-slate-200";
 
   return (
-    <section className="rounded-md border border-white/10 bg-white/[0.04] p-4 shadow-sm">
+    <section data-testid="enterprise-health" className="rounded-md border border-white/10 bg-white/[0.04] p-4 shadow-sm">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-purple-200/75">
@@ -78,6 +79,12 @@ export function EnterpriseHealthBar() {
         <HealthPill label="Celonis" system={health?.celonis} metric={`${health?.celonis?.kpiCount ?? 0} KPIs`} />
         <HealthPill label="Graph" system={health?.graph} metric={`${health?.graph?.nodeCount ?? 0} nodes`} />
       </div>
+      {health?.combinedImpact ? (
+        <div data-testid="enterprise-impact" className="mt-4 rounded-md border border-purple-300/20 bg-purple-500/10 px-3 py-2 text-sm text-purple-100">
+          <span className="font-semibold">Combined impact:</span>{" "}
+          {health.combinedImpact.exceptionInvoiceCount ?? 0} invoice exceptions · {health.combinedImpact.bottleneckActivity ?? "No bottleneck"}
+        </div>
+      ) : null}
     </section>
   );
 }

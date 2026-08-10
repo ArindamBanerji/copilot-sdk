@@ -4,11 +4,55 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FlexibleResponse(BaseModel):
     model_config = ConfigDict(extra="allow")
+
+
+class DiagnosticsResponse(FlexibleResponse):
+    """Canonical convergence and measurement diagnostics."""
+
+    centroid_distance_to_canonical: float | None = None
+    epsilon_firm: dict[str, Any] | float | None = None
+    iks: float | None = None
+    measurement_state: dict[str, Any] | None = None
+    domain: str
+
+
+class ConservationResponse(FlexibleResponse):
+    """Compact conservation view for clients that need the public contract."""
+
+    status: str
+    alpha: float | None = None
+    q: float | None = None
+    V: int | None = Field(default=None, alias="verified_count")
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+    theta_min: float | None = None
+    signal: float | None = None
+    headroom: float | None = None
+    reason: str | None = None
+    domain: str | None = None
+
+
+class EvolutionSummaryResponse(FlexibleResponse):
+    """Evolution inventory and conservation-gate telemetry."""
+
+    domain: str
+    evolution_enabled: bool
+    schema_version: int = 1
+    conservation_state: str | dict[str, Any] | None = None
+    inventory: dict[str, Any] | None = None
+    variant_stats: list[dict[str, Any]] | None = None
+    recent_events: list[dict[str, Any]] | None = None
+
+
+class TransferListResponse(FlexibleResponse):
+    """Cross-copilot transfer records visible to the current domain."""
+
+    transfers: list[Any]
+    total: int
 
 
 class ScoreResponse(FlexibleResponse):
@@ -102,6 +146,17 @@ class ConservationStatusResponse(BaseModel):
     correct_count: int
     total_decisions: int
     penalty_ratio: float
+    alpha: float
+    q: float
+    V: int
+    baseline: float
+    baseline_q: float
+    relative_trigger: float
+    relative_trigger_ratio: float
+    categories_total: int
+    total_categories: int
+    categories_with_data: int
+    reason: str
     signal: float | None
     theta_min: float | None
     headroom: float | None
@@ -174,9 +229,40 @@ class EvolutionPromotedResponse(BaseModel):
     promoted: list[Any]
 
 
+class CheckpointQuality(BaseModel):
+    window_size: int | None = None
+    verified_count: int | None = None
+    correct_count: int | None = None
+    rolling_accuracy: float | None = None
+    window_end: str | None = None
+    policy_version: str | None = None
+
+
 class CentroidHistoryResponse(BaseModel):
     checkpoints: list[dict[str, Any]]
     total: int
+
+
+class CounterfactualDetail(BaseModel):
+    decision_id: str
+    category: str
+    baseline_action: str
+    counterfactual_action: str
+    changed: bool
+
+
+class CounterfactualResponse(BaseModel):
+    analysis_type: str = "centroid_ablation"
+    description: str
+    checkpoint_id: str
+    checkpoint_time: float | None
+    baseline: str = "latest_centroids"
+    held_fixed: list[str] = ["dk_weights", "temperature"]
+    window_requested: int
+    decisions_rescored: int
+    would_change: int
+    change_rate: float | None
+    details: list[CounterfactualDetail]
 
 
 class AccuracyCategoryResponse(BaseModel):

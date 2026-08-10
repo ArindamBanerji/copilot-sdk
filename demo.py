@@ -97,6 +97,19 @@ def _build_age_dsn(dbname: str = "soc_copilot") -> str:
     return f"host={host} port=5433 dbname={dbname} user=postgres password=postgres sslmode=disable"
 
 
+def _port_env(name: str, default: int) -> int:
+    """Read an optional launcher port while retaining the documented default."""
+    try:
+        value = int(os.environ.get(name, str(default)))
+    except ValueError:
+        return default
+    return value if 1 <= value <= 65535 else default
+
+
+def _url_env(name: str, default: str) -> str:
+    return os.environ.get(name, default).rstrip("/")
+
+
 # Resolve once at import time (WSL IP is stable within a boot session)
 _WSL2_IP = _resolve_wsl2_ip()
 AGE_DSN_SOC = _build_age_dsn("soc_copilot")
@@ -110,6 +123,8 @@ def _build_graph_env(domain: str, dsn: str) -> dict[str, str]:
         "GRAPH_DSN": dsn,
         "GRAPH_NAME": "soc_graph",
         "AGE_GRAPH_NAME": "soc_graph",
+        "AGE_USE_POOL": "true",
+        "AGE_POOL_MAX_SIZE": "5",
         "GRAPH_DOMAIN": domain,
         "DEMO_MODE": "1",
         "DATAOPS_DEMO_MODE": "1",
@@ -171,21 +186,21 @@ SOC_CONTRACT_PATH = SOC_REPO / "scratch" / "temp" / "soc_diag_backend_contract.j
 COPILOTS = [
     {
         "name": "SOC",
-        "be_port": 8001,
-        "fe_port": 5173,
+        "be_port": _port_env("SOC_BACKEND_PORT", 8001),
+        "fe_port": _port_env("SOC_FRONTEND_PORT", 5173),
         "be_path": SOC_BACKEND,
         "fe_path": SOC_REPO / "frontend",
         "requires_age": True,
         "graph_dsn": AGE_DSN_SOC,
         "env": _build_graph_env("soc", AGE_DSN_SOC),
         "fe_env": {
-            "VITE_S2P_API_URL": "http://127.0.0.1:8002",
+            "VITE_S2P_API_URL": _url_env("S2P_BACKEND_URL", "http://127.0.0.1:8002"),
         },
     },
     {
         "name": "Trading",
-        "be_port": 8010,
-        "fe_port": 5174,
+        "be_port": _port_env("TRADING_BACKEND_PORT", 8010),
+        "fe_port": _port_env("TRADING_FRONTEND_PORT", 5174),
         "be_path": SCRIPT_DIR / "apps" / "trading" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "trading" / "frontend",
         "requires_age": True,
@@ -194,8 +209,8 @@ COPILOTS = [
     },
     {
         "name": "Purchasing",
-        "be_port": 8020,
-        "fe_port": 5175,
+        "be_port": _port_env("PURCHASING_BACKEND_PORT", 8020),
+        "fe_port": _port_env("PURCHASING_FRONTEND_PORT", 5175),
         "be_path": SCRIPT_DIR / "apps" / "purchasing" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "purchasing" / "frontend",
         "requires_age": True,
@@ -204,8 +219,8 @@ COPILOTS = [
     },
     {
         "name": "DataOps",
-        "be_port": 8030,
-        "fe_port": 5176,
+        "be_port": _port_env("DATAOPS_BACKEND_PORT", 8030),
+        "fe_port": _port_env("DATAOPS_FRONTEND_PORT", 5176),
         "be_path": SCRIPT_DIR / "apps" / "dataops" / "backend",
         "fe_path": SCRIPT_DIR / "apps" / "dataops" / "frontend",
         "requires_age": True,
@@ -214,8 +229,8 @@ COPILOTS = [
     },
     {
         "name": "S2P",
-        "be_port": 8002,
-        "fe_port": 5177,
+        "be_port": _port_env("S2P_BACKEND_PORT", 8002),
+        "fe_port": _port_env("S2P_FRONTEND_PORT", 5177),
         "be_path": Path(os.environ.get(
             "CLAUDE_S2P",
             str(SCRIPT_DIR.parent / "s2p-copilot"),
@@ -870,8 +885,10 @@ def cmd_start(selected: list[dict], args):
             env.update(c["env"])
         if args.no_reseed:
             env["DEMO_NO_RESEED"] = "1"
-        if (args.soc_learning or args.preseed) and c["name"].lower() == "soc":
-            env["SOC_LEARNING_ENABLED"] = "true"
+        if c["name"].lower() == "soc":
+            # Learning is on by default. Preserve an explicit operator
+            # override inherited from the launcher environment.
+            env.setdefault("SOC_LEARNING_ENABLED", "true")
         if args.diag_mode:
             env["PYTHONPATH"] = diag_pythonpath
 
@@ -1016,7 +1033,10 @@ def cmd_start(selected: list[dict], args):
         age_flag = " [AGE]" if c.get("requires_age") else ""
         learning_flag = ""
         if c["name"].lower() == "soc":
-            learning_state = "enabled" if (args.soc_learning or args.preseed) else "disabled"
+            learning_enabled = os.getenv("SOC_LEARNING_ENABLED", "true").strip().lower() in {
+                "1", "true", "yes", "on"
+            }
+            learning_state = "enabled" if learning_enabled else "disabled"
             learning_flag = f"  learning={learning_state}"
         if fe_port is None:
             print(f"  {c['name']:12s}  backend http://localhost:{c['be_port']}{age_flag}{learning_flag}")
@@ -1318,7 +1338,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--graph", action="store_true", help="AGE graph mode for DataOps")
     parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
     parser.add_argument("--soc-learning", action="store_true",
-                        help="Enable SOC learning for demo recording")
+                        help="Deprecated compatibility flag; SOC learning is enabled by default")
     parser.add_argument("--preseed-only", action="store_true",
                         help="Pre-seed without restarting (backends must already be running)")
     parser.add_argument("--record-mode", action="store_true", help="Pre-seed and freeze connectors for recording")

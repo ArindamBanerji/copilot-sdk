@@ -21,11 +21,13 @@ export default function EvidenceScreen() {
   const [origin, setOrigin] = useState<PatternOrigin | null>(null);
   const [impact, setImpact] = useState<AEImpact | null>(null);
   const [loading, setLoading] = useState(true);
+  const [criticalLoaded, setCriticalLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setCriticalLoaded(false);
     setError(null);
     Promise.all([getEvolutionVariants(), getPatternOrigin(), getAeImpact()])
       .then(([variantResult, originResult, impactResult]) => {
@@ -42,6 +44,7 @@ export default function EvidenceScreen() {
       })
       .finally(() => {
         if (!cancelled) {
+          setCriticalLoaded(true);
           setLoading(false);
         }
       });
@@ -54,8 +57,10 @@ export default function EvidenceScreen() {
     return <Frame message="Loading evolution evidence..." />;
   }
 
+  const dataReady = criticalLoaded && !loading;
+
   return (
-    <div data-screen-ready="true" className="grid gap-4">
+    <div data-screen-ready={String(dataReady)} className="grid gap-4">
       {error ? <Frame message={error} tone="error" /> : null}
       <CohortStatusPanel />
       <CrossSystemPanel />

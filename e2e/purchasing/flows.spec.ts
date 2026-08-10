@@ -1,7 +1,12 @@
 import { type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
 import { waitForScorerResponse } from "../helpers";
-import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors } from "../helpers/ui";
+import { clickTab as rawClickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors, waitForScreenReady } from "../helpers/ui";
+
+async function clickTab(page: Page, tab: string) {
+  await rawClickTab(page, tab);
+  await waitForScreenReady(page);
+}
 
 async function scoreCurrentOrder(page: Page) {
   await expect(page.getByText("Seven scorer inputs")).toBeVisible();
@@ -16,6 +21,7 @@ async function scoreCurrentOrder(page: Page) {
 test("full order lifecycle: dashboard item, order, score, confirm", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForScreenReady(page);
 
   const parMonitor = page.locator("section.par-monitor", { hasText: "Par level monitor" });
   const dashboardOrderButtons = parMonitor.getByRole("button", { name: /^Order$/ });
@@ -34,6 +40,7 @@ test("full order lifecycle: dashboard item, order, score, confirm", async ({ pag
 test("score confirm then Performance shows IKS", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   await expect(page.getByRole("heading", { name: "Score the next purchase" })).toBeVisible();
 
@@ -71,6 +78,7 @@ test("score confirm then Performance shows IKS", async ({ page }) => {
 
 test("full round trip visits dashboard, order, analysis, inventory, and performance", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/items need attention/i, /dashboard/i, /cover/i]);
 
   await clickTab(page, "Order");
@@ -89,6 +97,7 @@ test("full round trip visits dashboard, order, analysis, inventory, and performa
 test("tab navigation all 5 tabs", async ({ page }) => {
   const errors = collectConsoleErrors(page);
   await page.goto("/");
+  await waitForScreenReady(page);
 
   for (const tab of ["Dashboard", "Order", "Analysis", "Inventory", "Performance"]) {
     await clickTab(page, tab);
@@ -100,6 +109,7 @@ test("tab navigation all 5 tabs", async ({ page }) => {
 
 test("analysis and inventory data consistency", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Analysis");
   await expect(page.getByText("Category accuracy")).toBeVisible();
   await expectAnyText(page, [/protein/i, /produce/i, /dairy/i, /category/i, /inventory/i, /items/i]);
@@ -111,6 +121,7 @@ test("analysis and inventory data consistency", async ({ page }) => {
 
 test("order from dropdown versus dashboard item click", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   await expect(page.getByRole("heading", { name: "Score the next purchase" })).toBeVisible();
 
@@ -130,6 +141,7 @@ test("order from dropdown versus dashboard item click", async ({ page }) => {
 
 test("AE-managed and rejected items show different badges", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/AE managed/i, /managed/i]);
 
   await clickTab(page, "Inventory");
@@ -139,6 +151,7 @@ test("AE-managed and rejected items show different badges", async ({ page }) => 
 
 test("inventory shows category groups and variant counts", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Inventory");
 
   await expectAnyText(page, [/protein/i, /produce/i, /dairy/i]);
@@ -151,6 +164,7 @@ test("inventory shows category groups and variant counts", async ({ page }) => {
 test("Dashboard to Order score to confirm to Performance IKS", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/items need attention/i, /cover/i, /Par level monitor/i]);
 
   await clickTab(page, "Order");
@@ -184,6 +198,7 @@ test("Dashboard to Order score to confirm to Performance IKS", async ({ page }) 
 
 test("Inventory variants to Analysis contrast to Performance narrative", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Inventory");
   await expectAnyText(page, [/waste/i, /variant/i, /protein/i, /produce/i]);
 
@@ -197,6 +212,7 @@ test("Inventory variants to Analysis contrast to Performance narrative", async (
 test("score to reasoning to Performance projection round trip", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   await expectAnyText(page, [/Score the next purchase/i, /Score This Order/i]);
 
@@ -210,6 +226,7 @@ test("score to reasoning to Performance projection round trip", async ({ page })
 
 test("all main tabs load after shared reasoning and projection port", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   for (const tab of ["Dashboard", "Order", "Analysis", "Inventory", "Performance"]) {
     await clickTab(page, tab);
     await expect(page.locator("main")).not.toBeEmpty();
@@ -219,6 +236,7 @@ test("all main tabs load after shared reasoning and projection port", async ({ p
 
 test("SC round trip: accuracy to decisions to inventory audit trail", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/SC-12/i, /Accuracy/i, /threshold/i, /No verified decisions yet/i]);
 
   await clickTab(page, "Analysis");
@@ -235,6 +253,7 @@ test("SC round trip: accuracy to decisions to inventory audit trail", async ({ p
 
 test("api self features render populated or empty states", async ({ page }) => {
   await page.goto("/");
+  await waitForScreenReady(page);
   await expectAnyText(page, [/Category accuracy alerts/i, /No verified decisions yet/i, /Threshold/i]);
 
   await clickTab(page, "Inventory");

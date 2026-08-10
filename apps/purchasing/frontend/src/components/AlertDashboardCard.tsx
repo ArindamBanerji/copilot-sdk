@@ -44,7 +44,7 @@ export default function AlertDashboardCard() {
   }, {}), [alerts]);
 
   return (
-    <section className="purchase-card">
+    <section className="purchase-card" data-panel-ready={String(!loading)}>
       <div className="purchase-card-header">
         <div>
           <p className="purchase-kicker">Active Alerts</p>

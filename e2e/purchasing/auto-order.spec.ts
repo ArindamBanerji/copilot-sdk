@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { waitForAppShell } from "../helpers/ui";
+import { waitForScreenReady } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
 
@@ -51,28 +51,28 @@ test("Evaluate endpoint returns decision", async ({ request }) => {
 
 test("Dashboard shows auto-order panel", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   const panel = page.getByTestId("auto-order-status");
   await expect(panel).toBeVisible({ timeout: 20_000 });
 });
 
 test("Auto-order toggle visible", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   const toggle = page.getByTestId("auto-order-toggle");
   await expect(toggle).toBeVisible({ timeout: 20_000 });
 });
 
 test("Auto-order stats card visible", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   const stats = page.getByTestId("auto-order-stats");
   await expect(stats).toBeVisible({ timeout: 20_000 });
 });
 
 test("Auto-order history table visible", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   const history = page.getByTestId("auto-order-history");
   await expect(history).toBeVisible({ timeout: 20_000 });
 });

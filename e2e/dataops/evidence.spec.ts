@@ -1,8 +1,9 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForScreenReady } from "../helpers/ui";
 
 async function gotoEvidence(page: import("@playwright/test").Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await clickTab(page, "Evidence");
   await expectAnyText(page, [/AgentEvolver Impact/i, /Loading evolution evidence/i]);
   await expect(page.getByText(/Loading evolution evidence/i)).toBeHidden({ timeout: 20_000 });

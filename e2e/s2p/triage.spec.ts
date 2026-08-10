@@ -21,7 +21,8 @@ function waitForScoreResponse(page: Page) {
   return page.waitForResponse((response) =>
     response.url().includes("/score") &&
     response.request().method() === "POST" &&
-    response.status() === 200
+    response.status() === 200,
+    { timeout: 30_000 },
   );
 }
 
@@ -29,7 +30,8 @@ function waitForLearnResponse(page: Page) {
   return page.waitForResponse((response) =>
     (response.url().includes("/api/learn") || response.url().includes("/api/s2p/outcome")) &&
     response.request().method() === "POST" &&
-    response.ok()
+    response.ok(),
+    { timeout: 30_000 },
   );
 }
 

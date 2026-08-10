@@ -293,9 +293,9 @@ async def rebuild_from_age(domain: str | None = None) -> int:
     Skipped (returns 0) if the ledger already has entries (hot reload).
     """
     try:
-        from app.db.neo4j import neo4j_client  # noqa: PLC0415
+        from app.db.graph_client import graph_client  # noqa: PLC0415
     except ImportError:
-        neo4j_client = None  # SDK standalone — no SOC backend
+        graph_client = None  # SDK standalone — no SOC backend
 
     domain_clause = " AND d.domain = $domain" if domain is not None else ""
     params = {"domain": domain} if domain is not None else None
@@ -312,7 +312,7 @@ async def rebuild_from_age(domain: str | None = None) -> int:
         "d.outcome AS outcome "
         "ORDER BY d.timestamp_epoch ASC"
     )
-    rows = await neo4j_client.run_query(query, params) if domain is not None else await neo4j_client.run_query(query)
+    rows = await graph_client.run_query(query, params) if domain is not None else await graph_client.run_query(query)
 
     async with _ledger_lock:
         if len(_LEDGER._entries) > 0:

@@ -98,7 +98,7 @@ def test_enrichment_fixture_cannot_claim_measured() -> None:
         )
 
 
-def test_soc_learning_default_is_false() -> None:
+def test_soc_learning_default_is_true() -> None:
     soc_backend = Path("..") / "gen-ai-roi-demo-v4-v50" / "backend"
     result = subprocess.run(
         [
@@ -115,10 +115,10 @@ def test_soc_learning_default_is_false() -> None:
     )
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.splitlines() == ["False", "False"]
+    assert result.stdout.splitlines() == ["True", "True"]
     launcher = Path("demo.py").read_text(encoding="utf-8")
     assert "--soc-learning" in launcher
-    assert 'env["SOC_LEARNING_ENABLED"] = "true"' in launcher
+    assert 'env.setdefault("SOC_LEARNING_ENABLED", "true")' in launcher
     assert "/api/soc/learning-health" in launcher
 
 

@@ -1,8 +1,9 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForAppShell, waitForScreenReady } from "../helpers/ui";
 
 async function openEvidence(page: import("@playwright/test").Page) {
   await page.goto("/");
+  await waitForScreenReady(page);
   await waitForAppShell(page);
   await clickTab(page, "Evidence");
   await waitForAppShell(page);

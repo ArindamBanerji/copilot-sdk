@@ -1,11 +1,11 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, waitForAppShell } from "../helpers/ui";
+import { clickTab, waitForScreenReady } from "../helpers/ui";
 
 async function gotoPerformance(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Performance");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
 }
 
 test("WeeklyReportPanel visible on Performance tab", async ({ page }) => {

@@ -75,6 +75,16 @@ class _ReplayGraphStore:
         _ = domain
         return None
 
+    def get_centroid_checkpoints(
+        self,
+        domain: str,
+        include_v2: bool = False,
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
+        """Return no persisted checkpoints for an isolated decision replay."""
+        _ = domain, include_v2, kwargs
+        return []
+
     def add_decision(self, decision: dict[str, Any]) -> None:
         self._decisions[str(decision["decision_id"])] = dict(decision)
 

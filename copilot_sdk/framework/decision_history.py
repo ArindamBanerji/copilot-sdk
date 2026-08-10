@@ -21,7 +21,7 @@ class DecisionHistoryService:
     @staticmethod
     async def get_category_stats(
         category: str,
-        neo4j_service: Any,
+        graph_service: Any,
         domain: str | None = None,
     ) -> dict:
         """
@@ -43,7 +43,7 @@ class DecisionHistoryService:
             params = {"cat": category}
             if domain is not None:
                 params["domain"] = domain
-            result = await neo4j_service.run_query(
+            result = await graph_service.run_query(
                 """
                 MATCH (d:Decision)
                 WHERE d.category = $cat"""

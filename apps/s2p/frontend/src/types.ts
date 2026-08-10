@@ -56,6 +56,8 @@ export interface InvoiceException {
   po_number?: string;
   poNumber?: string;
   amount?: number;
+  amount_variance_ratio?: number;
+  variance_ratio?: number;
   category?: S2PCategory | string;
   scored_action?: S2PAction | string;
   scoredAction?: S2PAction | string;

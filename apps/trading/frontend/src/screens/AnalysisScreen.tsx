@@ -3,7 +3,7 @@ import { FingerprintPanel, type FactorItem } from "../../../../../copilot_sdk/fr
 import { getAnalytics, getFingerprint } from "../api";
 import ContrastCard from "../components/ContrastCard";
 import CorrelationPanel from "../components/CorrelationPanel";
-import CounterfactualCard from "../components/CounterfactualCard";
+import CounterfactualCard from "../components/CounterfactualPanel";
 import DayOfWeekChart from "../components/DayOfWeekChart";
 import DecisionExplorer from "../components/DecisionExplorer";
 import DispersionFollowCard from "../components/DispersionFollowCard";
@@ -19,6 +19,7 @@ import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
 import TailBetsCard from "../components/TailBetsCard";
 import TrustRadarPanel from "../components/TrustRadarPanel";
 import VolSharpeCard from "../components/VolSharpeCard";
+import VolatilityPanel from "../components/VolatilityPanel";
 import VRPAttributionCard from "../components/VRPAttributionCard";
 import type { Analytics, FingerprintResponse } from "../types";
 
@@ -106,6 +107,7 @@ export default function AnalysisScreen() {
     <div data-screen-ready="true" className="flex flex-col gap-4">
       <TrustRadarPanel />
       <RegimePanel />
+      <VolatilityPanel />
       <PatternDetectionPanel />
       <ContrastCard analytics={analytics} />
       <ProfileArchetype fingerprint={fingerprint} />

@@ -1,0 +1,8 @@
+INFO:     127.0.0.1:58838 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58844 - "POST /api/s2p/enrichment/run?dry_run=true&min_decisions=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58869 - "GET /api/s2p/enrichment/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58892 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58899 - "GET /api/s2p/enrichment/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58909 - "POST /api/s2p/enrichment/run?dry_run=false&min_decisions=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60847 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60849 - "GET /health HTTP/1.1" 200 OK

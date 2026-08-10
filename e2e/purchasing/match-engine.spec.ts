@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, waitForAppShell } from "../helpers/ui";
+import { clickTab, waitForScreenReady } from "../helpers/ui";
 
 const API_BASE = "http://127.0.0.1:8020";
 
@@ -92,14 +92,14 @@ test("Match kitchen language - no raw QBO terms", async ({ request }) => {
 
 test("Order tab shows match result panel", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   await expect(page.getByTestId("match-queue-summary")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Match results table has rows", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   const table = page.getByTestId("match-results-table");
   await expect(table).toBeVisible({ timeout: 20_000 });
@@ -108,7 +108,7 @@ test("Match results table has rows", async ({ page }) => {
 
 test("Match confidence indicator visible", async ({ page }) => {
   await page.goto("/");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Order");
   const confidence = page.getByTestId("match-confidence").first();
   await expect(confidence).toBeVisible({ timeout: 20_000 });

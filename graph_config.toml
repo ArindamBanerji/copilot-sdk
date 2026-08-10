@@ -1,6 +1,6 @@
 [defaults]
-backend = "sqlite"
-expected_backend = "sqlite"
+backend = "age"
+expected_backend = "age"
 dsn = ""
 graph = "soc_graph"
 age_test_mode = false

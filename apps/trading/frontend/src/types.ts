@@ -454,6 +454,69 @@ export interface RegimeVrpResponse {
   decisionsUntilMeasured?: number;
 }
 
+export interface SituationRegimeResponse {
+  regime?: string;
+  previousRegime?: string | null;
+  regimeBreak?: boolean;
+  detectedBy?: string;
+  hurst?: number;
+  volState?: string;
+  conservationStatus?: string;
+  autonomy?: string;
+  autonomyMultiplier?: number;
+  message?: string;
+  provenance?: string;
+  substantiation?: string;
+}
+
+export interface SituationConditionedStatsResponse {
+  currentRegime?: string;
+  mirrorMessage?: string;
+  regimes?: Record<string, {
+    decisionCount?: number;
+    verifiedCount?: number;
+    accuracy?: NullableNumber;
+    tradeFrequencyMultiplier?: number;
+    lossDeltaPct?: number;
+    measurementState?: string;
+    provenance?: string;
+    substantiation?: string;
+  }>;
+  provenance?: string;
+  substantiation?: string;
+}
+
+export interface SituationAbstentionResponse {
+  regime?: string;
+  decisionCount?: number;
+  minimumDecisions?: number;
+  abstentionRecommended?: boolean;
+  message?: string;
+  provenance?: string;
+  substantiation?: string;
+}
+
+export interface SituationRejectionsResponse {
+  variantsTested?: number;
+  variantsRejected?: number;
+  rejections?: Array<{ reason?: string; count?: number; label?: string }>;
+  message?: string;
+  provenance?: string;
+  substantiation?: string;
+}
+
+export interface SituationSharpeResponse {
+  rawSharpe?: number;
+  clusteringAdjustedSharpe?: number;
+  adjustmentFactor?: number;
+  nDecisions?: number;
+  vrpCaptureLowTailPct?: number;
+  vrpMessage?: string;
+  message?: string;
+  provenance?: string;
+  substantiation?: string;
+}
+
 export interface DispersionFollowResponse {
   signalsFired?: number;
   followed?: number;
@@ -697,12 +760,22 @@ export interface ConservationBreakdownResponse {
   methodology: string;
 }
 
+export interface CheckpointQuality {
+  window_size: number | null;
+  verified_count: number | null;
+  correct_count: number | null;
+  rolling_accuracy: number | null;
+  window_end?: string | null;
+  policy_version: string | null;
+}
+
 export interface CentroidCheckpoint {
   decisionId?: string;
   category?: string;
   centroids?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   createdAt?: string;
+  quality: CheckpointQuality | null;
   [key: string]: unknown;
 }
 

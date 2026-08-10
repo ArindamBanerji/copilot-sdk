@@ -1,12 +1,25 @@
 import ProvenanceBadge from "./ProvenanceBadge";
-import type { ScoreInvoiceResponse, ThresholdDecision } from "../types";
+import type { InvoiceException, ScoreInvoiceResponse, ThresholdDecision } from "../types";
 
 function pct(value?: number | null): string {
   if (typeof value !== "number" || !Number.isFinite(value)) return "n/a";
   return `${value.toFixed(1)}%`;
 }
 
-function normalizeDecision(score: ScoreInvoiceResponse): ThresholdDecision | null {
+function normalizeDecision(score: ScoreInvoiceResponse, invoice?: InvoiceException | null): ThresholdDecision | null {
+  const rawVariance = invoice?.amount_variance_ratio ?? invoice?.variance_ratio ?? score.factors?.amount_variance_ratio;
+  if (typeof rawVariance === "number" && Number.isFinite(rawVariance)) {
+    const variance = Math.abs(rawVariance) <= 1 ? rawVariance * 100 : rawVariance;
+    const threshold = 5;
+    return {
+      decision: variance > threshold ? "REJECT" : "APPROVE",
+      reason: `Computed from invoice variance (${variance.toFixed(1)}% > ${threshold.toFixed(1)}%).`,
+      price_variance_pct: variance,
+      threshold_pct: threshold,
+      provenance: "live",
+      cost_of_error: "$340K",
+    };
+  }
   return score.threshold_decision ?? score.thresholdDecision ?? null;
 }
 
@@ -16,6 +29,7 @@ function situationDecision(score: ScoreInvoiceResponse): string {
 
 export default function RuleVsReasoningPanel({
   score,
+  invoice = null,
   situationExplanation = null,
   situationConfidence = null,
   situationSources = null,
@@ -23,13 +37,14 @@ export default function RuleVsReasoningPanel({
   situationLoading = false,
 }: {
   score: ScoreInvoiceResponse;
+  invoice?: InvoiceException | null;
   situationExplanation?: string | null;
   situationConfidence?: number | null;
   situationSources?: string[] | null;
   situationProvenance?: string | null;
   situationLoading?: boolean;
 }) {
-  const rule = normalizeDecision(score);
+  const rule = normalizeDecision(score, invoice);
   if (!rule) return null;
 
   const variance = rule.price_variance_pct ?? rule.priceVariancePct;
@@ -83,6 +98,11 @@ export default function RuleVsReasoningPanel({
           {situationProvenance ? <ProvenanceBadge source={situationProvenance} className="mt-3" /> : null}
         </section>
       </div>
+      {rule.decision === "REJECT" && accepts ? (
+        <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">
+          The rule was wrong. {rule.cost_of_error ?? rule.costOfError ?? "$340K"} in false rejections.
+        </p>
+      ) : null}
     </article>
   );
 }

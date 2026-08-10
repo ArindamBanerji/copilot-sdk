@@ -5,10 +5,16 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from copilot_sdk.di import AcquisitionAdvisor, BaseSourceProfiler, IntelligenceMapBuilder
+from copilot_sdk.di.intelligence_map import enrich_payload_with_suggestions
+from copilot_sdk.di.query_models import QueryRequest, QueryResponse
+from copilot_sdk.di.query_service import DIQueryService, InvalidQueryError
+from copilot_sdk.di.catalog import ExternalDataCatalog
+from copilot_sdk.di.search_models import SearchResult
+from copilot_sdk.di.search_service import DISearchService
 
 
 class ProfileRefreshRequest(BaseModel):
@@ -57,6 +63,10 @@ def create_di_router(
     map_builder: Any | None = None,
     map_sources: list[dict[str, Any]] | None = None,
     advisor: Any | None = None,
+    valuation_model: Any | None = None,
+    query_service: DIQueryService | None = None,
+    search_service: DISearchService | None = None,
+    catalog: ExternalDataCatalog | None = None,
     cache_ttl_seconds: int | None = 300,
 ) -> APIRouter:
     """Create domain-agnostic Data Intelligence source profile endpoints."""
@@ -65,6 +75,8 @@ def create_di_router(
     cache: dict[str, dict[str, Any]] = {}
     resolved_map_builder = map_builder or IntelligenceMapBuilder()
     resolved_advisor = advisor or AcquisitionAdvisor()
+    resolved_catalog = catalog or ExternalDataCatalog()
+    resolved_valuation_model = valuation_model or getattr(resolved_advisor, "valuation_model", None)
 
     def _profiler(source_name: str) -> BaseSourceProfiler:
         try:
@@ -169,6 +181,36 @@ def create_di_router(
         recommendations = result.get("recommendations", []) if isinstance(result, dict) else result
         return {"recommendations": list(recommendations)}
 
+    @router.get("/di/valuation")
+    def valuation() -> dict[str, Any]:
+        model = resolved_valuation_model or getattr(resolved_advisor, "valuation_model", None)
+        if model is not None and callable(getattr(model, "compute_all_recommendations", None)):
+            valuations = list(model.compute_all_recommendations())
+        else:
+            result = resolved_advisor.recommend()
+            recommendations = result.get("recommendations", []) if isinstance(result, dict) else result
+            valuations = []
+            for recommendation in recommendations:
+                item = dict(recommendation)
+                value = float(item.get("computed_value_annual", item.get("annual_value", 0.0)) or 0.0)
+                valuations.append(
+                    {
+                        "source_name": item.get("source_name", item.get("source", "")),
+                        "provider": item.get("provider", ""),
+                        "catalog_entry": item.get("catalog_entry"),
+                        "signal": item.get("signal", "demand_prediction"),
+                        "computed_value_annual": value,
+                        "methodology": item.get("methodology", "Derived from acquisition recommendation."),
+                        "confidence": item.get("confidence", "moderate"),
+                    }
+                )
+        return {
+            "valuations": valuations,
+            "total_portfolio_value": round(
+                sum(float(item.get("computed_value_annual", 0.0) or 0.0) for item in valuations), 2
+            ),
+        }
+
     @router.get("/di/intelligence-map")
     def intelligence_map() -> dict[str, Any]:
         result = (
@@ -178,18 +220,70 @@ def create_di_router(
         )
         payload = result.to_dict() if hasattr(result, "to_dict") else dict(result)
         if not payload.get("gold_lines"):
-            payload["gold_lines"] = [
-                {
-                    "source": item.get("source_a"),
-                    "target": item.get("source_b"),
-                    "value": item.get("value_estimate_annual", 0.0),
-                    "type": "suggested",
-                }
-                for item in resolved_map_builder.discover_combinations()
-            ]
+            valuations = valuation()["valuations"]
+            if valuations:
+                enrich_payload_with_suggestions(payload, valuations)
+            else:
+                payload["gold_lines"] = [
+                    {
+                        "source": item.get("source_a"),
+                        "target": item.get("source_b"),
+                        "value": item.get("value_estimate_annual", 0.0),
+                        "type": "suggested",
+                    }
+                    for item in resolved_map_builder.discover_combinations()
+                ]
         for node in payload.get("nodes", []):
             if "trust" not in node and "brightness" in node:
                 node["trust"] = node["brightness"]
         return payload
+
+    @router.post("/di/query", response_model=QueryResponse)
+    def query(request: QueryRequest) -> QueryResponse:
+        if query_service is None:
+            raise HTTPException(status_code=503, detail="DI query service is not configured")
+        try:
+            return query_service.execute(request)
+        except InvalidQueryError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @router.get("/di/search", response_model=SearchResult)
+    def search(
+        q: str = Query(default=""),
+        trust_tier: int | None = Query(default=None, ge=1, le=3),
+        freshness_max: float | None = Query(default=None, ge=0),
+        quality_status: str | None = Query(default=None),
+        iks_min: float | None = Query(default=None, ge=0),
+        limit: int = Query(default=20, ge=1, le=100),
+    ) -> SearchResult:
+        if search_service is None:
+            raise HTTPException(status_code=503, detail="DI search service is not configured")
+        filters = {
+            key: value for key, value in {
+                "trust_tier": trust_tier,
+                "freshness_max": freshness_max,
+                "quality_status": quality_status,
+                "iks_min": iks_min,
+                "limit": limit,
+            }.items() if value is not None
+        }
+        return search_service.search(q, filters)
+
+    @router.get("/di/catalog")
+    def catalog_entries(
+        q: str = Query(default=""),
+        domain: str | None = Query(default=None),
+        cost_tier: str | None = Query(default=None),
+        data_type: str | None = Query(default=None),
+    ) -> dict[str, Any]:
+        entries = resolved_catalog.search(q, domain=domain, cost_tier=cost_tier, data_type=data_type)
+        return {"entries": [entry.to_dict() for entry in entries], "total": len(entries)}
+
+    @router.get("/di/catalog/{provider_id}")
+    def catalog_entry(provider_id: str) -> dict[str, Any]:
+        entry = resolved_catalog.get_by_id(provider_id)
+        if entry is None:
+            raise HTTPException(status_code=404, detail=f"Unknown catalog provider: {provider_id}")
+        return entry.to_dict()
 
     return router

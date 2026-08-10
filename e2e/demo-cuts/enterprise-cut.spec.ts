@@ -131,7 +131,7 @@ test.describe.serial("Enterprise Demo Cut - 8 beats", () => {
     await openCopilotTab(page, DATAOPS, /Insight/i);
 
     await expect(page.getByText("Intelligence Map", { exact: true })).toBeVisible({ timeout: 20_000 });
-    await expectAnyText(page, [/\$180K\/year/i, /Gold-line suggestions/i, /ROI/i, /annual value/i], 15_000);
+    await expectAnyText(page, [/\$[\d,.]+K?\/year/i, /Gold-line suggestions/i, /ROI/i, /annual value/i], 15_000);
     await expectAnyText(page, [/cross-graph/i, /SAP.*Celonis.*Graph/i, /Source trust and quality graph/i], 15_000);
   });
 

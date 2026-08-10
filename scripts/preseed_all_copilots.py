@@ -304,10 +304,30 @@ def metadata_payload(entry: Dict[str, Any], factors: Dict[str, float], score: Di
     return payload
 
 
+def annotate_trading_regime(seed: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Add deterministic situation tags to Trading's synthetic demo decisions."""
+    regimes = ("trending", "ranging", "volatile")
+    annotated: List[Dict[str, Any]] = []
+    for index, entry in enumerate(seed):
+        row = dict(entry)
+        regime = regimes[index % len(regimes)]
+        row["regime"] = regime
+        row["regime_context"] = {
+            "regime": regime,
+            "vol_state": "elevated" if regime == "volatile" else "calm",
+            "hurst": 0.62 if regime == "trending" else 0.48,
+            "source": "synthetic_preseed",
+        }
+        annotated.append(row)
+    return annotated
+
+
 def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
     base_url = domain_url(config)
     source_seed = load_seed(config.seed_path)
     seed = expanded_seed(source_seed)
+    if config.name == "trading":
+        seed = annotate_trading_regime(seed)
     print("")
     print("== %s ==" % config.name)
     print(
@@ -350,6 +370,8 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
     if not args.force:
         remaining = max(PRESEED_DECISIONS_PER_COPILOT - existing_decisions, 0)
         seed = expanded_seed(source_seed, remaining, start_index=max(existing_decisions, 0))
+        if config.name == "trading":
+            seed = annotate_trading_regime(seed)
         if existing_decisions > 0:
             print(
                 "top-up: decisions_total=%s target=%s remaining=%s"
@@ -379,6 +401,12 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
                     "seed_id": label,
                 },
             }
+            if config.name == "trading":
+                score_body["metadata"] = {
+                    "regime_tag": entry.get("regime", "ranging"),
+                    "vol_state": (entry.get("regime_context") or {}).get("vol_state", "calm"),
+                    "regime_context": dict(entry.get("regime_context") or {}),
+                }
             score = api_post(base_url, "/api/score", score_body)
             decision_id = score.get("decision_id")
             if not decision_id:
@@ -397,6 +425,7 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
                         "seed_domain": config.name,
                         "seed_index": seed_sequence,
                         "seed_id": label,
+                        "consolidate": config.name == "trading",
                         "source_seed_index": entry.get("_preseed_source_index"),
                         "is_preseed_override": is_override,
                         "previous_reward": None,

@@ -1,0 +1,8 @@
+graph config collision field=dsn file=<empty> env=<redacted> winner=env
+Persistence outbox unavailable for s2p: attempt to write a readonly database
+INFO:     Started server process [1804]
+INFO:     Waiting for application startup.
+Persistence outbox unavailable for s2p: attempt to write a readonly database
+Persistence outbox unavailable for s2p: attempt to write a readonly database
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8002 (Press CTRL+C to quit)

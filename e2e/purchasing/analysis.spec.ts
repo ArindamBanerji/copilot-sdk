@@ -1,12 +1,12 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForScreenReady } from "../helpers/ui";
 
 async function gotoAnalysis(page: import("@playwright/test").Page) {
   await page.goto("/");
   await page.waitForLoadState("domcontentloaded");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await clickTab(page, "Analysis");
-  await waitForAppShell(page);
+  await waitForScreenReady(page);
   await expect(page.getByText("YOUR TWO SELVES")).toBeVisible({ timeout: 20_000 });
 }
 

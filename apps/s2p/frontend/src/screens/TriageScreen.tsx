@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchConservation, fetchPreviewQueue, learnDecision, scoreInvoice } from "../api";
 import { CentroidExplorer } from "../components/CentroidExplorer";
 import CounterfactualCard from "../components/CounterfactualCard";
@@ -6,7 +6,7 @@ import { EvidenceTemplatePanel } from "../components/EvidenceTemplatePanel";
 import NoveltyAlertBanner from "../components/NoveltyAlertBanner";
 import ProvenanceBadge from "../components/ProvenanceBadge";
 import { ProcessContextPanel } from "../components/ProcessContextPanel";
-import RuleVsReasoningPanel from "../components/RuleVsReasoningPanel";
+import RuleVsReasoningPanel from "../components/RuleVsReasoningContrast";
 import { S2PConservationProjection } from "../components/S2PConservationProjection";
 import { S2PReasoningPanel } from "../components/S2PReasoningPanel";
 import { SituationPanel } from "../components/SituationPanel";
@@ -111,6 +111,7 @@ export function TriageScreen() {
   const [queueError, setQueueError] = useState<string | null>(null);
   const [scoreError, setScoreError] = useState<string | null>(null);
   const [learnError, setLearnError] = useState<string | null>(null);
+  const selectedRef = useRef<InvoiceException | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,7 +121,10 @@ export function TriageScreen() {
         setQueueError(null);
         setQueue(data);
         const first = data.exceptions?.[0];
-        if (first) setSelectedId(invoiceId(first));
+        if (first) {
+          selectedRef.current = first;
+          setSelectedId(invoiceId(first));
+        }
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -168,10 +172,14 @@ export function TriageScreen() {
   }, []);
 
   async function handleScore() {
-    if (!selected) return;
+    const activeInvoice = selectedRef.current ?? selected;
+    if (!activeInvoice) return;
     setScoring(true);
     setScoreError(null);
     setScore(null);
+    // Do not let the centroid explorer show the previous invoice while this
+    // score request is in flight.
+    setLearnError(null);
     setLearnResult(null);
     setSubmitError("");
     setOverrideOpen(false);
@@ -180,11 +188,11 @@ export function TriageScreen() {
     setSituationLoading(false);
     try {
       const result = await scoreInvoice({
-        event_id: invoiceId(selected),
-        category: selectedCategory,
-        amount: Number(selected.amount ?? 0),
-        supplier_id: supplierId(selected),
-        supplier_name: supplierName(selected),
+        event_id: invoiceId(activeInvoice),
+        category: String(activeInvoice.category ?? "price_variance"),
+        amount: Number(activeInvoice.amount ?? 0),
+        supplier_id: supplierId(activeInvoice),
+        supplier_name: supplierName(activeInvoice),
       });
       if (!result) {
         setScoreError("Scoring failed");
@@ -276,8 +284,10 @@ export function TriageScreen() {
                     key={id}
                     type="button"
                     onClick={() => {
+                      selectedRef.current = invoice;
                       setSelectedId(id);
                       setScore(null);
+                      setScoreError(null);
                       setSituation(null);
                       setSituationLoading(false);
                       setLearnResult(null);
@@ -341,6 +351,7 @@ export function TriageScreen() {
           {score ? (
             <RuleVsReasoningPanel
               score={score}
+              invoice={selected}
               situationExplanation={situation?.nl_explanation ?? null}
               situationConfidence={situation?.confidence ?? null}
               situationSources={situation?.context_chain.map((node) => node.node || node.id || "context") ?? null}
@@ -437,7 +448,7 @@ export function TriageScreen() {
                 <ProcessContextPanel processContext={context} />
               </div>
 
-              <CentroidExplorer decisionId={decisionId} />
+              <CentroidExplorer key={decisionId} decisionId={decisionId} />
             </>
           ) : null}
 
