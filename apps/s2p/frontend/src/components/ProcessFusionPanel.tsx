@@ -119,6 +119,7 @@ export default function ProcessFusionPanel() {
       <p className="mt-5 text-sm font-semibold text-slate-700">
         Celonis shows WHERE. We show WHY and WHICH DECISION.
       </p>
+      <p className="mt-2 text-xs text-slate-500">Source: illustrative process events</p>
     </article>
   );
 }

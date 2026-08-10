@@ -61,9 +61,9 @@ export default function RuleVsReasoningPanel({
         </div>
       </div>
 
-      <div className="mt-4 grid overflow-hidden rounded-lg border border-slate-200 md:grid-cols-2">
+      <div data-testid="rule-vs-reasoning-contrast" className="mt-4 grid overflow-hidden rounded-lg border border-slate-200 md:grid-cols-2">
         <section className="border-b border-slate-200 bg-slate-50 p-4 md:border-b-0 md:border-r">
-          <h3 className="text-sm font-semibold text-slate-950">Rule-Based</h3>
+          <h3 className="text-sm font-semibold text-slate-950">Rule-Based threshold</h3>
           <p className="mt-3 text-sm leading-6 text-slate-700">
             Price variance {pct(variance)} exceeds {pct(threshold)} threshold.
           </p>
@@ -78,7 +78,7 @@ export default function RuleVsReasoningPanel({
         </section>
 
         <section className="bg-white p-4">
-          <h3 className="text-sm font-semibold text-slate-950">Situation-Aware</h3>
+          <h3 className="text-sm font-semibold text-slate-950">Situation-Aware reasoning</h3>
           {situationLoading ? (
             <p className="mt-3 text-sm leading-6 text-slate-700">Loading reasoning...</p>
           ) : situationExplanation ? (

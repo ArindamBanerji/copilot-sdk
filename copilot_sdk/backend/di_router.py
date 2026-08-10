@@ -9,7 +9,6 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from copilot_sdk.di import AcquisitionAdvisor, BaseSourceProfiler, IntelligenceMapBuilder
-from copilot_sdk.di.intelligence_map import enrich_payload_with_suggestions
 from copilot_sdk.di.query_models import QueryRequest, QueryResponse
 from copilot_sdk.di.query_service import DIQueryService, InvalidQueryError
 from copilot_sdk.di.catalog import ExternalDataCatalog
@@ -77,6 +76,7 @@ def create_di_router(
     resolved_advisor = advisor or AcquisitionAdvisor()
     resolved_catalog = catalog or ExternalDataCatalog()
     resolved_valuation_model = valuation_model or getattr(resolved_advisor, "valuation_model", None)
+    intelligence_map_cache: dict[str, Any] | None = None
 
     def _profiler(source_name: str) -> BaseSourceProfiler:
         try:
@@ -135,6 +135,11 @@ def create_di_router(
                 }
             )
         return {"sources": sources, "total": len(sources)}
+
+    @router.get("/di/sources", response_model=DIProfilesResponse)
+    def sources() -> dict[str, Any]:
+        """Compatibility alias for the source-profiler collection endpoint."""
+        return profiles()
 
     @router.get("/di/profile/{source_name}", response_model=DIProfileResponse)
     def profile(source_name: str) -> dict[str, Any]:
@@ -213,29 +218,54 @@ def create_di_router(
 
     @router.get("/di/intelligence-map")
     def intelligence_map() -> dict[str, Any]:
-        result = (
-            resolved_map_builder.build(sources=map_sources)
-            if map_sources is not None
-            else resolved_map_builder.build()
-        )
-        payload = result.to_dict() if hasattr(result, "to_dict") else dict(result)
+        nonlocal intelligence_map_cache
+        if intelligence_map_cache is not None:
+            return intelligence_map_cache
+        if map_sources is not None:
+            # DataOps supplies connector-derived rows at startup.  Keep the
+            # request path bounded by normalizing those rows directly rather
+            # than re-running connector discovery on every request.
+            nodes = []
+            for index, source in enumerate(map_sources):
+                row = dict(source)
+                label = str(row.get("name") or row.get("source_name") or f"source-{index + 1}")
+                nodes.append({
+                    "id": str(row.get("id") or label).replace(" ", "_").lower(),
+                    "label": label,
+                    "domain": str(row.get("domain") or "dataops"),
+                    "trust": row.get("trust", row.get("source_reliability", row.get("quality_score"))),
+                    "records": row.get("records", row.get("record_count", 0)),
+                    "provenance": row.get("provenance", "connector"),
+                })
+            payload: dict[str, Any] = {
+                "nodes": nodes,
+                "edges": [],
+                "gold_lines": [],
+                "badges": [],
+                "clusters": {},
+                "join_keys": [],
+                "narrative": f"Intelligence Map contains {len(nodes)} source nodes.",
+            }
+        else:
+            result = resolved_map_builder.build()
+            payload = result.to_dict() if hasattr(result, "to_dict") else dict(result)
         if not payload.get("gold_lines"):
-            valuations = valuation()["valuations"]
-            if valuations:
-                enrich_payload_with_suggestions(payload, valuations)
-            else:
-                payload["gold_lines"] = [
-                    {
-                        "source": item.get("source_a"),
-                        "target": item.get("source_b"),
-                        "value": item.get("value_estimate_annual", 0.0),
-                        "type": "suggested",
-                    }
-                    for item in resolved_map_builder.discover_combinations()
-                ]
+            # Keep the read path bounded: valuation providers may be remote.
+            # The deterministic combination discovery is sufficient for the
+            # dashboard's gold-line fallback and is cached below.
+            payload["gold_lines"] = [
+                {
+                    "source": item.get("source_a"),
+                    "target": item.get("source_b"),
+                    "value": item.get("value_estimate_annual", 0.0),
+                    "type": "suggested",
+                }
+                for item in resolved_map_builder.discover_combinations()
+            ]
         for node in payload.get("nodes", []):
             if "trust" not in node and "brightness" in node:
                 node["trust"] = node["brightness"]
+        intelligence_map_cache = payload
         return payload
 
     @router.post("/di/query", response_model=QueryResponse)

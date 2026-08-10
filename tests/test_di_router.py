@@ -65,6 +65,15 @@ def test_registered_source_appears_in_profiles():
     assert payload["sources"][0]["cache_status"] == "not_profiled"
 
 
+def test_sources_collection_alias_returns_source_profiles():
+    response = _client({"erp": FakeProfiler()}).get("/api/di/sources")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 1
+    assert payload["sources"][0]["source_name"] == "erp"
+
+
 def test_registered_source_not_yet_profiled_returns_structured_status():
     response = _client({"erp": FakeProfiler()}).get("/api/di/profile/erp")
 

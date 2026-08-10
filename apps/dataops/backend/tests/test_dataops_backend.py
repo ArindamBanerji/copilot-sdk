@@ -52,6 +52,16 @@ def test_health(client: TestClient) -> None:
     assert "gae.evolution" in payload["engine"]
 
 
+def test_ent1_discovery_and_intelligence_map_routes(client: TestClient) -> None:
+    cross_system = client.get("/api/discovery/cross-system")
+    intelligence_map = client.get("/api/di/intelligence-map")
+
+    assert cross_system.status_code == 200
+    assert isinstance(cross_system.json()["alerts"], list)
+    assert intelligence_map.status_code == 200
+    assert "nodes" in intelligence_map.json()
+
+
 def test_api_health_returns_phase_alpha_and_engine(client: TestClient) -> None:
     response = client.get("/api/health")
 

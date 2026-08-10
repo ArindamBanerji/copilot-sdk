@@ -24,12 +24,18 @@ test.describe("S2P sweep — point tests", () => {
   test("Exception Triage mounts rule-vs-reasoning and situation panels", async ({ page }) => {
     await openScoredTriage(page);
     await expect(page.getByTestId("rule-vs-reasoning-panel")).toBeVisible();
+    await expect(page.getByTestId("rule-vs-reasoning-contrast")).toBeVisible();
     await expect(page.getByTestId("situation-panel")).toBeVisible();
   });
 
   test("Insight mounts centroid explorer", async ({ page }) => {
     await openTab(page, "Insight");
     await expect(page.getByText(/Decision proximity explanation|Centroid explorer/i).first()).toBeVisible();
+  });
+
+  test("Insight process fusion labels illustrative provenance", async ({ page }) => {
+    await openTab(page, "Insight");
+    await expect(page.getByTestId("process-fusion-panel")).toContainText(/Source: illustrative process events/i);
   });
 
   test("Evidence mounts audit, lifecycle, and compliance surfaces", async ({ page }) => {

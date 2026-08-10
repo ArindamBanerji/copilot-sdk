@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import sys
+import time
 import warnings
 from dataclasses import replace
 from pathlib import Path
@@ -55,6 +56,7 @@ from copilot_sdk.backend import (  # noqa: E402
     create_scoring_router,
     mount_self_computation_router,
 )
+from copilot_sdk.backend.discovery_router import create_discovery_router  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
 from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider  # noqa: E402
 from .evolution.evolver_config import DATAOPS_EVOLVER_CONFIG  # noqa: E402
@@ -731,6 +733,8 @@ def create_app(
         [profiler.connector for profiler in dataops_profiler_registry.values()]
     )
     app.state.dataops_map_builder = dataops_map_builder
+    app.state.dataops_intelligence_map_cache = None
+    app.state.dataops_intelligence_map_cached_at = 0.0
     app.include_router(
         create_di_router(
             dataops_profiler_registry,
@@ -763,6 +767,10 @@ def create_app(
         create_dataops_di_enrichment_router(scorer_provider=lambda: scorer_proxy),
         prefix="/api/di",
     )
+    # ENT-1 uses the shared advisory discovery contract.  DataOps has no
+    # multi-domain decision engine of its own, so the router's explicit demo
+    # fallback is used until cross-copilot decision rows are available.
+    app.include_router(create_discovery_router(object()))
     app.include_router(
         create_perturbation_router(
             scorer_provider=lambda: scorer_proxy,
@@ -806,6 +814,10 @@ def create_app(
 
     @app.get("/api/di/intelligence-map")
     def dataops_intelligence_map() -> dict[str, Any]:
+        now = time.time()
+        cached = app.state.dataops_intelligence_map_cache
+        if cached is not None and now - app.state.dataops_intelligence_map_cached_at < 300:
+            return cached
         sources = _dataops_intelligence_map_sources(dataops_profiler_registry)
         payload = dataops_map_builder.build(sources=sources).to_dict()
         if not payload.get("gold_lines"):
@@ -813,6 +825,8 @@ def create_app(
                 payload,
                 _dataops_acquisition_recommendations().get("recommendations", []),
             )
+        app.state.dataops_intelligence_map_cache = payload
+        app.state.dataops_intelligence_map_cached_at = now
         return payload
 
     @app.get("/api/dataops/di/intelligence-map")

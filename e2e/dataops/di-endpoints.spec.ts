@@ -2,6 +2,27 @@ import { test, expect } from "../fixtures/copilot-fixture";
 
 const DATAOPS_API = process.env.DATAOPS_API_URL ?? "http://127.0.0.1:8030";
 
+test("DI sources collection endpoint returns source profiles", async ({ request }) => {
+  const response = await request.get(`${DATAOPS_API}/api/di/sources`);
+  expect(response.status()).toBe(200);
+  const payload = await response.json();
+  expect(Array.isArray(payload.sources)).toBeTruthy();
+});
+
+test("ENT-1 cross-system discovery endpoint returns alerts", async ({ request }) => {
+  const response = await request.get(`${DATAOPS_API}/api/discovery/cross-system`);
+  expect(response.status()).toBe(200);
+  const payload = await response.json();
+  expect(Array.isArray(payload.alerts)).toBeTruthy();
+});
+
+test("DI intelligence map returns within the frontend budget", async ({ request }) => {
+  const response = await request.get(`${DATAOPS_API}/api/di/intelligence-map`, { timeout: 15_000 });
+  expect(response.status()).toBe(200);
+  const payload = await response.json();
+  expect(Array.isArray(payload.nodes)).toBeTruthy();
+});
+
 test("DI consumers endpoint returns consumer quality bars", async ({ request }) => {
   const response = await request.get(`${DATAOPS_API}/api/di/sources/sap_s4hana/consumers`);
   expect(response.ok()).toBeTruthy();
