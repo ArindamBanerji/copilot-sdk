@@ -26,6 +26,7 @@ class ContextPreset:
     penalty_ratio: float = 5.0
     eta_confirm: float = 0.05
     eta_override: float = 0.01
+    temperature: float = 0.1
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:

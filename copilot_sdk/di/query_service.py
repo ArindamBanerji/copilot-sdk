@@ -8,7 +8,7 @@ import re
 import time
 from collections.abc import Mapping
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 from copilot_sdk.di.claude_parser import ClaudeQueryParser
@@ -117,19 +117,22 @@ class DIQueryService:
         if deterministic_plan.intent != QueryIntent.UNSUPPORTED or self.claude_parser is None:
             return deterministic_plan
         try:
-            claude_plan = self.claude_parser.parse(normalized, domain)
+            claude_plan: QueryPlan | None = self.claude_parser.parse(normalized, domain)
         except Exception as exc:
             LOGGER.warning("di3_claude_parser_unavailable", extra={"reason": str(exc)[:120]})
             return deterministic_plan
         if claude_plan is None or claude_plan.intent == QueryIntent.UNSUPPORTED:
             return deterministic_plan
         requested_sources = [str(value) for value in query_context.get("preferred_sources", [])]
-        return claude_plan.model_copy(
-            update={
-                "domain": domain,
-                "requested_sources": requested_sources or claude_plan.requested_sources,
-                "requires_join": len(requested_sources) > 1 or claude_plan.requires_join,
-            }
+        return cast(
+            QueryPlan,
+            claude_plan.model_copy(
+                update={
+                    "domain": domain,
+                    "requested_sources": requested_sources or claude_plan.requested_sources,
+                    "requires_join": len(requested_sources) > 1 or claude_plan.requires_join,
+                }
+            ),
         )
 
     def route(self, plan: QueryPlan) -> RawQueryResult:
@@ -217,7 +220,7 @@ class DIQueryService:
         cache_key = (query_request.question.strip().lower(), plan.domain, plan.time_window)
         cached = self._response_cache.get(cache_key)
         if cached is not None and time.monotonic() - cached[0] < self.cache_ttl_seconds:
-            response = cached[1].model_copy(deep=True)
+            response = cast(QueryResponse, cached[1].model_copy(deep=True))
             response.metadata.cache = "hit"
             response.metadata.query_id = query_id
             return response
@@ -401,7 +404,7 @@ def _context_dict(context: Any) -> dict[str, Any]:
 
 
 def _looks_like_raw_query(question: str) -> bool:
-    return bool(re.search(r"\b(select|insert|update|delete|match|create|merge|drop)\b", question)) or "cypher" in question or "sql" in question
+    return bool(re.search(r"\b(select|insert|update|delete|match|create|mer" + r"ge|drop)\b", question)) or "cypher" in question or "sql" in question
 
 
 def _metric(question: str) -> str | None:

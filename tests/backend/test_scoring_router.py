@@ -131,8 +131,12 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
         decision_id: str,
         actual_action: str,
         outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, object] | None = None,
+        persist_artifacts: bool = True,
     ) -> FakeLearnResult:
-        del actual_action, outcome
+        del actual_action, outcome, consolidate, context, persist_artifacts
         self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         return FakeLearnResult(
             decision_id=decision_id,
@@ -193,8 +197,12 @@ class PausingScorer(FakeScorer):
         decision_id: str,
         actual_action: str,
         outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, object] | None = None,
+        persist_artifacts: bool = True,
     ) -> dict:
-        del decision_id, actual_action, outcome
+        del decision_id, actual_action, outcome, consolidate, context, persist_artifacts
         return {
             "status": "paused",
             "reason": "conservation_red",
@@ -238,7 +246,12 @@ class GraphStoreBackedScorer(FakeScorer):
         decision_id: str,
         actual_action: str,
         outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, object] | None = None,
+        persist_artifacts: bool = True,
     ) -> FakeLearnResult:
+        del consolidate, context, persist_artifacts
         self.learn_calls.append((decision_id, actual_action, outcome))
         decision = self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         if decision is None:
@@ -291,7 +304,12 @@ class SQLiteL5Scorer(FakeScorer):
         decision_id: str,
         actual_action: str,
         outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, object] | None = None,
+        persist_artifacts: bool = True,
     ) -> FakeLearnResult:
+        del consolidate, context, persist_artifacts
         decision = self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         if decision is None:
             raise KeyError(decision_id)
@@ -422,7 +440,12 @@ class CentroidRuntimeScorer(DKRuntimeScorer):
         decision_id: str,
         actual_action: str,
         outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, object] | None = None,
+        persist_artifacts: bool = True,
     ) -> FakeLearnResult:
+        del consolidate, context, persist_artifacts
         self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         self.save_centroids_calls += 1
         if self.phase == "MEAN_CONVERGENCE":
@@ -520,6 +543,7 @@ class ConcurrentScorer:
         self._preset = SimpleNamespace(
             shape=SimpleNamespace(n_categories=3),
             penalty_ratio=1.0,
+            bootstrap_centroids=np.zeros((3, 2, 1), dtype=np.float64),
         )
 
     def learn(
@@ -527,7 +551,12 @@ class ConcurrentScorer:
         decision_id: str,
         actual_action: str,
         outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, object] | None = None,
+        persist_artifacts: bool = True,
     ) -> FakeLearnResult:
+        del consolidate, context, persist_artifacts
         return FakeLearnResult(
             decision_id=decision_id,
             iks_before=0.0,
@@ -1192,6 +1221,7 @@ def test_get_centroid_copy_safe_and_phase_accessor():
             n_factors=2,
         ),
         name="test",
+        bootstrap_centroids=np.asarray([[[0.2, 0.4]]], dtype=np.float64),
     )
     gae_scorer = SimpleNamespace(
         centroids=np.asarray([[[0.2, 0.4]]], dtype=np.float64),

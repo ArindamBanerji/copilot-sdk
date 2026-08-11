@@ -47,6 +47,15 @@ class MinimalStore:
     def get_centroid_checkpoints(self, *args, **kwargs):
         return []
 
+    def load_latest_checkpoint_for_regime(self, domain, regime_tag):
+        return None
+
+    def get_checkpoint_lineage(self, domain, checkpoint_id):
+        return None
+
+    def get_decision_checkpoints(self, domain, decision_id):
+        return []
+
     def load_latest_centroids(self, domain):
         return None
 

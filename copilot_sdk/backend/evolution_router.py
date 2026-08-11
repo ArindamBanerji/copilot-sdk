@@ -55,11 +55,10 @@ def create_evolution_router(
         evolver = _get_evolver()
         prompt_summary = _prompt_summary(evolver)
         if prompt_summary is not None:
-            active_rules = sorted(
-                str(item["id"])
-                for item in prompt_summary["variants"]
-                if item.get("status") == "active"
-            )
+            # Prompt variants are inventory.  They are not promoted rules;
+            # exposing configured baselines as active rules falsely implies
+            # that evolution has changed production behavior.
+            active_rules = []
             promoted_rules = [
                 str(item["id"])
                 for item in prompt_summary["variants"]

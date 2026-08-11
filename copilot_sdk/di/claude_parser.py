@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from typing import Any
+from typing import Any, cast
 
 from copilot_sdk.di.query_allowlists import (
     SUPPORTED_DIMENSIONS,
@@ -77,7 +77,7 @@ class ClaudeQueryParser:
         if not isinstance(payload, dict):
             return None
         try:
-            plan = QueryPlan.model_validate(payload)
+            plan = cast(QueryPlan, QueryPlan.model_validate(payload))
             if validate_domain(plan.domain) != validate_domain(domain):
                 return None
             if plan.intent == QueryIntent.UNSUPPORTED or not plan.supported:

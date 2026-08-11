@@ -116,7 +116,7 @@ class CachedAsyncProvider:
             return self._cached
         except Exception as exc:
             logger.warning(
-                "[EVOLUTION] SOC conservation stale, returning UNKNOWN: %s", exc
+                "[EVOLUTION] domain conservation stale, returning UNKNOWN: %s", exc
             )
             return {"status": "UNKNOWN", "reason": "stale_or_error"}
 

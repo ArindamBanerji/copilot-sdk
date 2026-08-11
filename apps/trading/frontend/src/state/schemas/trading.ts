@@ -284,9 +284,20 @@ export interface ConservationResponse {
   thetaMin?: unknown;
   headroom?: unknown;
   penaltyRatio?: unknown;
+  reason?: string;
+  alpha?: unknown;
+  q?: unknown;
+  V?: number;
+  baseline?: unknown;
+  baselineQ?: unknown;
+  categoriesTotal?: number;
+  categoriesWithData?: number;
   verifiedCount?: number;
   totalDecisions?: number;
   correctCount?: number;
+  totalCategories?: number;
+  relativeTrigger?: unknown;
+  relativeTriggerRatio?: unknown;
   [key: string]: unknown;
 }
 

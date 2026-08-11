@@ -51,17 +51,32 @@ class AnalyticsResponse(FlexibleModel):
 
 
 class ConservationResponse(FlexibleModel):
+    """CC-4 conservation payload shared by live tab-state endpoints."""
+
+    model_config = ConfigDict(extra="allow")
+
     domain: str | None = None
     engine: Any = None
-    signal: Any = None
+    signal: int | float | None = None
     status: str | None = None
     passed: bool | None = None
     theta_min: int | float | None = None
     headroom: int | float | None = None
     penalty_ratio: int | float | None = None
+    reason: str | None = None
+    alpha: int | float | None = None
+    q: int | float | None = None
+    V: int | None = None
+    baseline: int | float | None = None
+    baseline_q: int | float | None = None
+    categories_total: int | None = None
+    categories_with_data: int | None = None
     verified_count: int | None = None
     total_decisions: int | None = None
     correct_count: int | None = None
+    total_categories: int | None = None
+    relative_trigger: int | float | None = None
+    relative_trigger_ratio: int | float | None = None
 
 
 class CohortStatusResponse(FlexibleModel):

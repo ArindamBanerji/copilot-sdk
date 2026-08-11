@@ -144,8 +144,17 @@ class FakeScorer:  # MOCK-OK: response model fixture, real scorer covered elsewh
         )
         return result
 
-    def learn(self, decision_id: str, actual_action: str, outcome: str = "confirmed") -> FakeLearnResult:
-        del actual_action, outcome
+    def learn(
+        self,
+        decision_id: str,
+        actual_action: str,
+        outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, object] | None = None,
+        persist_artifacts: bool = True,
+    ) -> FakeLearnResult:
+        del actual_action, outcome, consolidate, context, persist_artifacts
         return FakeLearnResult(
             decision_id=decision_id,
             iks_before=0.0,

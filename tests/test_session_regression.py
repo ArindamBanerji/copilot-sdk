@@ -90,6 +90,6 @@ def test_no_incorrect_rl_naming() -> None:
         if "__pycache__" in path.parts:
             continue
         for index, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            if "no reward function" in line.lower():
+            if ("no " + "reward function") in line.lower():
                 violations.append(f"{path}:{index}")
     assert not violations, f"RL naming: {violations[:5]}"

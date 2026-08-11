@@ -456,6 +456,15 @@ class FakeAGEStore:  # MOCK-OK: AGE entity-link protocol without external AGE
     def close(self):
         return None
 
+    def write_entity_enrichment(self, *args, **kwargs):
+        raise NotImplementedError("Entity enrichment not supported in FakeAGEStore")
+
+    def read_entity_enrichment(self, *args, **kwargs):
+        return {}
+
+    def list_entity_enrichments(self, *args, **kwargs):
+        return []
+
 
 def test_age_adapter_write_entity_enrichment_unsupported():
     adapter = _age_adapter_class()(store=FakeAGEStore())

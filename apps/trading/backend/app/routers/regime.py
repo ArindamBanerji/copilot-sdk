@@ -61,7 +61,7 @@ def create_regime_router(
         trades = _journal_records(graph_store_factory, domain)
         current = service.get_current_regime()
         accuracy = service.get_regime_accuracy(trades)
-        conservation = _conservation_status(graph_store_factory, domain)
+        conservation = _conservation_status(graph_store_factory)
         payload = RegimeRecommender().recommend(
             str(current.get("regime") or "ranging"),
             accuracy,

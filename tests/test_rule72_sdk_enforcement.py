@@ -87,6 +87,12 @@ ALLOWED_CAPABILITY_CHECKS = frozenset(
         ("copilot_sdk/migrate/shadow_scorer.py", "get_verified_decisions"),
         ("copilot_sdk/scoring/persistence_outbox.py", "write_evolution_event"),
         ("copilot_sdk/scoring/scorer.py", "domain_scoped_reset"),
+        ("copilot_sdk/backend/transfer_router.py", "get_latest_conservation_statuses"),
+        ("copilot_sdk/backend/transfer_router.py", "get_transfer_patterns"),
+        ("copilot_sdk/di/query_providers.py", "get_verified_decisions"),
+        ("copilot_sdk/di/query_providers.py", "get_all_decisions"),
+        ("copilot_sdk/evolution/conservation_contract.py", "close"),
+        ("copilot_sdk/scoring/trust_traps.py", "get_verified_decisions"),
     }
 )
 

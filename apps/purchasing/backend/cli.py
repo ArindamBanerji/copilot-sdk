@@ -45,17 +45,15 @@ FACTOR_NAMES = tuple(SHAPE.factor_names)
 
 
 def _store(db_path: Path):
-    config = GraphConfig.load(DOMAIN, profile=_cli_profile())
-    if config.backend != "age":
-        raise RuntimeError("Purchasing CLI requires AGE; SQLite is not a production Decision store")
+    # This is the offline CLI: its explicit db path is the complete state
+    # boundary, independent of inherited AGE environment configuration.
+    profile = _cli_profile()
     return create_graph_store(
-        backend=config.backend,
-        domain=config.domain,
+        backend="sqlite",
+        domain=DOMAIN,
         db_path=str(db_path.expanduser()),
-        dsn=config.dsn,
-        graph_name=config.graph,
-        test_mode=config.active_test_mode,
-        profile=_cli_profile(),
+        profile=profile,
+        test_mode=True,
     )
 
 

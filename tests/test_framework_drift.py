@@ -37,6 +37,7 @@ KNOWN_DRIFT = {
     "provenance.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",
     "shadow_mode.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",
     "similar_cases_base.py": "SDK has optional domain parameter; SOC/S2P copies bind domain internally.",
+    "checkpoint.py": "SDK includes rollback and checkpoint lineage extensions; SOC copy predates these SDK changes.",
 }
 
 # ---------------------------------------------------------------------------

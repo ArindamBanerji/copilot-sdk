@@ -121,6 +121,11 @@ def _category_conservation(provider: ScorerProvider | None, category: str) -> di
             "verified_count": verified_count,
             "correct_count": correct_count,
             "penalty_ratio": _PENALTY_RATIO,
+            # The conservation law is evaluated within this category.  Its
+            # coverage denominator is therefore the category itself, rather
+            # than the five-category Purchasing domain.
+            "categories_with_data": 1,
+            "total_categories": 1,
         },
     )
     return {

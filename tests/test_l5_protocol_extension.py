@@ -129,6 +129,15 @@ def test_minimal_graphstore_does_not_need_l5_methods() -> None:
         def get_centroid_checkpoints(self, domain, **kwargs):
             return []
 
+        def load_latest_checkpoint_for_regime(self, domain, regime_tag):
+            return None
+
+        def get_checkpoint_lineage(self, domain, checkpoint_id):
+            return None
+
+        def get_decision_checkpoints(self, domain, decision_id):
+            return []
+
         def archive_old_decisions(self, domain, keep_recent=800):
             return 0
 

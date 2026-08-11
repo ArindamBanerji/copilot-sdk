@@ -27,6 +27,7 @@ class LinkPreset:
     penalty_ratio: float = 5.0
     eta_confirm: float = 0.05
     eta_override: float = 0.01
+    temperature: float = 0.1
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:
@@ -126,6 +127,15 @@ class MinimalGraphStore:
         return None
 
     def get_centroid_checkpoints(self, *args, **kwargs):
+        return []
+
+    def load_latest_checkpoint_for_regime(self, domain, regime_tag):
+        return None
+
+    def get_checkpoint_lineage(self, domain, checkpoint_id):
+        return None
+
+    def get_decision_checkpoints(self, domain, decision_id):
         return []
 
     def save_evolution_event(self, *args, **kwargs):

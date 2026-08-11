@@ -1231,12 +1231,10 @@ def test_evolution_variants(client: TestClient) -> None:
     persisted = next(variant for variant in payload["variants"] if variant["id"] == "V-DO-RECUR-001")
     assert {"id", "variant_id", "event_type", "description"}.issubset(persisted)
     assert all(variant.get("triggered_by") != "fixture" for variant in payload["variants"])
-    assert set(payload["active_rules"]) == {
-        "AUTO_APPROVE_THRESHOLD_v1",
-        "SCHEDULING_CRITERIA_v1",
-    }
+    # Configured variants are inventory; only promoted rules are active.
+    assert payload["active_rules"] == []
     assert payload["promoted_rules"] == []
-    assert payload["total_active"] == 2
+    assert payload["total_active"] == 0
     assert payload["total_promoted"] == 0
 
 
