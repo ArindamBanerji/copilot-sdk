@@ -46,6 +46,10 @@ class CheckpointService:
         mu_snapshot    = scorer.centroids.tolist()
         counts_snapshot = scorer.counts.tolist() if hasattr(scorer, "counts") else []
         decision_count  = int(getattr(scorer, "decision_count", 0))
+        dk_weights = getattr(scorer, "_dk_weights", None)
+        temperature = getattr(scorer, "tau", None)
+        frozen = getattr(scorer, "_frozen", None)
+        paused_by_conservation = getattr(scorer, "_paused_by_conservation", None)
 
         await graph_service.run_query(
             """CREATE (cp:Checkpoint {
@@ -54,7 +58,11 @@ class CheckpointService:
                 reason:           $reason,
                 mu_snapshot:      $mu,
                 counts_snapshot:  $counts,
-                decision_count:   $dc
+                decision_count:   $dc,
+                dk_weights:       $dk_weights,
+                temperature:      $temperature,
+                frozen:           $frozen,
+                paused_by_conservation: $paused
             })""",
             {
                 "id":              checkpoint_id,
@@ -63,6 +71,10 @@ class CheckpointService:
                 "mu":              json.dumps(mu_snapshot),
                 "counts":          json.dumps(counts_snapshot),
                 "dc":              decision_count,
+                "dk_weights":      json.dumps(None if dk_weights is None else np.asarray(dk_weights).tolist()),
+                "temperature":     temperature,
+                "frozen":           frozen,
+                "paused":           paused_by_conservation,
             },
         )
         log.info(
@@ -159,8 +171,36 @@ class CheckpointService:
             except Exception as exc:
                 log.debug("[CHECKPOINT] counts restore skipped: %s", exc)
 
-        scorer.freeze()
         restored_dc = int(cp.get("decision_count") or 0)
+        if hasattr(scorer, "decision_count"):
+            scorer.decision_count = restored_dc
+
+        dk_str = cp.get("dk_weights")
+        if dk_str and hasattr(scorer, "_dk_weights"):
+            try:
+                dk_restored = np.array(json.loads(dk_str), dtype=np.float64)
+                if np.isfinite(dk_restored).all():
+                    scorer._dk_weights = dk_restored
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                log.warning("[CHECKPOINT] DK weights restore skipped: %s", exc)
+
+        temperature = cp.get("temperature")
+        if temperature is not None and hasattr(scorer, "tau"):
+            restored_temperature = float(temperature)
+            if not np.isfinite(restored_temperature) or restored_temperature <= 0:
+                return {"error": "Checkpoint contains invalid temperature"}
+            scorer.tau = restored_temperature
+
+        frozen = cp.get("frozen")
+        if frozen is None:
+            scorer.freeze()
+        elif bool(frozen):
+            scorer.freeze()
+        elif hasattr(scorer, "unfreeze"):
+            scorer.unfreeze()
+        paused = cp.get("paused_by_conservation")
+        if paused is not None and hasattr(scorer, "_paused_by_conservation"):
+            scorer._paused_by_conservation = bool(paused)
 
         log.info(
             "[CHECKPOINT] Rolled back to id=%s (decision_count=%d) -- scorer frozen",

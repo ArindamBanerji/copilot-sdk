@@ -183,6 +183,31 @@ SOC_REPO = Path(os.environ.get(
 SOC_BACKEND = SOC_REPO / "backend"
 SOC_CONTRACT_PATH = SOC_REPO / "scratch" / "temp" / "soc_diag_backend_contract.json"
 
+# Reference apps are offline, backend-only examples. They are discovered at
+# runtime so demo.py remains the single platform entry point.
+APP_REGISTRY: dict[str, dict[str, str]] = {}
+
+
+def _discover_apps() -> None:
+    """Register runnable reference applications present on disk."""
+    candidates = (
+        ("build-your-own", "examples/build_your_own", "examples.build_your_own.run", "Level-3 build-your-own copilot"),
+        ("jm-reference", "examples/jm_reference", "examples.jm_reference.run", "Level-1 Judgment Memory reference"),
+        ("trading-clone", "examples/trading_clone", "examples.trading_clone.run", "SQLite-backed Trading clone"),
+        ("yaml-config", "examples/yaml_config", "examples.yaml_config.run", "Level-2 YAML-configured copilot"),
+        ("s2p-diff", "apps/s2p_differentiation", "apps.s2p_differentiation.run", "S2P differentiation harness"),
+        ("exp-regime", "apps/regime_experiment", "apps.regime_experiment.run", "Regime experiment bake-off"),
+    )
+    APP_REGISTRY.clear()
+    for name, relative_dir, module, description in candidates:
+        app_dir = SCRIPT_DIR / relative_dir
+        if (app_dir / "run.py").is_file():
+            APP_REGISTRY[name] = {
+                "dir": str(app_dir),
+                "module": module,
+                "description": description,
+            }
+
 COPILOTS = [
     {
         "name": "SOC",
@@ -889,6 +914,9 @@ def cmd_start(selected: list[dict], args):
             # Learning is on by default. Preserve an explicit operator
             # override inherited from the launcher environment.
             env.setdefault("SOC_LEARNING_ENABLED", "true")
+            # demo.py is the explicit local-demo authority; direct SOC
+            # deployments remain fail-closed unless they opt in themselves.
+            env["SOC_DEMO_MODE"] = "true"
         if args.diag_mode:
             env["PYTHONPATH"] = diag_pythonpath
 
@@ -1355,6 +1383,8 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--age-use-pool", action="store_true", help="Set AGE_USE_POOL=true for SOC --diag-mode")
     parser.add_argument("--health-timeout", type=int, default=0,
                         help="Override backend health timeout in seconds (0 = use defaults: 30s normal, 60s AGE)")
+    parser.add_argument("--app", type=str, default=None,
+                        help="Run a reference app; use --app list to enumerate available apps")
     return parser
 
 
@@ -1362,8 +1392,32 @@ def create_parser() -> argparse.ArgumentParser:
 
 def main():
     parser = create_parser()
+    raw_args = sys.argv[1:]
+    app_extra_args: list[str] = []
+    if "--" in raw_args:
+        separator = raw_args.index("--")
+        app_extra_args = raw_args[separator + 1:]
+        raw_args = raw_args[:separator]
+    args = parser.parse_args(raw_args)
 
-    args = parser.parse_args()
+    if args.app:
+        _discover_apps()
+        if args.app == "list":
+            print("\nAvailable reference apps:")
+            print(f"  {'NAME':20s} DESCRIPTION")
+            print(f"  {'-' * 20} {'-' * 50}")
+            for name, info in sorted(APP_REGISTRY.items()):
+                print(f"  {name:20s} {info['description']}")
+            print("\nUsage: python demo.py --app <name> [-- extra args]")
+            return
+        if args.app not in APP_REGISTRY:
+            print(f"Unknown app: {args.app}")
+            print(f"Available: {', '.join(sorted(APP_REGISTRY))}")
+            raise SystemExit(1)
+        app = APP_REGISTRY[args.app]
+        print(f"\n{'=' * 60}\n  {app['description']}\n  Directory: {app['dir']}\n{'=' * 60}\n")
+        command = [sys.executable, "-m", app["module"], *app_extra_args]
+        raise SystemExit(subprocess.run(command, cwd=str(SCRIPT_DIR)).returncode)
     if args.no_reseed and getattr(args, "record_reset", False):
         print("ERROR: --no-reseed and --record-reset are mutually exclusive.")
         sys.exit(1)

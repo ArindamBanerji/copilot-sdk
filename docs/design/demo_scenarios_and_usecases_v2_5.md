@@ -1,6 +1,6 @@
 # Demo Scenarios Demo Scenarios & Use Cases — Consolidated · v2.1 Use Cases — Consolidated · v2.2
 
-**Date:** August 8, 2026 · **Version:** 2.4
+**Date:** August 10, 2026 · **Version:** 2.5
 **Purpose:** the single source of truth for the demo storyboard + use-case scenarios, **executable for
 coding sessions** (every beat carries a surface, API, data need, DoD, and session owner).
 
@@ -52,8 +52,8 @@ roadmap. *Showing ARCH is allowed and expected. Implying ARCH is LIVE is the vio
 
 | # | Room | Kill-shot beat | The line | Class |
 |---|---|---|---|---|
-| 1 | Agentic governance | **Rejection Moment** (§4.1 / DM-1) | "47 tested, 12 promoted, **35 rejected** — here's exactly why." | **LIVE** |
-| 2 | Self-improving agents | Rejection + **Counterfactual** (§4.2) | "We shipped the bounded-risk promotion gate the frontier lists as an open problem." | **LIVE** |
+| 1 | Agentic governance | **Rejection Moment** (§4.1 / DM-1) | "It promoted an improvement live — then rejected 35 others, and can tell you why each failed." | **LIVE** |
+| 2 | Self-improving agents | Rejection + **Counterfactual** (§4.2) | "We shipped the bounded-risk promotion gate the frontier lists as an open problem. Run it: governed vs reward-maximized, same data, side by side (DIFF-1, §4.10, **NEAR**)." | **LIVE** |
 | 3 | RL trading (TensorTrade) | **TRD-S3 autonomy throttle** (§4.6) | "It **reduced its own autonomy** because it saw the regime change. No reward-maximizing agent can do that." | **NEAR** (~2d) |
 | 3b | RL trading — deep cut | **TRD-S7 Re-convergence Moment** ⭐ (§4.7) | "Replay March 2020. Cold-start relearns from zero. We re-converge faster — we kept the geometry from the last vol spike." | **ARCH** → NEAR on C-REGIME P4 |
 | 4 | Volatility / risk | **TRD-V1 + V2** (§4.6) | "Half your 'edge' is unpaid tail risk." / "You're **selling insurance in calm weather**." | **NEAR** (~2d) |
@@ -79,9 +79,8 @@ nitpicks — a beat that implies otherwise is a T3 failure.**
    copilot where learning is live.**
 2. **Naming (F-25):** the primary mechanism is **not "RL."** It is **decision-trace / prototype learning from
    verified human decisions** — the signal is a *correctness label, not a reward*. Genuine bandits (Thompson /
-   UCB) exist and may be named as such. *The honest line is the stronger one:* **"the decision is
-   centroid-distance, not reward-maximizing; reward functions exist only in the learning path
-   (exploration + credit)"** — exactly what a reward-maximizing agent cannot say (C-18). And **exploration is
+   UCB) exist and may be named as such. *The reconciled line (v2.5): **"The decision — which action we recommend — is nearest-centroid distance, not reward-maximizing. Reward functions exist in the learning path (exploration + credit), never in choosing the action"
+   for judgment"** — exactly what a reward-maximizing agent cannot say (C-18). And **exploration is
    conservation-bounded by construction** (`ConservationBoundedThompson`, C-19).
 3. **C-17 is scoped — one open gap (F-24).** Prompt-variant promotion is **not** conservation-gated. Until
    `C-GOV` (~0.5-1d) lands, the spoken line is *"one conservation law governs our **scoring, exploration and
@@ -98,7 +97,7 @@ pattern: **acknowledge → reframe → kill shot.** Never dismiss the competitor
 |---|---|---|
 | 1. Agentic governance | "Isn't this just guardrails?" | "Guardrails stop bad things. We do that — AND we let the system propose improvements, test them in shadow, and promote only what survives the conservation gate. Show me another system that *rejected 35 of its own suggestions* and can tell you *exactly why each one failed.*" |
 | 2. Self-improving agents | "The frontier labs are working on this." | "They are. They published the open problem last year: self-modify without losing the safety guarantee. We shipped the answer. And we open-sourced it so you can read the gate yourself." |
-| 3. RL trading (TensorTrade) | "How is this different from TensorTrade?" | "TensorTrade maximizes a reward function. Our action selection is centroid-distance; reward functions operate only in learning (exploration + credit), never in choosing the action. Their canonical failure is regime overfitting: train on calm, blow up on crisis. Our system *reduced its own autonomy* because it detected the regime break. An agent that maximizes reward cannot do that." |
+| 3. RL trading (TensorTrade) | "How is this different from TensorTrade?" | "TensorTrade maximizes a reward function. We don't choose the action by maximizing a reward — the decision is centroid-distance. A reward-maximizer overfits your calm regime; ours doesn't — and you can watch it, governed vs reward-maximized, same data, side by side (DIFF-1, §4.10). Their canonical failure is regime overfitting: train on calm, blow up on crisis. Our system *reduced its own autonomy* because it detected the regime break." |
 | 4. Volatility / risk | "We already have risk systems." | "Your risk system measures risk. Ours measures *whether your edge is real or a clustering artifact*. Your calm-regime Sharpe of 2.1 is 1.2 after clustering adjustment. Half your 'edge' is tail risk you aren't paid for. We show you that — your risk system can't." |
 | 5. Decision intelligence | "This is just better analytics." | "Analytics tells you what happened. We tell you *what you believe that's wrong* — with proof from your own decisions. Your favorite setup is your worst setup. No dashboard can show you that because it requires learning from verified outcomes, not displaying metrics." |
 | 6. Process intelligence (Celonis) | "We already have Celonis." | "Good — keep it. Celonis tells you WHERE the process breaks. We ingest its output and tell you WHY and WHICH DECISION to change. Your Celonis spend just became more valuable, not obsolete. We're the only vendor in this room who makes your existing investment worth *more*." |
@@ -178,7 +177,8 @@ All open on the mirror, close on the moat.
 | # | Beat | Pillar | Surface | API / data | Time |
 |---|---|---|---|---|---|
 | V1 | **Cold-mirror open** — "pick the factor you trust most… it's your noisiest, here's proof" | P2 | Trading **Analysis** (Trust Radar / T1) | `/api/fingerprint` + `/api/context/trust-analysis` | 90s |
-| V2 | **Governed self-improvement** — authored rule + **Rejection Moment** ("47 tested, 12 promoted, 35 rejected, here's why") | P1 | SOC **Runtime Evolution** | `/api/admin/shadow-start`,`/promote-evaluate`; rejection log `[NET-NEW §4.1]` | 90s |
+| COMP-1 | **The compounding curve** — decision-quality vs verified decisions, governed vs frozen baseline; IKS rising | P3 | DI-TIMELINE (single-arm **LIVE**) → two-arm governed-vs-frozen (**NEAR**) | `/api/dataops/cohort-status`, DI-TIMELINE surface | 90s |
+| V2 | **Governed self-improvement** — **V2a:** promotion live ("8-point gain, promoted — that's the compounding") **V2b:** Rejection Moment ("and it rejected 35 others — here's why") | P1 | SOC **Runtime Evolution** | `/api/admin/shadow-start`,`/promote-evaluate`; rejection log `[NET-NEW §4.1]` | 90s |
 | V3 | **Cross-domain compounding** — transfer lineage: a fix born in security → procurement → dataops, one engine | P3 | Purchasing/DataOps **Performance** (`RuleGenealogyTree`) | genealogy endpoint (shipped) | 60s |
 | V4 | **Prove-it's-real** — Counterfactual ("change factor → score moves; feed a sample → refused") | P2 | any scoring surface | `/api/score` perturbation + F-26 gate `[NET-NEW §4.2]` | 60s |
 | V5 | **The refusal / red-team** — fire `simulate_failure`, conservation auto-pauses to AMBER | P1 | SOC **Compounding** | `/api/eval/simulate-failure` (shipped) | 60s |
@@ -199,7 +199,7 @@ All open on the mirror, close on the moat.
 |---|---|---|---|---|---|
 | E1 | Cold-mirror overlay → authored rule + shadow pass | P1/P2 | SOC **Runtime Evolution** | `/api/admin/shadow-start`,`/promote-evaluate` | 120s |
 | E2 | **Why?** — situation analysis explains a decision (cite, don't assert) | P2 | SOC **Alert Triage** | `/api/soc/judgment/explain` | 120s |
-| E3 | **Refusal + Rejection** — conservation declines an expansion; AE rejects variants | P1 | SOC **Compounding** | `/api/soc/interventions`; rejection log `[NET-NEW §4.1]` | 90s |
+| E3 | **Promotion + Rejection** — AE promotes a winner ("8-point gain, live"), THEN conservation declines an expansion; AE rejects variants | P1 | SOC **Compounding** | `/api/soc/interventions`; rejection log `[NET-NEW §4.1]` | 90s |
 | E4 | **Red-team** — `simulate_failure` → AMBER | P1 | SOC **Compounding** | `/api/eval/simulate-failure` | 60s |
 | E5 | **Process-tech fusion climax** — Celonis shrugs, SAP shrugs, the graph answers ($/month resolves) → apply-fix | P2/P3 | DataOps **Insight** → `ApplyFixModal` | `/api/s2p/insight/cross-graph`, `/api/context/apply-fix` | climax |
 | E5b | **Data Intelligence** — "your data has a trust score, and it tells you what additional data to buy" | P2/P3 | DataOps **Dashboard** (TrustCard → Products → Intelligence Map) | `/api/dataops/trust`, `/api/di/products`, `/api/di/intelligence-map` | 90s |
@@ -218,7 +218,8 @@ as shipped.
 | Beat | Caption (on-screen) | Spoken |
 |---|---|---|
 | V1 | *The factor you trust most is your noisiest.* | "Before I show you anything — pick the factor you trust most. … 2,000 verified decisions say that's your *noisiest* predictor, highest σ on the board. You've been trusting the thing that lies to you most, and nothing but the decisions could have told you. That's the mirror." |
-| V2 | *47 tested · 12 promoted · 35 rejected.* | "This rule didn't exist this morning. The system wrote it, shadow-tested it, promoted it — base model never changed. And it *rejected 35* others: 18 failed the correctness floor, 11 conservation, 6 variance. The rejections are the point — self-improvement without a gate is a liability. We ship the gate." |
+| COMP-1 | *The system getting better — and the governance is why you can trust it.* | "This is the graph the thesis rests on: quality climbing with every verified decision, governed the whole way. Ungoverned, it wins early and overfits; governed, it compounds." ⚠️ CC-1: production curve = IKS rising. Oracle decreasing curve = reference-app only. |
+| V2 | *Promoted live — then 35 rejected.* | "This rule didn't exist this morning. The system wrote it, shadow-tested it, promoted it — base model never changed. And it *rejected 35* others: 18 failed the correctness floor, 11 conservation, 6 variance. The rejections are the point — self-improvement without a gate is a liability. We ship the gate." |
 | V3 | *One engine. Five domains.* | "Born in security at 68%, transferred to procurement at 69%, matured in data ops at 83% — auto-fired in a Brazil plant in four minutes. When you ask 'isn't that five companies?' — it's one, and each domain makes the others smarter." |
 | V4 | *Change a factor → the score moves. Feed a sample → refused.* | "Real or theater? Watch — I change this factor, the score moves, live. Now I try to sneak demo data into a real metric… refused. It won't let a sample number pose as a measured one. That's a system of record, not a dashboard." |
 | V5 | *Poisoned signal → auto-pause (AMBER).* | "Let me try to break it. Poisoned signal in… conservation auto-pauses, amber. It stopped itself. A script can't say 'not yet.' This does." |
@@ -767,13 +768,13 @@ This is a **one-engine-five-domains** beat (V3/E5 amplifier). The DI infrastruct
 
 ---
 
-## §4.11 Beat Corrections (v2.4)
+## §4.11 Beat Corrections (v2.4 — **APPLIED in v2.5**, see §0.2/§0.3/§2.1/§2.4/§5)
 
 **B1 — Invert the Rejection Moment (V2/E3):**
 Reorder: promotion FIRST ("8-point gain, promoted live — that's the compounding"), THEN rejection table + SILENCE 3. No new gate logic — both arcs in existing promotion-gate logs.
 
 **B2 — RL Naming Reconciliation (§0.2, §0.3 room 3, §5 F-25):** ⚠️ on-stage-truth
-Retire the old “judgment is not a reward target” wording. Replace with: “The DECISION is centroid-distance, not reward-maximizing. Reward functions exist in the LEARNING path (exploration + credit), never in choosing the action. Exploration is conservation-bounded (`ConservationBoundedThompson`).”
+Retire "we have no reward function for judgment." Replace with: "The DECISION is centroid-distance, not reward-maximizing. Reward functions exist in the LEARNING path (exploration + credit), never in choosing the action. Exploration is conservation-bounded (`ConservationBoundedThompson`)."
 
 **B3 — SOC Exploration Proposal-Only:** ⚠️ on-stage-truth
 When SOC learning is ON, exploration can override centroid action. In demo profile: run exploration proposal-only (SOC-G1 target) so "decision is centroid" holds on stage. Or re-cut "watch it learn" to S2P via DIFF-1.
@@ -796,10 +797,12 @@ The single biggest live-demo risk (per `narrative_readiness_v3`): a fresh instal
 | **⚠️ SOC learning ENABLED in the demo profile** (`soc/config.py:66` disables it by default) | **SOC is the flagship VC cut** — any "watch it learn / compounding" beat **will not fire** otherwise. **DoD: prove a verified decision changes a later SOC score.** If it can't be enabled cleanly, **re-cut the beat** to Trading/S2P/DataOps/Purchasing (all BUILT end-to-end). |
 | **Situational tags on Trading decisions** (regime, vol_state, hurst) | TRD-S1..S4 and TRD-V1/V2/V5/V6 are **read-side analytics over tagged decisions** (C-TRD-SIT Step 1) |
 | **Real regime-break window** in the Trading history (2020-03 / 2022) | TRD-S3 (throttle) and TRD-S7 (re-convergence) replay it |
+| **DIFF-1 datasets:** faithful reward-max baseline on same oracle/seed (`test_baseline_is_faithful`), injected supplier-fraud regime shift, +8%-aggregate/−30%-high-severity poisoned auto-approve rule | DIFF-1 (§4.10) governed-vs-ungoverned rebuttal |
+| **L-CDK datasets:** two neutral-domain datasets (email triage + reading triage), synthetic metadata only | L-CDK (§4.10) developer cut |
 
 **Hard constraints:** BYOD imports score via `write_observation`; L5 writes are persist-before-cache;
 `[VERIFY]` SOC conservation numbers (old D2 "Option C") before quoting any SOC α figure on stage.
-**Naming (F-25):** no beat, caption, or script says "RL" for the primary mechanism — it is *decision-trace /
+**Naming (F-25):** no beat, caption, or script says "RL" for the primary mechanism, and no beat/script says "we have no reward function" — the reward runs in the learning path; the **decision** is centroid-distance (see §4.11 B2) — it is *decision-trace /
 prototype learning from verified decisions*. **Claim scope (F-24):** "conservation governs our scoring,
 exploration and scorer-evolution loops" — **not** "all loops" — until `C-GOV` lands. **Cross-copilot (F-26):**
 *signals* transfer; judgment geometry is per-copilot.
@@ -887,6 +890,7 @@ record).
 | L-PUR | §2.3 re-led on Purchasing | ops/GM | ~5 min | "your covers" once Toast lands |
 | L-DATAOPS | §2.3 re-led on DataOps | CTO/data | ~5 min | Intelligence Map + Acquisition Advisor |
 | L-DATAOPS-DI | §4.9 DataOps Data Intelligence | CTO/CDO/data teams | ~5 min | DI-TRUST → DI-SOURCE → DI-PRODUCT → DI-GOLD → DI-TIMELINE. Level 5-6 preview. |
+| L-CDK | SDK / open-source developer cut | Self-serve developers | ~5 min | APP-2 hello-gae → APP-5 YAML → APP-6 build-your-own (email + reading skins, governed-vs-ungoverned toggle). **Gate:** public SDK drop. |
 
 **Dependency note:** L-TRADER should follow the Trading OSS launch; L-PUR's "your data" beat wants Toast
 (strategy W3-2); the rest can record as soon as the harness (7.1) + §4 hero moments are in.
@@ -913,9 +917,7 @@ record).
 | v2.2 | August 2, 2026 | **DataOps Data Intelligence beats.** Added §4.9 with 6 new demo beats (DI-TRUST, DI-SOURCE, DI-PRODUCT, DI-GOLD, DI-TIMELINE, DI-ADMITS-FAILURE) covering all shipped DI features. Two new competitive rooms (#12 data quality, #13 data-as-product) with kill-shot lines and tear-down answers. Two new silence beats (#4 trust gap, #5 gold lines). Enterprise cut E5b insertion. L-DATAOPS-DI Loom cut. Frontend build items for demo-readiness. All beats tagged with class (LIVE/NEAR) and API references. |
 | v2.3 | August 4, 2026 | **DI-PROOF linchpin beat + mirror→moat arc.** Added §4.9.0 DataOps cut arc (6-beat sequence). Added DI-PROOF ("Earned, Not Asserted") — live perturbation of trust score, ~2-3d build, NEAR class. Silence beat #6. Resequenced 8 beats from feature tour → story spine. Strengthening themes from dataops_data_intelligence_strengthening_v1.md. |
 | v2.4 | August 8, 2026 | **Reference + differentiation beats.** Added §4.10: DIFF-1 governed-vs-ungoverned rebuttal (⭐ rooms 2+3), COMP-1 compounding curve (⭐ VC lead beat), L-CDK developer cut (3 beats). Added §4.11: B1-B4 beat corrections from VC judge panel (rejection inversion, RL naming, SOC exploration proposal-only, CC-1 two distances). |
-## Document control
-| Version | Date | Change |
-|---|---|---|
+| v2.5 | August 10, 2026 | **Fixer: propagate §4.10/§4.11 into primary sections.** (A) B2 RL naming applied — retired "no reward function" from §0.2/§0.3/§5, replaced with centroid-distance reconciliation. (B) B1 rejection inversion applied — V2/E3 lead with promotion. (C) COMP-1 propagated into VC cut §2.1+§2.4 with CC-1 guard. (D) DIFF-1 propagated into §0.1 rooms 2/3. (E) L-CDK added to §7.2 Loom cuts. (F) SOC exploration proposal-only + DIFF-1/L-CDK datasets added to §5 preseed. (G) Doc control tables merged; §4.11 marked applied. |
 | v2.1 | July 11, 2026 | **Presenter technique + competitive Q&A + S14 contrast.** (1) **§2.5 silence beats** — the three moments where the presenter STOPS TALKING (Mirror at V1 second 45-75, SituationPanel at E2 second 30-60, Rejection Table at V2 second 60-90); includes physical staging instructions and recovery lines. The meta-principle: 20 seconds of deliberate silence in a 420-second demo is where the decision happens. (2) **§0.3 competitive tear-down lines** — per-room "when they say X, you say Y" one-liners for 11 competitive rooms, plus a meta-pattern for unexpected competitors ("They solve [X]. We solve the layer underneath: how does the system that solves [X] get better over time, safely?"). (3) **§4.2.1 S14 rule-vs-reasoning contrast** — a two-column side-by-side showing what a threshold rule would have done (REJECT, $340K false rejections) vs what the SituationPanel produced (ACCEPT, confidence 0.91, contract cited). The contrast is COMPUTED, not hardcoded (same invoice, real threshold). ~0.5d frontend build. Appears at Enterprise E2 after SILENCE 2. |
 | v2.2 | August 2, 2026 | **DataOps Data Intelligence beats.** Added §4.9 with 8 demo beats (DI-TRUST, DI-SOURCE, DI-PRODUCT, DI-GOLD, DI-TIMELINE, DI-ADMITS-FAILURE, DI-DIRTY-DATA, DI-AGENT-TRUST). Two new competitive rooms (#12 data quality, #13 data-as-product). Two new silence beats (#4, #5). Enterprise cut E5b. L-DATAOPS-DI Loom cut. Frontend build items. F-21/F-22 honesty guard. |
 | v1.0 | July 10, 2026 | Initial consolidation. Fused the June-1 hero-doc narrative frame (mirror-not-moat, autonomy-vs-automation, four innovations) with the July-9 feature-complete state and the strategy's three differentiators/hero moments. §0 reconciles superseded hero-doc items (Mirror tab, #120-127, P0/L5/D2 gating). §1 unified frame; §2 three demo cuts (VC 7m / trader 3m / enterprise 12m) as beats with surface+API+timing; §3 full 94-scenario catalog (92 ready, 2 deferred) with cut+pillar mapping; §4 net-new hero-moment build items (Rejection/Counterfactual/Day-Zero + staged trust beats + BYOD) with owner/DoD/effort; §5 demo-base preseed requirements (flat-IKS = top risk); §6 internal-review + llm-judge record. |
@@ -923,4 +925,4 @@ record).
 | v1.2 | July 10, 2026 | **Cross-doc reconciliation.** Aligned with `next_steps_strategy_v1_1.md`: the single coding build list is that doc's §9 Execution Synopsis (C-1..C-14); this doc is the spec it references. Made two shared items explicit to prevent double-building: **LOOM-1 ≡ strategy W1-1 = C-1** (one deterministic-preseed artifact), and **§4 DM-1/CF-1/DZ-1/ST-5 ≡ strategy HERO-1/2/3/4** (C-2/C-3/C-4). Title/companion refs updated. No scenario or beat changes. |
 | v1.3 | July 10, 2026 | **Reconciled with the outreach catalog.** Added §3.1 aligning this doc with `outreach_use_scenario_catalog.md` (v1.0, May 21): established the two-lens relationship (catalog = scenario universe + outreach messaging + 23 heroes + one-liners + industry-data; this doc = demo-ready/surface-mapped), reconciled the counts (catalog 91 vs this 94 — differ by counting granularity + date, e.g. SOC 10 narrative units vs 20 per-tab scenarios; Trading 20 and S2P 16 match exactly; neither authoritative over the other), and mapped the demo beats to the outreach heroes with the proven one-liners + industry-data hooks for the presenter scripts (TRD-1 mirror, SOC-4 admits-failure, DO-4 $604K fusion, DO-2/PUR-3 departure, SOC-1 amnesia). No scenarios re-typed — the catalog stays the source for the full 91 + messaging; this doc guarantees demoability. Companion refs updated. |
 | v1.4 | July 10, 2026 | **Positioning reconciliation with next_steps v1.8.** §1 pillars updated to the deployability framing — **Governed / Grounded / Compounding** (compounding demoted to support) — and the spine reframed to "Compounding Intelligence = the governed compounding layer" (above loop/context/harness engineering); situation-analysis (S14→P2) and context-graph synthesis flagged `[VERIFY shipped vs roadmap]` per next_steps C-VERIFY-L3L4. V7 close rewritten to the governance-bottleneck / governed-compounding-layer message ("loop engineering makes an agent finish a task; we make the whole system get better at every task, safely; the market spent 18 months proving 88% of pilots die on governance"). No scenario/beat/build changes. |
-| v2.0 | July 10, 2026 | **Historical validation and demo-truth baseline.** The primary mechanism is decision-trace/prototype learning from verified decisions; action selection is centroid-distance, while reward functions remain in the learning path only. Exploration is conservation-bounded by construction (C-19). Other scenario and scope notes from this release remain historical. |
+| v2.0 | July 10, 2026 | **Brought current with next_steps v1.21 + product_integrity v3.0.** (1) **§0.1 room→kill-shot map** — beats re-indexed by **competitive room** (not only by copilot), one weapon + one line per room; 10 of 13 rooms have a LIVE kill shot. (2) **Scenario classes LIVE / NEAR / ARCH** now travel with every beat (product_integrity §2.8): showing roadmap is allowed and expected; implying roadmap is LIVE is the only violation (F-27). (3) **§0.2 demo-truth constraints** — the three things the code says that the storyboard must respect: **SOC learning is DISABLED by default** (`soc/config.py:66`) so any SOC "watch it learn" beat won't fire unless enabled (C-1 DoD: prove a verified decision changes a later SOC score, or re-cut the beat); **naming (F-25)** — the primary mechanism is decision-trace/prototype learning from verified decisions, **not "RL"** (and the honest line is stronger: "we have no reward function for judgment", C-18; exploration is conservation-bounded by construction, C-19); **C-17 is scoped (F-24)** — prompt-variant promotion is ungated, so say "governs our scoring, exploration and scorer-evolution loops," never "all loops," until C-GOV lands; and no shared cross-copilot judgment claim (F-26). (4) **New §4.6** — Trading situation-conditioned + volatility beats (TRD-S1..S4, TRD-V1/V2/V5/V6/V7), leading with **TRD-S3 autonomy throttle**, **TRD-V1 short-vol illusion** and **TRD-V2 VRP edge-or-insurance**; all magnitudes flagged as illustrative formats, not measured results. (5) **New §4.7 — TRD-S7 "The Re-convergence Moment"** (⭐ the strongest technical beat available): replay a real 2020/2022 regime break, cold-start vs regime-indexed re-convergence = **γ>1 made visible against non-stationarity**, the failure that kills every RL trading system; class **ARCH** until C-REGIME P4 + EXP-REGIME. (6) **New §4.8 — ENT-1 "The Sunk-Investment Multiplier"** (the Celonis/enterprise wedge's missing beat: "your Celonis spend just became more valuable, not obsolete"), with a scope guard — surface *which decision to change*, not *we execute it in your ERP* (write-back is roadmap). (7) **§5 preseed** gains SOC-learning-enabled, Trading situational tags, and a real regime-break window; hard constraints gain the F-24/F-25/F-26 wording rules. (8) `SOC-V4` catalog entry renamed off "RL Safety Controls." |

@@ -5,6 +5,8 @@ from __future__ import annotations
 from statistics import pstdev
 from typing import Any
 
+MIN_BATCHES = 3
+
 
 class DefaultPromotionGate:
     _SAFE_PHASES = {"GREEN", "VERIFIED", "ACTIVE"}
@@ -32,6 +34,13 @@ class DefaultPromotionGate:
         variance = pstdev(batches) if len(batches) > 1 else 0.0
 
         checks = {
+            # Older shadow providers did not emit batch data. Preserve their
+            # existing sufficient-data decision; every current provider emits
+            # this field and is subject to the three-batch requirement.
+            "insufficient_batches": (
+                "batch_accuracies" not in shadow_results
+                or len(batches) >= MIN_BATCHES
+            ),
             "sufficient_data": bool(shadow_results.get("sufficient")) and total >= self.min_shadow_decisions,
             "superiority": superiority_pp >= self.superiority_threshold_pp,
             "accuracy_floor": accuracy >= self.accuracy_floor,
@@ -41,6 +50,8 @@ class DefaultPromotionGate:
         promoted = all(checks.values())
         failed_checks = [name for name, passed in checks.items() if not passed]
         reason = "promoted" if promoted else self._reason(checks)
+        if not promoted and not checks["insufficient_batches"]:
+            reason = f"insufficient_batches ({len(batches)}/{MIN_BATCHES})"
         return {
             "promoted": promoted,
             "reason": reason,

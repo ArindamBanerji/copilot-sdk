@@ -35,15 +35,20 @@ class DefaultShadowRunner:
         correct = 0
         baseline_correct = 0
         errors = 0
+        variant_outcomes: list[bool] = []
         for decision in decisions:
             normalized = self._normalize_decision(decision)
             actual = self._actual_action(normalized)
             try:
                 if self._predict(variant, normalized) == actual:
                     correct += 1
+                    variant_outcomes.append(True)
+                else:
+                    variant_outcomes.append(False)
             except Exception as exc:
                 logger.warning("Variant shadow evaluation failed: %s", exc)
                 errors += 1
+                variant_outcomes.append(False)
             try:
                 baseline_action = (
                     self._predict(baseline, normalized)
@@ -56,6 +61,14 @@ class DefaultShadowRunner:
                 logger.warning("Baseline shadow evaluation failed: %s", exc)
                 errors += 1
 
+        batch_accuracies = [
+            round(
+                sum(1 for outcome in variant_outcomes[index::3] if outcome)
+                / len(variant_outcomes[index::3]),
+                4,
+            )
+            for index in range(min(3, len(variant_outcomes)))
+        ]
         return {
             "sufficient": True,
             "total": total,
@@ -64,6 +77,7 @@ class DefaultShadowRunner:
             "accuracy": round(correct / total, 4) if total else 0.0,
             "baseline_accuracy": round(baseline_correct / total, 4) if total else 0.0,
             "errors": errors,
+            "batch_accuracies": batch_accuracies,
         }
 
     def _normalize_decision(self, decision: dict[str, Any]) -> dict[str, Any]:

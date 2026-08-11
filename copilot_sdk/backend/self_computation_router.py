@@ -62,6 +62,11 @@ def create_self_computation_router(
                 detail="Counterfactual scoring is unavailable for this router",
             )
         scorer = scorer_provider() if callable(scorer_provider) else scorer_provider
+        if scorer is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Scorer initializing — retry in a moment",
+            )
         unwrap = getattr(scorer, "_scorer", None)
         if not hasattr(scorer, "score_with_centroids") and callable(unwrap):
             scorer = unwrap()
@@ -78,6 +83,11 @@ def create_self_computation_router(
         if scorer_provider is None:
             return None
         scorer = scorer_provider() if callable(scorer_provider) else scorer_provider
+        if scorer is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Scorer initializing — retry in a moment",
+            )
         unwrap = getattr(scorer, "_scorer", None)
         if not hasattr(scorer, "rollback_to_checkpoint") and callable(unwrap):
             scorer = unwrap()

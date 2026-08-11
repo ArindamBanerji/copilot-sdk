@@ -9,6 +9,7 @@ def _shadow(**overrides):
         "total": 20,
         "accuracy": 0.82,
         "baseline_accuracy": 0.70,
+        "batch_accuracies": [0.82, 0.82, 0.82],
     }
     data.update(overrides)
     return data
@@ -102,7 +103,7 @@ def test_gate_reports_all_failed_checks():
             total=2,
             accuracy=0.40,
             baseline_accuracy=0.50,
-            batch_accuracies=[0.95, 0.40],
+            batch_accuracies=[0.95, 0.40, 0.95],
         ),
         conservation_state={"status": "RED"},
     )

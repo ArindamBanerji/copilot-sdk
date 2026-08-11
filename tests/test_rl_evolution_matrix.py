@@ -161,14 +161,14 @@ def test_t_sup(copilot_config: CopilotConfig) -> None:
 
 def test_t_var(copilot_config: CopilotConfig) -> None:
     gate = DefaultPromotionGate(min_shadow_decisions=10)
-    result = gate.evaluate({"sufficient": True, "total": 50, "accuracy": 0.90, "baseline_accuracy": 0.80, "batch_accuracies": [0.50, 0.90]}, _green())
+    result = gate.evaluate({"sufficient": True, "total": 50, "accuracy": 0.90, "baseline_accuracy": 0.80, "batch_accuracies": [0.50, 0.90, 0.50]}, _green())
     assert result["promoted"] is False
     assert "variance" in result["reason"]
 
 
 def test_t_samp(copilot_config: CopilotConfig) -> None:
     gate = DefaultPromotionGate(min_shadow_decisions=10)
-    result = gate.evaluate({"sufficient": False, "total": 2, "accuracy": 0.95, "baseline_accuracy": 0.80}, _green())
+    result = gate.evaluate({"sufficient": False, "total": 2, "accuracy": 0.95, "baseline_accuracy": 0.80, "batch_accuracies": [0.95, 0.95, 0.95]}, _green())
     assert result["promoted"] is False
     assert "sufficient_data" in result["reason"]
 

@@ -1749,6 +1749,34 @@ class CompoundingScorer:
                 f"Checkpoint {checkpoint_id} shape {restored.shape} does not match current {current.shape}"
             )
         self._scorer.centroids = np.array(restored, dtype=np.float64, copy=True)
+        metadata = checkpoint.get("metadata") or {}
+        dk_weights = metadata.get("dk_weights", checkpoint.get("dk_weights"))
+        temperature = metadata.get("temperature", checkpoint.get("temperature"))
+        if dk_weights is not None:
+            self.load_dk_weights_from_l5(dk_weights)
+        if temperature is not None:
+            restored_temperature = float(temperature)
+            if not np.isfinite(restored_temperature) or restored_temperature <= 0:
+                raise ValueError(f"Checkpoint {checkpoint_id} has invalid temperature")
+            self._scorer.tau = restored_temperature
+        restored_decision_count = metadata.get(
+            "decision_count", checkpoint.get("decision_count")
+        )
+        if restored_decision_count is not None and hasattr(self._scorer, "decision_count"):
+            self._scorer.decision_count = int(restored_decision_count)
+        restored_frozen = metadata.get("frozen", checkpoint.get("frozen"))
+        if restored_frozen is not None:
+            if bool(restored_frozen):
+                self._scorer.freeze()
+            else:
+                self._scorer.unfreeze()
+        restored_paused = metadata.get(
+            "paused_by_conservation", checkpoint.get("paused_by_conservation")
+        )
+        if restored_paused is not None and hasattr(
+            self._scorer, "_paused_by_conservation"
+        ):
+            self._scorer._paused_by_conservation = bool(restored_paused)
         self._verified_decisions_cache = None
 
         current_count = self.get_verified_count()
@@ -2256,6 +2284,11 @@ class CompoundingScorer:
             "centroid_distance_to_canonical": self.compute_centroid_distance_to_canonical(),
             "dk_weights": self._checkpoint_dk_weights(),
             "temperature": self.get_temperature(),
+            "decision_count": int(getattr(self._scorer, "decision_count", 0)),
+            "frozen": bool(getattr(self._scorer, "_frozen", False)),
+            "paused_by_conservation": bool(
+                getattr(self._scorer, "_paused_by_conservation", False)
+            ),
             "regime_tag": regime_tag,
         }
         if consolidation:

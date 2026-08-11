@@ -11,6 +11,7 @@ def _shadow():
         "total": 20,
         "accuracy": 0.82,
         "baseline_accuracy": 0.70,
+        "batch_accuracies": [0.82, 0.82, 0.82],
     }
 
 
