@@ -177,6 +177,17 @@ def check_already_seeded(base_url: str) -> Tuple[bool, Dict[str, Any]]:
     return int(trajectory.get("decisions_total") or 0) >= PRESEED_DECISIONS_PER_COPILOT, trajectory
 
 
+def has_regime_checkpoint(base_url: str) -> bool:
+    """Return whether Trading has at least one checkpoint with a regime tag."""
+    history = api_get(base_url, "/api/self/centroid-history?limit=25")
+    checkpoints = history.get("checkpoints") if isinstance(history, dict) else []
+    return any(
+        isinstance(checkpoint, dict)
+        and str(checkpoint.get("regime_tag") or "") in {"trending", "ranging", "volatile"}
+        for checkpoint in (checkpoints if isinstance(checkpoints, list) else [])
+    )
+
+
 def load_trading_seed() -> List[Dict[str, Any]]:
     return load_seed(DOMAINS[0].seed_path)
 
@@ -359,15 +370,26 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
         return DomainResult(config.name, len(seed), 0, 1, 0, False, True, 0.0)
 
     existing_decisions = int(trajectory.get("decisions_total") or 0)
+    regime_backfill = False
     if already_seeded and not args.force:
-        print(
-            "already seeded: decisions_total=%s target=%s; skipping (use --force to append again)"
-            % (trajectory.get("decisions_total"), PRESEED_DECISIONS_PER_COPILOT)
-        )
-        verify_domain(config, base_url, 0, 0, 0.0)
-        return DomainResult(config.name, len(seed), 0, 0, 0, True, False, 0.0)
+        if config.name == "trading" and not has_regime_checkpoint(base_url):
+            # Existing demo data may have been seeded before regime metadata was
+            # added. Append a small annotated batch instead of requiring --force
+            # (which would append the entire seed set).
+            regime_backfill = True
+            seed = annotate_trading_regime(
+                expanded_seed(source_seed, 3, start_index=max(existing_decisions, 0))
+            )
+            print("legacy Trading checkpoints found; backfilling %s regime-tagged decisions" % len(seed))
+        else:
+            print(
+                "already seeded: decisions_total=%s target=%s; skipping (use --force to append again)"
+                % (trajectory.get("decisions_total"), PRESEED_DECISIONS_PER_COPILOT)
+            )
+            verify_domain(config, base_url, 0, 0, 0.0)
+            return DomainResult(config.name, len(seed), 0, 0, 0, True, False, 0.0)
 
-    if not args.force:
+    if not args.force and not regime_backfill:
         remaining = max(PRESEED_DECISIONS_PER_COPILOT - existing_decisions, 0)
         seed = expanded_seed(source_seed, remaining, start_index=max(existing_decisions, 0))
         if config.name == "trading":
