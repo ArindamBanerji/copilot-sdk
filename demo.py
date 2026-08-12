@@ -124,7 +124,7 @@ def _build_graph_env(domain: str, dsn: str) -> dict[str, str]:
         "GRAPH_NAME": "soc_graph",
         "AGE_GRAPH_NAME": "soc_graph",
         "AGE_USE_POOL": "true",
-        "AGE_POOL_MAX_SIZE": "5",
+        "AGE_POOL_MAX_SIZE": "15",
         "GRAPH_DOMAIN": domain,
         "DEMO_MODE": "1",
         "DATAOPS_DEMO_MODE": "1",
