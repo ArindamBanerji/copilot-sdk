@@ -55,10 +55,11 @@ export function SituationPanel({
       return;
     }
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(false);
     onSituationChange?.(null, true);
-    fetchSituation(decisionId)
+    fetchSituation(decisionId, 3, controller.signal)
       .then((response) => {
         if (cancelled) return;
         setData(response);
@@ -77,6 +78,7 @@ export function SituationPanel({
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [decisionId, onSituationChange]);
 
@@ -89,7 +91,7 @@ export function SituationPanel({
           <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Situation context</p>
           <h2 className="mt-1 text-lg font-semibold text-slate-950">Situation Analysis</h2>
         </div>
-        {data ? <ProvenanceBadge source={data.provenance.overall} /> : null}
+        {data && !data.status ? <ProvenanceBadge source={data.provenance.overall} /> : null}
       </div>
 
       {!decisionId ? (
@@ -98,6 +100,16 @@ export function SituationPanel({
         </p>
       ) : loading ? (
         <p className="mt-4 text-sm text-slate-500">Analyzing situation...</p>
+      ) : data?.status === "unavailable" || data?.status === "timeout" ? (
+        <div className="mt-4 space-y-3">
+          <blockquote className="rounded-md border-l-4 border-amber-500 bg-amber-50 p-4 text-sm leading-6 text-slate-800">
+            <p>{data.nl_explanation}</p>
+          </blockquote>
+          <p className="text-sm text-slate-500">
+            Situation analysis {data.status === "timeout" ? "timed out" : "unavailable"}.
+            Factor-based scoring was used.
+          </p>
+        </div>
       ) : error || !data ? (
         <p className="mt-4 text-sm text-slate-500">Situation analysis unavailable.</p>
       ) : (

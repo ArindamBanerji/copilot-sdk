@@ -93,7 +93,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating EvidenceAccumulating286 / 315 decisions2 of 0 arms "
+          "text": "Day-Zero HonestyAccumulating EvidenceAccumulating292 / 321 decisions2 of 0 arms "
         },
         {
           "testId": "provenance-badge",
@@ -178,12 +178,12 @@
         {
           "testId": "data-trust-badge",
           "tag": "section",
-          "text": "Data TrustLearned source reliabilityTradingOptions delta1.00Research depth0.92Si"
+          "text": "Data TrustLearned source reliabilityTradingOptions delta1.00Research depth0.92Op"
         },
         {
           "testId": "data-trust-factors",
           "tag": "div",
-          "text": "Options delta1.00Research depth0.92Signal confidence0.89Market conditions0.62Tim"
+          "text": "Options delta1.00Research depth0.92Options IV0.89Market conditions0.61Timing qua"
         },
         {
           "testId": "data-trust-factor",
@@ -208,7 +208,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Signal confidence0.89"
+          "text": "Options IV0.89"
         },
         {
           "testId": "data-trust-bar",
@@ -218,7 +218,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Market conditions0.62"
+          "text": "Market conditions0.61"
         },
         {
           "testId": "data-trust-bar",
@@ -228,7 +228,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Timing quality0.53"
+          "text": "Timing quality0.52"
         },
         {
           "testId": "data-trust-bar",
@@ -238,7 +238,7 @@
         {
           "testId": "data-trust-contrast",
           "tag": "p",
-          "text": "Highest 1.00 · Lowest 0.53 · Spread 0.47"
+          "text": "Highest 1.00 · Lowest 0.52 · Spread 0.48"
         }
       ],
       "buttons": [
@@ -1539,17 +1539,22 @@
         {
           "testId": "order-queue-panel",
           "tag": "section",
-          "text": "Order queuePrioritized supplier ordersPending orders0High priority0ConservationG"
+          "text": "Order queuePrioritized supplier ordersOrder queueLoading...Loading queue...Loadi"
         },
         {
           "testId": "queue-summary",
           "tag": "div",
-          "text": "Pending orders0High priority0ConservationGREEN"
+          "text": "Order queueLoading...Loading queue..."
+        },
+        {
+          "testId": "queue-loading",
+          "tag": "div",
+          "text": "Order queueLoading...Loading queue..."
         },
         {
           "testId": "queue-table",
           "tag": "div",
-          "text": "No pending orders in the queue."
+          "text": "Loading queue..."
         },
         {
           "testId": "order-item-select",
@@ -2755,22 +2760,6 @@
         },
         {
           "tag": "h2",
-          "text": "Year 1: $180,000 savings at current pace"
-        },
-        {
-          "tag": "h3",
-          "text": "Where savings came from"
-        },
-        {
-          "tag": "h3",
-          "text": "This week"
-        },
-        {
-          "tag": "h3",
-          "text": "Bank proof"
-        },
-        {
-          "tag": "h2",
           "text": "Supply Disruption Recovery"
         },
         {
@@ -2780,18 +2769,6 @@
         {
           "tag": "h2",
           "text": "Audit & Compliance Pack"
-        },
-        {
-          "tag": "h2",
-          "text": "Your Chicago team's experience helps Miami"
-        },
-        {
-          "tag": "h3",
-          "text": "Transfer opportunity"
-        },
-        {
-          "tag": "h3",
-          "text": "Purchasing power"
         },
         {
           "tag": "h2",
@@ -2837,19 +2814,9 @@
           "text": "Sample"
         },
         {
-          "testId": "economic-dashboard-card",
-          "tag": "section",
-          "text": "ROI DashboardYear 1: $180,000 savings at current paceSample dataMonth target$9,6"
-        },
-        {
-          "testId": "group-dashboard-card",
-          "tag": "section",
-          "text": "Chain IntelligenceYour Chicago team's experience helps MiamiSample dataGroup acc"
-        },
-        {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Sample"
+          "text": "Unlabeled"
         },
         {
           "testId": "iks-tracker-panel",
@@ -2934,21 +2901,9 @@
         "Purchasing Copilot",
         "20 orders to learn what takes 11 years of gut instinct.",
         "Downtown discipline becomes the baseline for all four",
-        "Year 1: $180,000 savings at current pace",
-        "Where savings came from",
-        "This week",
-        "Bank proof",
         "Supply Disruption Recovery",
         "Payment Timing Intelligence",
         "Audit & Compliance Pack",
-        "Your Chicago team's experience helps Miami",
-        "Location",
-        "Decisions",
-        "Accuracy",
-        "Food cost",
-        "Learning",
-        "Transfer opportunity",
-        "Purchasing power",
         "What needs a manager today",
         "Cohort measurement readiness",
         "Trajectory",
@@ -2958,12 +2913,6 @@
         "Waste and stockouts are now measurable",
         "The cost leak is concentrated",
         "Prep waste has a dollar target",
-        "Item",
-        "Waste",
-        "Kitchen benchmark",
-        "Trend",
-        "Cost",
-        "Recommendation",
         "Where ordering is consistent"
       ]
     }
@@ -4377,7 +4326,7 @@
         {
           "testId": "cohort-status-panel",
           "tag": "section",
-          "text": "DataOps Measurement StatusCohort measurement readinessMeasurement readyThe measu"
+          "text": "DataOps Measurement StatusCohort measurement readinessMeasurement readyLoading m"
         },
         {
           "testId": "cohort-status-state",
@@ -4513,311 +4462,6 @@
           "testId": "audit-search",
           "tag": "input",
           "text": ""
-        },
-        {
-          "testId": "audit-events",
-          "tag": "div",
-          "text": "5/9/2026, 4:44:45 PMlearntransform_drift auto_approvemigration5/9/2026, 4:44:38 "
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:45 PMlearntransform_drift auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:45 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:38 PMlearntransform_drift auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:38 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:32 PMlearnfreshness_violation escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:32 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:26 PMlearnfreshness_violation auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:26 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:20 PMlearnfreshness_violation auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:20 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:13 PMlearnquality_anomaly escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:13 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:07 PMlearnquality_anomaly escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:07 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:01 PMlearnquality_anomaly escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:01 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:55 PMlearnquality_anomaly auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:55 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:48 PMlearnvolume_anomaly investigatemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:48 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:42 PMlearnvolume_anomaly auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:42 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:36 PMlearnvolume_anomaly auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:36 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:30 PMlearnschema_change escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:30 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:23 PMlearnschema_change escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:23 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:17 PMlearnschema_change pause_downstreammigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:17 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:11 PMlearnpipeline_failure auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:11 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:05 PMlearnpipeline_failure escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:05 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:42:58 PMlearnpipeline_failure pause_downstreammigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:42:58 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:42:52 PMlearnpipeline_failure auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:42:52 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 3:31:29 PMlearnpipeline_failure pause_downstreammigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 3:31:29 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
         }
       ],
       "buttons": [
@@ -5109,7 +4753,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating144 / 174 decisions2 of 25 arms"
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating151 / 181 decisions2 of 25 arms"
         }
       ],
       "buttons": [
@@ -5259,27 +4903,27 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000393%Northstar Packagingprice_variance · $3,782",
+          "text": "S2P-INV-000388%Northstar Packagingprice_variance · $3,782",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "S2P-INV-000591%Yangtze Raw Materialsprice_variance · $41,290",
+          "text": "S2P-INV-000787%Boreal Equipment Maintenancequantity_mismatch · $14,966",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "S2P-INV-000788%Boreal Equipment Maintenancequantity_mismatch · $14,966",
+          "text": "S2P-INV-001086%Helix Lab Suppliesquantity_mismatch · $8,565",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "S2P-INV-001088%Helix Lab Suppliesquantity_mismatch · $8,565",
+          "text": "S2P-INV-000585%Yangtze Raw Materialsprice_variance · $41,290",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "S2P-INV-000685%Meridian Office Servicesprice_variance · $1,403",
+          "text": "S2P-INV-000684%Meridian Office Servicesprice_variance · $1,403",
           "ariaLabel": "",
           "name": ""
         },

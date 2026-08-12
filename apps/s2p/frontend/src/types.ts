@@ -454,6 +454,9 @@ export interface ContextChainNode {
 export interface SituationResponse {
   decision_id: string;
   category: string;
+  status?: "unavailable" | "timeout";
+  reason?: string;
+  context_source?: string;
   context_chain: ContextChainNode[];
   nl_explanation: string;
   confidence: number;

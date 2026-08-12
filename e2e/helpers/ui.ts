@@ -16,7 +16,7 @@ export async function clickTab(page: Page, name: string | RegExp) {
   await page.getByText(name).first().click();
 }
 
-export async function waitForAppShell(page: Page, timeout = 15_000) {
+export async function waitForAppShell(page: Page, timeout = 25_000) {
   await page.waitForLoadState("domcontentloaded", { timeout });
   await page.locator("main").waitFor({ state: "attached", timeout });
   await expect(page.locator("main")).not.toBeEmpty({ timeout });

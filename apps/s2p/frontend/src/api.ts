@@ -188,7 +188,26 @@ export async function scoreInvoice(payload: ScoreInvoiceRequest): Promise<ScoreI
 }
 
 export async function learnDecision(payload: LearnDecisionRequest): Promise<LearnDecisionResponse | null> {
-  return apiPost<LearnDecisionResponse>("/api/learn", payload).catch(() => null);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  try {
+    return await apiPostWithSignal<LearnDecisionResponse>("/api/learn", payload, controller.signal);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function apiPostWithSignal<T>(path: string, body: unknown, signal: AbortSignal): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+  });
+  if (!response.ok) throw new Error(`POST ${path} failed with ${response.status}`);
+  return response.json() as Promise<T>;
 }
 
 export async function getEvidenceTemplate(
@@ -214,10 +233,46 @@ export async function fetchS2PSimilar(invoiceId: string, limit = 5): Promise<Sim
   return apiGet<SimilarResponse>(`/api/s2p/insight/similar?${params.toString()}`).catch(() => null);
 }
 
-export async function fetchSituation(decisionId: string, maxDepth = 3): Promise<SituationResponse | null> {
-  return apiGet<SituationResponse>(
-    `/api/s2p/situation/${encodeURIComponent(decisionId)}?max_depth=${maxDepth}`
-  ).catch(() => null);
+export async function fetchSituation(
+  decisionId: string,
+  maxDepth = 3,
+  signal?: AbortSignal,
+): Promise<SituationResponse | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  const abortExternal = () => controller.abort();
+  signal?.addEventListener("abort", abortExternal, { once: true });
+  try {
+    const response = await fetch(
+      `${API_URL}/api/s2p/situation/${encodeURIComponent(decisionId)}?max_depth=${maxDepth}`,
+      { signal: controller.signal },
+    );
+    if (!response.ok) return null;
+    return await response.json() as SituationResponse;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return {
+        decision_id: decisionId,
+        category: "",
+        status: "timeout",
+        reason: "Situation request exceeded its deadline",
+        context_source: "scorer_only",
+        context_chain: [],
+        nl_explanation: "Situation context unavailable; factor-based scoring was used.",
+        confidence: 0,
+        factors_used: [],
+        traversal_depth: 0,
+        context_available: false,
+        warnings: ["Situation request exceeded its deadline"],
+        missing_variables: [],
+        provenance: { nl_explanation: "learned", confidence: "learned", overall: "learned" },
+      };
+    }
+    return null;
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener("abort", abortExternal);
+  }
 }
 
 export async function getSimilarInvoices(invoiceId: string, limit = 5): Promise<SimilarResponse | null> {
