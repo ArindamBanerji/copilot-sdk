@@ -45,6 +45,7 @@ export default function RejectionMomentPanel() {
   const events = summary?.recent_events || [];
   const rejected = events.filter((event) => event.event_type === "rejected");
   const promoted = events.filter((event) => event.event_type === "promoted");
+  const persistedRejected = aggregate?.rejectedVariants ?? [];
   const tested = aggregate?.totalTested ?? events.filter((event) => ["rejected", "promoted"].includes(event.event_type || "")).length;
   const promotedCount = aggregate?.totalPromoted ?? promoted.length;
   const rejectedCount = aggregate?.totalRejected ?? rejected.length;
@@ -52,7 +53,7 @@ export default function RejectionMomentPanel() {
   return (
     <section className="copilot-card p-4" data-testid="rejection-moment-panel">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-semibold">Rejection Moment</h2>
+        <h2 className="text-base font-semibold">Agent Evolution Summary</h2>
         {summary && <ProvenanceBadge source="learned" />}
       </div>
       {loading && <p className="mt-3 text-sm trading-muted">Loading rejection summary...</p>}
@@ -66,8 +67,22 @@ export default function RejectionMomentPanel() {
           </div>
           <div>
             <div className="text-sm font-semibold">Recent rejections</div>
-            {rejected.length === 0 ? (
+            {rejected.length === 0 && persistedRejected.length === 0 ? (
               <p className="mt-2 text-sm trading-muted">No rejected variants yet.</p>
+            ) : rejected.length === 0 ? (
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <tbody>
+                    {persistedRejected.slice(0, 5).map((event, index) => (
+                      <tr key={`${event.variantId}-${event.testedAt}-${index}`} className="border-t" style={{ borderColor: "var(--copilot-border)" }}>
+                        <td className="py-2 pr-3 font-mono text-xs">{event.variantId || "unknown"}</td>
+                        <td className="py-2 pr-3">{LABELS[event.reason || ""] || event.reason || event.detail || "unspecified"}</td>
+                        <td className="py-2 trading-muted">{event.testedAt || "recent"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
               <div className="mt-2 overflow-x-auto">
                 <table className="w-full text-left text-sm">

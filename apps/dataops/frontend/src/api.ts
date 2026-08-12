@@ -410,7 +410,77 @@ export async function getCentroidHistory(category?: string): Promise<CentroidHis
     params.set("category", category);
   }
   const query = params.toString();
-  return apiGet<CentroidHistoryResponse>(`/api/self/centroid-history${query ? `?${query}` : ""}`);
+  const history = await apiGet<SelfCentroidHistoryResponse>(`/api/self/centroid-history${query ? `?${query}` : ""}`);
+  return centroidHistoryForEvolution(history);
+}
+
+function centroidHistoryForEvolution(history: SelfCentroidHistoryResponse): CentroidHistoryResponse {
+  const checkpoints = [...(history.checkpoints || [])].sort((left, right) => {
+    const leftTime = Number(left.createdAt ?? left.created_at ?? left.checkpointTime ?? left.checkpoint_time ?? 0);
+    const rightTime = Number(right.createdAt ?? right.created_at ?? right.checkpointTime ?? right.checkpoint_time ?? 0);
+    return leftTime - rightTime;
+  });
+  const snapshots = checkpoints.map((checkpoint, index) => ({
+    decisionIndex: Number(
+      (checkpoint as CentroidCheckpointWithCount).decisions_count
+        ?? checkpoint.metadata?.decision_count
+        ?? index + 1,
+    ),
+    label: index === 0 ? "Initial" : `Checkpoint ${index + 1}`,
+    centroidsSample: centroidSample(checkpoint.centroids),
+  }));
+  const initial = snapshots[0];
+  const current = snapshots[snapshots.length - 1];
+  if (initial && current) {
+    current.topShifts = Object.entries(current.centroidsSample || {})
+      .map(([factor, to]) => {
+        const from = Number(initial.centroidsSample?.[factor] ?? 0.5);
+        return { factor, from, to, delta: Number((to - from).toFixed(3)) };
+      })
+      .sort((left, right) => Math.abs(right.delta || 0) - Math.abs(left.delta || 0))
+      .slice(0, 3);
+  }
+  return {
+    snapshots,
+    factorNames: DATAOPS_CENTROID_FACTORS,
+    totalDecisions: Number(history.total ?? checkpoints.length),
+  };
+}
+
+type CentroidCheckpointWithCount = NonNullable<SelfCentroidHistoryResponse["checkpoints"]>[number] & {
+  decisions_count?: number;
+};
+
+const DATAOPS_CENTROID_FACTORS = [
+  "impact_scope",
+  "source_reliability",
+  "recurrence_frequency",
+  "downstream_urgency",
+  "data_freshness",
+  "business_criticality",
+] as const;
+
+function centroidSample(value: unknown): Record<string, number> {
+  const sums = DATAOPS_CENTROID_FACTORS.map(() => 0);
+  const counts = DATAOPS_CENTROID_FACTORS.map(() => 0);
+  const visit = (node: unknown) => {
+    if (!Array.isArray(node)) return;
+    if (node.length === DATAOPS_CENTROID_FACTORS.length && node.every((item) => typeof item === "number")) {
+      node.forEach((item, index) => {
+        if (Number.isFinite(item)) {
+          sums[index] += Math.max(0, Math.min(1, item));
+          counts[index] += 1;
+        }
+      });
+      return;
+    }
+    node.forEach(visit);
+  };
+  visit(value);
+  return Object.fromEntries(DATAOPS_CENTROID_FACTORS.map((factor, index) => [
+    factor,
+    counts[index] ? Number((sums[index] / counts[index]).toFixed(3)) : 0.5,
+  ]));
 }
 
 export async function fetchCentroidHistory(limit = 50): Promise<SelfCentroidHistoryResponse | null> {

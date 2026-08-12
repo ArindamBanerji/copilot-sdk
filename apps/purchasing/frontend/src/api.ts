@@ -108,9 +108,23 @@ async function apiGet<T>(path: string): Promise<T> {
   return normalize<T>(await response.json());
 }
 
-async function safeApiGet<T>(path: string): Promise<T | null> {
+async function apiGetWithTimeout<T>(path: string, timeoutMs: number): Promise<T> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await apiGet<T>(path);
+    const response = await fetch(`${BASE}${path}`, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+    return normalize<T>(await response.json());
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+async function safeApiGet<T>(path: string, timeoutMs?: number): Promise<T | null> {
+  try {
+    return timeoutMs === undefined ? await apiGet<T>(path) : await apiGetWithTimeout<T>(path, timeoutMs);
   } catch {
     return null;
   }
@@ -625,7 +639,10 @@ export function postMatch(
 type SelfLearningHistoryResponse = import("./types").SelfCen\u0074roidHistoryResponse;
 
 function fetchLearningHistory(limit = 50): Promise<SelfLearningHistoryResponse | null> {
-  return safeApiGet<SelfLearningHistoryResponse>(withParams("/api/self/" + "cen" + "troid-history", { limit }));
+  return safeApiGet<SelfLearningHistoryResponse>(
+    withParams("/api/self/" + "cen" + "troid-history", { limit }),
+    10_000,
+  );
 }
 
 export { fetchLearningHistory as fetchCen\u0074roidHistory };
@@ -746,7 +763,7 @@ export interface PurchasingAlert {
 }
 
 export function fetchAlerts(): Promise<{ alerts?: PurchasingAlert[]; provenance?: string }> {
-  return apiGet<{ alerts?: PurchasingAlert[]; provenance?: string }>("/api/purchasing/alerts");
+  return apiGetWithTimeout<{ alerts?: PurchasingAlert[]; provenance?: string }>("/api/purchasing/alerts", 10_000);
 }
 
 export function fetchAlertsBySeverity(severity: string): Promise<{ alerts?: PurchasingAlert[]; provenance?: string }> {

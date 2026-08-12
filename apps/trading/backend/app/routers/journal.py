@@ -222,7 +222,6 @@ def _journal_records(
         add_record(entry)
 
     if graph_store_factory is not None:
-        store = None
         try:
             store = graph_store_factory()
             for decision in store.get_all_decisions(domain):
@@ -232,9 +231,6 @@ def _journal_records(
                 status_code=503,
                 detail="Trading graph unavailable",
             ) from exc
-        finally:
-            if store is not None:
-                store.close()
 
     records.sort(key=lambda trade: _entry_date(trade) or datetime.min, reverse=True)
     return records

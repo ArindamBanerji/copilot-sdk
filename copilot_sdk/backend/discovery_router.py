@@ -29,10 +29,12 @@ def create_discovery_router(engine: Any) -> APIRouter:
 
     @router.get("/digest")
     def digest(min_confidence: float = Query(0.5, ge=0.0, le=1.0)) -> dict[str, Any]:
+        get_digest = getattr(engine, "get_digest", None)
+        digest_alerts = get_digest(min_confidence=min_confidence) if callable(get_digest) else []
         return {
             "alerts": [
                 _alert_payload(alert)
-                for alert in engine.get_digest(min_confidence=min_confidence)
+                for alert in digest_alerts
             ],
             "cross_system": _cross_system_alerts(engine, min_confidence),
         }

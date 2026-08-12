@@ -53,9 +53,13 @@ def create_trading_evolution_router(
     graph_store_factory: GraphStoreFactory | None = None,
     domain: str = "trading",
     regime_break_provider: Callable[[], bool] | None = None,
+    include_persisted_rejections: bool = False,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/trading/evolution", tags=["trading-evolution"])
-    use_persisted_rejections = evolver is None
+    # The live demo has a real evolver but must still expose the persisted
+    # rejection evidence that was seeded with the demo state. Unit-test
+    # routers with an injected evolver retain their isolated in-memory data.
+    use_persisted_rejections = evolver is None or include_persisted_rejections
     service = evolver or create_default_trading_evolver()
     if regime_break_provider is not None:
         service.regime_break_provider = regime_break_provider

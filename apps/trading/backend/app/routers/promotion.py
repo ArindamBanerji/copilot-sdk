@@ -88,7 +88,6 @@ def _conservation_status(
 ) -> dict[str, Any]:
     if graph_store_factory is None:
         return {"status": "GREEN", "passed": True}
-    store = None
     try:
         store = graph_store_factory()
         counts = _state_counts(store)
@@ -105,6 +104,3 @@ def _conservation_status(
         return {**counts, **_check_payload(check)}
     except Exception:
         return {"status": "RED", "passed": False}
-    finally:
-        if store is not None:
-            store.close()

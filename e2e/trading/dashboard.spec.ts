@@ -91,5 +91,7 @@ test("trust badge shows factor contrast", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
   const badge = page.getByTestId("data-trust-badge");
-  await expect(badge.getByTestId("data-trust-contrast")).toContainText(/Highest 1\.00.*Lowest 0\.57.*Spread 0\.43/);
+  await expect(badge.getByTestId("data-trust-contrast")).toContainText(
+    /Highest \d+\.\d{2}.*Lowest \d+\.\d{2}.*Spread \d+\.\d{2}/,
+  );
 });

@@ -23,12 +23,14 @@ test("transfer status endpoint returns object", async ({ page }) => {
   expect(typeof await res.json()).toBe("object");
 });
 
-test("transfer execute returns 503 when conservation unknown", async ({ page }) => {
+test("transfer execute reports unknown conservation without applying", async ({ page }) => {
   const res = await page.request.post("http://127.0.0.1:8010/api/transfer/execute", {
     data: { source_domain: "dataops", target_domain: "trading", dry_run: true },
   });
-  expect(res.status()).toBe(503);
+  expect(res.status()).toBe(200);
   const data = await res.json();
+  expect(data.executed).toBe(false);
+  expect(data.dry_run).toBe(true);
   expect(JSON.stringify(data).toLowerCase()).toContain("conservation");
 });
 

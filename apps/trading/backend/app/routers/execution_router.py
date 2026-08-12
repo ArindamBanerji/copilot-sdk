@@ -28,7 +28,6 @@ def create_execution_router(
         for trade in list(_trade_store_ref):
             records.append(_as_record(trade))
         if graph_store_factory is not None:
-            store = None
             try:
                 store = graph_store_factory()
                 for decision in store.get_all_decisions(domain):
@@ -38,9 +37,6 @@ def create_execution_router(
                     status_code=503,
                     detail="Trading graph unavailable",
                 ) from exc
-            finally:
-                if store is not None:
-                    store.close()
         return records
 
     @router.get("/analysis")

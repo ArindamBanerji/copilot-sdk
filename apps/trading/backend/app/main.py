@@ -314,14 +314,6 @@ def create_app(
     active_store_factory: Any | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Trading Copilot", version="0.1.0")
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=_cors_origins(),
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["X-Invalidated-Urls"],
-    )
 
     scoring_db = _resolve_scoring_db(db_path)
     # Stable instrument/market context only; decisions and learning authority
@@ -468,6 +460,7 @@ def create_app(
             graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
             domain=DOMAIN,
             regime_break_provider=lambda: regime_monitor.is_regime_break,
+            include_persisted_rejections=True,
         )
     )
 
@@ -601,6 +594,18 @@ def create_app(
             "dominant_factor": dominant["name"] if dominant else None,
             "provenance": "learned",
         }
+
+    # Register CORS last so it is the outermost middleware. This preserves
+    # CORS headers even when an endpoint raises an unhandled error, preventing
+    # browser clients from misreporting the response as a cross-origin failure.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins(),
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["X-Invalidated-Urls"],
+    )
 
     return app
 
