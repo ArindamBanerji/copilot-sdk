@@ -80,10 +80,10 @@ def test_verdict_does_not_block_on_checkpoint_coverage() -> None:
     ]
 
 
-def test_verdict_classifies_soc_non_scorable_gaps() -> None:
+def test_verdict_classifies_soc_receipt_limitation() -> None:
     state = _state(transfers=0)
     state["census"]["sections"]["FINGERPRINTS PER DOMAIN"] = [
-        ("soc", 0), ("s2p", 1), ("trading", 1), ("purchasing", 1), ("dataops", 1)
+        ("soc", 1), ("s2p", 1), ("trading", 1), ("purchasing", 1), ("dataops", 1)
     ]
     state["census"]["sections"]["EVIDENCE RECEIPTS PER DOMAIN"] = [
         ("soc", 0), ("s2p", 1), ("trading", 1), ("purchasing", 1), ("dataops", 1)
@@ -92,9 +92,6 @@ def test_verdict_classifies_soc_non_scorable_gaps() -> None:
         ("s2p", 1), ("dataops", 1)
     ]
     state["census"]["sections"]["DOMAIN CONTEXT ENTITIES"] = []
-    state["copilots"] = {
-        "soc": {"diagnostics": {"conservation": {"conservation_status": "CALIBRATING"}}}
-    }
     state["integrity"] = platform_dump._check_integrity(state)
 
     verdict, categories = platform_dump._compute_verdict(state)
@@ -102,16 +99,67 @@ def test_verdict_classifies_soc_non_scorable_gaps() -> None:
     assert verdict == "READY"
     assert categories["blocking"] == []
     assert categories["expected_limitations"] == [
-        "soc:fingerprints",
         "soc:evidence_receipts",
         "soc:checkpoints",
         "trading:checkpoints",
         "purchasing:checkpoints",
     ]
-    assert categories["pending_operations"] == [
-        "transfer_patterns",
-        "monetary_entities",
+
+
+def test_verdict_green_soc_without_receipts_is_ready() -> None:
+    state = _state()
+    state["census"]["sections"]["EVIDENCE RECEIPTS PER DOMAIN"] = [
+        ("soc", 0), ("s2p", 1), ("trading", 1), ("purchasing", 1), ("dataops", 1)
     ]
+    state["copilots"] = {"soc": {"diagnostics": {"conservation": {"conservation_status": "GREEN"}}}}
+    state["integrity"] = platform_dump._check_integrity(state)
+
+    verdict, categories = platform_dump._compute_verdict(state)
+
+    assert verdict == "READY"
+    assert categories["blocking"] == []
+    assert categories["expected_limitations"] == ["soc:evidence_receipts"]
+
+
+def test_verdict_red_soc_without_receipts_is_also_ready() -> None:
+    state = _state()
+    state["census"]["sections"]["EVIDENCE RECEIPTS PER DOMAIN"] = [
+        ("soc", 0), ("s2p", 1), ("trading", 1), ("purchasing", 1), ("dataops", 1)
+    ]
+    state["copilots"] = {"soc": {"diagnostics": {"conservation": {"conservation_status": "RED"}}}}
+    state["integrity"] = platform_dump._check_integrity(state)
+
+    verdict, categories = platform_dump._compute_verdict(state)
+
+    assert verdict == "READY"
+    assert categories["blocking"] == []
+    assert categories["expected_limitations"] == ["soc:evidence_receipts"]
+
+
+def test_verdict_soc_receipts_remove_limitation() -> None:
+    state = _state()
+    state["copilots"] = {"soc": {"diagnostics": {"conservation": {"conservation_status": "GREEN"}}}}
+    state["integrity"] = platform_dump._check_integrity(state)
+
+    verdict, categories = platform_dump._compute_verdict(state)
+
+    assert verdict == "READY"
+    assert categories["blocking"] == []
+    assert categories["expected_limitations"] == []
+
+
+def test_verdict_blocks_missing_non_soc_receipts() -> None:
+    state = _state()
+    state["census"]["sections"]["EVIDENCE RECEIPTS PER DOMAIN"] = [
+        ("soc", 0), ("s2p", 1), ("trading", 0), ("purchasing", 1), ("dataops", 1)
+    ]
+    state["integrity"] = platform_dump._check_integrity(state)
+
+    verdict, categories = platform_dump._compute_verdict(state)
+
+    assert verdict == "NOT READY"
+    assert categories["blocking"] == ["all_receipts"]
+    assert categories["pending_operations"] == []
 
 
 def test_verdict_blocks_missing_artifact_for_green_copilot() -> None:

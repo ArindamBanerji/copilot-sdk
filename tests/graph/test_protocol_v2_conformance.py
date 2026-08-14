@@ -20,9 +20,6 @@ from copilot_sdk.scoring import CompoundingScorer
 
 PENDING = pytest.mark.skip(reason="Protocol v2 implementation pending")
 AGE_PENDING = pytest.mark.skip(reason="Protocol v2 AGE adapter implementation pending")
-AGE_CROSS_DOMAIN_CONCURRENCY_PENDING = pytest.mark.skip(
-    reason="AGE cross-domain concurrency/isolation stress coverage pending"
-)
 GENERIC_AGE_ROLLBACK_PENDING = pytest.mark.skip(
     reason=(
         "Generic AGE transaction rollback coverage pending; EvidenceReceipt rollback is active, "
@@ -2998,11 +2995,21 @@ def test_local_idempotent_replay_does_not_duplicate_class_a_records(sqlite_store
     assert sqlite_store.count_verified_decisions("test") == 1
 
 
-@AGE_CROSS_DOMAIN_CONCURRENCY_PENDING
+@pytest.mark.skipif(
+    not os.getenv("GRAPH_DSN"),
+    reason="AGE-STRESS: requires GRAPH_DSN for live AGE connection",
+)
 def test_concurrent_cross_domain():
-    """Concurrent writes to different domains do not cross-contaminate."""
-    # Protocol v2 invariant: domain partitioning is enforced under concurrency.
-    pass
+    """AGE-STRESS wrapper: bounded cross-domain pool exhaustion coverage."""
+    import importlib.util
+
+    stress_path = Path(__file__).with_name("test_age_pool_stress.py")
+    spec = importlib.util.spec_from_file_location("age_pool_stress_harness", stress_path)
+    if spec is None or spec.loader is None:
+        pytest.fail(f"AGE-STRESS harness could not be loaded: {stress_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.execute_stress_suite()
 
 
 @pytest.mark.age

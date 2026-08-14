@@ -1,169 +1,119 @@
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { test, expect, PORTS, apiGet, apiPost, gotoCopilot, gotoTab } from "./demo-fixture";
 
-import { DATAOPS, S2P, SOC, expectAnyText, isBackendHealthy, openCopilotTab } from "./demo-fixture";
-
-type JsonRecord = Record<string, unknown>;
-
-async function skipIfBackendDown(request: APIRequestContext, copilot = SOC): Promise<void> {
-  const healthy = await isBackendHealthy(request, copilot);
-  test.skip(!healthy, `${copilot.name} backend is down`);
-}
-
-function numericValue(value: unknown): number {
-  if (typeof value === "number") return value;
-  if (typeof value === "string") {
-    const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function nestedNumber(data: JsonRecord, path: string[]): number {
-  let current: unknown = data;
-  for (const key of path) {
-    if (!current || typeof current !== "object") return 0;
-    current = (current as JsonRecord)[key];
-  }
-  return numericValue(current);
-}
-
-async function readSocIks(request: APIRequestContext): Promise<number> {
-  const candidates = [
-    `${SOC.backend}/api/soc/learning-state`,
-    `${SOC.backend}/api/soc/profile`,
-    `${SOC.backend}/api/soc/analytics`,
-  ];
-  for (const url of candidates) {
-    const response = await request.get(url, { timeout: 5_000 }).catch(() => null);
-    if (!response?.ok()) continue;
-    const data = (await response.json().catch(() => ({}))) as JsonRecord;
-    const iks =
-      numericValue(data.iks) ||
-      numericValue(data.iks_v2) ||
-      numericValue(data.institutional_knowledge_score) ||
-      nestedNumber(data, ["iks", "score"]) ||
-      nestedNumber(data, ["iks", "value"]);
-    if (iks > 0) return iks;
-  }
-  return 0;
-}
-
-async function scoreSelectedS2PException(page: Page): Promise<void> {
-  const situation = page.getByTestId("situation-panel");
-  const selected = page.locator("article").filter({ hasText: /Selected Invoice/i });
-  const selectedHasInvoice = await selected.getByText(/Supplier|Amount|Category/i).count();
-  if (selectedHasInvoice === 0) {
-    const invoiceButtons = page
-      .locator("article")
-      .filter({ hasText: /Invoice Selector/i })
-      .getByRole("button")
-      .filter({ hasText: /S2P-INV/i });
-    if ((await invoiceButtons.count()) > 0) {
-      await invoiceButtons.first().click();
-    }
-  }
-
-  const scoreButton = page.getByRole("button", { name: /^Score$/i });
-  await expect(scoreButton).toBeEnabled({ timeout: 20_000 });
-  await scoreButton.click();
-  await expect(situation.getByRole("heading", { name: "Situation Analysis", exact: true })).toBeVisible({
-    timeout: 20_000,
-  });
-}
-
-async function postSimulationFailure(request: APIRequestContext): Promise<boolean> {
-  for (const path of ["/api/eval/simulate-failure", "/api/soc/simulate-failure", "/api/simulation/simulate-failure", "/api/simulation/failure"]) {
-    const response = await request.post(`${SOC.backend}${path}`, { timeout: 10_000 }).catch(() => null);
-    if (response?.ok()) return true;
-  }
-  return false;
-}
-
-test.describe.serial("Enterprise Demo Cut - 8 beats", () => {
-  test.beforeAll(async ({ request }) => {
-    if (!(await isBackendHealthy(request, SOC))) return;
-    const iks = await readSocIks(request);
-    test.skip(iks <= 0, "SOC IKS is 0; Enterprise cut requires preseeded SOC learning state");
+test.describe.serial("Enterprise Cut (E1-E8)", () => {
+  test.beforeEach(async ({ demoReady }) => {
+    test.skip(!demoReady, "Demo cut skipped: backends must be healthy and preseeded (IKS > 0)");
   });
 
-  test("E1: SOC Runtime Evolution panel and process alert control", async ({ page }) => {
-    await skipIfBackendDown(page.request, SOC);
-    await openCopilotTab(page, SOC, /Runtime Evolution/i);
+  test("E1: SOC alert triage renders with factors", async ({ page }) => {
+    await gotoTab(page, "soc", "Alert Triage");
+    await expect(page.getByText(/Alert Queue|Alert Triage/i).first()).toBeVisible();
+    // The SOC queue is mutable from prior demo activity; reset is idempotent and
+    // restores the preseeded pending-alert narrative for this cut.
+    await page.getByRole("button", { name: /Reset Alerts/i }).click();
+    const alert = page.locator("button").filter({ hasText: /^(SIM-|ALERT-)/ }).first();
+    await expect(alert).toBeVisible();
+    await alert.click();
+    await expect(page.locator("main")).toContainText(/factor|confidence|privileged|asset criticality/i);
+  });
 
-    await expectAnyText(page, [/Runtime Evolution/i, /Institutional Knowledge Score/i, /Agent Evolution/i]);
-    await expect(page.getByRole("button", { name: /Process Alert|process alert/i }).first()).toBeVisible({
-      timeout: 15_000,
+  test("E2: SOC situation analysis explains a decision", async () => {
+    const explanation = await apiPost(PORTS.soc.backend, "/api/soc/judgment/explain", {
+      alert_id: "DEMO-CUT-ALERT",
+      category: "credential_access",
+      factors: {
+        privileged_identity_context: 0.8,
+        asset_criticality: 0.7,
+        threat_intel_enrichment: 0.6,
+        pattern_history: 0.5,
+        time_anomaly: 0.4,
+        device_trust: 0.7,
+      },
     });
+    expect(explanation.rationale).toBeTruthy();
+    expect(explanation.dominant_factors ?? explanation.factor_contributions).toBeDefined();
+    expect(explanation.action).toBeTruthy();
   });
 
-  test("E2: S2P Exception Triage score shows SituationPanel provenance", async ({ page }) => {
-    await skipIfBackendDown(page.request, S2P);
-    await openCopilotTab(page, S2P, /Exception Triage/i);
-
-    // SILENCE 2: let the SituationPanel explanation land before continuing narration.
-    await scoreSelectedS2PException(page);
-    const situation = page.getByTestId("situation-panel");
-    await expect(situation.getByText(/price|contract|confidence|explanation|hops?/i).first()).toBeVisible({
-      timeout: 20_000,
-    });
-    await expect(situation.getByText(/learned|context|proven|sample/i).first()).toBeVisible({ timeout: 20_000 });
+  test("E3: DataOps Dashboard shows pipeline grid and enterprise health", async ({ page }) => {
+    await gotoCopilot(page, "dataops");
+    await expect(page.getByTestId("enterprise-value-card")).toBeVisible();
+    await expect(page.getByTestId("enterprise-system-sap-s-4hana")).toBeVisible();
+    await expect(page.getByTestId("enterprise-system-celonis")).toBeVisible();
+    const health = await apiGet(PORTS.dataops.backend, "/api/dataops/enterprise-health");
+    expect(health.sap).toBeDefined();
+    expect(health.celonis).toBeDefined();
   });
 
-  test("E3: SOC Compounding shows conservation intervention and declined text", async ({ page }) => {
-    await skipIfBackendDown(page.request, SOC);
-    await openCopilotTab(page, SOC, /Compounding|Decision Economics/i);
-
-    // SILENCE 3: pause on the governance language before showing failure injection.
-    await expectAnyText(page, [/Trust Curve/i, /human review/i, /Asymmetric Ratio/i, /penalty/i], 15_000);
-  });
-
-  test("E4: SOC Compounding simulate failure shows AMBER or degraded state", async ({ page }) => {
-    await skipIfBackendDown(page.request, SOC);
-    const posted = await postSimulationFailure(page.request);
-    test.skip(!posted, "SOC simulate-failure endpoint is unavailable");
-
-    await openCopilotTab(page, SOC, /Compounding|Decision Economics/i);
-    await expectAnyText(page, [/Trust Curve/i, /human review/i, /Asymmetric Ratio/i, /penalty/i], 20_000);
-  });
-
-  test("E5: DataOps Insight shows Intelligence Map value indicators", async ({ page }) => {
-    await skipIfBackendDown(page.request, DATAOPS);
-    await openCopilotTab(page, DATAOPS, /Insight/i);
-
-    await expect(page.getByText("Intelligence Map", { exact: true })).toBeVisible({ timeout: 20_000 });
-    await expectAnyText(page, [/\$[\d,.]+K?\/year/i, /Gold-line suggestions/i, /ROI/i, /annual value/i], 15_000);
-    await expectAnyText(page, [/cross-graph/i, /SAP.*Celonis.*Graph/i, /Source trust and quality graph/i], 15_000);
-  });
-
-  test("E6: SOC Executive Narrative shows IKS or accuracy value", async ({ page }) => {
-    await skipIfBackendDown(page.request, SOC);
-    await openCopilotTab(page, SOC, /Executive Narrative/i);
-
-    await expectAnyText(page, [/Executive Narrative/i, /What Changed/i, /What Was Discovered/i], 15_000);
-    await expectAnyText(page, [/IKS/i, /accuracy/i, /\d+(\.\d+)?%/i, /\d+(\.\d+)?/i], 15_000);
-  });
-
-  test("E7: SOC Evidence Room renders external references", async ({ page }) => {
-    await skipIfBackendDown(page.request, SOC);
-    await openCopilotTab(page, SOC, /Evidence Room|Evidence/i);
-
-    await expect(page.locator("main")).not.toBeEmpty({ timeout: 15_000 });
-    const externalRefs = page.getByText(/ServiceNow|Sentinel|external/i);
-    if ((await externalRefs.count()) === 0) {
-      test.info().annotations.push({
-        type: "soft-check",
-        description: "No ServiceNow/Sentinel/external reference text rendered in Evidence Room",
-      });
-    } else {
-      await expect(externalRefs.first()).toBeVisible();
+  test("E4: DataOps Triage to Insight shows bottleneck and schema impact", async ({ page }) => {
+    await gotoCopilot(page, "dataops");
+    await expect(page.getByText("Alert Root Causes", { exact: true })).toBeVisible({ timeout: 25_000 });
+    // Scope past the shell's Triage tab; this selects an alert row's action.
+    const triageButtons = page.locator("section.copilot-card").getByRole("button", { name: "Triage", exact: true });
+    if ((await triageButtons.count()) === 0) {
+      await page.getByRole("button", { name: "Expand", exact: true }).first().click();
     }
+    await expect(triageButtons.first()).toBeVisible();
+    await triageButtons.first().click();
+    await expect(page.locator("main")).toContainText(/Alert Root Causes|Dependency Tree|factors/i);
+    await page.getByRole("button", { name: "Insight", exact: true }).click();
+    await expect(page.getByText(/Pipeline Bottleneck|bottleneck|fingerprint/i).first()).toBeVisible();
+    await page.getByRole("button", { name: "Evidence", exact: true }).click();
+    await expect(page.getByText(/Schema Impact|schema impact/i).first()).toBeVisible();
   });
 
-  test("E8: SOC Evidence Room shows governance audit material", async ({ page }) => {
-    await skipIfBackendDown(page.request, SOC);
-    await openCopilotTab(page, SOC, /Evidence Room|Evidence/i);
+  test("E5: DataOps Process-Tech Fusion shows the intelligence map and gold lines", async ({ page }) => {
+    await gotoTab(page, "dataops", "Insight");
+    await expect(page.getByTestId("intelligence-map")).toBeVisible();
+    await expect(page.getByTestId("gold-line").first()).toBeVisible();
+    await expect(page.getByText(/SAP|Celonis|Graph/i).first()).toBeVisible();
+    const map = await apiGet(PORTS.dataops.backend, "/api/di/intelligence-map");
+    expect(map.gold_lines).toBeDefined();
+    expect(map.edges).toBeDefined();
+  });
 
-    await expectAnyText(page, [/Evidence/i, /Governance/i, /Audit/i], 15_000);
-    await expectAnyText(page, [/hash/i, /table/i, /ledger/i, /decision/i], 15_000);
+  test("E6: S2P Preview shows exception queue, conservation, and supplier profile", async ({ page }) => {
+    await gotoCopilot(page, "s2p");
+    await expect(page.locator("main")).toContainText(/Exception Queue/i);
+    await expect(page.locator("main")).toContainText(/Conservation Status/i);
+    const queue = await apiGet(PORTS.s2p.backend, "/api/s2p/preview/queue");
+    expect(queue.total).toBeGreaterThan(0);
+    expect(queue.exceptions ?? queue.invoices).toBeDefined();
+
+    await gotoTab(page, "s2p", "Suppliers");
+    await expect(page.locator("main")).toContainText(/supplier|OTIF|profile/i);
+  });
+
+  test("E7: S2P Triage reaches score, situation, and rule-vs-reasoning contrast", async ({ page }) => {
+    await gotoTab(page, "s2p", "Exception Triage");
+    const selected = page.locator("article").filter({ hasText: /Selected Invoice/i });
+    await expect(selected).toContainText(/Supplier|Amount|Category/i);
+
+    const scoreButton = selected.getByRole("button", { name: /^Score$/i });
+    await expect(scoreButton).toBeEnabled();
+    const response = page.waitForResponse(
+      (item) => item.url().includes("/score") && item.request().method() === "POST" && item.ok(),
+    );
+    await scoreButton.click();
+    await response;
+
+    await expect(page.getByTestId("situation-panel")).toBeVisible();
+    await expect(page.getByTestId("rule-vs-reasoning-panel")).toContainText(/Rule-Based|Situation-Aware/i);
+  });
+
+  test("E8: SOC Evidence Room shows hash chain, governance, and evolution events", async ({ page }) => {
+    await gotoTab(page, "soc", "Evidence Room");
+    await expect(page.locator("main")).toContainText(/Evidence|Governance|hash/i);
+
+    const evidence = await apiGet(PORTS.soc.backend, "/api/soc/evidence-room");
+    const hashChain = evidence.hash_chain as Record<string, unknown>;
+    expect(hashChain.verified ?? hashChain.status).toBeDefined();
+    expect(evidence.audit_trail).toBeDefined();
+
+    const governance = await apiGet(PORTS.soc.backend, "/api/governance/summary");
+    expect(governance.sections).toBeDefined();
+    const events = await apiGet(PORTS.soc.backend, "/api/evolution/recent-events?limit=5");
+    expect(events.events).toBeDefined();
+    expect(Array.isArray(events.events)).toBe(true);
   });
 });

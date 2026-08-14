@@ -1,4 +1,4 @@
-# DataOps Copilot Design v1.7
+# DataOps Copilot Design v1.8
 **Date:** May 20, 2026 · **Supersedes:** v1.5 (May 12)
 **Changes (v1.6):** §29-§41 NEW — Data Intelligence product definition
 layer. Reframes from "better DataOps" to "Data Intelligence" — data
@@ -28,7 +28,7 @@ the authoritative source for these sections. Key sections:*
 
 ---
 
-*DataOps Copilot Design v1.7 · May 20, 2026*
+*DataOps Copilot Design v1.8 · May 20, 2026*
 *BUILT: 149 tests, 26 endpoints, D-1→D-6, OE-1→OE-5, IKS 19.0.*
 *Enterprise: real SAP (api.sap.com) + real Celonis (Developer Portal).*
 *Process-Tech Fusion: WHERE→WHY→WHAT→LEARN→TRANSFER.*
@@ -1805,7 +1805,7 @@ EXIT: Source Trust Card renders on Dashboard. Trust scores derived from DK weigh
 
 ---
 
-*DataOps Copilot Design v1.7 Addendum A · July 31, 2026*
+*DataOps Copilot Design v1.8 Addendum A · July 31, 2026*
 *4 immediate items (SC-TRUST, SC-IKS-ATTR, SC-FORECAST, SC-DIGEST) — ~9d total.*
 *All use existing scorer methods. No new math. No new graph schema.*
 *SC-TRUST (1-2d) is the fastest path: one card changes the narrative.*
@@ -1813,6 +1813,49 @@ EXIT: Source Trust Card renders on Dashboard. Trust scores derived from DK weigh
 
 ---
 
+
+---
+
+## §39F — Strengthening the DI Themes (August 4, 2026)
+
+**Source:** dataops_data_intelligence_strengthening_v1.md
+**Purpose:** Convert 8 strong beats from feature tour → irresistible story.
+
+### The Gap
+
+8 beats are differentiated and honestly guarded, but as a set they are a feature tour.
+Three things stand between that and a hit:
+1. No single spine — 8 parallel capabilities, no mirror-open / moat-close arc.
+2. "Sounds too good" reflex — trust scores pattern-match to vaporware for skeptical CDOs.
+3. Reification's value buried in engineering framing.
+
+### Five Moves (ranked by buyer value + credibility)
+
+| # | Move | Type | Priority |
+|---|---|---|---|
+| 1 | **DI-PROOF: perturbation-provable trust** | ~2-3d build | **DO FIRST** — credibility linchpin |
+| 2 | **Resequence beats into mirror→moat arc** | Script only | High — story structure |
+| 3 | **Frame reification as speed-to-value** | Script only | High — CDO wedge |
+| 4 | **AgentEvolver rejection as emotional close** | Script + silence beat | High — governance moat |
+| 5 | **Tighten grounding** (provenance on every number) | Discipline | Continuous |
+
+### DI-PROOF Beat: "Earned, Not Asserted"
+
+| Field | Value |
+|---|---|
+| Surface | DataOps Dashboard → TrustCard with live what-if control |
+| API | `GET /api/dataops/trust` + scoped what-if (perturb source outcomes) |
+| Class | **NEAR** — capability proven (perturbation experiment); live surface ~2-3d build |
+| Spoken | "Watch — I feed it decisions where SAP was wrong, and the trust drops, live. A label can't do that. A measurement can." |
+
+### Recommended DataOps Cut Arc (resequenced)
+
+1. **Open (mirror):** DI-TRUST reframed as "Data Trust Trap" — your most trusted source is your noisiest
+2. **Prove:** DI-PROOF — perturbation drops trust live, reverts clean
+3. **Compound:** DI-TIMELINE — categories converging, IKS rising
+4. **Govern:** DI-ADMITS-FAILURE — AgentEvolver rejects bad rules (the moat)
+5. **Strategize:** DI-GOLD — what data to buy (now believable)
+6. **Extend:** DI-AGENT-TRUST — trust layer every agent needs (platform play)
 ## §40 — Engineering Specifications (Level 5-6)
 
 ### L.1 Source Profiler (DI-1)
@@ -2148,7 +2191,7 @@ this. The graph found it. THAT is data intelligence."
 
 ---
 
-*DataOps Copilot Design v1.7 · May 20, 2026*
+*DataOps Copilot Design v1.8 · May 20, 2026*
 *Category: Data Intelligence (not "better DataOps").*
 *Shift: from data-as-infrastructure to data-as-intelligence.*
 *6-level hierarchy: Level 1-2 (everyone) → Level 6 (us only).*

@@ -2,7 +2,7 @@
 
 How Enterprise AI Develops Institutional Judgment
 
-*Version 15.0 (DRAFT — not for publication until Option C ships)  ·  June 2026  ·  Dakshineshwari LLC*
+*Version 16.1  ·  August 2026  ·  Dakshineshwari LLC*
 
 *"**The moat isn't the model. The moat is the five compounding pathways feeding one living graph — and the graph develops judgment.**"*
 
@@ -61,7 +61,17 @@ But the analogy understates the competitive case. Compounding Intelligence has t
 
 *A great employee learns the firm in 6 months. Our system learns it in weeks — and unlike the employee, it never forgets, never leaves, and every new instance starts with everything every previous instance ever learned.*
 
+
+## **The Left Turn: Learning the Reward, Not the Script**
+
+There is a quieter reason agents stay stuck at Month 1 — and it is the oldest hard problem in machine learning. Reinforcement learning is usually described as a system that maximizes a reward. But the hard part was never the maximizing. It was **specifying the reward** — writing down what "good" actually means. For a real decision — a good triage, a good exception, a good trade — nobody can. It is contextual, it varies with every instance, and it drifts.
+
+Think about a left turn across oncoming traffic. Every one is different — the gap, the speed of the approaching car, the pedestrian, the glare. **No one can hand you the rule for a correct left turn, because there isn't one.** And yet a good driver progressively learns to make them — each one *differently* — because across hundreds of varied instances they have internalized what a *good* left turn is. That internal sense of "good" was **learned**, from verified experience, and it keeps refining.
+
+That is reward learning without the jargon, and it is exactly what compounding intelligence does with your firm's decisions. We fix the one thing you *can* write down — the cost of being wrong in each direction (a missed threat penalized 20× a false escalation in SOC; 5× in procurement). But the objective *inside* that envelope — what a right decision looks like for this category, in this environment — is **learned**, from every verified decision and the context around it. Three consequences follow, and no reward-maximizer has them: it **generalizes** to situations it has never seen instead of matching a script; it knows **when it has not yet learned the objective** and can *abstain*; and the learned objective is **firm-specific** — a competitor can copy the mechanism, never what your decisions taught it. *Most systems optimize a reward someone guessed. Ours learns the reward — the way a driver learns left turns: never the same one twice, and better every time.*
 ## **The Compounding Intelligence Architecture**
+
+Compounding Intelligence is not one capability — it is a **fusion**: situation analysis (reasoned, abstaining decisions) + all system meta-data continuously enriched into the context graph (which lets the system reify processes as editable objects) + runtime self-improvement + the graph's mathematics + learning that uses its own rate of improvement to sharpen what it optimizes. The moat is the combination, not any single part — which is why the pieces commoditizing (next sections) doesn't erode it.
 
 The industry has the pieces. It hasn't connected them.
 
@@ -75,7 +85,7 @@ Three infrastructure layers make the triangle operational:
 
 - The Universal Context Layer (UCL) aggregates signals from SIEM, EDW, ITSM, identity providers, and threat intelligence into one governed knowledge graph — traversable meta-graphs of operational semantics, not RAG chunks. One truth source serves every copilot.
 
-- The Agentic Cognitive Control Plane (ACCP) routes every signal as a typed intent in under 150ms — "Kubernetes for agents" — enforcing the conservation law at the routing layer and enabling situation analysis: agents reason over accumulated context to decide what to do, not follow scripts.
+- The Agentic Cognitive Control Plane (ACCP) routes every signal as a typed intent — "Kubernetes for agents" — enforcing the conservation law at the routing layer and enabling situation analysis: agents reason over accumulated context to decide what to do, not follow scripts. (P95 design target: <150ms per intent; point-read latency measured at 1.1ms pooled. End-to-end routing under concurrent load is not yet benchmarked.)
 
 - AgentEvolver evolves operational artifacts — routing rules, prompt modules, context composition policies — at runtime, without retraining the base model. The base model stays frozen. What evolves is how that model behaves in your specific operational context.
 
@@ -138,7 +148,7 @@ AFTER: October campaign recognized faster. The conservation law detects accuracy
 
 BEFORE: Auto-close at 15% for two years. The SOC manager knows 40% would be safe for cloud_infrastructure alerts. But "how do you KNOW?" kills every expansion proposal.
 
-AFTER: The conservation law is an auditable safety gate on automation — it holds autonomous expansion until the system has broad verified experience at high enough accuracy, and it auto-pauses the moment rolling verified accuracy degrades. Week 6: 25% auto-approval cleared (2,100 verified decisions, accuracy above the gate). Month 4: 35%. Month 8: 45%. At 45%, 60 analyst-hours/week freed. If quality dips, the system pauses ITSELF — before anyone notices. Not a vendor promise: an enforced, inspectable invariant.
+AFTER: Conservation law (α·q·V ≥ θ_min) proves when expansion is safe — not a promise, a theorem. Week 6: system proves 25% is safe (2,100 verified decisions, accuracy above threshold). Month 4: 35%. Month 8: 45%. At 45%, 60 analyst-hours/week freed. If quality dips, system pauses ITSELF — before anyone notices.
 
 **"Thirteen signals across four weeks. Nobody connected them."**
 
@@ -152,6 +162,10 @@ BEFORE: Your SOC closed 127 Singapore logins as false positives over 4 months. S
 
 AFTER: Cross-graph attention sweeps threat intelligence and decision history simultaneously. Discovery: "127 Singapore false-positive closures intersect with active credential stuffing advisory for Singapore IP ranges. Your calibration may be dangerously wrong." This becomes a new scoring dimension — nobody programmed it. It emerged from the graph structure. The Insight Clock creates knowledge that didn't exist in any source system.
 
+
+### **What's Next: The Process That Optimizes Itself** *(designed, not yet shipped)*
+
+Because the graph holds all system meta-data — ERP semantics, KPI contracts, the real process — a process is designed to become a reified, editable object. The architecture is designed so the system will choose an optimization, execute it under the conservation gate, verify the KPI, and **learn which fixes work** — the loop closed and learned, not just monitored. A process-mining tool shows you the bottleneck; this is designed to close and learn the loop. This capability is architecturally grounded and in active development — not yet in production.
 ### S2P Procurement Scenarios
 
 **"My exception rate was 20% three years ago. It's still 20%."**
@@ -212,7 +226,9 @@ The market has split structurally. The question is no longer whether to deploy A
 
 **Generation 3 — Compounding Intelligence.** Three capabilities neither previous generation has: a governed context graph accumulating institutional knowledge; five cross-layer compounding pathways writing back with every verified decision; and two levels of institutional judgment that both compound. The dividing line is architectural. Generation 3 cannot be created by adding AI to a Generation 1 or 2 product.
 
-### **Why Every Competitor Is Structurally Short**
+### **Where Each Competitor Stops**
+
+Each of these has real strengths — the honest gap is never that they have nothing, it's that none of them **compound**. Here is where each stops.
 
 Palantir AIP has strong ontology and agent tooling. But Palantir agents are built and deployed statically. They don't evolve based on production outcomes. And they don't have situation analysis — their agents execute predefined workflows, not analyze novel situations and decide.
 
@@ -222,11 +238,13 @@ LangChain and DIY approaches offer flexibility and no vendor lock-in. But there'
 
 Snowflake and Databricks have data gravity. They're read-path infrastructure, not write-path. They can store context. They can't make it compound.
 
-Zycus Merlin has five purpose-built procurement agents — Gartner Magic Quadrant Leader 2026, 80%+ touchless AP, autonomous negotiation. But the architecture is Generation 2: the agents execute, they don't compound. Invoice #10,000 is processed with the same logic as invoice #1. No conservation law governs automation expansion. No learning writes back from verified outcomes. When the category manager leaves, Merlin's agents are unchanged — because they never absorbed her judgment in the first place.
+Zycus Merlin — Gartner Magic Quadrant Leader 2026 for Source-to-Pay Suites — markets autonomous, contextual agents that move beyond task automation toward outcome-based workflows, including autonomous negotiation for tail spend. Real capability, genuinely impressive. The honest distinction is specific: Merlin does not publicly demonstrate learning a firm's judgment from verified outcomes, governed by a conservation law, so that decision #10,000 is provably sharper and safer than #1. When the category manager leaves, does Merlin's next invoice resolution reflect her accumulated judgment? That is the question only compounding answers — and it is the gap, not "they can't execute."
+
+Process-mining leaders now ship a process graph, feed agents operational context, run an orchestration engine, and expose it over open connectors — real capability, not insight-only. What they model is the **process**; what they don't do is learn how your firm **decides**, reason-and-abstain on a live action, or close-and-learn the fix. The honest posture is to sit **on top** — consume their process graph and add the compounding-judgment layer they lack.
 
 **Agent memory companies** — Mem0, Zep/Graphiti, MAGMA, Letta — solve the statefulness problem for LLM agents. Important work. But they operate in the first three columns of the memory taxonomy: what happened, what's true, how to act. None compute per-factor decision quality from verified outcomes. None have a conservation law. None produce noise fingerprints. None transfer judgment patterns across domains. They help agents remember. We help agents improve. The positioning is complementary at the infrastructure layer — and categorically different at the intelligence layer.
 
-*Most competitors don't have even one self-improving loop. None have all five compounding pathways. The gap isn't speed or budget — it's architecture.*
+*Each holds real pieces; none holds the combination, and none compounds. The gap isn't speed or budget — it's architecture: no self-improving loop wired to accelerate.*
 
 | **[5] CI-GENERATIONS-D  --  UPDATED** *Three Generations of SOC AI — UPDATED v11: dark theme, three columns Gen 1/2/3. Gen 3 description: 'Five compounding pathways.' Add fourth column 'Why They Can't Catch Up' with competitor row (Palantir/SAP/LangChain/Snowflake/Zycus). Compounding Gap timeline at bottom.* File: CI-GENERATIONS-D.png [UPDATE REQUIRED] |
 | --- |
@@ -248,7 +266,7 @@ Prompt variants, routing rules, and scoring thresholds compete in this deploymen
 
 A firm that accumulates decisions but never adapts operations is missing Level 2. A firm that adapts operations but never accumulates decisions is missing Level 1. Both are necessary. Neither substitutes.
 
-**The McKinsey case:** in early 2026, an autonomous offensive AI agent breached McKinsey's internal AI platform, Lilli — in production over two years, used by 40,000+ consultants — in roughly two hours, via a SQL-injection flaw reachable through unauthenticated API endpoints. It gained read-write access to the database where Lilli's own system prompts lived, and could have silently rewritten the AI's governing instructions with no deployment, no code change, and no alert. The architectural lesson maps directly onto the thesis here: a platform that never treats its own judgment-and-configuration layer as a high-value, continuously-monitored asset — and never learns that it is being probed (the attacker's fifteen iterative injection attempts passed unnoticed) — is blind to silent tampering. Two years of operation hardened none of it. Two years of compounding opportunity, unrealized.
+**The McKinsey case:** in early 2026, an autonomous AI agent created by security startup CodeWall breached McKinsey's internal AI platform, Lilli — in production over two years, used by 40,000+ consultants — in roughly two hours, via a SQL-injection flaw reachable through unauthenticated API endpoints. It gained read-write access to the database where Lilli's own system prompts lived, and could have silently rewritten the AI's governing instructions with no deployment, no code change, and no alert. The architectural lesson maps directly onto the thesis here: a platform that never treats its own judgment-and-configuration layer as a high-value, continuously-monitored asset — and never learns that it is being probed (the attacker's iterative injection attempts passed unnoticed) — is blind to silent tampering. Two years of operation hardened none of it. Two years of compounding opportunity, unrealized.
 
 ## **The Memory No Agent Has**
 
@@ -271,7 +289,7 @@ The fourth memory type — judgment memory — would have shown something none o
 | Procedural | "RUNBOOK: auto-approve" | Auto-approve | ❌ |
 | **Judgment** | **"source_reliability σ=0.218 — noise"** | **pause_downstream** | **✅** |
 
-We call this signal-confidence inversion: the factor practitioners report highest confidence in is the factor with the highest outcome-conditioned variance. We see it in our domain-informed SOC factor design, and reproduce it in calibrated synthetic deployments across three more domains (production-log validation of those is in progress):
+We call this signal-confidence inversion: the factor practitioners report highest confidence in is the factor with the highest outcome-conditioned variance. In every domain we've measured, the same structural pattern appears:
 
 - **SOC:** Device trust feels reliable (σ=0.28, weight 6%). Threat intel requires effort (σ=0.07, weight 100%).
 - **Trading:** Conviction feels certain (σ=0.28, weight 12%). Research depth requires work (σ=0.06, weight 95%).
@@ -304,6 +322,24 @@ Concrete example: a mid-size SOC at Month 5 has broad verified coverage, ~88% ro
 
 The conservation law governs all five compounding pathways. The pathways are what it protects.
 
+
+## **The Governor: One Control System for Safety and Learning**
+
+Every learning system has a first-order instinct: follow the reward uphill. That instinct is also, in the end, the whole of what reinforcement learning becomes — and it is too blunt to run a firm on. Follow the gradient and you overshoot: you settle onto a sharp, brittle peak that looks brilliant in a calm quarter and collapses when the world turns.
+
+The control that matters isn't the direction. It's the second order — not "am I improving," but "how is my improvement itself behaving: accelerating when there is room, easing off before it overshoots, re-igniting when the ground shifts." That takes two forces in balance. The accelerators: the enriched context graph, cross-domain transfer, and bounded explorers (an upper-confidence-bound rule and a conservation-bounded Thompson sampler) that keep trying safe variations. The damper: the conservation law. α·q·V ≥ θ_min is not a safety feature bolted on beside the learning system — it is the brake inside it. The explorer proposes; the conservation gate disposes. Which means the thing called "safety" and the thing called "compounding" are the same machine: the law that stops the system automating into danger is what stops its learning overshooting into overfit. A reward-follower has one lever — go. This has the whole control system: accelerate, brake, and the judgment to know which.
+
+## **Improvement vs Compounding: Why the Second Derivative Decides Everything**
+
+The Governor showed the system governs not its direction but the *rate* of its own improvement — a second-order idea. That second order is not a technical curiosity. It is the entire difference between an AI that helps you and an AI that compounds for you.
+
+Picture two systems side by side, both learning from your decisions. On day thirty they are indistinguishable — both a little better than they started. Now let them run. The first **improves**: its capability rises along a line, a steady slope, until it flattens against the ceiling of whatever it was built to do. The second **compounds**: it learns not only from its outcomes but *which dimensions of judgment mattered* in reaching them — it improves the very thing it learns from — so the rise itself gets steeper. One has a positive first derivative. The other has a positive second derivative. One is a slope; the other is a curve that bends upward. And a slope and a curve look the same for a moment, then separate forever.
+
+That is the whole game. Everyone in enterprise AI can eventually show you a rising line. Almost no one can show you a line that bends.
+
+> **Why you should care.** *If you build:* stop instrumenting "is accuracy rising." Instrument whether the *rate* of rise is rising — and treat the control problem as second-order (govern the acceleration; don't just chase the gradient). *If you buy or fund:* an improving system is a **depreciating** asset — a model that ages. A compounding system is an **appreciating** one — a graph worth more every quarter, built from decisions only your firm has made. It is also why a competitor who starts a year behind never catches up: with compounding, the gap *widens*, it does not close. Improvement you can buy from anyone. Compounding you can only grow — and only where the parts are wired to accelerate.
+
+*(Honesty: the acceleration is the design and the mathematics — analytically grounded, and shown in controlled learning experiments. "Your curve bends upward on your data" is what a pilot proves; it is not a number we hand you in a slide.)*
 ## **Five Compounding Pathways, One Living Graph**
 
 Five pathways govern how the architecture compounds — interlocked, each feeding the others, all governed by the conservation law.
@@ -321,7 +357,7 @@ Operates across decisions. ProfileScorer (Level 1) refines centroids from verifi
 
 **Pathway 3 — Conservation Law Reward (Govern).**
 
-Embeds the domain's risk preference asymmetrically: a missed threat penalized 20× more than an unnecessary escalation (SOC); 5× in S2P. Governs both pathways, continuously, on every decision.
+Embeds the domain's risk preference asymmetrically: a missed threat penalized 20× more than an unnecessary escalation (SOC); 5× in S2P. Governs both pathways, continuously, on every decision. (This asymmetry is the part of the reward you hand-specify — the cost of being wrong in each direction; the objective inside that envelope — what a good decision looks like — is learned, as "The Left Turn" describes.)
 
 **Pathway 4 — Temporal Re-Convergence (Compound).**
 
@@ -367,7 +403,7 @@ DK weights concentrate on 3-4 of 6 dimensions. Weight ratios reach 50×. This is
 
 Safety is defense in depth: James-Stein shrinkage (mathematical guardrail — never below centroid, 0/21 checkpoints) + promotion gate (operational — new weights pass holdout non-inferiority before deployment) + rollback (recovery — instant revert to any prior state). Three layers, each catching what the others miss.
 
-The moat builds toward 288 values: 144 centroid positions (WHERE each category's actions cluster) — firm-specific from the first verified decision — plus 144 DK precision weights (WHICH DIMENSIONS MATTER) that refine from a domain-informed prior to firm-specific as the system accumulates verified outcomes. Both are readable and auditable; the DK weights don't transfer (-5.6pp when lifted to another firm). They ARE the institutional intelligence — and the switching cost grows with every promoted batch. A competitor starts the centroid half from zero on Day 1 and cannot shortcut the precision half at all.
+The moat is now 288 values: 144 centroid positions (WHERE) + 144 DK precision weights (WHICH DIMENSIONS MATTER). Both readable, auditable, and firm-specific. The DK weights don't transfer (-5.6pp when transferred). They ARE the institutional intelligence — and the switching cost grows with every promoted batch.
 
 | **[11b] TWO-PHASE  --  NEW v10** *Two-Phase Learning — NEW: Phase 1 (hyperplane boundaries, centroids adjusting, saturates at ~200) → Phase 2 (quadric boundaries, DK weights concentrating on 3-4 dims). Shrinkage slider: α=0 → α=0.5. Safety: three layers (shrinkage + gate + rollback). Timeline: Month 1 Phase 1 / Month 3 Phase 2 / Month 6 +5.4pp / Month 12 288 values.* File: TWO-PHASE.png [NEW] |
 | --- |
@@ -434,7 +470,7 @@ DiagonalKernel: K(f, μ) = (f−μ)ᵀ · diag(1/σ²) · (f−μ). Discriminati
 
 Domain expertise — "for insider threat alerts, asset criticality and time anomaly are the discriminative factors; escalate when the asset is critical and the behavior is unprecedented" — is compiled into a geometric object: a point in 6-dimensional factor space.
 
-The SOC deployment produces 144 such values (6 categories × 4 actions × 6 factors). The S2P procurement deployment produces 175 values per copilot (5 categories × 5 actions × 7 factors) — seven copilots sharing one control plane. Every value has a name. Every shift has a traceable cause in the graph — connecting each centroid movement to the specific alert and verified outcome that caused it. When a regulator asks "why does your system handle this class of alert this way?" the answer is a six-number vector with a complete provenance history — not "the model learned it."
+The SOC deployment produces 144 such values (6 categories × 4 actions × 6 factors). The S2P procurement deployment produces 175 centroid values (5 categories × 5 actions × 7 factors) — seven procurement workflow-personas on one shared control plane. Every value has a name. Every shift has a traceable cause in the graph — connecting each centroid movement to the specific alert and verified outcome that caused it. When a regulator asks "why does your system handle this class of alert this way?" the answer is a six-number vector with a complete provenance history — not "the model learned it."
 
 DiagonalKernel adds a second compiled ontology: W = diag(1/σ²) — which data to trust, calibrated by this deployment's noise profile. μ encodes what your firm's environment has learned. W encodes which signals to believe. Both are readable, auditable, and firm-specific.
 
@@ -469,6 +505,18 @@ A fourth reason: judgment memory is a category no competitor has identified. The
 | **[20] TwoArchitectures  --  CARRY FORWARD** *Two Architectures, 24 Months Apart — Month 0/6/12/24. Organisation A: flat at 71.7%. Organisation B: compounds to 78.9%+. Red divergence zone widening. Conservation law annotation at Month 6. Footer: 'Same model. Same code. Different graph.'* File: TwoArchitectures.png |
 | --- |
 
+
+## **What This Is Not: The Field, Honestly**
+
+It is worth being honest about the field — because honesty persuades better than a wall of checkmarks, and because the ground has moved. The components of this kind of system — a context graph, agents that orchestrate and execute, a fabric of connectors — are becoming common. A process-mining leader now ships a process graph, feeds agents operational context, runs an orchestration engine, and exposes it over open protocols; well-funded startups hold real pieces too. So the honest question is no longer "do you have a graph." Soon everyone will. The question is **"does your system compound?"** — and that answer stays rare.
+
+Look at what the market actually offers and it sorts into three things. Some tools **do the work**: an automation agent runs a workflow — useful, but the same product on day 365 as on day 1; it executes, it does not accumulate. Some tools **police the work**: they give an agent identity, permissions, an audit trail — governing *who* may act. And some tools **show the work**: process mining maps where a process breaks, then hands it to a human — insight, then a wait.
+
+Compounding Intelligence is a fourth thing, and it does not have to fight the other three — it can sit *on top* of them. Consume the process map, the ERP, the data through the same open connectors, and add the one layer none of them have: a system that learns **how your firm decides** and gets better at it. To the tool that *shows* you a broken process, it adds the close-and-learn loop — reify the process, choose the fix, prove it, learn which fixes work — rather than monitoring the breakage. To the tool that *does* a task, it adds the memory that makes the next task smarter. To the tool that *polices* identity, it adds the governance of *judgment* — whether a decision can be trusted, not merely who signed it.
+
+> **Why you should care.** *If you build:* don't build another orchestration layer to race the substrate — build the compounding loop *on top* of it. The substrate is commoditizing; the loop is not. *If you buy or fund:* this is why it is a **category, not a feature**. Every other tool on your shortlist either does, polices, or shows the work. This one *compounds* it — and the moat is the fusion of these parts plus the acceleration, which you cannot assemble by buying a graph from one vendor and an agent from another. You are not buying a better tool; you are buying an asset that appreciates.
+
+*(Honesty: the close-and-learn process loop above is a near-term capability of the architecture, described as designed; where a competitor genuinely holds a piece today, we say so. The differentiation is the combination and the compounding — never a claim that others can do nothing.)*
 ## **What the Experiments Show**
 
 ~180 primary experiments across 12 series, covering 1890+ factorial cells and ~115 framework v4 validation experiments. No experimental falsification.
@@ -539,7 +587,7 @@ The gap between controlled and realistic numbers measures the noise floor of rea
 
 Four failure modes documented and understood: action confusion (near-identical centroid profiles), over-correction oscillation, treadmill effect (learns and forgets at same rate), N3 endogenous loop. Knowing them is the price of admission to Generation 3.
 
-| **[24] CAP-MATRIX  --  UPDATED** *SOC AI Capability Matrix — UPDATED v11: 12×8 table, seven competitor categories plus SOC Copilot. THE COMPOUNDING LAYER divider. Add new row: noise-adaptive kernel weighting (+13.2pp). Update experiment count to ~295 total (180 primary + ~115 framework-v4 validation). Update to 288 values (144 centroids + 144 DK weights).* File: CAP-MATRIX.png [UPDATE REQUIRED] |
+| **[24] CAP-MATRIX  --  UPDATED** *SOC AI Capability Matrix — UPDATED v11: 12×8 table, seven competitor categories plus SOC Copilot. THE COMPOUNDING LAYER divider. Add new row: noise-adaptive kernel weighting (+13.2pp). Update experiment count to ~295. Update to 288 values (144 centroids + 144 DK weights).* File: CAP-MATRIX.png [UPDATE REQUIRED] |
 | --- |
 
 ## **What the Product Makes Visible**
@@ -564,7 +612,7 @@ Week 1 (shadow mode) → Week 4 (first auto-approves, cloud_infrastructure calib
 
 30.85 min/alert MEASURED (CI=[29.90, 31.81]). SANS SOC Survey 2024, N=422 respondents. Two-judge: Claude Opus + GPT-4o. From a single AgentEvolver variant promotion: $4,800/month in additional savings — not from a model upgrade, from one operational adjustment the learning loops found and the economics layer measured.
 
-36-month validated simulation: $2.46M analyst time saved + $3.60M breach cost avoided = $6.06M ROI at one mid-size SOC. Nine copilots across two domains (SOC + S2P procurement) — one control plane, same conservation law. S2P modeled at $41–71M Year 1 at a $5B manufacturer; SOC at $523K–$2.79M per industry.
+36-month validated simulation: $2.46M analyst time saved + $3.60M breach cost avoided = $6.06M ROI at one mid-size SOC. Five copilots across two domains (SOC + S2P procurement) — one control plane, same conservation law, seven S2P workflow-personas. S2P modeled at $41–71M Year 1 at a $5B manufacturer; SOC at $523K–$2.79M per industry.
 
 | **[27] ECON-MEASURED  --  NEW** *Economics Dashboard — NEW: main metric: '30.85 min/alert' (large, MEASURED label). CI=[29.90, 31.81]. SANS SOC Survey 2024, N=422 respondents. Three industry ROI bars: Midmarket $523K/year / Healthcare $829K/year / FinServ $2.79M/year. $127/alert cost avoided. AgentEvolver callout: $4,800/month from single variant promotion. Footer: 'Measured. Not modeled. CL-ECON-MEASURED UNCONDITIONAL.'* File: ECON-MEASURED.png [NEW] |
 | --- |
@@ -584,7 +632,7 @@ Each entry point exercises the full stack — all five pathways, the conservatio
 
 ### **EU AI Act: Five Articles, Five Mechanisms**
 
-Enforcement begins August 2, 2026. Article 9 (Risk Management) → conservation law + ~180 primary experiments (~295 incl. framework-v4 validation); Article 12 (Logging) → hash-chained Evidence Ledger + [:TRIGGERED_EVOLUTION] provenance; Article 13 (Transparency) → 288 readable values (144 centroids + 144 DK weights) with full movement provenance; Article 14 (Human Oversight) → three-tier dispatch + ReferralRules R1–R7 (72.7% detection, 12% FPR); Article 15 (Robustness) → ECE=0.036 + 0.15pp max poisoning resilience.
+Enforcement begins August 2, 2026. Article 9 (Risk Management) → conservation law + ~295 experiments; Article 12 (Logging) → hash-chained Evidence Ledger + [:TRIGGERED_EVOLUTION] provenance; Article 13 (Transparency) → 288 readable values (144 centroids + 144 DK weights) with full movement provenance; Article 14 (Human Oversight) → three-tier dispatch + ReferralRules R1–R7 (72.7% detection, 12% FPR); Article 15 (Robustness) → ECE=0.036 + 0.15pp max poisoning resilience.
 
 | **[29] EUAI-MAP  --  UPDATED** *EU AI Act: Five Articles, Five Mechanisms — five-row table: Article / Requirement / Product Mechanism / Status. All five rows: LIVE status. August 2, 2026 enforcement date shown as countdown marker. Update Article 13 to 288 values (144 centroids + 144 DK weights).* File: EUAI-MAP.png |
 | --- |
@@ -595,7 +643,7 @@ The same five pathways, the same conservation law, the same control plane — wh
 
 ***Supply Chain Procurement:***
 
-The same architecture applied to procurement for $1–10B manufacturers, retailers, and distributors. 5×5×7 = 175 centroid values per copilot. Seven copilots: Invoice Exception Copilot, Price Leakage Guardian, Requisition Copilot, Receipt & Quality Gate, Supplier Reliability Copilot, Working Capital Copilot, Sourcing Strategy Copilot — plus a Control Tower routing procurement intents across all seven. 5:1 penalty ratio (vs SOC's 20:1).
+The same architecture applied to procurement for $1–10B manufacturers, retailers, and distributors. 5×5×7 = 175 centroid values per copilot. Seven procurement workflow-personas on one S2P copilot: Invoice Exception, Price Leakage Guardian, Requisition, Receipt & Quality Gate, Supplier Reliability, Working Capital, Sourcing Strategy — routed by a shared Control Tower on the same ACCP. 5:1 penalty ratio (vs SOC's 20:1).
 
 Three layers visible to the buyer: operational decision learning (process daily transactions, learn from every resolution), supplier & spend intelligence (builds automatically from operational data — lead time learning, behavioral clustering, early warning), and strategic optimization (uses learned parameters to inform supplier rationalization, payment timing, disruption recovery).
 
@@ -603,7 +651,7 @@ The S2P product was defined scenario-first — 16 before/after scenarios in the 
 
 Procurement Insight Clock example: cross-graph attention sweeps invoice history, supplier financial data, and payment records simultaneously. Discovery: "Supplier W accepts early payment 100% of the time at 2% discount — $340K/year captured. Supplier Y deprioritizes orders when payment exceeds 50 days — learned from 8 instances where late payment correlated with OTIF decline. Supplier Z shows no correlation between payment timing and performance across 200 transactions." Per-supplier payment strategy replaces blanket Net-45 policy. DPO improves AND supplier relationships improve AND discounts captured. Because the system learned WHICH suppliers care about payment timing and which don't — from verified outcomes, not from assumptions.
 
-The competitive gap: Zycus Merlin — Gartner Leader 2026, five purpose-built agents, 80%+ touchless AP. But invoice #10,000 is processed exactly like invoice #1. None of the five agents learn from verified outcomes. No conservation law. No mathematical proof that automation expansion is safe. No cross-system discovery. The same structural gap as Generation 2 SOC — and the same architectural solution.
+The competitive gap: Zycus Merlin — Gartner Leader 2026, autonomous contextual agents, genuine tail-spend negotiation. But the honest question remains: does decision #10,000 reflect what the system learned from decisions #1–9,999? Does a conservation law govern how fast automation expands? Does cross-system discovery surface connections no single system contains? These are the capabilities that separate compounding from execution — and the same architectural solution as in SOC.
 
 | **[31] CI-VERTICALS-SC  --  UPDATED** *Supply Chain Discovery: three domains (Invoice History, Supplier Financial Data, Payment Records) converging through cross-graph attention to per-supplier payment behavior discovery. [:CALIBRATED_BY] edges visible. ROI callout: $41–71M/year. Seven copilot names listed.* File: discovery_sc.jpeg [UPDATE REQUIRED] |
 | --- |
@@ -626,9 +674,9 @@ The pattern is identical across all three verticals: starts generic, calibrates 
 
 ***Same model. Same code. Smarter graph.***
 
-*Every system you evaluate looks capable on Day 1. The difference shows on Day 90 — when one system makes the same decision it made on Day 1, and the other has turned three months of verified outcomes into judgment it did not have before: judgment that stays when the analyst leaves, serves every shift at once, and compounds with every decision after. One is automation. The other is an asset that appreciates. That is the difference that compounds — and it is the only one that does.*
+*[CTA: v6.0 demo — link to be inserted]*
 
-*Compounding Intelligence v15.0 (DRAFT)  ·  June 2026  ·  Dakshineshwari LLC*
+*Compounding Intelligence v16.1  ·  August 2026  ·  Dakshineshwari LLC*
 
 *"**The moat isn't the model. The moat is the five compounding pathways feeding one living graph — and the graph develops judgment.**"*
 ---
@@ -644,7 +692,7 @@ The pattern is identical across all three verticals: starts generic, calibrates 
 | 1 | Universal Context Layer | Governed knowledge graph (PostgreSQL+AGE). Meta-graphs of operational semantics. | ✅ Shipped |
 | 2 | Compiled Ontologies | Centroid tensor (144 values WHERE) + DK precision weights (144 values WHICH DIMENSIONS) + σ profiles. 288 total. | ✅ Shipped (Phase 2: v6.5) |
 | 3 | Mathematical Engine | ProfileScorer, τ=0.1, pluggable kernels, TwoPhaseStrategy, batch pipeline. | Phase 1: shipped. Phase 2: v6.5. |
-| 4 | Agentic Control Plane | ACCP: intent routing <150ms, conservation enforcement, situation analysis. Bounded hyperagent. | ✅ Shipped |
+| 4 | Agentic Control Plane | ACCP: intent routing (<150ms P95 design target), conservation enforcement, situation analysis. Bounded hyperagent. | Routing shipped; e2e latency target not yet benchmarked |
 | 5 | Decision Economics | Objective function: min(cost) subject to conservation, measured not modeled. | ✅ Shipped |
 
 **Three Loops:**
@@ -675,11 +723,14 @@ All four types traversable in one graph query. The ONE store invariant (GraphSto
 
 ---
 
-*Compounding Intelligence v15.0 (DRAFT) · June 2026 · Dakshineshwari LLC*
+*Compounding Intelligence v16.1 · August 2026 · Dakshineshwari LLC*
 
 *"The moat isn't the model. The moat is the five compounding pathways feeding one living graph — and the graph develops judgment."*
 
-*v15.0 (DRAFT, June 2026): Canonical decisions D1–D4 applied at value register. (D1) Conservation-law α = category coverage, not override rate. (D3) θ_min reframed as a cold-start floor; the 0.7×-baseline relative trigger is the steady-state protector; single "≈0.467" and the η×N_half²/T_max footer retired. (D2) discovery scaling labeled information-gain compounding (simulation only, EXP-G1-gated), distinguished from operational compounding. (D4) signal-confidence inversion reframed as domain-informed SOC + calibrated synthetic; DataOps bullet corrected to source_reliability σ=0.218 (matches the SAP narrative). 288-moat guardrails: count is hard, rebuild timeline left illustrative; DK-weight half graduates from domain prior to firm-specific. Internal version reconciled from v12.0 → v15. NOT FOR PUBLICATION until Option C code ships (α=coverage must match check_conservation() before a buyer can diff it). Review pass (same day): experiment count reconciled (~180 primary / ~295 incl. framework-v4 validation) where it had read a bare "~295." McKinsey/Lilli case corrected (attack vector is SQL injection, not "prompt injection"; verified against CodeWall disclosure + McKinsey statement + multiple independent reports) and strengthened with verified specifics. Sales-y demo CTA replaced with a value-forward Day-90 close (no explicit ask).*
+*v16.1 (Aug 2026): S-1 copilot counts reframed (five running + seven S2P workflow-personas). S-2 ACCP <150ms relabeled as P95 design target with concurrency caveat. S-3 Tech-Process Fusion moved to roadmap framing. H-2 confirmed (α=coverage in code). H-1 SOC-G1 confirmed (exploration proposal-only shipped, RL_EXPLORATION_ENABLED=False). V-1 D1-D4 drift fixed (5 instances). V-2 McKinsey corrected (SQL injection). V-3 Zycus corrected (dropped unverified "five agents" count and "80%+ touchless" figure; reframed from strawman to faithful differentiation — concede autonomous contextual agents, distinguish on verified-outcome learning + conservation law). Reconciled competitive sections into one honest register — "Where Each Competitor Stops" (was "Why Every Competitor Is Structurally Short"), softened absolutist framing, added process-mining coverage. Publish-hold made explicit. Added CI fusion definition + "The Process That Optimizes Itself" beat. No new numeric claims; publish-hold unchanged.*
+*Publish conditions SATISFIED: (1) SOC-G1 exploration proposal-only confirmed (RL_EXPLORATION_ENABLED=False, exploration proposes-not-overrides); (2) α = category coverage confirmed in check_conservation().*
+*v16.0 (Aug 2026): Added four sections aligning the blog to the hero innovation note. "The Left Turn" (reward learning) and "The Governor" (second-order control as one safety+learning machine); "Improvement vs Compounding: Why the Second Derivative Decides Everything" (the moat signature — a rising line vs a line that bends — with why-it-matters for builders and buyers); and "What This Is Not: The Field, Honestly" (honest differentiation vs incumbents and funded startups; the do/police/show taxonomy; the compound-on-top posture). No new numeric claims; acceleration framed as design+math, not measured.*
+*v15.0 (June 2026): Canonical decisions D1–D4. Conservation α = category coverage. θ_min = cold-start floor. Discovery scaling = information-gain compounding. Signal-confidence inversion corrected. 288-moat guardrails. McKinsey correction (SQL injection). Internal reconciliation v12→v15. Option C shipped (SOC-G1 + α=coverage confirmed).*
 *v12.0: Nine scenarios of change (5 SOC + 4 S2P) moved to front. Scenarios before architecture. 9th scenario (Singapore discovery). Chen-Lin deduplication. Experiment count clarified. Signposting for CPO/CSCO readers.*
 *v11.0: Eight scenarios of change (4 SOC + 4 S2P). S2P expanded: 7 copilots, 16 scenarios, $41–71M Y1. Zycus competitive. Pathway 5 named. Entry point sourced. Discriminative DK positioning. Naming aligned to S2P Product Definition v1.3.*
 *v10.0: Five compounding pathways (was four). Two-phase learning (+3.2-5.4pp). Three channels. Defense in depth. 288 values (was 144). ~295 experiments. ~2,340 tests.*

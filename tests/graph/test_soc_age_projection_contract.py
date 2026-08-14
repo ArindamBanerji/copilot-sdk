@@ -8,7 +8,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from copilot_sdk.config import GraphConfig
@@ -84,6 +84,57 @@ def soc_projection_client() -> ReadOnlySOCProjectionClient:
     except Exception as exc:
         pytest.skip(f"SOC AGE graph unavailable for read-only projection tests: {exc}")
     return client
+
+
+@pytest.fixture()
+def soc_write_graph_store(age_test_graph: str) -> Any:
+    """Provide a test-owned AGE adapter on the disposable graph fixture."""
+    dsn = (
+        os.getenv("AGE_TEST_DSN", "").strip()
+        or os.getenv("GRAPH_DSN", "").strip()
+        or (GraphConfig.load("soc").dsn or "").strip()
+    )
+    if not dsn:
+        pytest.skip("SOC-WRITE-PATH: AGE DSN is not configured")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    ci_platform_path = repo_root.parent / "ci-platform"
+    if str(ci_platform_path) not in sys.path:
+        sys.path.insert(0, str(ci_platform_path))
+    from ci_platform.graph import AGEGraphStoreAdapter  # noqa: PLC0415
+
+    store = AGEGraphStoreAdapter(dsn=dsn, graph_name=age_test_graph)
+    try:
+        yield store
+    finally:
+        store.close()
+
+
+def query_triggered_evolution_edges(
+    graph_store: Any,
+    decision_id: str,
+    event_id: str,
+    domain: str = "soc",
+) -> list[dict[str, Any]]:
+    """Test-only read projection of canonical TRIGGERED_EVOLUTION edges."""
+    serializer = graph_store._store._S
+    rows = graph_store._store._run_query(
+        f"""
+        MATCH (d:Decision {{decision_id: {serializer(decision_id)}}})
+              -[r:TRIGGERED_EVOLUTION]->
+              (e:EvolutionEvent {{event_id: {serializer(event_id)}}})
+        WHERE d.domain = {serializer(domain)}
+          AND e.domain = {serializer(domain)}
+        RETURN d.decision_id AS decision_id,
+               e.event_id AS event_id,
+               e.event_type AS event_type,
+               e.rule_name AS rule_name,
+               e.variant_id AS variant_id,
+               e.created_at AS created_at,
+               type(r) AS edge_type
+        """
+    )
+    return [dict(row) for row in rows]
 
 
 def _node(row: dict[str, Any], key: str) -> dict[str, Any]:
@@ -310,9 +361,79 @@ def test_soc_projection_compatibility_before_route_migration(soc_projection_clie
     assert all(int(value) >= 0 for value in counts.values())
 
 
-def test_soc_triggered_evolution_forward_write_required():
-    """Forward-write TRIGGERED_EVOLUTION repair remains a later SOC implementation gate."""
-    pytest.skip("read-only projection cannot prove forward writes; requires SOC write-path slice")
+@pytest.mark.age
+def test_soc_triggered_evolution_forward_write_required(soc_write_graph_store):
+    """SOC-WRITE-PATH: forward write is visible through a read projection."""
+    decision_id = "SOC-WRITE-PATH-DECISION-001"
+    event_id = "SOC-WRITE-PATH-EVENT-001"
+    bad_event_id = "SOC-WRITE-PATH-EVENT-BAD"
+
+    soc_write_graph_store.write_governed_decision(
+        decision_id=decision_id,
+        domain="soc",
+        category="write_path_test",
+        category_index=0,
+        recommended_action="investigate",
+        recommended_index=0,
+        confidence=0.8,
+        probabilities=[0.8, 0.2],
+        factor_vector=[0.25, 0.75],
+        factor_names=["factor_a", "factor_b"],
+        source="test",
+        scorer_version="soc-write-path-test",
+        preset_version="soc-write-path-test",
+        factor_schema_version="soc-write-path-test",
+        metadata={"created_at": 1_700_000_000.0},
+    )
+
+    event = {
+        "event_id": event_id,
+        "domain": "soc",
+        "event_type": "promoted",
+        "rule_name": "write_path_rule",
+        "variant_id": "write_path_variant",
+        "source_copilot": "soc",
+        "source_rule": "write_path_rule",
+        "metric": 0.91,
+        "shadow_batch_size": 20,
+        "min_shadow_batches": 3,
+        "metadata": {"test_case": "SOC-WRITE-PATH"},
+        "decision_id": decision_id,
+    }
+
+    soc_write_graph_store.write_evolution_event(**event)
+    edges = query_triggered_evolution_edges(soc_write_graph_store, decision_id, event_id)
+    assert len(edges) == 1, f"Expected one projected edge, got {len(edges)}"
+    edge = edges[0]
+    assert edge["decision_id"] == decision_id
+    assert edge["event_id"] == event_id
+    assert edge["event_type"] == "promoted"
+    assert edge["rule_name"] == "write_path_rule"
+    assert edge["variant_id"] == "write_path_variant"
+    assert edge["edge_type"] == "TRIGGERED_EVOLUTION"
+    assert isinstance(edge["created_at"], (int, float))
+
+    first_created_at = edge["created_at"]
+    soc_write_graph_store.write_evolution_event(**event)
+    edges_after_replay = query_triggered_evolution_edges(
+        soc_write_graph_store, decision_id, event_id
+    )
+    assert len(edges_after_replay) == 1, "Identical replay created a duplicate edge"
+    assert edges_after_replay[0]["created_at"] == first_created_at
+
+    with pytest.raises((TypeError, ValueError)):
+        soc_write_graph_store.write_evolution_event(
+            event_id=bad_event_id,
+            domain="soc",
+            event_type="invalid",
+            rule_name="write_path_rule",
+            variant_id="write_path_variant",
+            metric=cast(Any, "not-a-number"),
+            decision_id=decision_id,
+        )
+    assert not query_triggered_evolution_edges(
+        soc_write_graph_store, decision_id, bad_event_id
+    )
 
 
 def test_soc_profile_snapshot_projection_to_centroid_checkpoint(soc_projection_client):
@@ -327,11 +448,73 @@ def test_soc_profile_snapshot_projection_to_centroid_checkpoint(soc_projection_c
 
 
 def test_soc_shadow_decision_not_automatically_observation(soc_projection_client):
-    """ShadowDecision remains excluded from canonical Observation until explicitly mapped."""
-    rows = soc_projection_client.query("MATCH (s:ShadowDecision) RETURN count(s) AS cnt")
-    shadow_count = int(rows[0]["cnt"]) if rows else 0
-    assert shadow_count >= 0
-    pytest.skip("ShadowDecision-to-Observation mapping intentionally deferred; do not auto-promote")
+    """Shadow promotion is explicit, provenance-preserving, and never F9 automatic."""
+    rows = soc_projection_client.query(
+        "MATCH (s:ShadowDecision) RETURN s.decision_id AS decision_id LIMIT 50"
+    )
+    for row in rows:
+        decision_id = str(row.get("decision_id") or "").replace("'", "\\'")
+        if not decision_id:
+            continue
+        promoted = soc_projection_client.query(
+            "MATCH (o:Observation {source_shadow_decision_id: '" + decision_id + "'}) "
+            "RETURN count(o) AS cnt"
+        )
+        assert int(promoted[0]["cnt"]) == 0
+
+    # Exercise the explicit promotion command on an in-memory graph double.
+    # This deliberately does not write to soc_graph or promote the synthetic
+    # F9 population used by the report fixtures.
+    backend_path = Path(__file__).resolve().parents[2].parent / "gen-ai-roi-demo-v4-v50" / "backend"
+    if str(backend_path) not in sys.path:
+        sys.path.insert(0, str(backend_path))
+    from app.services.shadow_promotion import evaluate_shadow_promotion, promote
+
+    class PromotionGraph:
+        def __init__(self):
+            self.shadow = {
+                "decision_id": "shadow-explicit-001",
+                "source": "operator-reviewed-shadow",
+                "category": "malware",
+                "ai_confidence": 0.51,
+                "analyst_action": "escalate",
+                "analyst_correct": True,
+            }
+            self.observation = None
+            self.last_mutation = ""
+
+        async def run_query(self, query, params=None):
+            params = params or {}
+            if "MATCH (sd:ShadowDecision {decision_id: $decision_id})" in query:
+                return [self.shadow] if params.get("decision_id") == self.shadow["decision_id"] else []
+            if "RETURN count(sd) AS sample_count" in query:
+                return [{"sample_count": 10}]
+            if "MATCH (o:Observation {source_shadow_decision_id: $decision_id})" in query:
+                return [{"count": 1 if self.observation else 0}]
+            if "CREATE (o:Observation" in query:
+                self.last_mutation = query
+                self.observation = {
+                    "source_shadow_decision_id": self.shadow["decision_id"],
+                    "source_shadow": self.shadow["source"],
+                    "promotion_type": "explicit",
+                }
+                return [self.observation]
+            raise AssertionError(f"unexpected promotion query: {query}")
+
+    f9 = dict(PromotionGraph().shadow, source="v_shadow_synthetic_v3")
+    assert evaluate_shadow_promotion(
+        f9, manual_approval=True, approval_token="token", actor="analyst", sample_count=10,
+    ).status == "reject"
+
+    graph = PromotionGraph()
+    promoted = asyncio.run(promote("shadow-explicit-001", "approval-001", "analyst", graph))
+    assert promoted["status"] == "promote"
+    assert promoted["observation"]["source_shadow"] == "operator-reviewed-shadow"
+    assert promoted["observation"]["promotion_type"] == "explicit"
+    assert "verified" not in graph.last_mutation.lower()
+
+    duplicate = asyncio.run(promote("shadow-explicit-001", "approval-002", "analyst", graph))
+    assert duplicate["status"] == "reject"
 
 
 def test_projection_count_matches_conformance_count(soc_projection_client):

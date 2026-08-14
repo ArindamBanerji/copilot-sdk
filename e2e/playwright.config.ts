@@ -51,5 +51,12 @@ export default defineConfig({
         baseURL: "http://127.0.0.1:5177",
       },
     },
+    {
+      name: "demo-cuts",
+      testDir: "./demo-cuts",
+      testMatch: ["vc-cut.spec.ts", "trader-cut.spec.ts", "enterprise-cut.spec.ts"],
+      workers: 1,
+      use: {},
+    },
   ],
 });

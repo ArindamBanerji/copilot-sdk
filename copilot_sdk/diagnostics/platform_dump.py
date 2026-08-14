@@ -137,23 +137,19 @@ def _compute_verdict(state: dict[str, Any]) -> tuple[str, dict[str, list[str]]]:
         if not bool(checks.get(name)):
             blocking.append(name)
 
-    diagnostics = state.get("copilots", {})
-    soc_diagnostics = diagnostics.get("soc", {}).get("diagnostics") or {}
-    soc_conservation = soc_diagnostics.get("conservation") or {}
-    soc_status = str(
-        soc_conservation.get("conservation_status")
-        or soc_conservation.get("status")
-        or ""
-    ).upper()
-    soc_non_scorable = soc_status in {"RED", "CALIBRATING"}
-
     if not bool(checks.get("all_fingerprints")):
-        if soc_non_scorable and checks.get("fingerprints", {}).get("soc", 0) == 0:
-            expected_limitations.append("soc:fingerprints")
-        else:
-            blocking.append("all_fingerprints")
+        blocking.append("all_fingerprints")
     if not bool(checks.get("all_receipts")):
-        if soc_non_scorable and checks.get("receipts", {}).get("soc", 0) == 0:
+        receipts = checks.get("receipts", {})
+        soc_receipt_count = receipts.get("soc", 0)
+        non_soc_have_receipts = all(
+            receipts.get(domain, 0) > 0
+            for domain in EXPECTED_DOMAINS
+            if domain != "soc"
+        )
+        if soc_receipt_count == 0 and non_soc_have_receipts:
+            # SOC's triage pathway predates SDK evidence-receipt writing.
+            # This is an architectural limitation, not a conservation state.
             expected_limitations.append("soc:evidence_receipts")
         else:
             blocking.append("all_receipts")

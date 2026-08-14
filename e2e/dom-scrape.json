@@ -19,12 +19,8 @@
           "text": "Financial Services"
         },
         {
-          "tag": "h3",
-          "text": "Archetype Advantage"
-        },
-        {
           "tag": "h2",
-          "text": "Accumulating Evidence"
+          "text": "Measurement State"
         },
         {
           "tag": "h2",
@@ -49,10 +45,6 @@
         {
           "tag": "h2",
           "text": "Portfolio Summary"
-        },
-        {
-          "tag": "h2",
-          "text": "Accuracy by Category"
         },
         {
           "tag": "h2",
@@ -86,19 +78,9 @@
           "text": "Warm-started from s2p: 1 patterns"
         },
         {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "Sample"
-        },
-        {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating EvidenceAccumulating292 / 321 decisions2 of 0 arms "
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "Accumulating"
+          "text": "Day-Zero HonestyMeasurement StateUnable to load measurement state.Retry"
         },
         {
           "testId": "provenance-badge",
@@ -183,7 +165,7 @@
         {
           "testId": "data-trust-factors",
           "tag": "div",
-          "text": "Options delta1.00Research depth0.92Options IV0.89Market conditions0.61Timing qua"
+          "text": "Options delta1.00Research depth0.92Options IV0.90Market conditions0.61Timing qua"
         },
         {
           "testId": "data-trust-factor",
@@ -208,7 +190,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Options IV0.89"
+          "text": "Options IV0.90"
         },
         {
           "testId": "data-trust-bar",
@@ -279,6 +261,11 @@
         },
         {
           "text": "Apply",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Retry",
           "ariaLabel": "",
           "name": ""
         },
@@ -390,15 +377,13 @@
         "Industry Archetype",
         "Template",
         "Financial Services",
-        "Archetype Advantage",
-        "Accumulating Evidence",
+        "Measurement State",
         "Market Context",
         "Market Regime",
         "Situation-conditioned discipline",
         "90-day regime history",
         "Performance by regime",
         "Portfolio Summary",
-        "Accuracy by Category",
         "Portfolio Concentration",
         "Thesis Breakdown",
         "Dataset",
@@ -553,216 +538,9 @@
         {
           "tag": "h1",
           "text": "Trading Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "Loading signal trust..."
-        },
-        {
-          "tag": "h2",
-          "text": "Market Regime"
-        },
-        {
-          "tag": "h3",
-          "text": "Situation-conditioned discipline"
-        },
-        {
-          "tag": "h3",
-          "text": "90-day regime history"
-        },
-        {
-          "tag": "h3",
-          "text": "Performance by regime"
-        },
-        {
-          "tag": "h2",
-          "text": "Volatility reality check"
-        },
-        {
-          "tag": "h2",
-          "text": "Scanning imported trades..."
-        },
-        {
-          "tag": "h2",
-          "text": "YOUR TWO SELVES"
-        },
-        {
-          "tag": "h2",
-          "text": "Profile pending"
-        },
-        {
-          "tag": "h2",
-          "text": "Fingerprint"
-        },
-        {
-          "tag": "h3",
-          "text": "YOUR EDGE"
-        },
-        {
-          "tag": "h3",
-          "text": "Moderate"
-        },
-        {
-          "tag": "h3",
-          "text": "Category Precision"
-        },
-        {
-          "tag": "h2",
-          "text": "Decision Explorer"
-        },
-        {
-          "tag": "h2",
-          "text": "Cross-Position Correlation"
-        },
-        {
-          "tag": "h2",
-          "text": "What If?"
-        },
-        {
-          "tag": "h2",
-          "text": "Day of Week"
-        },
-        {
-          "tag": "h2",
-          "text": "Research Impact"
-        },
-        {
-          "tag": "h2",
-          "text": "Regime Analysis"
-        },
-        {
-          "tag": "h2",
-          "text": "Risk Management"
-        },
-        {
-          "tag": "h2",
-          "text": "Rule Genealogy"
-        },
-        {
-          "tag": "h3",
-          "text": "Loading evolution lineage"
-        },
-        {
-          "tag": "h2",
-          "text": "Rule Lifecycle"
-        },
-        {
-          "tag": "h3",
-          "text": "Loading lifecycle"
         }
       ],
-      "testIds": [
-        {
-          "testId": "trust-radar-panel",
-          "tag": "section",
-          "text": "Signal Trust AnalysisLoading signal trust..."
-        },
-        {
-          "testId": "regime-panel",
-          "tag": "section",
-          "text": "Market contextMarket RegimeLoading market regime...Ranging marketConfidence-Vola"
-        },
-        {
-          "testId": "regime-badge",
-          "tag": "span",
-          "text": "Ranging market"
-        },
-        {
-          "testId": "regime-confidence",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "regime-hurst",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "situation-conditioned",
-          "tag": "div",
-          "text": "TRD-S1 / S2 / S3Situation-conditioned disciplineConservation -Illustrative demoL"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "Illustrative demo"
-        },
-        {
-          "testId": "situation-regime-trending",
-          "tag": "div",
-          "text": "trendingAccumulating0 decisions · 1x frequency"
-        },
-        {
-          "testId": "situation-regime-choppy",
-          "tag": "div",
-          "text": "choppyAccumulating0 decisions · 1x frequency"
-        },
-        {
-          "testId": "situation-regime-volatile",
-          "tag": "div",
-          "text": "volatileAccumulating0 decisions · 1x frequency"
-        },
-        {
-          "testId": "situation-abstention",
-          "tag": "div",
-          "text": "TRD-S2 situational abstentionChecking regime sufficiency..."
-        },
-        {
-          "testId": "situation-rejections",
-          "tag": "div",
-          "text": "TRD-S4 regime-scoped rejectionChecking rejected variants..."
-        },
-        {
-          "testId": "regime-history",
-          "tag": "div",
-          "text": "90-day regime history0 recordsHistory starts after the classifier records market"
-        },
-        {
-          "testId": "regime-performance",
-          "tag": "div",
-          "text": "Performance by regimeVerified outcomes grouped by category and market regime.Cur"
-        },
-        {
-          "testId": "regime-recommendation",
-          "tag": "div",
-          "text": "Regime recommendationLoading recommendation..."
-        },
-        {
-          "testId": "volatility-panel",
-          "tag": "section",
-          "text": "TRD-V1 / V2Volatility reality checkIllustrative demoCalm-regime Sharpe-Cluster-a"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "Illustrative demo"
-        },
-        {
-          "testId": "volatility-raw-sharpe",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "volatility-adjusted-sharpe",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "volatility-vrp-capture",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "vol-analytics-grid",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "counterfactual-card",
-          "tag": "section",
-          "text": "What If?Calculating counterfactual..."
-        }
-      ],
+      "testIds": [],
       "buttons": [
         {
           "text": "Dashboard",
@@ -985,7 +763,7 @@
         },
         {
           "tag": "h2",
-          "text": "Tuesday"
+          "text": "Wednesday"
         },
         {
           "tag": "h2",
@@ -1190,12 +968,12 @@
         {
           "testId": "commodity-index-card",
           "tag": "div",
-          "text": "Protein→ 1.002near average"
+          "text": "Protein→ 0.996near average"
         },
         {
           "testId": "commodity-index-card",
           "tag": "div",
-          "text": "Produce→ 1.048near average"
+          "text": "Produce↓ 0.966below average"
         },
         {
           "testId": "commodity-index-card",
@@ -1205,7 +983,7 @@
         {
           "testId": "commodity-index-card",
           "tag": "div",
-          "text": "Beverages→ 1.033near average"
+          "text": "Beverages→ 1.008near average"
         },
         {
           "testId": "par-level-panel",
@@ -1478,7 +1256,7 @@
         "Category price indices",
         "Recommended par levels",
         "Conservation-gated auto-ordering",
-        "Tuesday",
+        "Wednesday",
         "No event pressure",
         "4 items need attention",
         "Real inventory, ranked by reorder pressure",
@@ -1520,7 +1298,7 @@
         },
         {
           "tag": "h2",
-          "text": "Tuesday"
+          "text": "Wednesday"
         },
         {
           "tag": "h2",
@@ -1629,7 +1407,7 @@
         "Order, receipt, and invoice checks",
         "DEMO-MATCH-1Demo SupplierChickenFull Match100%$1,000",
         "Tomorrow's order is mostly inventory history",
-        "Tuesday",
+        "Wednesday",
         "No event pressure",
         "Stockout costs far more than waste",
         "Seven scorer inputs"
@@ -2462,7 +2240,7 @@
         {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Sample"
+          "text": "Unlabeled"
         },
         {
           "testId": "provenance-badge",
@@ -2760,6 +2538,22 @@
         },
         {
           "tag": "h2",
+          "text": "Year 1: $180,000 savings at current pace"
+        },
+        {
+          "tag": "h3",
+          "text": "Where savings came from"
+        },
+        {
+          "tag": "h3",
+          "text": "This week"
+        },
+        {
+          "tag": "h3",
+          "text": "Bank proof"
+        },
+        {
+          "tag": "h2",
           "text": "Supply Disruption Recovery"
         },
         {
@@ -2812,6 +2606,11 @@
           "testId": "provenance-badge",
           "tag": "span",
           "text": "Sample"
+        },
+        {
+          "testId": "economic-dashboard-card",
+          "tag": "section",
+          "text": "ROI DashboardYear 1: $180,000 savings at current paceSample dataMonth target$9,6"
         },
         {
           "testId": "provenance-badge",
@@ -2901,9 +2700,21 @@
         "Purchasing Copilot",
         "20 orders to learn what takes 11 years of gut instinct.",
         "Downtown discipline becomes the baseline for all four",
+        "Year 1: $180,000 savings at current pace",
+        "Where savings came from",
+        "This week",
+        "Bank proof",
         "Supply Disruption Recovery",
         "Payment Timing Intelligence",
         "Audit & Compliance Pack",
+        "Your Chicago team's experience helps Miami",
+        "Location",
+        "Decisions",
+        "Accuracy",
+        "Food cost",
+        "Learning",
+        "Transfer opportunity",
+        "Purchasing power",
         "What needs a manager today",
         "Cohort measurement readiness",
         "Trajectory",
@@ -3859,12 +3670,7 @@
         {
           "testId": "decision-explorer",
           "tag": "section",
-          "text": "SC-14Decision Explorer1132 GraphStore decisionsCategoryAllfreshness violationpip"
-        },
-        {
-          "testId": "decision-summary",
-          "tag": "div",
-          "text": "Decisions50Accuracy24%Common actionpause downstreamOutcome filterall"
+          "text": "SC-14Decision ExplorerLoading decisions...CategoryAllActionAllOutcomeAllcorrecti"
         }
       ],
       "buttons": [
@@ -3905,256 +3711,6 @@
         },
         {
           "text": "snowflakewarehouse_metadata60%moderateInspect details",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "db682e9a72e4",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "1ecd36720357",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "1a400ceb4735",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "9b2d423b62b9",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "0c6f1455c469",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "7991083893f2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "9f493f33d730",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "de1007345bab",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "109ec9882dd6",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "8694e7c05a38",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "caa2e91266b2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "6f10ad48aee7",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "e6298a773b21",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "d9c5cc1c0952",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "759f367d5ac2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "65791b3af111",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "2faae6c29234",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "579ca123af32",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "dbef0386ee05",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "f6b9d4617b9c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "7a84a0fdc8a8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "89870d8cc792",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "f025622a15e7",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "08467dec20a2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "dea98ab28147",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "bc9b07577c13",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "6f253224f568",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "503c001b5a72",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "56164bd0ffd0",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "84ac47c52892",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "0a3681d5cae8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "7ac7371091b8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "10b257b7b7d3",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "ec99655940a0",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "22b859fccfa3",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "c70840e340cd",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "68f7f66c570c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "0f1c6bc997a9",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "61feb3376279",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "b33be6eb88d0",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "38abc481585d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "6b2a6f264629",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "8a1ff9418ec8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "fd813b0a28a5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "18c9a224b2c4",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "508b9743c4ef",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "a2f9cb64a227",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "416d6e3aa532",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "3a9a1cc05272",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "36267b24e92e",
           "ariaLabel": "",
           "name": ""
         }
@@ -4203,16 +3759,10 @@
         "Freshness",
         "Quality",
         "Decision Explorer",
-        "ActionAllauto approveescalate to ownerinvestigatepause downstream",
+        "CategoryAll",
+        "ActionAll",
         "OutcomeAllcorrectincorrectpending",
-        "Verified only",
-        "Decision",
-        "Category",
-        "Action",
-        "Outcome",
-        "Confidence",
-        "Timestamp",
-        "Verified"
+        "Verified only"
       ]
     },
     "Evidence": {
@@ -4326,7 +3876,7 @@
         {
           "testId": "cohort-status-panel",
           "tag": "section",
-          "text": "DataOps Measurement StatusCohort measurement readinessMeasurement readyLoading m"
+          "text": "DataOps Measurement StatusCohort measurement readinessMeasurement readyThe measu"
         },
         {
           "testId": "cohort-status-state",
@@ -4462,6 +4012,311 @@
           "testId": "audit-search",
           "tag": "input",
           "text": ""
+        },
+        {
+          "testId": "audit-events",
+          "tag": "div",
+          "text": "5/9/2026, 4:44:45 PMlearntransform_drift auto_approvemigration5/9/2026, 4:44:38 "
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:45 PMlearntransform_drift auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:45 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:38 PMlearntransform_drift auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:38 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:32 PMlearnfreshness_violation escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:32 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:26 PMlearnfreshness_violation auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:26 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:20 PMlearnfreshness_violation auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:20 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:13 PMlearnquality_anomaly escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:13 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:07 PMlearnquality_anomaly escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:07 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:44:01 PMlearnquality_anomaly escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:44:01 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:55 PMlearnquality_anomaly auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:55 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:48 PMlearnvolume_anomaly investigatemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:48 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:42 PMlearnvolume_anomaly auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:42 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:36 PMlearnvolume_anomaly auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:36 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:30 PMlearnschema_change escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:30 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:23 PMlearnschema_change escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:23 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:17 PMlearnschema_change pause_downstreammigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:17 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:11 PMlearnpipeline_failure auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:11 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:43:05 PMlearnpipeline_failure escalate_to_ownermigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:43:05 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:42:58 PMlearnpipeline_failure pause_downstreammigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:42:58 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 4:42:52 PMlearnpipeline_failure auto_approvemigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 4:42:52 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
+        },
+        {
+          "testId": "audit-event",
+          "tag": "article",
+          "text": "5/9/2026, 3:31:29 PMlearnpipeline_failure pause_downstreammigration"
+        },
+        {
+          "testId": "audit-event-timestamp",
+          "tag": "time",
+          "text": "5/9/2026, 3:31:29 PM"
+        },
+        {
+          "testId": "audit-event-type",
+          "tag": "span",
+          "text": "learn"
         }
       ],
       "buttons": [
@@ -4753,7 +4608,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating151 / 181 decisions2 of 25 arms"
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating153 / 183 decisions2 of 25 arms"
         }
       ],
       "buttons": [
@@ -4923,7 +4778,7 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000684%Meridian Office Servicesprice_variance · $1,403",
+          "text": "S2P-INV-000483%Novatek IT Servicescontract_gap · $30,171",
           "ariaLabel": "",
           "name": ""
         },
@@ -5304,6 +5159,11 @@
         "Verdict",
         "Action",
         "Variant Evolution",
+        "Variant",
+        "Family",
+        "Status",
+        "Win Rate",
+        "Total",
         "Cross-System Discoveries",
         "Price increase risk at Yangtze Raw Materials",
         "Chicago invoice format exception concentration",
@@ -5501,6 +5361,11 @@
         },
         {
           "text": "Helix Lab SuppliesDemo DataExceptions 6%OTIF 93%1380 invoices- Insufficient data",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "SUP-PW-EVIDLive ProfilesExceptions 0%OTIF 0%1 invoices- Insufficient data",
           "ariaLabel": "",
           "name": ""
         }
