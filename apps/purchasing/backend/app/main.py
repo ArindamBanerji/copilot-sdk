@@ -571,14 +571,14 @@ def create_app(
         override = getattr(app.state, "purchasing_conservation_status", None)
         if isinstance(override, dict):
             state = override.get(str(category)) or override.get("state") or override.get("default")
-            return str(state or "GREEN").upper()
+            return str(state or "UNKNOWN").upper()
         if override:
             return str(override).upper()
         try:
             payload = compute_conservation_status_payload(DOMAIN, scorer_proxy)
         except Exception:
-            return "UNAVAILABLE"
-        return str(payload.get("status") or payload.get("state") or "GREEN").upper()
+            return "UNKNOWN"
+        return str(payload.get("status") or payload.get("state") or "UNKNOWN").upper()
 
     def _alert_conservation_status() -> dict[str, Any] | None:
         override = getattr(app.state, "purchasing_alert_conservation_status", None)

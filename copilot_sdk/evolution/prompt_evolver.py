@@ -295,17 +295,20 @@ class PromptVariantEvolver:
         return result
 
     def _resolve_conservation_state(self, conservation_state: Any = None) -> Any:
-        if conservation_state is not None:
-            return conservation_state
         provider = self._config.conservation_state_provider
+        if conservation_state is not None:
+            logger.warning(
+                "Explicit conservation_state is deprecated; configured provider is authoritative"
+            )
         if provider is None:
-            return None
+            return conservation_state if conservation_state is not None else {"status": "UNKNOWN"}
         try:
             if callable(provider):
                 return provider()
             return provider.get_state()
-        except Exception:
-            return None
+        except Exception as exc:
+            logger.warning("Conservation provider failed; promotion is blocked: %s", exc)
+            return {"status": "UNKNOWN", "reason": "provider_error"}
 
     def _families_in_order(self) -> list[str]:
         families: list[str] = []

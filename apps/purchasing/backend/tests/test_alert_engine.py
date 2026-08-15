@@ -204,9 +204,14 @@ def test_consumes_existing_services():
     assert Tracker.called is True
 
 
-def test_no_conservation_skips_alert():
+def test_missing_conservation_alerts_conservatively():
     alerts = _engine().evaluate(orders=[], suppliers=[], conservation_status=None)
-    assert not any(alert["alert_type"] == "conservation_amber" for alert in alerts)
+    assert any(alert["alert_type"] == "conservation_amber" for alert in alerts)
+
+
+def test_empty_conservation_alerts_conservatively():
+    alerts = _engine().evaluate(orders=[], suppliers=[], conservation_status={})
+    assert any(alert["alert_type"] == "conservation_amber" for alert in alerts)
 
 
 def test_amber_conservation_alerts():

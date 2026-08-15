@@ -141,14 +141,15 @@ class PurchasingAlertEngine:
 
     def _conservation(self, status: dict[str, Any] | str | None) -> list[PurchasingAlert]:
         if status is None:
-            return []
-        if isinstance(status, str):
+            state = "UNKNOWN"
+            category = "this category"
+        elif isinstance(status, str):
             state = status
             category = "this category"
         else:
             state = str(status.get("state") or status.get("status") or "")
             category = str(status.get("category") or "this category")
-        if state.upper() == "GREEN" or not state:
+        if state.upper() == "GREEN":
             return []
         return [PurchasingAlert("conservation_amber", "warning", f"System paused auto-ordering for {category}", "Keep manager review on until learning turns GREEN.", "P3")]
 

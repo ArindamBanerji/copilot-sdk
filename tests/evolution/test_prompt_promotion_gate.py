@@ -62,6 +62,41 @@ def test_promotion_when_candidate_exceeds_threshold():
     assert result["previous_id"] == "active-a"
 
 
+def test_configured_provider_overrides_explicit_green():
+    config = PromptEvolverConfig(
+        conservation_state_provider=lambda: {"status": "AMBER"},
+    )
+    evolver = _evolver(config=config)
+    _record(evolver, "active-a", 6, 4)
+    _record(evolver, "candidate-a", 9, 1)
+
+    result = evolver.check_for_promotion("family-a", conservation_state=GREEN)
+
+    assert result["promoted"] is False
+    assert result["reason"] == "conservation"
+
+
+def test_provider_error_ignores_explicit_green():
+    def failing_provider():
+        raise RuntimeError("health unavailable")
+
+    config = PromptEvolverConfig(conservation_state_provider=failing_provider)
+    evolver = _evolver(config=config)
+    _record(evolver, "active-a", 6, 4)
+    _record(evolver, "candidate-a", 9, 1)
+
+    result = evolver.check_for_promotion("family-a", conservation_state=GREEN)
+
+    assert result["promoted"] is False
+    assert result["reason"] == "conservation"
+
+
+def test_missing_provider_and_state_resolve_to_unknown():
+    evolver = _evolver()
+
+    assert evolver._resolve_conservation_state() == {"status": "UNKNOWN"}
+
+
 def test_no_promotion_below_threshold():
     evolver = _evolver()
     _record(evolver, "active-a", 8, 2)
