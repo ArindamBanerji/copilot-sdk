@@ -9,7 +9,7 @@ test.describe("Market Data API - spot checks", () => {
     const body = await res.json();
     expect(body).toHaveProperty("provenance");
     expect(body.provenance).toHaveProperty("source");
-    expect(["live", "cached", "fixture", "demo_fixture"]).toContain(body.provenance.source);
+    expect(["live", "cached", "fixture", "demo_fixture", "scraped_external"]).toContain(body.provenance.source);
   });
 
   test("GET /api/context/market-snapshot has spy price", async ({ request }) => {
@@ -79,6 +79,6 @@ test.describe("Market Data API - flow checks", () => {
     expect(snapshot.status()).toBe(200);
     const snapshotBody = await snapshot.json();
     expect(snapshotBody).toHaveProperty("provenance");
-    expect(["live", "cached", "fixture", "demo_fixture"]).toContain(snapshotBody.provenance.source);
+    expect(["live", "cached", "fixture", "demo_fixture", "scraped_external"]).toContain(snapshotBody.provenance.source);
   });
 });

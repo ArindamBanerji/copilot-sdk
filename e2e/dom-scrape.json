@@ -12,14 +12,6 @@
         },
         {
           "tag": "h2",
-          "text": "Industry Archetype"
-        },
-        {
-          "tag": "h3",
-          "text": "Financial Services"
-        },
-        {
-          "tag": "h2",
           "text": "Measurement State"
         },
         {
@@ -85,7 +77,7 @@
         {
           "testId": "provenance-badge",
           "tag": "div",
-          "text": "Market data: sample"
+          "text": "Market data: live external"
         },
         {
           "testId": "regime-panel",
@@ -160,67 +152,12 @@
         {
           "testId": "data-trust-badge",
           "tag": "section",
-          "text": "Data TrustLearned source reliabilityTradingOptions delta1.00Research depth0.92Op"
+          "text": "Data TrustLearned source reliabilityTradingLoading trust weights..."
         },
         {
-          "testId": "data-trust-factors",
-          "tag": "div",
-          "text": "Options delta1.00Research depth0.92Options IV0.90Market conditions0.61Timing qua"
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Options delta1.00"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Research depth0.92"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Options IV0.90"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Market conditions0.61"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Timing quality0.52"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-contrast",
+          "testId": "data-trust-loading",
           "tag": "p",
-          "text": "Highest 1.00 · Lowest 0.52 · Spread 0.48"
+          "text": "Loading trust weights..."
         }
       ],
       "buttons": [
@@ -538,9 +475,216 @@
         {
           "tag": "h1",
           "text": "Trading Copilot"
+        },
+        {
+          "tag": "h2",
+          "text": "Loading signal trust..."
+        },
+        {
+          "tag": "h2",
+          "text": "Market Regime"
+        },
+        {
+          "tag": "h3",
+          "text": "Situation-conditioned discipline"
+        },
+        {
+          "tag": "h3",
+          "text": "90-day regime history"
+        },
+        {
+          "tag": "h3",
+          "text": "Performance by regime"
+        },
+        {
+          "tag": "h2",
+          "text": "Volatility reality check"
+        },
+        {
+          "tag": "h2",
+          "text": "Scanning imported trades..."
+        },
+        {
+          "tag": "h2",
+          "text": "YOUR TWO SELVES"
+        },
+        {
+          "tag": "h2",
+          "text": "Profile pending"
+        },
+        {
+          "tag": "h2",
+          "text": "Fingerprint"
+        },
+        {
+          "tag": "h3",
+          "text": "YOUR EDGE"
+        },
+        {
+          "tag": "h3",
+          "text": "Moderate"
+        },
+        {
+          "tag": "h3",
+          "text": "Category Precision"
+        },
+        {
+          "tag": "h2",
+          "text": "Decision Explorer"
+        },
+        {
+          "tag": "h2",
+          "text": "Cross-Position Correlation"
+        },
+        {
+          "tag": "h2",
+          "text": "What If?"
+        },
+        {
+          "tag": "h2",
+          "text": "Day of Week"
+        },
+        {
+          "tag": "h2",
+          "text": "Research Impact"
+        },
+        {
+          "tag": "h2",
+          "text": "Regime Analysis"
+        },
+        {
+          "tag": "h2",
+          "text": "Risk Management"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Genealogy"
+        },
+        {
+          "tag": "h3",
+          "text": "Loading evolution lineage"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Lifecycle"
+        },
+        {
+          "tag": "h3",
+          "text": "Loading lifecycle"
         }
       ],
-      "testIds": [],
+      "testIds": [
+        {
+          "testId": "trust-radar-panel",
+          "tag": "section",
+          "text": "Signal Trust AnalysisLoading signal trust..."
+        },
+        {
+          "testId": "regime-panel",
+          "tag": "section",
+          "text": "Market contextMarket RegimeLoading market regime...Ranging marketConfidence-Vola"
+        },
+        {
+          "testId": "regime-badge",
+          "tag": "span",
+          "text": "Ranging market"
+        },
+        {
+          "testId": "regime-confidence",
+          "tag": "div",
+          "text": "-"
+        },
+        {
+          "testId": "regime-hurst",
+          "tag": "div",
+          "text": "-"
+        },
+        {
+          "testId": "situation-conditioned",
+          "tag": "div",
+          "text": "TRD-S1 / S2 / S3Situation-conditioned disciplineConservation -Illustrative demoL"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Illustrative demo"
+        },
+        {
+          "testId": "situation-regime-trending",
+          "tag": "div",
+          "text": "trendingAccumulating0 decisions · 1x frequency"
+        },
+        {
+          "testId": "situation-regime-choppy",
+          "tag": "div",
+          "text": "choppyAccumulating0 decisions · 1x frequency"
+        },
+        {
+          "testId": "situation-regime-volatile",
+          "tag": "div",
+          "text": "volatileAccumulating0 decisions · 1x frequency"
+        },
+        {
+          "testId": "situation-abstention",
+          "tag": "div",
+          "text": "TRD-S2 situational abstentionChecking regime sufficiency..."
+        },
+        {
+          "testId": "situation-rejections",
+          "tag": "div",
+          "text": "TRD-S4 regime-scoped rejectionChecking rejected variants..."
+        },
+        {
+          "testId": "regime-history",
+          "tag": "div",
+          "text": "90-day regime history0 recordsHistory starts after the classifier records market"
+        },
+        {
+          "testId": "regime-performance",
+          "tag": "div",
+          "text": "Performance by regimeVerified outcomes grouped by category and market regime.Cur"
+        },
+        {
+          "testId": "regime-recommendation",
+          "tag": "div",
+          "text": "Regime recommendationLoading recommendation..."
+        },
+        {
+          "testId": "volatility-panel",
+          "tag": "section",
+          "text": "TRD-V1 / V2Volatility reality checkIllustrative demoCalm-regime Sharpe-Cluster-a"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Illustrative demo"
+        },
+        {
+          "testId": "volatility-raw-sharpe",
+          "tag": "div",
+          "text": "-"
+        },
+        {
+          "testId": "volatility-adjusted-sharpe",
+          "tag": "div",
+          "text": "-"
+        },
+        {
+          "testId": "volatility-vrp-capture",
+          "tag": "div",
+          "text": "-"
+        },
+        {
+          "testId": "vol-analytics-grid",
+          "tag": "div",
+          "text": ""
+        },
+        {
+          "testId": "counterfactual-card",
+          "tag": "section",
+          "text": "What If?Calculating counterfactual..."
+        }
+      ],
       "buttons": [
         {
           "text": "Dashboard",
@@ -763,7 +907,7 @@
         },
         {
           "tag": "h2",
-          "text": "Wednesday"
+          "text": "Saturday"
         },
         {
           "tag": "h2",
@@ -1256,7 +1400,7 @@
         "Category price indices",
         "Recommended par levels",
         "Conservation-gated auto-ordering",
-        "Wednesday",
+        "Saturday",
         "No event pressure",
         "4 items need attention",
         "Real inventory, ranked by reorder pressure",
@@ -1298,7 +1442,7 @@
         },
         {
           "tag": "h2",
-          "text": "Wednesday"
+          "text": "Saturday"
         },
         {
           "tag": "h2",
@@ -1407,7 +1551,7 @@
         "Order, receipt, and invoice checks",
         "DEMO-MATCH-1Demo SupplierChickenFull Match100%$1,000",
         "Tomorrow's order is mostly inventory history",
-        "Wednesday",
+        "Saturday",
         "No event pressure",
         "Stockout costs far more than waste",
         "Seven scorer inputs"
@@ -2240,7 +2384,7 @@
         {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Unlabeled"
+          "text": "Sample"
         },
         {
           "testId": "provenance-badge",
@@ -2510,10 +2654,6 @@
         "Quantity",
         "Est cost",
         "Know who arrives before the rush",
-        "Supplier",
-        "Time window",
-        "Items",
-        "Amount",
         "Waste pattern by category",
         "protein",
         "produce",
@@ -2566,11 +2706,27 @@
         },
         {
           "tag": "h2",
+          "text": "Your Chicago team's experience helps Miami"
+        },
+        {
+          "tag": "h3",
+          "text": "Transfer opportunity"
+        },
+        {
+          "tag": "h3",
+          "text": "Purchasing power"
+        },
+        {
+          "tag": "h2",
           "text": "What needs a manager today"
         },
         {
           "tag": "h2",
           "text": "Cohort measurement readiness"
+        },
+        {
+          "tag": "h2",
+          "text": "Supplier reliability and price trend"
         },
         {
           "tag": "h2",
@@ -2613,6 +2769,11 @@
           "text": "ROI DashboardYear 1: $180,000 savings at current paceSample dataMonth target$9,6"
         },
         {
+          "testId": "group-dashboard-card",
+          "tag": "section",
+          "text": "Chain IntelligenceYour Chicago team's experience helps MiamiSample dataGroup acc"
+        },
+        {
           "testId": "provenance-badge",
           "tag": "span",
           "text": "Unlabeled"
@@ -2620,7 +2781,12 @@
         {
           "testId": "iks-tracker-panel",
           "tag": "section",
-          "text": "Loading IKS..."
+          "text": "Institutional knowledgeYour system knows 73% of patternsIKS is computed from ver"
+        },
+        {
+          "testId": "iks-gauge",
+          "tag": "div",
+          "text": "73%"
         },
         {
           "testId": "cohort-status-panel",
@@ -2650,7 +2816,157 @@
         {
           "testId": "supplier-scorecard-panel",
           "tag": "section",
-          "text": "Loading supplier scorecards..."
+          "text": "Supplier scorecardsSupplier reliability and price trendQBO order history plus ve"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "B"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "B"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "B"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "B"
         }
       ],
       "buttons": [
@@ -2716,7 +3032,18 @@
         "Transfer opportunity",
         "Purchasing power",
         "What needs a manager today",
+        "Your system knows 73% of patterns",
         "Cohort measurement readiness",
+        "Supplier reliability and price trend",
+        "Supplier",
+        "Tier",
+        "On-time",
+        "Price trend",
+        "Exceptions",
+        "Summary",
+        "improving",
+        "stable",
+        "declining",
         "Trajectory",
         "Switching cost",
         "Automation Projection",
@@ -2724,6 +3051,12 @@
         "Waste and stockouts are now measurable",
         "The cost leak is concentrated",
         "Prep waste has a dollar target",
+        "Item",
+        "Waste",
+        "Kitchen benchmark",
+        "Trend",
+        "Cost",
+        "Recommendation",
         "Where ordering is consistent"
       ]
     }
@@ -3670,7 +4003,12 @@
         {
           "testId": "decision-explorer",
           "tag": "section",
-          "text": "SC-14Decision ExplorerLoading decisions...CategoryAllActionAllOutcomeAllcorrecti"
+          "text": "SC-14Decision Explorer1132 GraphStore decisionsCategoryAllfreshness violationpip"
+        },
+        {
+          "testId": "decision-summary",
+          "tag": "div",
+          "text": "Decisions50Accuracy24%Common actionpause downstreamOutcome filterall"
         }
       ],
       "buttons": [
@@ -3711,6 +4049,256 @@
         },
         {
           "text": "snowflakewarehouse_metadata60%moderateInspect details",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "db682e9a72e4",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "1ecd36720357",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "1a400ceb4735",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "9b2d423b62b9",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "0c6f1455c469",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "7991083893f2",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "9f493f33d730",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "de1007345bab",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "109ec9882dd6",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "8694e7c05a38",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "caa2e91266b2",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "6f10ad48aee7",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "e6298a773b21",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "d9c5cc1c0952",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "759f367d5ac2",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "65791b3af111",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "2faae6c29234",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "579ca123af32",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "dbef0386ee05",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "f6b9d4617b9c",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "7a84a0fdc8a8",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "89870d8cc792",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "f025622a15e7",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "08467dec20a2",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "dea98ab28147",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "bc9b07577c13",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "6f253224f568",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "503c001b5a72",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "56164bd0ffd0",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "84ac47c52892",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "0a3681d5cae8",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "7ac7371091b8",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "10b257b7b7d3",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "ec99655940a0",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "22b859fccfa3",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "c70840e340cd",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "68f7f66c570c",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "0f1c6bc997a9",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "61feb3376279",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "b33be6eb88d0",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "38abc481585d",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "6b2a6f264629",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "8a1ff9418ec8",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "fd813b0a28a5",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "18c9a224b2c4",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "508b9743c4ef",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "a2f9cb64a227",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "416d6e3aa532",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "3a9a1cc05272",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "36267b24e92e",
           "ariaLabel": "",
           "name": ""
         }
@@ -3759,10 +4347,16 @@
         "Freshness",
         "Quality",
         "Decision Explorer",
-        "CategoryAll",
-        "ActionAll",
+        "ActionAllauto approveescalate to ownerinvestigatepause downstream",
         "OutcomeAllcorrectincorrectpending",
-        "Verified only"
+        "Verified only",
+        "Decision",
+        "Category",
+        "Action",
+        "Outcome",
+        "Confidence",
+        "Timestamp",
+        "Verified"
       ]
     },
     "Evidence": {
@@ -4608,7 +5202,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating153 / 183 decisions2 of 25 arms"
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating151 / 181 decisions2 of 25 arms"
         }
       ],
       "buttons": [
@@ -4758,11 +5352,6 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000388%Northstar Packagingprice_variance · $3,782",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "S2P-INV-000787%Boreal Equipment Maintenancequantity_mismatch · $14,966",
           "ariaLabel": "",
           "name": ""
@@ -4773,7 +5362,12 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000585%Yangtze Raw Materialsprice_variance · $41,290",
+          "text": "S2P-INV-000385%Northstar Packagingprice_variance · $3,782",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "S2P-INV-000583%Yangtze Raw Materialsprice_variance · $41,290",
           "ariaLabel": "",
           "name": ""
         },
@@ -5345,7 +5939,7 @@
           "name": ""
         },
         {
-          "text": "Boreal Equipment MaintenanceDemo DataExceptions 8%OTIF 90%640 invoices- Insuffic",
+          "text": "Boreal Equipment MaintenanceDemo DataExceptions 8%OTIF 90%649 invoices- Insuffic",
           "ariaLabel": "",
           "name": ""
         },
@@ -5361,11 +5955,6 @@
         },
         {
           "text": "Helix Lab SuppliesDemo DataExceptions 6%OTIF 93%1380 invoices- Insufficient data",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "SUP-PW-EVIDLive ProfilesExceptions 0%OTIF 0%1 invoices- Insufficient data",
           "ariaLabel": "",
           "name": ""
         }
