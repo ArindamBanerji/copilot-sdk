@@ -58,7 +58,7 @@ from copilot_sdk.backend import (  # noqa: E402
 )
 from copilot_sdk.backend.discovery_router import create_discovery_router  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
-from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider  # noqa: E402
+from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, SQLiteVariantStore  # noqa: E402
 from .evolution.evolver_config import DATAOPS_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
@@ -647,9 +647,27 @@ def create_app(
         DATAOPS_EVOLVER_CONFIG,
         conservation_state_provider=conservation_provider,
     )
-    evolver = PromptVariantEvolver(config=evolver_config)
+    evolution_db = ":memory:" if scoring_db == ":memory:" else str(Path(scoring_db).with_name(f"{DOMAIN}_evolution.sqlite3"))
+    evolver = PromptVariantEvolver(config=evolver_config, store=SQLiteVariantStore(evolution_db))
     evolver.register_variants(get_dataops_variant_specs())
     app.state.evolver = evolver
+
+    def record_dataops_outcome(decision: dict[str, Any], success: bool) -> None:
+        variant_id = decision.get("variant_id") or decision.get("selected_variant_id")
+        if not variant_id:
+            return
+        try:
+            evolver.record_outcome(
+                str(variant_id),
+                bool(success),
+                category=decision.get("category"),
+            )
+        except (KeyError, ValueError):
+            return
+
+    def select_dataops_variant(category: str) -> str | None:
+        selected = evolver.get_variant(category=category)
+        return str(selected.id) if selected is not None else None
     perturbation_service = PerturbationService()
     app.state.di_perturbation_service = perturbation_service
     dk_welford_tracker = DKWelfordTracker()
@@ -693,6 +711,8 @@ def create_app(
             db_path=scoring_db,
             scorer_factory=lambda: scorer_proxy,
             dk_welford_tracker=dk_welford_tracker,
+            outcome_recorder=record_dataops_outcome,
+            variant_selector=select_dataops_variant,
             query_cache_invalidator=di_query_service.invalidate_cache,
             entity_context_cache=entity_context_cache,
         ),

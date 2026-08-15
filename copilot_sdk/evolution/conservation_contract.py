@@ -9,6 +9,7 @@ from __future__ import annotations
 import inspect
 import logging
 import time
+from datetime import datetime, timezone
 from typing import Any, Literal, Protocol, TypedDict
 
 
@@ -48,6 +49,37 @@ def _status(value: Any) -> ConservationStatus:
     return "UNKNOWN"
 
 
+def normalize_conservation_state(
+    raw: Any,
+    *,
+    domain: str,
+    source: str,
+    observed_at: str | None = None,
+) -> ConservationState:
+    """Normalize provider output without changing its computed status."""
+    payload = raw if isinstance(raw, dict) else {"status": raw}
+    status = _status(payload.get("status") or payload.get("state"))
+    state: ConservationState = {
+        "status": status,
+        "overallSafe": status == "GREEN",
+        "domain": domain,
+        "source": source,
+        "observed_at": observed_at
+        or str(payload.get("observed_at") or datetime.now(timezone.utc).isoformat()),
+    }
+    if "verified_count" in payload:
+        state["verified_count"] = int(payload["verified_count"] or 0)
+    if "correct_count" in payload:
+        state["correct_count"] = int(payload["correct_count"] or 0)
+    if "total_decisions" in payload:
+        state["total_decisions"] = int(payload["total_decisions"] or 0)
+    if "penalty_ratio" in payload:
+        state["penalty_ratio"] = float(payload["penalty_ratio"] or 0.0)
+    if "reason" in payload:
+        state["reason"] = str(payload["reason"]) if payload["reason"] is not None else None
+    return state
+
+
 class ScorerBackedProvider:
     """Provider for SDK copilots backed by their live scorer/graph state."""
 
@@ -64,24 +96,22 @@ class ScorerBackedProvider:
             if isinstance(raw, str):
                 raw = {"status": raw}
             if not isinstance(raw, dict):
-                return {"status": "UNKNOWN", "domain": self._domain, "source": "scorer"}
-            return {
-                "status": _status(raw.get("status") or raw.get("state")),
-                "domain": self._domain,
-                "verified_count": int(raw.get("verified_count") or 0),
-                "correct_count": int(raw.get("correct_count") or 0),
-                "source": "scorer",
-                "observed_at": str(time.time()),
-            }
+                return normalize_conservation_state(
+                    "UNKNOWN", domain=self._domain, source="scorer"
+                )
+            state = normalize_conservation_state(
+                raw, domain=self._domain, source="scorer"
+            )
+            state["verified_count"] = int(raw.get("verified_count") or 0)
+            state["correct_count"] = int(raw.get("correct_count") or 0)
+            return state
         except Exception as exc:
             logger.warning("[EVOLUTION] Conservation read failed: %s", exc)
-            return {
-                "status": "UNKNOWN",
-                "domain": self._domain,
-                "source": "scorer",
-                "observed_at": str(time.time()),
-                "reason": str(exc),
-            }
+            return normalize_conservation_state(
+                {"status": "UNKNOWN", "reason": str(exc)},
+                domain=self._domain,
+                source="scorer",
+            )
 
     def __call__(self) -> ConservationState:
         return self.get_state()
@@ -90,14 +120,20 @@ class ScorerBackedProvider:
 class CachedAsyncProvider:
     """Synchronous snapshot adapter for an async-origin conservation source."""
 
-    def __init__(self, snapshot_fn: Any, freshness_ttl: float = 30.0) -> None:
+    def __init__(
+        self,
+        snapshot_fn: Any,
+        freshness_ttl: float = 30.0,
+        clock: Any = time.time,
+    ) -> None:
         self._snapshot_fn = snapshot_fn
         self._ttl = float(freshness_ttl)
+        self._clock = clock
         self._cached: ConservationState | None = None
         self._cached_at = 0.0
 
     def get_state(self) -> ConservationState:
-        now = time.time()
+        now = float(self._clock())
         if self._cached is not None and now - self._cached_at <= self._ttl:
             return self._cached
         try:
@@ -107,18 +143,27 @@ class CachedAsyncProvider:
                 raise RuntimeError("async snapshot requires a synchronous adapter")
             if not isinstance(raw, dict):
                 raise TypeError("conservation snapshot must be a mapping")
-            self._cached = {
-                "status": _status(raw.get("status") or raw.get("state")),
-                "source": "learning_health_monitor",
-                "observed_at": str(time.time()),
-            }
+            self._cached = normalize_conservation_state(
+                raw,
+                domain=str(raw.get("domain") or "unknown"),
+                source=str(raw.get("source") or "learning_health_monitor"),
+            )
             self._cached_at = now
             return self._cached
         except Exception as exc:
             logger.warning(
                 "[EVOLUTION] domain conservation stale, returning UNKNOWN: %s", exc
             )
-            return {"status": "UNKNOWN", "reason": "stale_or_error"}
+            return normalize_conservation_state(
+                {"status": "UNKNOWN", "reason": "stale_or_error"},
+                domain="unknown",
+                source="learning_health_monitor",
+            )
+
+    def invalidate(self) -> None:
+        """Discard the synchronous cache after an async source refreshes."""
+        self._cached = None
+        self._cached_at = 0.0
 
     def __call__(self) -> ConservationState:
         return self.get_state()

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import ast
 import hashlib
+import importlib
 import json
 import os
 import re
@@ -35,6 +36,33 @@ EXPECTED_SOC_FACTORS = [
     "time_anomaly",
     "device_trust",
 ]
+
+
+def _load_soc_shadow_promotion() -> tuple[Any, Any]:
+    """Load SOC's absolute-import service without relying on global app order."""
+    backend_path = str(
+        Path(__file__).resolve().parents[2].parent
+        / "gen-ai-roi-demo-v4-v50"
+        / "backend"
+    )
+    original_path = list(sys.path)
+    saved_app_modules = {
+        name: module
+        for name, module in sys.modules.items()
+        if name == "app" or name.startswith("app.")
+    }
+    for name in list(saved_app_modules):
+        sys.modules.pop(name, None)
+    sys.path.insert(0, backend_path)
+    try:
+        module = importlib.import_module("app.services.shadow_promotion")
+        return module.evaluate_shadow_promotion, module.promote
+    finally:
+        for name in list(sys.modules):
+            if name == "app" or name.startswith("app."):
+                sys.modules.pop(name, None)
+        sys.modules.update(saved_app_modules)
+        sys.path[:] = original_path
 DATAOPS_ALLOWED_DOMAINS = {"dataops"}
 DATAOPS_BLOCKED = "blocked_unpartitioned_context"
 DATAOPS_CANONICAL = "canonical_domain_context"
@@ -465,10 +493,7 @@ def test_soc_shadow_decision_not_automatically_observation(soc_projection_client
     # Exercise the explicit promotion command on an in-memory graph double.
     # This deliberately does not write to soc_graph or promote the synthetic
     # F9 population used by the report fixtures.
-    backend_path = Path(__file__).resolve().parents[2].parent / "gen-ai-roi-demo-v4-v50" / "backend"
-    if str(backend_path) not in sys.path:
-        sys.path.insert(0, str(backend_path))
-    from app.services.shadow_promotion import evaluate_shadow_promotion, promote
+    evaluate_shadow_promotion, promote = _load_soc_shadow_promotion()
 
     class PromotionGraph:
         def __init__(self):

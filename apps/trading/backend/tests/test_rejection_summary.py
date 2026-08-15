@@ -113,7 +113,11 @@ def test_rejection_summary_reads_persisted_preseed_log(tmp_path, monkeypatch):
     )
     monkeypatch.setenv("TRADING_EVOLUTION_LOG_PATH", str(log_path))
     app = FastAPI()
-    app.include_router(create_trading_evolution_router())
+    app.include_router(
+        create_trading_evolution_router(
+            conservation_provider=lambda: {"status": "UNKNOWN"},
+        )
+    )
 
     body = TestClient(app).get("/api/trading/evolution/rejection-summary").json()
 

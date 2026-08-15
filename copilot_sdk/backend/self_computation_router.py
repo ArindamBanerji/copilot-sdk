@@ -179,12 +179,23 @@ def create_self_computation_router(
             iks_method = getattr(scorer, "compute_iks", None)
         iks = iks_method() if callable(iks_method) else None
         measurement_state = compute_measurement_state(scorer).to_dict()
+        evolver = evolver_provider() if evolver_provider is not None else None
+        provider = getattr(getattr(evolver, "config", None), "conservation_state_provider", None)
+        if provider is None:
+            provider = getattr(evolver, "conservation_provider", None)
+        if callable(provider):
+            conservation = provider()
+        elif provider is not None:
+            conservation = provider.get_state()
+        else:
+            conservation = {"status": "UNKNOWN"}
         return {
             "centroid_distance_to_canonical": distance,
             "epsilon_firm": epsilon,
             "iks": iks,
             "measurement_state": measurement_state,
             "domain": _domain(),
+            "conservation": conservation,
         }
 
     @router.get(

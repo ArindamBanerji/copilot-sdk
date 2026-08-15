@@ -1,6 +1,6 @@
-# Demo Scenarios Demo Scenarios & Use Cases — Consolidated · v2.1 Use Cases — Consolidated · v2.2
+# Demo Scenarios & Use Cases — Consolidated · v2.7
 
-**Date:** August 10, 2026 · **Version:** 2.5
+**Date:** August 15, 2026 · **Version:** 2.7
 **Purpose:** the single source of truth for the demo storyboard + use-case scenarios, **executable for
 coding sessions** (every beat carries a surface, API, data need, DoD, and session owner).
 
@@ -17,7 +17,7 @@ coding sessions** (every beat carries a surface, API, data need, DoD, and sessio
 1. **Scenario classes (LIVE / NEAR / ARCH)** now travel with every beat (product_integrity §2.8). Showing
    roadmap is *allowed and expected* — implying roadmap is LIVE is the only violation (**F-27**).
 2. **§0.1 room→kill-shot map** — beats are now indexed by **competitive room** (next_steps §2.2/§2.3), not
-   only by copilot. *10 of 13 rooms have a LIVE kill shot.*
+   only by copilot. *10 of 15 rooms have a LIVE kill shot.*
 3. **Naming purge (F-25):** the primary learning mechanism is **decision-trace / prototype learning from
    verified decisions — NOT "RL."** (Genuine bandits exist and may be named as such.)
 4. **⚠️ SOC learning is DISABLED by default** — a **demo-truth** constraint on every SOC "watch it learn"
@@ -66,6 +66,8 @@ roadmap. *Showing ARCH is allowed and expected. Implying ARCH is LIVE is the vio
 | 11 | AI governance / compliance | **Day-Zero honesty** (§4.3) + audit chain | "We **don't fake your number** — and it's audit-traceable." | **LIVE** |
 | 12 | Data quality / observability | **DI-TRUST: "Every data asset gets a trust score"** | "Monte Carlo tells you when data breaks. We tell you which data is *worth buying* — ranked by projected ROI to your decision quality." | **LIVE** |
 | 13 | Data-as-product / CDO | **DI-PRODUCT: "Data products with IKS"** | "Your customer-360 has IKS 72, GREEN. Any agent can consume it autonomously. Your ESG product: IKS 8, AMBER. The system *measured* the difference from 3,400 verified decisions — not a label in a catalog." | **LIVE** |
+| 14 | Agent-trust gateway | **DI-GATEWAY: "We're the runtime trust layer between your agents and your data"** | "Your Databricks agent asks us before it acts — `/v1/trust/verify` → trust, basis, or abstain. A substrate owner won't rate a competitor's table fairly." | **NEAR** |
+| 15 | Purchasing / food-cost | **PUR-CONTINUITY: "Everything in this kitchen turns over. This doesn't."** | "They record what you bought. We remember what you learned — and prove what it saved." | **NEAR** |
 
 ## 0.2 Demo-truth constraints (read before staging any beat — product_integrity v3.0)
 
@@ -102,11 +104,17 @@ pattern: **acknowledge → reframe → kill shot.** Never dismiss the competitor
 | 5. Decision intelligence | "This is just better analytics." | "Analytics tells you what happened. We tell you *what you believe that's wrong* — with proof from your own decisions. Your favorite setup is your worst setup. No dashboard can show you that because it requires learning from verified outcomes, not displaying metrics." |
 | 6. Process intelligence (Celonis) | "We already have Celonis." | "Good — keep it. Celonis tells you WHERE the process breaks. We ingest its output and tell you WHY and WHICH DECISION to change. Your Celonis spend just became more valuable, not obsolete. We're the only vendor in this room who makes your existing investment worth *more*." |
 | 7. Data observability | "Monte Carlo already does this." | "Monte Carlo tells you when data breaks. We tell you which data is *worth buying* — ranked by projected ROI to your decision quality. That's a different question. Nobody else answers it." |
-| 8. SecOps copilots | "Microsoft Security Copilot already does this." | "Microsoft's copilot doesn't learn from your analysts' corrections. Ours does — and it remembers which analyst is best at which category. When your best analyst leaves, Microsoft's copilot doesn't notice. Ours retains their judgment — in dollars." |
+| 8. SecOps copilots | "Microsoft Security Copilot already does this." | "Bundled copilots answer from what the vendor's model knows. We start you on a strong prior and then learn where **your** analysts' corrections disagree with it — per analyst, per category. When your best analyst leaves, that retained judgment is what a bundled copilot can't reconstruct — and we show it to you in dollars." |
 | 9. Context / memory | "Rowboat does memory for agents." | "They compound notes. We compound judgment — and prove it moved the decision. Change a factor, watch the score move. That's not memory — that's institutional knowledge with a math proof." |
 | 10. Agent infra (CopilotKit) | "CopilotKit has great agent tooling." | "They're the UI layer. We're the substrate — the thing underneath that makes agents get better, safely, across domains. We run five copilots on one engine. They'd need five separate implementations." |
 | 11. AI governance | "We need compliance — is this audit-ready?" | "Every decision, hash-chained, tamper-evident. We don't fake your day-one number — we show you the instrument working and the proof it's calibrated. And we're sixteen months ahead of the EU high-risk deadline." |
 
+| 5. Trading journal (TradeZella) | "TradeZella already does an AI trading journal." | "Good — that proves the category. The difference is what happens when the data's thin: TradeZella always has an insight for you; ours refuses the ones that don't survive correction, and it reduces its own autonomy when the regime breaks. A journal that always talks can't do either." |
+| 14. Agent-trust gateway | "We already have Databricks/Snowflake governance." | "They govern WHO may act. We govern WHETHER the action should be trusted — from verified outcomes, not from permissions. A substrate owner won't rate a competitor's table fairly; we're cloud-neutral." |
+| 15. Purchasing/food-cost tools | "We already have MarketMan / xtraCHEF." | "Keep it — it stores your orders and invoices. We sit on top and improve the decisions, and we prove it in dollars you can defend. Their number is a marketing estimate; ours subtracts what you'd have caught anyway." |
+| 12. Data quality (Unity Catalog) | "Isn't this Unity Catalog lineage + a dashboard?" | "Unity Catalog records static schema dependencies with zero memory of resolution outcomes. Ours shows Table A's trust drops on Tuesdays from vendor lags — and blocks an agent from writing to Table B until it's resolved." |
+| 12. Data quality (Monte Carlo) | "Monte Carlo already learns patterns." | "Rolling thresholds on metrics that don't learn from human resolutions. Resolve a false positive here and it updates decision centroids across all 10 related pipelines." |
+| 12. Data quality (p-hacking) | "Your gold lines are p-hacking." | "FDR-corrected and held out 30 days before a line is drawn." |
 **The meta-pattern for any unexpected competitor:** *"They solve [X problem] well. We solve the layer underneath: how does the system that solves [X] get better over time, safely, without authority creep? That's the missing layer — and it's why 88% of AI pilots fail on governance."*
 
 | 12. Data quality | "We already have Monte Carlo / Great Expectations." | "They tell you when data breaks. We tell you which data *to buy next* — ranked by projected ROI. We derived that from DK weights on your verified decisions. Nobody else connects data quality to decision quality." |
@@ -217,7 +225,7 @@ as shipped.
 **VC cut**
 | Beat | Caption (on-screen) | Spoken |
 |---|---|---|
-| V1 | *The factor you trust most is your noisiest.* | "Before I show you anything — pick the factor you trust most. … 2,000 verified decisions say that's your *noisiest* predictor, highest σ on the board. You've been trusting the thing that lies to you most, and nothing but the decisions could have told you. That's the mirror." |
+| V1 | *The factor you trust most is your noisiest — and it survived correction.* | "Before I show you anything — pick the factor you trust most. … 2,000 verified decisions say that's your *noisiest* predictor, highest σ on the board. You've been trusting the thing that lies to you most, and nothing but the decisions could have told you. That's the mirror. …and before you ask if that's a fluke: we tested twenty-three patterns on you, three had the power to conclude anything, and this is the one that held after correction. It's not the loudest number — it's the true one." |
 | COMP-1 | *The system getting better — and the governance is why you can trust it.* | "This is the graph the thesis rests on: quality climbing with every verified decision, governed the whole way. Ungoverned, it wins early and overfits; governed, it compounds." ⚠️ CC-1: production curve = IKS rising. Oracle decreasing curve = reference-app only. |
 | V2 | *Promoted live — then 35 rejected.* | "This rule didn't exist this morning. The system wrote it, shadow-tested it, promoted it — base model never changed. And it *rejected 35* others: 18 failed the correctness floor, 11 conservation, 6 variance. The rejections are the point — self-improvement without a gate is a liability. We ship the gate." |
 | V3 | *One engine. Five domains.* | "Born in security at 68%, transferred to procurement at 69%, matured in data ops at 83% — auto-fired in a Brazil plant in four minutes. When you ask 'isn't that five companies?' — it's one, and each domain makes the others smarter." |
@@ -276,8 +284,7 @@ can see, you rob them of the realization. The realization is: "this isn't patter
 reasoning." They need to arrive at that conclusion themselves.
 
 *What to do:* Point at the screen. Say nothing. Wait until someone says "it cited the contract?" or
-"where does it get the commodity data?" THEN say: "Every competitor auto-approves by rule. We reason
-from context. That's the difference between automation and intelligence." The pause made the line land.
+"where does it get the commodity data?" THEN say: "A threshold rule rejected this — 5.2% over a 5% line. The reasoning read the contract and the commodity index and accepted it, correctly. The point isn't that others lack agents; it's that a rule fires on a number, and judgment reasons about *why*." The pause made the line land.
 
 **SILENCE 3: The Rejection Table (V2 / E3, second 60-90)**
 
@@ -304,15 +311,15 @@ Full per-scenario BEFORE/AFTER narrative lives in `narrative_readiness_v3.md` Pa
 
 ### Trading (20; 19 ready) — clusters A Signal/Pattern, B Scaling, C Self-Knowledge, D Self-Governance, E Data, F Disruption, G Volatility
 `T1` Signal Trust Radar **[HERO, mirror]** ✅ Analysis (V1,TR2) · `T2` Post-Win Overtrading ✅ · `T3` Friday
-Degradation ✅ · `T4` Regime Analysis ✅ · `T5` Scale This Strategy? ✅ Perf · `T6` Execution Gap ✅ ·
+Degradation ✅ · `T4` Regime Analysis ✅ *(→ folds into TRD-S1 at demo)* · `T5` Scale This Strategy? ✅ Perf · `T6` Execution Gap ✅ ·
 `T7` Revenge Trade Real-Time ✅ Log · `T8` Per-Trader Edge ✅ Dash (TR3) · `T9` Strategy Stopped Working ✅ ·
 `T10` Prove It Before Real Money ✅ (P1) · `T11` History Unified ✅ · `T12` Playbook Transferred ✅ (P3) ·
-`T13` Tariff Shock ✅ · `T14` Regime Shift ✅ · `T15` Revenge at VIX 32 ✅ · `T16` Edge Rotation ✅ ·
+`T13` Tariff Shock ✅ · `T14` Regime Shift ✅ *(→ folds into TRD-S1 at demo)* · `T15` Revenge at VIX 32 ✅ · `T16` Edge Rotation ✅ ·
 `T17` Premium IV/RV ⚠️ **deferred v1.1** (VIX proxy today) · `T18` Correlation Breakdown ✅ · `T19` Earnings
 Split ✅ · `T20` VIX Mean-Reversion ✅
 
 ### Purchasing (22; 21 ready) — A Operational, B Intelligence, C Pattern, D Memory, E Scale
-`I1` Supplier Trust Trap **[HERO, mirror]** ✅ Analysis · `M1` Food Cost Dash ✅ · `M2` Delivery Match ✅ ·
+`I1` Signal Reliability / Invoice-Variance Profile **[mirror, discovery-open]** ✅ Analysis · `M1` Food Cost Dash ✅ · `M2` Delivery Match ✅ ·
 `P1` Smart Ordering ✅ · `P2` Waste Tracking ✅ · `P3` Conservation-Gated Auto-Order ✅ (P1) · `P4`
 Evidence-Based Ordering ✅ · `P5` Supplier Scorecard ✅ · `P7` Per-Item Auto-Approve ✅ · `P9` Demand
 Forecast ✅ · `M8` Commodity Decomposition ✅ **FRED LIVE** · `F1` Weather Intel ✅ **OpenMeteo LIVE** · `F2`
@@ -522,18 +529,19 @@ vendor can say that sentence.
 ## §4.9 Data Intelligence Demo Beats (NEW — shipped August 2, 2026)
 
 
-### §4.9.0 DataOps Cut Arc (v2.3 — mirror→moat sequence)
+### §4.9.0 DataOps Cut Arc (v2.6 — machinery-first, category-story-last)
 
-**Story spine:** Open with an expensive truth → prove it's real → show compounding → show governance → show strategy → extend to platform.
+**Story spine:** Machinery leads → category story lands last. Detection/lineage stay as substrate framing, not beats to win.
 
 | # | Beat | Role in arc | Time |
 |---|---|---|---|
-| 1 | DI-TRUST (reframed as "Data Trust Trap") | **Mirror** — your most trusted source is your noisiest | 60s |
-| 2 | **DI-PROOF** (NEW) | **Prove** — perturbation drops trust live | 90s |
-| 3 | DI-TIMELINE | **Compound** — categories converging, IKS rising | 60s |
-| 4 | DI-ADMITS-FAILURE | **Govern** — AgentEvolver rejects bad rules (moat) | 60s |
-| 5 | DI-GOLD | **Strategize** — what data to buy (now believable) | 90s |
-| 6 | DI-AGENT-TRUST | **Extend** — trust layer every agent needs | 60s |
+| 1 | **DI-PROOF** | **It learns** — perturbation drops trust live, restores with provenance | 90s |
+| 2 | Self-computation | **It knows what it learned** — the exact decisions responsible | 60s |
+| 3 | **DI-ADMITS-FAILURE** | **It knows when it was wrong** — governance moat (promoted to top 3) | 60s |
+| 4 | **DI-ABSTAIN** (NEW) + **DI-GATEWAY** (NEW) | **It governs AI action** — abstention + agent-trust gateway (climax) | 90s |
+| 5 | **DI-FIRSTVS6TH** (NEW) + **DI-TWIN** (NEW) | **It compounds** — falsifiable: 1st source vs 6th + frozen-twin control | 90s |
+| 6 | Intelligence Map | **The estate becomes visibly smarter** — W1 lands because they've seen the machinery | 60s |
+| 7 | **DI-GOLD** (de-risked) | **It values itself** — gold lines as FDR-gated ranked hypotheses, $ off hero path | 90s |
 
 ---
 
@@ -774,13 +782,71 @@ This is a **one-engine-five-domains** beat (V3/E5 amplifier). The DI infrastruct
 Reorder: promotion FIRST ("8-point gain, promoted live — that's the compounding"), THEN rejection table + SILENCE 3. No new gate logic — both arcs in existing promotion-gate logs.
 
 **B2 — RL Naming Reconciliation (§0.2, §0.3 room 3, §5 F-25):** ⚠️ on-stage-truth
-Retire the claim that judgment lacks a reward function. Replace with: "The DECISION is centroid-distance, not reward-maximizing. Reward functions exist in the LEARNING path (exploration + credit), never in choosing the action. Exploration is conservation-bounded (`ConservationBoundedThompson`)."
+Retire the "no-RF-for-judgment" claim. Replace with: "The DECISION is centroid-distance, not reward-maximizing. Reward functions exist in the LEARNING path (exploration + credit), never in choosing the action. Exploration is conservation-bounded (`ConservationBoundedThompson`)."
 
 **B3 — SOC Exploration Proposal-Only:** ⚠️ on-stage-truth
 When SOC learning is ON, exploration can override centroid action. In demo profile: run exploration proposal-only (SOC-G1 target) so "decision is centroid" holds on stage. Or re-cut "watch it learn" to S2P via DIFF-1.
 
 **B4 — CC-1 Two Distances:**
 Canonical-distance INCREASES (production, = IKS rising). Ground-truth-distance DECREASES (oracle-only). DI-TIMELINE is consistent. Never reframe production curve as "distance to correct answers shrinking."
+
+
+## §4.12 Trading Additions (v2.6)
+
+**TRD-CLAIM-GATE — "The Claim Gate"** ⭐ The mirror ran ~25 detectors; before any "expensive truth" reaches the screen it passes a selection-adjusted evidence gate — Benjamini-Hochberg FDR, deflated Sharpe, discovered on older 70%, confirmed on held-out 30%. Badge: "23 patterns tested · 3 had power · 1 survived correction." Surface: Trading Analysis + Performance. **Class: NEAR.**
+
+**TRD-CERTIFICATE — "The Certificate"** For a clean trader: "23 detectors, 1,847 decisions, none survive correction — you're genuinely clean," plus an edge-boundary map. **Class: NEAR.**
+
+**TRD-GATE-DIVIDEND — "The Gate's Dividend"** "Over 90 days the gate withheld 22 findings that didn't survive correction; replayed, acting on them would have cost −$18.4K." ⚠️ magnitude illustrative. **Class: NEAR.**
+
+**TRD-D6 — Observation-only guard:** No beat states a present-tense market call; every line is a past-tense observation about the trader's own decisions.
+
+**TRD-D7 — B1-B8 quant substrate:** Name the shipped package once for quant-room credibility. Harden TRD-S3 trigger = multi-primitive regime break (B2 Hurst + B6 tail-dependence) with block-bootstrap p-value (B4).
+
+**TRD-D3 — TradeZella:** 2026 entrant; mirror is now category-entry. Re-lead room 5 on the gate + abstention, mirror as opener.
+
+**TRD-D8 — T4/T14 → TRD-S1 merge:** T4 (Regime Analysis) and T14 (Regime Shift) fold into TRD-S1 at demo time.
+
+---
+
+## §4.13 Purchasing Additions (v2.6)
+
+**PUR-HERO — Mirror-open, continuity-close:** Open on I1 (gated, renamed). Close on PUR-3 + The Handoff: "Everything in this kitchen turns over. This doesn't."
+
+**PUR-GATE — Rename + gate I1:** Rename from "Supplier Trust Trap" to signal reliability / invoice-variance profile. Ban trap/padding/stress/fraud from microcopy. Gate: partial pooling + out-of-sample + evidence floor.
+
+**PUR-PROOF-LEDGER** (two-curve + SILENCE): Proof Curve (gated dollars, allowed to fall) + Competence Curve (rising even when dollars fall). Caption: "Every dollar we claim, we can defend — including the weeks we claim zero." **Class: NEAR.**
+
+**PUR-NOT-YET — "Not Yet" / Quiet Week:** (1) "No supplier factor is reliably misleading yet — ~60 more deliveries." (2) "$0 incremental this week. Coverage 94%." **Class: LIVE.**
+
+**PUR-REFUSAL — Self-pause on manager drift:** Conservation detects drift → auto-approve pauses itself. "It gave up its own authority." **Class: NEAR.**
+
+**PUR-RAMP — Time-to-competence:** "Last GM left → 7 weeks. This time → 12 days." Non-saturating acceleration. **Class: NEAR.**
+
+**PUR-DATA-MATURITY:** Tag beats by data maturity (P4/P7/F1/F2 need 18-24 months).
+
+---
+
+## §4.14 DataOps Additions (v2.6)
+
+**DD-0 ⚠️ PRECONDITION:** Earned-trust beats are LIVE only if verified-decision → AgentEvolver loop is wired for DataOps — currently unconfirmed. Tag NEAR/ARCH honestly (F-27) until confirmed. Biggest truth risk.
+
+**DI-ABSTAIN — "I don't know":** Agent asks permission; gateway returns evidence + abstain. "4 verified decisions — insufficient for this action." Note deliberate absence of "safe." **Class: NEAR.**
+
+**DI-GATEWAY — Agent-Trust Gateway climax:** "/v1/trust/verify → trust, basis, or abstain." The runtime trust gateway. **Class: NEAR.**
+
+**DI-FIRSTVS6TH — Compounding falsifiable:** "1st new source: X weeks to GREEN. 6th: Y days." **Class: NEAR.**
+
+**DI-TWIN — Frozen-twin control:** "Frozen in March would have missed 11 of 14 catches." **Class: NEAR-HEAVY** (~2-3 wks, depends on centroid checkpoint persistence RL-PERSIST).
+
+**DD-2 — Strengthen DI-PROOF:** Add restore + provenance log. Generalize into "prove it" affordance on every number.
+
+**DD-6 — De-risk DI-GOLD:** $ off hero path. Gold lines as FDR + 30-day-holdout-gated hypotheses. "Value not yet verified — N more outcomes needed" empty state.
+
+**DD-9 — Buyer/agent-language guard:** No centroid/DK/σ/α·q·V on buyer-facing surfaces. Use plain field names.
+
+**DD-7 — Retire absolutist claims:** Replace "Level 3+ is empty for everyone" with "does the number move because of your decisions?"
+
 ## 5. Demo-base & preseed requirements (coding sessions must guarantee these)
 
 The single biggest live-demo risk (per `narrative_readiness_v3`): a fresh install without preseed shows
@@ -802,12 +868,160 @@ The single biggest live-demo risk (per `narrative_readiness_v3`): a fresh instal
 
 **Hard constraints:** BYOD imports score via `write_observation`; L5 writes are persist-before-cache;
 `[VERIFY]` SOC conservation numbers (old D2 "Option C") before quoting any SOC α figure on stage.
-**Naming (F-25):** no beat, caption, or script says "RL" for the primary mechanism, and no beat/script claims judgment lacks a reward function — the reward runs in the learning path; the **decision** is centroid-distance (see §4.11 B2) — it is *decision-trace /
+**Naming (F-25):** no beat, caption, or script says "RL" for the primary mechanism, and no beat/script uses the retired "no-RF" claim — the reward runs in the learning path; the **decision** is centroid-distance (see §4.11 B2) — it is *decision-trace /
 prototype learning from verified decisions*. **Claim scope (F-24):** "conservation governs our scoring,
 exploration and scorer-evolution loops" — **not** "all loops" — until `C-GOV` lands. **Cross-copilot (F-26):**
 *signals* transfer; judgment geometry is per-copilot.
 
 ---
+
+
+
+---
+
+## §4.15 S2P Additions (v2.6)
+
+### S2P-FIX-1 — Correct "every competitor runs rules" overclaim
+§2.5 SILENCE 2's payoff line reads "Every competitor auto-approves by rule. We reason from context." In 2026 that's false (Coupa Navi and SAP Joule reason). **Keep the S14 rule-vs-reasoning contrast** — it's true for a threshold rule — but retune: *"A threshold rule rejected this — 5.2% over a 5% line. The reasoning read the contract and the commodity index and accepted it, correctly. The point isn't that others lack agents; it's that a rule fires on a number, and judgment reasons about why."*
+
+### S2P-LEDGER — "Earned Autonomy, week over week" ⭐
+Auto-approve coverage climbing (Jan 18% → Feb 31% → Mar 46%), plus review-hours avoided, abstain rate, bad-auto-approval rate, new-category time-to-trust, promotions/rollbacks; under every expansion, a plain-language *why*. Surface: S2P **Performance** (AutonomyLedger panel). **Class: LIVE** (single-arm) → **NEAR** (two-arm vs frozen).
+
+### S2P-EXTINCT — "Exception extinction" (the promotion workflow)
+The lifecycle on one class: **Discover → Shadow → Promote → Measure → Keep/Rollback → Transfer.** "This quantity-mismatch class was consistently buyer-approved → shadow → counterfactual → promoted day 34 → monitored → transferred to a second plant." **Class: NEAR.** Reuses existing promotion/rejection logs — surfacing task, no new gate logic.
+
+### S2P-TWIN — "The version we froze in March" (frozen-twin control)
+Two curves on the customer's own data — a twin pinned at day-one config vs the live system — the live one pulling away; the gap is the compounding. "The distance between the two lines is the thing you're buying — measured on *your* decisions, not asserted." **Class: NEAR-HEAVY** (~2-3 wks, depends on centroid checkpoint persistence RL-PERSIST). Label divergence MODELED/PILOT-TARGET until measured on real data (F-27).
+
+### S2P-WHATIF — "What would change this decision?" (counterfactual inspector)
+Beside "Why: 5.2% variance, copper +4.8%, §7.3 allows ≤110%, accept 0.91" → "Would flip to HOLD if: contract allowance < 4.8% / supplier exception history deteriorates / commodity correlation leaves trusted range / regulatory evidence incomplete." **Class: NEAR.**
+
+### S2P-DAY0 — "Here's what we can't trust yet" (day-0 readiness)
+Week-one readiness read leading with what the data **doesn't** support yet: source coverage/completeness/provenance/trust-tiers, and the honest empty state — **not** a fabricated ROI. "Day one we don't hand you a number. We hand you the truth about your data." **Class: NEAR.** Cannot use learned factor-trust weights (they need accumulated decisions) — built on enrichment layer.
+
+### S2P-CONFIDENCE — "What I'm not confident about" (always-visible)
+Permanent confidence band per category — "electronics: novelty rising, auto-approve paused itself" — visible before anything breaks. "The fear isn't that it's wrong — it's that it's wrong *quietly*. So it tells you, all the time, where it isn't sure." **Class: LIVE** (novelty/self-pause built) → **NEAR** (always-visible panel).
+
+### S2P-ROOM — Cross-system neutrality tear-down
+"SAP or Coupa will build judgment memory into their own stack." → "Inside their own walls, sure. But SAP's agent will never optimize a *Coupa-to-Celonis* cross-system workflow, and Coupa's won't reach into SAP's. Our moat is **neutrality across your whole stack** — we compound judgment over decisions that span systems no single suite owns."
+
+### S2P-LOOM — Update L-S2P cut (§7.2)
+Lead-simple spine: S14 situation-analysis (SILENCE 2, corrected) → S2P-LEDGER → S2P-EXTINCT → S2P-TWIN → close on moat + "which decision to change" (ENT-1 guard). Keep S6 continuity (E6) as the "your best buyer left; the judgment stayed" beat.
+
+
+---
+
+## §4.16 SOC Additions (v2.6)
+
+### SOC-FIX-1 — Retire "we compound, they don't" / "they start at zero"
+Any beat that leads with "our SOC learns and theirs doesn't" is 2026-false (Torq/Simbian/Prophet/Stellar all claim learning; Torq Retrospect imports years of case history). **Replace with cold-start counter:**
+> "Imported history makes you good at the last firm's incidents. We start you on a strong prior and then learn where *your* environment disagrees with it — and that disagreement is the compounding curve. The noisier your environment, the bigger the gap we open."
+
+### SOC-FIX-2 — Two-regime guard + two overclaims to strip
+- 97.89% centroidal-synthetic number NEVER on the same surface as 78.9% product number (§4.4)
+- No beat says AgentEvolver "evolves the deployment mid-incident" → say *policy evolves continuously from verified outcomes without a retrain or vendor release*
+- No beat says tech-process fusion "makes the attack class impossible" in SOC today → ARCH-for-SOC, demonstrated on S2P/DataOps
+
+### SOC-CONTROL — "How do you know it got better?" (Learning Control Room, F16) ⭐
+One promoted change told in five faces: **BEFORE** (policy) → **CHANGE** (which variant) → **EVIDENCE** (verified outcomes that caused it, with provenance) → **EFFECT** (which past decisions flip, via replay) → **SAFETY** (shadow-test + conservation + rollback target). Surface: Tab 2 Runtime-Evolution. **Class: LIVE** primitives → **NEAR** (unified panel).
+"Every change the system makes to itself shows up here: what changed, the outcomes that earned it, which past calls it would flip, and the safety check — with a rollback button."
+
+### SOC-LADDER — "Autonomy it has to earn" (F17)
+Per category, the rung: **Observed → Assisted → Shadow-qualified → Auto-approved → Circuit-broken.** `cloud_infrastructure` auto-approved, `insider_threat` held at Observed by design, one category circuit-broken this week with the reason. Surface: Tab 4 Compounding header + Tab 3 per-alert badge. **Class: LIVE** → **NEAR** (visible per-class ladder).
+
+### SOC-TWIN — "The version we froze on day one" (F18)
+Two curves on the customer's own alerts — a twin pinned at bootstrap μ₀ (no learning) vs the live system pulling away; the gap is the compounding, in safe coverage and Recovery Half-Life. Surface: Tab 4 Compounding. **Class: NEAR-HEAVY** (~2-3 wks, depends on centroid checkpoint persistence RL-PERSIST). Label divergence MODELED/PILOT-TARGET until measured (H7).
+
+### SOC-NOPRECEDENT — "Similar past cases: none" (F19 — the Stryker beat)
+The similar-cases sidebar's honest empty state, surfaced beside a high-confidence action. The Stryker alert: privileged_identity_context elevated on a service-tier identity issuing bulk Intune ops, MFA/device clean, "**similar past cases: none — unprecedented here**," ESCALATE at high confidence. **Class: LIVE.**
+"A retrieval system is blindest exactly here — no precedent, nothing to recall. Ours scores the identity risk geometrically and escalates anyway, and it tells you plainly it's never seen this before."
+
+### SOC-WHATIF — "What would change this decision?" (F20)
+Beside "Why: privileged identity 0.9, threat-intel 0.8, velocity anomaly" → "Would drop to INVESTIGATE if: identity tier were standard / MFA clean / no velocity anomaly / no threat-intel enrichment." Surface: Tab 3 Triage. **Class: NEAR.**
+
+### SOC-DAY0 — "Here's what we can't trust yet" (F21)
+Week-one readiness read: source coverage, completeness, provenance, connector health (Pulsedive/CISA KEV/NVD), and the honest empty state. No fabricated ROI. Surface: fresh-tenant SOC view. **Class: NEAR.** Cannot use learned factor-trust weights — enrichment layer only.
+
+### SOC-FRONTIER — "Coverage that grows at a fixed safety bar" (§B)
+Replaces raw-accuracy hero with two compounding metrics: safe auto-approve coverage climbing at constant safety bar (per category), and Recovery Half-Life (decisions + days to re-reach competence bar after regime break). Surface: Tab 4 Compounding. **Class: LIVE** (single-arm) → **NEAR** (two-arm vs frozen twin).
+
+### SOC-GAUNTLET — "Run the novelty test yourself" (§C)
+Five perturbations: no-precedent (Stryker) / misleading-precedent / signal-inversion / regime-break / adversarial-context — each showing act-or-abstain, the no-precedent surface, and Recovery Half-Life. Surface: Tab 3 Triage, scripted five-beat sequence. **Class: LIVE** decision path → **NEAR** packaged benchmark.
+"Stryker isn't a lucky anecdote — it's one of five ways we stress the no-precedent claim. Run them on your own stream."
+
+### SOC-ROOM — Platform-absorption kill-shot (CrowdStrike/MS/Palo Alto)
+"CrowdStrike and Microsoft will just ship good-enough triage free in the console." → "Inside their own console, sure — locked to their own data lake. Ours is the **cross-stack judgment gateway**: it compounds *your firm's* verified-decision judgment across CrowdStrike **and** Sentinel **and** Okta at once, over decisions that span systems no single platform owns."
+
+"Security Copilot comes bundled in E5 for near-zero." → "A bundled per-seat copilot doesn't touch the budget line this replaces — MDR/MSSP and SIEM ingest — and it can't show you your own compounding curve."
+
+### SOC-LOOM — Updated L-SOC cut (§7.2)
+Lead-simple spine: SOC-NOPRECEDENT (Stryker no-precedent) → SOC-CONTROL (how you know it got better) → SOC-LADDER (autonomy it earns) → SOC-TWIN (frozen twin proves it) → close on moat (customer-owned judgment + SOAR-first write-back). Keep cross-copilot beat as *signal transfer, not shared judgment*.
+
+---
+
+## §4.17 v2.7 Fixer — Standing Guards and RL-Loop Class Precondition
+
+### Standing guards (no body edit — these are authoring constraints for future beats)
+
+**FIX-2 (SOC two-regime + overclaims):** Not present in the demo body. If a future SOC beat is drafted: (a) never put 97.89% beside 78.9% on a customer surface; (b) say "policy evolves continuously from verified outcomes," not "mid-incident"; (c) frame tech-process fusion as land→expand→end-state (ARCH-for-SOC).
+
+**FIX-3 (DataOps "Level 3+ empty"):** Not present in the demo body. If any companion room-script carries it, replace with "does the number move because of your decisions?"
+
+**FIX-8 (Competitor-API / named-performance guard):** No beat calls a competitor's API, runs a competitor's product, or asserts a named-competitor performance number. SOC-GAUNTLET confirmed own-stream only. Any named-competitor claim → counsel sign-off before external use. Any "vendor X is supplier-monetized" line → verify per named competitor before staging.
+
+### FIX-7 — RL-loop precondition: per-copilot class tags
+
+The honest class of any earned-trust beat depends on: **does a verified decision measurably move a later score end-to-end for that copilot?**
+
+| Copilot | Centroid-learning loop | AgentEvolver-promotion loop | Acceleration | Net class for earned-trust beats |
+|---|---|---|---|---|
+| **SOC** | Verified LIVE (§8 10-cycle test) | Confirm-before-LIVE (Gate 2) | MODELED | LIVE (centroid-grounded) / NEAR (promotion-dependent) |
+| **DataOps** | Unconfirmed (DD-0, OD-1) | Unconfirmed | MODELED | **NEAR/ARCH until confirmed** — biggest truth risk |
+| **S2P** | Same test needed | Same test needed | MODELED | NEAR until confirmed |
+| **Purchasing** | Same test needed | Same test needed | MODELED | NEAR until confirmed |
+| **Trading** | Same test needed | Same test needed | MODELED | NEAR until confirmed |
+
+### §5 Preseed Additions (v2.6 — from all 3 copilot reviews)
+
+**Trading preseed (§4.12):**
+- Discover/confirm split in trading history (older 70% / held-out recent 30%)
+- ≥1 detector that fires but fails FDR on the sample trader (for TRD-CLAIM-GATE + TRD-CERTIFICATE)
+- Hypotheses-tested counter ("23 tested / 3 powered / 1 survived") surfaced from the gate
+
+**Purchasing preseed (§4.13):**
+- Staffing-change window in purchasing history (de-identified, for PUR-HERO / The Handoff)
+- New-supplier pair with different ramp lengths (for PUR-RAMP time-to-competence)
+- Gated-I1 empty-state fixture (clean buyer where no factor survives hold-out, for PUR-NOT-YET)
+- Quiet Week fixture ($0 incremental, coverage high)
+- Manager-drift decisions (for PUR-REFUSAL self-pause)
+
+**DataOps preseed (§4.14):**
+- Perturbation fixture (inject anomalies → trust drops → clean revert + provenance log)
+- Rejected-rule log (shadow-tested 45% → rejected) for DI-ADMITS-FAILURE
+- New-source ramp pair (1st vs 6th, same schema class) for DI-FIRSTVS6TH
+- Frozen-model snapshot for DI-TWIN
+- Insufficient-evidence source (4 decisions) for DI-ABSTAIN
+
+**S2P preseed (§4.15):**
+- Non-flat auto-approve coverage series (S2P-LEDGER trajectory)
+- Frozen-twin baseline arm on same seed (S2P-TWIN)
+- At least one promoted + transferred exception class in S2P promotion logs (S2P-EXTINCT)
+- Day-zero S2P tenant state available via toggle (S2P-DAY0), enrichment-layer only
+- Cross-copilot Purchasing→S2P signal (feeds continuity/compounding)
+- Frozen-twin divergence labeled MODELED/PILOT-TARGET until measured on real data (F-27)
+
+**SOC preseed (§4.16):**
+- Non-flat auto-approve coverage series at fixed safety bar per category (SOC-FRONTIER)
+- Frozen-twin baseline arm on same seed (SOC-TWIN)
+- At least one promoted + rolled-back change in AgentEvolver logs with evidence + counterfactual (SOC-CONTROL)
+- One circuit-broken category (SOC-LADDER)
+- Day-zero SOC tenant state via toggle, enrichment-layer only (SOC-DAY0)
+- Five Novel Attack Gauntlet beats seeded including regime-break with measurable Recovery Half-Life (SOC-GAUNTLET)
+- Stryker no-precedent alert (SOC-NOPRECEDENT)
+- 97.89% mechanism number NEVER on customer-facing surface (SOC-FIX-2)
+- Frozen-twin divergence labeled MODELED/PILOT-TARGET until measured on real data
+
+**All copilots:** $/trust magnitudes are **illustrative-from-preseed with provenance badges (F-21/F-22)** — never presented as measured outcomes; show the day-zero state when n < K.
 
 ## 6. Internal review + llm-judge record (the process applied to this doc)
 
@@ -917,7 +1131,9 @@ record).
 | v2.2 | August 2, 2026 | **DataOps Data Intelligence beats.** Added §4.9 with 6 new demo beats (DI-TRUST, DI-SOURCE, DI-PRODUCT, DI-GOLD, DI-TIMELINE, DI-ADMITS-FAILURE) covering all shipped DI features. Two new competitive rooms (#12 data quality, #13 data-as-product) with kill-shot lines and tear-down answers. Two new silence beats (#4 trust gap, #5 gold lines). Enterprise cut E5b insertion. L-DATAOPS-DI Loom cut. Frontend build items for demo-readiness. All beats tagged with class (LIVE/NEAR) and API references. |
 | v2.3 | August 4, 2026 | **DI-PROOF linchpin beat + mirror→moat arc.** Added §4.9.0 DataOps cut arc (6-beat sequence). Added DI-PROOF ("Earned, Not Asserted") — live perturbation of trust score, ~2-3d build, NEAR class. Silence beat #6. Resequenced 8 beats from feature tour → story spine. Strengthening themes from dataops_data_intelligence_strengthening_v1.md. |
 | v2.4 | August 8, 2026 | **Reference + differentiation beats.** Added §4.10: DIFF-1 governed-vs-ungoverned rebuttal (⭐ rooms 2+3), COMP-1 compounding curve (⭐ VC lead beat), L-CDK developer cut (3 beats). Added §4.11: B1-B4 beat corrections from VC judge panel (rejection inversion, RL naming, SOC exploration proposal-only, CC-1 two distances). |
-| v2.5 | August 10, 2026 | **Fixer: propagate §4.10/§4.11 into primary sections.** (A) B2 RL naming applied — retired the outdated claim that judgment lacks a reward function from §0.2/§0.3/§5, replaced with centroid-distance reconciliation. (B) B1 rejection inversion applied — V2/E3 lead with promotion. (C) COMP-1 propagated into VC cut §2.1+§2.4 with CC-1 guard. (D) DIFF-1 propagated into §0.1 rooms 2/3. (E) L-CDK added to §7.2 Loom cuts. (F) SOC exploration proposal-only + DIFF-1/L-CDK datasets added to §5 preseed. (G) Doc control tables merged; §4.11 marked applied. |
+| v2.5 | August 10, 2026 | **Fixer: propagate §4.10/§4.11 into primary sections.** (A) B2 RL naming applied — retired the "no-RF" claim from §0.2/§0.3/§5, replaced with centroid-distance reconciliation. (B) B1 rejection inversion applied — V2/E3 lead with promotion. (C) COMP-1 propagated into VC cut §2.1+§2.4 with CC-1 guard. (D) DIFF-1 propagated into §0.1 rooms 2/3. (E) L-CDK added to §7.2 Loom cuts. (F) SOC exploration proposal-only + DIFF-1/L-CDK datasets added to §5 preseed. (G) Doc control tables merged; §4.11 marked applied. |
+| v2.6 | August 15, 2026 | **Five-copilot review additions.** Merged 5 addenda from consolidated 3-LLM reviews: §4.12 Trading (TRD-CLAIM-GATE, TRD-CERTIFICATE, TRD-GATE-DIVIDEND, TradeZella competitive, B1-B8 naming, observation-only guard), §4.13 Purchasing (PUR-HERO, PUR-GATE, PUR-PROOF-LEDGER, PUR-NOT-YET, PUR-REFUSAL, PUR-RAMP, data-maturity tags), §4.14 DataOps (DD-0 precondition, DI-ABSTAIN, DI-GATEWAY, DI-FIRSTVS6TH, DI-TWIN, DI-PROOF strengthen, DI-GOLD de-risk, buyer-language guard), §4.15 S2P (S2P-LEDGER, S2P-EXTINCT, S2P-TWIN, S2P-WHATIF, S2P-DAY0, S2P-CONFIDENCE, cross-system neutrality), §4.16 SOC (SOC-CONTROL, SOC-LADDER, SOC-TWIN, SOC-NOPRECEDENT, SOC-WHATIF, SOC-DAY0, SOC-FRONTIER, SOC-GAUNTLET, platform-absorption kill-shot). Corrections: S2P-FIX-1 (SILENCE 2 overclaim), SOC-FIX-1 (cold-start counter), SOC-FIX-2 (two-regime guard). 2 new rooms (#14 agent-trust, #15 purchasing). 6 new tear-downs. 5 preseed sections. DataOps arc re-sequenced to 7-beat machinery-first. V1 gated with correction survival. |
+| v2.7 | August 15, 2026 | **Fixer: propagate §4.12-§4.16 into body + class-honesty corrections.** FIX-1: SOC room-8 tear-down opener retuned (cold-start counter). FIX-4: Purchasing I1 renamed (signal reliability / invoice-variance profile). FIX-5: Trading T4/T14 fold notes added. FIX-6: All frozen-twin beats re-tagged NEAR-HEAVY (~2-3 wks, RL-PERSIST). FIX-7: Per-copilot RL-loop class precondition table (§4.17). FIX-2/3/8: Standing guards (no body edit needed). |
 | v2.1 | July 11, 2026 | **Presenter technique + competitive Q&A + S14 contrast.** (1) **§2.5 silence beats** — the three moments where the presenter STOPS TALKING (Mirror at V1 second 45-75, SituationPanel at E2 second 30-60, Rejection Table at V2 second 60-90); includes physical staging instructions and recovery lines. The meta-principle: 20 seconds of deliberate silence in a 420-second demo is where the decision happens. (2) **§0.3 competitive tear-down lines** — per-room "when they say X, you say Y" one-liners for 11 competitive rooms, plus a meta-pattern for unexpected competitors ("They solve [X]. We solve the layer underneath: how does the system that solves [X] get better over time, safely?"). (3) **§4.2.1 S14 rule-vs-reasoning contrast** — a two-column side-by-side showing what a threshold rule would have done (REJECT, $340K false rejections) vs what the SituationPanel produced (ACCEPT, confidence 0.91, contract cited). The contrast is COMPUTED, not hardcoded (same invoice, real threshold). ~0.5d frontend build. Appears at Enterprise E2 after SILENCE 2. |
 | v2.2 | August 2, 2026 | **DataOps Data Intelligence beats.** Added §4.9 with 8 demo beats (DI-TRUST, DI-SOURCE, DI-PRODUCT, DI-GOLD, DI-TIMELINE, DI-ADMITS-FAILURE, DI-DIRTY-DATA, DI-AGENT-TRUST). Two new competitive rooms (#12 data quality, #13 data-as-product). Two new silence beats (#4, #5). Enterprise cut E5b. L-DATAOPS-DI Loom cut. Frontend build items. F-21/F-22 honesty guard. |
 | v1.0 | July 10, 2026 | Initial consolidation. Fused the June-1 hero-doc narrative frame (mirror-not-moat, autonomy-vs-automation, four innovations) with the July-9 feature-complete state and the strategy's three differentiators/hero moments. §0 reconciles superseded hero-doc items (Mirror tab, #120-127, P0/L5/D2 gating). §1 unified frame; §2 three demo cuts (VC 7m / trader 3m / enterprise 12m) as beats with surface+API+timing; §3 full 94-scenario catalog (92 ready, 2 deferred) with cut+pillar mapping; §4 net-new hero-moment build items (Rejection/Counterfactual/Day-Zero + staged trust beats + BYOD) with owner/DoD/effort; §5 demo-base preseed requirements (flat-IKS = top risk); §6 internal-review + llm-judge record. |
@@ -925,4 +1141,4 @@ record).
 | v1.2 | July 10, 2026 | **Cross-doc reconciliation.** Aligned with `next_steps_strategy_v1_1.md`: the single coding build list is that doc's §9 Execution Synopsis (C-1..C-14); this doc is the spec it references. Made two shared items explicit to prevent double-building: **LOOM-1 ≡ strategy W1-1 = C-1** (one deterministic-preseed artifact), and **§4 DM-1/CF-1/DZ-1/ST-5 ≡ strategy HERO-1/2/3/4** (C-2/C-3/C-4). Title/companion refs updated. No scenario or beat changes. |
 | v1.3 | July 10, 2026 | **Reconciled with the outreach catalog.** Added §3.1 aligning this doc with `outreach_use_scenario_catalog.md` (v1.0, May 21): established the two-lens relationship (catalog = scenario universe + outreach messaging + 23 heroes + one-liners + industry-data; this doc = demo-ready/surface-mapped), reconciled the counts (catalog 91 vs this 94 — differ by counting granularity + date, e.g. SOC 10 narrative units vs 20 per-tab scenarios; Trading 20 and S2P 16 match exactly; neither authoritative over the other), and mapped the demo beats to the outreach heroes with the proven one-liners + industry-data hooks for the presenter scripts (TRD-1 mirror, SOC-4 admits-failure, DO-4 $604K fusion, DO-2/PUR-3 departure, SOC-1 amnesia). No scenarios re-typed — the catalog stays the source for the full 91 + messaging; this doc guarantees demoability. Companion refs updated. |
 | v1.4 | July 10, 2026 | **Positioning reconciliation with next_steps v1.8.** §1 pillars updated to the deployability framing — **Governed / Grounded / Compounding** (compounding demoted to support) — and the spine reframed to "Compounding Intelligence = the governed compounding layer" (above loop/context/harness engineering); situation-analysis (S14→P2) and context-graph synthesis flagged `[VERIFY shipped vs roadmap]` per next_steps C-VERIFY-L3L4. V7 close rewritten to the governance-bottleneck / governed-compounding-layer message ("loop engineering makes an agent finish a task; we make the whole system get better at every task, safely; the market spent 18 months proving 88% of pilots die on governance"). No scenario/beat/build changes. |
-| v2.0 | July 10, 2026 | **Brought current with next_steps v1.21 + product_integrity v3.0.** (1) **§0.1 room→kill-shot map** — beats re-indexed by **competitive room** (not only by copilot), one weapon + one line per room; 10 of 13 rooms have a LIVE kill shot. (2) **Scenario classes LIVE / NEAR / ARCH** now travel with every beat (product_integrity §2.8): showing roadmap is allowed and expected; implying roadmap is LIVE is the only violation (F-27). (3) **§0.2 demo-truth constraints** — the three things the code says that the storyboard must respect: **SOC learning is DISABLED by default** (`soc/config.py:66`) so any SOC "watch it learn" beat won't fire unless enabled (C-1 DoD: prove a verified decision changes a later SOC score, or re-cut the beat); **naming (F-25)** — the primary mechanism is decision-trace/prototype learning from verified decisions, **not "RL"** (and judgment is not reward-maximizing; exploration is conservation-bounded by construction, C-18/C-19); **C-17 is scoped (F-24)** — prompt-variant promotion is ungated, so say "governs our scoring, exploration and scorer-evolution loops," never "all loops," until C-GOV lands; and no shared cross-copilot judgment claim (F-26). (4) **New §4.6** — Trading situation-conditioned + volatility beats (TRD-S1..S4, TRD-V1/V2/V5/V6/V7), leading with **TRD-S3 autonomy throttle**, **TRD-V1 short-vol illusion** and **TRD-V2 VRP edge-or-insurance**; all magnitudes flagged as illustrative formats, not measured results. (5) **New §4.7 — TRD-S7 "The Re-convergence Moment"** (⭐ the strongest technical beat available): replay a real 2020/2022 regime break, cold-start vs regime-indexed re-convergence = **γ>1 made visible against non-stationarity**, the failure that kills every RL trading system; class **ARCH** until C-REGIME P4 + EXP-REGIME. (6) **New §4.8 — ENT-1 "The Sunk-Investment Multiplier"** (the Celonis/enterprise wedge's missing beat: "your Celonis spend just became more valuable, not obsolete"), with a scope guard — surface *which decision to change*, not *we execute it in your ERP* (write-back is roadmap). (7) **§5 preseed** gains SOC-learning-enabled, Trading situational tags, and a real regime-break window; hard constraints gain the F-24/F-25/F-26 wording rules. (8) `SOC-V4` catalog entry renamed off "RL Safety Controls." |
+| v2.0 | July 10, 2026 | **Brought current with next_steps v1.21 + product_integrity v3.0.** (1) **§0.1 room→kill-shot map** — beats re-indexed by **competitive room** (not only by copilot), one weapon + one line per room; 10 of 15 rooms have a LIVE kill shot. (2) **Scenario classes LIVE / NEAR / ARCH** now travel with every beat (product_integrity §2.8): showing roadmap is allowed and expected; implying roadmap is LIVE is the only violation (F-27). (3) **§0.2 demo-truth constraints** — the three things the code says that the storyboard must respect: **SOC learning is DISABLED by default** (`soc/config.py:66`) so any SOC "watch it learn" beat won't fire unless enabled (C-1 DoD: prove a verified decision changes a later SOC score, or re-cut the beat); **naming (F-25)** — the primary mechanism is decision-trace/prototype learning from verified decisions, **not "RL"** (and the honest line is stronger: the "no-RF" claim (C-18); exploration is conservation-bounded by construction, C-19); **C-17 is scoped (F-24)** — prompt-variant promotion is ungated, so say "governs our scoring, exploration and scorer-evolution loops," never "all loops," until C-GOV lands; and no shared cross-copilot judgment claim (F-26). (4) **New §4.6** — Trading situation-conditioned + volatility beats (TRD-S1..S4, TRD-V1/V2/V5/V6/V7), leading with **TRD-S3 autonomy throttle**, **TRD-V1 short-vol illusion** and **TRD-V2 VRP edge-or-insurance**; all magnitudes flagged as illustrative formats, not measured results. (5) **New §4.7 — TRD-S7 "The Re-convergence Moment"** (⭐ the strongest technical beat available): replay a real 2020/2022 regime break, cold-start vs regime-indexed re-convergence = **γ>1 made visible against non-stationarity**, the failure that kills every RL trading system; class **ARCH** until C-REGIME P4 + EXP-REGIME. (6) **New §4.8 — ENT-1 "The Sunk-Investment Multiplier"** (the Celonis/enterprise wedge's missing beat: "your Celonis spend just became more valuable, not obsolete"), with a scope guard — surface *which decision to change*, not *we execute it in your ERP* (write-back is roadmap). (7) **§5 preseed** gains SOC-learning-enabled, Trading situational tags, and a real regime-break window; hard constraints gain the F-24/F-25/F-26 wording rules. (8) `SOC-V4` catalog entry renamed off "RL Safety Controls." |

@@ -65,6 +65,23 @@ test.describe("Trading new surfaces", () => {
     expect((await history.json()).checkpoints).toBeDefined();
   });
 
+  test("live provider is present across health, diagnostics, and evolution", async ({ request }) => {
+    const health = await request.get("http://127.0.0.1:8010/health");
+    expect(health.status()).toBe(200);
+    const healthPayload = await health.json();
+    expect(healthPayload.conservation.source).toBeTruthy();
+    expect(healthPayload.conservation.source).not.toBe("literal");
+
+    const diagnostics = await request.get("http://127.0.0.1:8010/api/self/diagnostics");
+    const diagnosticPayload = await diagnostics.json();
+    expect(diagnosticPayload.conservation.status).toBeTruthy();
+    expect(diagnosticPayload.conservation.domain).toBe("trading");
+
+    const evolution = await request.get("http://127.0.0.1:8010/api/self/evolution/summary");
+    const evolutionPayload = await evolution.json();
+    expect(evolutionPayload.provider_source).toBeTruthy();
+  });
+
   test("measurement spine flow crosses Dashboard, Analysis, and Performance", async ({ page }) => {
     await gotoTradingTab(page, "Dashboard");
     await expect(page.getByTestId("day-zero-card")).toBeVisible({ timeout: 60_000 });

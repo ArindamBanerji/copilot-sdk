@@ -14,7 +14,13 @@ import logging
 from statistics import pstdev
 from typing import Any, Callable
 
-from copilot_sdk.evolution import AgentEvolver, DefaultPromotionGate, DefaultShadowRunner
+from copilot_sdk.evolution import (
+    AgentEvolver,
+    DefaultPromotionGate,
+    DefaultShadowRunner,
+    VariantSpec,
+    VariantStore,
+)
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
@@ -167,6 +173,7 @@ class TradingAgentEvolver:
     factor_names: list[str] | tuple[str, ...] = field(default_factory=lambda: list(TRADING_FACTOR_NAMES))
     conservation_provider: Callable[[], Any] = _default_conservation_state
     regime_break_provider: Callable[[], bool] = lambda: False
+    variant_store: VariantStore | None = None
 
     def __post_init__(self) -> None:
         self._baseline = self.baseline_scorer
@@ -195,6 +202,10 @@ class TradingAgentEvolver:
         return self._sdk_evolver
 
     @property
+    def store(self) -> VariantStore | None:
+        return self.variant_store
+
+    @property
     def last_shadow_store(self) -> Any | None:
         return self._last_shadow_store
 
@@ -209,7 +220,22 @@ class TradingAgentEvolver:
             variant["variant_id"] = variant_id
             variant.setdefault("id", variant_id)
             self._variants[variant_id] = variant
-            self._outcomes.setdefault(variant_id, {"successes": 0, "failures": 0})
+            if self.variant_store is not None:
+                self.variant_store.register_variant(
+                    VariantSpec(
+                        id=variant_id,
+                        family=str(variant.get("family") or "trading"),
+                        status="active",
+                        metadata=variant,
+                    )
+                )
+                stats = self.variant_store.get_global_stats(variant_id)
+                self._outcomes.setdefault(
+                    variant_id,
+                    {"successes": stats.successes, "failures": stats.failures},
+                )
+            else:
+                self._outcomes.setdefault(variant_id, {"successes": 0, "failures": 0})
             registered.append(variant_id)
         return registered
 
@@ -230,6 +256,8 @@ class TradingAgentEvolver:
         counts = self._outcomes.setdefault(normalized_id, {"successes": 0, "failures": 0})
         key = "successes" if bool(success) else "failures"
         counts[key] += 1
+        if self.variant_store is not None:
+            self.variant_store.record_outcome(normalized_id, bool(success), category=category)
         payload = {
             "event_type": "outcome_recorded",
             "variant_id": normalized_id,
@@ -240,9 +268,57 @@ class TradingAgentEvolver:
         self._log.append(payload)
         return deepcopy(payload)
 
+    def record_outcome(
+        self,
+        variant_id: str,
+        success: bool,
+        category: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Expose the shared evolution outcome contract."""
+        return self.record_verified_outcome(variant_id, success, category=category)
+
+    def check_for_promotion(
+        self,
+        family: str | None = None,
+        conservation_state: Any = None,
+    ) -> dict[str, Any]:
+        """Expose the shared promotion trigger over Trading's custom gate."""
+        candidate_id = family
+        if candidate_id is None:
+            candidate_id = next(
+                (variant_id for variant_id in self._results if self._results[variant_id]),
+                None,
+            )
+        if candidate_id is None:
+            return {"promoted": False, "reason": "insufficient_batches"}
+        return self.check_promotion(candidate_id)
+
+    def get_active_rules(self) -> dict[str, Any]:
+        """Retain the legacy generic-router inventory interface."""
+        return self.sdk_evolver.get_active_rules()
+
+    def get_promoted_rules(self) -> list[str]:
+        """Retain the legacy generic-router promotion interface."""
+        return self.sdk_evolver.get_promoted_rules()
+
+    def get_evolution_history(
+        self,
+        rule_name: str | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Retain the legacy generic-router history interface."""
+        return self.sdk_evolver.get_evolution_history(rule_name=rule_name, limit=limit)
+
     def generate_variant(self) -> dict[str, Any]:
         variant = self._generator.generate()
         self._variants[str(variant["variant_id"])] = variant
+        if self.variant_store is not None:
+            self.variant_store.register_variant(
+                VariantSpec(
+                    id=str(variant["variant_id"]), family="trading",
+                    status="shadow", metadata=variant,
+                )
+            )
         self._log.append({
             "event_type": "variant_generated",
             "variant_id": variant["variant_id"],
@@ -417,10 +493,17 @@ class TradingAgentEvolver:
                 "avg_improvement_pp": round(sum(improvements) / len(improvements), 4) if improvements else 0.0,
                 "status": status,
                 "results": deepcopy(results),
-                "successes": int(self._outcomes.get(variant_id, {}).get("successes", 0)),
-                "failures": int(self._outcomes.get(variant_id, {}).get("failures", 0)),
+                "successes": self._stats_for(variant_id)[0],
+                "failures": self._stats_for(variant_id)[1],
             })
         return variants
+
+    def _stats_for(self, variant_id: str) -> tuple[int, int]:
+        if self.variant_store is not None:
+            stats = self.variant_store.get_global_stats(variant_id)
+            return stats.successes, stats.failures
+        counts = self._outcomes.get(variant_id, {})
+        return int(counts.get("successes", 0)), int(counts.get("failures", 0))
 
     def active_variant(self) -> dict[str, Any] | None:
         return deepcopy(self._active_variant) if self._active_variant else None
@@ -435,16 +518,16 @@ class _DefaultBaseline:
 
 def create_default_trading_evolver(
     *,
+    conservation_provider: Callable[[], Any],
     baseline_scorer: Any | None = None,
     store_factory: Callable[[], Any] | None = None,
-    conservation_provider: Callable[[], Any] | None = None,
     regime_break_provider: Callable[[], bool] | None = None,
 ) -> TradingAgentEvolver:
     evolver = TradingAgentEvolver(
         baseline_scorer=baseline_scorer or _DefaultBaseline(),
         store_factory=store_factory or (lambda: object()),
         factor_names=TRADING_FACTOR_NAMES,
-        conservation_provider=conservation_provider or _default_conservation_state,
+        conservation_provider=conservation_provider,
         regime_break_provider=regime_break_provider or (lambda: False),
     )
     from app.evolution.evolver_config import get_trading_variants

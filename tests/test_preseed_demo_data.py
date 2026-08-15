@@ -196,21 +196,33 @@ def test_preseed_has_overrides(monkeypatch) -> None:
         assert len(confirmations) == 150
 
 
-def test_preseed_idempotent(monkeypatch) -> None:
+def test_preseed_idempotent() -> None:
     preseed = _load_preseed_module()
     calls: list[tuple[str, dict[str, Any]]] = []
 
-    monkeypatch.setattr(preseed, "load_seed", lambda _path: _source_seed())
-    monkeypatch.setattr(preseed, "check_health", lambda _base_url: (True, {}))
-    monkeypatch.setattr(
-        preseed,
-        "check_already_seeded",
-        lambda _base_url: (True, {"decisions_total": preseed.PRESEED_DECISIONS_PER_COPILOT}),
-    )
-    monkeypatch.setattr(preseed, "verify_domain", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(preseed, "api_post", lambda _base_url, path, body: calls.append((path, body)) or {})
+    class InMemoryPreseedClient:
+        def check_health(self, _base_url: str) -> tuple[bool, dict[str, Any]]:
+            return True, {}
 
-    result = preseed.seed_domain(preseed.DOMAINS[0], _args())
+        def check_already_seeded(self, _base_url: str) -> tuple[bool, dict[str, Any]]:
+            return True, {"decisions_total": preseed.PRESEED_DECISIONS_PER_COPILOT}
+
+        def has_regime_checkpoint(self, _base_url: str) -> bool:
+            return True
+
+        def api_post(self, _base_url: str, path: str, body: dict[str, Any]) -> dict[str, Any]:
+            calls.append((path, body))
+            return {}
+
+        def verify_domain(
+            self, _config: Any, _base_url: str,
+            _successes: int, _failures: int, _total_reward: float,
+        ) -> None:
+            return None
+
+    result = preseed.seed_domain(
+        preseed.DOMAINS[0], _args(), client=InMemoryPreseedClient()
+    )
 
     assert result.skipped is True
     assert result.total == 200

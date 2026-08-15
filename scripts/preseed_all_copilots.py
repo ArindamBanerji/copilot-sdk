@@ -13,7 +13,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Tuple
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Protocol, Tuple
 from urllib import error, request
 
 from copilot_sdk.backend.transfer import save_fingerprint
@@ -84,6 +84,41 @@ class DomainResult(NamedTuple):
     skipped: bool
     unreachable: bool
     total_reward: float
+
+
+class PreseedClient(Protocol):
+    """Transport and verification seam for preseed orchestration."""
+
+    def check_health(self, base_url: str) -> Tuple[bool, Any]: ...
+    def check_already_seeded(self, base_url: str) -> Tuple[bool, Dict[str, Any]]: ...
+    def has_regime_checkpoint(self, base_url: str) -> bool: ...
+    def api_post(self, base_url: str, path: str, body: Dict[str, Any]) -> Any: ...
+    def verify_domain(
+        self, config: DomainConfig, base_url: str,
+        successes: int, failures: int, total_reward: float,
+    ) -> None: ...
+
+
+class HttpPreseedClient:
+    """Production client backed by the script's standard-library HTTP calls."""
+
+    def check_health(self, base_url: str) -> Tuple[bool, Any]:
+        return check_health(base_url)
+
+    def check_already_seeded(self, base_url: str) -> Tuple[bool, Dict[str, Any]]:
+        return check_already_seeded(base_url)
+
+    def has_regime_checkpoint(self, base_url: str) -> bool:
+        return has_regime_checkpoint(base_url)
+
+    def api_post(self, base_url: str, path: str, body: Dict[str, Any]) -> Any:
+        return api_post(base_url, path, body)
+
+    def verify_domain(
+        self, config: DomainConfig, base_url: str,
+        successes: int, failures: int, total_reward: float,
+    ) -> None:
+        verify_domain(config, base_url, successes, failures, total_reward)
 
 
 DOMAINS = [
@@ -333,7 +368,12 @@ def annotate_trading_regime(seed: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return annotated
 
 
-def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
+def seed_domain(
+    config: DomainConfig,
+    args: argparse.Namespace,
+    client: PreseedClient | None = None,
+) -> DomainResult:
+    transport = client or HttpPreseedClient()
     base_url = domain_url(config)
     source_seed = load_seed(config.seed_path)
     seed = expanded_seed(source_seed)
@@ -347,7 +387,7 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
     )
     print("url: %s" % base_url)
 
-    healthy, health_payload = check_health(base_url)
+    healthy, health_payload = transport.check_health(base_url)
     if not healthy:
         print("health: unreachable (%s)" % health_payload)
         return DomainResult(config.name, len(seed), 0, 1, 0, False, True, 0.0)
@@ -355,7 +395,7 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
 
     if args.dry_run:
         try:
-            _already, trajectory = check_already_seeded(base_url)
+            _already, trajectory = transport.check_already_seeded(base_url)
             print("trajectory decisions_total: %s" % trajectory.get("decisions_total", "unknown"))
         except ApiError as exc:
             print("trajectory: unavailable (%s)" % exc)
@@ -364,7 +404,7 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
         return DomainResult(config.name, len(seed), len(seed), 0, 0, False, False, 0.0)
 
     try:
-        already_seeded, trajectory = check_already_seeded(base_url)
+        already_seeded, trajectory = transport.check_already_seeded(base_url)
     except ApiError as exc:
         print("trajectory: unavailable (%s)" % exc)
         return DomainResult(config.name, len(seed), 0, 1, 0, False, True, 0.0)
@@ -372,7 +412,7 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
     existing_decisions = int(trajectory.get("decisions_total") or 0)
     regime_backfill = False
     if already_seeded and not args.force:
-        if config.name == "trading" and not has_regime_checkpoint(base_url):
+        if config.name == "trading" and not transport.has_regime_checkpoint(base_url):
             # Existing demo data may have been seeded before regime metadata was
             # added. Append a small annotated batch instead of requiring --force
             # (which would append the entire seed set).
@@ -386,7 +426,7 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
                 "already seeded: decisions_total=%s target=%s; skipping (use --force to append again)"
                 % (trajectory.get("decisions_total"), PRESEED_DECISIONS_PER_COPILOT)
             )
-            verify_domain(config, base_url, 0, 0, 0.0)
+            transport.verify_domain(config, base_url, 0, 0, 0.0)
             return DomainResult(config.name, len(seed), 0, 0, 0, True, False, 0.0)
 
     if not args.force and not regime_backfill:
@@ -429,14 +469,14 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
                     "vol_state": (entry.get("regime_context") or {}).get("vol_state", "calm"),
                     "regime_context": dict(entry.get("regime_context") or {}),
                 }
-            score = api_post(base_url, "/api/score", score_body)
+            score = transport.api_post(base_url, "/api/score", score_body)
             decision_id = score.get("decision_id")
             if not decision_id:
                 raise ValueError("score response missing decision_id")
             action, is_override = learn_action(entry, score, config, seed_sequence)
             if not action:
                 raise ValueError("missing actual_action")
-            learn = api_post(
+            learn = transport.api_post(
                 base_url,
                 "/api/learn",
                 {
@@ -456,7 +496,7 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
             )
             total_reward += float(learn.get("reward") or 0.0)
             try:
-                api_post(base_url, config.metadata_path, metadata_payload(entry, factors, score))
+                transport.api_post(base_url, config.metadata_path, metadata_payload(entry, factors, score))
             except Exception as exc:
                 metadata_failures += 1
                 print("  warning: metadata failed for %s #%s %s: %s" % (config.name, index, label, exc))
@@ -469,7 +509,7 @@ def seed_domain(config: DomainConfig, args: argparse.Namespace) -> DomainResult:
 
     elapsed = time.time() - start
     print("seeded %s/%s in %.1fs" % (successes, len(seed), elapsed))
-    verify_domain(config, base_url, successes, failures, total_reward)
+    transport.verify_domain(config, base_url, successes, failures, total_reward)
     return DomainResult(config.name, len(seed), successes, failures, metadata_failures, False, False, total_reward)
 
 

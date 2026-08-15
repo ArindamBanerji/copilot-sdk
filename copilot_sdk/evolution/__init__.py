@@ -9,6 +9,7 @@ from copilot_sdk.evolution.conservation_contract import (
     CachedAsyncProvider,
     ConservationState,
     ConservationStateProvider,
+    normalize_conservation_state,
     ScorerBackedProvider,
 )
 from copilot_sdk.evolution.ledger import InMemoryEvolutionLedger
@@ -27,6 +28,8 @@ from copilot_sdk.evolution.shadow import DefaultShadowRunner
 from copilot_sdk.evolution.variant_store import (
     CategoryVariantStats,
     InMemoryVariantStore,
+    SQLiteVariantStore,
+    VariantStore,
     VariantSpec,
     VariantStats,
 )
@@ -39,6 +42,7 @@ __all__ = [
     "CachedAsyncProvider",
     "ConservationState",
     "ConservationStateProvider",
+    "normalize_conservation_state",
     "DefaultShadowRunner",
     "EVOLUTION_EVENT_TYPES",
     "EvolutionEvent",
@@ -47,6 +51,8 @@ __all__ = [
     "EvolutionStore",
     "InMemoryEvolutionLedger",
     "InMemoryVariantStore",
+    "SQLiteVariantStore",
+    "VariantStore",
     "PromotionGate",
     "PromotionDecision",
     "PlateauConfig",

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request
+from pydantic import BaseModel, Field
 
 from copilot_sdk.evolution import (
     AgentEvolver,
@@ -22,10 +23,20 @@ from copilot_sdk.backend.models import (
 from copilot_sdk.state.cached_static import cached_static
 
 
+class EvolutionOutcomeRequest(BaseModel):
+    variant_id: str = Field(min_length=1)
+    success: bool
+    decision_id: str = Field(min_length=1)
+
+
+class EvolutionPromotionRequest(BaseModel):
+    family: str | None = None
+
+
 def create_evolution_router(
     graph_store_factory: Callable[[], Any] | None = None,
     domain: str = "unknown",
-    evolver_factory: Callable[[], AgentEvolver | PromptVariantEvolver] | None = None,
+    evolver_factory: Callable[[], Any] | None = None,
     variant_provider: Callable[[], list[dict[str, Any]]] | None = None,
 ) -> APIRouter:
     if graph_store_factory is not None and not callable(graph_store_factory):
@@ -140,6 +151,53 @@ def create_evolution_router(
             **prompt_summary,
         }
 
+    @router.post("/record-outcome")
+    def record_outcome(request: EvolutionOutcomeRequest) -> dict[str, Any]:
+        """Record one verified outcome against the app's live evolver."""
+        evolver = _get_evolver()
+        recorder = getattr(evolver, "record_outcome", None)
+        if not callable(recorder):
+            recorder = getattr(evolver, "record_verified_outcome", None)
+        if not callable(recorder):
+            raise HTTPException(status_code=501, detail="evolver does not support outcomes")
+        try:
+            recorder(request.variant_id, request.success)
+        except (KeyError, ValueError) as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        stats = _variant_stats(evolver, request.variant_id)
+        return {
+            "domain": domain,
+            "decision_id": request.decision_id,
+            "variant_id": request.variant_id,
+            "success": request.success,
+            "recorded": True,
+            "stats": stats,
+        }
+
+    @router.post("/check-promotion")
+    def check_promotion(request: EvolutionPromotionRequest | None = None) -> dict[str, Any]:
+        """Explicitly evaluate promotion using the evolver's live gate/provider."""
+        evolver = _get_evolver()
+        family = request.family if request is not None else None
+        checker = getattr(evolver, "check_for_promotion", None)
+        if not callable(checker):
+            raise HTTPException(status_code=501, detail="evolver does not support promotion checks")
+        try:
+            result = checker(family=family)
+        except TypeError:
+            result = checker()
+        result = dict(result or {})
+        promoted = bool(result.get("promoted") or result.get("promoted_id"))
+        eligible = bool(result.get("promotable", promoted))
+        return {
+            "domain": domain,
+            "promoted": promoted,
+            "eligible": eligible,
+            "blocked": not eligible,
+            "reason": result.get("reason") or result.get("message"),
+            "result": result,
+        }
+
     return router
 
 
@@ -160,6 +218,34 @@ def _prompt_summary(evolver: AgentEvolver | PromptVariantEvolver) -> dict[str, A
     return dict(evolver.get_summary())
 
 
+def _variant_stats(evolver: Any, variant_id: str) -> dict[str, Any] | None:
+    summary = getattr(evolver, "get_summary", None)
+    if callable(summary):
+        for variant in summary().get("variants", []):
+            if str(variant.get("id") or variant.get("variant_id")) == variant_id:
+                return {
+                    "variant_id": variant_id,
+                    "successes": variant.get("successes", 0),
+                    "failures": variant.get("failures", 0),
+                    "total": variant.get("total", 0),
+                    "success_rate": variant.get("success_rate", 0.0),
+                }
+    store = getattr(evolver, "store", None)
+    if store is not None:
+        try:
+            stats = store.get_global_stats(variant_id)
+            return {
+                "variant_id": variant_id,
+                "successes": stats.successes,
+                "failures": stats.failures,
+                "total": stats.total,
+                "success_rate": stats.success_rate,
+            }
+        except (KeyError, ValueError):
+            return None
+    return None
+
+
 def build_evolution_summary(evolver: Any, domain: str) -> dict[str, Any]:
     """Normalize SDK and copilot-specific evolvers to WP-4 telemetry."""
     if evolver is None:
@@ -175,7 +261,10 @@ def build_evolution_summary(evolver: Any, domain: str) -> dict[str, Any]:
     provider = getattr(getattr(evolver, "config", None), "conservation_state_provider", None)
     if provider is None:
         provider = getattr(evolver, "conservation_provider", None)
-    conservation_state = _read_conservation_status(provider)
+    conservation_payload = _read_conservation_payload(provider)
+    conservation_state = str(
+        conservation_payload.get("status") or "UNKNOWN"
+    ).upper()
     active_variant = None
     if active:
         active_variant = {
@@ -187,6 +276,7 @@ def build_evolution_summary(evolver: Any, domain: str) -> dict[str, Any]:
         "domain": domain,
         "evolution_enabled": True,
         "conservation_state": conservation_state,
+        "provider_source": conservation_payload.get("source"),
         "active_variant": active_variant,
         "inventory": {"active": active, "shadow": shadow},
         "variant_stats": [
@@ -231,15 +321,19 @@ def _evolver_variants(evolver: Any) -> list[dict[str, Any]]:
 
 
 def _read_conservation_status(provider: Any) -> str:
+    return str(_read_conservation_payload(provider).get("status") or "UNKNOWN").upper()
+
+
+def _read_conservation_payload(provider: Any) -> dict[str, Any]:
     if provider is None:
-        return "UNKNOWN"
+        return {"status": "UNKNOWN"}
     try:
         state = provider() if callable(provider) else provider.get_state()
         if isinstance(state, dict):
-            state = state.get("status", state.get("state", "UNKNOWN"))
-        return str(state or "UNKNOWN").upper()
+            return dict(state)
+        return {"status": str(state or "UNKNOWN").upper()}
     except Exception:
-        return "UNKNOWN"
+        return {"status": "UNKNOWN"}
 
 
 def _recent_evolution_events(evolver: Any) -> list[dict[str, Any]]:

@@ -16,6 +16,7 @@ def test_scorer_backed_provider_returns_state() -> None:
     assert state["domain"] == "purchasing"
     assert state["verified_count"] == 4
     assert state["source"] == "scorer"
+    assert state["overallSafe"] is True
 
 
 def test_scorer_backed_provider_fails_to_unknown() -> None:
@@ -54,3 +55,14 @@ def test_cached_async_provider_stale_unknown() -> None:
 
     assert state["status"] == "UNKNOWN"
     assert state["reason"] == "stale_or_error"
+
+
+def test_provider_normalization_is_fail_closed_for_non_green() -> None:
+    provider = ScorerBackedProvider(
+        type("Scorer", (), {"get_conservation_state": lambda self: {"status": "CALIBRATING"}})(),
+        "trading",
+    )
+    state = provider.get_state()
+    assert state["status"] == "CALIBRATING"
+    assert state["overallSafe"] is False
+    assert {"domain", "source", "observed_at"} <= set(state)

@@ -9,6 +9,7 @@ from copilot_sdk.graph.protocol import (
     ProtocolV2GraphStore,
 )
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.outcome_service import ProtocolV2OutcomeService
 
 __all__ = [
     "EdgeType",
@@ -19,5 +20,6 @@ __all__ = [
     "L5LearningStore",
     "NodeType",
     "ProtocolV2GraphStore",
+    "ProtocolV2OutcomeService",
     "SQLiteGraphStore",
 ]

@@ -58,6 +58,7 @@ from .services.journal_query import JournalQueryService  # noqa: E402
 from .services.regime_monitor import RegimeMonitor  # noqa: E402
 from .services.regime_scoring import TradingRegimeScorerProxy, build_regime_context  # noqa: E402
 from .services.trading_evolver import TradingAgentEvolver  # noqa: E402
+from copilot_sdk.evolution import SQLiteVariantStore  # noqa: E402
 from .state import create_trading_tab_state_cache  # noqa: E402
 from .state.compute_helpers import compute_counterfactual_default  # noqa: E402
 from copilot_sdk.backend.transfer_router import (  # noqa: E402
@@ -379,11 +380,18 @@ def create_app(
 
     trading_store_factory = lambda: selected_graph_store_factory(scoring_db)
     conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
+    evolution_db = (
+        ":memory:"
+        if scoring_db == ":memory:"
+        else str(Path(scoring_db).with_name(f"{DOMAIN}_evolution.sqlite3"))
+    )
+    variant_store = SQLiteVariantStore(evolution_db)
     trading_evolver = TradingAgentEvolver(
         baseline_scorer=scorer_proxy,
         store_factory=trading_store_factory,
         conservation_provider=conservation_provider,
         regime_break_provider=lambda: regime_monitor.is_regime_break,
+        variant_store=variant_store,
     )
     trading_evolver.register_variants(get_trading_variants())
     app.state.trading_evolver = trading_evolver
@@ -391,10 +399,19 @@ def create_app(
 
     def record_trading_outcome(decision: dict[str, Any], success: bool) -> None:
         trading_evolver.record_verified_outcome(
-            decision.get("variant_id"),
+            decision.get("variant_id") or decision.get("selected_variant_id"),
             success,
             category=decision.get("category"),
         )
+
+    def select_trading_variant(category: str) -> str | None:
+        active = trading_evolver.active_variant()
+        if active and active.get("variant_id"):
+            return str(active["variant_id"])
+        for variant in trading_evolver.registered_variants:
+            if str(variant.get("status") or "active") == "active":
+                return str(variant.get("variant_id") or variant.get("id"))
+        return None
 
     def _run_startup_seed_once() -> None:
         if not startup_state["seeded"]:
@@ -433,6 +450,7 @@ def create_app(
             scorer_factory=lambda: scorer_proxy,
             dk_welford_tracker=dk_welford_tracker,
             outcome_recorder=record_trading_outcome,
+            variant_selector=select_trading_variant,
             entity_context_cache=entity_context_cache,
         ),
         prefix="/api",
@@ -451,6 +469,7 @@ def create_app(
         create_evolution_router(
             graph_store_factory=lambda: selected_graph_store_factory(scoring_db),
             domain=DOMAIN,
+            evolver_factory=lambda: trading_evolver,
             variant_provider=get_trading_variants,
         )
     )
@@ -575,6 +594,7 @@ def create_app(
             "cache_hits": cache_stats.hits,
             "cache_misses": cache_stats.misses,
             "cache_size": cache_stats.size,
+            "conservation": conservation_provider.get_state(),
         }
 
     @app.get("/api/trading/fingerprint")

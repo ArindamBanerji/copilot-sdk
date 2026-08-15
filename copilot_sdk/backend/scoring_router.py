@@ -123,6 +123,7 @@ def create_scoring_router(
     profile: str = "production",
     query_cache_invalidator: Callable[[], None] | None = None,
     outcome_recorder: Callable[[dict[str, Any], bool], None] | None = None,
+    variant_selector: Callable[[str], str | None] | None = None,
     entity_context_cache: Any | None = None,
 ) -> APIRouter:
     """Create a domain-parametric scoring router."""
@@ -187,6 +188,13 @@ def create_scoring_router(
             scorer = get_scorer()
             try:
                 await load_stable_context(request)
+                if variant_selector is not None:
+                    selected_variant = variant_selector(request.category)
+                    if selected_variant and not _decision_variant_id({"metadata": request.metadata or {}}):
+                        request.metadata = {
+                            **(request.metadata or {}),
+                            "variant_id": str(selected_variant),
+                        }
                 result = _score_with_optional_metadata(scorer, request)
             except AssertionError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc

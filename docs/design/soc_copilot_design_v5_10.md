@@ -1,7 +1,7 @@
-# SOC Copilot — Design Document v5.8
+# SOC Copilot — Design Document v5.10
 
 **Date:** April 29, 2026
-**Version:** 5.8 (v5.7 + Framework v4 integration: TwoPhaseScorer display, three-channel decomposition, batch pipeline triage flow, defense-in-depth, profile state, ~2,340 tests)
+**Version:** 5.10 (v5.9 + v2 fixer: RL-loop tiers, F18 NEAR-HEAVY, legal guard, factor-0 dependency, §1.5 fix) (v5.8 + 3-LLM review enhancement layer: F16-F22, compounding metrics, Novel Attack Gauntlet, platform-absorption defense, pilot ROI crossover) (v5.7 + Framework v4 integration: TwoPhaseScorer display, three-channel decomposition, batch pipeline triage flow, defense-in-depth, profile state, ~2,340 tests)
 **Authority:** claims_registry_v10.0 · MAP v5.51 · framework v4 (post-judge-review)
 **Status:** v5.5 COMPLETE. Phase 0 ✅ Phase 1 ✅ Phase 2 ✅ Phase 3 Priority 1 ✅. Loom demo v1 unblocked. 995 GAE tests, 900 SOC backend + 183 E2E tests confirmed, 174 ci-platform tests. ~295 experiments complete.
 **Repository:** soc-copilot (proprietary)
@@ -346,7 +346,7 @@ Annual subscription per SOC team tier. Not per-alert (backwards incentive — pe
 | Standard | 50–200 analysts | Full deployment + Tab 5 | $200K–400K/year |
 | Enterprise | >200 analysts or multi-domain | Full + custom integration | $500K+/year |
 
-**Contract commitment:** Customer owns their centroid tensor. Can export it. Can deploy on alternate infrastructure. This is the "you own the intelligence" commitment made operationally concrete — and it is the switching cost that differentiates from SaaS.
+**Contract commitment:** Customer owns their centroid tensor. Can export it. Can deploy on alternate infrastructure. This is the "you own the intelligence" commitment made operationally concrete — exportability is **anti-lock-in**, not a switching cost. The defensible structure: **the customer owns the judgment; CI owns the GAE engine that keeps learning and enriching it** — an exported tensor without that engine is a static data file. The moat is the accumulated judgment *plus* the engine that compounds it. *(Corrected v5.9 — see Part II §P2 for the authoritative framing; the "Four Reframes" below are superseded by Part II §P4.)*
 
 #### Competitive Positioning (Four Reframes)
 
@@ -4615,7 +4615,7 @@ FX-2 through FX-8: SUPERSEDED — replaced by SVM methodology (LLM-as-judge, syn
 
 **Covers:** §§15–20 (Simulation Mode, NarrativeProvider, Reset Semantics, ATT&CK Integration,
 Category Learning Curve, v4.5 Prompt Specifications) and §§28–30 (Response Data Realism,
-Phase C Resolution, Feature Gaps F1–F15).
+Phase C Resolution, Feature Gaps F1–F22).
 
 **Numbering note (v5.3):** §§21–27 now live in Part 1 (Shadow Mode, IKS, NL Template Engine,
 SemanticRegistry, Enterprise Hooks, Feature Gap Closure Map, Experiment Landscape).
@@ -5854,7 +5854,7 @@ Re-convergence speed ratio γ = N_half,1/N_half,2 > 1 proven analytically:
 +5 Block 7.1 write-back tests. Block 3.6 +5, Block 4.2 +7 (already in v5.6).
 
 
-## 30. Feature Gaps — Full Table (F1–F15)
+## 30. Feature Gaps — Full Table (F1–F22)
 
 *(v5.2 §23 — renumbered to §30 in v5.3; F12–F15 status updated for v5.3)*
 
@@ -5880,10 +5880,17 @@ Cross-referencing the roadmap against 2026 CISO priorities, VC investment patter
 | **F13** *(PROPOSAL)* | **ContextConnectors (email/Slack/docs)** | LLM+template extraction from Slack messages, CISO emails, incident reports → claims → σ. Rowboat-inspired. Gated: GATE-D. | v6.0 | HIGH | No change — v6.0, gated. EnterpriseConnectorProfile pattern (§25 Part 1) is the structural foundation. |
 | **F14** *(PROPOSAL)* | **Ask the Graph** | Tab 5 Panel B. Prompt-driven executive analysis. Evolves existing POST /api/soc/query endpoint. Gated: GATE-M + GATE-D. | v5.5 | LOW | **Fully specified — §24.2 Part 1. 15 pre-built queries + QueryRouter. NL routing ships; σ scoring gated.** |
 | **F15** *(PROPOSAL)* | **SynthesisNode Artifact** | Tab 5 internal. SynthesisNode as inspectable computational artifact. Gated: GATE-D + GATE-V. | v6.0 | MED | No change — v6.0, gated. |
+| **F16** | **Learning Control Room** | One place rendering every promoted change as a record with five faces: BEFORE → CHANGE → EVIDENCE → EFFECT → SAFETY. The literal answer to "how do I know it got better?" — the market's #1 barrier. | v5.9 | MED | NEW — renders existing primitives (Tab 2 evolution, IKS, counterfactual replay, evidence export). Verify: thin aggregate needed? |
+| **F17** | **Earned Autonomy Ladder** | Per-alert-class ladder made visible: Observed → Assisted → Shadow-qualified → Auto-approved → Circuit-broken. The promise, as a surface — may matter commercially more than AgentEvolver itself. | v5.9 | LOW | NEW — rendering + state model over existing primitives (referral VETO R1-R7, Circuit Breaker, per-category thresholds, shadow mode). |
+| **F18** | **Frozen Twin** | Shadow instance pinned at day-one config (bootstrap μ₀, no learning), running permanently beside the live system on the same alert stream. The only credible proof of acceleration-not-just-improvement. The synthetic→measured converter. | v5.9 | HIGH | **NEAR-HEAVY (~2-3 weeks)** — two builds: (1) frozen-baseline arm (centroid checkpoint persistence + parallel scoring path + two-arm harness, **gated on RL-PERSIST** §17.5/TD-033); (2) divergence surface (two-curve overlay + "would have missed N" report). Not a first-demo quick win — the fundable roadmap artifact. |
+| **F19** | **No-Precedent Surface** | Productize the Stryker moment: "similar past cases: none — unprecedented here," shown beside a high-confidence action and the factor breakdown. The pixel a retrieval UI cannot draw. | v5.9 | LOW | NEW — surfaces existing honest empty state (SimilarCasesService already suppresses sidebar below 5 prior decisions, §23.4). |
+| **F20** | **Counterfactual "What Would Flip This" Inspector** | Beside "Why this decision?" put "What would have changed it?" Falsifiability, not explanation — materially different from "explainable AI." | v5.9 | LOW | NEW — extends counterfactual replay + Tab-3 factor breakdown. |
+| **F21** | **Day-0 Readiness Assessment** | Paid-discovery deliverable generated in week one: leads with what the data can't support yet. Converts into the shadow pilot. Cannot use learned factor-trust weights — enrichment layer only. | v5.9 | MED | NEW — build on enrichment layer (source coverage, completeness, provenance, threat-intel connector health). |
+| **F22** | **Cold-Start / Transfer Measurement** | The falsifiable customer metric behind the cold-start answer: seed expert-prior substrate (enriched μ₀, CLAIM-62 +42.69pp Day-1 lift), then measure firm-specific deviation — noisier environment → bigger delta over imported-history systems. | v5.9 | MED | NEW — feeds "learning velocity" story and the frozen-twin comparison. |
 
 ### 30.3 What's Uniquely Enabled by Compounding Architecture
 
-Six capabilities are structurally impossible for stateless competitors:
+Thirteen capabilities are structurally impossible for stateless competitors:
 
 | Feature | Why Only Compounding Architecture |
 |---|---|
@@ -5895,8 +5902,13 @@ Six capabilities are structurally impossible for stateless competitors:
 | F9 Benchmarking | 71.7% → 78.9%+ over 1,000 decisions only measurable with a learning system. |
 | F12 INTSUM Briefing *(PROPOSAL)* | σ[c,a] synthesis bias uses same profile centroids μ as operational scoring. Stateless systems have no μ to bias against. |
 | F14 Ask the Graph *(PROPOSAL)* | Queries answered using accumulated graph + centroid state. More decisions = richer answers. |
+| F16 Learning Control Room | Renders the promoted-change record — requires centroid evolution, IKS, counterfactual replay, evidence provenance. No learning = nothing to render. |
+| F17 Earned Autonomy Ladder | The per-class ladder requires accumulated evidence of per-category competence. A stateless system has no basis for per-class autonomy grants. |
+| F18 Frozen Twin | The divergence between adaptive and frozen-at-day-1 IS the compounding; without learning, both lines are flat. |
+| F19 No-Precedent Surface | The honest "similar past cases: none" requires a case memory to confirm emptiness. A retrieval system without accumulated decisions can't distinguish "no precedent" from "haven't looked." |
+| F22 Cold-Start Measurement | The firm-specific deviation from expert prior IS the compounding curve; without learning, there is no deviation to measure. |
 
-### 30.4 SOC Copilot Version Placement (Updated v5.3)
+### 30.4 SOC Copilot Version Placement (Updated v5.9)
 
 | Version | Feature IDs |
 |---|---|
@@ -5905,9 +5917,168 @@ Six capabilities are structurally impossible for stateless competitors:
 | v5.6 ✅ | F9 (analyst benchmarking report — /api/soc/f9-report, 4 tests) |
 | v6.0 | F5 (multi-SIEM), F6 (attack chains), F9 (benchmarking report), F13 (ContextConnectors — gated), F15 (SynthesisNode — gated) |
 | v6.5 | F7 (NHI behavioral baseline) |
+| v5.9 | F16 (Learning Control Room), F17 (Earned Autonomy Ladder), F18 (Frozen Twin), F19 (No-Precedent), F20 (Counterfactual), F21 (Day-0 Readiness), F22 (Cold-Start Measurement) |
 | v7.0+ | F8 (cross-tenant), F10 (A2A/MCP) |
 
 F12–F15 version placement assumes gates pass. If GATE-M fails: F12 Panel A (deterministic briefing) ships as scheduled; σ component deferred. If GATE-D fails: F13, F14 σ component, F15 all deferred pending root cause.
+
+---
+
+## Part II — SOC Copilot Product Definition v1.2 (August 2026)
+
+*Companion to Part I (the engineering design doc). This is the SOC copilot's product & positioning half — the analog of the S2P product doc. Part I says how it is built; this says what it is, who it is for, why it wins, and at what tier each claim is true. Supersedes v1.1. Also supersedes the "Competitive Positioning (Four Reframes)" table in Part I §1.5 (see §P0.3).*
+
+> **Changes from v1.1 (three-model judge panel converged):** (a) wedge reframe — lead consistency + provability (Gate 1 + Gate 3a, both LIVE); Stryker = proof, not reason-to-buy; (b) Gate 2 stated at true strength — "evolve mid-incident" dropped; (c) Gate 3b reframed land→expand→end-state — "makes the class impossible" dropped; (d) ownership self-own corrected — exportability = anti-lock-in; (e) ROI reframed hard-dollar — displace MDR/MSSP + SIEM ingest; (f) Earned Autonomy promoted to named promise; (g) cold-start counter added; (h) competitor naming resolved — unnamed taxonomy in primary motion.
+
+### §P0. How to read this document
+
+**§P0.1 Tier legend.** LIVE / NEAR / ARCH (maturity). DEMO-PROVEN / MEASURED / MODELED / PILOT-TARGET (evidence). We never borrow a tier we haven't earned.
+
+**§P0.2 The one-line frame.** Everyone says their SOC learns. The question that separates products is: "can you prove it got better, and can the learning actually change what happens at the moment of decision?" The wedge is consistency, made provable. The buyer's wound is inconsistent triage — an auditability problem. Lead: every verified analyst decision changes future triage, and every change is attributable, measurable, and reversible. Stryker is the proof that this consistency doesn't collapse when precedent runs out — not the reason to buy.
+
+**§P0.3 Supersedes Part I §1.5 "Four Reframes."** Those reframes are true but aim at the wrong opponents. The 2026 competitive reality is well-funded AI-SOC startups (Torq, Simbian, Prophet, Dropzone, 7AI, Exaforce, Qevlar, Radiant, Stellar). §P4 re-aims differentiation at them.
+
+**§P0.4 Claim status.** Every figure (71.7%/78.9%, frozen-scorer 80.4%/92.9%, IKS 43→82, $523K–$2.8M ROI) is MEASURED-synthetic (50-seed controlled evaluation), not realized customer outcome. Label plainly as controlled synthetic and offer the buyer a 90-day shadow pilot that produces their own live compounding curve. Surfacing the synthetic/measured line IS the pitch.
+
+### §P1. The problem (2026)
+
+Alert overload, ~80% FP rates, analyst burnout, and novel vectors that no signature covers (Stryker/Handala: privileged service-tier identity issuing authorized commands at unauthorized scale). Factor 0 = `privileged_identity_context`.
+
+What changed in 2026: "our SOC learns" is now table stakes (Torq SOC Brain, Simbian Context Lake, Prophet, Stellar all claim learning). Leading with learns/memory/compounds gets punctured on sight. The market's #1 adoption barrier is trust and auditability — the learning-from-error gap.
+
+**The cold-start counter:** Torq Retrospect imports years of prior history. The answer: seed an expert-prior substrate for Day-1 competence; the firm-specific deviation from that prior is what makes the compounding curve bend. "Imported history makes you good at the last firm's incidents. We start you on a strong prior and then learn where your environment disagrees with it — that disagreement is the whole compounding curve."
+
+### §P2. Who it is for
+
+Three roles: SOC analyst (daily driver), CISO/buyer (ROI + proof), SOC architect (glass box, no lock-in). ICP: 2,000–50,000 employees, regulated, 10–100 analysts, trigger event = recent incident whose post-mortem found "inconsistent triage." Pricing: per-SOC-team. Pilot $75–150K / Standard $200–400K / Enterprise $500K+. Ownership: customer owns judgment; CI owns the GAE engine that keeps learning — exportability = anti-lock-in, not a switching cost.
+
+### §P3. Scenarios (5 — preserved and extended)
+
+1. **Hero — Stryker/Handala.** `privileged_identity_context` elevates on the identity itself. System escalates at high confidence while stating "similar past cases: none — unprecedented here." **[LIVE decision path. Figures MEASURED-synthetic.]**
+2. **Routine credential FP auto-close with visible learning.** **[LIVE]**
+3. **Policy-conflict resolution.** Security-first, amber banner, audit trail. **[LIVE]**
+4. **Self-correction with asymmetric trust.** 20:1 penalty, reroutes to human review. **[LIVE]**
+5. **Cross-graph discovery.** Firm-specific risk nobody queried. **[LIVE — advisory; n^2.30 MEASURED-synthetic.]**
+
+### §P4. Differentiation — the spine
+
+**§P4.0** A learning *claim* is cheap; a learning *loop* is only worth what its weakest link lets you do at decision time.
+
+**§P4.1 The four "learning" mechanisms** (stated fairly): precedent retrieval (Torq — case memory, not judgment), feedback-tuning an LLM (Prophet/Stellar — opaque, unfalsifiable), RL over a context lake (Simbian — black box, can't abstain OOD), static expertise replication (Dropzone — not learning). None is judgment as geometry.
+
+**§P4.2 The three gates:**
+- **Gate 1 — Situation analysis as governed geometry. [LIVE]** Factor vector → L2 to centroids → DiagonalKernel (per-factor 1/σ² reliability) → abstain via referral VETO when it hasn't earned the right.
+- **Gate 2 — AgentEvolver runtime evolution. [LIVE — true strength]** Changes the live deployment from verified outcomes without retrain or vendor release. Do NOT claim mid-incident evolution.
+- **Gate 3 — Self-computation.** Judgment-memory [LIVE] (centroid history, IKS, counterfactual replay). Tech-process fusion [ARCH for SOC] (land→expand→end-state; do NOT claim "makes the class impossible").
+
+**§P4.3 Diligence questions** (5 — few competitors survive all): geometry not prompt, no-precedent confidence, live deployment from verified outcomes, prove it got better, close the process gap.
+
+**§P4.4 Honesty guards:** Don't strawman Torq. Unnamed taxonomy in primary motion. Only imply LIVE where LIVE. Cite figures as synthetic.
+
+**§P4.5 Provability as the wedge.** Competitors ship unaudited vendor metrics. CI ships: transparent geometry, SHA-256 chain, conservation law, counterfactual replay, published experiments, honest tiers. Epistemic honesty IS the differentiator.
+
+**§P4.6 Earned Autonomy** — the promise: Observed → Assisted → Shadow-qualified → Auto-approved → Circuit-broken. Per alert class. Board-ready control model.
+
+### §P5. Features & surfaces (see §30 F1-F22 for full table)
+
+| Surface | Gate | Tier |
+|---|---|---|
+| Tab 3 Alert Triage (6-factor + abstain) | 1 | LIVE |
+| Tab 2 Runtime Evolution / Learning Impact | 1+2 | LIVE |
+| Tab 4 Compounding | — | LIVE surface (numbers MEASURED-synthetic) |
+| Tab 5 Exec Narrative | 3 | LIVE |
+| Tab 1 Panel B Graph Explorer | — | LIVE |
+| IKS | 3 | LIVE |
+| Counterfactual replay / centroid history | 3 | LIVE |
+| Learning Control Room (F16) | 1+2+3 | LIVE primitives, surface NEAR |
+| No-precedent surface (F19) | 1 | LIVE decision, named surface NEAR |
+| Shadow mode | — | LIVE |
+| Referral VETO R1-R7 | 1 | LIVE |
+| Conservation Circuit Breaker | 2 | LIVE |
+| Evidence export (SHA-256 chain) | 3 | LIVE |
+| Threat-intel connectors | 1 | LIVE |
+| Cross-graph discovery | 3 | LIVE — advisory |
+| C-COUPLE (self-throttle in live decision) | 2 | NEAR |
+| Acceleration / second-derivative | — | MODELED |
+| Tech-process fusion (SOC) | 3 | ARCH for SOC |
+
+### §P6. Value & ROI
+
+Lead with the budget line (MDR/MSSP + SIEM ingest displacement), not soft analyst-hours. The $523K–$2.8M/year model is MEASURED-synthetic. The two-regime rule: 97.89% is mechanism validation, never customer-facing; 50-seed numbers are the product claim. The pilot as measurement engagement: 90-day shadow produces agreement rate + compounding curve. Conversion threshold pre-agreed before day 1. **The frozen twin** (F18): run the adaptive system beside its own day-one clone. "Don't take our synthetic numbers — run us against ourselves on your data."
+
+### §P7. Open questions & roadmap
+
+1. First-customer compounding curve — the company's highest-priority artifact.
+2. C-COUPLE — couple conservation into live decision path.
+3. Tech-process fusion for SOC — ARCH → roadmap.
+4. Cross-graph discovery — advisory → active.
+5. Acceleration — MODELED → PILOT-TARGET.
+6. The pilot — the divergence curve is the fundraise-converting and buyer-converting artifact.
+
+### §P8. In one line
+
+*Everyone says their SOC learns. Ask them to prove what it learned changed the next decision — and made the SOC better. We can, and you can roll it back if it didn't. That's the moat.*
+
+
+---
+
+## 33. Enhancement Layer v2 — Corrections and Tightenings (August 2026)
+
+*Source: `soc_copilot_doc_additions_v2.md`. Extends — does not supersede — v1 (§31). Corrects and tightens where the review found real gaps.*
+
+### 33.0 RL-Loop Precondition for SOC (three loops, three tiers)
+
+The enhancement surfaces must be tagged by which loop they render:
+
+1. **Loop 2 — centroid learning (ProfileScorer). VERIFIED LIVE.** The 10-cycle end-to-end compounding test (§8) proves it: verified outcome → OutcomeRecord (§6.3) → centroid moves (‖Δμ‖ > 0) → later score differs. Surfaces grounded here can be **LIVE**: IKS, per-category convergence, no-precedent geometry (F19), Safety-Coverage Frontier coverage arm.
+2. **Gate 2 — AgentEvolver promotion. CONFIRM-BEFORE-LIVE.** Verified outcomes promoting a variant that changes the live deployment is a separate loop. Before F16 Learning-Control-Room EFFECT/promotion face or SOC-LADDER promotion rung is staged LIVE, confirm in code. Until confirmed: tag **NEAR** (F-27).
+3. **Acceleration / re-convergence. MODELED — NEVER LIVE.** Recovery Half-Life and second-derivative have no live loop. The pilot curve is what would make them measured.
+
+**Net:** SOC is stronger than DataOps (centroid loop is verified, not merely configured), but AgentEvolver-promotion and acceleration surfaces still gate.
+
+### 33.1 F18 Frozen Twin: NEAR-HEAVY (~2-3 weeks, gated on RL-PERSIST)
+
+Two builds: (1) frozen-baseline arm (centroid checkpoint persistence + parallel scoring path + two-arm harness — depends on RL-PERSIST §17.5/TD-033); (2) divergence surface (two-curve overlay + "would have missed N" report). Sequence: RL-PERSIST → frozen-baseline arm → divergence surface. Remains the fundable proof artifact — not a first-demo quick win.
+
+### 33.2 Legal Guard: Competitor Benchmarking
+
+The Novel Attack Gauntlet (SOC-GAUNTLET, §31.3) runs perturbations on the customer's own alert stream only. It does **not** call any competitor's API, does **not** run a competitor's product, and asserts **no named-competitor performance number.** Standing guard (extends §P4.4): no SOC surface calls a competitor's API, runs a competitor's product, or asserts a named-competitor performance claim without counsel sign-off.
+
+### 33.3 Terminology Precision
+
+- **"Crossover" (§31.5) = pilot-economics crossover point** — the moment safe auto-approve value exceeds shadow-review cost — **not** cross-copilot sharing. Renamed to "Pilot ROI Crossover" (applied).
+- **F-26 boundary for cross-copilot beats:** signals/patterns transfer; judgment geometry is per-copilot and per-customer. *"The signal transfers; the judgment is learned fresh in each domain."*
+
+### 33.4 Factor-0 Dependency
+
+Part II (§P0.4/§P1) names factor 0 `privileged_identity_context`; Part I engineering body still carries legacy `travel_match` (d=6 factor list, TravelMatchFactor, NL explanations). **v5.9 is internally inconsistent on factor-0 naming until the reconciliation pass executes** (soc_factor0_reconciliation_pass_v1_1.md: A/B/C decisions → Codex C1-C8 → V1/V2 re-run). If revalidation moves the accuracy/ROI numbers (71.7%/78.9%/IKS 43→82/$523K-$2.8M), they move in the doc. No enhancement surface should present those numbers as settled until the reconciliation completes.
+
+### 33.5 Evidence-Gate: SDK Component + SOC Two-Regime Instance
+
+Build one SDK-level evidence-gate component (selection-adjusted claims — "N hypotheses tested, M survived correction"), with per-copilot domain functions. SOC's instance is the two-regime guard (97.89% mechanism → never customer-facing; 50-seed = product claim, controlled-synthetic until pilot). The conservation law applied to claims.
+
+### 33.6 Dependency Chain and Ship Sequence
+
+```
+RL-PERSIST (§17.5/TD-033)              → Frozen Twin (F18, NEAR-HEAVY)
+Gate-2 promotion loop confirmed wired   → F16 EFFECT face + SOC-LADDER promotion LIVE
+Evidence-gate SDK component             → two-regime claim gating (§33.5)
+                                         ↓
+                    SOC surfaces safe to ship as LIVE
+```
+
+**Ship now:** consistency+provability wedge; F19 no-precedent (centroid-loop LIVE); IKS + Safety-Coverage coverage arm; platform-absorption defense; cold-start counter.
+
+**Ship after loop/persistence lands:** F18 frozen twin; F16 EFFECT/promotion face; SOC-LADDER promotion rungs; acceleration/Recovery-Half-Life numbers.
+
+### 33.7 Investor-Demo Lead
+
+SOC leads the first investor demo (Stryker/Handala + five live tabs = richest live surface). Prioritize: **F19 no-precedent (Stryker)**, the **five tabs**, **IKS**, and **F17 ladder** (centroid-loop side). Present **F18 frozen twin as the fundable roadmap artifact**, not a live demo. Keep the first *pilot* on **Purchasing** (cleanest positioning, least regulatory exposure). SOC = demo, Purchasing = first paid pilot.
+
+### 33.8 Merge-Integrity: §1.5 Exportability Stale Line (Fixed)
+
+Part I §1.5 previously read: *"it is the switching cost that differentiates from SaaS"* — the exact self-own Part II §P2 corrected and §32.3 quarantines. **Fixed in v5.9:** retuned to anti-lock-in framing with pointer to Part II §P2 as authoritative.
+
 
 ---
 
@@ -5953,6 +6124,109 @@ updated to v4.1. Key Files by Task: architecture philosophy row updated.
 > **v5.5.1 annotation note:** A=4 canonical (was A=5). refer_to_analyst removed as
 > scorable action. Content in §§7–9 references A=4/A=5 from their historical context
 > — annotations clarify where the current canonical differs.
+
+
+---
+
+## 31. Product Enhancement Layer — v5.9 (from consolidated 3-LLM review)
+
+*Source: `soc_copilot_doc_additions_v1.md` + `soc_review_consolidation_v1.md`. Corrections already applied in product-def v1.2; this is the net-new product layer.*
+
+### 31.0 Governing Frame: "One Wedge, One Number, One Object, One Proof"
+
+- **One wedge:** consistency + provability (Gate 1 + Gate 3a, both LIVE, matched to the ICP's "inconsistent triage" trigger). Stryker is the proof consistency survives no precedent — not the reason to buy.
+- **One number** on the wall: safe auto-approve **coverage growing week over week at a fixed safety bar** (not raw accuracy — see §31.2).
+- **One object** the product emits: the **promoted-change record** (what changed in the deployed policy, the verified outcomes that caused it, which past decisions flip, measured effect, safety) — rendered by the Learning Control Room (F16).
+- **One proof:** the **frozen twin** on the customer's own alert stream (F18) — the synthetic→measured converter and the answer to the panel's #1 risk.
+
+The four capability axes (situation-analysis geometry, runtime evolution, self-computation/process-fusion, cross-graph discovery) are the *architecture of the advantage*, not four co-equal reasons to buy.
+
+### 31.1 Features F16-F22 — Surfaces That Make the Moat Visible
+
+See §30.2 for the full feature table. Most are **renderings of existing primitives** — build the promoted-change record once (F16); the ladder, no-precedent, and counterfactual surfaces are views on primitives already shipped. New builds: the Frozen Twin (F18) and the two metrics (§31.2).
+
+**Verify-in-code items:**
+- F16: Does the Learning Control Room render entirely from existing endpoints (Tab-2 evolution, IKS, counterfactual replay, evidence export) or need a thin aggregate?
+- F18: Frozen-twin two-arm feasibility on a single seed
+- §31.3: Crossover reachability on pilot volume
+
+### 31.2 Compounding Metrics (extend §22 IKS / replace raw accuracy as the hero)
+
+Raw accuracy plateaus and undersells the moat. Two non-saturating metrics:
+
+- **Safety-Coverage Frontier.** The curve of *safe auto-approve coverage at a fixed safety bar* over calendar time — how much of the alert stream the system safely handles on its own without the bad-auto-approval rate rising. Per category (`insider_threat` correctly near-zero by design; `cloud_infrastructure`/`threat_intel_match` leading). Measured against the frozen twin (F18).
+- **Recovery Half-Life.** After a regime break or a genuinely new attack class, the number of verified decisions (and calendar days) to re-reach the category's competence bar. The operational form of the acceleration/re-convergence claim. Non-saturating: it keeps mattering as long as the threat landscape changes.
+
+Both are **MEASURED-synthetic until the pilot** (v1.2 §P0.4). Lead the ROI conversation with the hard budget line being displaced (MDR/MSSP + tiered SIEM ingest); use these as the compounding proof, and the frozen twin as the evidence.
+
+### 31.3 Novel Attack Gauntlet — Turn Stryker into a Benchmark Class
+
+Stryker is one anecdote; the novelty claim needs a repeatable test. A benchmark class (preserves all five scenarios — extends, never replaces) that a skeptical buyer can run on their own stream:
+
+1. **No-precedent** (Stryker itself: privileged service-tier identity, authorized bulk Intune ops, MFA/device clean)
+2. **Misleading-precedent** (attack resembling a routine, previously-suppressed pattern — the retrieval learner's blind spot)
+3. **Signal-inversion** (a factor that normally means "safe" now means "hostile" — tests whether the geometry can re-weight)
+4. **Regime-break** (distribution shift across a category — feeds Recovery Half-Life, §31.2)
+5. **Adversarial-context** (deliberately poisoned enrichment or feedback — tests the conservation gate + 20:1 asymmetry)
+
+For each, the buyer sees: the decision, whether the system acted or abstained (referral VETO), the no-precedent surface (F19), and — over a run — the Recovery Half-Life.
+
+### 31.4 Platform-Absorption Defense and the Cross-Stack Gateway
+
+All three LLM runs put **SIEM/EDR platform absorption** as the killer objection (CrowdStrike/Palo Alto/Microsoft shipping "good enough" native triage free in-console). The defense:
+
+**The category is the cross-stack judgment gateway.** The platforms will lock any judgment layer to *their own* data lake. CI's defensibility is neutrality: it compounds the firm's verified-decision judgment across CrowdStrike **and** Sentinel **and** Okta **and** Splunk simultaneously — decisions that span systems no single platform owns. A fast-follower must rebuild non-parametric metric learning over *open* graph topologies (not fine-tune prompts in one lake) **and** the judgment graph is the customer's, not theirs.
+
+**Price-to-zero answer.** When Security Copilot is bundled into E5-adjacent licensing at near-zero marginal price, the answer is the layer answer plus the economics: a bundled per-seat copilot doesn't displace the **MDR/MSSP + SIEM-ingest** budget line, and it can't show the customer's own compounding curve.
+
+**Write-back boundary = SOAR-first (liability).** Safe surface = scored decision + inspectable evidence into the SIEM/SOAR/ITSM queue; autonomous EDR host-isolation stays human-approved by default; shadow mode governs activation. (Founder decision, §31.6.)
+
+### 31.5 Pilot ROI Crossover — Survive the Pilot Window
+
+A shadow-only pilot adds review structure before the frozen twin has diverged — the trough where pilots die. Pull the crossover forward with levers already in the build:
+- **Pre-seed with enriched μ₀** — CLAIM-62's +42.69pp Day-1 lift is exactly this: day-one competence, not a cold start (also the cold-start answer, F22).
+- **Start auto-approve on the single safest category** (`cloud_infrastructure` clears conservation fastest; `insider_threat` is near-zero by design), not across all six.
+- **Size the pilot** to clear the crossover with margin, and pre-agree the conversion threshold before day 1 (v1.2 §P6 pilot-as-measurement).
+
+### 31.6 Open Decisions (Founder Must Make)
+
+1. **Write-back boundary** — scored decision into the SOAR/ITSM queue (ship now) vs autonomous EDR host-isolation (roadmap + liability) → recommend SOAR-first.
+2. **Pilot sequencing** — lead with credential/cloud false-positive suppression for hard ROI, use Stryker for the executive demo (all three runs converge).
+3. **Competitor naming** — architectural contrast in public, names in private enablement/diligence (v1.2 §P4.4, restated as a standing GTM rule).
+4. **Pricing basis** — per-SOC-team anchored to displaced MDR/MSSP + SIEM-ingest spend, not per-seat or per-alert.
+
+---
+
+## 32. SOC Review Consolidation Summary (3-LLM Judge Panel)
+
+*Full source: `soc_review_consolidation_v1.md`. Panel: GPT-5.x (positioning+packaging), Claude Opus (strategy+credibility), Gemini (prompt-execution+stack-fit).*
+
+### 32.1 Unanimous convergences
+- Synthetic-vs-measured is the #1 risk. Defusal: label numbers MEASURED-synthetic; sell the 90-day shadow pilot as the measurement engagement.
+- Position ABOVE the platforms, not beside them. Cross-stack judgment gateway.
+- Make the compounding visible as a product surface, not an architectural property.
+- Earned Autonomy is the promise, not a footnote.
+- Competitor naming: architectural contrast in public, names only in private/diligence.
+
+### 32.2 Two-of-three convergences (dissent resolved)
+- Wedge = consistency + provability, with Stryker as proof (not the pitch). Resolved toward Opus/GPT.
+- Two overclaims must go ("evolve mid-incident" → "evolves continuously from verified outcomes"; "make the class impossible" → land/expand/end-state). Prompt-induced, confirmed by Gemini reproducing them.
+- Pilot economics: shadow-only yields a curve, not saved hours.
+- Hard-dollar ROI: lead with MDR/MSSP + SIEM-ingest displacement.
+
+### 32.3 QUARANTINE (do not propagate)
+- Fabricated demo specifics presented as measured (Gemini): "12 seconds," "99.4% confidence," "450 benign alerts," "factor-trust weight increased 1.4×," "stealth C2 across 3 endpoints." Must carry H7 honesty labels.
+- Exportability line rebuilt backwards (Gemini): "exportable tensor = uncopyable switching moat" — this is the self-own Opus corrected.
+- The Gate-2 "mutate live scoring weights mid-incident" and Gate-3b "eliminate the attack class permanently" overclaims.
+- Buyer-language leaks: "centroid geometry," "α·q·V ≥ θ_min," "1/σ²," "L₂ distance," "DiagonalKernel metric" in buyer-facing lines.
+- Two-regime discipline: 97.89% centroidal-synthetic NEVER on the same surface as 78.9% product number.
+
+### 32.4 Advisor overlay
+- Engineer the crossover to land INSIDE the pilot window (§31.5).
+- The two-regime rule is a SOC-only guard the panel missed (§30, F18 DoD).
+- Earned Autonomy already has its substrate in code — it's packaging, not new engineering.
+- Day-0 readiness cannot use learned factor-trust weights — enrichment layer only.
+- Factor-0 is assumed reconciled (privileged_identity_context, the Stryker signal).
 
 ---
 
@@ -6177,7 +6451,7 @@ See §29 (Part 2) for full experiment results. Summary:
 
 ---
 
-## Master Section Index — v5.5 (All Three Parts)
+## Master Section Index — v5.10 (All Parts)
 
 Use this table to locate any section across the three part files.
 
@@ -6220,15 +6494,48 @@ Use this table to locate any section across the three part files.
 | §27 | Experiment Landscape | Part 1 | v5.6 (~295 experiments, Batch G results) |
 | **§28** | **Response Data Realism (H7)** | **Part 2** | v5.2 §21 renumbered |
 | **§29** | **Phase C — RESOLVED** | **Part 2** | v5.5.3 (§29.5 TD-035 CLOSED, §29.6 item 8 Phase 1 findings) |
-| **§30** | **Feature Gaps F1–F15** | **Part 2** | v5.6 (F9 ✅ DONE April 6, §29.6 item 9 added) |
+| **§30** | **Feature Gaps F1–F22** | **Part 2** | v5.9 (F16-F22 added: Learning Control Room, Earned Autonomy Ladder, Frozen Twin, No-Precedent, Counterfactual, Day-0, Cold-Start) |
 | Appendix A | Version History | Part 1 | v5.6 (v5.6 row added: Phase 3 ✅, April 5-6 completions) |
 | Appendix B | Technical Debt (TD-001 – TD-039) | Part 1 | v5.6 (BACKLOG-003/004/007/009/020 CLOSED April 6) |
 | Appendix C | Superseded Documents | Part 1 | v5.3 |
+
+| **§33** | **Enhancement Layer v2 — Corrections and Tightenings** | **v5.9** | **NEW — RL-loop precondition, F18 NEAR-HEAVY, legal guard, factor-0 dependency, ship sequence** |
+| §33.0 | RL-Loop Precondition (3 loops, 3 tiers) | v5.10 | NEW |
+| §33.1 | F18 Frozen Twin NEAR-HEAVY (gated on RL-PERSIST) | v5.10 | NEW |
+| §33.2 | Legal Guard (competitor benchmarking) | v5.10 | NEW |
+| §33.3 | Terminology Precision (crossover = pilot ROI; F-26 boundary) | v5.10 | NEW |
+| §33.4 | Factor-0 Dependency (travel_match vs privileged_identity_context split) | v5.10 | NEW |
+| §33.5 | Evidence-Gate SDK + SOC two-regime instance | v5.10 | NEW |
+| §33.6 | Dependency Chain and Ship Sequence | v5.10 | NEW |
+| §33.7 | Investor-Demo Lead | v5.10 | NEW |
+| §33.8 | Merge-Integrity: §1.5 exportability fixed | v5.10 | FIXED |
+| **Part II** | **SOC Copilot Product Definition v1.2** | **v5.9** | **NEW — product & positioning spine** |
+| §P0 | How to read / tier legend / one-line frame / claim status | v5.10 | NEW |
+| §P1 | The problem (2026) + cold-start counter | v5.10 | NEW |
+| §P2 | Who it is for (ICP, pricing, ownership) | v5.10 | NEW |
+| §P3 | Scenarios (5 — Stryker hero) | v5.10 | NEW |
+| §P4 | Differentiation spine (4 mechanisms, 3 gates, honesty guards, earned autonomy) | v5.10 | NEW |
+| §P5 | Features & surfaces table (tiered) | v5.10 | NEW |
+| §P6 | Value & ROI (hard-dollar, frozen twin, pilot-as-measurement) | v5.10 | NEW |
+| §P7 | Open questions & roadmap | v5.10 | NEW |
+| §P8 | In one line | v5.10 | NEW |
+| **§31** | **Product Enhancement Layer (v5.9)** | **v5.9** | **NEW — from consolidated 3-LLM review** |
+| §31.0 | Governing Frame: One Wedge, One Number, One Object, One Proof | v5.10 | NEW |
+| §31.1 | Features F16-F22 — Surfaces That Make the Moat Visible | v5.10 | NEW (F16-F22 in §30.2) |
+| §31.2 | Compounding Metrics (Safety-Coverage Frontier + Recovery Half-Life) | v5.10 | NEW |
+| §31.3 | Novel Attack Gauntlet — Benchmark Class | v5.10 | NEW (5 perturbation types) |
+| §31.4 | Platform-Absorption Defense + Cross-Stack Gateway | v5.10 | NEW |
+| §31.5 | Pilot ROI Crossover — Survive the Pilot Window | v5.10 | NEW |
+| §31.6 | Open Decisions (Founder Must Make) | v5.10 | NEW (4 decisions) |
+| **§32** | **SOC Review Consolidation Summary (3-LLM Judge Panel)** | **v5.9** | **NEW — GPT-5.x/Opus/Gemini convergences + quarantine** |
 
 ### Key Files by Task
 
 | Task | Read First | Then Read |
 |---|---|---|
+| **Understanding the moat / product surfaces** | §31 (enhancement layer) | §30 (F1-F22 table), §32 (review consolidation) |
+| **Pilot planning / crossover** | §31.5 (pilot ROI crossover) | §31.6 (open decisions), §31.2 (metrics), F18 (frozen twin) |
+| **Platform-absorption defense** | §31.4 (positioning) | §32.1 (unanimous convergences) |
 | **Starting v5.5 sprint** | §13 (rules) in Part 1 | §10.6 (R1–R13 scope), §4 (PROD-3/PROD-4 first actions), §14 (config) in Part 1 |
 | Implementing Shadow Mode | §21 in Part 1 | §13 rules, §6 write-back in Part 1 |
 | Implementing IKS | §22 in Part 1 | §4 (canonical numbers), §6.4 (ProfileSnapshot hook) in Part 1 |
@@ -6438,3 +6745,44 @@ Backend: ~40 lines (2 endpoints + scorer integration). Frontend: ~160 lines (2 c
 *Zero existing behavior changes. ContinuousStrategy = default. ~260 lines, ~2 days.*
 *~2,340 tests. 995 GAE. 900 SOC. 183 E2E. 174 ci-platform. ~295 experiments.*
 
+
+---
+
+## v5.9/v5.10 Addendum — 3-LLM Review Enhancement Layer (August 2026)
+
+*Applies `soc_copilot_doc_additions_v1.md` + `soc_review_consolidation_v1.md` (3-LLM panel: GPT-5.x / Claude Opus / Gemini). Corrections already in product-def v1.2; this is the net-new product enhancement layer.*
+
+### Changes
+
+- **§33:** Enhancement Layer v2 corrections — RL-loop precondition (3 loops, 3 tiers: centroid LIVE / AgentEvolver confirm-before-LIVE / acceleration MODELED); F18 reclassified NEAR-HEAVY (~2-3 wks, gated on RL-PERSIST); competitor-benchmarking legal guard; "crossover" renamed to "pilot ROI crossover" + F-26 boundary; factor-0 dependency (Part I travel_match vs Part II privileged_identity_context split stated explicitly); evidence-gate SDK with SOC two-regime instance; dependency chain + ship sequence; investor-demo lead (SOC demo, Purchasing first pilot); §1.5 exportability stale line FIXED.
+- **Part II (§P0-§P8):** SOC Copilot Product Definition v1.2 merged — the product & positioning spine. Covers: ICP/pricing, 5 scenarios (Stryker hero), 4-mechanism competitive taxonomy, 3 gates (situation geometry, AgentEvolver, self-computation), honesty guards, Earned Autonomy promise, features/surfaces table (tiered), hard-dollar ROI (MDR/MSSP displacement), frozen twin, pilot-as-measurement. Cold-start counter (Torq Retrospect answer). Competitor naming discipline. All corrections from 3-LLM judge panel pre-applied.
+
+- **§30.2:** F16-F22 added (Learning Control Room, Earned Autonomy Ladder, Frozen Twin, No-Precedent Surface, Counterfactual Inspector, Day-0 Readiness, Cold-Start Measurement). F16-F22 continue the F1-F15 series.
+- **§30.4:** v5.9 version placement row added.
+- **§31:** Product Enhancement Layer (6 subsections): governing frame, F16-F22 summary, compounding metrics (Safety-Coverage Frontier + Recovery Half-Life), Novel Attack Gauntlet (5-perturbation benchmark class), platform-absorption defense + cross-stack gateway, pilot ROI crossover, open decisions.
+- **§32:** SOC Review Consolidation Summary — unanimous convergences, 2-of-3 convergences, quarantine items (fabricated specifics, overclaims, buyer-language leaks), advisor overlay.
+- **Master Section Index:** Updated to v5.9 with §31-§32 + new key-files-by-task rows.
+
+### Companion documents
+- `soc_copilot_product_definition_v1_2.md` — the product spine (corrections already applied; NOT on Drive as separate file)
+- `demo_scenarios_soc_additions_v1.md` — demo beats (already merged into `demo_scenarios_and_usecases_v2_6.md` §4.16)
+- `soc_review_consolidation_v1.md` — full 3-LLM judge panel reasoning (audit trail)
+
+### Standing guards (from the review)
+- **H7:** Every UI value traces to a real computation OR carries a visible honesty label.
+- **Two-regime:** 97.89% centroidal-synthetic NEVER on the same surface as 78.9% product number.
+- **No "RL"** for the primary mechanism on stage — decision-trace / prototype learning.
+- **Signals transfer; judgment geometry is per-copilot** (SOC version of F-26).
+- **MEASURED-synthetic** labels on all numbers until the first-customer pilot curve exists.
+
+### Verify-in-code items (cannot be settled from docs alone)
+1. F16: Does the Learning Control Room render entirely from existing endpoints or need a thin aggregate?
+2. F18: Frozen-twin two-arm feasibility on a single seed
+3. §31.5: Crossover reachability on pilot volume
+
+*SOC Copilot Design v5.10 · August 15, 2026*
+*v5.9: 3-LLM review enhancement layer + Part II product def. v5.10: v2 fixer (RL-loop tiers, F18 NEAR-HEAVY, legal guard, factor-0 dependency, §1.5 exportability fix). 7 new features (F16-F22). 2 new compounding metrics.*
+*Novel Attack Gauntlet (5 perturbation types). Platform-absorption defense. Crossover engineering.*
+*6,560+ lines. ~357KB. 10,536 tests (platform-wide). 0 failures.*
+*Corrections in product-def v1.2. Quarantine items from Gemini run isolated.*
+*Highest-priority artifact per all three runs: the first-customer compounding curve from a shadow-mode pilot.*

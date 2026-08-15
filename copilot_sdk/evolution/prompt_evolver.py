@@ -10,7 +10,7 @@ from typing import Any, Callable, Protocol
 from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.evolution.conservation_contract import ConservationStateProvider
 from copilot_sdk.evolution.protocol import EvolutionEvent, EvolutionLedger
-from copilot_sdk.evolution.variant_store import InMemoryVariantStore, VariantSpec, VariantStats
+from copilot_sdk.evolution.variant_store import InMemoryVariantStore, VariantSpec, VariantStats, VariantStore
 
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class PromptVariantEvolver:
     def __init__(
         self,
         config: PromptEvolverConfig | None = None,
-        store: InMemoryVariantStore | None = None,
+        store: VariantStore | None = None,
         ledger: EvolutionLedger | None = None,
     ) -> None:
         self._config = config or PromptEvolverConfig()
@@ -70,7 +70,7 @@ class PromptVariantEvolver:
         self._promotion_gate = DefaultPromotionGate()
 
     @property
-    def store(self) -> InMemoryVariantStore:
+    def store(self) -> VariantStore:
         return self._store
 
     @property

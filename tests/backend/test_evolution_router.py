@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 from copilot_sdk.backend.evolution_router import create_evolution_router
+from copilot_sdk.evolution import PromptVariantEvolver, VariantSpec
 
 
 class RecordingGraphStore:
@@ -161,3 +162,61 @@ def test_no_forbidden_modules_loaded():
 def test_legacy_string_domain_mount_is_removed():
     with pytest.raises(TypeError):
         create_evolution_router("dataops")
+
+
+def _prompt_client():
+    evolver = PromptVariantEvolver()
+    evolver.register_variants([
+        VariantSpec(id="active-a", family="family-a", status="active"),
+        VariantSpec(id="shadow-a", family="family-a", status="shadow"),
+    ])
+    app = FastAPI()
+    app.include_router(
+        create_evolution_router(
+            domain="dataops",
+            evolver_factory=lambda: evolver,
+        )
+    )
+    return TestClient(app), evolver
+
+
+def test_record_outcome_endpoint_updates_variant_stats():
+    client, _ = _prompt_client()
+
+    response = client.post(
+        "/api/evolution/record-outcome",
+        json={"variant_id": "active-a", "success": True, "decision_id": "d-1"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["stats"] == {
+        "variant_id": "active-a",
+        "successes": 1,
+        "failures": 0,
+        "total": 1,
+        "success_rate": 1.0,
+    }
+    assert response.json()["decision_id"] == "d-1"
+
+
+def test_record_outcome_endpoint_rejects_unknown_variant():
+    client, _ = _prompt_client()
+
+    response = client.post(
+        "/api/evolution/record-outcome",
+        json={"variant_id": "missing", "success": False, "decision_id": "d-2"},
+    )
+
+    assert response.status_code == 404
+
+
+def test_check_promotion_endpoint_returns_blocked_result_without_evidence():
+    client, _ = _prompt_client()
+
+    response = client.post("/api/evolution/check-promotion", json={})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["promoted"] is False
+    assert payload["blocked"] is True
+    assert payload["result"] == {}

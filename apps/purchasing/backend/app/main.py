@@ -79,7 +79,7 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.outbox import OutboxStore  # noqa: E402
-from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider  # noqa: E402
+from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, SQLiteVariantStore  # noqa: E402
 from .evolution.evolver_config import PURCHASING_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
@@ -492,9 +492,29 @@ def create_app(
         PURCHASING_EVOLVER_CONFIG,
         conservation_state_provider=conservation_provider,
     )
-    evolver = PromptVariantEvolver(config=evolver_config)
+    evolution_db = ":memory:" if scoring_db == ":memory:" else str(Path(scoring_db).with_name(f"{DOMAIN}_evolution.sqlite3"))
+    evolver = PromptVariantEvolver(config=evolver_config, store=SQLiteVariantStore(evolution_db))
     evolver.register_variants(get_purchasing_variant_specs())
     app.state.evolver = evolver
+
+    def record_purchasing_outcome(decision: dict[str, Any], success: bool) -> None:
+        variant_id = decision.get("variant_id") or decision.get("selected_variant_id")
+        if not variant_id:
+            return
+        try:
+            evolver.record_outcome(
+                str(variant_id),
+                bool(success),
+                category=decision.get("category"),
+            )
+        except (KeyError, ValueError):
+            # A legacy decision may predate the registered variant inventory.
+            # Learning remains authoritative; stale evolution metadata is ignored.
+            return
+
+    def select_purchasing_variant(category: str) -> str | None:
+        selected = evolver.get_variant(category=category)
+        return str(selected.id) if selected is not None else None
     dk_welford_tracker = DKWelfordTracker()
     l5_startup_status = {
         "dk_source": "cold-start",
@@ -714,6 +734,8 @@ def create_app(
             db_path=scoring_db,
             scorer_factory=lambda: scorer_proxy,
             dk_welford_tracker=dk_welford_tracker,
+            outcome_recorder=record_purchasing_outcome,
+            variant_selector=select_purchasing_variant,
             entity_context_cache=entity_context_cache,
         ),
         prefix="/api",

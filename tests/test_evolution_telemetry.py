@@ -1,11 +1,11 @@
 """WP-4 unified evolution telemetry contract tests."""
 
 import json
-from urllib.error import URLError
-from urllib.request import urlopen
+import importlib
+import sys
+from pathlib import Path
 from typing import Any, cast
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -15,13 +15,8 @@ from copilot_sdk.evolution import PromptVariantEvolver, VariantSpec
 from copilot_sdk.graph.memory_store import InMemoryGraphStore
 
 
-COPILOTS = [
-    (8001, "soc"),
-    (8002, "s2p"),
-    (8010, "trading"),
-    (8020, "purchasing"),
-    (8030, "dataops"),
-]
+ROOT = Path(__file__).resolve().parents[1]
+COPILOTS = ["soc", "s2p", "trading", "purchasing", "dataops"]
 REQUIRED_KEYS = {"domain", "evolution_enabled", "schema_version"}
 ENABLED_KEYS = {"conservation_state", "inventory", "variant_stats"}
 VALID_EVENT_TYPES = {"generated", "shadow", "promoted", "rejected"}
@@ -94,6 +89,7 @@ def test_self_summary_endpoint_shape() -> None:
         "domain",
         "evolution_enabled",
         "conservation_state",
+        "provider_source",
         "active_variant",
         "inventory",
         "variant_stats",
@@ -102,42 +98,73 @@ def test_self_summary_endpoint_shape() -> None:
     }
 
 
-def _summary(port: int) -> dict:
+def _summary(domain: str) -> dict[str, Any]:
+    """Read one copilot's contract through its in-process application."""
+    for name in list(sys.modules):
+        if name == "app" or name.startswith("app."):
+            del sys.modules[name]
+
+    if domain in {"trading", "purchasing", "dataops"}:
+        backend = ROOT / "apps" / domain / "backend"
+    elif domain == "s2p":
+        backend = ROOT.parent / "s2p-copilot" / "backend"
+    else:
+        backend = ROOT.parent / "gen-ai-roi-demo-v4-v50" / "backend"
+
+    sys.path.insert(0, str(backend))
     try:
-        with urlopen(
-            f"http://127.0.0.1:{port}/api/self/evolution/summary", timeout=3
-        ) as response:
-            return cast(dict[str, Any], json.loads(response.read()))
-    except (OSError, URLError) as exc:
-        pytest.skip(f"copilot on port {port} is not running: {exc}")
+        if domain == "soc":
+            from copilot_sdk.backend.self_computation_router import create_self_computation_router
+            from app.services.evolver import get_sdk_evolver
+
+            app = FastAPI()
+            app.include_router(
+                create_self_computation_router(
+                    InMemoryGraphStore(domain="soc"),
+                    domain="soc",
+                    evolver_provider=get_sdk_evolver,
+                )
+            )
+        else:
+            module = importlib.import_module("app.main")
+        if domain in {"trading", "purchasing", "dataops"}:
+            app = module.create_app(db_path=":memory:", demo_bundle_path=False)
+        elif domain == "s2p":
+            app = module.app
+        with TestClient(app) as client:
+            response = client.get("/api/self/evolution/summary")
+            assert response.status_code == 200
+            return cast(dict[str, Any], json.loads(response.text))
+    finally:
+        sys.path.remove(str(backend))
 
 
 def test_summary_schema_version() -> None:
-    for port, _domain in COPILOTS:
-        assert _summary(port)["schema_version"] == 1
+    for domain in COPILOTS:
+        assert _summary(domain)["schema_version"] == 1
 
 
 def test_summary_has_required_keys() -> None:
-    for port, _domain in COPILOTS:
-        summary = _summary(port)
+    for domain in COPILOTS:
+        summary = _summary(domain)
         assert REQUIRED_KEYS <= set(summary)
         if summary["evolution_enabled"]:
             assert ENABLED_KEYS <= set(summary)
 
 
 def test_summary_event_types_valid() -> None:
-    for port, _domain in COPILOTS:
-        events = _summary(port).get("recent_events", [])
+    for domain in COPILOTS:
+        events = _summary(domain).get("recent_events", [])
         assert all(event.get("event_type") in VALID_EVENT_TYPES for event in events)
 
 
 def test_summary_domain_matches() -> None:
-    for port, domain in COPILOTS:
-        assert _summary(port)["domain"] == domain
+    for domain in COPILOTS:
+        assert _summary(domain)["domain"] == domain
 
 
 def test_summary_cross_copilot_parity() -> None:
-    summaries = [_summary(port) for port, _domain in COPILOTS]
+    summaries = [_summary(domain) for domain in COPILOTS]
     assert {frozenset(summary) for summary in summaries} == {
         frozenset(summaries[0])
     }
