@@ -12,6 +12,14 @@
         },
         {
           "tag": "h2",
+          "text": "Industry Archetype"
+        },
+        {
+          "tag": "h3",
+          "text": "Financial Services"
+        },
+        {
+          "tag": "h2",
           "text": "Measurement State"
         },
         {
@@ -77,7 +85,7 @@
         {
           "testId": "provenance-badge",
           "tag": "div",
-          "text": "Market data: live external"
+          "text": "Market data: sample"
         },
         {
           "testId": "regime-panel",
@@ -971,67 +979,67 @@
         },
         {
           "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
           "text": "Ground Beef"
         },
         {
           "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
           "text": "Ground Beef"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
         },
         {
           "tag": "h2",
@@ -1172,7 +1180,7 @@
         {
           "testId": "data-trust-factors",
           "tag": "div",
-          "text": "Price memory1.00Demand forecast0.01Event signal0.01Waste history0.00Day-of-week "
+          "text": "Price memory1.00Demand forecast0.01Event signal0.01Weather forecast0.00Day-of-we"
         },
         {
           "testId": "data-trust-factor",
@@ -1207,7 +1215,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Waste history0.00"
+          "text": "Weather forecast0.00"
         },
         {
           "testId": "data-trust-bar",
@@ -1292,81 +1300,6 @@
           "name": ""
         },
         {
-          "text": "PR6/22/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Ground Beeforder as planned$1830.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Ground Beeforder as planned$1830.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
           "ariaLabel": "",
           "name": ""
@@ -1383,6 +1316,81 @@
         },
         {
           "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR6/29/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR6/29/2026Ground Beeforder as planned$1830.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR6/29/2026Ground Beeforder as planned$1830.00",
           "ariaLabel": "",
           "name": ""
         }
@@ -1461,22 +1469,17 @@
         {
           "testId": "order-queue-panel",
           "tag": "section",
-          "text": "Order queuePrioritized supplier ordersOrder queueLoading...Loading queue...Loadi"
+          "text": "Order queuePrioritized supplier ordersPending orders0High priority0ConservationG"
         },
         {
           "testId": "queue-summary",
           "tag": "div",
-          "text": "Order queueLoading...Loading queue..."
-        },
-        {
-          "testId": "queue-loading",
-          "tag": "div",
-          "text": "Order queueLoading...Loading queue..."
+          "text": "Pending orders0High priority0ConservationGREEN"
         },
         {
           "testId": "queue-table",
           "tag": "div",
-          "text": "Loading queue..."
+          "text": "No pending orders in the queue."
         },
         {
           "testId": "order-item-select",
@@ -1890,81 +1893,6 @@
           "name": ""
         },
         {
-          "text": "PUR-396087bc84ab",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-75efb27e3902",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-fe6fb9cd8291",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-bb99847ef5a3",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-79b14dc7611a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-3f491aa3b2be",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-62c6423d9aea",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8ec633dcc2ab",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-3bd1da845865",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-02bd9a6e0267",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-579852c9aa16",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-853fe49ab522",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-666307eacf40",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-49a41ea75f94",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-62359cf8d8db",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PUR-c004e44c57aa",
           "ariaLabel": "",
           "name": ""
@@ -2136,6 +2064,81 @@
         },
         {
           "text": "PUR-447907de442f",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-55e109a91a90",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-47d10266de37",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-97bc16a199cb",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-a8d5d4ab1440",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-49860503794d",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-379729066159",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-48656391dc8c",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-bf422b7c2a63",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-e579274daaa5",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-2fcf7179e71c",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-79a07c298b44",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-599b3490a562",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-ce2b6b8a29c3",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-cf4e78d80489",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-4e66ee4f80de",
           "ariaLabel": "",
           "name": ""
         }
@@ -2424,51 +2427,6 @@
           "name": ""
         },
         {
-          "text": "PUR-75efb27e3902decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-fe6fb9cd8291decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-bb99847ef5a3decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-79b14dc7611adecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-62c6423d9aeadecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8ec633dcc2abdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-853fe49ab522decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-666307eacf40decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-62359cf8d8dbdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PUR-cdc866c04239decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
@@ -2520,6 +2478,51 @@
         },
         {
           "text": "PUR-e74969347fc8decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-7fdbce3c102cdecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-e7b797df9149decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-03cfafee84a5decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-391d88c77febdecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-f01b06df38fbdecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-31c127fc29ebdecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-2a73ad14933adecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-0c48e73fa89adecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-ab9f6f8b70f1decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
@@ -2722,6 +2725,10 @@
         },
         {
           "tag": "h2",
+          "text": "Your system knows 73% of patterns"
+        },
+        {
+          "tag": "h2",
           "text": "Cohort measurement readiness"
         },
         {
@@ -2776,7 +2783,7 @@
         {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Unlabeled"
+          "text": "Sample"
         },
         {
           "testId": "iks-tracker-panel",
@@ -3743,7 +3750,7 @@
         {
           "testId": "centroid-timeline-chart",
           "tag": "div",
-          "text": "17859422871785994749178599497117861173751786117513178611777817861180981786436053"
+          "text": "17859949711786117375178611751317861177781786118098178643605317864364021786487162"
         },
         {
           "testId": "source-profile-panel",
@@ -4003,7 +4010,7 @@
         {
           "testId": "decision-explorer",
           "tag": "section",
-          "text": "SC-14Decision Explorer1132 GraphStore decisionsCategoryAllfreshness violationpip"
+          "text": "SC-14Decision Explorer1143 GraphStore decisionsCategoryAllfreshness violationpip"
         },
         {
           "testId": "decision-summary",
@@ -5202,7 +5209,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating151 / 181 decisions2 of 25 arms"
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating140 / 170 decisions1 of 25 arms"
         }
       ],
       "buttons": [
@@ -5352,17 +5359,17 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000787%Boreal Equipment Maintenancequantity_mismatch · $14,966",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "S2P-INV-001086%Helix Lab Suppliesquantity_mismatch · $8,565",
+          "text": "S2P-INV-000786%Boreal Equipment Maintenancequantity_mismatch · $14,966",
           "ariaLabel": "",
           "name": ""
         },
         {
           "text": "S2P-INV-000385%Northstar Packagingprice_variance · $3,782",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "S2P-INV-001085%Helix Lab Suppliesquantity_mismatch · $8,565",
           "ariaLabel": "",
           "name": ""
         },
@@ -5753,11 +5760,6 @@
         "Verdict",
         "Action",
         "Variant Evolution",
-        "Variant",
-        "Family",
-        "Status",
-        "Win Rate",
-        "Total",
         "Cross-System Discoveries",
         "Price increase risk at Yangtze Raw Materials",
         "Chicago invoice format exception concentration",
@@ -5909,7 +5911,7 @@
           "name": ""
         },
         {
-          "text": "Aster Industrial ChemicalsDemo DataExceptions 12%OTIF 88%1240 invoices- Insuffic",
+          "text": "Aster Industrial ChemicalsDemo DataExceptions 12%OTIF 88%1242 invoices- Insuffic",
           "ariaLabel": "",
           "name": ""
         },
@@ -5939,7 +5941,7 @@
           "name": ""
         },
         {
-          "text": "Boreal Equipment MaintenanceDemo DataExceptions 8%OTIF 90%649 invoices- Insuffic",
+          "text": "Boreal Equipment MaintenanceDemo DataExceptions 8%OTIF 90%640 invoices- Insuffic",
           "ariaLabel": "",
           "name": ""
         },
@@ -5955,6 +5957,11 @@
         },
         {
           "text": "Helix Lab SuppliesDemo DataExceptions 6%OTIF 93%1380 invoices- Insufficient data",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "SUP-PW-EVIDLive ProfilesExceptions 0%OTIF 0%1 invoices- Insufficient data",
           "ariaLabel": "",
           "name": ""
         }
@@ -5989,6 +5996,12 @@
         "Profile source",
         "Quarterly pattern",
         "Accumulator events",
+        "Invoice",
+        "Date",
+        "Category",
+        "Result",
+        "Reward",
+        "Amount",
         "Category exception pattern"
       ]
     },

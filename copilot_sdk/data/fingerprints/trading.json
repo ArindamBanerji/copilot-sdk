@@ -1,8 +1,8 @@
 {
   "domain": "trading",
-  "exported_at": "2026-08-12T07:16:05Z",
+  "exported_at": "2026-08-15T23:34:38Z",
   "fingerprint": {
-    "decisions_analyzed": 296,
+    "decisions_analyzed": 318,
     "engine": {
       "gae": "gae.profile_scorer.ProfileScorer",
       "scoring": "copilot_sdk.scoring.CompoundingScorer"
@@ -11,62 +11,62 @@
       {
         "interpretation": "noisy",
         "name": "signal_alignment",
-        "sigma": 0.286,
-        "weight": 0.916
+        "sigma": 0.288,
+        "weight": 0.903
       },
       {
         "interpretation": "noisy",
         "name": "market_regime",
-        "sigma": 0.352,
-        "weight": 0.606
+        "sigma": 0.355,
+        "weight": 0.594
       },
       {
         "interpretation": "noisy",
         "name": "position_sizing",
-        "sigma": 0.338,
-        "weight": 0.654
+        "sigma": 0.34,
+        "weight": 0.644
       },
       {
         "interpretation": "noisy",
         "name": "timing_quality",
-        "sigma": 0.38,
-        "weight": 0.52
+        "sigma": 0.383,
+        "weight": 0.51
       },
       {
         "interpretation": "noisy",
         "name": "risk_reward_actual",
-        "sigma": 0.301,
-        "weight": 0.824
+        "sigma": 0.303,
+        "weight": 0.813
       },
       {
         "interpretation": "noisy",
         "name": "emotional_indicator",
-        "sigma": 0.323,
-        "weight": 0.719
+        "sigma": 0.324,
+        "weight": 0.711
       },
       {
         "interpretation": "noisy",
         "name": "signal_confidence",
         "sigma": 0.291,
-        "weight": 0.887
+        "weight": 0.883
       },
       {
         "interpretation": "noisy",
         "name": "options_delta_exposure",
-        "sigma": 0.274,
+        "sigma": 0.273,
         "weight": 1.0
       },
       {
         "interpretation": "noisy",
         "name": "options_iv_percentile",
-        "sigma": 0.289,
-        "weight": 0.895
+        "sigma": 0.288,
+        "weight": 0.901
       },
       {
         "interpretation": "noisy",
         "name": "options_gamma_risk",
-        "sigma": 0.299,
-        "weight": 0.837
+        "sigma": 0.297,
+        "weight": 0.844
       }
     ],
     "overall_win_rate": 0.997,

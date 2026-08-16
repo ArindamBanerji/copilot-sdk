@@ -439,6 +439,54 @@ def test_persist_learning_artifacts_writes_all_four(mock_preset):
         store.close()
 
 
+def test_persist_learning_artifacts_propagates_regime_tag(mock_preset):
+    store = L5InMemoryStore(domain="trading")
+    scorer = _scorer(mock_preset, store)
+    result = scorer.score(
+        {"amount": 0.25, "risk": 0.35, "history": 0.45},
+        mock_preset.shape.category_names[0],
+        metadata={
+            "regime_tag": "trending",
+            "regime_metadata": {"regime": "trending"},
+        },
+    )
+
+    try:
+        scorer._persist_learning_artifacts(
+            result.decision_id,
+            actual_action=result.action,
+            is_correct=True,
+            outcome="confirmed",
+        )
+
+        checkpoint = next(iter(store._protocol_centroid_checkpoints.values()))
+        assert checkpoint["metadata"]["regime_tag"] == "trending"
+    finally:
+        store.close()
+
+
+def test_persist_learning_artifacts_without_regime_tag_remains_null(mock_preset):
+    store = L5InMemoryStore(domain="purchasing")
+    scorer = _scorer(mock_preset, store)
+    result = scorer.score(
+        {"amount": 0.25, "risk": 0.35, "history": 0.45},
+        mock_preset.shape.category_names[0],
+    )
+
+    try:
+        scorer._persist_learning_artifacts(
+            result.decision_id,
+            actual_action=result.action,
+            is_correct=True,
+            outcome="confirmed",
+        )
+
+        checkpoint = next(iter(store._protocol_centroid_checkpoints.values()))
+        assert checkpoint["metadata"]["regime_tag"] is None
+    finally:
+        store.close()
+
+
 def test_persist_learning_artifacts_skips_cold_start(mock_preset, caplog):
     store = L5InMemoryStore(domain="mock")
     scorer = _scorer(mock_preset, store)

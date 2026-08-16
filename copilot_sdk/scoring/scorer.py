@@ -1380,6 +1380,7 @@ class CompoundingScorer:
                     iks=self._compute_iks(persist_artifacts=False),
                     decision_time_start=self._extract_decision_timestamp(row),
                     decision_time_end=self._extract_decision_timestamp(row),
+                    regime_tag=_decision_regime_tag(row),
                     write_legacy=False,
                     transaction=transaction,
                     raise_on_error=raise_on_error,

@@ -214,7 +214,12 @@ def check_already_seeded(base_url: str) -> Tuple[bool, Dict[str, Any]]:
 
 def has_regime_checkpoint(base_url: str) -> bool:
     """Return whether Trading has at least one checkpoint with a regime tag."""
-    history = api_get(base_url, "/api/self/centroid-history?limit=25")
+    try:
+        history = api_get(base_url, "/api/self/centroid-history?limit=25")
+    except ApiError:
+        # A slow or temporarily unavailable history read must not prevent the
+        # Trading-only regime backfill from seeding fresh tagged decisions.
+        return False
     checkpoints = history.get("checkpoints") if isinstance(history, dict) else []
     return any(
         isinstance(checkpoint, dict)
