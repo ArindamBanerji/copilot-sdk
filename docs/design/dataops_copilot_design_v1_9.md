@@ -1,4 +1,4 @@
-# DataOps Copilot Design v1.8
+# DataOps Copilot Design v1.9 (v1.9 + consolidated 3-LLM review enhancement layer)
 **Date:** May 20, 2026 · **Supersedes:** v1.5 (May 12)
 **Changes (v1.6):** §29-§41 NEW — Data Intelligence product definition
 layer. Reframes from "better DataOps" to "Data Intelligence" — data
@@ -2203,3 +2203,86 @@ this. The graph found it. THAT is data intelligence."
 *Discovery, Intelligence Map, Trust API for external agents.*
 *11 MAP items (DI-1 through DI-11) for Level 5-6.*
 *"Your data gets smarter every day."*
+
+
+---
+
+## §42 — Enhancement Layer (from consolidated 3-LLM review, v1+v2+v3)
+
+*Source: `dataops_copilot_addendum_FINAL_v1.md`. Folds all three pending addenda (v1 enhancement/honesty, v2 body-verified corrections, v3 innovation-note alignment). One real supersession: trust-API returns 200-with-body (not v1 §C's 403).*
+
+### §42.0 PRECONDITION — Build Gate (OD-1)
+
+Earned Trust depends on the verified-decision → trust/score-update loop being live for DataOps. The review reports it may be configured, not wired (no production `PromptVariantEvolver` instantiation; `record_outcome` path unconfirmed), which contradicts §30's "Level-3 core loop 8/8 complete — Built? YES." Run the one-grep check: does a verified DataOps decision measurably move a later trust/score end-to-end today? The answer sets the tier of every earned-trust surface. This is the platform's highest-priority open item.
+
+**§30 Level-3 gate:** If wired → "YES" stands; §39B reification surfaces, DI-5/11/13/14, Intelligence Map "learning" framing are LIVE. If not wired → down-tier to "core loop present; end-to-end outcome→score movement UNVERIFIED," tag every earned-trust surface NEAR/ARCH (F-27).
+
+### §42.1 Hero + Positioning + Moat Reframe
+
+**Hero line:** "Your data estate learns from every verified decision — and every human and agent can see what it has earned the right to trust." Descriptor: "A living trust and judgment layer between your data estate and the agents acting on it." Proof line: "Watch it learn. See exactly why. See what it rejected."
+
+**Moat reframe (§35):** Retire "they can't build this" → "they can copy the feature; they cannot copy what your estate has already learned from two years of verified decisions." Retire "Level 3+ is empty for everyone" as load-bearing → replace with: "does the number move because of **your** decisions?" Keep the matrix as context, not the argument.
+
+**Two-moat naming:** (a) cross-customer priors (compounding, lead — privacy-safe priors distilled across customers, aggregated never raw, opt-in data-rights) and (b) integration depth + ontology (switching cost). Cross-cloud neutrality is the (a)-flavored structural "won't": Databricks/Snowflake own the substrate and won't ship an open layer that rates a competitor's table equally.
+
+### §42.2 Provability as a Product Surface ("Proof of Learning")
+
+Promote provability from demo beat to product surface: "No intelligence without receipts." Fuse SC-TRUST + IKS-attribution + learning-forecast + digest + rejection-log into one clickable drawer on every number: *computed from N verified decisions · last moved [date] by [named resolutions] · confidence band · perturb this source → · what it rejected · why it can/can't be automated.*
+
+Honest empty state as a feature: a source with 4 verified decisions reads "insufficient evidence — not yet trusted," never a fabricated number.
+
+**Tech-Process Fusion tie:** DataOps is the innovation note's second instance (after S2P): the data platform reifies its own operations as editable, self-optimizing objects and self-computes. State it: *reify → situation-analyze → edit → verify the KPI → and the scorer learns which edits work.*
+
+### §42.3 Agent-Trust Gateway (corrected contract)
+
+Runtime trust gateway between the agent layer and the substrate. Return contract (keeps base doc's §40 L.5 pattern; drops v1 §C's 403):
+
+```
+GET /api/dataops/trust/{source_id}
+→ 200 { "decision": "trust" | "abstain" | "read_only",
+        "evidence": { ... }, "conservation_status": "GREEN|AMBER|RED",
+        "basis": "...", "safe_for_autonomous_use": <bool>, "conditions": "..." }
+```
+
+Abstention is a field, not a status code. The gateway enforces the customer's own audited policy, does not warrant truth. Open the interface, not the intelligence (publish a portable schema + thin MCP server; keep the learned evidence graph proprietary). Plain field names — no α·q·V / Greek on any agent-owner/CDO surface.
+
+### §42.4 Compounding Reframe (§30 Level-4 / §41)
+
+Replace "positive second derivative / gets better at getting better" with **acceleration under control**: accelerate far from a robust optimum, damp approaching one, re-accelerate after a regime shift — so governance reads as an accelerator, not a tax. Falsifiable metric is non-saturating: **time-to-competence on a NEW source/schema** ("1st new source: X wks to GREEN; 6th: Y days"), not IKS/coverage/accuracy (all saturate). Frozen twin (DI-TWIN) is the control.
+
+### §42.5 Gold-Line De-risking (§30 Level-6 / §33 / §34)
+
+Pull $ out of the hero path. Re-render gold lines as ranked hypotheses to test, gated by Benjamini-Hochberg FDR + 30-day out-of-sample holdout + domain-expert verification gate. Build through the shared platform evidence-gate SDK component ("N hypotheses tested, M survived correction"). Build a Value Provenance Ledger (every claimed dollar → observed/reconciled transactions → counterfactual baseline → range → confidence → verifier) before any autonomous valuation; empty state "value not yet verified — N more outcomes required." For CFO dollars now, use D-M4 (14-day close → 7) — realized time, not modeled value.
+
+### §42.6 New & Strengthened Scenarios (nothing removed)
+
+- **DI-EARNED** ("lose it on stage") · H1/L4 · reification
+- **DI-ABSTAIN** ("the system that says I don't know") · H6/L4
+- **DI-GATEWAY / DI-MCP** (trust layer every agent can call) · H6/L4→5 · new (thin MCP server)
+- **DI-FIRSTVS6TH** ("competence, not coverage") · H1/H3/L4 · new (small) · time-to-competence 1st vs 6th source
+- **DI-TWIN** ("what March-us would have missed") · H3/H4/L4 · **NEAR-HEAVY (~2-3 wk), gated on centroid checkpoint persistence** — the falsifiable control, the fundable proof, not a quick win
+- Gemini extensions: D-I1-EXT (route through reliable feed) · D-I3-EXT (unqueried correlation, FDR+holdout-gated) · D-I11-EXT (cross-pipeline fix transfer) · D-I5-EXT (self-pausing auto-resolution on schema drift)
+- New roadmap capabilities (§39): Frozen-Twin evaluator · Value Provenance Ledger · Open Agent-Trust API + MCP server · counterfactual "what would change my mind?"
+
+### §42.7 Judgment Memory — Four Properties
+
+Provenance (hash-chained evidence ledger + centroid lineage) · Quality axis (IKS proves judgment improves, not merely moves) · Counterfactual replay (= DI-TWIN) · Governed + versioned.
+
+### §42.8 H1-H6 Exploitation Notes
+
+H1: every trust movement needs cause + provenance + uncertainty. H2 self-combining: dangerous until FDR + out-of-sample gating. H3: strengthen by proving transfer to new pipelines. H4: show autonomy contracting, not just expanding. H5 self-valuating: subordinate until Value Provenance Ledger is mature. H6 agent-ready: make it a platform/API, not a panel.
+
+### §42.9 Compliance + Pricing
+
+**Compliance, ranked:** (1) agent-autonomy liability [highest] — enforce the customer's audited policy, never "safe"; (2) data monetization/licensing (D-I8) — out of the buyer story → roadmap slide only; (3) cross-tenant learning — out; cross-domain within one tenant is the clean version; (4) regulatory (SOX/DORA) — "evidence designed to support your audit/control process," not "makes you compliant."
+
+**Pricing:** do not price on alert volume or estate messiness (that model shrinks as you deliver value). Price on trust-API consumption + governed-source coverage — both grow as the estate gets healthier and more agentic.
+
+### §42.10 Global Honesty Tiering
+
+Every claim carries maturity (LIVE/NEAR/ARCH) × evidence (MEASURED/VALIDATED/SIMULATED/MODELED/PILOT-TARGET). Gold-line dollars = MODELED, gated. IKS trajectory = MEASURED where from real verified decisions, PILOT-TARGET where an after-N claim. Compounding at its honest tier (acceleration = MODELED/NEAR). Gate the Level-3 "YES" on the loop check.
+
+### §42.11 Open Decisions
+
+(1) Front-door emphasis — agent-forward gateway vs operational-relief land, likely segmented by buyer; (2) how open to make the trust API/standard; (3) pricing-model commitment.
+

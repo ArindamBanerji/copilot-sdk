@@ -281,8 +281,84 @@ def test_soc_factor_vector_projection_from_embedded_decision_property(soc_projec
 
 
 def test_soc_partial_outcome_backfill_does_not_double_count_V():
-    """Mixed embedded Outcome and canonical Outcome counting remains a future backfill gate."""
-    pytest.skip("requires canonical SOC Outcome backfill data; keep skipped until backfill design")
+    """Mixed embedded/canonical outcomes contribute one V per Decision ID."""
+
+    class MixedOutcomeProjectionClient:
+        """Read-only AGE-shaped fixture for the embedded-to-canonical transition."""
+
+        rows = [
+            # Pre-migration: embedded Decision outcome only.
+            {
+                "d": {
+                    "decision_id": "SOC-EMBEDDED",
+                    "domain": "soc",
+                    "category": "triage",
+                    "status": "confirmed",
+                    "outcome": "correct",
+                    "correct": True,
+                },
+                "o": None,
+            },
+            # Post-migration: canonical Outcome only.
+            {
+                "d": {
+                    "decision_id": "SOC-CANONICAL",
+                    "domain": "soc",
+                    "category": "triage",
+                    "status": "overridden",
+                },
+                "o": {
+                    "decision_id": "SOC-CANONICAL",
+                    "actual_action": "escalate",
+                    "is_correct": False,
+                    "verified_at": 2.0,
+                },
+            },
+            # Transition edge case: both representations for one Decision.
+            {
+                "d": {
+                    "decision_id": "SOC-BOTH",
+                    "domain": "soc",
+                    "category": "triage",
+                    "status": "confirmed",
+                    "outcome": "correct",
+                    "correct": True,
+                },
+                "o": {
+                    "decision_id": "SOC-BOTH",
+                    "actual_action": "approve",
+                    "is_correct": True,
+                    "verified_at": 3.0,
+                },
+            },
+        ]
+
+        def query(self, cypher: str) -> list[dict[str, Any]]:
+            if "count(DISTINCT d.decision_id)" in cypher:
+                return [{"cnt": len({row["d"]["decision_id"] for row in self.rows})}]
+            if "OPTIONAL MATCH (d)-[:HAS_OUTCOME]->(o:Outcome)" in cypher:
+                return list(self.rows)
+            raise AssertionError(f"unexpected projection query: {cypher}")
+
+    projection = AGEProjection(
+        client=MixedOutcomeProjectionClient(),
+        graph_name="soc_graph",
+        domain="soc",
+    )
+
+    verified = projection.get_verified_decisions(limit=10)
+
+    assert projection.count_verified() == 3
+    assert len(verified) == 3
+    assert {row["decision_id"] for row in verified} == {
+        "SOC-EMBEDDED",
+        "SOC-CANONICAL",
+        "SOC-BOTH",
+    }
+    canonical_only = next(row for row in verified if row["decision_id"] == "SOC-CANONICAL")
+    both = next(row for row in verified if row["decision_id"] == "SOC-BOTH")
+    assert canonical_only["is_correct"] is False
+    assert both["actual_action"] == "approve"
 
 
 def test_soc_dataops_context_requires_explicit_domain_partition(soc_projection_client):
