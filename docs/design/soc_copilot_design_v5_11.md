@@ -1,7 +1,7 @@
-# SOC Copilot — Design Document v5.10
+# SOC Copilot — Design Document v5.11
 
-**Date:** April 29, 2026
-**Version:** 5.10 (v5.9 + v2 fixer: RL-loop tiers, F18 NEAR-HEAVY, legal guard, factor-0 dependency, §1.5 fix) (v5.8 + 3-LLM review enhancement layer: F16-F22, compounding metrics, Novel Attack Gauntlet, platform-absorption defense, pilot ROI crossover) (v5.7 + Framework v4 integration: TwoPhaseScorer display, three-channel decomposition, batch pipeline triage flow, defense-in-depth, profile state, ~2,340 tests)
+**Date:** August 16, 2026
+**Version:** 5.11 (v5.10 + v3 merge: JM fourth property, moat named as two components, security-data hardening SAFE-4, SOC-G1 exploration guard, SOC-1..4 open items) (v5.9 + v2 fixer: RL-loop tiers, F18 NEAR-HEAVY, legal guard, factor-0 dependency, §1.5 fix) (v5.8 + 3-LLM review enhancement layer: F16-F22, compounding metrics, Novel Attack Gauntlet, platform-absorption defense, pilot ROI crossover) (v5.7 + Framework v4 integration: TwoPhaseScorer display, three-channel decomposition, batch pipeline triage flow, defense-in-depth, profile state, ~2,340 tests)
 **Authority:** claims_registry_v10.0 · MAP v5.51 · framework v4 (post-judge-review)
 **Status:** v5.5 COMPLETE. Phase 0 ✅ Phase 1 ✅ Phase 2 ✅ Phase 3 Priority 1 ✅. Loom demo v1 unblocked. 995 GAE tests, 900 SOC backend + 183 E2E tests confirmed, 174 ci-platform tests. ~295 experiments complete.
 **Repository:** soc-copilot (proprietary)
@@ -1034,6 +1034,7 @@ Key facts from what is already specified:
 
 ## 10. v5.0 Scope — "Profiled + Evaluated + Realistic"
 
+
 ### 10.1 Guiding Principle
 
 v5.0 is the technical foundation that makes v5.5 possible. It does not answer Q2 or Q3 from the Five Demo Questions. It makes the math correct, the data realistic, and the evaluation framework complete. v5.5 builds the *visibility layer* on top.
@@ -2057,6 +2058,7 @@ class SOCDomainConfig:
 ---
 
 ## 21. Shadow Mode — Full Specification
+
 
 ### 21.1 Purpose and Product Role
 
@@ -4611,11 +4613,9 @@ FX-2 through FX-8: SUPERSEDED — replaced by SVM methodology (LLM-as-judge, syn
 *Three write sources: W1 (decisions), W2 (TRIGGERED_EVOLUTION, CLAIM-W2), W3 (cross-graph enrichment).*
 *raw_weights (true 1/σ²) for η_eff. weights (pre-normalized) for scoring. GAE 0.7.20 required for CLAIM-64.*
 *"The distance metric itself compounds. The referral rules encode policy. The W2 flywheel is real. The graph compounds while centroids wait. Recovery is not a coincidence — it is institutional memory, quantified."*
-# SOC Copilot — Design Document v5.7 (Part 2 of 3)
 
-**Covers:** §§15–20 (Simulation Mode, NarrativeProvider, Reset Semantics, ATT&CK Integration,
-Category Learning Curve, v4.5 Prompt Specifications) and §§28–30 (Response Data Realism,
-Phase C Resolution, Feature Gaps F1–F22).
+---
+
 
 **Numbering note (v5.3):** §§21–27 now live in Part 1 (Shadow Mode, IKS, NL Template Engine,
 SemanticRegistry, Enterprise Hooks, Feature Gap Closure Map, Experiment Landscape).
@@ -5924,6 +5924,7 @@ F12–F15 version placement assumes gates pass. If GATE-M fails: F12 Panel A (de
 
 ---
 
+
 ## Part II — SOC Copilot Product Definition v1.2 (August 2026)
 
 *Companion to Part I (the engineering design doc). This is the SOC copilot's product & positioning half — the analog of the S2P product doc. Part I says how it is built; this says what it is, who it is for, why it wins, and at what tier each claim is true. Supersedes v1.1. Also supersedes the "Competitive Positioning (Four Reframes)" table in Part I §1.5 (see §P0.3).*
@@ -5969,15 +5970,29 @@ Three roles: SOC analyst (daily driver), CISO/buyer (ROI + proof), SOC architect
 **§P4.2 The three gates:**
 - **Gate 1 — Situation analysis as governed geometry. [LIVE]** Factor vector → L2 to centroids → DiagonalKernel (per-factor 1/σ² reliability) → abstain via referral VETO when it hasn't earned the right.
 - **Gate 2 — AgentEvolver runtime evolution. [LIVE — true strength]** Changes the live deployment from verified outcomes without retrain or vendor release. Do NOT claim mid-incident evolution.
-- **Gate 3 — Self-computation.** Judgment-memory [LIVE] (centroid history, IKS, counterfactual replay). Tech-process fusion [ARCH for SOC] (land→expand→end-state; do NOT claim "makes the class impossible").
+- **Gate 3 — Self-computation.** Judgment-memory [LIVE] — four properties: **provenance** (SHA-256 + centroid lineage), **quality axis** (IKS), **counterfactual replay** (live in code via `self_computation_router` — the strongest instance of any copilot), **governed + versioned** (deviations approved in the spec, not slipped into code). SOC is the reference expression of the judgment-memory concept (innovation ⑥b). Tech-process fusion [ARCH for SOC] (land→expand→end-state; do NOT claim "makes the class impossible").
 
 **§P4.3 Diligence questions** (5 — few competitors survive all): geometry not prompt, no-precedent confidence, live deployment from verified outcomes, prove it got better, close the process gap.
 
-**§P4.4 Honesty guards:** Don't strawman Torq. Unnamed taxonomy in primary motion. Only imply LIVE where LIVE. Cite figures as synthetic.
+**§P4.4 Honesty guards:** Don't strawman Torq. Unnamed taxonomy in primary motion. Only imply LIVE where LIVE. Cite figures as synthetic. No SOC surface or demo beat calls a competitor's API, runs a competitor's product, or asserts a named-competitor performance claim without counsel sign-off (§33.2).
+
+**§P4.4a Security-data handling — SOC's SAFE-4 analog.** SOC ingests sensitive alert streams (identities, hostnames, IOCs, threat-intel). Customer security data stays **tenant-isolated** — no cross-tenant leakage of alerts, IOCs, or learned geometry. Data-locality honored: raw alert data doesn't egress the customer boundary except where the deployment model explicitly allows. Third-party threat-intel enrichment (Pulsedive / CISA-KEV / NVD) is read-only and disclosed. Posture surfaced: UI badge + API endpoint + audit log. Ship-gate for the regulated-buyer pilot (the SOC ICP is explicitly regulated). `test_no_cross_tenant_leakage`.
+
+**§P4.4b SOC-G1 — Exploration is proposal-only.** The shipped claim is "the decision is nearest-centroid, not reward-maximizing." Keep it true: `RL_EXPLORATION_ENABLED` **off in production**; exploration proposes → shadows → gates, never live-overrides an action. Ties to §33.0 Gate-2 (confirm-before-LIVE). `test_no_live_exploration_in_prod`.
 
 **§P4.5 Provability as the wedge.** Competitors ship unaudited vendor metrics. CI ships: transparent geometry, SHA-256 chain, conservation law, counterfactual replay, published experiments, honest tiers. Epistemic honesty IS the differentiator.
 
 **§P4.6 Earned Autonomy** — the promise: Observed → Assisted → Shadow-qualified → Auto-approved → Circuit-broken. Per alert class. Board-ready control model.
+
+**§P4.7 The moat, named.** Two components — lead with (a):
+
+**(a) Cross-customer priors — the compounding moat.** A new SOC account starts smarter than a cold fork because it inherits privacy-safe priors distilled across customers — aggregated, never raw; grows with every customer; explicit opt-in data-rights conversation. The cold-start counter (§P1) is the product form: "Imported history makes you good at the last firm's incidents. We start you on a strong prior and then learn where your environment disagrees with it."
+
+**(b) Integration depth + ontology — the switching cost.** Connectors, accumulated alert-to-graph mappings, tuned NL templates, factor trust weights. Real, but switching cost, not compounding. Name it honestly.
+
+**SOC-specific caveat:** CI's SOC moat is primarily **provability + the cross-stack judgment layer above MS Sentinel / CrowdStrike / Splunk + (a) priors.** SOC must **not** be positioned on (b) switching cost — that contradicts the anti-lock-in framing (§1.5, §P2, §32.3) and the exportability promise. The moat is "the engine that keeps compounding," not "the data you can't take with you."
+
+**Portability commitment:** customer owns their judgment; CI owns the GAE engine that keeps learning. Judgment-memory export at termination (MSA commitment). A cold fork of the open-source engine starts at zero; a new CI account doesn't.
 
 ### §P5. Features & surfaces (see §30 F1-F22 for full table)
 
@@ -6014,6 +6029,14 @@ Lead with the budget line (MDR/MSSP + SIEM ingest displacement), not soft analys
 4. Cross-graph discovery — advisory → active.
 5. Acceleration — MODELED → PILOT-TARGET.
 6. The pilot — the divergence curve is the fundraise-converting and buyer-converting artifact.
+
+**SOC-1 (verify-in-code):** (a) F16 Learning Control Room — confirm it renders from existing endpoints (thin aggregate or not?); (b) F18 Frozen Twin — two-arm feasibility check, gated on RL-PERSIST (§33.1); (c) pilot-ROI-crossover reachability on target customer's alert volume.
+
+**SOC-2 (founder decisions):** (a) SOAR-first write-back (recommend: yes — ServiceNow/Phantom/XSOAR ticket, not direct action); (b) pilot sequencing (SOC = investor demo, Purchasing = first paid pilot — not in tension); (c) competitor naming (architectural contrast in primary motion; named deltas only in private diligence appendix); (d) pricing = per-SOC-team on displaced MDR/MSSP + SIEM-ingest.
+
+**SOC-3 (standalone sales file):** Keep `soc_copilot_product_definition_v1_2.md` as a standalone sales file so the buyer team isn't handed this 378KB engineering doc.
+
+**SOC-4 — the first-customer compounding curve = the company's single highest-priority artifact.** The shadow-mode pilot produces the agreement rate + compounding curve. Every number is synthetic until this exists. SOC leads the first investor demo (Stryker no-precedent + five live tabs); Purchasing leads the first paid pilot.
 
 ### §P8. In one line
 
@@ -6101,10 +6124,6 @@ Part I §1.5 previously read: *"it is the switching cost that differentiates fro
 *Part 1 covers: §§1–14, 21–27 (architecture, product identity, shadow mode, IKS, NL templates,*
 *SemanticRegistry, enterprise hooks, gap closure map, experiment landscape, appendices)*
 *Part 3 covers: §§7–9 (GAE evaluation, judgment metrics, ablation — v5.0 COMPLETE)*
-# SOC Copilot — Design Document v5.7 (Part 3 of 3)
-
-**Covers:** §§7–9 (v4.1 SOC copilot prompts, end-to-end compounding verification,
-v4.5 scope "Make It Real") plus the master section index for all three parts.
 
 **Status of content in §§7–9:** All ✅ COMPLETE — executed and tagged at v4.1 and v4.5.
 Preserved for historical record, execution pattern reference, and sprint discipline modeling.
@@ -6781,8 +6800,10 @@ Backend: ~40 lines (2 endpoints + scorer integration). Frontend: ~160 lines (2 c
 3. §31.5: Crossover reachability on pilot volume
 
 *SOC Copilot Design v5.10 · August 15, 2026*
-*v5.9: 3-LLM review enhancement layer + Part II product def. v5.10: v2 fixer (RL-loop tiers, F18 NEAR-HEAVY, legal guard, factor-0 dependency, §1.5 exportability fix). 7 new features (F16-F22). 2 new compounding metrics.*
+*v5.9: 3-LLM review enhancement layer + Part II product def. v5.10: v2 fixer (RL-loop tiers, F18 NEAR-HEAVY, legal guard, factor-0 dependency, §1.5 exportability fix). v5.11: v3 merge (JM 4th property, moat named, SAFE-4 hardening, SOC-G1, SOC-1..4). 7 new features (F16-F22). 2 new compounding metrics.*
 *Novel Attack Gauntlet (5 perturbation types). Platform-absorption defense. Crossover engineering.*
 *6,560+ lines. ~357KB. 10,536 tests (platform-wide). 0 failures.*
 *Corrections in product-def v1.2. Quarantine items from Gemini run isolated.*
-*Highest-priority artifact per all three runs: the first-customer compounding curve from a shadow-mode pilot.*
+*Moat: (a) cross-customer priors (compounding) + (b) integration depth (switching cost, honestly named). SOC leads on provability + cross-stack, NOT switching cost.*
+*Hardening: SAFE-4 (test_no_cross_tenant_leakage) + SOC-G1 (test_no_live_exploration_in_prod).*
+*Highest-priority artifact: the first-customer compounding curve from a shadow-mode pilot (SOC-4).*

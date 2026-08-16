@@ -21,12 +21,11 @@ def test_soc_legacy_scenarios_are_semantically_quarantined():
 
     assert isinstance(data, list)
     assert len(data) == 36
+    # quarantined: travel_match_v1 — changes with scenario migration.
     assert all(
-        scenario.get("factor_0_semantic_version") == "travel_match_v1"
-        for scenario in data
-    )
-    assert all(
-        scenario["factor_0_semantic_version"] != "privileged_identity_context_v1"
+        "travel_match" in scenario["factors"]
+        and "privileged_identity_context" not in scenario["factors"]
+        and scenario.get("factor_0_semantic_version") == "travel_match_v1"
         for scenario in data
     )
 

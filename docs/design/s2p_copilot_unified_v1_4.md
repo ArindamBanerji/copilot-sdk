@@ -1,13 +1,47 @@
 # S2P Copilot — Unified Design & Product Definition
-**Version:** v1.3 (merged) · **Date:** May 22, 2026
-**Supersedes:** s2p_copilot_design_v0_7 (parts 1+2) + s2p_product_definition_v1_3
-**Structure:** §1-§17 Engineering Design (from v0.7) + §PD1-§PD12
-Product Definition (from v1.3). ONE document per copilot.
+**Version:** v1.4 (merged) · **Date:** August 16, 2026
+**Supersedes:** s2p_copilot_unified_v1_3 (May 22, 2026)
+**Structure:** §1-§20 Engineering Design (from v0.7) + §PD1-§PD14
+Product Definition (from v1.4). ONE document per copilot.
 
-**Changes (merge):** Combined three documents into one. No content
-changes. Engineering design (architecture, factors, screens,
-storyboard) + Product definition (16 scenarios, competitive
-positioning, engineering specs, value model) in single file.
+**Changes v1.3 → v1.4:** Merged FINAL consolidated addendum
+(s2p_copilot_addendum_FINAL_v1.md — folds both pending addenda:
+s2p_copilot_doc_additions_v1 = 3-judge market-winner consolidation;
+s2p_copilot_doc_additions_v2 = innovation-note/outreach/scenario
+alignment pass). No supersessions between v1 and v2. Nothing removed
+from the product; cuts are positioning-only, not product cuts.
+
+Key changes:
+- **"Lead simple" front-matter (§0 NEW):** product thesis (Earned
+  Autonomy), one-outcome/one-number/one-object/one-proof, four-beat
+  story. Axes re-ranked as architecture of the advantage.
+- **§PD1:** 2026-false competitive teardown retired ("Zycus/Celonis
+  don't learn/reason/tune" → "every incumbent ships agents; none
+  compounds this firm's judgment").
+- **§PD2:** 5 [SPINE] scenarios tagged (S14, S2, S15, S9, S16);
+  other 11 stay as roadmap depth.
+- **§PD4 replaced wholesale:** re-ranked axes, 2026-true competitive
+  test, consume-don't-compete (replaces "Celonis = mirror"),
+  Tech-Process Fusion named as defining innovation, Judgment Memory
+  (four properties), two-component moat + portability commitment.
+- **§PD6:** 10 new features/surfaces (F23-F31 + DIFF-1/APP-4) with
+  priority tags (P0/P1/P2). Moat made visible as surfaces.
+- **Crossover engineering:** pre-seed JM with domain priors, start
+  on safest category, pilot sizing for crossover margin.
+- **8-domain cockpit (Part I):** demoted from headline to roadmap
+  depth. Pilot number (auto-approve coverage) replaces $41-71M as
+  the number on the wall.
+- **Commercial:** 5:1 penalty derived from customer data; pricing
+  basis = decisions-under-management, not per-seat; 4 open decisions.
+- **Global honesty pass:** LIVE/NEAR/ARCH × DEMO-PROVEN/MEASURED/
+  MODELED/PILOT-TARGET on all quantified claims. "Learning velocity"
+  replaces "second-derivative RL" in positioning. n(n-1)/2 super-
+  linearity dropped. PII/data-locality hardening line added.
+- **§PD12/§PD13:** 30-43s score-path lock stalls documented as
+  production-real; atomic score-write fix specified.
+
+**Authority:** v1.3 + s2p_copilot_addendum_FINAL_v1.md (consolidates
+s2p_copilot_doc_additions_v1 §A-§L + _v2 §RV2-1..6).
 
 ---
 
@@ -935,13 +969,6 @@ def build_s2p_profile_scorer() -> ProfileScorer:
 
 ---
 
-*End of Part 1. Part 2 covers §9-20: connectors, hooks, IKS, NL templates,
-intelligence layer, experiments (updated with V-MV-KERNEL results + SVM methodology),
-validation checklist (updated: OLSMonitor added, V-CGA-FROZEN→SVM-003, Phase 2 components),
-version placement (updated: Phase 3 Priority 2 + CopilotFramework extraction),
-co-design constraints, and summary.*
-
-*S2P Copilot — Design Document v0.5 Part 1 · March 25, 2026*
 
 
 ## 9. S2P Source Integration
@@ -1040,6 +1067,7 @@ kernel weights show you which domains have reliable data and which don't."
 *(Unchanged from v0.3 — same comparison with 2025 multi-agent blog.)*
 
 ---
+
 
 ## 10. Data Preservation Hooks
 
@@ -1662,14 +1690,39 @@ The architecture validates more cleanly than v0.3 because:
 
 ---
 
-# PART II — PRODUCT DEFINITION (v1.3)
+# PART II — PRODUCT DEFINITION (v1.4)
 
-*16 scenarios, competitive positioning, feature specifications,
-value model, engineering specs (M1-M9). This section uses §PD
-prefix to avoid collision with Part I section numbers.*
+*16 scenarios (5 market spine + 11 roadmap depth), competitive
+positioning, feature specifications (F1-F31 + DIFF-1/APP-4),
+value model, engineering specs (M1-M10), open decisions. This
+section uses §PD prefix to avoid collision with Part I section
+numbers.*
 
 *Note: §PD references below correspond to the original §1-§12
-in s2p_product_definition_v1_3.md.*
+in s2p_product_definition_v1_3.md, extended by the v1.4 addendum.*
+
+---
+
+## §0 — Lead Simple
+
+**Product thesis:** *Earned Autonomy for Source-to-Pay* — decides with evidence,
+learns from verified outcomes, expands automation only where the customer's own
+history proves it safe. **Platform thesis:** *Compounding Judgment.*
+
+**One outcome** sold: auto-approve coverage that grows safely, week over week.
+**One number** on the wall (that coverage).
+**One object** emitted (the *decision-change proposal*, §PD6/F23).
+**One proof** (the *frozen twin*, §PD6/F26).
+
+**Four-beat story:**
+1. Enterprises resolve the same exceptions forever.
+2. S2P decides, shows evidence, abstains when it hasn't earned trust.
+3. Verified outcomes teach which decisions can safely become automatic.
+4. A governed judgment memory accrues that's harder to replace with every verified decision.
+
+The four capability axes (situation analysis · learning velocity ·
+self-computation/process fusion · cross-graph risk) are the **architecture
+of the advantage, not four co-equal reasons to buy** (re-ranked in §PD4).
 
 ---
 
@@ -1678,13 +1731,15 @@ in s2p_product_definition_v1_3.md.*
 Every procurement AI tool on the market today shares one structural
 limitation: **decision 10,000 is processed exactly like decision 1.**
 
-Zycus Merlin auto-processes invoices — same logic on Day 365 as Day 1.
-Celonis finds bottlenecks — same method in December as January. McKinsey
-finds $7M in savings — then they leave and the savings evaporate.
+Every incumbent now ships agents, orchestration, and MCP connectors.
+Celonis ships Orchestration, AgentC, and MCP. Coupa ships Navi and
+Agent-Studio. SAP ships Joule. Zycus ships Merlin AI agents.
 
-The root cause: existing tools process transactions. They don't learn
-from outcomes. They don't reason about context. They don't tune
-themselves. They don't value caution over speed.
+What none of them ships is a system that **compounds this firm's
+judgment** — one that gets measurably better at *this firm's* decisions
+from verified outcomes and can prove it's safe to expand autonomy.
+Decision #10,000 is still processed exactly like decision #1 everywhere
+else.
 
 **What we build: procurement that learns from every verified decision,
 reasons from cross-system context, tunes its own operations, and gets
@@ -1692,10 +1747,16 @@ measurably better every quarter.**
 
 ---
 
-## §PD2 — 16 Scenarios of Change
+## §PD2 — 16 Scenarios of Change (5 market spine + 11 roadmap depth)
 
 Each scenario is a specific, recognizable problem a CSCO, CPO, or CFO
 faces today. The "AFTER" is uniquely enabled by our architecture.
+
+**Market spine (lead with these five):** S14 (situation analysis,
+category-definer), S2 (autonomy expanding with proof), S15 (values-
+caution / trust architecture), S9 (silent-break detection / safety),
+S16 (process-fusion / defining innovation). The other eleven scenarios
+are roadmap depth — produced on request, not in the headline.
 
 ### Cluster A: Invoice & AP Learning (Ship First)
 
@@ -1705,13 +1766,13 @@ resolutions. AFTER: Month 1: 18%. Month 6: 11%. Month 12: 7%. The
 system learned which supplier-format-commodity patterns produce
 exceptions and routes them differently BEFORE they become exceptions.
 
-**S2: "The Autopilot Nobody Trusts to Expand"**
+**S2: "The Autopilot Nobody Trusts to Expand" [SPINE — earned autonomy]**
 BEFORE: Auto-approve stuck at 20%. Nobody can prove 50% is safe.
 AFTER: Week 6: system proves 35% is safe (4,200 verified decisions,
 accuracy above threshold). Month 4: 50%. Month 8: 65%. If quality
 dips, system pauses ITSELF.
 
-**S9: "The Automation That Broke Silently"**
+**S9: "The Automation That Broke Silently" [SPINE — safety]**
 BEFORE: Accuracy dropped from 95% to 82% over 3 weeks. Nobody noticed.
 $340K in incorrect payments. AFTER: Day 1 of drop: novelty detection
 fires. Day 2: conservation → AMBER. Auto-approvals pause. 12 invoices
@@ -1726,7 +1787,7 @@ configuration evolutions — evidence ordering, routing thresholds,
 escalation criteria — each tested against conservation law before
 promotion. Resolution speed improved 12%. Consultant re-tuning: gone.
 
-**S14: "Not a Script — A Decision" [NEW v1.1]**
+**S14: "Not a Script — A Decision" [SPINE — category definer]**
 BEFORE: AP automation follows rules. "If price > PO by 3%, flag."
 When a legitimate reason exists (commodity pass-through, FX, volume
 tier), the rule fires anyway. False-positive exception rate: 35%.
@@ -1736,7 +1797,7 @@ didn't cover. AFTER: Situation Analyzer reasons from context graph:
 up to 110% of index. Within bounds. Accept." False-positive rate: 8%.
 During 2026 tariff shock: 92% handled without human review (vs 40%).
 
-**S15: "The System That Values Caution" [NEW v1.1]**
+**S15: "The System That Values Caution" [SPINE — trust architecture]**
 BEFORE: AP automation optimizes for speed. Borderline cases get auto-
 approved to meet throughput targets. 200 borderline approvals × $5K
 = $1M in leakage over 12 months. AFTER: 5:1 penalty asymmetry in
@@ -1784,7 +1845,7 @@ BEFORE: McKinsey finds $7M. Leaves. Savings drift. Returns, finds
 $6M — same issues re-emerged. AFTER: Findings emerge continuously.
 Persist in centroids. No consultant needed.
 
-**S16: "Where Celonis Stops, We Start" [NEW v1.1]**
+**S16: "Where Celonis Stops, We Start" [SPINE — process fusion]**
 BEFORE: Celonis shows Chicago AP is 3× slower than Houston. 4-week
 investigation to find WHY. AFTER: Cross-graph attention: "Chicago is
 slow because Suppliers X/Y/Z use non-standard formats. Supplier X
@@ -1824,7 +1885,7 @@ Tariff_exposure: 22%. Trust that one."
 | Conservation law | Mathematical quality invariant | "Proof that 50% auto-approve is safe" | 2, 9, 15 |
 | DiagonalKernel | Learns which data dimensions to trust | Deploy Day 1 on messy data | 4 |
 | Cross-graph attention | Discovers patterns across data sources | "Connection nobody queried across 4 systems" | 5, 10, 11, 16 |
-| Re-Convergence (γ>1) | Recovery faster after each disruption | Third tariff shock: 3 days, not 3 months | 3 |
+| Learning velocity | Recovery measurably faster after each disruption [ARCH / MODELED] | Third tariff shock: 3 days, not 3 months | 3 |
 | Novelty detection | Detects shifts before accuracy drops | Auto-pause fires before $340K leaks | 9 |
 | Two-phase learning | Phase 1: patterns. Phase 2: which dimensions matter | New hire inherits 15,000 decisions | 6, 8 |
 | Asymmetric η | Protects knowledge from noisy decisions | System guards itself during crisis | 3 |
@@ -1837,52 +1898,209 @@ Tariff_exposure: 22%. Trust that one."
 
 ---
 
-## §PD4 — Differentiation & Positioning
 
-### The Competitive Test
+### PD3.1 — Claim Maturity Framework (v1.4)
 
-| Question | Zycus | Celonis | Coupa | Us |
-|----------|-------|---------|-------|-----|
-| After 10,000 decisions, show me the compounding curve | Can't | Can't | Can't | Here it is |
-| Prove that 50% auto-approve is safe | Promise | N/A | N/A | Theorem + audit trail |
-| Why is Chicago AP slow — not THAT it's slow, but WHY | No | WHERE but not WHY | No | WHY + fix + learn + transfer to other plants |
-| Does your system REASON about why a variance exists? | Rules | N/A | Rules | Context-graph reasoning (S14) |
-| Does your system tune its own configuration? | No | No | No | 47 evolutions in 6 months (S13) |
-| After the third tariff shock, how fast? | Same speed | N/A | N/A | Faster each time (γ > 1) |
-| When my category manager leaves, what survives? | Nothing | Nothing | Rules | 15,000 verified decisions in centroids |
-| Why should I trust your auto-approve won't leak? | We're careful | N/A | Rules | 5:1 penalty: system DESIGNED to be cautious |
+Every quantified claim in Part II carries two tags:
 
-### Positioning by Buyer
+**Maturity (where it is in the build):**
+
+| Tag | Meaning |
+|---|---|
+| **LIVE** | Wired, demonstrable, passes the one-grep check |
+| **NEAR** | Scaffolded — the shape exists, the loop isn't proven closed |
+| **ARCH** | Second-derivative or acceleration claims — needs wired loop + experiment |
+
+**Evidence (how it was validated):**
+
+| Tag | Meaning |
+|---|---|
+| **DEMO-PROVEN** | Runs in the demo on synthetic data, produces the claimed output |
+| **MEASURED** | Measured on real customer data in production |
+| **MODELED** | Computed from a model (synthetic validation, LLM-judge, Hackett anchor) |
+| **PILOT-TARGET** | A goal for the pilot, not yet measured |
+
+**Critical honest-tier tagging:**
+
+| Claim | Location | Maturity | Evidence | Note |
+|---|---|---|---|---|
+| CLAIM-59: 54.4% fewer decisions to reach 85% accuracy | Part I §17.5, Part II §PD4 | LIVE (enrichment) | **MODELED (synthetic-validated, SVM/LLM-judge)** | Never let this read as realized on customer data |
+| CLAIM-62: +42.69pp Day-1 lift | Part I §17.5, Part II §PD8 crossover | LIVE (enrichment) | **MODELED (synthetic-validated)** | Grounds the crossover engineering, but the lift is synthetic |
+| $41-71M portfolio value | §PD9 | ARCH (full portfolio) | **MODELED (Hackett-anchored)** | Headline is the pilot number, not this |
+| Exception rate 15%→7% | §PD5, buyer table | NEAR | **PILOT-TARGET** | Depends on loop closure + factor quality |
+| Auto-approve 20%→65% | §PD5, buyer table | NEAR | **PILOT-TARGET** | Depends on conservation + volume |
+| Third tariff shock: 3 days | S3, §PD3 | ARCH | **MODELED** | Requires re-convergence on real disruption data |
+| 47 self-improvements in 6 months | S13 | NEAR | **MODELED** | AgentEvolver not yet running on S2P |
+| 92% tariff-variant resolution | S14 | NEAR | **MODELED (LLM-judge)** | Situation Analyzer not yet built for S2P |
+| F30 learning velocity ("supplier #6 in ~40 vs #1 in ~120") | §PD6.8 F30 | ARCH | **MODELED (illustrative)** | Explicitly flagged as illustrative in F30 spec |
+| 31 min/PO decision savings (CL-ECON-S2P) | §PD10 #5 | NEAR | **MODELED (Hackett anchor)** | Needs pilot measurement |
+
+**Rule:** MODELED claims never appear in buyer-facing copy without the tag. In technical-diligence rooms, show the model; in positioning, show the claim-shape ("gets measurably better") without the specific number until MEASURED.
+
+---
+
+## §PD4 — Differentiation & Positioning (v1.4 — replaced wholesale)
+
+### PD4.1 — The Four Axes, Re-Ranked by Market Role
+
+The four capability axes are the **architecture of the advantage, not four
+co-equal reasons to buy.** Each has a distinct role in the sales motion:
+
+| Role | Axis | What it does | How to sell it |
+|---|---|---|---|
+| **Lead / gets-you-bought** | Situation analysis | Make the right exception decision, with evidence | "Not a script — a decision" (S14). The category-defining moment. |
+| **Differentiator / expansion engine** | Self-computation / process fusion | Learn which exception classes can safely stop being exceptions | "Every recurring exception is a candidate for extinction" (S16, F25). The loop that separates us from automation. |
+| **Proof of compounding** | Accelerating learning (learning velocity) | Each new supplier/category/disruption reaches trusted performance faster | "Supplier #6 reaches trusted automation faster than #1 did" (F30). The compounding curve. |
+| **Expansion surface / TAM** | Cross-graph risk | Bring external risk into today's decision, not another dashboard | "Copper spike → supplier delay → your PO needs to change — inside the decision, not a second tab." Risk stays **inside today's decision** (P2) — not a second product. |
+
+**Lead with situation analysis. Prove with learning velocity. Differentiate with process fusion. Expand with cross-graph risk.**
+
+**Cross-domain value scaling:** each new trusted domain must prove
+incremental decision value before S2P relies on it. The value is
+empirical — measured by F30 (Cold-Start Measurement) — not assumed
+to be super-linear by construction.
+
+### PD4.2 — The Competitive Test (2026-true)
+
+Every incumbent now ships agents, orchestration, and MCP connectors. The test
+is no longer "can they automate?" — it's "does the automation compound?"
+
+| Question | Zycus Merlin | Celonis | Coupa Navi | Us |
+|---|---|---|---|---|
+| After 10,000 decisions, does it get measurably better at YOUR decisions? | No — same model Day 365 as Day 1 | No — models the process, not the firm's judgment | No — agents inside their SoR, no cross-history compounding | Here's the curve, with proof (F24 + F26) |
+| Can you prove it's safe to expand autonomy, on your data? | Promise | N/A — process mining, not decisioning | Rules-based thresholds | Conservation gate + audit trail + frozen twin (F26) |
+| After the third tariff shock, how fast? | Same speed | N/A | Same speed | Faster each time — learning velocity, not static rules |
+| When my category manager leaves, what survives? | Nothing | Process models | Rules | 15,000 verified decisions in governed judgment memory |
+| Why should I trust your auto-approve won't leak? | "We're careful" | N/A | Rules | 5:1 penalty: system DESIGNED to value caution (S15) |
+| Does the system learn inside the edit, or just trigger it? | No | Triggers on thresholds, doesn't learn from the edit outcome | Automates tasks, static per-customer | Reify → situation-analyze → edit → verify KPI → scorer learns which edits improve outcomes (F25) |
+
+### PD4.3 — Consume, Don't Compete
+
+The incumbent stack is **substrate to sit on, consumed via MCP.** The framing
+is *complement*, not *compete*:
+
+**Celonis** models the *process* and triggers on thresholds — it doesn't compound
+the firm's judgment, doesn't reason-and-abstain among actions, doesn't learn
+inside the edit. S2P ingests its Process-Intelligence Graph via MCP and adds
+that layer. Celonis is already an MCP connector — competitor *and* customer.
+
+**SAP Ariba / Joule** = agents inside their own system of record. No cross-history
+compounding, no conservation-gated proof. S2P sits on top of Ariba as the
+learned decision layer.
+
+**Coupa Navi / Agent-Studio** = agents inside Coupa's SoR. Same limitation.
+Automates tasks; static per-customer model.
+
+The consume-via-MCP posture survives technological convergence: when any of them
+ships better process models or better agents, those become *better inputs* to S2P,
+not competitive threats.
+
+### PD4.4 — The Stack Slot to Own
+
+| Layer | Who owns it |
+|---|---|
+| **Transactions** | SAP / Oracle |
+| **Workflows** | Coupa / Ariba / Zycus |
+| **Process context** | Celonis / Signavio |
+| **The learned decision system** | **S2P** — what the enterprise has learned about making the decision |
+
+This slot survives foundation-model convergence, ERP platform shifts, and
+MCP connector proliferation. The decision system is valuable precisely because
+it's cross-system and vendor-neutral.
+
+### PD4.5 — Tech-Process Fusion: S2P's Defining Innovation
+
+Because the graph holds all system metadata, a process is a **reified, editable,
+self-optimizing object:**
+
+```
+Reify → Situation-Analyze → Edit the operational artifacts →
+Verify the KPI → Scorer learns which edits improve outcomes
+```
+
+**"The learning in the edit is the delta, not the editing."** That loop is what
+beats *both* Celonis (models/orchestrates, doesn't learn in the edit) and
+procurement-automation startups (automate tasks, static per-customer model).
+
+F25's Discover → Shadow → Promote → Measure → Keep/Rollback → Transfer is the
+product form of this loop. Every recurring exception is a candidate for
+extinction — not by removing it from the queue, but by teaching the system to
+handle it and proving the handling is safe.
+
+### PD4.6 — Judgment Memory
+
+The graph is a **decision memory, not a fact store.** Four properties, each mapped
+to an existing surface:
+
+| Property | What it means | Surface |
+|---|---|---|
+| **Provenance** | Every judgment traces to a verified decision chain | DecisionRecord Hook 1 / Art-15 compliance |
+| **Quality axis** | The accumulated judgment has a measurable quality score | IKS (F9) / the Autonomy-Compounding Ledger (F24) |
+| **Counterfactual replay** | Roll judgment back to checkpoint *k*, hold else at today, count the flips | **NEW** — distinct from F27's per-decision "what would flip this"; pairs with the frozen twin (F26) |
+| **Governed + versioned** | The memory is auditable, rollback-capable, and never mutated silently | The JM spec (judgment_memory_v2_9.md) |
+
+This is the graph-native-reasoning-vs-engineering point: the graph doesn't just
+store facts about suppliers — it stores what the enterprise has *learned* about
+making decisions involving those suppliers, with quality, provenance, and replay.
+S2P carries the enterprise-JM story.
+
+### PD4.7 — The Moat, Named
+
+The moat has **two components — lead with (a):**
+
+**(a) Cross-customer priors — the compounding moat.**
+A new S2P account starts *smarter than a cold fork* because it inherits
+privacy-safe priors distilled across customers — aggregated, never raw;
+grows with every customer; an explicit opt-in data-rights conversation.
+
+**(b) Integration depth + ontology — the switching cost.**
+Tech-process fusion, connectors, accumulated implementation. Real, but this
+is switching cost, not compounding. Name it honestly as such.
+
+The surviving line: *"A cold fork of the open-source engine starts at zero;
+a new CI account doesn't."*
+
+**Portability commitment:** Commit to judgment-memory portability/export at
+termination (a commercial commitment landed at MSA). This *strengthens* the
+moat — the moat is the accumulation speed, not the file — and buys trust
+where trust is scarce. The customer can leave with their judgment; they can't
+take the cross-customer priors that made it better.
+
+**Data isolation posture:** Enterprise invoice data stays **tenant-
+isolated**. Cross-customer priors (moat component (a)) are
+**aggregated, never raw** — no customer's invoice content, supplier
+names, or decision specifics appear in another customer's instance.
+The posture is surfaced: UI badge showing isolation status, API
+endpoint returning isolation metadata, audit log capturing any
+cross-tenant aggregation event. This is the S2P parallel to the
+platform's SAFE-4 (no-cross-tenant-leakage) commitment.
+
+### Positioning by Buyer (retuned)
 
 | Buyer | What They Hear |
-|-------|---------------|
-| CFO | Exception rate 15%→7%. Auto-approve 20%→65% with proof. $340K leakage prevented by auto-pause. Zero borderline leaks. |
-| CPO | When Maria left, exception rate didn't spike. System finds $1M+ patterns quarterly without consultants. |
-| VP Procurement Ops | System resolved 92% of tariff-variant invoices automatically. Tunes itself — no $50K quarterly consultant. |
-| CSCO | Third tariff shock: 3 days. Supplier X failure predicted 3 months early. Celonis bottleneck explained, fixed, and transferred. |
-| CIO / CDO | Deploys on dirty data. Learns which sources to trust. No 12-month data cleanup prerequisite. |
-
-### Celonis Positioning
-Celonis = the mirror (shows WHERE). We = the brain + hands + memory
-(explains WHY, fixes WHAT, LEARNS from outcome, TRANSFERS fix to other
-plants). Scenario 16 demonstrates the full loop.
+|---|---|
+| CFO | Exception rate 15%→7%. Auto-approve 20%→65% with proof. $340K leakage prevented by auto-pause. Zero borderline leaks. The frozen twin proves acceleration, not just improvement. |
+| CPO | When Maria left, exception rate didn't spike. System finds $1M+ patterns quarterly without consultants. Judgment memory persists — and it's portable if you leave. |
+| VP Procurement Ops | System resolved 92% of tariff-variant invoices automatically. Tunes itself — no $50K quarterly consultant. Every recurring exception is a candidate for extinction (F25). |
+| CSCO | Third tariff shock: 3 days. Supplier X failure predicted 3 months early. Celonis bottleneck explained, fixed, and transferred. Risk is inside the decision, not a second dashboard. |
+| CIO / CDO | Deploys on dirty data. Learns which sources to trust. No 12-month data cleanup prerequisite. **…without locking your judgment inside one foundation model.** |
 
 ---
 
 ## §PD5 — Unlocks (Revised)
 
-| # | Unlock | Scenarios | KPI | Y1 Value |
+| # | Unlock | Scenarios | KPI | Y1 Value | Evidence |
 |---|--------|-----------|-----|----------|
-| 1 | Exception rate drops every quarter | 1, 14 | Exception % (declining) | ~$4-6M |
-| 2 | Auto-approve expands with proof | 2, 9, 15 | Auto-approve % (20%→65%) | ~$8-10M |
-| 3 | Deploy on dirty data, Day 1 | 4 | Time to deploy (12mo → 30d) | ~$3-5M |
-| 4 | Cross-system patterns nobody queried | 5, 10, 11, 16 | Discoveries/quarter | ~$6-12M |
-| 5 | Third disruption: days, not months | 3 | Recovery time (declining) | ~$8-20M |
-| 6 | Knowledge survives turnover | 6, 8 | IKS score, ramp time | ~$4-5M |
-| 7 | 47 suppliers → 16 | 7 | Supplier count, txn cost | ~$3-5M |
-| 8 | Payment timing from verified behavior | 12 | DPO, discounts, OTIF | ~$3-5M |
-| **9** | **System tunes itself — no consultant** | **13, 16** | **Config evolutions, resolution speed** | **~$2-3M** |
-| | **PORTFOLIO** | | | **$41-71M** |
+| 1 | Exception rate drops every quarter | 1, 14 | Exception % (declining) | ~$4-6M | PILOT-TARGET |
+| 2 | Auto-approve expands with proof | 2, 9, 15 | Auto-approve % (20%→65%) | ~$8-10M | PILOT-TARGET |
+| 3 | Deploy on dirty data, Day 1 | 4 | Time to deploy (12mo → 30d) | ~$3-5M | MODELED (Hackett) |
+| 4 | Cross-system patterns nobody queried | 5, 10, 11, 16 | Discoveries/quarter | ~$6-12M | MODELED |
+| 5 | Third disruption: days, not months | 3 | Recovery time (declining) | ~$8-20M | MODELED |
+| 6 | Knowledge survives turnover | 6, 8 | IKS score, ramp time | ~$4-5M | MODELED |
+| 7 | 47 suppliers → 16 | 7 | Supplier count, txn cost | ~$3-5M | MODELED |
+| 8 | Payment timing from verified behavior | 12 | DPO, discounts, OTIF | ~$3-5M | MODELED |
+| **9** | **System tunes itself — no consultant** | **13, 16** | **Config evolutions, resolution speed** | **~$2-3M** | **MODELED** |
+| | **PORTFOLIO** | | | **$41-71M** | **MODELED (Hackett-anchored)** |
 
 ---
 
@@ -2222,6 +2440,190 @@ Compliance Sentinel ships.*
 
 ---
 
+
+### 6.8 Moat Surfaces — New Features (v1.4)
+
+Most of these are views on one base object — the Decision-Change Proposal (F23).
+Build the object once; the ledger, workflow, twin, and inspector all render it.
+
+**Priority tags:** P0 = ship with pilot (v1.0). P1 = v1.1 (Month 2-6).
+P2 = v2.0 (Month 6+).
+
+---
+
+**F23: Decision-Change Proposal (base object) [P0]**
+
+The single object emitted for every decision: evidence chain + expected KPI
+delta + confidence + rollback path, emitted into the existing SAP/Coupa
+approval queue. Every ledger and surface below renders this object.
+
+Components:
+- **Evidence chain:** the Situation Analyzer's reasoned path (extends F2)
+- **Expected KPI delta:** projected financial impact of the recommended action
+- **Confidence score:** from ProfileScorer, with conservation state
+- **Rollback path:** what happens if this decision is reversed within N days
+
+The proposal enters the customer's existing approval workflow — it does not
+replace it. S2P *proposes*; the ERP *executes*. This is the write-back boundary
+(see §PD10 open decision #9).
+
+*Extends: F2 (evidence) + F5 (verification). Engineering: ProposalBuilder
+wrapping SituationAnalyzer output + ProfileScorer confidence + ConservationMonitor
+state. Serialized into customer's approval queue format (SAP/Coupa/custom).*
+
+---
+
+**F24: Autonomy / Compounding Ledger [P0]**
+
+Makes Judgment Memory economically visible. The single dashboard that answers
+"is it working?" and "is it getting better?":
+
+- Auto-approve coverage over calendar time (the one number on the wall)
+- Review-hours avoided (the labor proof)
+- Dollars recovered / leakage prevented (the financial proof)
+- Abstain rate (how often the system declined to decide — trust metric)
+- Bad-auto-approval rate (the safety metric — must stay near zero)
+- New-category time-to-trust (learning velocity)
+- Promotions and rollbacks (from F25)
+- **Incremental result vs the frozen baseline** (from F26 — the acceleration proof)
+- Plain-language *why* under every expansion event
+
+*Extends: F9 (IKS) + F10 (Financial Impact). Engineering: LedgerAggregator
+consuming IKSService + FinancialImpactTracker + FrozenTwin delta + F25
+promotion log. React dashboard with time-series charts.*
+
+---
+
+**F25: Decision-Class Promotion Workflow [P0]**
+
+The product form of Tech-Process Fusion (§PD4.5):
+
+```
+Discover → Shadow → Promote → Measure → Keep/Rollback → Transfer
+```
+
+- **Discover:** system identifies a recurring exception class
+- **Shadow:** proposed automation runs in parallel with human decisions (conservation-gated)
+- **Promote:** when shadow accuracy meets threshold, propose promotion to auto-approve
+- **Measure:** track KPI delta post-promotion
+- **Keep/Rollback:** if KPI degrades, automatic rollback to human review (F31)
+- **Transfer:** successful promotions transfer to other categories/plants/tenants (AgentEvolver)
+
+*Extends: F12 (AgentEvolver). Engineering: PromotionWorkflow consuming
+AgentEvolver's variant-test infrastructure + ConservationMonitor's promotion gate.*
+
+---
+
+**F26: Frozen Twin [P0]**
+
+Shadow instance pinned at day-one config, running permanently alongside live.
+The only credible proof of acceleration-not-just-improvement.
+
+- Runs the same incoming decisions through the frozen (day-one) scorer
+- Compares frozen decisions vs live decisions vs actual outcomes
+- Converts CLAIM-59 and CLAIM-62 from synthetic to **measured on customer data** by ~day 90
+- Doubles as rollback target
+
+Distinct from F27 (per-decision "what would change?") — F26 answers "is the
+SYSTEM improving over time?"
+
+*New feature. Engineering: FrozenTwinRunner maintaining a parallel ProfileScorer
+instance with frozen centroids + frozen DK weights. Storage: ~2× centroid
+storage per tenant.*
+
+---
+
+**F27: Counterfactual "What Would Change My Mind" Inspector [P1]**
+
+Beside "Why this decision?" (F2), put "What would have changed it?" —
+falsifiability, not just explanation.
+
+*Extends: F2 (evidence) + F7 (centroid explorer). Engineering:
+CounterfactualEngine computing nearest centroid boundaries per factor.*
+
+---
+
+**F28: Confidence Panel [P1]**
+
+Surface the built novelty-tracker (F6) + self-pause as a **permanent
+always-visible confidence state**, not an alarm. Answers S9's "wrong quietly"
+fear by making confidence visible at all times.
+
+*Extends: F6 (novelty detection). Engineering: ConfidencePanel consuming
+NoveltyTracker + ConservationMonitor. Always-visible sidebar widget.*
+
+---
+
+**F29: Day-0 Data-Readiness Assessment [P1 — the conversion engine]**
+
+Paid week-one deliverable: source coverage, completeness, provenance, trust
+tiers. Leads with what the data *can't* support yet.
+
+**Build note:** Day-0 can't use learned factor-trust weights. Build on the
+enrichment layer available at day zero.
+
+*New feature. Engineering: DataReadinessAssessor scanning connected data
+sources against the 7-factor DomainConfig.*
+
+---
+
+**F30: Cold-Start / Transfer Measurement [P1]**
+
+The falsifiable customer metric for learning velocity. Tracks time-to-trusted-
+automation for each new supplier/category added after deployment.
+
+Illustrative (MODELED): "Supplier #1: ~120 verified decisions. Supplier #6: ~40."
+
+*New feature. Engineering: ColdStartTracker recording per-supplier first-decision
+timestamp + time-to-conservation-GREEN.*
+
+---
+
+**F31: Rollback + Degradation Detection [P1]**
+
+The safety half of promoted policies (F25). Continuous monitoring of promoted-class
+accuracy. Automatic rollback on degradation. Re-promotion requires fresh shadow.
+
+*Extends: F25. Engineering: DegradationDetector monitoring per-promoted-class KPIs.*
+
+---
+
+**DIFF-1 / APP-4: Governed-vs-Ungoverned Differentiation App [P0]**
+
+Processes the same invoice decisions two ways — **governed (ours) vs a faithful
+reward-maximizer** — side by side. Toggle the reward config: our action stays
+put while theirs flips. The reward-maximizer catches +8% aggregate fraud while
+missing 30% of the high-value fraud. Ours rejects the promotion and says why.
+
+**Honesty invariant:** the baseline is **faithful, not strawmanned**
+(`test_baseline_is_faithful`).
+
+Distinct from F26 (acceleration via governed-vs-frozen). DIFF-1 proves
+governance causes quality via governed-vs-reward-maximizer. **Both are needed.**
+
+*New feature. Engineering: DiffApp running parallel ProfileScorer instances.
+Test suite: `test_baseline_is_faithful`.*
+
+---
+
+### Feature Summary (v1.4 additions)
+
+| Feature | Priority | Extends | Scenario |
+|---|---|---|---|
+| F23: Decision-Change Proposal | P0 | F2+F5 | All |
+| F24: Autonomy / Compounding Ledger | P0 | F9+F10 | S2, S9 |
+| F25: Decision-Class Promotion Workflow | P0 | F12 | S13, S16 |
+| F26: Frozen Twin | P0 | New | S2, S9 |
+| F27: Counterfactual Inspector | P1 | F2+F7 | S14 |
+| F28: Confidence Panel | P1 | F6 | S9 |
+| F29: Day-0 Data-Readiness Assessment | P1 | New | S4 |
+| F30: Cold-Start / Transfer Measurement | P1 | New | S6 |
+| F31: Rollback + Degradation Detection | P1 | F25 | S9 |
+| DIFF-1/APP-4: Governed-vs-Ungoverned | P0 | New | S15 |
+
+---
+
+
 ## §PD7 — Architectural Gaps
 
 ### 7.1 Gaps (v0.7 → v1.0)
@@ -2283,17 +2685,65 @@ Centroid Explorer can build while G3 Verification UX progresses).
 | Version | What | Weeks | Scenarios | Key Features |
 |---------|------|-------|-----------|-------------|
 | **Phase 0** | **S2P Preview Tab in SOC demo** | **1-2** | **1, 2, 6, 8** | **Mini F1, F4, F9 + supplier preview (§12)** |
-| **v1.0** | Invoice Exception Copilot + Control Tower | 3-10 | 1, 2, 9, 15 | F1-F5, F7, F9, F11 |
-| **v1.1** | + Price Leakage Guardian. Situation Analyzer reasoning. AgentEvolver. Outcome receipts. | 8-16 | +5, 10, 13, 14, 16 | F2 (full), F6, F8, F10, F12 |
+| **v1.0** | Invoice Exception Copilot + Control Tower + Moat Surfaces | 3-10 | 1, 2, 9, 15 | F1-F5, F7, F9, F11, **F23-F26, DIFF-1** |
+| **v1.1** | + Price Leakage Guardian. Situation Analyzer. AgentEvolver. Outcome receipts. Moat P1 surfaces. | 8-16 | +5, 10, 13, 14, 16 | F2 (full), F6, F8, F10, F12, **F27-F31** |
 | **v1.2** | + Supplier profiles auto-building. Lead time learning. Requisition Copilot. | 12-20 | +6, 7, 8 | F13, F14, F16 |
 | **v1.3** | + Cross-system discovery (shadow). Trend correlation. | 16-24 | +11 | F15, F17, F18 |
 | **v2.0** | + Working Capital Copilot. Optimizer API. Compliance. Disruption sim. | 22-34 | +3, 12 | F19-F22 |
 
 ---
 
+
+### 8.1 Pilot Crossover Engineering
+
+Under the 5:1 penalty, day one *adds* review load — every abstain is paid
+labor — while the frozen twin hasn't diverged. This is the trough where
+pilots die. Pull the crossover forward:
+
+**Pre-seed judgment memory with domain priors.** This is exactly what
+CLAIM-62's enriched-μ₀ +42.69pp Day-1 lift buys. A pre-seeded system
+starts at ~45% coverage instead of ~20%, cutting the trough in half.
+
+**Start auto-approve on the single safest category** where conservation
+clears fastest. For most S2P pilots this is `format_compliance` (high
+volume, low variance, fast verification cycle). Win one category
+convincingly before expanding.
+
+**Size the pilot** to clear the crossover with margin. Minimum: 200
+decisions/day across the pilot scope. At 200/day the conservation
+window (q_window=400) fills in 2 days — fast enough that the analyst
+sees improvement before fatigue sets in.
+
+**Verify-in-code:** crossover reachability on the pilot's real volume.
+Before committing to a pilot customer, run the synthetic generator at
+their actual decision volume and confirm the crossover occurs within
+the contracted pilot window (typically 90 days).
+
+---
+
 ## §PD9 — Value Model
 
+### Positioning note (v1.4)
+
+The number on the wall is **auto-approve coverage growing safely, week
+over week** — not the $41-71M portfolio total. The portfolio is roadmap
+depth for technical diligence; the pilot number is the headline.
+
+The 8-domain risk cockpit (Part I, tensor (5,5,8)) is a second product
+on terrain where the moat doesn't exist — external-data aggregation
+competes with Everstream, Interos, and Resilinc. Stop showing the
+cockpit as a destination. The pilot is (5,5,7) (§PD6.3, §PD11-M1);
+Part I's 8th risk factor as a quiet enrichment input is harmless and
+separate from selling a "risk cockpit."
+
+**Code decision (separate — verify first):** confirm the live tensor
+shape before any change. An 8th risk factor as enrichment input
+doesn't require tensor shape change and is architecturally clean.
+
+
 | Cluster | Scenarios | Y1 Value | How Measured |
+|---------|-----------|----------|-------------|
+| **PILOT (headline)** | **1, 2, 9, 14, 15** | **Auto-approve: 20%→65% with proof** | **Coverage %, review-hours avoided, dollars recovered, abstain rate, bad-auto-approval rate** |
 |---------|-----------|----------|-------------|
 | A: Invoice/AP Learning | 1, 2, 9, 13, 14, 15 | $14-19M | Exception rate, auto-approve %, leakage, self-tuning savings |
 | B: Supplier Intelligence | 6, 7, 8, 11 | $8-12M | Consolidation, stockout reduction, early warning |
@@ -2329,6 +2779,54 @@ Centroid Explorer can build while G3 Verification UX progresses).
    should the system be allowed to self-tune? Evidence ordering, yes.
    Routing thresholds, yes. Penalty ratios? Conservation parameters?
    Where's the boundary of what Loop 2 can evolve vs what Loop 3 fixes?
+
+---
+
+
+### Open Decisions (v1.4 — flag, don't silently resolve)
+
+**9. Write-back boundary — proposal-into-queue vs autonomous ERP posting.**
+S2P v1.0 emits decision-change proposals (F23) into the customer's existing
+approval queue. Autonomous ERP posting (auto-executing the decision without
+human queue) is roadmap + liability review. **Recommend: proposal-into-queue
+for v1.0-v1.1; autonomous posting as a gated v2.0 feature with explicit
+customer opt-in.**
+
+**10. Pilot-vs-8-domain sequencing.**
+The pilot (Invoice Exception + Price Leakage, tensor (5,5,7)) is the product.
+The 8-domain cockpit (tensor (5,5,8)) is roadmap depth. Don't sell both
+simultaneously — the cockpit dilutes the pilot story and enters competitive
+terrain (external-data aggregation) where the moat doesn't exist.
+
+**11. Pricing basis: decisions-under-management, not per-seat.**
+Recommendation: price on decisions-under-management / recovered value /
+auto-approve coverage. Add a "recovered value share" option for customers
+who want pure outcome-based pricing. **Don't resolve pricing before the
+first pilot — use the pilot to calibrate.**
+
+**12. Compete-vs-complement toward Celonis.**
+Recommend: complement / consume-via-MCP (§PD4.3). Celonis's Process-
+Intelligence Graph is an input, not a rival. If Celonis becomes hostile
+(blocks MCP access, ships compounding judgment), re-evaluate.
+
+### 5:1 Penalty Derivation (v1.4)
+
+**Derive the 5:1 penalty from the customer's data at onboarding**, not as a
+magic constant. The ratio is: cost-of-a-bad-approval / cost-of-a-hold.
+
+- **Cost of a bad approval:** average dollar exposure per auto-approved invoice
+  that turns out to be incorrect × probability of non-recovery
+- **Cost of a hold:** analyst time per held invoice × fully-loaded hourly rate
+
+For most AP operations: bad approval = $2,000–$10,000 exposure; hold = $15–$50
+of analyst time. Ratio: 40:1 to 200:1 on the raw numbers — but most bad approvals
+are recovered (credits, adjustments), so the *net* cost is much lower. Typical
+net ratio: 3:1 to 8:1. The 5:1 default is center-of-range.
+
+Making this a **configurable knob derived from customer data** does three things:
+(a) turns a magic number into a defensible parameter, (b) creates a procurement-
+fluency discovery conversation at onboarding, and (c) lets the system be more
+aggressive (lower ratio) or more conservative (higher ratio) per customer.
 
 ---
 
@@ -2531,6 +3029,35 @@ consumes only specialized.
 
 ---
 
+
+### M10: Tenant Isolation & Data-Locality Specification [NEW v1.4]
+
+**Tenant isolation:** each customer's S2P instance operates on tenant-
+isolated data. Invoice content, supplier names, decision records,
+centroid values, and DK weights are per-tenant and never shared raw.
+
+**Cross-customer priors:** aggregated statistical priors (mean centroid
+positions, factor-trust distributions, convergence rate benchmarks)
+may be distilled across tenants. The aggregation is:
+- **One-way:** raw data → aggregate; aggregate never → raw
+- **k-anonymized:** minimum k=10 tenants before any aggregate is used
+- **Opt-in:** explicit data-rights conversation at MSA (§PD4.7)
+- **Auditable:** every aggregation event logged with tenant count + hash
+
+**Data locality:** tenant data resides in the region specified at
+provisioning. Cross-region transfer only for aggregation (which
+operates on k-anonymized aggregates, not raw data).
+
+**Surfaces:**
+- UI: tenant-isolation badge (always visible, like F28 confidence panel)
+- API: `/api/s2p/isolation` returns isolation metadata per tenant
+- Audit: isolation-event log exportable in F11 audit pack
+
+**This is S2P's SAFE-4 analog** — the one hardening leg not otherwise
+covered by the base document's compliance receipts and audit trail.
+
+---
+
 ## §PD12 — S2P Preview Tab (SOC Demo Enhancement)
 
 ### Purpose
@@ -2639,6 +3166,32 @@ M2 factor computers → v0.7 §5 graph nodes → v0.7 §9 connectors.
 
 ---
 
+
+### PD12.1 Score-Path Performance (v1.4 — production-real)
+
+The 30–43s lock stalls (pool-exhaustion / warm-fallback) documented in the
+S2P FIX-B track are **production-real**, not a WSL artifact. They will
+manifest in any live S2P demo or pilot.
+
+**Highest value-per-effort fix:** fail-closed bounded acquire-and-write
+timeout. The current unbounded pool acquire allows indefinite blocking when
+connections are exhausted — a bounded timeout (5s) converts a hang into a
+clean error with retry.
+
+**Structural fix:** atomic score-write — same lock region as the calibration
+commit. Sequence score computation and calibration persistence together so
+they share one connection lifecycle. This eliminates the pool-exhaustion
+root cause.
+
+**Demo staging:** stage any live S2P demo single-worker with the pool
+pre-warmed. This is a workaround, not a fix — document it as such.
+
+**Cross-reference:** S2P FIX-B build track (Commits 1+2 shipped, Commit 3
+= calibration persistence + test cleanup, F2 = situation depth cap, F3 =
+typed Cypher rewrite).
+
+---
+
 ## §PD13 — Coding Sequence (Critical Path)
 
 ### Phase 0: S2P Preview Tab (~2 weeks)
@@ -2661,6 +3214,7 @@ M2 factor computers → v0.7 §5 graph nodes → v0.7 §9 connectors.
 | 1.4 | Exception triage dashboard (F1, full) | 1-2 | 1.1, 1.3 |
 | 1.5 | Conservation dashboard (G5/F4, full) | 1 | Phase 0 |
 | 1.6 | Auto-approve engine (F5) + RL calibration (G14) | 1-2 | 1.5 |
+| 1.6a | Score-path atomic-write fix | 0.5 | 1.1 |
 | 1.7 | Centroid Explorer (G4/F7) | 1-2 | 1.1 |
 | 1.8 | IKS tracker (F9) | 0.5 | Phase 0 |
 | 1.9 | Audit pack (F11) | 1 | 1.3 |
@@ -2697,18 +3251,42 @@ M1 (DomainConfig, 2 days)
 
 ---
 
-*S2P Product Definition v1.3 · April 30, 2026*
-*16 scenarios. 5 clusters. 9 unlocks. 22 features. 14 gaps.*
-*9 missing specs (all resolved or defaulted). S2P Preview Tab designed.*
-*Coding sequence: M1 → Preview Tab (~2 wk) → v1.0 (~10 wk) → v1.1 (~20 wk)*
-*Tensor migration: (6,4,6) → (5,5,7). Preview: /api/s2p/preview/*.*
-*Procurement that learns, reasons, tunes itself, and values caution.*
-
 
 ---
 
-*S2P Copilot — Unified Design & Product Definition v1.3*
-*Part I: Engineering Design (§1-§17 from v0.7)*
-*Part II: Product Definition (§PD1-§PD12 from v1.3)*
+## §PD14 — Verify-in-Code Before Committing (v1.4)
+
+These items must be verified in code before the corresponding claims
+enter any buyer-facing material:
+
+| # | Item | What to verify | Status |
+|---|---|---|---|
+| V1 | Live tensor shape | Is the live S2P tensor (5,5,7) or (5,5,8)? Confirm before any tensor-shape change. The pilot is (5,5,7); Part I designs (5,5,8). An 8th risk factor as enrichment input is architecturally clean and doesn't require tensor change. | **VERIFY** |
+| V2 | Crossover reachability | Run synthetic generator at the pilot customer's actual decision volume. Confirm the crossover (system adds value > review cost) occurs within the contracted pilot window (~90 days). | **VERIFY at pilot onboarding** |
+| V3 | Score-path atomic-write | Is the score-path atomic-write fix (§PD12.1) shipped? The 30-43s lock stalls are production-real. | **Cross-ref FIX-B Commit 3** |
+| V4 | Compounding loop closure | Does a verified decision measurably move a later score? (The one-grep check.) Tag claims LIVE only after this passes. | **VERIFY — gates all LIVE claims** |
+| V5 | DIFF-1 baseline faithfulness | Does `test_baseline_is_faithful` pass? The governed-vs-ungoverned app is the platform's defensible-moat bar — a strawmanned baseline destroys credibility. | **VERIFY before any demo** |
+| V6 | S2P scenario-improvement prompt | The S2P scenario-improvement prompt does not exist (only the Trading exemplar). Its hardening substance (DIFF-1, perf-lock, PII/data-locality) is covered by this addendum, but authoring the prompt would formalize and test it. | **AUTHOR (not yet written)** |
+
+---
+
+
+*S2P Product Definition v1.4 · August 16, 2026*
+*16 scenarios (5 [SPINE] + 11 roadmap depth). 5 clusters. 9 unlocks.*
+*32 features (F1-F22 original + F23-F31 new + DIFF-1/APP-4). 14 gaps.*
+*10 missing specs (M1-M9 + M10 tenant isolation). S2P Preview Tab designed.*
+*Coding sequence: M1 → Preview Tab (~2 wk) → v1.0 (~10 wk) → v1.1 (~20 wk)*
+*Tensor: (5,5,7)=175 (pilot). Part I (5,5,8) = roadmap risk enrichment.*
+*Headline: auto-approve coverage growing safely, week over week.*
+*Hero: Earned Autonomy — compounding judgment that doesn't quit.*
+*Moat: (a) cross-customer priors, (b) integration depth + ontology.*
+*Portability: judgment-memory export at termination (MSA commitment).*
+*Compounding loop: tag LIVE/NEAR/ARCH honestly (§PD3.1).*
+
+---
+
+*S2P Copilot — Unified Design & Product Definition v1.4*
+*Part I: Engineering Design (§1-§20 from v0.7, unchanged)*
+*Part II: Product Definition (§PD1-§PD14 from v1.4)*
 *ONE document. Architecture + Scenarios + Engineering Specs.*
-*16 scenarios. 5 clusters. $680K/year leakage. 50% exception reduction.*
+*16 scenarios. 5 clusters. Earned Autonomy. Compounding Judgment.*

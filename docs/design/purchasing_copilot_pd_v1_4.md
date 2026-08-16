@@ -1,18 +1,46 @@
-# Purchasing Copilot — Product Definition v1.3
+# Purchasing Copilot — Product Definition v1.4
 ## Purchasing That Learns Your Kitchen
 
-**Version:** 1.3 · **Date:** May 29, 2026
-**Supersedes:** v1.2 (May 29, 2026)
-**Changes v1.2 → v1.3:** Applied feedback from 3-LLM purchasing mini-poll
-(Grok, Gemini, GPT). Factor display names simplified: "Price Position" → "What
-They Charge", "Delivery Reliability" → "Whether They Show Up." Value reframed:
-$45-75K → "1-3 points of recoverable leakage" ($15-45K). $28K departure given
-component breakdown. Fake precision softened in buyer-facing scenarios. Jargon
-("centroid geometry", "DK weight") scrubbed from buyer text, retained in engineering
-specs. Chain learning promoted as top multi-location angle. Day 1 timing softened.
-Weekly recovered-dollar report added as product requirement.
-**Authority:** Purchasing Copilot PD v1.1 (architecture) + CI Blog v13 (positioning) +
-food service industry research (May 2026) + implementation scan (May 29, 2026).
+**Version:** 1.4 · **Date:** August 15, 2026
+**Supersedes:** v1.3 (May 29, 2026)
+**Changes v1.3 → v1.4:** Merged FINAL consolidated addendum
+(purchasing_copilot_addendum_FINAL_v1.md — folds all three pending
+addenda: v1 §A–§G, v2 §PV2-0..6, v3 §RV3-1..4).
+
+Key changes:
+- **Hero:** Continuity ("compounding judgment that doesn't quit")
+  replaces I1 (Supplier Trust Trap) as the headline. I1 renamed
+  to Signal Reliability, demoted to gated discovery example (F26).
+- **Proof Ledger:** §8.2 upgraded from flat Weekly Report to
+  two-curve Proof Ledger (Proof Curve + Competence Curve) with
+  incremental-attribution gate.
+- **Judgment Memory named:** Continuity hero = JM (⑥b). Four
+  properties mapped to surfaces.
+- **Legal-exposure framework:** New §12.0 (5 ranked items).
+  Banned vocabulary in §11.1. Marco departure de-identified.
+  P7 "financial stress" → first-party observations.
+- **7 new scenarios:** Handoff Pack, Second Departure, New
+  Supplier Ramp, Quiet Week, Shrinking Alert List, Frozen Twin,
+  Almost-Order / Pre-Order Belief Capture. + "Not Yet" empty state.
+- **7 new features:** F23–F29 (Proof Ledger, Handoff Pack,
+  Time-to-Competence Meter, Discovery Gate, Frozen Twin,
+  Pre-Order Belief Capture, Yield-Adjusted Quote Audit).
+- **GTM:** Multi-unit / hotel F&B = required proof customer.
+  Marco = spreader, not proof target.
+- **Moat:** Two components named (continuity/JM + Recovered-Dollar
+  Gate; supplier-economics ⚠ unverified). Antitrust caveat:
+  cross-customer priors legally constrained in food-service.
+- **CRITICAL §7.3:** Compounding-loop precondition — tag LIVE /
+  NEAR / ARCH honestly. The loop is not yet proven wired.
+- **DATA-MATURITY tags** added to §8 for P4, P7, F1, F2, F27.
+- **Open decisions (§G):** Marketing hero line A/B, multi-unit
+  GTM commitment, supplier-economics go/no-go.
+
+**Authority:** v1.3 + purchasing_copilot_addendum_FINAL_v1.md
+(consolidates purchasing_copilot_doc_additions_v1 §A–§G,
+_v2 §PV2-0..6, _v3 §RV3-1..4). Outreach alignment (§RV3-1)
+already actioned in outreach_elevator_pitches_v6_1.md — excluded
+from this merge.
 
 ---
 
@@ -38,9 +66,12 @@ most restaurants. A 3-percentage-point improvement in food cost control translat
 to $15-45K/year in recovered profit for a $1.5M-revenue operation (1-3 points
 off food cost) — without touching menu prices or reducing portions.
 
-**What we build:** purchasing that learns from every verified order, discovers
-patterns across your suppliers, your menu, and your local market, proves when
-auto-approval is safe to expand, and gets measurably better every quarter.
+**What we build:** purchasing that compounds judgment from every verified order.
+The system discovers patterns across your suppliers, your menu, and your local
+market. It proves when auto-approval is safe to expand. It survives every personnel
+change — every new chef starts with everything the previous chef ever learned.
+And it gets measurably better every quarter, with proof.
+
 After 1,000 verified orders, your system knows your suppliers and your kitchen
 better than any individual ever could — and unlike that individual, it never
 leaves, never forgets, and every new chef starts with everything the previous
@@ -56,9 +87,12 @@ Rosa managed purchasing for 9 years. She knew every supplier. She knew the
 produce distributor inflates quotes in July because of driver shortages. She
 knew the pasta supplier gives volume breaks if you order Tuesdays. She knew
 that rainy weekends need 20% less protein but 30% more comfort pasta. She
-left for a catering company. Marco spent $28K in the first 6 months with her replacement — $8K in price
-creep nobody challenged, $7K in over-ordering, $5K in missed credits, $4K in
-poor substitutions, $4K in stockout losses.
+left for a catering company. In the 90 days after the March staffing change,
+14 order decisions diverged from a pattern that had held two years — here they
+are, with what each cost. De-trended against USDA PPI (separating market
+inflation from lost judgment): $8K in price creep nobody challenged, $7K in
+over-ordering, $5K in missed credits, $4K in poor substitutions, $4K in
+stockout losses.
 
 **What he'd pay for:** "Something that captures what Rosa knew, from the
 orders themselves. So the next Rosa starts with everything."
@@ -100,9 +134,25 @@ built a tool that captures what makes them 10x."
 **What she'd pay for:** "Your findings persist after I leave. Client doesn't need
 me back in 18 months. I earn monitoring revenue instead."
 
+### Beachhead: Who proves the compounding claim
+
+A single $1.5M restaurant is too thin per supplier×item×season for the compounding
+claim to become true in a sales cycle. Only **Lisa (chain, 4 locations)** and
+**Rafael (hotel F&B, $4.2M spend)** have the decisions/month to prove it in two
+quarters. **Marco (independent)** is the *spreader* — the customer who adopts after
+seeing Lisa's proof — not the customer to prove it on.
+
+This also resolves chain learning: multi-unit under **one legal entity** is where
+transfer is most valuable and least legally fraught (§12.0 item 3).
+
+**Implication for sales sequencing:**
+- **Pilot targets:** Multi-unit operators (3–8 locations) and hotel F&B directors with ≥$2M annual food spend
+- **Proof timeline:** Two quarters of verified orders → Competence Curve acceleration visible → case study
+- **Spread targets:** Independent operators (Marco) adopt after seeing the multi-unit proof. Karen (consultant) becomes a channel partner once she can point to the proof
+
 ---
 
-## §3 — 23 Scenarios of Change
+## §3 — 30 Scenarios of Change
 
 Organized into 6 clusters. Each scenario has a BEFORE (recognizable pain)
 and AFTER (uniquely enabled by our architecture).
@@ -128,7 +178,8 @@ discrepancies are queued: "Invoice: 40 lbs × $14.20 = $568. Received: 36 lbs
 (4 lb short). Standard for this supplier: ships 3-6% under in summer months
 (N=34). Recommend: credit request or adjust next order." After learning:
 the supplier's under-delivery pattern is auto-flagged before it becomes
-routine.
+routine. **Dynamic Yield Match** (v1.1 upgrade): net plate cost vs gross quote
+via POS depletion.
 
 **P1: "I'm Over-Ordering and I Don't Know It"**
 BEFORE: Par levels set 2 years ago. Consumption changed. Kitchen manager
@@ -155,17 +206,19 @@ AFTER: Week 6 (800 verified orders): system proves $400 is safe for repeat
 items from top 8 suppliers. Conservation law: α·q·V ≥ θ_min — mathematical
 proof, not a promise. Daily review: 40 → 12 line items. Month 4: $600. Month 8:
 $1,200 for suppliers with 12+ month verified history. If accuracy dips, system
-pauses ITSELF.
+pauses ITSELF. **Seasonal Auto-Approve Freeze:** auto-approve pauses during
+seasonal transitions (Nov–Dec, pre-holiday) until the system has seasonal data
+for the new cycle.
 
-**P4: "The Same Overcharge Every November"**
+**P4: "The Same Overcharge Every November"** [DATA-MATURITY: 18–24 months]
 BEFORE: Every November, the seafood distributor quotes lobster 12-18% above
 summer pricing. Always approved because "it's seasonal." Pattern cost: $6,200/year.
 Chef who knew this retired.
 AFTER: System knows: "Lobster pricing: June-August baseline $18.40/lb. November
 average: $21.80 (+18.5% premium, N=24 orders across 3 years). Current quote:
 $22.10 — at high end of seasonal range. Recommend: request price justification
-or reduce order quantity." Pattern survived personnel change — lives in centroid
-geometry, not in anyone's head.
+or reduce order quantity." Pattern survived personnel change — lives in the system's
+learned patterns, not in anyone's head.
 
 ### Cluster B: Supplier Intelligence
 
@@ -175,12 +228,13 @@ suppliers, same access. He approves the salmon supplier's inflated November
 quotes. He doesn't know the produce distributor has been slow-delivery in
 August for 3 years. He doesn't know which items need 3-week lead times before
 major holidays. $30K in avoidable waste and overcharges, first 6 months.
-AFTER: 1,200 verified orders compiled into centroid geometry + DK precision
-weights. Carlos starts Day 1 with everything Rosa built. System warns: "This
+AFTER: 1,200 verified orders compiled into learned purchasing patterns.
+Carlos starts Day 1 with everything Rosa built. System warns: "This
 supplier's August delivery performance: OTIF 68% (vs annual 91%). Order 5 days
-early. N=12 summers."
+early. N=12 summers." **Counterfactual Judgment Replay** (v2.0): "What would the
+March version of the system have recommended for this order?"
 
-**I1: "The Supplier Trust Trap"** [HERO SCENARIO]
+**I1: "Signal Reliability — The Factor You Check First Predicts Least"** [DISCOVERY EXAMPLE — gated by F26]
 BEFORE: You trust your seafood supplier's price quotes because you've worked
 with them for 7 years. They're your first call when you're building a seasonal
 menu. This feels like good relationship management.
@@ -189,20 +243,56 @@ QUOTED PRICES are the noisiest predictor of correct order outcomes (σ=0.29,
 weight 8%). Whether they show up on time — which nobody checks at order time —
 is the cleanest signal (σ=0.06, weight 97%).
 
-The factor you check first (the quote) predicts least. The factor you never
-check (3-year delivery OTIF by month and season) predicts most. Every
-independent restaurant has at least one trust trap.
+The factor you check first (what they charge) predicts your outcomes least.
+The factor you never check (3-year delivery OTIF by month and season) predicts
+most. **This finding is gated by F26 (Discovery Gate) — it displays only after
+partial pooling, out-of-sample confirmation, a minimum evidence floor, and a
+selection-adjusted statistic pass. The default state is "Not Yet."**
 
-**3-beat demo:**
-Beat 1: Supplier Scorecard. "Good supplier. 7-year relationship. OTIF 88%.
-Revenue $340K/year." [Buyer nods.]
-Beat 2: Click "Trust Analysis." Radar chart. Expected (blue): what they charge
-is large, whether they show up is small. Actual (red): what they charge is tiny
-(weight 8%), whether they show up on time is dominant (weight 97%). Shapes
-inverted. [Pause 3 seconds.]
-Beat 3: "The factor you check first — what they charge — predicts your outcomes
-least. The factor you never check — whether they show up complete and on time —
-predicts most. You've been watching the wrong thing for 7 years."
+**Demo flow:**
+
+**Screen 1 — Supplier Scorecard.** "Good supplier. 7-year relationship. OTIF 88%.
+Revenue $340K/year." The buyer sees what they expect.
+
+**Screen 2 — Click "Signal Analysis."** Radar chart appears. Expected (blue):
+what they charge is large, whether they show up is small. Actual (red): what
+they charge is tiny (weight 8%), whether they show up on time is dominant
+(weight 97%). The shapes are inverted.
+
+**Screen 3 — The reveal.** "The factor you check first — what they charge —
+predicts your outcomes least. The factor you never check — whether they show
+up complete and on time — predicts most. You've been watching the wrong number
+for 7 years."
+
+**Demo honesty:** DS1 plants **2 signal-reliability suppliers** so the demo shows
+a real signal — but the gate + empty state ("Not Yet") is what must ship for a
+real clean buyer.
+
+**F26: Discovery Gate (gates I1 before display)**
+
+I1 as specified (~7 factors × ~30 suppliers × a few-hundred orders ≈ 10–20
+obs/supplier) will surface "your most-trusted factor is your noisiest" for a
+*clean* buyer under the null. Before display:
+
+- **Partial pooling** across the tenant's suppliers (not per-supplier max-selection)
+- **Out-of-sample confirmation**: discovered months 1–6 must hold in 7–9; in-sample never displays
+- **Minimum evidence floor**: sufficient observations per supplier×factor cell
+- **Selection-adjusted statistic**: corrects for the multiple-testing implicit in scanning all suppliers
+
+Default = the honest empty state: **"Not Yet."**
+
+The Discovery Gate is itself a "won't" moat — a tool that markets on surprising
+findings won't suppress its own headlines. Name it.
+
+**F29: Yield-Adjusted Quote Audit — I1's stronger successor**
+
+Net **plate cost** vs gross quote via POS depletion / trim-waste: *"$0.20/lb
+cheaper, but +14% higher final plate cost."* Harder to copy (needs POS yield
+data), not defamation-shaped. Extension of signal reliability, not a replacement.
+
+Both the I1 Discovery Gate (F26) and the incremental-attribution gate (§8.2/B1)
+are Purchasing's instance of the cross-copilot evidence-gate component — build
+them as that, not bespoke.
 
 **I2: "The Price Memory"**
 BEFORE: You negotiated $12.40/lb for salmon in October. Six months later,
@@ -221,14 +311,16 @@ AFTER: System identifies 4 behavioral duplicates from 800 verified orders:
 identical within confidence. Consolidate to A+B. Savings: $11K/year in
 relationship overhead + volume pricing improvement."
 
-**P7: "The Supplier That Was Fine Until It Wasn't"**
+**P7: "The Supplier That Was Fine Until It Wasn't"** [DATA-MATURITY: 18–24 months]
 BEFORE: Produce distributor: A-rated, on-time 93%. Misses a critical delivery
 before a large event. Post-mortem: OTIF declining 4 months (93→79%), exception
 rate doubled 3 months ago, quote response time doubled 2 months ago. Three
 signals in three data sources, each below alarm threshold individually.
-AFTER: Two months before the failure: "Three signals declining simultaneously.
-Pattern consistent with capacity constraint or financial stress. Confidence: 0.71.
-Recommend: qualify backup produce supplier before high-volume season."
+AFTER: Two months before the failure: "Three signals declining simultaneously:
+OTIF 93→79% over 4 months; exception rate doubled 3 months ago; quote response
+time doubled 2 months ago. Your fill rate from them went 96%→81% over 8 weeks.
+Confidence: 0.71. Recommend: qualify backup produce supplier before high-volume
+season."
 
 ### Cluster C: Cross-System Discovery
 
@@ -301,7 +393,8 @@ AFTER: "IKS = 62 from 1,400 verified purchase decisions. Auto-approve at 38%
 with mathematical safety proof. Conservation GREEN for 140 consecutive days.
 Full hash-chained audit trail showing every override reason and outcome."
 IKS and conservation become bankable — quantified operational intelligence
-that demonstrates purchasing competency beyond "trust me."
+that demonstrates purchasing competency beyond "trust me." **Purchasing
+Fitness Certificate** — note: accuracy exposure once a third party relies on it.
 
 ### Cluster E: Disruption & Transfer
 
@@ -309,8 +402,8 @@ that demonstrates purchasing competency beyond "trust me."
 BEFORE: 2025 avian flu shock: 8 weeks of scramble, $22K in emergency sourcing
 and substitutions. 2026 second wave: same 8 weeks, same cost.
 AFTER: Second shock: 2 weeks, $4K. System accumulated disruption-response
-patterns from the first event. Third shock: 4 days, $800. Re-convergence is
-mathematically faster each time (γ > 1). The system absorbed the institutional
+patterns from the first event. Third shock: 4 days, $800. Recovery is
+measurably faster each time. The system absorbed the institutional
 knowledge from handling the first shock — so the second shock is faster, and
 the third is routine.
 
@@ -329,7 +422,7 @@ These three scenarios are native to food service — they don't exist in the
 manufacturing or S2P domains. They emerge from the `weather_forecast`,
 `event_flag`, and `day_of_week` factors in the DomainConfig.
 
-**F1: "The Weather Nobody Checked"**
+**F1: "The Weather Nobody Checked"** [DATA-MATURITY: 12 months]
 BEFORE: Saturday forecast: heavy rain. Nobody adjusts. Kitchen over-ordered
 by 35%. $480 in proteins and produce wasted. This happened 14 times last year.
 AFTER: Thursday morning, before the Saturday order: "3-day weather forecast:
@@ -339,7 +432,7 @@ standard, produce 88%. Estimated waste saved: $340."
 The weather_forecast factor weight (DK: 94%) reflects that this is your most
 reliable demand signal — cleaner than your intuition about the weekend.
 
-**F2: "The Event We Forgot"**
+**F2: "The Event We Forgot"** [DATA-MATURITY: 12 months]
 BEFORE: Local marathon Sunday. Nobody flagged it. Bar ordered for a normal
 Sunday. Marathon runners flooded brunch service. 40-minute waits. 86'd items.
 $1,200 in lost revenue from turned tables.
@@ -362,9 +455,62 @@ verified orders."
 Day-of-week turns out to be the second-most reliable demand signal
 for most restaurants — right after weather.
 
-*Pitch note:* Do not lead with "Tuesday is not Friday" as a standalone line —
-owners know this and it sounds obvious. Lead with the waste number and the
-dynamic par solution. Better opener: "Stop ordering Tuesday like it's Friday."
+> **Sales note:** Don't lead with "Tuesday is not Friday" — owners know this.
+> Lead with the waste number and the dynamic par solution.
+> Better opener: "Stop ordering Tuesday like it's Friday."
+
+### Cluster G: Continuity & Acceleration (New — v1.4)
+
+**The Handoff Pack** · continuity · v1.0
+> "Marcus starts Monday — here are the 47 things this kitchen has learned since 2024."
+
+A single-page transfer document generated from the accumulated judgment: top
+supplier patterns, seasonal adjustments learned, par level intelligence, price
+memory highlights, conservation status. The new hire starts with everything.
+This is the continuity hero's most tangible artifact.
+
+**The Second Departure** · continuity + acceleration · v1.1 (needs ≥2 staffing events)
+> The first departure cost $28K in 90 days. The second departure: system had
+> already absorbed the judgment. New hire starts Day 1 with everything. Cost of
+> the transition: $2K in supervised period. Re-convergence time: 11 days vs
+> 9 weeks. The system got *faster* at handling the disruption — that's the
+> Competence Curve accelerating.
+
+**The New Supplier Ramp** · time-to-competence · v1.1
+> First new supplier onboarded: 9 weeks before the system could read a normal
+> delivery. Latest new supplier: 11 days. The Competence Curve never plateaus
+> because every new supplier is a fresh test of how fast the system converges.
+
+**The Quiet Week / Clean Operator** · v1.0
+> "$0 recovered; nothing leaked; coverage 94%; faster at three things."
+> The Proof Curve shows $0 while the Competence Curve keeps rising. **Monetize
+> as an Active Assurance / monitoring fee.** The buyer pays for the assurance
+> that nothing leaked, not just for the catches.
+
+**The Shrinking Alert List** · v1.0
+> Week 1: 40 items need review. Week 8: 12. Week 16: 6. The alert list shrinks
+> because the system is learning what's normal — and the shrinkage is the proof.
+> Each alert that disappears is a pattern the system absorbed.
+
+**The Frozen Twin** · v2.0 · Requires centroid-history persistence (checkpoint infrastructure).
+> "A version of us frozen in March would have missed 11 of these 14 catches."
+> The acceleration *proof* and demo control arm. Requires centroid history
+> (checkpoint persistence) to replay the frozen scorer against current data.
+> This is how you prove the system is getting better — not by claiming it,
+> but by showing the frozen version failing.
+
+**The Almost-Order / Pre-Order Belief Capture** · Architecture phase — build spec pending.
+> "You almost took the cheaper quote in August and didn't — they were 22%
+> short-shipped."
+> The one dataset a POS feed can't retro-fill. Makes the mirror causal.
+> **Design the capture** (on-deviation prompt UX, storage, how it feeds
+> F11/the ledger without becoming a forward-looking directive) — don't just
+> name it. This is an architecture decision, not a feature toggle.
+
+**"Not Yet" — the honest empty state** · v0.1
+> Before the Discovery Gate (F26) has enough evidence, every gated finding
+> shows "Not Yet" — not a guess, not a model, not silence. The honest empty
+> state is itself a trust signal.
 
 ---
 
@@ -372,13 +518,13 @@ dynamic par solution. Better opener: "Stop ordering Tuesday like it's Friday."
 
 | Innovation | Technology | Buyer Sees | Scenarios |
 |---|---|---|---|
+| Continuity / Judgment Memory | Per-factor σ learned from verified outcomes; persists across personnel | "When Rosa left, system kept everything she knew. New hire starts Day 1 with everything." | P4, P5, I1, Handoff Pack |
 | Centroid learning | Verified orders move learned vectors | "Par levels update themselves. Overcharges caught." | P1, P2, P4, M2 |
 | Conservation law | Mathematical quality invariant | "Proof that $600 auto-approve is safe. System pauses itself." | P3, I3 |
 | DiagonalKernel | Per-factor noise fingerprint | "Works with messy POS + QuickBooks from Day 1." | P9 |
 | Cross-graph attention | Discovers patterns across data sources | "Connected invoice history to commodity data to local events." | P7, P8, M8, I4 |
-| Re-convergence (γ>1) | Recovery faster after each disruption | "Second avian flu shock: 2 weeks, not 8." | P10 |
-| Judgment memory | Per-factor σ learned from verified outcomes | "When Rosa left, system kept everything she knew." | P4, P5, I1 |
-| Signal-confidence inversion | Trusted factor = noisiest predictor | "The factor you trust most is the one that lies to you." | I1, P9 |
+| Re-convergence | Recovery measurably faster after each disruption | "Second avian flu shock: 2 weeks, not 8." | P10 |
+| Signal-confidence inversion | Trusted factor = noisiest predictor | "The factor you check first predicts your outcomes least." | I1 (gated, F26), P9 |
 | Price memory | Episodic + judgment + decision support | "System remembers every negotiated rate at the moment of order." | I2 |
 | Personnel quality detection | Conservation detects quality change | "System flagged that new manager's decisions differ." | I3 |
 | Weather intelligence | Learned weather-demand pattern | "Learned rain means -28% covers. Adjusted before the storm." | F1 |
@@ -386,6 +532,7 @@ dynamic par solution. Better opener: "Stop ordering Tuesday like it's Friday."
 | Day-of-week model | Learned daily demand profile | "Tuesday is not Friday. Two-tier par reduces waste 18%." | F3 |
 | AgentEvolver | Self-tuning within conservation bounds | "Format fix: $2K/month saved. Transferred to all locations." | I5, I8 |
 | IKS as bankable asset | Quantified institutional knowledge | "Proof for bank: purchasing improving every quarter." | I7 |
+| Proof Ledger (two-curve) | Proof Curve + Competence Curve + attribution | "Every dollar we claim, we can defend — including the weeks we claim zero." | §8.2 |
 
 ---
 
@@ -402,29 +549,15 @@ dynamic par solution. Better opener: "Stop ordering Tuesday like it's Friday."
 | My POS data is messy — works Day 1? | "Export clean CSV" | Same | Same | Learns trust from Day 1 |
 | Is this price increase the market or supplier? | Can't | Can't | Can't | Decomposition: market + markup |
 | SupplierCo declining — warn 2 months early? | Can't | Can't | Can't | Cross-system trend detection |
-| Which factor is my trust trap? | Can't | Can't | Can't | Signal-confidence inversion |
+| Which factor is my signal-confidence inversion? | Can't | Can't | Can't | Signal-confidence inversion |
 | System remembers negotiated prices? | Search manually | Same | Same | Auto-surfaces at decision point |
 | Rainy Saturday → adjust before I ask? | Can't | Can't | Can't | Weather factor, automatic |
 
 ### Positioning Statement
 
-**The hero one-liner (validated 9-10/10 across 3 LLMs):**
-> *"BlueCart stores the order. We store the leverage."*
+**Hero: Continuity — compounding judgment that doesn't quit.**
 
-BlueCart, MarketMan, and Upserve manage purchasing PROCESS. We improve
-purchasing DECISIONS. They handle the mechanics — sending orders, tracking
-costs, logging invoices. None of them learn which decisions produce better
-outcomes. We are the brain sitting on top of the brawn they already have.
-
-After 12 months, the system encodes your suppliers, your kitchen, your local
-demand patterns. Switching means starting over. That's the moat at independent
-restaurant scale.
-
-**The elevator pitch for Marco:** "After 1,000 orders, this system knows your
-kitchen better than anyone who's ever worked for you — and it never leaves."
-
-**The CFO pitch for Rafael:** "1-3 points off food cost. In a $28M hotel F&B
-operation, that's $84-280K. The system proves it's getting there every quarter."
+> *"Your ordering system remembers what you bought. We remember what you learned."*
 
 BlueCart, MarketMan, and Upserve manage purchasing PROCESS. We improve
 purchasing DECISIONS. They're Clock 1 — same logic on Day 365 as Day 1.
@@ -435,8 +568,34 @@ After 12 months, 315 learned values (140 category patterns + 175 factor weights)
 encode your operation's purchasing reality. Switching means starting over.
 That's the moat at independent restaurant scale.
 
-**The elevator pitch for Marco:** "After 1,000 orders, this system knows your
+**The moat has two named components:**
+1. **Continuity / Judgment Memory** — the system accumulates purchasing judgment
+   from every verified order. When staff leave, the judgment stays. Every new
+   hire starts with everything the operation has ever learned.
+2. **Recovered-Dollar Gate** — every dollar claimed passes an incremental-attribution
+   gate (§8.2). A tool that proves its own honesty is harder to replace.
+
+**Antitrust caveat:** Cross-customer priors are legally constrained in food-service.
+Cross-account learning stays **single-entity / within-chain** only. The moat is
+per-customer accumulated depth, not network effects across customers.
+
+**Supplier-economics weapon:** "Ask your current tool who pays them" — ⚠ UNVERIFIED.
+See §G open decision #3. Do not use in any copy until per-competitor verification
+is complete.
+
+**Elevator pitches by persona role:**
+
+**For Lisa (chain — the proof customer):** "Your best location's purchasing discipline
+becomes the baseline for all four. One system that knows what all four locations
+know — and proves it's getting better every quarter."
+
+**For Rafael (hotel F&B — the proof customer):** "1-3 points off food cost. In a $28M
+hotel F&B operation, that's $84-280K. The system proves it's getting there every
+quarter — and it never leaves when your purchasing coordinator does."
+
+**For Marco (independent — the spreader):** "After 1,000 orders, this system knows your
 kitchen better than anyone who's ever worked for you — and it never leaves."
+*(Marco adopts after Lisa's proof; don't lead the GTM with him.)*
 
 ---
 
@@ -462,6 +621,8 @@ kitchen better than anyone who's ever worked for you — and it never leaves."
 **Pricing:** $299-799/month ($3.6-9.6K/year). ROI at $499/month: 22-46×.
 
 ---
+
+
 
 ## §7 — Architecture & Feature Sets
 
@@ -538,7 +699,15 @@ discount. Feeds scenarios I2, P4, M8 directly. Legacy migration path:
 | F8: Par Level Intelligence | Learned par from consumption. Seasonal adjustments. Excess surfacing. | P1, P2 |
 | F9: IKS Tracker | IKS 0→62 trajectory. Per-category breakdown. | I7 |
 | F10: Supplier Scorecard | OTIF, pricing, exception rate, seasonal patterns. Price memory: last 5 rates. | P5, I2 |
-| F11: Trust Analysis [HERO] | Radar chart: expected vs actual factor importance (DK weights). Trust trap. | I1 |
+| F11: Signal Analysis | Radar chart: expected vs actual factor importance (DK weights). Signal-confidence inversion. **Gated by F26.** | I1 |
+
+**v1.0 (new features — v1.4 additions):**
+
+| Feature | Description | Scenario | Build class |
+|---|---|---|---|
+| F23: Proof Ledger (two-curve) | B1 Proof Curve + B2 Competence Curve + attribution hierarchy + honest $0 | §8.2 | LIVE |
+| F24: Handoff Pack | Single-page transfer document from accumulated judgment | Handoff Pack | LIVE |
+| F26: Discovery Gate (+ "Not Yet") | Partial pooling, OOS confirmation, evidence floor, selection-adjusted stat | I1 | LIVE |
 
 **v1.1 (Month 2-4):**
 
@@ -552,14 +721,74 @@ discount. Feeds scenarios I2, P4, M8 directly. Legacy migration path:
 | F17: Supplier Consolidation | Behavioral clustering from verified orders. Duplicate identification. | P6 |
 | F18: AgentEvolver | Self-tuning alert thresholds, format rules, par adjustment heuristics. | I5 |
 
+**v1.1 (new features — v1.4 additions):**
+
+| Feature | Description | Scenario | Build class |
+|---|---|---|---|
+| F25: Time-to-Competence Meter | Tracks re-convergence speed per new supplier/manager/menu/shock | New Supplier Ramp | NEAR |
+| F29: Yield-Adjusted Quote Audit | Net plate cost vs gross quote via POS depletion/trim-waste | I1 extension | NEAR |
+
 **v2.0 (Month 6+):**
 
 | Feature | Description | Scenario |
 |---|---|---|
-| F19: Disruption Recovery | L2 fallback, re-calibration, γ>1 recovery dashboard. | P10 |
+| F19: Disruption Recovery | L2 fallback, re-calibration, recovery dashboard. | P10 |
 | F20: Multi-Location Transfer | AgentEvolver pattern promotion across locations. | I8 |
 | F21: Payment Timing Intelligence | Per-supplier payment behavior. Early-pay vs extend analysis. | New |
 | F22: Audit & Export Pack | SOX-adjacent decision trail. Conservation proof. Override history. | I7 |
+
+**v2.0 (new features — v1.4 additions):**
+
+| Feature | Description | Scenario | Build class |
+|---|---|---|---|
+| F27: Frozen Twin | Checkpoint-based counterfactual replay — "frozen March version vs current" | Frozen Twin | NEAR-HEAVY |
+
+**Architecture phase:**
+
+| Feature | Description | Scenario | Build class |
+|---|---|---|---|
+| F28: Pre-Order Belief Capture | On-deviation prompt UX + causal storage | Almost-Order | ARCH |
+
+### 7.3 Compounding-Loop Precondition (Purchasing's instance of OD-1)
+
+**Every value claim in this document rests on one loop:**
+
+```
+verified order → ProfileScorer.update() → centroid/DK-weight update → a measurably better later score
+```
+
+The PD does **not** yet prove this loop is wired:
+
+| What §7.1 says | What it actually is |
+|---|---|
+| DomainConfig "IMPLEMENTED ✅" | **Tensor scaffolding** — the (5,4,6)→(5,4,7) migration is done = the shape exists |
+| F5 "verify → ProfileScorer.update()" | A **v1.0 to-build feature** — the loop closure |
+| Appendix A: PUR-FACTORS "likely partially done" | Factor computers may be stubbed or incomplete |
+
+Yet §8.1 ("Month 1: food cost dropped 1.2 points"), the §8.2/B2 Competence Curve,
+and every continuity scenario assume the loop compounds.
+
+**Correction — tag honestly:**
+
+| Tag | Meaning | What qualifies |
+|---|---|---|
+| **LIVE** | Wired and demonstrable today | Only what passes the one-grep check: does a verified order measurably move a later score? |
+| **NEAR** | Scaffolded but not closed | F5 built, factors partial — the verify→update→rescore loop is scaffolded but the full chain isn't proven end-to-end |
+| **ARCH** | Second-derivative claims | Competence-Curve acceleration, "gets measurably better every quarter," the 24-week trajectory — until the loop is wired *and* an experiment measures the acceleration |
+
+**What this gates:**
+
+| Section | Claim | Honest tag until loop is wired |
+|---|---|---|
+| §1 | "gets measurably better every quarter" | ARCH |
+| §8.1 | "Month 1: food cost dropped 1.2 points" | NEAR (depends on factor quality + loop closure) |
+| §8.2/B2 | Competence Curve acceleration | ARCH |
+| §3 Cluster G | Continuity scenarios (Second Departure, New Supplier Ramp, Frozen Twin) | ARCH (the acceleration claim); NEAR (the continuity/persistence claim) |
+| §3 P10 | "Recovery is measurably faster each time" | ARCH |
+
+**Action:** Run the one-grep check (does a verified order measurably move a later
+score?) and tag honestly. Don't ship ARCH claims as LIVE in any buyer-facing
+material until the loop is wired and an experiment measures acceleration.
 
 ---
 
@@ -568,9 +797,25 @@ discount. Feeds scenarios I2, P4, M8 directly. Legacy migration path:
 | Version | What | Weeks | Scenarios | Key Features |
 |---|---|---|---|---|
 | **v0.1** | **Preview tab in demo** | **DONE** | **P1, P3, I1 partial** | **Domain config, basic queue, conservation, par levels** |
-| **v1.0** | **Full copilot** | **8-12** | **M1, M2, P1-P7, I1, I2, I3** | **F1-F11: Spend, match, queue, evidence, verify, conservation, par, IKS, scorecard, trust** |
-| **v1.1** | **+ Intelligence layer** | **14-18** | **+P8, P9, M8, I4, I5, F1, F2, F3** | **F12-F18: Weather, events, DoW, commodity, discovery, consolidation, AE** |
-| **v2.0** | **+ Disruption + multi-location** | **20-28** | **+P10, I7, I8** | **F19-F22: Recovery, transfer, payment, audit** |
+| **v1.0** | **Full copilot** | **8-12** | **M1, M2, P1-P7, I1, I2, I3 + Handoff Pack, Quiet Week, Shrinking Alert List, "Not Yet"** | **F1-F11, F23, F24, F26: Spend, match, queue, evidence, verify, conservation, par, IKS, scorecard, signal analysis, Proof Ledger, Handoff Pack, Discovery Gate** |
+| **v1.1** | **+ Intelligence layer** | **14-18** | **+P4, P9, M8, I4, I5, F1, F2, F3, Second Departure, New Supplier Ramp** | **F12-F18, F25, F29: Weather, events, DoW, commodity, discovery, consolidation, AE, Time-to-Competence, Yield Audit** |
+| **v2.0** | **+ Disruption + multi-location** | **20-28** | **+P10, I7, I8, Frozen Twin** | **F19-F22, F27: Recovery, transfer, payment, audit, Frozen Twin** |
+| **ARCH** | **Build spec pending** | **—** | **Almost-Order** | **F28: Pre-Order Belief Capture** |
+
+**Data-maturity tags** (distinct from ship version): some features need historical
+depth before they're patterns, not noise. Tag them so a first-year customer doesn't
+experience the roadmap as vapor:
+
+| Feature | Data maturity needed | Why |
+|---|---|---|
+| P4: Seasonal Overcharge | 18–24 months | Needs ≥2 seasonal cycles to distinguish pattern from noise |
+| P7: Supplier Decline | 18–24 months | Decline = trend over months, not a single data point |
+| F1: Weather Intelligence | 12 months | Needs ≥1 year of weather×demand correlation per location |
+| F2: Event Intelligence | 12 months | Needs ≥1 year of event×demand correlation |
+| F27: Frozen Twin | 6+ months | Needs centroid history to replay meaningfully |
+
+Features without a data-maturity tag work from Day 1 with whatever history the
+POS/QBO provides.
 
 ### 8.1 Day 1 Experience (Time to Value)
 
@@ -579,7 +824,7 @@ discount. Feeds scenarios I2, P4, M8 directly. Legacy migration path:
 shows your first supplier fingerprint — which of your 30 suppliers
 has the cleanest delivery record, which one's pricing is volatile,
 and which factor you've been checking first that matters least.
-The trust trap is visible before lunch."
+The first signal-reliability finding is visible before lunch."
 
 **First week (50 verified order reviews):**
 "The radar chart sharpens for your top 5 suppliers. Price memory
@@ -604,24 +849,66 @@ to see price memory, and 1 month to see weather intelligence.
 The 24-week trajectory is where compounding kicks in — but the
 system earns attention on Day 1.
 
-### 8.2 Weekly Recovered-Dollar Report (from LLM poll feedback)
+### 8.2 The Two-Curve Proof Ledger (upgraded from Weekly Recovered-Dollar Report)
 
-**What Marco needs to keep paying after Day 1:** Not a dashboard.
-Not a model explanation. A weekly money trail:
+The v1.3 Weekly Recovered-Dollar Report is a flat money trail carrying a
+**structural bug**: a working system removes the leakage it recovers, so
+recovered dollars *fall* in a healthy account. A flat dollar report trains the
+buyer to expect rising numbers — then punishes success. Split it into two curves
+that tell the complete story:
 
-- "We found $412 this week."
-- "We prevented $180 in waste."
-- "We flagged $230 in price variance."
-- "Net recovered this month: $1,820."
+**B1. Proof Curve — hard dollars, allowed to fall.**
 
-This is the retention mechanism. The system must produce a simple,
-human-readable weekly report showing dollars found, waste prevented,
-and supplier flags surfaced — tied to specific orders and suppliers.
-If the owner can't see recovered dollars weekly, they cancel.
+Every claimed dollar passes an **incremental-attribution gate** first:
+- Counterfactual/holdout: "Would a competent buyer, or your own baseline, have caught this?"
+- No double-counting across categories or time periods
+- **Realized-not-modeled** — only dollars that actually flowed differently, not projections
 
-**Implementation:** Automated email or in-app digest every Monday.
-Pulls from verified decisions + conservation log + price memory
-alerts. No AI narration — just facts and dollars.
+The attribution hierarchy (more conservative as the claim strengthens):
+
+| Level | Meaning | Display |
+|---|---|---|
+| Flagged | System surfaced the issue | "We pointed it out" |
+| Avoided | Issue was present, system prevented the cost | "You'd have missed this" |
+| Realized | Dollar amount confirmed by invoice/credit | "This actually saved $X" |
+| Incremental | Passed counterfactual gate — baseline buyer would have missed it | "Net new savings" |
+| Compounding | Incremental AND the system caught it faster than it would have 6 months ago | "Getting better" |
+
+Insufficient evidence → **display $0**, not a modeled number.
+
+Reads: *"$412 recovered — $310 you'd have missed (here's each), $102 you'd likely have caught."*
+
+Falling is success, and say so: *"We recovered less this quarter than last. That's what it looks like when it's working."*
+
+**B2. Competence Curve — the moat, allowed to accelerate.**
+
+Pin acceleration to **time-to-competence on situations never seen before** (new
+supplier / new manager / new menu item / supply shock), **not** coverage % /
+accuracy / automation share (all saturate).
+
+*"First new supplier: 9 weeks to read a normal delivery. Latest: 11 days."*
+
+This is re-convergence speed in kitchen language — weekly, non-saturating. The
+same metric that proves continuity. The Competence Curve is the moat because it
+never plateaus: every new situation tests whether the system converges faster than
+it did before.
+
+**B3. Attribution hierarchy** (see B1 table above — more conservative as the claim
+strengthens). Insufficient evidence → **display $0**, not a modeled number.
+
+**B4. Honest $0 is a feature.**
+
+*"$0 incremental this week — nothing leaked; coverage 94%; we got faster at three things."*
+
+The Proof Curve shows $0 while the Competence Curve keeps rising. This is the
+"Quiet Week / Clean Operator" scenario — **monetize as an Active Assurance /
+monitoring fee.** The buyer pays for the assurance that nothing leaked, not just
+for the catches.
+
+**Implementation:** Automated email or in-app digest every Monday. Pulls from
+verified decisions + conservation log + price memory alerts. Two charts: Proof
+Curve (dollars, allowed to fall) + Competence Curve (time-to-competence, allowed
+to accelerate). No AI narration — just facts, dollars, and the two curves.
 
 ### 8.3 Chain Learning as Top Angle (from LLM poll feedback)
 
@@ -701,7 +988,7 @@ class ToastPOSConnector:
 | Gold reliable | 5 | Baseline | OTIF 96%+, stable pricing |
 | Seasonal premium | 2 | P4 scenario | +12-18% Nov-Dec seafood pricing |
 | Declining | 2 | P7 scenario | OTIF dropping 2.5%/month |
-| Trust trap | 2 | I1 scenario | Good rep, mediocre measured OTIF |
+| Signal-reliability demo | 2 | I1 scenario | Good rep, mediocre measured OTIF |
 | Behavioral duplicates | 6 (3 pairs) | P6 scenario | Delivery r>0.93 |
 | Commodity-linked | 3 | M8 scenario | Pricing tracks USDA PPI (r>0.82) |
 | Price memory | 3 | I2 scenario | Raises 8-12% at 6-month mark |
@@ -766,8 +1053,12 @@ Seasonal variation: summer +15% covers, January -22%, event days +40-80%.
 | "Conservation law GREEN" | "Auto-approve is safe for this supplier" |
 | "η_confirm = 0.05" | Never shown to operators |
 | "DiagonalKernel weights" | "How much the system trusts each signal" |
+| "Trust trap" | "Signal reliability" or "invoice-variance profile" |
+| "Supplier is padding quotes" | (remove — never assert supplier motive) |
+| "Financial stress" (about a supplier) | First-party observation only: "your fill rate from them went 96%→81% over 8 weeks" |
+| "Fraud" (about a supplier) | (remove — never assert supplier intent) |
 
-**The trust trap vocabulary (I1) must use kitchen language:**
+**The signal-reliability vocabulary (I1) must use kitchen language:**
 
 Not: "quoted_price has σ=0.29, DK weight 8% vs delivery_history σ=0.06, weight 97%"
 
@@ -812,12 +1103,12 @@ class PurchasingTemplateEngine:
         "{recommendation}."
     )
 
-    # Trust trap template (I1 hero — uses plain language, not code names)
-    TRUST_ANALYSIS = (
-        "Factor trust analysis for {supplier}:\n"
+    # Signal analysis template (I1 — uses plain language, not code names)
+    SIGNAL_ANALYSIS = (
+        "Factor signal analysis for {supplier}:\n"
         "  {display_name}: σ={sigma:.2f}, DK weight {weight:.0%} — {label}.\n"
-        "  Most trusted: {top_factor_display} (weight {top_weight:.0%}).\n"
-        "  Least trusted: {bottom_factor_display} (weight {bottom_weight:.0%}).\n"
+        "  Most reliable: {top_factor_display} (weight {top_weight:.0%}).\n"
+        "  Least reliable: {bottom_factor_display} (weight {bottom_weight:.0%}).\n"
         "  {inversion_note}."  # "You check what they charge first. The system ignores it."
     )
 
@@ -842,7 +1133,9 @@ class PurchasingTemplateEngine:
 | /api/purchasing/iks | GET | IKS score and trend | v1.0 |
 | /api/purchasing/par-levels | GET | Par level recommendations | v1.0 |
 | /api/purchasing/supplier/{id} | GET | Supplier scorecard + price memory | v1.0 |
-| /api/purchasing/trust/{id} | GET | Trust analysis (DK weights radar) | v1.0 |
+| /api/purchasing/signal/{id} | GET | Signal analysis (DK weights radar) | v1.0 |
+| /api/purchasing/proof-ledger | GET | Two-curve Proof Ledger digest | v1.0 |
+| /api/purchasing/handoff-pack/{id} | GET | Single-page transfer document | v1.0 |
 | /api/purchasing/weather | GET | Current forecast + demand adjustment | v1.1 |
 | /api/purchasing/events | GET | Upcoming events + demand impact | v1.1 |
 | /api/purchasing/commodity/decompose | POST | Market vs markup analysis | v1.1 |
@@ -851,7 +1144,38 @@ class PurchasingTemplateEngine:
 
 ---
 
-## §12 — Open Questions (Updated v1.2)
+## §12 — Open Questions (Updated v1.4)
+
+### 12.0 Legal-Exposure Framework (ranked)
+
+*This framework identifies exposure areas for review with counsel — it is not legal advice.*
+
+**(1) Cross-tenant price/terms benchmarking — HIGHEST.**
+Information-exchange / antitrust exposure. Never surface cross-tenant prices or
+terms — benchmark against the customer's own history or public indices (USDA PPI,
+FRED) only. Cross-account learning stays **single-entity / within-chain.**
+
+**(2) Supplier disparagement.**
+First-party observations only; banned vocabulary (§11.1): never say trap, padding,
+stress, fraud. The system reports what happened (fill rate, OTIF, price variance) —
+never why.
+
+**(3) Chain learning across franchisees.**
+Separate legal entities / potential competitors. Transfer **non-price operational
+patterns only** (e.g., "rainy Saturdays reduce demand 28%" transfers; "Supplier X
+charges Location A 12% less" does NOT transfer). See §8.3 chain learning.
+
+**(4) Employee-referencing findings.**
+Never attribute cost to a named individual. De-identify to "the staffing change."
+Findings reference pattern divergence from the historical baseline, not individual
+performance.
+
+**(5) Auto-approval financial controls.**
+The customer sets the ceiling; the system produces the *evidence* to raise it; the
+human grants it. Expansion is a logged, approved event. Separation of duties +
+immutable log + one-click revoke.
+
+### Open Questions (carried from v1.2)
 
 1. **Toast vs Square first?** Toast has 110K+ restaurant customers and the
    richest data model. Square is higher volume (more cafés/SMB). Recommend:
@@ -889,6 +1213,39 @@ class PurchasingTemplateEngine:
 
 ---
 
+## §G — Open Decisions
+
+These decisions are architecturally decided but need market validation or
+verification before they're final:
+
+**(1) Marketing hero line — proof-of-dollars vs continuity.**
+
+Architecture is decided: continuity hero, Proof Ledger proves it. The literal
+tagline is an A/B on real operators:
+- **Option A:** "Your ordering system remembers what you bought. We remember what you learned."
+- **Option B:** "Everything in this kitchen turns over. This doesn't."
+- **Option C:** "Every dollar we claim, we can defend — including the weeks we claim zero."
+
+Test with 5 multi-unit operators. Pick the one that gets the fastest nod.
+
+**(2) Commit multi-unit as *the* GTM wedge.**
+
+Lisa and Rafael are the proof customers. Marco is the spreader. This is the
+recommendation — but it becomes a commitment only after the first multi-unit
+pilot proves compounding in two quarters. If the pilot shows compounding is
+provable at single-unit scale (unlikely but possible), revisit.
+
+**(3) Go/no-go on the supplier-economics weapon.**
+
+"Ask your current tool who pays them" is the sharpest competitive weapon in the
+deck — but it rests on how BlueCart / MarketMan / Toast+xtraCHEF / MarginEdge /
+Ottimate actually monetize (marketplace fees, GPO rebates, preferred-vendor books).
+**Verify per-competitor before a single line enters any copy.**
+
+Status: ⚠ UNVERIFIED. Keep as go/no-go until verification is complete.
+
+---
+
 ## APPENDIX A — MAP Queue Items
 
 ### Phase 0: Foundation (STATUS: LARGELY DONE)
@@ -915,7 +1272,7 @@ class PurchasingTemplateEngine:
 | P12 | **PUR-CONSERVATION** | F6+F7: Conservation dashboard + auto-approve engine. | 3d |
 | P13 | **PUR-PAR-LEVELS** | F8: Par level intelligence from consumption + seasonality. | 1w |
 | P14 | **PUR-IKS-SCORECARD** | F9+F10: IKS + supplier scorecard + price memory index. | 1.5w |
-| P15 | **PUR-TRUST-ANALYSIS** | F11: Trust radar chart [HERO]. Expected vs actual DK weights. | 1w |
+| P15 | **PUR-SIGNAL-ANALYSIS** | F11: Signal radar chart. Gated by F26. | 1w |
 
 ### Phase 1.1: Intelligence Layer
 
@@ -936,6 +1293,18 @@ class PurchasingTemplateEngine:
 | #108 | PUR-DOMAIN-REFRAME | ✅ DONE | This document — PD v1.2 written |
 | #109 | PUR-TOAST-CONNECTOR | 2w | Added as P6a — higher priority than QBO |
 
+### New MAP Items (v1.4)
+
+| MAP# | ID | Effort | What | Status |
+|---|---|---|---|---|
+| #110 | PUR-PROOF-LEDGER | 1.5w | F23: Two-curve Proof Ledger (B1+B2+B3+B4) | NEW |
+| #111 | PUR-HANDOFF-PACK | 1w | F24: Single-page transfer document from accumulated judgment | NEW |
+| #112 | PUR-TIME-TO-COMPETENCE | 1w | F25: Time-to-competence meter + Competence Curve | NEW |
+| #113 | PUR-DISCOVERY-GATE | 1.5w | F26: Partial pooling, OOS confirmation, evidence floor, selection-adjusted stat | NEW |
+| #114 | PUR-FROZEN-TWIN | 2–3w | F27: Checkpoint-based counterfactual replay (requires centroid-history persistence) | NEW |
+| #115 | PUR-BELIEF-CAPTURE | ARCH | F28: Pre-order belief capture UX + causal storage (design spec needed) | NEW |
+| #116 | PUR-YIELD-AUDIT | 1w | F29: Yield-adjusted quote audit via POS depletion | NEW |
+
 ### AE Variant Dimensions (P22)
 
 Purchasing AgentEvolver will have:
@@ -950,18 +1319,39 @@ Purchasing AgentEvolver will have:
 
 | Phase | Scenarios Covered | Count |
 |---|---|---|
-| v0.1 (now) | P1, P3, I1 (partial) | 3/23 |
-| v1.0 | +M1, M2, P2, P4-P7, I2, I3 | 13/23 |
-| v1.1 | +P8, P9, M8, I4, I5, F1, F2, F3 | 21/23 |
-| v2.0 | +P10, I7, I8 | 23/23 |
+| v0.1 (now) | P1, P3, I1 (partial) | 3/30 |
+| v1.0 | +M1, M2, P2, P4-P7, I2, I3, Handoff Pack, Quiet Week, Shrinking Alert List, "Not Yet" | 17/30 |
+| v1.1 | +P8, P9, M8, I4, I5, F1, F2, F3, Second Departure, New Supplier Ramp | 27/30 |
+| v2.0 | +P10, I7, I8, Frozen Twin | 31/30* |
+| ARCH | +Almost-Order | 32/30* |
+
+*\*Count exceeds 30 because some sub-scenarios (Frozen Twin extends P10/P5; "Not Yet" is I1's default) overlap with their parent clusters.*
 
 ---
 
-*Purchasing Copilot Product Definition v1.3 · May 29, 2026*
-*23 scenarios (5 clusters A-E + Cluster F food service). 22 features.*
+## Cross-doc exclusion note
+
+> **v3 §RV3-1 — outreach Purchasing copy.** The outreach §1 lagged this
+> recalibration (led with the demoted Trust Trap, kept "store the leverage,"
+> the defamation-shaped name, the causal + named Rosa claim, and ungated
+> dollars). It was **fixed in `outreach_elevator_pitches_v6_1.md`** (continuity
+> hero, gated/renamed discovery, retired "store the leverage," de-identified +
+> de-causalized departure, incremental-attribution-gated dollars). The PD changes
+> above already carry all of that — do **not** import the old outreach copy here.
+
+---
+
+*Purchasing Copilot Product Definition v1.4 · August 15, 2026*
+*23 + 7 = 30 scenarios (6 clusters A–F + Cluster G continuity). 29 features (F1–F29).*
 *Tensor: 5×4×7 = 140 centroids + 175 DK weights. Domain: food service.*
-*Buyers: Marco (restaurant), Lisa (café chain), Rafael (hotel F&B), Karen (consultant).*
+*Buyers: Marco (restaurant, spreader), Lisa (café chain, proof),
+Rafael (hotel F&B, proof), Karen (consultant, channel).*
 *Connector priority: Toast POS → QBO → Weather API → USDA.*
-*Hero: I1 — Supplier Trust Trap. Hero line: "The factor you trust most is the one that lies to you."*
-*Manufacturing vertical: deferred to v2.x — same architecture, different domain config.*
-*MAP items: P1 ✅, P3 ✅, P6a new (Toast). First active action: PUR-SYNTH-DATA (P2, 2d).*
+*Hero: Continuity — compounding judgment that doesn't quit.
+Hero line: "Your ordering system remembers what you bought.
+We remember what you learned."*
+*I1 (Signal Reliability): gated discovery example (F26), not headline.*
+*Manufacturing vertical: deferred to v2.x — same architecture,
+different domain config.*
+*Compounding loop (§7.3): tag LIVE/NEAR/ARCH honestly — not yet
+proven wired.*
