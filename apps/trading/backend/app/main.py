@@ -8,7 +8,7 @@ import os
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -58,6 +58,12 @@ from .services.journal_query import JournalQueryService  # noqa: E402
 from .services.regime_monitor import RegimeMonitor  # noqa: E402
 from .services.regime_scoring import TradingRegimeScorerProxy, build_regime_context  # noqa: E402
 from .services.trading_evolver import TradingAgentEvolver  # noqa: E402
+from .services.claim_gate import (  # noqa: E402
+    TradingClaimRegistry,
+    TradingEvidenceMiddleware,
+    TradingPromotionGuard,
+    promotion_store_path,
+)
 from copilot_sdk.evolution import SQLiteVariantStore  # noqa: E402
 from .state import create_trading_tab_state_cache  # noqa: E402
 from .state.compute_helpers import compute_counterfactual_default  # noqa: E402
@@ -316,6 +322,14 @@ def create_app(
 ) -> FastAPI:
     app = FastAPI(title="Trading Copilot", version="0.1.0")
 
+    claim_registry = TradingClaimRegistry()
+    app.state.trading_claim_registry = claim_registry
+    app.add_middleware(
+        TradingEvidenceMiddleware,
+        registry=claim_registry,
+        context=os.environ.get("TRADING_EVIDENCE_CONTEXT", "demo"),
+    )
+
     scoring_db = _resolve_scoring_db(db_path)
     # Stable instrument/market context only; decisions and learning authority
     # remain in the graph store and are never cached.
@@ -336,12 +350,13 @@ def create_app(
             return active_graph_store
         return _graph_store(path)
 
+    _bundle_path: Path | bool
     if demo_bundle_path is None:
         _bundle_path = REPO_ROOT / "demo" / f"{DOMAIN}_demo_bundle.json"
     elif demo_bundle_path is False:
         _bundle_path = False
     else:
-        _bundle_path = Path(demo_bundle_path)
+        _bundle_path = Path(cast(str | Path, demo_bundle_path))
     seed_graph_store = active_graph_store or _graph_store(scoring_db)
     startup_state = {"seeded": False, "restored": False}
     base_scorer_proxy = FreshScorerProxy(
@@ -379,6 +394,13 @@ def create_app(
     }
 
     trading_store_factory = lambda: selected_graph_store_factory(scoring_db)
+    promotion_data_dir = DATA_DIR if scoring_db == ":memory:" else Path(scoring_db).parent
+    trading_promotion_guard = TradingPromotionGuard(
+        claim_registry,
+        promotion_store_path(promotion_data_dir),
+    )
+    app.state.trading_promotion_guard = trading_promotion_guard
+    claim_registry.refresh_from_store(selected_graph_store_factory(scoring_db))
     conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
     evolution_db = (
         ":memory:"
@@ -424,6 +446,7 @@ def create_app(
                 if _bundle_path is not False:
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
                 _auto_seed_if_needed(seed_graph_store)
+            claim_registry.refresh_from_store(selected_graph_store_factory(scoring_db))
         if not startup_state["restored"]:
             startup_state["restored"] = True
             status = restore_l5_runtime_state(
@@ -506,12 +529,12 @@ def create_app(
     def query_journal(payload: dict[str, Any]) -> dict[str, Any]:
         question = str(payload.get("question") or "")
         trades = _journal_records(lambda: selected_graph_store_factory(scoring_db), DOMAIN)
-        return JournalQueryService().query(question, trades)
+        return cast(dict[str, Any], JournalQueryService().query(question, trades))
 
     @app.get("/api/trading/score/counterfactual/default")
     @cached_static("counterfactual-default")
     def default_counterfactual(request: Request) -> dict[str, Any]:
-        return compute_counterfactual_default(scorer_proxy)
+        return cast(dict[str, Any], compute_counterfactual_default(scorer_proxy))
 
     @app.get("/api/trading/correlation/config")
     @cached_static("correlation-config")
@@ -541,6 +564,7 @@ def create_app(
         create_promotion_engine_router(
             lambda: selected_graph_store_factory(scoring_db),
             domain=DOMAIN,
+            promotion_guard=trading_promotion_guard,
         )
     )
     app.include_router(
@@ -607,7 +631,7 @@ def create_app(
             }
             for factor in getattr(fingerprint, "factors", [])
         ]
-        dominant = max(factors, key=lambda item: item["weight"], default=None)
+        dominant = max(factors, key=lambda item: float(cast(Any, item["weight"])), default=None)
         return {
             "domain": DOMAIN,
             "factors": factors,

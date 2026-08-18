@@ -399,6 +399,8 @@ export interface VolSharpeResponse {
   minDecisionsPerCluster?: number;
   source?: string;
   clusters?: VolSharpeCluster[];
+  evidenceTier?: string;
+  evidenceLabel?: string;
 }
 
 export interface VolSharpeCluster {
@@ -800,6 +802,8 @@ export interface SelfAccuracyByCategoryResponse {
   categories?: CategoryAccuracy[];
   threshold?: number;
   overallVerified?: number;
+  evidenceTier?: string;
+  evidenceLabel?: string;
 }
 
 export interface SelfDecisionEntry {

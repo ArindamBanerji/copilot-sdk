@@ -114,6 +114,10 @@ class AccuracyResponse(FlexibleModel):
     categories: list[dict[str, Any]] = Field(default_factory=list)
     overall_verified: int | None = None
     threshold: float | None = None
+    evidence_tier: str | None = None
+    evidence_label: str | None = None
+    evidence_gate: str | None = None
+    claim_id: str | None = None
 
 
 class TrustAnalysisResponse(FlexibleModel):
@@ -155,6 +159,10 @@ class VolSharpeResponse(FlexibleModel):
     min_decisions_per_cluster: int | None = None
     source: str | None = None
     analytics_provenance: str | None = None
+    evidence_tier: str | None = None
+    evidence_label: str | None = None
+    evidence_gate: str | None = None
+    claim_id: str | None = None
 
 
 class VrpAttributionResponse(FlexibleModel):
@@ -174,6 +182,10 @@ class VrpAttributionResponse(FlexibleModel):
     source: str | None = None
     analytics_provenance: str | None = None
     tail_attribution: dict[str, Any] | None = None
+    evidence_tier: str | None = None
+    evidence_label: str | None = None
+    evidence_gate: str | None = None
+    claim_id: str | None = None
 
 
 class RegimeVrpResponse(FlexibleModel):
@@ -183,6 +195,10 @@ class RegimeVrpResponse(FlexibleModel):
     substantiation: Any = None
     day_zero: bool | None = None
     decisions_until_measured: int | None = None
+    evidence_tier: str | None = None
+    evidence_label: str | None = None
+    evidence_gate: str | None = None
+    claim_id: str | None = None
 
 
 class DispersionFollowResponse(FlexibleModel):
@@ -195,6 +211,10 @@ class DispersionFollowResponse(FlexibleModel):
     substantiation: Any = None
     day_zero: bool | None = None
     decisions_until_measured: int | None = None
+    evidence_tier: str | None = None
+    evidence_label: str | None = None
+    evidence_gate: str | None = None
+    claim_id: str | None = None
 
 
 class CorrelationPairResponse(FlexibleModel):
@@ -352,6 +372,10 @@ class RegimeAnalyticsSummaryResponse(RegimeAnalyticsResponse):
 
 class IksResponse(FlexibleModel):
     iks: float | None = None
+    evidence_tier: str | None = None
+    evidence_label: str | None = None
+    evidence_gate: str | None = None
+    claim_id: str | None = None
 
 
 class RegimeCurrentResponse(FlexibleModel):
@@ -383,6 +407,10 @@ class RegimePerformanceResponse(FlexibleModel):
     edge_categories: list[dict[str, Any]] = Field(default_factory=list)
     recommendation: str | None = None
     observation: str | None = None
+    evidence_tier: str | None = None
+    evidence_label: str | None = None
+    evidence_gate: str | None = None
+    claim_id: str | None = None
 
 
 class EvolutionPromotedResponse(FlexibleModel):

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -14,6 +14,7 @@ from copilot_sdk.backend.conservation_router import _check_payload, _state_count
 from copilot_sdk.scoring.mutation_lock import serialize_mutation
 from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.state.cached_static import cached_static
+from app.services.claim_gate import TradingPromotionGuard
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -39,6 +40,7 @@ def create_promotion_engine_router(
     state_store: PromotionStateStore | None = None,
     preset: TradingPreset | None = None,
     domain: str = "trading",
+    promotion_guard: TradingPromotionGuard | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/trading/promotion", tags=["trading-promotion-engine"])
     trading_preset = preset or TradingPreset()
@@ -62,19 +64,43 @@ def create_promotion_engine_router(
     @router.get("/dashboard")
     @cached_static("promotion")
     def dashboard(request: Request) -> list[dict[str, Any]]:
-        return _engine().dashboard()
+        return cast(list[dict[str, Any]], _engine().dashboard())
 
     @router.get("/{category}")
     def category_evaluation(category: str) -> dict[str, Any]:
         _ensure_category(category, categories)
-        return _engine().evaluate(category)
+        return cast(dict[str, Any], _engine().evaluate(category))
 
     @router.post("/{category}/promote")
     @serialize_mutation(domain, event="evolution")
     def promote(category: str, request: PromoteRequest) -> dict[str, Any]:
         _ensure_category(category, categories)
         try:
-            return _engine().promote(category, confirmed_by=request.confirmed_by)
+            if promotion_guard is not None:
+                decision = promotion_guard.authorize(
+                    category,
+                    _conservation_status(graph_store_factory, domain),
+                )
+                if not decision.allowed:
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "error": "promotion_claim_gate_blocked",
+                            "reason": decision.reason,
+                            "evidence_tier": decision.evidence_tier,
+                            "evidence_label": decision.evidence_label,
+                        },
+                    )
+            payload = _engine().promote(category, confirmed_by=request.confirmed_by)
+            if promotion_guard is not None:
+                payload = {
+                    **payload,
+                    "promotion_state_machine": promotion_guard.advance_observed(
+                        category,
+                        _conservation_status(graph_store_factory, domain),
+                    ),
+                }
+            return cast(dict[str, Any], payload)
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
 
@@ -82,7 +108,7 @@ def create_promotion_engine_router(
     @serialize_mutation(domain, event="evolution")
     def demote(category: str, request: DemoteRequest) -> dict[str, Any]:
         _ensure_category(category, categories)
-        return _engine().demote(category, reason=request.reason)
+        return cast(dict[str, Any], _engine().demote(category, reason=request.reason))
 
     return router
 

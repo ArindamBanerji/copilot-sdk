@@ -111,6 +111,10 @@ export interface AccuracyResponse {
   categories?: Record<string, unknown>[];
   overallVerified?: number;
   threshold?: number;
+  evidenceTier?: string;
+  evidenceLabel?: string;
+  evidenceGate?: string;
+  claimId?: string;
   [key: string]: unknown;
 }
 
@@ -165,6 +169,10 @@ export interface VolSharpeResponse {
   minDecisionsPerCluster?: number;
   source?: string;
   analyticsProvenance?: string;
+  evidenceTier?: string;
+  evidenceLabel?: string;
+  evidenceGate?: string;
+  claimId?: string;
   [key: string]: unknown;
 }
 
@@ -185,6 +193,10 @@ export interface VrpAttributionResponse {
   source?: string;
   analyticsProvenance?: string;
   tailAttribution?: Record<string, unknown>;
+  evidenceTier?: string;
+  evidenceLabel?: string;
+  evidenceGate?: string;
+  claimId?: string;
   [key: string]: unknown;
 }
 
@@ -195,6 +207,10 @@ export interface RegimeVrpResponse {
   substantiation?: unknown;
   dayZero?: boolean;
   decisionsUntilMeasured?: number;
+  evidenceTier?: string;
+  evidenceLabel?: string;
+  evidenceGate?: string;
+  claimId?: string;
   [key: string]: unknown;
 }
 
@@ -208,6 +224,10 @@ export interface DispersionFollowResponse {
   substantiation?: unknown;
   dayZero?: boolean;
   decisionsUntilMeasured?: number;
+  evidenceTier?: string;
+  evidenceLabel?: string;
+  evidenceGate?: string;
+  claimId?: string;
   [key: string]: unknown;
 }
 
@@ -446,6 +466,10 @@ export interface RegimeAnalyticsSummaryResponse {
 
 export interface IksResponse {
   iks?: number;
+  evidenceTier?: string;
+  evidenceLabel?: string;
+  evidenceGate?: string;
+  claimId?: string;
   [key: string]: unknown;
 }
 
@@ -479,6 +503,10 @@ export interface RegimePerformanceResponse {
   edgeCategories?: Record<string, unknown>[];
   recommendation?: string;
   observation?: string;
+  evidenceTier?: string;
+  evidenceLabel?: string;
+  evidenceGate?: string;
+  claimId?: string;
   [key: string]: unknown;
 }
 

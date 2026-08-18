@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchVolSharpe } from "../api";
 import type { VolSharpeResponse } from "../types";
 import ProvenanceBadge from "./ProvenanceBadge";
+import EvidenceTierBadge from "./EvidenceTierBadge";
 
 function valueText(value: number | null | undefined): string {
   return typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) : "-";
@@ -46,7 +47,10 @@ export default function VolSharpeCard() {
           <p className="text-sm uppercase tracking-wide trading-muted">V1 quality diagnostic</p>
           <h2 className="mt-1 text-xl font-semibold">Risk-Adjusted Decision Quality</h2>
         </div>
-        <ProvenanceBadge source={payload?.provenance || "accumulating"} />
+        <div className="flex flex-col items-end gap-1">
+          <ProvenanceBadge source={payload?.provenance || "accumulating"} />
+          <EvidenceTierBadge tier={payload.evidenceTier} label={payload.evidenceLabel} />
+        </div>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div>

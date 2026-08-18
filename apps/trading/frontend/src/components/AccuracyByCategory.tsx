@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchAccuracyByCategory } from "../api";
 import type { CategoryAccuracy, SelfAccuracyByCategoryResponse } from "../types";
+import EvidenceTierBadge from "./EvidenceTierBadge";
 
 export default function AccuracyByCategory() {
   const [data, setData] = useState<SelfAccuracyByCategoryResponse | null>(null);
@@ -48,6 +49,7 @@ export default function AccuracyByCategory() {
           <p className="mt-1 text-sm trading-muted">
             Threshold {Math.round((data?.threshold ?? 0.7) * 100)}% across {data?.overallVerified ?? 0} verified trading decisions.
           </p>
+          <div className="mt-2"><EvidenceTierBadge tier={data?.evidenceTier} label={data?.evidenceLabel} /></div>
         </div>
       </div>
       <div className="mt-4 grid gap-3">
