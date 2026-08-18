@@ -71,6 +71,10 @@ def test_no_incorrect_rl_naming() -> None:
             continue
         text = path.read_text(encoding="utf-8")
         for line_number, line in enumerate(text.splitlines(), 1):
+            # Historical version tables may quote retired wording; active
+            # product guidance must still avoid the banned phrases.
+            if line.lstrip().startswith("| v"):
+                continue
             if any(pattern.search(line) for pattern in patterns):
                 matches.append(f"{path}:{line_number}: {line.strip()}")
     assert not matches, "Incorrect RL naming remains:\n" + "\n".join(matches)

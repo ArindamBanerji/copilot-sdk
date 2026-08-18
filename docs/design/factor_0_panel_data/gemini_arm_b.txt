@@ -1,0 +1,638 @@
+{
+  "prompt_version": "factor0_judge_v3",
+  "arm": "B",
+  "semantics": "privileged_identity_context",
+  "model": "Claude 3.7 Sonnet",
+  "run_date": "2026-08-17",
+  "determinations": [
+    {
+      "id": "B-01",
+      "user_risk_score": 0.15,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Enrolled corporate device and verified low-risk access pattern imply clean user identity with known device binding.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-02",
+      "user_risk_score": 0.85,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "HR resignation flag raises account risk significantly despite valid MFA and corporate device usage.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-03",
+      "user_risk_score": 0.1,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Non-interactive CI/CD pipeline service account executing scheduled maintenance involves no human MFA context.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-04",
+      "user_risk_score": 0.75,
+      "user_title": "admin",
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Targeted attack on production cloud infrastructure implies compromised administrative credentials from an unrecognized actor device.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-05",
+      "user_risk_score": 0.35,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Weak behavioral anomaly on a standard internal user account with normal authentication and device context.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-06",
+      "user_risk_score": 0.85,
+      "user_title": "admin",
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Access to critical cloud workloads from a known malicious IP at an anomalous hour indicates compromised admin credentials without valid device binding.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-07",
+      "user_risk_score": 0.85,
+      "user_title": "admin",
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "High-value credential theft attempt associated with an active IOC from an untrusted device indicates compromised privileged access.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-08",
+      "user_risk_score": 0.15,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "False-positive IOC noise on a standard user workstation with healthy corporate device binding.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-09",
+      "user_risk_score": 0.1,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Automated cloud scaling executed by a compliant deployment service account involves no interactive human authentication.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-10",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Confirmed business travel explains network movement originating from an authenticated corporate device with low user risk.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-11",
+      "user_risk_score": 0.3,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Malware alert triggered by a low-confidence IOC on a standard user endpoint where identity signals appear uncompromised.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-12",
+      "user_risk_score": 0.75,
+      "user_title": "executive",
+      "mfa_completed": false,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Privileged executive account showing suspicious credential activity and IOC match, likely indicating session hijacking or token theft.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-13",
+      "user_risk_score": 0.8,
+      "user_title": "admin",
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Malicious lateral movement using admin privileges without valid interactive MFA from an untrusted pivot host.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-14",
+      "user_risk_score": 0.7,
+      "user_title": "executive",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Malware execution on a corporate laptop assigned to a privileged traveler who authenticated via standard MFA.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-15",
+      "user_risk_score": 0.85,
+      "user_title": "admin",
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Repeated east-west traversal to critical infrastructure relies on compromised administrative privileges across unrecognized network devices.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-16",
+      "user_risk_score": 0.15,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Suppressed stale IOC false positive on a clean, low-risk user host with enrolled management.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-17",
+      "user_risk_score": 0.5,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Anomalous cloud API activity originating from an automated service account or developer role requiring investigation.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-18",
+      "user_risk_score": 0.8,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Persistent data exfiltration involving a compromised insider or session token sending data to an untrusted external endpoint.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-19",
+      "user_risk_score": 0.5,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Ambiguous internal network traversal by a standard user account with valid authentication that requires analyst triage.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-20",
+      "user_risk_score": 0.9,
+      "user_title": "admin",
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Off-hours massive data egress to a malicious IP using elevated repo access without valid MFA or recognized device binding.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-21",
+      "user_risk_score": 0.15,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Travel-related access validated by corporate VPN authentication logs and recognized hardware binding.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-22",
+      "user_risk_score": 0.85,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Malicious insider or compromised employee accessing resources after hours from an unmanaged personal device.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-23",
+      "user_risk_score": 0.35,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Minor credential authentication variance on a standard corporate account on a recognized device.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-24",
+      "user_risk_score": 0.15,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Authorized late-night work for an approved business project from a clean employee account on a known corporate device.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-25",
+      "user_risk_score": 0.3,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Slightly elevated data transfer by a standard employee on a corporate device without threat intelligence indicators.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-26",
+      "user_risk_score": 0.5,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Indeterminate behavioral anomaly on a standard internal account requiring human analyst triage to establish intent.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-27",
+      "user_risk_score": 0.55,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Unusually large upload from a sensitive data repository by a valid user session requiring investigation into business justification.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-28",
+      "user_risk_score": 0.1,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Normal business-hours authentication from an enrolled corporate device.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-29",
+      "user_risk_score": 0.1,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Regular scheduled data export conducted by an authorized user on a managed corporate device.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-30",
+      "user_risk_score": 0.75,
+      "user_title": "admin",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "High-confidence malware execution on a critical server or admin endpoint operating in a privileged host context.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-31",
+      "user_risk_score": 0.25,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Minor single-hop network connection between internal hosts by a regular employee session.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-32",
+      "user_risk_score": 0.45,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Confirmed malware detection on a standard workstation requiring analyst triage and remediation planning.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-33",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Routine cloud infrastructure tweak by a developer on a non-production resource.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-34",
+      "user_risk_score": 0.15,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Benign credential event occurring on a managed corporate laptop without any threat indicators.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-35",
+      "user_risk_score": 0.1,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Legitimate backup job running under a dedicated service account on corporate backup infrastructure.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-36",
+      "user_risk_score": 0.5,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Credential usage displaying moderate anomaly indicators and an unrecognized device fingerprint requiring review.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "HIGH"
+    }
+  ],
+  "notes": {
+    "no_identity_signal_rows": [],
+    "device_field_reused_description_adjective": [
+      "B-01",
+      "B-08",
+      "B-10",
+      "B-16",
+      "B-21",
+      "B-22",
+      "B-24",
+      "B-28",
+      "B-29",
+      "B-34",
+      "B-35"
+    ],
+    "low_confidence_rows": []
+  }
+}

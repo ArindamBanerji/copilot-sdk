@@ -1,0 +1,588 @@
+```json
+{
+  "prompt_version": "factor0_judge_v3",
+  "arm": "A",
+  "semantics": "privileged_identity_context",
+  "model": "claude-opus-5",
+  "run_date": "2026-08-17",
+  "determinations": [
+    {
+      "id": "SOC-CA-01",
+      "user_risk_score": 0.8,
+      "user_title": "admin",
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "An active credential-theft attempt against a high-value account is exactly what raises an IdP risk score, and a theft attempt is by definition a session where the second factor was not satisfied from a fingerprint the account has never been bound to."
+    },
+    {
+      "id": "SOC-CA-02",
+      "user_risk_score": 0.7,
+      "user_title": "admin",
+      "mfa_completed": true,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A privileged traveler's session plausibly completes MFA (token replay and push-fatigue both end in a satisfied MFA claim), while the fingerprint is new because travel and attacker devices look the same to the binding check."
+    },
+    {
+      "id": "SOC-CA-03",
+      "user_risk_score": 0.5,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "disposition_prior",
+      "reasoning": "The ambiguity has to live somewhere in the identity signals, and the most common shape of a genuinely mixed credential event is a satisfied MFA on an unrecognised fingerprint for an unremarkable account."
+    },
+    {
+      "id": "SOC-CA-04",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A low-risk credential event on a corporate device is a normal employee re-authenticating from the machine they always use; I am effectively reusing the description's 'managed' adjective for the binding field."
+    },
+    {
+      "id": "SOC-CA-05",
+      "user_risk_score": 0.15,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Routine business-hours access from an enrolled device is the canonical clean identity profile; the 'enrolled' adjective is doing the work for the fingerprint field."
+    },
+    {
+      "id": "SOC-CA-06",
+      "user_risk_score": 0.35,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "disposition_prior",
+      "reasoning": "'No strong anomaly signals' implies the identity checks came back clean, so what earns the monitor is a mildly elevated risk score rather than any single failed check."
+    },
+    {
+      "id": "SOC-TI-01",
+      "user_risk_score": 0.3,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Malware landing on a critical asset says nothing about the account's standing — the realistic actor is a phished employee on their own laptop with a normal MFA-verified session, so the identity profile is clean despite the escalation."
+    },
+    {
+      "id": "SOC-TI-02",
+      "user_risk_score": 0.55,
+      "user_title": "admin",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "HIGH",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Privilege raises the baseline risk, but a frequent traveler's own laptop stays fingerprint-bound and their sessions still complete MFA, so the critical IOC sits on an otherwise unremarkable identity."
+    },
+    {
+      "id": "SOC-TI-03",
+      "user_risk_score": 0.4,
+      "user_title": "user",
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "The alert originates from EDR rather than an authentication event, so there is plausibly no session in the scoring window for MFA state to be resolved against, while the endpoint's logged-on account is a known binding."
+    },
+    {
+      "id": "SOC-TI-04",
+      "user_risk_score": 0.15,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A stale-IOC false positive on a managed device is an ordinary employee doing nothing wrong; the binding field restates the description's 'trusted managed' adjective."
+    },
+    {
+      "id": "SOC-TI-05",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Feed noise fires off an indicator match, not a sign-in, so no MFA claim exists to enrich, while the enrolled corporate device gives a known fingerprint binding."
+    },
+    {
+      "id": "SOC-TI-06",
+      "user_risk_score": 0.3,
+      "user_title": "user",
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "A low-confidence host-level IOC resolves to an account with no flags and no authentication event in the window; the title is a guess from the ordinary-endpoint prior."
+    },
+    {
+      "id": "SOC-LM-01",
+      "user_risk_score": 0.75,
+      "user_title": "admin",
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Repeated east-west traversal at scale needs a privileged account and would have accumulated IdP flags, but the hops are ticket- and share-based server-to-server auth where no MFA claim and no device fingerprint binding exist to enrich."
+    },
+    {
+      "id": "SOC-LM-02",
+      "user_risk_score": 0.7,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "High-confidence traversal with strong behavioural history most often runs on an abused service account, which by construction has neither an MFA claim nor a device fingerprint bound to it."
+    },
+    {
+      "id": "SOC-LM-03",
+      "user_risk_score": 0.45,
+      "user_title": "user",
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "disposition_prior",
+      "reasoning": "A single workstation-to-workstation hop resolves to an ordinary account with a mildly elevated score, and the network-sourced alert carries no session-level identity enrichment."
+    },
+    {
+      "id": "SOC-LM-04",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Travel-explained access implies a remote-access authentication with MFA rather than a pure network hop, and the fingerprint field is restating the description's 'trusted device'."
+    },
+    {
+      "id": "SOC-LM-05",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "VPN confirmation means there was an interactive gateway auth, which in practice carries an MFA claim; the binding field reuses the 'managed device' adjective."
+    },
+    {
+      "id": "SOC-LM-06",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "A single low-risk hop with no threat-intel signal is the case where the detection fires purely on flow data and no account is resolved at scoring time, so identity enrichment returns nothing at all."
+    },
+    {
+      "id": "SOC-DE-01",
+      "user_risk_score": 0.6,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Exfiltration typically runs from an already-compromised endpoint using the victim's live session, so the fingerprint matches and MFA was satisfied hours earlier — the severity is carried by destination and volume, not by identity."
+    },
+    {
+      "id": "SOC-DE-02",
+      "user_risk_score": 0.7,
+      "user_title": "analyst",
+      "mfa_completed": true,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "A recurring pattern gives the IdP time to flag the account, and an account with broad data access repeatedly transferring from a fingerprint that never becomes bound is the realistic shape here."
+    },
+    {
+      "id": "SOC-DE-03",
+      "user_risk_score": 0.45,
+      "user_title": "analyst",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "disposition_prior",
+      "reasoning": "Intent is unclear precisely because the identity side is unremarkable — a data-handling role on a known device — so only volume distinguishes it from routine work."
+    },
+    {
+      "id": "SOC-DE-04",
+      "user_risk_score": 0.15,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "An authorised backup runs under a backup service identity that never performs MFA, though the agent host is consistently bound; the binding value is effectively the description's 'fully trusted device'."
+    },
+    {
+      "id": "SOC-DE-05",
+      "user_risk_score": 0.1,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A scheduled export executes headless under an automation identity, so there is neither an MFA event nor a device fingerprint bound to the account regardless of what host it runs on."
+    },
+    {
+      "id": "SOC-DE-06",
+      "user_risk_score": 0.3,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "disposition_prior",
+      "reasoning": "A moderate transfer with no IOC is an ordinary employee on their normal device; nothing in the identity enrichment is what makes this worth watching."
+    },
+    {
+      "id": "SOC-IT-01",
+      "user_risk_score": 0.8,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "The defining feature of an insider is that authentication succeeds legitimately — MFA passes because it is really them — while the personal device is a fingerprint the account has not been bound to; the binding field restates 'unmanaged personal device'."
+    },
+    {
+      "id": "SOC-IT-02",
+      "user_risk_score": 0.85,
+      "user_title": "executive",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A flagged resignation drives the risk score hard, but every other identity signal is pristine — a senior employee on their own corporate laptop passing MFA — which is the whole difficulty of the departing-insider case."
+    },
+    {
+      "id": "SOC-IT-03",
+      "user_risk_score": 0.5,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "disposition_prior",
+      "reasoning": "Moderate behavioural signals with clean authentication is genuinely the middle of the range; the account has some flags but nothing that survives on its own."
+    },
+    {
+      "id": "SOC-IT-04",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Manager-approved after-hours work is a normal employee on their normal device; the binding field is restating 'trusted device'."
+    },
+    {
+      "id": "SOC-IT-05",
+      "user_risk_score": 0.15,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "No historical anomalies plus an enrolled device is the textbook low-risk profile; the fingerprint value reuses the description's 'enrolled' adjective."
+    },
+    {
+      "id": "SOC-IT-06",
+      "user_risk_score": 0.35,
+      "user_title": "analyst",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "disposition_prior",
+      "reasoning": "Weak signals on a medium-value asset fit a data-facing employee whose access is broad enough to notice but whose authentication is entirely normal."
+    },
+    {
+      "id": "SOC-CI-01",
+      "user_risk_score": 0.8,
+      "user_title": "admin",
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Access to a critical workload from a known-bad IP implies a console or API session on stolen credentials for a cloud-admin principal, which neither satisfies MFA nor comes from a fingerprint the account has ever used."
+    },
+    {
+      "id": "SOC-CI-02",
+      "user_risk_score": 0.7,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Threat-actor TTPs against production cloud almost always route through a machine principal or long-lived key, for which MFA and device binding are not defined concepts."
+    },
+    {
+      "id": "SOC-CI-03",
+      "user_risk_score": 0.45,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "'Investigate source' says the calling principal is an assumed role that has not been resolved to a human at scoring time, so the role's own risk score is all the enrichment returns."
+    },
+    {
+      "id": "SOC-CI-04",
+      "user_risk_score": 0.1,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A CI/CD service account is stated outright, and pipeline identities never perform MFA and run on ephemeral runners that have no fingerprint bound to the account."
+    },
+    {
+      "id": "SOC-CI-05",
+      "user_risk_score": 0.1,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "HIGH",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A deployment pipeline scaling resources is the same machine-identity shape as CI-04, with no MFA claim and no device binding available to enrich."
+    },
+    {
+      "id": "SOC-CI-06",
+      "user_risk_score": 0.25,
+      "user_title": "admin",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "disposition_prior",
+      "reasoning": "A minor config change on a non-critical resource is an SRE working in the console from their usual workstation, where MFA is enforced and the fingerprint is long-bound — the privilege is the only thing keeping the score off the floor."
+    }
+  ],
+  "notes": {
+    "counter_intuitive_rows": [
+      "SOC-CA-02",
+      "SOC-TI-01",
+      "SOC-TI-02",
+      "SOC-DE-01",
+      "SOC-IT-01",
+      "SOC-IT-02"
+    ],
+    "device_field_reused_description_adjective": [
+      "SOC-CA-01",
+      "SOC-CA-04",
+      "SOC-CA-05",
+      "SOC-TI-04",
+      "SOC-TI-05",
+      "SOC-LM-04",
+      "SOC-LM-05",
+      "SOC-DE-04",
+      "SOC-IT-01",
+      "SOC-IT-04",
+      "SOC-IT-05"
+    ],
+    "low_confidence_rows": [
+      "SOC-CA-03",
+      "SOC-CA-06",
+      "SOC-TI-03",
+      "SOC-TI-06",
+      "SOC-LM-03",
+      "SOC-DE-02",
+      "SOC-DE-03",
+      "SOC-DE-06",
+      "SOC-IT-03",
+      "SOC-IT-06",
+      "SOC-CI-03",
+      "SOC-CI-06"
+    ]
+  }
+}
+```

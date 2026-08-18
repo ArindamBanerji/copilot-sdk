@@ -1,0 +1,630 @@
+Opus Arm B:
+
+```json
+{
+  "prompt_version": "factor0_judge_v3",
+  "arm": "B",
+  "semantics": "privileged_identity_context",
+  "model": "claude-opus-5",
+  "run_date": "2026-08-17",
+  "determinations": [
+    {
+      "id": "B-01",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Insider-threat alerts resolve a named account, and 'low-risk, no historical anomalies' points at a clean long-standing low-privilege employee; the fingerprint call leans on 'enrolled device' and is therefore weaker than it looks.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-02",
+      "user_risk_score": 0.8,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A flagged resignation plus financial-system access is exactly the departing-insider condition an IdP raises account risk for, but the person is still an active employee on their normal corporate session, so MFA and fingerprint binding would both come back clean and unremarkable.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-03",
+      "user_risk_score": 0.2,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Explicitly a CI/CD pipeline service account acting inside its maintenance window; service principals authenticate with keys or workload federation, so no MFA result exists and there is no endpoint fingerprint to bind — ABSENT, not false.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-04",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "The alert fires on TTP correlation against production infrastructure and names no acting principal, so identity enrichment has nothing to resolve at queue time; assigning a high risk score here would just be re-encoding the threat-intel factor.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-05",
+      "user_risk_score": 0.4,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "description | category_prior",
+      "reasoning": "Weak behavioural signals put the account in the genuinely-mixed band rather than the clean one; the title, MFA and fingerprint values are base-rate employee assumptions with no supporting cue in the alert.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-06",
+      "user_risk_score": 0.8,
+      "user_title": null,
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A sign-in from a known-bad source IP is precisely what risk-based IdPs elevate an account for, and access arriving over stolen keys or a replayed token from unfamiliar infrastructure would show neither a completed MFA challenge nor a previously bound fingerprint; the principal type is unknowable from the description.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-07",
+      "user_risk_score": 0.8,
+      "user_title": "admin",
+      "mfa_completed": false,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "HIGH"
+      },
+      "evidence_basis": "description",
+      "reasoning": "'High-value credential' implies the targeted account is privileged, and a theft attempt is by definition an unconsummated or non-legitimate authentication; the fingerprint value does partly restate the description's 'untrusted device', though a novel attacker endpoint would independently be unbound.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-08",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Feed noise on a non-critical endpoint carries no adverse identity signal, and the console would resolve an ordinary employee on their own corporate machine; the fingerprint value is effectively the 'enrolled' adjective restated.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-09",
+      "user_risk_score": 0.2,
+      "user_title": "service",
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "HIGH",
+        "mfa_completed": "HIGH",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Same profile as B-03 — a deployment pipeline performing a routine scaling action is a non-interactive service principal, so MFA and device fingerprint are structurally inapplicable rather than negative.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-10",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Travel confirmation implies the authentication path was inspected and came back consistent, so an MFA result exists and is positive; the fingerprint value restates 'trusted device', but a traveller on their own laptop is the case where the anomaly is geography rather than binding.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-11",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "The description carries only IOC confidence and asset criticality — both other factors' inputs — and says nothing whatever about who is logged on, so every identity field is honestly absent.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-12",
+      "user_risk_score": 0.75,
+      "user_title": "admin",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "'Privileged' is an explicit role cue and the IOC association against a privileged account pushes IdP risk high; a frequent traveller invoking travel context has completed MFA on a device already bound to the account, so the identity binding is intact even though the event is suspicious.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-13",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Detection confidence, IOC match and behavioural history all belong to other factors; east-west hops are also authenticated by internal tickets rather than the IdP, so no session MFA result or endpoint fingerprint would be returned for the traversal itself.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-14",
+      "user_risk_score": 0.6,
+      "user_title": "admin",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "MEDIUM",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "'Privileged' gives the role directly, and an established travel record is a mitigating identity-history signal, so the account sits elevated-but-not-alarming rather than at B-12's level; the traveller's own bound laptop keeps MFA and fingerprint positive.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-15",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Repetition, asset criticality and threat-intel match are pattern-history, asset and TI inputs; no principal is characterised, and scoring the account high off the TI match would be compensating for another factor.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-16",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A stale-IOC false positive implies nothing adverse about the account; the fingerprint value is essentially the 'trusted managed device' adjective carried over, which is device posture rather than identity binding.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-17",
+      "user_risk_score": 0.5,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description | category_prior",
+      "reasoning": "An unusual API call pattern implicates whichever principal made the calls, which lands the account in the genuinely-mixed band, but cloud API paths carry no per-call MFA assertion or endpoint fingerprint and the principal could equally be an SRE, a developer or a service account.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-18",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "The alert fires purely on transfer recurrence, asset criticality and TI match; no account, session or endpoint is characterised, so identity enrichment returns nothing at queue time.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-19",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "'Moderate signals' describes detection strength, not the actor; there is no identity content to author and internal traversal produces no IdP session record.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-20",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Volume, hour and destination reputation are the time-anomaly and threat-intel factors' inputs; the alert names no principal, and inferring a compromised high-risk account from the destination IP would double-count those signals here.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-21",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "VPN confirmation is a genuine identity-side signal — the session authenticated through an MFA-gated gateway — so unlike the other lateral-movement rows an MFA result exists; the fingerprint value, however, is largely the 'managed device' adjective restated.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-22",
+      "user_risk_score": 0.75,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": false,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A repeated after-hours pattern with an IOC association is behaviour an IdP flags on the account itself; MFA would still have been satisfied by the legitimate employee, but a personal endpoint reaching corporate resources is the canonical not-previously-bound fingerprint — I am leaning on 'unmanaged personal' here and the binding call could go the other way if the same handset recurs.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-23",
+      "user_risk_score": 0.3,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Credential-access alerts always resolve an account and this one has no anomaly signals attached, so a clean low-privilege identity with a satisfied MFA challenge is the honest reading; the fingerprint value has no supporting cue at all.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-24",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Manager-approved work with an explanation already attached leaves the account clean; the fingerprint value restates 'trusted device' rather than resting on independent binding evidence.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-25",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Transfer size, asset tier and the absence of an IOC are all non-identity inputs; nothing in the alert identifies or characterises the account moving the data.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-26",
+      "user_risk_score": 0.5,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "description | category_prior",
+      "reasoning": "Undetermined intent with moderate behavioural signals is the definition of the mixed band, but the remaining three fields are employee base rates rather than anything the alert supports — same shape as B-05, one band higher.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-27",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "'Intent unclear' is an analyst-side statement about the event, not an identity finding; volume and asset criticality belong to other factors and no principal is described.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-28",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Routine business-hours authentication is the clean baseline for an identity-vector alert; the fingerprint value is the 'trusted enrolled' adjective carried across, which is posture rather than binding.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-29",
+      "user_risk_score": 0.2,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "A scheduled export is sanctioned recurring activity so the acting identity is benign, but 'scheduled' points at an automated principal while 'managed device' points at a human endpoint — I cannot resolve the type, and if it is automated there is no MFA result to report; the fingerprint value restates the device adjective.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-30",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Two facts only — asset criticality and IOC confidence — both consumed by other factors; there is no identity content here and inventing a profile would fabricate signal the queue does not have.",
+      "predicted_disposition": "escalate",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-31",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Hop count, asset risk and absence of TI say nothing about the actor, and an internal single hop generates no IdP session or endpoint fingerprint lookup.",
+      "predicted_disposition": "monitor",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-32",
+      "user_risk_score": null,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "LOW",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "category_prior",
+      "reasoning": "Same shape as B-30 with lower asset criticality — IOC confirmation is a threat-intel fact, and no account or endpoint is characterised.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-33",
+      "user_risk_score": 0.2,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "description | category_prior",
+      "reasoning": "A low-risk routine configuration change implies a sanctioned operator and nothing adverse about the account, but whether that operator is an admin at a console, a developer via CLI or a pipeline is genuinely undetermined, and with it the MFA and fingerprint availability.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "MEDIUM"
+    },
+    {
+      "id": "B-34",
+      "user_risk_score": 0.2,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "MEDIUM",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "Identical warrant to B-28 and given the identical profile deliberately — a clean credential event with no adverse identity signal; the fingerprint value leans on 'managed corporate device'.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-35",
+      "user_risk_score": 0.2,
+      "user_title": null,
+      "mfa_completed": null,
+      "device_fingerprint_match": true,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "MEDIUM"
+      },
+      "evidence_basis": "description",
+      "reasoning": "'Authorized backup' establishes a sanctioned actor without establishing its type — backup transfers are usually service principals, which would have no MFA result, yet the description also asserts a device; the fingerprint value restates 'fully trusted device'.",
+      "predicted_disposition": "suppress",
+      "disposition_confidence": "HIGH"
+    },
+    {
+      "id": "B-36",
+      "user_risk_score": 0.5,
+      "user_title": "user",
+      "mfa_completed": true,
+      "device_fingerprint_match": null,
+      "confidence": {
+        "user_risk_score": "MEDIUM",
+        "user_title": "LOW",
+        "mfa_completed": "LOW",
+        "device_fingerprint_match": "LOW"
+      },
+      "evidence_basis": "description | category_prior",
+      "reasoning": "An ambiguous credential event resolves an account and an MFA outcome — the session most plausibly completed, which is part of why it reads as ambiguous — but the moderate threat signals are a TI input and nothing indicates the originating endpoint's binding history.",
+      "predicted_disposition": "investigate",
+      "disposition_confidence": "MEDIUM"
+    }
+  ],
+  "notes": {
+    "no_identity_signal_rows": ["B-04", "B-11", "B-13", "B-15", "B-18", "B-19", "B-20", "B-25", "B-27", "B-30", "B-31", "B-32"],
+    "device_field_reused_description_adjective": ["B-01", "B-07", "B-08", "B-10", "B-16", "B-21", "B-22", "B-24", "B-28", "B-29", "B-34", "B-35"],
+    "low_confidence_rows": ["B-05", "B-11", "B-17", "B-23", "B-26", "B-29", "B-33", "B-35", "B-36"]
+  }
+}
+```
