@@ -73,7 +73,7 @@ def test_configured_provider_overrides_explicit_green():
     result = evolver.check_for_promotion("family-a", conservation_state=GREEN)
 
     assert result["promoted"] is False
-    assert result["reason"] == "conservation"
+    assert result["reason"] == "conservation_gate_unavailable"
 
 
 def test_provider_error_ignores_explicit_green():
@@ -88,7 +88,7 @@ def test_provider_error_ignores_explicit_green():
     result = evolver.check_for_promotion("family-a", conservation_state=GREEN)
 
     assert result["promoted"] is False
-    assert result["reason"] == "conservation"
+    assert result["reason"] == "conservation_gate_unavailable"
 
 
 def test_missing_provider_and_state_resolve_to_unknown():
@@ -102,7 +102,7 @@ def test_no_promotion_below_threshold():
     _record(evolver, "active-a", 8, 2)
     _record(evolver, "candidate-a", 8, 2)
 
-    assert evolver.check_for_promotion("family-a") is None
+    assert evolver.check_for_promotion("family-a", conservation_state=GREEN) is None
 
 
 def test_no_promotion_at_equal_threshold():
@@ -110,7 +110,7 @@ def test_no_promotion_at_equal_threshold():
     _record(evolver, "active-a", 8, 2)
     _record(evolver, "candidate-a", 17, 3)
 
-    assert evolver.check_for_promotion("family-a") is None
+    assert evolver.check_for_promotion("family-a", conservation_state=GREEN) is None
 
 
 def test_no_promotion_insufficient_samples():
@@ -118,7 +118,7 @@ def test_no_promotion_insufficient_samples():
     _record(evolver, "active-a", 6, 4)
     _record(evolver, "candidate-a", 4, 0)
 
-    assert evolver.check_for_promotion("family-a") is None
+    assert evolver.check_for_promotion("family-a", conservation_state=GREEN) is None
 
 
 def test_promotion_updates_variant_statuses():
@@ -153,7 +153,9 @@ def test_promotion_returns_result_dict():
 def test_no_promotion_returns_none():
     evolver = _evolver()
 
-    assert evolver.check_for_promotion("family-a") is None
+    result = evolver.check_for_promotion("family-a")
+
+    assert result["reason"] == "conservation_gate_unavailable"
 
 
 def test_promotion_per_family():
@@ -167,7 +169,7 @@ def test_promotion_per_family():
     _record(evolver, "active-b", 9, 1)
     _record(evolver, "candidate-b", 1, 9)
 
-    result = evolver.check_for_promotion("family-b")
+    result = evolver.check_for_promotion("family-b", conservation_state=GREEN)
 
     assert result is None
     assert evolver.store.get_variant("candidate-a").status == "shadow"
@@ -196,7 +198,7 @@ def test_promotion_uses_global_stats_not_category_stats():
     _record(evolver, "candidate-a", 1, 9)
     _record(evolver, "candidate-a", 20, 0, category="schema_change")
 
-    assert evolver.check_for_promotion("family-a") is None
+    assert evolver.check_for_promotion("family-a", conservation_state=GREEN) is None
 
 
 def test_shadow_result_updates_stats():

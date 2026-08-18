@@ -478,6 +478,7 @@ export interface RegimePerformanceResponse {
   currentRegime?: string;
   edgeCategories?: Record<string, unknown>[];
   recommendation?: string;
+  observation?: string;
   [key: string]: unknown;
 }
 

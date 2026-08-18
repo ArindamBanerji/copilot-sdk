@@ -181,17 +181,8 @@ def test_broker_post_order_uses_mock_connector_without_live_credentials(client, 
         json={"ticker": "msft", "side": "buy", "qty": 2},
     )
 
-    assert response.status_code == 200
-    payload = response.json()
-    _assert_json_safe(payload)
-    assert payload["broker"] == "mock"
-    assert payload["connected"] is True
-    assert payload["status"] == "submitted"
-    assert payload["order"]["order_id"] == "mock-1"
-    assert payload["order"]["ticker"] == "MSFT"
-    assert payload["order"]["side"] == "buy"
-    assert payload["order"]["qty"] == 2.0
-    assert payload["order"]["status"] == "filled"
+    assert response.status_code == 403
+    assert response.json()["detail"]["error"] == "observation_only"
 
 
 def test_broker_post_order_limit_requires_price(client):
@@ -230,14 +221,8 @@ def test_broker_post_order_without_alpaca_credentials_returns_safe_error(client,
         json={"ticker": "MSFT", "side": "buy", "qty": 1},
     )
 
-    assert response.status_code == 503
-    payload = response.json()
-    _assert_json_safe(payload)
-    assert payload["detail"]["broker"] == "alpaca"
-    assert payload["detail"]["connected"] is False
-    assert payload["detail"]["status"] == "disconnected"
-    assert payload["detail"]["order"] is None
-    assert "Traceback" not in response.text
+    assert response.status_code == 403
+    assert response.json()["detail"]["error"] == "observation_only"
 
 
 def test_broker_post_order_connector_failure_returns_safe_error(client, monkeypatch):
@@ -252,15 +237,8 @@ def test_broker_post_order_connector_failure_returns_safe_error(client, monkeypa
         json={"ticker": "MSFT", "side": "buy", "qty": 1},
     )
 
-    assert response.status_code == 503
-    payload = response.json()
-    _assert_json_safe(payload)
-    assert payload["detail"]["broker"] == "mock"
-    assert payload["detail"]["connected"] is False
-    assert payload["detail"]["status"] == "error"
-    assert payload["detail"]["order"] is None
-    assert "simulated broker failure" in payload["detail"]["error"]
-    assert "Traceback" not in response.text
+    assert response.status_code == 403
+    assert response.json()["detail"]["error"] == "observation_only"
 
 
 def test_broker_mock_happy_path_returns_account_positions_orders_shapes(client):

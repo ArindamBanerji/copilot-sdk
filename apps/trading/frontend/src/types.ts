@@ -178,7 +178,8 @@ export interface RegimeCurrent {
 
 export interface RegimeRecommendation {
   category?: string;
-  action?: "increase" | "reduce" | "hold" | string;
+  action?: "observed_improving" | "observed_restricted" | "observed_stable" | "observed_degraded" | string;
+  observationOnly?: boolean;
   accuracy?: NullableNumber;
   vsBaseline?: NullableNumber;
   delta?: NullableNumber;
@@ -197,7 +198,8 @@ export interface RegimeDetailRecommendation {
   currentAccuracy?: NullableNumber;
   baselineAccuracy?: NullableNumber;
   deltaPp?: NullableNumber;
-  action?: "avoid" | "reduce" | "hold" | "increase" | string;
+  action?: "observed_degraded" | "observed_restricted" | "observed_stable" | "observed_improving" | string;
+  observationOnly?: boolean;
   shiftPct?: NullableNumber;
   rationale?: string;
   regimeNeutral?: boolean;
@@ -235,7 +237,8 @@ export interface RegimeDetailResponse {
     message?: string;
   };
   sizingRecommendation?: {
-    action?: "avoid" | "reduce" | "normal" | "increase_small" | string;
+    action?: "observed_degraded" | "observed_restricted" | "observed_stable" | "observed_improving" | string;
+    observationOnly?: boolean;
     suggestedSizeMultiplier?: NullableNumber;
     maxSizeMultiplier?: NullableNumber;
     reason?: string;
@@ -303,7 +306,8 @@ export interface OptionsFactors {
 }
 
 export interface PrescoreResponse {
-  recommendation?: "proceed" | "reduce" | "skip" | string;
+  recommendation?: string;
+  observationOnly?: boolean;
   confidence?: NullableNumber;
   action?: string;
   factors?: Record<string, number>;

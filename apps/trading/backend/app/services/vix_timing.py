@@ -110,13 +110,13 @@ def _generate_recommendations(matrix: dict[str, dict[str, dict[str, Any]]]) -> l
         delta = float(high_swing["accuracy"]) - float(high_intraday["accuracy"])
         if delta > 0.10:
             recommendations.append(
-                "High-VIX 1-2 week holds have outperformed intraday holds by "
-                f"{delta:.0%}; review whether longer holds have been part of the edge."
+                "Observation: High-VIX 1-2 week holds outperformed intraday holds by "
+                f"{delta:.0%}; the longer-hold result is recorded in the sample."
             )
         elif delta < -0.10:
             recommendations.append(
-                "High-VIX intraday holds have outperformed 1-2 week holds by "
-                f"{abs(delta):.0%}; quick exits may be where past results concentrated."
+                "Observation: High-VIX intraday holds outperformed 1-2 week holds by "
+                f"{abs(delta):.0%}; the intraday result is recorded in the sample."
             )
 
     for hold_bucket in HOLD_BUCKETS:
@@ -128,7 +128,7 @@ def _generate_recommendations(matrix: dict[str, dict[str, dict[str, Any]]]) -> l
         if abs(delta) > 0.15:
             direction = "better" if delta > 0 else "worse"
             recommendations.append(
-                f"{HOLD_DISPLAY[hold_bucket]} trades performed {abs(delta):.0%} {direction} "
+                f"Observation: {HOLD_DISPLAY[hold_bucket]} trades performed {abs(delta):.0%} {direction} "
                 "in high VIX than low VIX conditions."
             )
 

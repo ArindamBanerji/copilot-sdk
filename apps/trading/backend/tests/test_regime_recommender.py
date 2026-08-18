@@ -33,7 +33,7 @@ def test_avoid_when_accuracy_below_40():
     rec = RegimeRecommender().recommend("trending", _accuracy())["recommendations"][0]
 
     assert rec["category"] == "mean_reversion"
-    assert rec["action"] == "avoid"
+    assert rec["action"] == "observed_degraded"
     assert rec["shift_pct"] == -100
 
 
@@ -41,21 +41,21 @@ def test_reduce_when_delta_below_minus_10pp():
     payload = RegimeRecommender().recommend("volatile", _accuracy())
     rec = next(item for item in payload["recommendations"] if item["category"] == "trend_following")
 
-    assert rec["action"] == "avoid"
+    assert rec["action"] == "observed_degraded"
 
 
 def test_increase_when_delta_above_5pp():
     payload = RegimeRecommender().recommend("trending", _accuracy())
     rec = next(item for item in payload["recommendations"] if item["category"] == "trend_following")
 
-    assert rec["action"] == "increase"
+    assert rec["action"] == "observed_improving"
 
 
 def test_hold_when_delta_within_range():
     payload = RegimeRecommender().recommend("ranging", _accuracy())
     rec = next(item for item in payload["recommendations"] if item["category"] == "income_strategy")
 
-    assert rec["action"] == "hold"
+    assert rec["action"] == "observed_stable"
 
 
 def test_shift_pct_proportional_to_delta():
@@ -85,7 +85,7 @@ def test_not_neutral_when_spread_above_5pp():
     assert payload["recommendations"][0]["regime_neutral"] is False
 
 
-def test_sorted_avoid_first_then_reduce():
+def test_sorted_degraded_first_then_restricted():
     payload = RegimeRecommender().recommend(
         "trending",
         {
@@ -94,13 +94,13 @@ def test_sorted_avoid_first_then_reduce():
         },
     )
 
-    assert [item["action"] for item in payload["recommendations"]] == ["avoid", "reduce"]
+    assert [item["action"] for item in payload["recommendations"]] == ["observed_degraded", "observed_restricted"]
 
 
-def test_summary_includes_avoid_count():
+def test_summary_includes_degraded_count():
     summary = RegimeRecommender().recommend("trending", _accuracy())["summary"]
 
-    assert "1 avoid" in summary
+    assert "1 degraded" in summary
 
 
 def test_summary_all_normal():
@@ -110,7 +110,7 @@ def test_summary_all_normal():
         {"status": "GREEN"},
     )["summary"]
 
-    assert "0 avoid" in summary
+    assert "0 degraded" in summary
     assert "Conservation not confirmed" not in summary
 
 

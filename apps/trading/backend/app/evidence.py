@@ -377,7 +377,7 @@ class TradingTemplateEngine:
         detail = _emotional_detail(factors.get("emotional_indicator"), context)
         return (
             f"{ticker} {direction}: {thesis} "
-            f"Recommended action is {action} with {confidence:.0%} confidence. "
+        f"Observed decision context is {action} with {confidence:.0%} confidence. "
             f"Decision context: {detail}."
         )
 

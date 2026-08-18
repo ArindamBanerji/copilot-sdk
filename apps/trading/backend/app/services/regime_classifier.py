@@ -102,11 +102,11 @@ class RegimePerformanceMapper:
         return sorted(rows, key=lambda row: row["edge"], reverse=True)
 
     def regime_recommendation(self, current_regime: str, conservation_status: dict[str, Any]) -> str:
-        """Return a concise recommendation with conservation gating."""
+        """Return a concise observation with conservation context."""
         regime = _normalize_regime(current_regime)
         edges = self.regime_edge(regime)
         if not edges:
-            return "Score more verified trades before changing regime sizing."
+            return "Observation: verified regime-specific history is insufficient for a sizing comparison."
 
         positive = next((row for row in edges if row["edge"] > 0), None)
         negative = next((row for row in reversed(edges) if row["edge"] < 0), None)
@@ -117,10 +117,10 @@ class RegimePerformanceMapper:
             if _category_is_green(conservation_status, str(positive["category"])):
                 parts.append(f"Your edge: {positive['category']} ({edge_pp:+d}pp).")
             else:
-                parts.append(f"Hold sizing on {positive['category']} until conservation is green.")
+                parts.append(f"Observation: {positive['category']} has the strongest observed regime accuracy.")
         if negative is not None:
             edge_pp = round(float(negative["edge"]) * 100)
-            parts.append(f"Avoid: {negative['category']} ({edge_pp:+d}pp).")
+            parts.append(f"Observation: {negative['category']} has the weakest observed regime accuracy ({edge_pp:+d}pp).")
         return " ".join(parts)
 
     def _buckets(self) -> dict[str, dict[str, list[bool]]]:

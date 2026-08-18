@@ -63,6 +63,7 @@ def create_pre_score_router(
         )
         payload = asdict(service.pre_score(category, clean_factors))
         payload["preview"] = True
+        payload["observation_only"] = True
         payload["message"] = "preview - no decision recorded"
         return payload
 

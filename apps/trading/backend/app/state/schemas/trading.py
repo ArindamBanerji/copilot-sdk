@@ -382,6 +382,7 @@ class RegimePerformanceResponse(FlexibleModel):
     current_regime: str | None = None
     edge_categories: list[dict[str, Any]] = Field(default_factory=list)
     recommendation: str | None = None
+    observation: str | None = None
 
 
 class EvolutionPromotedResponse(FlexibleModel):

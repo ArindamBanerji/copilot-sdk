@@ -189,7 +189,7 @@ def test_regime_endpoint_includes_recommendations(client, monkeypatch):
     payload = client.get("/api/trading/regime").json()
 
     assert payload["recommendations"][0]["category"] == "trend_following"
-    assert payload["recommendations"][0]["action"] == "increase"
+    assert payload["recommendations"][0]["action"] == "observed_improving"
 
 
 def test_regime_recommendations_sorted_by_accuracy():

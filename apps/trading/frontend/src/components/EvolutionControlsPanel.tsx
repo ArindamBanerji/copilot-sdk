@@ -96,7 +96,7 @@ export default function EvolutionControlsPanel() {
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">Parameter Evolution</h2>
             <span className={`rounded px-2 py-1 text-xs font-semibold ${badgeClass(state)}`}>
-              {state === "GREEN" ? "Evolution active" : state === "AMBER" ? "Evolution paused" : "Evolution paused -- rollback recommended"}
+              {state === "GREEN" ? "Evolution active" : state === "AMBER" ? "Evolution paused" : "Evolution paused -- rollback state observed"}
             </span>
           </div>
           <p className="mt-1 text-sm trading-muted">Scorer parameter changes are proposed from verified decisions and bounded by hard limits.</p>

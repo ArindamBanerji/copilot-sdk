@@ -45,7 +45,7 @@ def create_situation_router(
             "conservation_status": "AMBER" if regime_break["active"] else "GREEN",
             "autonomy": "throttled" if regime_break["active"] else "normal",
             "autonomy_multiplier": 0.5 if regime_break["active"] else 1.0,
-            "message": "Regime break detected — conservation is AMBER and autonomy is reduced." if regime_break["active"] else f"Current illustrative regime: {regime}.",
+            "message": "Observation: regime break detected; conservation is AMBER and autonomy state is reduced." if regime_break["active"] else f"Current illustrative regime: {regime}.",
             "provenance": conditioned["provenance"],
             "substantiation": conditioned["substantiation"],
         }

@@ -193,7 +193,10 @@ def test_recommendations_extend_holds():
     ]
     payload = VIXTimingService().analyze(trades, {"2026-01-01": 35.0, "2026-01-02": 35.0})
 
-    assert any("1-2 week holds have outperformed" in item for item in payload["recommendations"])
+    assert payload["recommendations"] == [
+        "Observation: High-VIX 1-2 week holds outperformed intraday holds by 80%; "
+        "the longer-hold result is recorded in the sample."
+    ]
 
 
 def test_recommendations_quick_exits_edge():
@@ -203,7 +206,10 @@ def test_recommendations_quick_exits_edge():
     ]
     payload = VIXTimingService().analyze(trades, {"2026-01-01": 35.0, "2026-01-02": 35.0})
 
-    assert any("intraday holds have outperformed" in item for item in payload["recommendations"])
+    assert payload["recommendations"] == [
+        "Observation: High-VIX intraday holds outperformed 1-2 week holds by 80%; "
+        "the intraday result is recorded in the sample."
+    ]
 
 
 def test_recommendations_insufficient_data():

@@ -52,6 +52,7 @@ def create_execution_router(
             "best_broker": comparison.best_broker,
             "annual_savings_estimate": comparison.annual_savings_estimate,
             "recommendation": comparison.recommendation,
+            "observation_only": True,
             "brokers": [
                 {
                     "broker": broker.broker,

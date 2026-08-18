@@ -143,7 +143,7 @@ export default function TrustRadarPanel() {
 
       {data.totalTrades === 0 ? (
         <div className="mt-4 rounded-md border border-dashed border-white/15 p-4 text-sm trading-muted">
-          Import trades to see which signals you should trust.
+          Import trades to see which signals have stronger historical support.
         </div>
       ) : null}
 

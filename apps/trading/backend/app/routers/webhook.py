@@ -119,6 +119,7 @@ def create_webhook_router(scorer_proxy: Any) -> APIRouter:
                 "scored": bool(scored.get("scored")),
                 "decision_id": scored.get("decision_id"),
                 "recommendation": scored.get("recommendation"),
+                "observation_only": True,
                 "confidence": scored.get("confidence"),
                 "auto_score_status": scored.get("auto_score_status"),
             })
@@ -263,6 +264,7 @@ def _score_event(
         recommendation = "partial_execution"
     return {
         "scored": True,
+        "observation_only": True,
         "decision_id": payload.get("decision_id"),
         "recommendation": recommendation,
         "confidence": _clamp(payload.get("confidence")),

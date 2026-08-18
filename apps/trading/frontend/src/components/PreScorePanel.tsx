@@ -151,7 +151,7 @@ export default function PreScorePanel({
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold">Pre-Trade Score</h2>
-          <p className="text-sm trading-muted">Preview the recommendation before recording a trade.</p>
+          <p className="text-sm trading-muted">Preview the historical observation before recording a trade.</p>
         </div>
         <span data-testid="pre-score-indicator" className="rounded-full border px-3 py-1 text-xs trading-muted" style={{ borderColor: "var(--copilot-border)" }}>
           Preview only - no decision recorded
@@ -179,7 +179,7 @@ export default function PreScorePanel({
           <div className="mt-4 grid gap-4">
             <div className="trading-grid trading-grid-3">
               <div className="rounded-md border p-3" style={{ borderColor: "var(--copilot-border)" }}>
-                <div className="text-xs trading-muted">Recommended</div>
+                <div className="text-xs trading-muted">Observed result</div>
                 <span data-testid="pre-score-action" className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-semibold ${actionClass(previewAction)}`}>
                   {label(previewAction)}
                 </span>

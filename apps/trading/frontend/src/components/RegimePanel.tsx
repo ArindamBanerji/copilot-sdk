@@ -297,8 +297,8 @@ export default function RegimePanel() {
       </div>
 
       <div data-testid="regime-recommendation" className="mt-5 rounded-md border p-4" style={{ borderColor: "var(--copilot-border)" }}>
-        <div className="text-xs uppercase tracking-wide trading-muted">Regime recommendation</div>
-        <p className="mt-2 text-sm font-semibold">{loading ? "Loading recommendation..." : recommendation}</p>
+        <div className="text-xs uppercase tracking-wide trading-muted">Regime observation</div>
+        <p className="mt-2 text-sm font-semibold">{loading ? "Loading observation..." : recommendation}</p>
       </div>
     </section>
   );

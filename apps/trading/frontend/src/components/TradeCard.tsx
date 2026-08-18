@@ -61,7 +61,7 @@ export default function TradeCard({ trade, onClick }: { trade: JoinedTrade; onCl
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-4">
         <div>
-          <div className="text-xs trading-muted">Hold</div>
+          <div className="text-xs trading-muted">Holding period</div>
           <div className="text-sm font-semibold">{typeof trade.holdDays === "number" ? `${trade.holdDays}d` : "open"}</div>
         </div>
         <div>

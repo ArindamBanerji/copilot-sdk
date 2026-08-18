@@ -278,6 +278,7 @@ def _pattern(
         "severity": round(_clamp(severity), 4),
         "affected_trade_count": len(affected),
         "affected_trades": affected_ids[:10],
+        "observation_only": True,
         "recommendation": recommendation,
         "p_value": round(float(p_value), 6) if p_value is not None else None,
         "significant": significant,
@@ -328,7 +329,7 @@ def _detect_revenge(trades: list[dict[str, Any]]) -> dict[str, Any] | None:
         description="New trades were opened shortly after closed losses.",
         affected=affected,
         severity=min(1.0, 0.35 + len(affected) / 5),
-        recommendation="Add a cooldown after realized losses before opening the next trade.",
+        recommendation="Observation: trades followed realized losses within the detected cooldown window.",
         total=len(trades),
         p_value=p_value,
         estimated_annual_cost=estimated_cost,
@@ -381,7 +382,7 @@ def _detect_overconfidence(trades: list[dict[str, Any]]) -> dict[str, Any] | Non
         description="Trade size increased after a winning streak.",
         affected=affected,
         severity=min(1.0, 0.3 + len(affected) / 4),
-        recommendation="Cap size increases after winning streaks until the setup quality is independently confirmed.",
+        recommendation="Observation: position size increased after a winning streak without independently confirmed setup quality.",
         total=len(trades),
         p_value=p_value,
         estimated_annual_cost=estimated_cost,
@@ -411,7 +412,7 @@ def _detect_fomo(trades: list[dict[str, Any]]) -> dict[str, Any] | None:
         description="Entries cluster at day extremes.",
         affected=affected,
         severity=min(1.0, len(affected) / max(len(trades), 1) + 0.2),
-        recommendation="Require a pre-defined pullback or breakout rule before entering at day extremes.",
+        recommendation="Observation: entries clustered at day extremes without a recorded pullback or breakout marker.",
         total=len(trades),
     )
 
@@ -443,7 +444,7 @@ def _detect_tilt(trades: list[dict[str, Any]]) -> dict[str, Any] | None:
         description="Three or more trades occurred within the same hour.",
         affected=affected,
         severity=min(1.0, 0.25 + len(affected) / max(len(trades), 1)),
-        recommendation="Pause after rapid-fire trade clusters and review whether the next setup is independent.",
+        recommendation="Observation: rapid-fire trade clusters were followed by setups whose independence is not recorded.",
         total=len(trades),
     )
 
@@ -472,7 +473,7 @@ def _detect_drawdown_chase(trades: list[dict[str, Any]]) -> dict[str, Any] | Non
         description="Position size increased while the account was in drawdown.",
         affected=affected,
         severity=min(1.0, 0.35 + len(affected) / 5),
-        recommendation="Use fixed or reduced size during drawdowns until the equity curve stabilizes.",
+        recommendation="Observation: position size increased while the account was in drawdown; the equity-curve context is recorded.",
         total=len(trades),
     )
 
@@ -534,8 +535,7 @@ def _detect_tod_degradation(trades: list[dict[str, Any]]) -> dict[str, Any] | No
             affected=worst_trades,
             severity=min(1.0, 0.3 + worst_gap * 2),
             recommendation=(
-                f"Review {worst_session} session setups and reduce size or skip that "
-                "window until accuracy recovers."
+                f"Observation: {worst_session} session accuracy is below baseline; the affected window is recorded."
             ),
             total=len(trades),
             p_value=p_value,
@@ -637,8 +637,7 @@ def _detect_tod_degradation_heuristic(
         affected=worst["trades"],
         severity=min(1.0, 0.3 + float(worst["accuracy_delta"]) * 2),
         recommendation=(
-            f"Review {worst['day']} {worst['window']} setups and reduce size or skip that window "
-            "until accuracy recovers."
+            f"Observation: {worst['day']} {worst['window']} accuracy is below baseline; the affected window is recorded."
         ),
         total=len(trades),
         p_value=worst["p_value"],
@@ -744,7 +743,10 @@ def _detect_regime_dependency(trades: list[dict[str, Any]]) -> dict[str, Any] | 
         ),
         affected=worst_trades,
         severity=min(1.0, 0.3 + gap * 2),
-        recommendation=f"Reduce size or require confirmation in {worst_regime} regimes until the edge recovers.",
+        recommendation=(
+            f"Observation: {worst_regime} regime accuracy is below the regime-tagged baseline; "
+            "the affected regime and sample are recorded."
+        ),
         total=len(trades),
         p_value=p_value,
         estimated_annual_cost=estimated_cost,
@@ -824,7 +826,7 @@ def _detect_sizing_drift(trades: list[dict[str, Any]]) -> dict[str, Any] | None:
         ),
         affected=affected,
         severity=min(1.0, 0.3 + min(excess_size, 1.0) * 0.7),
-        recommendation="Cap size until the larger positions show a verified accuracy improvement.",
+        recommendation="Observation: larger positions have not yet shown a verified accuracy improvement.",
         total=len(trades),
         p_value=float(p_value),
         estimated_annual_cost=estimated_cost,

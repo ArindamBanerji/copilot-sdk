@@ -219,9 +219,9 @@ def _execution_recommendations(profile: dict[str, Any]) -> list[str]:
         return ["Verify execution outcomes to identify trader-specific strengths."]
     recommendations = []
     if profile.get("top_category"):
-        recommendations.append(f"Review {profile['top_category']} execution playbooks for repeatable quality patterns.")
+        recommendations.append(f"Observation: {profile['top_category']} contains repeatable execution-quality patterns.")
     if profile.get("strongest_factor"):
-        recommendations.append(f"Use {profile['strongest_factor']} as a post-trade review anchor.")
+        recommendations.append(f"Observation: {profile['strongest_factor']} is the strongest post-trade review signal.")
     return recommendations[:3]
 
 

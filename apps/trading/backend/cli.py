@@ -813,6 +813,12 @@ def cmd_retag(args: argparse.Namespace) -> int:
 
 
 def cmd_order(args: argparse.Namespace) -> int:
+    from app.settings import settings
+
+    if not settings.TRADING_EXECUTION_ENABLED:
+        print("Trading copilot operates in observation-only mode; broker writes are disabled.", file=sys.stderr)
+        return 1
+
     from app.brokers import OrderRequest, OrderSide
 
     try:

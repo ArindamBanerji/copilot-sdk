@@ -72,7 +72,7 @@ def create_regime_router(
                 "per_regime_accuracy": {},
                 "current_regime": current["regime"],
                 "edge_categories": [],
-                "recommendation": "Score more verified trades before changing regime sizing.",
+                "observation": "Observation: verified regime-specific history is insufficient for a sizing comparison.",
             }
         mapper = RegimePerformanceMapper(store, TradingPreset(), domain=domain)
         per_regime = mapper.per_regime_accuracy()
@@ -81,7 +81,7 @@ def create_regime_router(
             "per_regime_accuracy": per_regime,
             "current_regime": current["regime"],
             "edge_categories": edges,
-            "recommendation": mapper.regime_recommendation(str(current["regime"]), conservation),
+            "observation": mapper.regime_recommendation(str(current["regime"]), conservation),
         }
 
     @router.get("/recommendation")
@@ -186,18 +186,19 @@ def _shifts(
         edge = float(row["edge"])
         conservation = _category_status(conservation_status, category)
         if edge > 0.05 and conservation == "GREEN":
-            direction = "increase"
+            direction = "observed_improving"
             reason = f"Verified edge is stronger in {current_regime} conditions."
         elif edge < -0.05:
-            direction = "decrease"
+            direction = "observed_degraded"
             reason = f"Verified edge is weaker in {current_regime} conditions."
         else:
-            direction = "hold"
-            reason = "Keep sizing steady until the edge and conservation state align."
+            direction = "observed_stable"
+            reason = "Observation: sizing context is stable while edge and conservation state are evaluated."
         shifts.append(
             {
                 "category": category,
                 "direction": direction,
+                "observation_only": True,
                 "edge": round(edge, 4),
                 "conservation_status": conservation,
                 "reason": reason,

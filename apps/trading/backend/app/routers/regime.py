@@ -100,13 +100,13 @@ def _regime_recommendations(
         current_accuracy = float(regimes.get(current_regime, 0.5))
         delta = current_accuracy - baseline
         if regime_break_active:
-            action = "hold"
+            action = "observed_stable"
         elif delta > 0.05:
-            action = "increase"
+            action = "observed_improving"
         elif delta < -0.10:
-            action = "reduce"
+            action = "observed_restricted"
         else:
-            action = "hold"
+            action = "observed_stable"
         recommendations.append(
             {
                 "category": category,
@@ -115,6 +115,7 @@ def _regime_recommendations(
                 "baseline": round(baseline, 4),
                 "delta": round(delta, 4),
                 "action": action,
+                "observation_only": True,
             }
         )
     return sorted(recommendations, key=lambda item: item["accuracy"], reverse=True)

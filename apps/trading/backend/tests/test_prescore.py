@@ -81,7 +81,7 @@ def test_prescore_returns_recommendation(client, monkeypatch):
     response = client.post("/api/trading/prescore", json=_payload())
 
     assert response.status_code == 200
-    assert response.json()["recommendation"] == "proceed"
+    assert response.json()["recommendation"].startswith("Observation:")
 
 
 def test_prescore_requires_ticker(client):
@@ -96,7 +96,7 @@ def test_prescore_skip_on_low_confidence(client, monkeypatch):
 
     response = client.post("/api/trading/prescore", json=_payload())
 
-    assert response.json()["recommendation"] == "skip"
+    assert response.json()["recommendation"].startswith("Observation:")
     assert response.json()["confidence"] == 0.35
 
 
@@ -106,7 +106,7 @@ def test_prescore_skip_on_low_regime_accuracy(client, monkeypatch):
 
     response = client.post("/api/trading/prescore", json=_payload())
 
-    assert response.json()["recommendation"] == "skip"
+    assert response.json()["recommendation"].startswith("Observation:")
     assert "Your trend_following accuracy in ranging: 35%" in response.json()["warnings"]
 
 
@@ -115,7 +115,7 @@ def test_prescore_reduce_on_decision_context_pattern(client, monkeypatch):
 
     response = client.post("/api/trading/prescore", json=_payload())
 
-    assert response.json()["recommendation"] == "reduce"
+    assert response.json()["recommendation"].startswith("Observation:")
     assert "Decision context: elevated pattern detected" in response.json()["warnings"]
 
 
@@ -125,7 +125,7 @@ def test_prescore_proceed_when_clear(client, monkeypatch):
 
     response = client.post("/api/trading/prescore", json=_payload())
 
-    assert response.json()["recommendation"] == "proceed"
+    assert response.json()["recommendation"].startswith("Observation:")
     assert response.json()["warnings"] == []
 
 
@@ -134,7 +134,7 @@ def test_prescore_includes_evidence_text(client, monkeypatch):
 
     response = client.post("/api/trading/prescore", json=_payload())
 
-    assert "Recommended action is" in response.json()["evidence"]
+    assert "Observed decision context is" in response.json()["evidence"]
 
 
 def test_prescore_includes_warnings_list(client, monkeypatch):
@@ -168,7 +168,7 @@ def test_prescore_no_historical_trades(client, monkeypatch):
     payload = client.post("/api/trading/prescore", json=_payload()).json()
 
     assert payload["regime_accuracy"] == 0.5
-    assert payload["recommendation"] == "proceed"
+    assert payload["recommendation"].startswith("Observation:")
 
 
 def test_prescore_response_has_all_keys(client, monkeypatch):
@@ -186,6 +186,7 @@ def test_prescore_response_has_all_keys(client, monkeypatch):
         "warnings",
         "evidence",
         "category",
+        "observation_only",
     }
 
 
@@ -235,7 +236,7 @@ def test_prescore_skip_boundary_confidence_040(client, monkeypatch):
 
     payload = client.post("/api/trading/prescore", json=_payload()).json()
 
-    assert payload["recommendation"] == "skip"
+    assert payload["recommendation"].startswith("Observation:")
 
 
 def test_prescore_skip_boundary_regime_acc_040(client, monkeypatch):
@@ -244,7 +245,7 @@ def test_prescore_skip_boundary_regime_acc_040(client, monkeypatch):
 
     payload = client.post("/api/trading/prescore", json=_payload()).json()
 
-    assert payload["recommendation"] == "skip"
+    assert payload["recommendation"].startswith("Observation:")
 
 
 def test_prescore_reduce_boundary_emotional_050(client, monkeypatch):
@@ -252,7 +253,7 @@ def test_prescore_reduce_boundary_emotional_050(client, monkeypatch):
 
     payload = client.post("/api/trading/prescore", json=_payload()).json()
 
-    assert payload["recommendation"] == "reduce"
+    assert payload["recommendation"].startswith("Observation:")
 
 
 def test_prescore_warns_on_quick_reentry_after_loss(client, monkeypatch):

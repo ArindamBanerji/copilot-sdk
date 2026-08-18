@@ -203,49 +203,34 @@ class PromptVariantEvolver:
             return None
 
         active_variant = active_variants[0]
-        active_stats = self._store.get_global_stats(active_variant.id)
-        active_rate = active_stats.success_rate
-        candidates: list[tuple[int, VariantSpec, VariantStats, float, float]] = []
-        for variant in variants:
-            if variant.status != "shadow":
-                continue
-            candidate_stats = self._store.get_global_stats(variant.id)
-            if candidate_stats.total < self._config.promotion_min_samples:
-                continue
-            candidate_rate = candidate_stats.success_rate
-            improvement = candidate_rate - active_rate
-            if improvement <= self._config.promotion_improvement_threshold:
-                continue
-            candidates.append((len(candidates), variant, candidate_stats, candidate_rate, improvement))
-
-        if not candidates:
+        shadow_variants = [variant for variant in variants if variant.status == "shadow"]
+        if not shadow_variants:
             return None
 
+        # Prompt evolution is a compounding loop: conservation must be safe
+        # before sample or improvement evidence can authorize promotion.
         conservation_state = self._resolve_conservation_state(conservation_state)
         if not self._promotion_gate._is_conservation_safe(conservation_state):
-            _, blocked, blocked_stats, candidate_rate, improvement = max(
-                candidates,
-                key=lambda candidate: (
-                    candidate[4],
-                    candidate[3],
-                    -candidate[0],
-                ),
-            )
+            blocked = shadow_variants[0]
+            blocked_stats = self._store.get_global_stats(blocked.id)
+            reason = self._conservation_rejection_reason(conservation_state)
             logger.warning(
-                "Prompt variant promotion blocked: conservation=%s, variant=%s",
+                "Prompt variant promotion blocked: reason=%s, conservation=%s, variant=%s",
+                reason,
                 conservation_state,
                 blocked.id,
             )
             result = {
                 "family": family,
                 "promoted": False,
-                "reason": "conservation",
-                "message": "Prompt variant promotion blocked: conservation RED",
+                "reason": reason,
+                "message": (
+                    "Prompt variant promotion blocked: conservation RED"
+                    if reason == "conservation_gate_red"
+                    else "Prompt variant promotion blocked: conservation unavailable"
+                ),
                 "candidate_id": blocked.id,
                 "previous_id": active_variant.id,
-                "improvement": improvement,
-                "candidate_rate": candidate_rate,
-                "active_rate": active_rate,
                 "candidate_total": blocked_stats.total,
             }
             self._emit_lifecycle_event(
@@ -260,6 +245,22 @@ class PromptVariantEvolver:
             if self._config.on_rejected is not None:
                 self._config.on_rejected(dict(result))
             return result
+
+        active_stats = self._store.get_global_stats(active_variant.id)
+        active_rate = active_stats.success_rate
+        candidates: list[tuple[int, VariantSpec, VariantStats, float, float]] = []
+        for variant in shadow_variants:
+            candidate_stats = self._store.get_global_stats(variant.id)
+            if candidate_stats.total < self._config.promotion_min_samples:
+                continue
+            candidate_rate = candidate_stats.success_rate
+            improvement = candidate_rate - active_rate
+            if improvement <= self._config.promotion_improvement_threshold:
+                continue
+            candidates.append((len(candidates), variant, candidate_stats, candidate_rate, improvement))
+
+        if not candidates:
+            return None
 
         _, promoted, promoted_stats, candidate_rate, improvement = max(
             candidates,
@@ -309,6 +310,20 @@ class PromptVariantEvolver:
         except Exception as exc:
             logger.warning("Conservation provider failed; promotion is blocked: %s", exc)
             return {"status": "UNKNOWN", "reason": "provider_error"}
+
+    @staticmethod
+    def _conservation_rejection_reason(conservation_state: Any) -> str:
+        values: list[Any] = []
+        if isinstance(conservation_state, str):
+            values.append(conservation_state)
+        elif isinstance(conservation_state, dict):
+            values.extend(
+                conservation_state.get(key)
+                for key in ("status", "state", "phase")
+            )
+        if any(isinstance(value, str) and value.strip().upper() == "RED" for value in values):
+            return "conservation_gate_red"
+        return "conservation_gate_unavailable"
 
     def _families_in_order(self) -> list[str]:
         families: list[str] = []

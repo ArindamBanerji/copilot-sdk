@@ -1,4 +1,4 @@
-"""Detailed regime-context allocation readiness recommendations."""
+"""Detailed regime-context observations."""
 
 from __future__ import annotations
 
@@ -9,7 +9,13 @@ from app.services.regime import DEFAULT_ADX, RegimeService, classify_regime
 
 
 REGIMES = ("trending", "ranging", "volatile")
-ACTION_ORDER = {"avoid": 0, "reduce": 1, "hold": 2, "increase": 3}
+ACTION_ORDER = {
+    "observed_degraded": 0,
+    "observed_restricted": 1,
+    "observed_stable": 2,
+    "observed_improving": 3,
+    "insufficient_data": 4,
+}
 MIN_EDGE_SAMPLE = 5
 MIN_FACTOR_SAMPLE = 5
 
@@ -51,6 +57,7 @@ class RegimeRecommender:
         data_quality = _data_quality(sample_report, trades or [])
         return {
             "regime": regime,
+            "observation_only": True,
             "recommendations": recommendations,
             "regime_transitions": transitions,
             "conservation_safe": conservation_safe,
@@ -83,16 +90,16 @@ def _category_recommendation(
     regime_neutral = spread_pp < 5.0
 
     if current_accuracy < 0.40:
-        action = "avoid"
+        action = "observed_degraded"
         shift_pct = -100
     elif delta_pp <= -10.0:
-        action = "reduce"
+        action = "observed_restricted"
         shift_pct = max(-50, int(delta_pp * 2))
     elif delta_pp >= 5.0:
-        action = "increase"
+        action = "observed_improving"
         shift_pct = min(30, int(delta_pp * 2))
     else:
-        action = "hold"
+        action = "observed_stable"
         shift_pct = 0
 
     return {
@@ -102,6 +109,7 @@ def _category_recommendation(
         "baseline_accuracy": round(baseline, 4),
         "delta_pp": delta_pp,
         "action": action,
+        "observation_only": True,
         "shift_pct": shift_pct,
         "regime_neutral": regime_neutral,
         "sample_size": int((samples or {}).get(current_regime, 0)),
@@ -121,7 +129,7 @@ def _rationale(
 ) -> str:
     return (
         f"{category} has {current_accuracy:.0%} observed historical accuracy in {regime} "
-        f"versus {baseline:.0%} baseline; allocation shift action is {action} "
+        f"versus {baseline:.0%} baseline; observed status is {action} "
         f"with {delta_pp:+.1f}pp regime context."
     )
 
@@ -303,7 +311,7 @@ def _sizing_recommendation(
     sample_size = int(edge_summary.get("sample_size_current") or 0)
     min_sample_met = edge_summary.get("status") == "available" and sample_size >= MIN_EDGE_SAMPLE
     vix = _to_float(current.get("vix"))
-    top_action = str(recommendations[0].get("action")) if recommendations else "hold"
+    top_action = str(recommendations[0].get("action")) if recommendations else "observed_stable"
 
     action = "normal"
     suggested = 1.0
@@ -312,7 +320,7 @@ def _sizing_recommendation(
     reasons: list[str] = [f"current regime is {current_regime}", f"sample size {sample_size}"]
 
     if not min_sample_met:
-        action = "reduce"
+        action = "observed_restricted"
         suggested = 0.75
         max_size = 1.0
         reasons.append("insufficient regime-specific history")
@@ -323,22 +331,23 @@ def _sizing_recommendation(
             suggested = 0.75
             reasons.append("observed edge is stronger but volatility cap applies")
         else:
-            action = "reduce"
+            action = "observed_restricted"
             suggested = 0.5
             reasons.append("high-volatility caution")
-    elif top_action == "avoid" or (current_accuracy is not None and current_accuracy < 0.40):
-        action = "avoid"
+    elif top_action == "observed_degraded" or (current_accuracy is not None and current_accuracy < 0.40):
+        action = "observed_degraded"
         suggested = 0.0
         max_size = 0.0
         reasons.append("observed regime accuracy is weak")
     elif edge_delta is not None and edge_delta >= 10.0 and current_accuracy is not None and current_accuracy >= 0.60:
-        action = "increase_small"
+        action = "observed_improving"
         suggested = 1.1
         max_size = 1.25
         reasons.append("sample-backed observed edge is stronger than comparison regime")
 
     return {
         "action": action,
+        "observation_only": True,
         "suggested_size_multiplier": round(suggested, 2),
         "max_size_multiplier": round(max_size, 2),
         "reason": "; ".join(reasons),
@@ -365,6 +374,8 @@ def _transition_alert(
             "edge_delta_pp": None,
             "old_recommendation": None,
             "new_recommendation": None,
+            "old_observation": None,
+            "new_observation": None,
             "message": "",
             "severity": "info",
             "reason": "previous_regime_unavailable",
@@ -377,6 +388,8 @@ def _transition_alert(
             "edge_delta_pp": 0.0,
             "old_recommendation": None,
             "new_recommendation": None,
+            "old_observation": None,
+            "new_observation": None,
             "message": "",
             "severity": "info",
             "reason": "regime_unchanged",
@@ -405,6 +418,8 @@ def _transition_alert(
             "edge_delta_pp": None,
             "old_recommendation": None,
             "new_recommendation": None,
+            "old_observation": None,
+            "new_observation": None,
             "message": "Regime changed, but previous-regime sample data is unavailable.",
             "severity": "info",
             "reason": "previous_regime_data_unavailable",
@@ -419,6 +434,8 @@ def _transition_alert(
         "edge_delta_pp": delta,
         "old_recommendation": _top_action(old_recommendations),
         "new_recommendation": _top_action(new_recommendations),
+        "old_observation": _top_action(old_recommendations),
+        "new_observation": _top_action(new_recommendations),
         "message": "Regime changed; observed edge shifted.",
         "severity": severity,
         "reason": "regime_changed",
@@ -516,7 +533,7 @@ def _data_quality(sample_report: dict[str, Any], trades: list[dict[str, Any]]) -
     inferred_regime_rows = int(sample_report.get("inferred_regime_rows") or 0)
     warnings = [
         "Regime edge uses journal/PnL outcomes unless an upstream verified-outcome source is provided.",
-        "Recommendations are advisory context and do not guarantee future profit.",
+        "Observed values are historical context and do not guarantee future profit.",
     ]
     if unknown_regime_rows:
         warnings.append(f"{unknown_regime_rows} outcome rows lacked explicit or inferable regime and were excluded from P49 sample counts.")
@@ -577,8 +594,8 @@ def _summary(recommendations: list[dict[str, Any]], conservation_safe: bool) -> 
         if item.get("regime_neutral") is True:
             neutral += 1
     message = (
-        f"{counts['avoid']} avoid, {counts['reduce']} reduce, "
-        f"{counts['increase']} increase, {neutral} regime-neutral."
+        f"{counts['observed_degraded']} degraded, {counts['observed_restricted']} restricted, "
+        f"{counts['observed_improving']} improving, {neutral} regime-neutral observations."
     )
     if not conservation_safe:
         message = f"{message} Conservation not confirmed; treat shifts as informational."

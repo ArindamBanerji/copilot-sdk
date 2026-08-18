@@ -33,10 +33,8 @@ def _read_trades(config_dir: Path) -> list[dict]:
 def test_order_command_with_mock(capsys, tmp_path):
     result = _run(_config_dir(tmp_path), "order", "AAPL", "buy", "10", "--broker", "mock")
 
-    assert result == 0
-    output = capsys.readouterr().out
-    assert "Order submitted" in output
-    assert "AAPL" in output
+    assert result == 1
+    assert "observation-only" in capsys.readouterr().err
 
 
 def test_limit_order_command_with_mock(capsys, tmp_path):
@@ -54,8 +52,8 @@ def test_limit_order_command_with_mock(capsys, tmp_path):
         "mock",
     )
 
-    assert result == 0
-    assert "150.00" in capsys.readouterr().out
+    assert result == 1
+    assert "observation-only" in capsys.readouterr().err
 
 
 def test_orders_command_with_shared_mock(monkeypatch, capsys, tmp_path):
@@ -140,7 +138,7 @@ def test_order_without_credentials_returns_friendly_error(monkeypatch, capsys, t
     result = _run(_config_dir(tmp_path), "order", "AAPL", "buy", "1")
 
     assert result == 1
-    assert "Alpaca credentials are not configured" in capsys.readouterr().err
+    assert "observation-only" in capsys.readouterr().err
 
 
 def test_non_broker_command_does_not_call_get_broker(monkeypatch, tmp_path):

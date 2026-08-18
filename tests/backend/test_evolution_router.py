@@ -10,7 +10,7 @@ from copilot_sdk.evolution import PromptVariantEvolver, VariantSpec
 
 class RecordingGraphStore:
     def __init__(self) -> None:
-        self.events = []
+        self.events: list[tuple[object, ...]] = []
 
     def save_evolution_event(self, domain, event_type, rule_name="", variant_id="", metadata=None):
         self.events.append((domain, event_type, rule_name, variant_id, metadata or {}))
@@ -219,4 +219,4 @@ def test_check_promotion_endpoint_returns_blocked_result_without_evidence():
     payload = response.json()
     assert payload["promoted"] is False
     assert payload["blocked"] is True
-    assert payload["result"] == {}
+    assert payload["result"]["reason"] == "conservation_gate_unavailable"

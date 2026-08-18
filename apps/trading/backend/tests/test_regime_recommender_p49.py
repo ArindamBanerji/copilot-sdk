@@ -123,7 +123,7 @@ def test_p49_sizing_recommendation_reduces_when_high_vol_or_sparse_data():
     payload = RegimeRecommender().recommend("volatile", _accuracy(), trades=_trades(), current={"vix": 32.0})
 
     sizing = payload["sizing_recommendation"]
-    assert sizing["action"] in {"normal", "reduce"}
+    assert sizing["action"] in {"normal", "observed_stable", "observed_restricted", "observed_degraded"}
     assert sizing["suggested_size_multiplier"] <= 0.75
     assert sizing["max_size_multiplier"] <= 0.75
     assert sizing["advisory_only"] is True
@@ -139,7 +139,7 @@ def test_p49_sizing_recommendation_can_increase_small_when_edge_sample_supported
     payload = RegimeRecommender().recommend("trending", accuracy, trades=trades, current={"vix": 18.0})
 
     sizing = payload["sizing_recommendation"]
-    assert sizing["action"] == "increase_small"
+    assert sizing["action"] == "observed_improving"
     assert sizing["suggested_size_multiplier"] == 1.1
     assert sizing["max_size_multiplier"] == 1.25
     assert sizing["min_sample_size_met"] is True

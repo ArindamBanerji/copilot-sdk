@@ -44,7 +44,7 @@ class TradingDomainConfig(BaseDomainConfig):
         ),
         DomainAction(
             id="skip_recommended",
-            label="Skip Recommended",
+            label="Low-confidence observation",
             time_saved_min=3.0,
             cost_dollars=0.0,
             risk_level="low",

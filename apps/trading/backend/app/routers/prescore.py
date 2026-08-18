@@ -99,6 +99,7 @@ def create_prescore_router(
 
         response = {
             "recommendation": recommendation,
+            "observation_only": True,
             "confidence": confidence,
             "action": action,
             "factors": factors,
@@ -130,7 +131,7 @@ def _local_action_confidence(factors: dict[str, Any]) -> tuple[str, float]:
     elif confidence >= 0.30:
         action = "poor_execution"
     else:
-        action = "skip_recommended"
+        action = "observed_low_confidence"
     return action, confidence
 
 
@@ -140,10 +141,10 @@ def _recommendation(
     factors: dict[str, Any],
 ) -> str:
     if confidence <= 0.40 or regime_accuracy <= 0.40:
-        return "skip"
+        return "Observation: available history is insufficient for this hypothetical trade context."
     if _clamp(factors.get("emotional_indicator")) <= 0.50:
-        return "reduce"
-    return "proceed"
+        return "Observation: the detected decision context is weaker than the historical baseline."
+    return "Observation: the detected decision context is aligned with the available historical baseline."
 
 
 def _warnings(

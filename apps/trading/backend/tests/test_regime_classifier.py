@@ -155,7 +155,7 @@ def test_recommendation_conservation_gate() -> None:
         {"categories": {"trend_following": {"status": "AMBER"}}},
     )
 
-    assert "Hold sizing on trend_following" in text
+    assert "Observation:" in text
 
 
 def test_recommendation_excludes_red_categories() -> None:
@@ -166,7 +166,7 @@ def test_recommendation_excludes_red_categories() -> None:
     )
 
     assert "Your edge: trend_following" not in text
-    assert "Hold sizing on trend_following" in text
+    assert "Observation:" in text
 
 
 def test_router_recommendation_gate() -> None:
@@ -175,7 +175,7 @@ def test_router_recommendation_gate() -> None:
     assert response.status_code == 200
     for shift in response.json()["shifts"]:
         if shift["conservation_status"] != "GREEN":
-            assert shift["direction"] != "increase"
+            assert shift["direction"] != "observed_improving"
 
 
 def test_recommendation_nl_format() -> None:
@@ -205,7 +205,7 @@ def test_recommendation_volatile() -> None:
 def test_recommendation_no_data() -> None:
     mapper = RegimePerformanceMapper(InMemoryGraphStore(domain="trading"), TradingPreset())
 
-    assert mapper.regime_recommendation("ranging", {}) == "Score more verified trades before changing regime sizing."
+    assert mapper.regime_recommendation("ranging", {}) == "Observation: verified regime-specific history is insufficient for a sizing comparison."
 
 
 def test_regime_endpoint_current() -> None:

@@ -56,8 +56,8 @@ class ExecutionAnalyzer:
             recommendation = f"{best.broker} currently has the best fill quality."
         else:
             recommendation = (
-                f"Switching to {best.broker} could save about ${annual_savings:,.0f}/year "
-                f"(estimated from {len(trades)} trades over sample period)."
+                f"Observation: {best.broker} showed approximately ${annual_savings:,.0f}/year "
+                f"lower estimated slippage (estimated from {len(trades)} trades over sample period)."
             )
         return ExecutionComparison(
             brokers=brokers,
