@@ -57,6 +57,38 @@ import type {
 
 export const BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8030";
 
+export interface DataOpsGovernanceStatus {
+  claims: Array<Record<string, unknown>>;
+  context: string;
+}
+
+export interface DataOpsHoldoutStatus {
+  entries: Array<Record<string, unknown>>;
+  holdoutDays: number;
+}
+
+export interface DataOpsAbstentionStatus {
+  sourceId: string;
+  shouldAbstain: boolean;
+  reason: string;
+  evidenceFloor: number;
+  currentEvidence: number;
+  evidenceTier: string;
+  evidenceLabel: string;
+}
+
+export async function fetchDataOpsGovernance(): Promise<DataOpsGovernanceStatus | null> {
+  return safeApiGet<DataOpsGovernanceStatus>("/api/dataops/claims?context=demo");
+}
+
+export async function fetchDataOpsHoldout(): Promise<DataOpsHoldoutStatus | null> {
+  return safeApiGet<DataOpsHoldoutStatus>("/api/dataops/holdout/status");
+}
+
+export async function fetchDataOpsAbstention(): Promise<DataOpsAbstentionStatus | null> {
+  return safeApiGet<DataOpsAbstentionStatus>("/api/dataops/abstention-check?source_id=unknown");
+}
+
 const ACTION_NAMES = [
   "Auto-approve",
   "Investigate",

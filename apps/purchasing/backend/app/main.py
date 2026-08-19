@@ -58,6 +58,7 @@ from .routers.spend_router import create_spend_router  # noqa: E402
 from .routers.trust import create_trust_router  # noqa: E402
 from .routers.trust_router import create_trust_router as create_trust_weights_router  # noqa: E402
 from .routers.verify_router import create_verify_router  # noqa: E402
+from .routers.purchasing_control import create_purchasing_control_router  # noqa: E402
 from .services.auto_order import AutoOrderGate  # noqa: E402
 from .services.audit_export import AuditExportService  # noqa: E402
 from .services.chain_demo_seed import ChainLearningDemo  # noqa: E402
@@ -66,6 +67,7 @@ from .services.par_optimizer import ParLevelOptimizer  # noqa: E402
 from .services.payment_timing import PaymentTimingService  # noqa: E402
 from .services.waste_tracker import WasteTracker  # noqa: E402
 from .services.predictive_par import PredictivePar, demo_par_items  # noqa: E402
+from .services.purchasing_control import PurchasingClaimRegistry, PurchasingControlService, PurchasingEvidenceMiddleware  # noqa: E402
 from .connectors.commodity_provider import CommodityDataProvider  # noqa: E402
 from copilot_sdk.backend.report_router import create_report_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import (  # noqa: E402
@@ -447,6 +449,12 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    purchasing_claim_registry = PurchasingClaimRegistry()
+    app.add_middleware(
+        PurchasingEvidenceMiddleware,
+        registry=purchasing_claim_registry,
+        context=os.environ.get("PURCHASING_EVIDENCE_CONTEXT", "demo"),
+    )
 
     scoring_db = _resolve_scoring_db(db_path)
     # Stable supplier/item context only; mutable decisions and conservation
@@ -486,6 +494,13 @@ def create_app(
     scorer_proxy = FreshScorerProxy(
         DOMAIN, scoring_db, selected_graph_store_factory, profile=_resolve_profile()
     )
+    purchasing_control = PurchasingControlService(
+        lambda: selected_graph_store_factory(scoring_db),
+        lambda: scorer_proxy,
+        DATA_DIR,
+    )
+    app.state.purchasing_claim_registry = purchasing_claim_registry
+    app.state.purchasing_control = purchasing_control
 
     conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
     evolver_config = replace(
@@ -547,6 +562,7 @@ def create_app(
             )
             status.pop("welford_tracker", None)
             app.state.l5_startup_status = status
+        purchasing_claim_registry.refresh(selected_graph_store_factory(scoring_db))
 
     app.state.purchasing_active_graph_config = active_graph_config
     app.state.purchasing_selected_graph_store = scorer_proxy.graph_store
@@ -811,6 +827,7 @@ def create_app(
         )
     )
     app.include_router(create_verify_router(scorer_proxy))
+    app.include_router(create_purchasing_control_router(purchasing_control, purchasing_claim_registry))
     app.include_router(create_trust_router(scorer_proxy))
     app.include_router(create_trust_weights_router(lambda: scorer_proxy))
     app.include_router(purchasing_graph_status_router)

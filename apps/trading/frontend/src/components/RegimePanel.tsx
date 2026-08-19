@@ -6,6 +6,7 @@ import {
   fetchSituationAbstention,
   fetchSituationConditionedStats,
   fetchSituationRegime,
+  fetchSituationJudgment,
   fetchSituationRejections,
   type RegimeCurrentResponse,
   type RegimeHistoryEntry,
@@ -16,6 +17,7 @@ import type {
   SituationAbstentionResponse,
   SituationConditionedStatsResponse,
   SituationRegimeResponse,
+  SituationJudgmentResponse,
   SituationRejectionsResponse,
 } from "../types";
 import ProvenanceBadge from "./ProvenanceBadge";
@@ -91,6 +93,7 @@ export default function RegimePanel() {
   const [history, setHistory] = useState<RegimeHistoryEntry[]>([]);
   const [performance, setPerformance] = useState<RegimePerformanceResponse | null>(null);
   const [situation, setSituation] = useState<SituationRegimeResponse | null>(null);
+  const [judgment, setJudgment] = useState<SituationJudgmentResponse | null>(null);
   const [conditioned, setConditioned] = useState<SituationConditionedStatsResponse | null>(null);
   const [abstention, setAbstention] = useState<SituationAbstentionResponse | null>(null);
   const [rejections, setRejections] = useState<SituationRejectionsResponse | null>(null);
@@ -113,16 +116,18 @@ export default function RegimePanel() {
       getRegimeHistory(),
       getRegimePerformance(),
       fetchSituationRegime(),
+      fetchSituationJudgment(),
       fetchSituationConditionedStats(),
       fetchSituationAbstention(),
       fetchSituationRejections(),
     ])
-      .then(([nextCurrent, nextHistory, nextPerformance, nextSituation, nextConditioned, nextAbstention, nextRejections]) => {
+      .then(([nextCurrent, nextHistory, nextPerformance, nextSituation, nextJudgment, nextConditioned, nextAbstention, nextRejections]) => {
         if (cancelled) return;
         setCurrent(nextCurrent);
         setHistory(nextHistory);
         setPerformance(nextPerformance);
         setSituation(nextSituation);
+        setJudgment(nextJudgment);
         setConditioned(nextConditioned);
         setAbstention(nextAbstention);
         setRejections(nextRejections);
@@ -299,6 +304,44 @@ export default function RegimePanel() {
       <div data-testid="regime-recommendation" className="mt-5 rounded-md border p-4" style={{ borderColor: "var(--copilot-border)" }}>
         <div className="text-xs uppercase tracking-wide trading-muted">Regime observation</div>
         <p className="mt-2 text-sm font-semibold">{loading ? "Loading observation..." : recommendation}</p>
+      </div>
+
+      <div data-testid="situation-judgment" className="mt-5 rounded-md border p-4" style={{ borderColor: "var(--copilot-border)" }}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="text-xs uppercase tracking-wide trading-muted">Situation-conditioned judgment</div>
+            <h3 data-testid="situation-regime" className="mt-1 text-base font-semibold capitalize">
+              {judgment?.regime || "ranging"} context
+            </h3>
+          </div>
+          <span data-testid="situation-evidence-tier" className="rounded-full border px-2 py-1 text-xs trading-muted">
+            Evidence: {judgment?.evidence_tier || "INSUFFICIENT"}
+          </span>
+        </div>
+        <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+          <span>VIX: {judgment?.indicators?.vix ?? "-"}</span>
+          <span>ADX: {judgment?.indicators?.adx ?? "-"}</span>
+          <span>Confidence: {typeof judgment?.confidence === "number" ? `${Math.round(judgment.confidence * 100)}%` : "-"}</span>
+        </div>
+        {judgment?.regime_abstention ? (
+          <p data-testid="situation-abstention" className="mt-3 rounded-md border border-amber-300/40 bg-amber-500/10 p-3 text-sm">
+            Insufficient regime-specific evidence; no regime-conditioned accuracy is asserted.
+          </p>
+        ) : null}
+        <div data-testid="situation-strategy-accuracy" className="mt-3 space-y-2 text-sm">
+          {Object.entries(judgment?.per_strategy_accuracy_in_regime || {}).map(([strategy, row]) => (
+            <div key={strategy} className="flex flex-wrap justify-between gap-2 rounded-md bg-white/5 px-3 py-2">
+              <span className="capitalize">{strategy.replace(/_/g, " ")}</span>
+              <span>{typeof row.accuracy === "number" ? `${Math.round(row.accuracy * 100)}% observed accuracy` : "Insufficient evidence"}</span>
+            </div>
+          ))}
+          {!Object.keys(judgment?.per_strategy_accuracy_in_regime || {}).length ? (
+            <span className="trading-muted">No verified strategy observations in this regime.</span>
+          ) : null}
+        </div>
+        <p data-testid="situation-observation" className="mt-3 text-sm trading-muted">
+          {judgment?.observation || "Observation: situation data is loading."} No forward action is inferred.
+        </p>
       </div>
     </section>
   );

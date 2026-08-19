@@ -17,6 +17,7 @@ import type {
   SituationAbstentionResponse,
   SituationConditionedStatsResponse,
   SituationRegimeResponse,
+  SituationJudgmentResponse,
   SituationRejectionsResponse,
   SituationSharpeResponse,
   RegimeStatusResponse,
@@ -357,6 +358,10 @@ export function fetchRegimeVrp(): Promise<RegimeVrpResponse> {
 
 export function fetchSituationRegime(): Promise<SituationRegimeResponse> {
   return apiGet<SituationRegimeResponse>("/api/trading/situation/regime");
+}
+
+export function fetchSituationJudgment(): Promise<SituationJudgmentResponse> {
+  return apiGet<SituationJudgmentResponse>("/api/trading/situation");
 }
 
 export function fetchSituationConditionedStats(): Promise<SituationConditionedStatsResponse> {

@@ -59,6 +59,9 @@ def create_trust_router(
                 "verified_decisions": int(fingerprint.get("decisions_analyzed", 0) or 0),
                 "iks": _optional_float(trajectory.get("current_iks")),
                 "narrative": narrative,
+                "evidence_tier": "synthetic",
+                "evidence_label": "synthetic / modelled - not measured",
+                "evidence_basis": "scorer fingerprint and current trajectory; no verified outcome claim",
             }
         except HTTPException:
             raise

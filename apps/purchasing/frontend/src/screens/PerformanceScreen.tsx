@@ -13,6 +13,7 @@ import EconomicDashboardCard from "../components/EconomicDashboardCard";
 import GroupDashboardCard from "../components/GroupDashboardCard";
 import IKSTrackerPanel from "../components/IKSTrackerPanel";
 import PaymentTimingPanel from "../components/PaymentTimingPanel";
+import PurchasingProofPanel from "../components/PurchasingProofPanel";
 import SupplierScorecardPanel from "../components/SupplierScorecardPanel";
 import WasteAlertCard from "../components/WasteAlertCard";
 import WasteCostCard from "../components/WasteCostCard";
@@ -95,6 +96,7 @@ export default function PerformanceScreen() {
 
   return (
     <div data-screen-ready="true" className="purchase-stack performance-screen">
+      <PurchasingProofPanel />
       <section className="purchase-card">
         <p className="purchase-kicker">Performance</p>
         <h1 className="purchase-title">20 orders to learn what takes 11 years of gut instinct.</h1>

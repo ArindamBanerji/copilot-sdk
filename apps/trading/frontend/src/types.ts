@@ -475,6 +475,30 @@ export interface SituationRegimeResponse {
   substantiation?: string;
 }
 
+export interface SituationStrategyAccuracy {
+  strategy?: string;
+  decision_count?: number;
+  verified_count?: number;
+  accuracy?: NullableNumber;
+  evidence_sufficient?: boolean;
+  evidence_tier?: string;
+  observation?: string;
+}
+
+export interface SituationJudgmentResponse {
+  regime?: string;
+  confidence?: number;
+  indicators?: { vix?: number; adx?: number; trend_strength?: number };
+  per_strategy_accuracy_in_regime?: Record<string, SituationStrategyAccuracy>;
+  regime_abstention?: boolean;
+  regime_rejection_count?: number;
+  evidence_tier?: string;
+  observation_only?: boolean;
+  observation?: string;
+  provenance?: string;
+  substantiation?: string;
+}
+
 export interface SituationConditionedStatsResponse {
   currentRegime?: string;
   mirrorMessage?: string;

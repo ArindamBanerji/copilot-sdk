@@ -14,6 +14,7 @@ REGIMES = ("trending", "choppy", "volatile", "calm")
 MIN_DECISIONS = 10
 PROVENANCE = "illustrative"
 SUBSTANTIATION = "T-O"
+REGIME_MINIMUM = 10
 
 
 def detect_regime(decisions: list[dict[str, Any]]) -> str:
@@ -121,6 +122,97 @@ def compute_regime_rejections(decisions: list[dict[str, Any]]) -> dict[str, Any]
     }
 
 
+def compute_regime_strategy_accuracy(
+    decisions: list[dict[str, Any]],
+    regime: str,
+    *,
+    min_decisions: int = REGIME_MINIMUM,
+) -> dict[str, dict[str, Any]]:
+    """Return measured, regime-scoped accuracy by strategy/category.
+
+    Rows without a verified outcome remain visible as counts but never become
+    an accuracy claim.  This keeps day-zero regimes explicitly abstention
+    aware instead of filling missing evidence with a prior.
+    """
+    current = _canonical_regime(regime)
+    buckets: dict[str, list[bool]] = defaultdict(list)
+    for decision in decisions:
+        if _canonical_regime(_regime(decision) or "ranging") != current or not _verified(decision):
+            continue
+        strategy = str(
+            decision.get("strategy_tag")
+            or _nested_value(decision, "strategy_tag")
+            or decision.get("category")
+            or "unclassified"
+        ).strip()
+        if strategy:
+            buckets[strategy].append(_correct(decision))
+
+    result: dict[str, dict[str, Any]] = {}
+    for strategy, outcomes in sorted(buckets.items()):
+        enough = len(outcomes) >= min_decisions
+        result[strategy] = {
+            "strategy": strategy,
+            "decision_count": len(outcomes),
+            "verified_count": len(outcomes),
+            "accuracy": round(sum(outcomes) / len(outcomes), 4) if enough else None,
+            "evidence_sufficient": enough,
+            "evidence_tier": "T-O" if enough else "INSUFFICIENT",
+            "observation": (
+                f"Observed {len(outcomes)} verified {current} decisions for {strategy}."
+                if enough
+                else f"Insufficient regime-specific evidence for {strategy} ({len(outcomes)}/{min_decisions})."
+            ),
+        }
+    return result
+
+
+def build_situation_judgment(
+    decisions: list[dict[str, Any]],
+    *,
+    regime: str,
+    confidence: float,
+    indicators: dict[str, float],
+    min_decisions: int = REGIME_MINIMUM,
+) -> dict[str, Any]:
+    """Build the canonical observation-only situation response."""
+    current = _canonical_regime(regime)
+    strategy_accuracy = compute_regime_strategy_accuracy(
+        decisions, current, min_decisions=min_decisions
+    )
+    regime_rows = [
+        decision
+        for decision in decisions
+        if _canonical_regime(_regime(decision) or "ranging") == current
+    ]
+    verified_count = sum(1 for row in regime_rows if _verified(row))
+    rejection_count = sum(
+        1
+        for decision in decisions
+        if _canonical_regime(_regime(decision) or "ranging") == current and _is_rejected(decision)
+    )
+    abstention = verified_count < min_decisions
+    evidence_tier = "INSUFFICIENT" if abstention else "T-O"
+    return {
+        "regime": current,
+        "confidence": round(float(confidence), 4),
+        "indicators": dict(indicators),
+        "per_strategy_accuracy_in_regime": strategy_accuracy,
+        "regime_abstention": abstention,
+        "regime_rejection_count": rejection_count,
+        "evidence_tier": evidence_tier,
+        "observation_only": True,
+        "observation": (
+            f"Observation: insufficient regime-specific evidence in {current} conditions "
+            f"({verified_count}/{min_decisions} verified decisions)."
+            if abstention
+            else f"Observation: measured {current} regime history is available for review."
+        ),
+        "provenance": "measured" if not abstention else "insufficient",
+        "substantiation": evidence_tier,
+    }
+
+
 def _tagged_rows(decisions: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for index, decision in enumerate(decisions):
@@ -149,9 +241,39 @@ def _regime(decision: dict[str, Any]) -> str | None:
     return None
 
 
+def _nested_value(decision: dict[str, Any], key: str) -> Any:
+    for container_key in ("metadata", "context", "regime_metadata"):
+        value = decision.get(container_key)
+        if isinstance(value, dict) and value.get(key) is not None:
+            return value.get(key)
+    return None
+
+
+def _is_rejected(decision: dict[str, Any]) -> bool:
+    for key in ("rejected", "regime_rejected", "abstained", "regime_abstained"):
+        if decision.get(key) is True:
+            return True
+    reason = decision.get("rejection_reason") or decision.get("rejected_reason")
+    if not reason:
+        for container_key in ("metadata", "context"):
+            value = decision.get(container_key)
+            if isinstance(value, dict):
+                reason = value.get("rejection_reason") or value.get("rejected_reason")
+                if reason:
+                    break
+    return bool(reason)
+
+
 def _normalize(value: str) -> str:
     normalized = value.strip().lower()
     return "choppy" if normalized in {"ranging", "range", "chop"} else normalized if normalized in REGIMES else "choppy"
+
+
+def _canonical_regime(value: str) -> str:
+    normalized = str(value or "").strip().lower()
+    if normalized in {"choppy", "range", "ranging"}:
+        return "ranging"
+    return normalized if normalized in {"trending", "volatile", "calm"} else "ranging"
 
 
 def _verified(decision: dict[str, Any]) -> bool:

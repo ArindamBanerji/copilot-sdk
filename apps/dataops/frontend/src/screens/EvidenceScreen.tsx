@@ -14,6 +14,7 @@ import RuleGenealogyPanel from "../components/RuleGenealogyPanel";
 import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
 import SchemaImpactPanel from "../components/SchemaImpactPanel";
 import TransferStatusPanel from "../components/TransferStatusPanel";
+import DataOpsGovernancePanel from "../components/DataOpsGovernancePanel";
 import type { AEImpact, EvolutionVariant, PatternOrigin } from "../types";
 
 export default function EvidenceScreen() {
@@ -63,6 +64,7 @@ export default function EvidenceScreen() {
     <div data-screen-ready={String(dataReady)} className="grid gap-4">
       {error ? <Frame message={error} tone="error" /> : null}
       <CohortStatusPanel />
+      <DataOpsGovernancePanel />
       <CrossSystemPanel />
       <AEImpactPanel impact={impact} />
       <EvolutionPanel variants={variants} title="AgentEvolver Audit Trail" />

@@ -45,6 +45,8 @@ from .routers.query import create_query_router  # noqa: E402
 from .routers.di_enrichment_router import create_dataops_di_enrichment_router  # noqa: E402
 from .routers.perturbation_router import create_perturbation_router  # noqa: E402
 from .routers.trust_router import create_trust_router  # noqa: E402
+from .dataops_governance import DataOpsGovernance  # noqa: E402
+from .routers.governance_router import create_governance_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import (  # noqa: E402
     create_self_transfer_router,
     create_transfer_router,
@@ -643,6 +645,10 @@ def create_app(
     )
 
     conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
+    governance_db = ":memory:" if scoring_db == ":memory:" else str(DATA_DIR / "dataops_governance.sqlite3")
+    app.state.dataops_governance = DataOpsGovernance(
+        governance_db, selected_graph_store, scorer_proxy, conservation_provider
+    )
     evolver_config = replace(
         DATAOPS_EVOLVER_CONFIG,
         conservation_state_provider=conservation_provider,
@@ -726,6 +732,7 @@ def create_app(
         ),
         prefix="/api",
     )
+    app.include_router(create_governance_router(app.state.dataops_governance))
     app.include_router(create_transfer_router(scorer_proxy))
     app.include_router(create_self_transfer_router(scorer_proxy))
     app.include_router(
@@ -862,6 +869,25 @@ def create_app(
         if request.url.path == "/api/health":
             _run_startup_seed_once()
         return await call_next(request)
+
+    @app.middleware("http")
+    async def evidence_headers_and_abstention(request, call_next):
+        response = await call_next(request)
+        path = request.url.path
+        if path.startswith(("/api/dataops", "/api/context", "/api/ae", "/api/score")):
+            response.headers.setdefault("X-Evidence-Tier", "synthetic")
+            response.headers.setdefault("X-Evidence-Label", "synthetic / modelled - not measured")
+        if path == "/api/score" and response.status_code < 400:
+            body = b"".join([chunk async for chunk in response.body_iterator])
+            try:
+                payload = json.loads(body.decode("utf-8"))
+                if isinstance(payload, dict):
+                    payload["abstention_warning"] = app.state.dataops_governance.abstention("unknown")
+                    from starlette.responses import JSONResponse
+                    return JSONResponse(payload, status_code=response.status_code, headers=dict(response.headers))
+            except (UnicodeDecodeError, json.JSONDecodeError, TypeError):
+                pass
+        return response
 
     @app.get("/health")
     def health() -> dict[str, Any]:

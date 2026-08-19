@@ -8,12 +8,16 @@ from fastapi import APIRouter
 
 from app.routers.regime_analytics import _read_decisions
 from app.services.situation_analyzer import (
+    build_situation_judgment,
     check_regime_data_sufficiency,
     compute_regime_conditioned_stats,
     compute_regime_rejections,
     compute_sharpe_adjustment,
     detect_regime,
 )
+from app.services.situation_context import SituationContext
+from app.routers.regime_router import _current_market, _market_provider
+from app.services.regime_classifier import RegimeClassifier
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -23,11 +27,28 @@ def create_situation_router(
     graph_store_factory: GraphStoreFactory | None = None,
     *,
     domain: str = "trading",
+    provider_factory: Callable[[], Any] = _market_provider,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/trading/situation", tags=["trading-situation"])
 
     def decisions() -> list[dict[str, Any]]:
         return cast(list[dict[str, Any]], _read_decisions(graph_store_factory, domain))
+
+    @router.get("")
+    def situation_judgment() -> dict[str, Any]:
+        rows = decisions()
+        market = _current_market(provider_factory(), RegimeClassifier())
+        context = SituationContext.detect(
+            market.get("vix", 20.0),
+            market.get("adx", 20.0),
+            market.get("adx", 20.0),
+        )
+        return cast(dict[str, Any], build_situation_judgment(
+            rows,
+            regime=context.regime,
+            confidence=context.confidence,
+            indicators=context.indicators,
+        ))
 
     @router.get("/regime")
     def current_regime() -> dict[str, Any]:
