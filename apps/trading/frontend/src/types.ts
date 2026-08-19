@@ -412,6 +412,23 @@ export interface VolSharpeCluster {
   status: string;
 }
 
+export interface VolatilitySurfaceResponse {
+  [key: string]: unknown;
+  evidence_tier?: string;
+  evidence_label?: string;
+  observation?: string;
+  observation_only?: boolean;
+  day_zero?: boolean;
+  decisions_until_measured?: number;
+  quality_adjusted_score?: number | null;
+  vrp_spread_mean?: number | null;
+  current_vrp?: number | null;
+  band?: string;
+  follow_rate?: number | null;
+  effective_bets?: number | null;
+  tail_decisions?: number;
+}
+
 export interface VrpAttributionResponse {
   provenance?: string;
   substantiation?: string;

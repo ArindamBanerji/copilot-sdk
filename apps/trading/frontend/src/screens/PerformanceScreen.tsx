@@ -15,6 +15,7 @@ import EvolutionPanel from "../components/EvolutionPanel";
 import ExecutionQualityCard from "../components/ExecutionQualityCard";
 import PromotionDashboard from "../components/PromotionDashboard";
 import RegimeAnalyticsPanel from "../components/RegimeAnalyticsPanel";
+import VolatilityScenarioPanel from "../components/VolatilityScenarioPanel";
 import RegimeStatusPanel from "../components/RegimeStatusPanel";
 import RejectionMomentPanel from "../components/RejectionMomentPanel";
 import ReConvergencePanel from "../components/ReConvergencePanel";
@@ -124,6 +125,7 @@ export default function PerformanceScreen() {
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <RegimeStatusPanel />
       <RegimeAnalyticsPanel />
+      <VolatilityScenarioPanel />
       <StrategySafetyBreakdownPanel />
       <PromotionDashboard />
       <RejectionMomentPanel />

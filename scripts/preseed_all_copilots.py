@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Pre-seed Trading, Purchasing, and DataOps copilots from repo seed files.
+"""Pre-seed the SDK copilots from deterministic repository seed data.
 
 The script talks to the running backend APIs and intentionally uses only the
 Python standard library.
@@ -23,6 +23,22 @@ TIMEOUT_SECONDS = 10
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PRESEED_DECISIONS_PER_COPILOT = 200
 PRESEED_OVERRIDE_COUNT = 50
+S2P_PRESEED_DECISIONS = 200
+
+S2P_CATEGORIES = (
+    "price_variance",
+    "quantity_mismatch",
+    "duplicate_risk",
+    "contract_gap",
+    "format_compliance",
+)
+S2P_ACTIONS = (
+    "auto_approve",
+    "hold_for_review",
+    "escalate_to_buyer",
+    "flag_leakage",
+    "refer_to_specialist",
+)
 
 TRADING_FACTORS = [
     "signal_alignment",
@@ -317,6 +333,83 @@ def alternate_action(config: DomainConfig, recommended_action: str) -> str:
     raise ValueError("no alternate action available for %s" % config.name)
 
 
+def s2p_event(index: int) -> Dict[str, Any]:
+    """Build one deterministic S2P request using the real score contract."""
+    category = S2P_CATEGORIES[index % len(S2P_CATEGORIES)]
+    return {
+        "event_id": "demo-s2p-%04d" % (index + 1),
+        "category": category,
+        "amount": round(1000.0 + (index % 17) * 137.5, 2),
+        "supplier_id": "supplier-%02d" % (index % 12),
+        "supplier_name": "Demo Supplier %02d" % (index % 12),
+        "contract_id": "contract-%02d" % (index % 8),
+        "supplier_risk_rating": round(0.15 + (index % 7) * 0.08, 4),
+        "historical_spend_mean": 1200.0,
+        "historical_spend_std": 240.0,
+        "vendor_decisions": 20 + index % 11,
+        "vendor_approvals": 16 + index % 9,
+        "match_status": "match" if index % 5 else "mismatch",
+        "amount_variance_ratio": round(0.01 + (index % 13) * 0.012, 4),
+        "duplicate_score": round(0.04 + (index % 10) * 0.07, 4),
+        "supplier_exception_history": round((index % 6) * 0.09, 4),
+        "payment_terms_impact": round(0.1 + (index % 8) * 0.05, 4),
+        "commodity_index_correlation": round(0.2 + (index % 9) * 0.06, 4),
+        "tax_regulatory_compliance": round(0.7 + (index % 5) * 0.05, 4),
+        "environmental_risk": round(0.1 + (index % 6) * 0.07, 4),
+    }
+
+
+def seed_s2p_domain(args: argparse.Namespace) -> DomainResult:
+    """Seed S2P through its separate live HTTP API, when it is running."""
+    base_url = os.environ.get("S2P_URL", "http://127.0.0.1:8002")
+    total = S2P_PRESEED_DECISIONS
+    print("\n== s2p ==")
+    print("seed: %s deterministic invoice decisions" % total)
+    print("url: %s" % base_url)
+    healthy, payload = check_health(base_url)
+    if not healthy:
+        print("health: unreachable (%s)" % payload)
+        return DomainResult("s2p", total, 0, 1, 0, False, True, 0.0)
+    print("health: ok")
+    try:
+        already_seeded, trajectory = check_already_seeded(base_url)
+    except ApiError as exc:
+        print("trajectory: unavailable (%s)" % exc)
+        return DomainResult("s2p", total, 0, 1, 0, False, True, 0.0)
+    if already_seeded and not args.force:
+        print("already seeded: decisions_total=%s target=%s; skipping" % (trajectory.get("decisions_total"), total))
+        return DomainResult("s2p", total, 0, 0, 0, True, False, 0.0)
+    existing = int(trajectory.get("decisions_total") or 0)
+    count = total if args.force else max(total - existing, 0)
+    successes = failures = 0
+    total_reward = 0.0
+    for offset in range(count):
+        sequence = existing + offset + 1
+        event = s2p_event(sequence - 1)
+        try:
+            score = api_post(base_url, "/api/s2p/score", event)
+            decision_id = score.get("decision_id")
+            if not decision_id:
+                raise ValueError("score response missing decision_id")
+            recommended = str(score.get("action") or S2P_ACTIONS[0])
+            override = sequence % 4 == 0 and sequence <= PRESEED_OVERRIDE_COUNT * 4
+            action = next((item for item in S2P_ACTIONS if item != recommended), S2P_ACTIONS[0]) if override else recommended
+            learned = api_post(base_url, "/api/learn", {
+                "decision_id": decision_id,
+                "actual_action": action,
+                "outcome": "overridden" if override else "confirmed",
+                "context": {"seed_domain": "s2p", "seed_index": sequence, "is_preseed_override": override},
+                "reason_code": "demo_preseed_override" if override else "demo_preseed_confirmed",
+            })
+            total_reward += float(learned.get("reward") or 0.0)
+            successes += 1
+        except Exception as exc:
+            failures += 1
+            print("  failed #%s %s: %s" % (sequence, event["event_id"], exc))
+    print("seeded s2p %s/%s" % (successes, count))
+    return DomainResult("s2p", count, successes, failures, 0, False, False, total_reward)
+
+
 def learn_action(entry: Dict[str, Any], score: Dict[str, Any], config: DomainConfig, index: int) -> Tuple[str, bool]:
     recommended_action = str(score.get("action") or actual_action(entry, score) or "")
     if not recommended_action:
@@ -581,10 +674,11 @@ def print_summary(results: Iterable[DomainResult]) -> int:
 
 
 def parse_args(argv: List[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Pre-seed Trading, Purchasing, and DataOps copilots.")
+    parser = argparse.ArgumentParser(description="Pre-seed all demo copilots.")
     parser.add_argument("--trading-only", action="store_true", help="Seed Trading only, or include Trading in selected subset.")
     parser.add_argument("--purchasing-only", action="store_true", help="Seed Purchasing only, or include Purchasing in selected subset.")
     parser.add_argument("--dataops-only", action="store_true", help="Seed DataOps only, or include DataOps in selected subset.")
+    parser.add_argument("--s2p-only", action="store_true", help="Seed S2P only through its separate backend.")
     parser.add_argument("--dry-run", action="store_true", help="Load seeds and check backend health without mutating.")
     parser.add_argument("--force", action="store_true", help="Append seed decisions even if trajectory already has decisions.")
     return parser.parse_args(argv)
@@ -592,6 +686,12 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
 
 def main(argv: List[str]) -> int:
     args = parse_args(argv)
+    if args.s2p_only:
+        try:
+            return print_summary([seed_s2p_domain(args)])
+        except Exception as exc:
+            print("s2p: failed before seeding: %s" % exc)
+            return 1
     results = []
     for config in selected_domains(args):
         try:
@@ -603,6 +703,15 @@ def main(argv: List[str]) -> int:
             except Exception:
                 total = 0
             results.append(DomainResult(config.name, total, 0, 1, 0, False, False, 0.0))
+    # S2P is intentionally not part of DOMAINS: the legacy unit tests exercise
+    # the three SDK transports directly.  The unqualified demo invocation
+    # includes S2P; explicit SDK-only selections remain scoped.
+    if not (args.trading_only or args.purchasing_only or args.dataops_only):
+        try:
+            results.append(seed_s2p_domain(args))
+        except Exception as exc:
+            print("s2p: failed before seeding: %s" % exc)
+            results.append(DomainResult("s2p", S2P_PRESEED_DECISIONS, 0, 1, 0, False, False, 0.0))
     return print_summary(results)
 
 

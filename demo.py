@@ -966,6 +966,8 @@ def cmd_start(selected: list[dict], args):
     # --- Pre-seed ---
     if args.preseed and not args.no_reseed:
         run_preseed(selected)
+    if (args.preflight or args.preseed) and not args.diag_mode:
+        run_preflight(selected)
     if getattr(args, "record_mode", False):
         run_connector_freeze()
         if getattr(args, "record_reset", False):
@@ -1141,22 +1143,55 @@ def run_preseed(selected: list[dict], *, fail_hard: bool = False):
 
     preseed_names = {"trading", "purchasing", "dataops"}
     names = {c["name"].lower() for c in selected if c["name"].lower() in preseed_names}
-    if not names:
-        if soc_preseeded:
-            print("  SOC pre-seed complete; no SDK copilots selected for generic pre-seed")
-            return
-        print("  No selected copilots support pre-seed; skipping")
-        return
-    if names != preseed_names:
-        for name in names:
-            cmd.append(f"--{name}-only")
+    if names:
+        if names != preseed_names:
+            for name in names:
+                cmd.append(f"--{name}-only")
+        try:
+            subprocess.run(cmd, cwd=str(SCRIPT_DIR), timeout=600, check=fail_hard)
+        except Exception as e:
+            print(f"  WARN: Pre-seed failed: {e}")
+            if fail_hard:
+                raise
+    elif not soc_preseeded:
+        print("  No selected copilots support generic pre-seed; skipping")
 
+    # S2P is a separate backend and therefore has a separate request schema.
+    if any(c["name"].lower() == "s2p" for c in selected):
+        try:
+            subprocess.run(
+                [sys.executable, str(script), "--s2p-only"],
+                cwd=str(SCRIPT_DIR), timeout=600, check=fail_hard,
+            )
+        except Exception as e:
+            print(f"  WARN: S2P pre-seed failed: {e}")
+            if fail_hard:
+                raise
+
+
+def run_preflight(selected: list[dict], *, fail_hard: bool = False) -> bool:
+    """Run the read-only demo truth checks for the selected copilots."""
+    script = SCRIPT_DIR / "scripts" / "demo_truth_preflight.py"
+    names = [c["name"].lower() for c in selected]
+    if not script.exists():
+        print(f"  WARN: Truth preflight script not found: {script}")
+        if fail_hard:
+            raise FileNotFoundError(script)
+        return False
     try:
-        subprocess.run(cmd, cwd=str(SCRIPT_DIR), timeout=600, check=fail_hard)
-    except Exception as e:
-        print(f"  WARN: Pre-seed failed: {e}")
+        result = subprocess.run(
+            [sys.executable, str(script), "--copilots", *names],
+            cwd=str(SCRIPT_DIR), timeout=120, check=False,
+        )
+        passed = result.returncode == 0
+        if not passed and fail_hard:
+            raise RuntimeError("demo truth preflight failed")
+        return passed
+    except Exception as exc:
+        print(f"  WARN: Truth preflight failed: {exc}")
         if fail_hard:
             raise
+        return False
 
 
 def cmd_diagnose(selected: list[dict]) -> None:
@@ -1294,7 +1329,7 @@ def run_soc_preseed(copilot: dict, *, fail_hard: bool = False) -> None:
     print("  SOC: learning enabled for demo preseed")
     try:
         queue = _json_request("GET", f"{base_url}/api/alerts/queue")
-        alerts = _first_list(queue, ("alerts", "items", "queue"))[:20]
+        alerts = _first_list(queue, ("alerts", "items", "queue"))[:80]
         successes = 0
         for alert in alerts:
             alert_id = str(alert.get("alert_id") or alert.get("id") or "")
@@ -1326,7 +1361,9 @@ def run_soc_preseed(copilot: dict, *, fail_hard: bool = False) -> None:
         health = _json_request("GET", f"{base_url}/api/soc/learning-health")
         iks = health.get("iks") or health.get("current_iks") or health.get("intelligence_knowledge_score")
         status = str(health.get("status") or health.get("conservation_status") or "unknown").upper()
-        print(f"  SOC: seeded={successes} iks={iks} conservation={status}")
+        print(f"  SOC: seeded={successes}/80 iks={iks} conservation={status}")
+        if successes < 80:
+            print("  WARN: SOC queue contained fewer than 80 seedable alerts")
         if status == "RED":
             print("  WARN: SOC conservation is RED after preseed")
     except Exception as exc:
@@ -1365,6 +1402,7 @@ def create_parser() -> argparse.ArgumentParser:
     # Options
     parser.add_argument("--graph", action="store_true", help="AGE graph mode for DataOps")
     parser.add_argument("--preseed", action="store_true", help="Pre-seed after start")
+    parser.add_argument("--preflight", action="store_true", help="Run read-only demo truth checks after start")
     parser.add_argument("--soc-learning", action="store_true",
                         help="Deprecated compatibility flag; SOC learning is enabled by default")
     parser.add_argument("--preseed-only", action="store_true",
@@ -1423,9 +1461,11 @@ def main():
         sys.exit(1)
     if args.preseed_only:
         args.preseed = True
+        args.preflight = True
         args.no_browser = True
     if args.record_mode or args.record_reset:
         args.preseed = True
+        args.preflight = True
         args.record_mode = True
     if args.record_reset:
         reset_record_state()
@@ -1487,10 +1527,11 @@ def main():
         print()
         print("Pre-seeding (backends assumed running)...")
         run_preseed(selected, fail_hard=True)
+        run_preflight(selected, fail_hard=True)
         if getattr(args, "record_mode", False):
             run_connector_freeze()
         print()
-        print("Pre-seed complete. Run --verify to check platform state.")
+        print("Pre-seed and truth preflight complete. Run --verify to check platform state.")
     else:
         cmd_start(selected, args)
 

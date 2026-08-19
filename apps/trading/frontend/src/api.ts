@@ -40,6 +40,7 @@ import type {
   VIXTimingResponse,
   VolSharpeResponse,
   VrpAttributionResponse,
+  VolatilitySurfaceResponse,
 } from "./types";
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8010";
@@ -346,6 +347,28 @@ export function fetchCorrelation(window = 20): Promise<CorrelationResponse | nul
 
 export function fetchVolSharpe(): Promise<VolSharpeResponse> {
   return apiGet<VolSharpeResponse>("/api/trading/analytics/vol-sharpe");
+}
+
+export function fetchVolatilitySharpe(regime?: string): Promise<VolatilitySurfaceResponse> {
+  const query = regime ? `?regime=${encodeURIComponent(regime)}` : "";
+  return apiGet<VolatilitySurfaceResponse>(`/api/trading/volatility/sharpe${query}`);
+}
+
+export function fetchVolatilityVrp(): Promise<VolatilitySurfaceResponse> {
+  return apiGet<VolatilitySurfaceResponse>("/api/trading/volatility/vrp");
+}
+
+export function fetchVolatilityRichCheap(regime?: string): Promise<VolatilitySurfaceResponse> {
+  const query = regime ? `?regime=${encodeURIComponent(regime)}` : "";
+  return apiGet<VolatilitySurfaceResponse>(`/api/trading/volatility/rich-cheap${query}`);
+}
+
+export function fetchVolatilityDispersion(): Promise<VolatilitySurfaceResponse> {
+  return apiGet<VolatilitySurfaceResponse>("/api/trading/volatility/dispersion");
+}
+
+export function fetchVolatilityTailBets(): Promise<VolatilitySurfaceResponse> {
+  return apiGet<VolatilitySurfaceResponse>("/api/trading/volatility/tail-bets");
 }
 
 export function fetchVrpAttribution(): Promise<VrpAttributionResponse> {
