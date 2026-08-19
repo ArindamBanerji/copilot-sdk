@@ -59,6 +59,7 @@ from .routers.trust import create_trust_router  # noqa: E402
 from .routers.trust_router import create_trust_router as create_trust_weights_router  # noqa: E402
 from .routers.verify_router import create_verify_router  # noqa: E402
 from .routers.purchasing_control import create_purchasing_control_router  # noqa: E402
+from .routers.regime_router import create_regime_router  # noqa: E402
 from .services.auto_order import AutoOrderGate  # noqa: E402
 from .services.audit_export import AuditExportService  # noqa: E402
 from .services.chain_demo_seed import ChainLearningDemo  # noqa: E402
@@ -828,6 +829,7 @@ def create_app(
     )
     app.include_router(create_verify_router(scorer_proxy))
     app.include_router(create_purchasing_control_router(purchasing_control, purchasing_claim_registry))
+    app.include_router(create_regime_router(lambda: scorer_proxy))
     app.include_router(create_trust_router(scorer_proxy))
     app.include_router(create_trust_weights_router(lambda: scorer_proxy))
     app.include_router(purchasing_graph_status_router)

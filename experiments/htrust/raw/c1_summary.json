@@ -1,0 +1,83 @@
+[
+  {
+    "dataset": "credit",
+    "n": 20,
+    "mean": 0.02621805975129135,
+    "ci_low": 0.022251410280578945,
+    "ci_high": 0.029936596133958163,
+    "ci_width": 0.007685185853379219,
+    "contrast": "weighted_minus_cosine"
+  },
+  {
+    "dataset": "coil2000",
+    "n": 20,
+    "mean": 0.017992498369210696,
+    "ci_low": 0.011766634050880617,
+    "ci_high": 0.024051696020874105,
+    "ci_width": 0.012285061969993488,
+    "contrast": "weighted_minus_cosine"
+  },
+  {
+    "dataset": "heloc",
+    "n": 20,
+    "mean": 0.01837728937728938,
+    "ci_low": 0.015318205128205106,
+    "ci_high": 0.021248255494505486,
+    "ci_width": 0.00593005036630038,
+    "contrast": "weighted_minus_cosine"
+  },
+  {
+    "dataset": "credit",
+    "n": 20,
+    "mean": 0.010007158440856423,
+    "ci_low": 0.006373158866428057,
+    "ci_high": 0.013437443709320523,
+    "ci_width": 0.0070642848428924656,
+    "contrast": "weighted_minus_uniform"
+  },
+  {
+    "dataset": "coil2000",
+    "n": 20,
+    "mean": 0.011925962165688208,
+    "ci_low": 0.00625138617090673,
+    "ci_high": 0.017641960208741068,
+    "ci_width": 0.011390574037834337,
+    "contrast": "weighted_minus_uniform"
+  },
+  {
+    "dataset": "heloc",
+    "n": 20,
+    "mean": 0.013051373626373652,
+    "ci_low": 0.009482447344322367,
+    "ci_high": 0.01636087225274726,
+    "ci_width": 0.006878424908424892,
+    "contrast": "weighted_minus_uniform"
+  },
+  {
+    "dataset": "credit",
+    "n": 20,
+    "mean": -0.026315546943423147,
+    "ci_low": -0.029354771437869357,
+    "ci_high": -0.02306830152807475,
+    "ci_width": 0.006286469909794607,
+    "contrast": "weighted_minus_logistic"
+  },
+  {
+    "dataset": "coil2000",
+    "n": 20,
+    "mean": -0.021811806914546643,
+    "ci_low": -0.028667604370515333,
+    "ci_high": -0.015095931180691462,
+    "ci_width": 0.013571673189823871,
+    "contrast": "weighted_minus_logistic"
+  },
+  {
+    "dataset": "heloc",
+    "n": 20,
+    "mean": -0.005989010989010962,
+    "ci_low": -0.00899407738095235,
+    "ci_high": -0.0024606662087911994,
+    "ci_width": 0.006533411172161149,
+    "contrast": "weighted_minus_logistic"
+  }
+]

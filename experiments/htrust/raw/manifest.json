@@ -1,0 +1,23 @@
+[
+  {
+    "dataset": "credit",
+    "rows": 30000,
+    "features": 23,
+    "positive_rate": 0.2212,
+    "columns_sha256": "73426e51ca816686b53ebafcaa8bb43c976ce2adb2c7f3bae758616ef8b50638"
+  },
+  {
+    "dataset": "coil2000",
+    "rows": 5822,
+    "features": 85,
+    "positive_rate": 0.05977327378907592,
+    "columns_sha256": "44422d070b5737a464ecdea25884c1737f50f8afb9f736f5443bd71dbbe10437"
+  },
+  {
+    "dataset": "heloc",
+    "rows": 10459,
+    "features": 23,
+    "positive_rate": 0.5219428243617936,
+    "columns_sha256": "cd8ab20b4700e83bd1d2850ff5c016b5ff1e6b46a1a273234fbe6afbea44f757"
+  }
+]

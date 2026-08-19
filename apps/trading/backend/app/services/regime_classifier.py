@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from copilot_sdk.regime import RegimeDetector, RegimePolicy
+
 
 REGIMES = ("trending", "ranging", "volatile")
 MIN_REGIME_DECISIONS = 10
@@ -26,20 +28,26 @@ class RegimeClassifier:
 
     def classify(self, vix: float, adx: float) -> str:
         """Return ``trending``, ``ranging``, or ``volatile``."""
-        vix_value = _number(vix, 0.0)
-        adx_value = _number(adx, 0.0)
-        if vix_value > 30.0:
-            return "volatile"
-        if vix_value >= 20.0:
-            return "ranging"
-        if adx_value > 25.0:
-            return "trending"
-        return "ranging"
+        state = RegimeDetector(RegimePolicy(thresholds={
+            "volatile": 30.0,
+            "ranging": 20.0,
+            "trending": 25.0,
+            "calm_vix": 0.0,
+            "calm_adx": 0.0,
+        })).detect({"vix": vix, "adx": adx})
+        return state.regime
 
     def classify_with_confidence(self, vix: float, adx: float) -> dict[str, Any]:
         """Classify regime with boundary-aware confidence metadata."""
         vix_value = _number(vix, 0.0)
         adx_value = _number(adx, 0.0)
+        state = RegimeDetector(RegimePolicy(thresholds={
+            "volatile": 30.0,
+            "ranging": 20.0,
+            "trending": 25.0,
+            "calm_vix": 0.0,
+            "calm_adx": 0.0,
+        })).detect({"vix": vix_value, "adx": adx_value})
         distances = [
             abs(vix_value - 30.0),
             abs(vix_value - 20.0),
@@ -47,8 +55,8 @@ class RegimeClassifier:
         ]
         active_distance = _active_regime_distance(vix_value, adx_value)
         return {
-            "regime": self.classify(vix_value, adx_value),
-            "confidence": round(min(1.0, max(0.05, active_distance / 10.0)), 4),
+            "regime": state.regime,
+            "confidence": state.confidence,
             "vix": round(vix_value, 4),
             "adx": round(adx_value, 4),
             "near_boundary": min(distances) <= 2.0,

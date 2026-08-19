@@ -1,0 +1,72 @@
+{
+  "beats": [
+    {
+      "after": {},
+      "beat": "c2",
+      "before": {},
+      "copilot": "trading",
+      "duration_s": 2.031,
+      "events": [],
+      "evidence": [],
+      "message": "Backend health endpoint is unavailable.",
+      "status": "unavailable",
+      "timestamp_s": 2.031
+    },
+    {
+      "after": {},
+      "beat": "c3",
+      "before": {},
+      "copilot": "trading",
+      "duration_s": 2.032,
+      "events": [],
+      "evidence": [],
+      "message": "Backend health endpoint is unavailable.",
+      "status": "unavailable",
+      "timestamp_s": 4.063
+    },
+    {
+      "after": {},
+      "beat": "c4",
+      "before": {},
+      "copilot": "trading",
+      "duration_s": 2.031,
+      "events": [],
+      "evidence": [],
+      "message": "Backend health endpoint is unavailable.",
+      "status": "unavailable",
+      "timestamp_s": 6.094
+    },
+    {
+      "after": {},
+      "beat": "c5",
+      "before": {},
+      "copilot": "trading",
+      "duration_s": 2.031,
+      "events": [],
+      "evidence": [],
+      "message": "Backend health endpoint is unavailable.",
+      "status": "unavailable",
+      "timestamp_s": 8.125
+    }
+  ],
+  "duration_s": 8.125,
+  "generated_at": "2026-08-19T09:27:58+00:00",
+  "report_path": "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\docs\\loom_gauntlet_report.json",
+  "stages": [
+    {
+      "duration_s": 0.0,
+      "name": "preseed",
+      "output": "",
+      "return_code": null,
+      "status": "skipped"
+    },
+    {
+      "duration_s": 0.0,
+      "name": "truth_preflight",
+      "output": "",
+      "return_code": null,
+      "status": "skipped"
+    }
+  ],
+  "storyboard_path": "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\docs\\loom_storyboard_v1.md"
+}

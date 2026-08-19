@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from copilot_sdk.regime import RegimeDetector, RegimePolicy
+
 
 @dataclass(frozen=True)
 class SituationContext:
@@ -31,29 +33,15 @@ class SituationContext:
         vix_value = _finite(vix, 20.0)
         adx_value = _finite(adx, 20.0)
         trend_value = _finite(trend_strength, adx_value)
-
-        if vix_value > 30.0:
-            regime = "volatile"
-            distance = vix_value - 30.0
-        elif vix_value < 20.0 and trend_value > 25.0:
-            regime = "trending"
-            distance = min(20.0 - vix_value, trend_value - 25.0)
-        elif vix_value < 15.0 and trend_value <= 20.0:
-            regime = "calm"
-            distance = min(15.0 - vix_value, 20.0 - trend_value)
-        else:
-            regime = "ranging"
-            distance = min(abs(vix_value - 20.0), abs(trend_value - 25.0))
-
-        confidence = round(min(1.0, max(0.05, distance / 10.0)), 4)
+        state = RegimeDetector(RegimePolicy()).detect({
+            "vix": vix_value,
+            "adx": adx_value,
+            "trend_strength": trend_value,
+        })
         return cls(
-            regime=regime,
-            confidence=confidence,
-            indicators={
-                "vix": round(vix_value, 4),
-                "adx": round(adx_value, 4),
-                "trend_strength": round(trend_value, 4),
-            },
+            regime=state.regime,
+            confidence=state.confidence,
+            indicators=state.indicators,
         )
 
 

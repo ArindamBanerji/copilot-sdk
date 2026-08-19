@@ -45,6 +45,7 @@ from .routers.query import create_query_router  # noqa: E402
 from .routers.di_enrichment_router import create_dataops_di_enrichment_router  # noqa: E402
 from .routers.perturbation_router import create_perturbation_router  # noqa: E402
 from .routers.trust_router import create_trust_router  # noqa: E402
+from .routers.regime_router import create_regime_router  # noqa: E402
 from .dataops_governance import DataOpsGovernance  # noqa: E402
 from .routers.governance_router import create_governance_router  # noqa: E402
 from copilot_sdk.backend.transfer_router import (  # noqa: E402
@@ -733,6 +734,7 @@ def create_app(
         prefix="/api",
     )
     app.include_router(create_governance_router(app.state.dataops_governance))
+    app.include_router(create_regime_router(lambda: scorer_proxy))
     app.include_router(create_transfer_router(scorer_proxy))
     app.include_router(create_self_transfer_router(scorer_proxy))
     app.include_router(
