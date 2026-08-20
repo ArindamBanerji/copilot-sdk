@@ -19,6 +19,7 @@ import type {
   SituationRegimeResponse,
   SituationJudgmentResponse,
   SituationRejectionsResponse,
+  SituationStateResponse,
   SituationSharpeResponse,
   RegimeStatusResponse,
   PromotionResponse,
@@ -41,6 +42,8 @@ import type {
   VolSharpeResponse,
   VrpAttributionResponse,
   VolatilitySurfaceResponse,
+  VolatilityAnalyticsResponse,
+  ClaimGateResponse,
 } from "./types";
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8010";
@@ -401,6 +404,42 @@ export function fetchSituationAbstention(): Promise<SituationAbstentionResponse>
 
 export function fetchSituationRejections(): Promise<SituationRejectionsResponse> {
   return apiGet<SituationRejectionsResponse>("/api/trading/situation/regime-rejections");
+}
+
+export function fetchSituationState(): Promise<SituationStateResponse> {
+  return Promise.all([
+    fetchSituationRegime(),
+    fetchSituationJudgment(),
+    fetchSituationConditionedStats(),
+    fetchSituationAbstention(),
+    fetchSituationRejections(),
+  ]).then(([regime, judgment, conditionedStats, abstention, rejections]) => ({
+    regime,
+    judgment,
+    conditionedStats,
+    abstention,
+    rejections,
+  }));
+}
+
+export function fetchVolatilityAnalytics(): Promise<VolatilityAnalyticsResponse> {
+  return Promise.all([
+    fetchVolatilitySharpe(),
+    fetchVolatilityVrp(),
+    fetchVolatilityRichCheap(),
+    fetchVolatilityDispersion(),
+    fetchVolatilityTailBets(),
+  ]).then(([sharpe, vrp, richCheap, dispersion, tailBets]) => ({
+    sharpe,
+    vrp,
+    richCheap,
+    dispersion,
+    tailBets,
+  }));
+}
+
+export function fetchClaimGate(): Promise<ClaimGateResponse> {
+  return apiGet<ClaimGateResponse>("/api/trading/claim-gate");
 }
 
 export function fetchDispersionFollow(): Promise<DispersionFollowResponse> {

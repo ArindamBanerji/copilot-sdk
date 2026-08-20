@@ -552,6 +552,36 @@ export interface SituationRejectionsResponse {
   substantiation?: string;
 }
 
+export interface SituationStateResponse {
+  regime?: SituationRegimeResponse;
+  judgment?: SituationJudgmentResponse;
+  conditionedStats?: SituationConditionedStatsResponse;
+  abstention?: SituationAbstentionResponse;
+  rejections?: SituationRejectionsResponse;
+}
+
+export interface ClaimGateResponse {
+  tested?: number;
+  powered?: number;
+  survived?: number;
+  certificate?: string;
+  withheld?: number;
+  savedImpact?: number;
+  evidenceTier?: string;
+  evidenceLabel?: string;
+  observation?: string;
+  observationOnly?: boolean;
+  [key: string]: unknown;
+}
+
+export interface VolatilityAnalyticsResponse {
+  sharpe?: VolatilitySurfaceResponse;
+  vrp?: VolatilitySurfaceResponse;
+  richCheap?: VolatilitySurfaceResponse;
+  dispersion?: VolatilitySurfaceResponse;
+  tailBets?: VolatilitySurfaceResponse;
+}
+
 export interface SituationSharpeResponse {
   rawSharpe?: number;
   clusteringAdjustedSharpe?: number;

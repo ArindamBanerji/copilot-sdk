@@ -18,6 +18,7 @@ import PreScorePanel from "../components/PreScorePanel";
 import ResearchChecklist from "../components/ResearchChecklist";
 import SimilarTradesPanel from "../components/SimilarTradesPanel";
 import TickerLookup from "../components/TickerLookup";
+import { SituationalAbstentionBanner } from "../components/DemoBeatPanels";
 import type {
   Analytics,
   FingerprintResponse,
@@ -357,6 +358,7 @@ export default function LogTradeScreen() {
       </section>
 
       <ResearchChecklist value={form.researchChecklist} onChange={(value) => update("researchChecklist", value)} />
+      <SituationalAbstentionBanner />
       <PositionSizer
         shares={form.shares}
         price={form.entryPrice}

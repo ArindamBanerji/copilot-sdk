@@ -37,10 +37,10 @@ import { EnterpriseHealthBar } from "../components/EnterpriseHealthBar";
 import EnterpriseValueCard from "../components/EnterpriseValueCard";
 import PipelineGrid from "../components/PipelineGrid";
 import ProcessTimelinePanel from "../components/ProcessTimelinePanel";
-import DataProductsCard from "../components/DataProductsCard";
+import CompoundingCurveOverlay from "../components/CompoundingCurveOverlay";
+import DIWiringPanel from "../components/DIWiringPanel";
 import ProvenanceBadge from "../components/ProvenanceBadge";
 import { SAPDataBadge } from "../components/SAPDataBadge";
-import TrustCard from "../components/TrustCard";
 import NLQueryPanel from "../components/NLQueryPanel";
 import { DayZeroPanel } from "../../../../../copilot_sdk/frontend";
 
@@ -212,9 +212,9 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
         <AEImpactPanel impact={state.aeImpact} compact />
       </section>
 
-      <TrustCard trust={state.trust} />
+      <DIWiringPanel trust={state.trust} />
 
-      <DataProductsCard />
+      <CompoundingCurveOverlay />
 
       <ProcessTimelinePanel />
 

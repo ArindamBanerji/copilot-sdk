@@ -11,6 +11,14 @@ from copilot_sdk.regime.conditioning import (
     RegimeLearningRate,
     RegimeParameters,
 )
+from copilot_sdk.regime.experiment import (
+    ConvergenceCurve,
+    ExperimentReport,
+    ReConvergenceExperiment,
+    RegimeBreakScenario,
+    generate_regime_break,
+    run_experiment,
+)
 
 __all__ = [
     "ConditionedContext",
@@ -25,4 +33,10 @@ __all__ = [
     "RegimeConservation",
     "RegimeLearningRate",
     "RegimeParameters",
+    "ConvergenceCurve",
+    "ExperimentReport",
+    "ReConvergenceExperiment",
+    "RegimeBreakScenario",
+    "generate_regime_break",
+    "run_experiment",
 ]

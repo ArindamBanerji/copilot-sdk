@@ -26,6 +26,18 @@ import TransferPanel from "../components/TransferPanel";
 import VIXTimingPanel from "../components/VIXTimingPanel";
 import WebhookStatusCard from "../components/WebhookStatusCard";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
+import {
+  AutonomyThrottlePanel,
+  CertificatePanel,
+  DispersionPanel,
+  GateDividendPanel,
+  RegimeRejectionPanel,
+  RejectionMomentTable,
+  RichCheapPanel,
+  TailBetsPanel,
+  VolShortPanel,
+  VRPPanel,
+} from "../components/DemoBeatPanels";
 
 function pct(value: number | null | undefined): string {
   return typeof value === "number" ? `${Math.round(value * 100)}%` : "-";
@@ -124,11 +136,23 @@ export default function PerformanceScreen() {
       <AuditTrail />
       <ConservationProjection conservation={conservation} trajectory={projectionTrajectory} />
       <RegimeStatusPanel />
+      <AutonomyThrottlePanel />
+      <RegimeRejectionPanel />
       <RegimeAnalyticsPanel />
       <VolatilityScenarioPanel />
+      <div className="grid gap-4 xl:grid-cols-2" data-testid="trading-volatility-beats">
+        <VolShortPanel />
+        <VRPPanel />
+        <RichCheapPanel />
+        <DispersionPanel />
+        <TailBetsPanel />
+      </div>
+      <CertificatePanel />
+      <GateDividendPanel />
       <StrategySafetyBreakdownPanel />
       <PromotionDashboard />
       <RejectionMomentPanel />
+      <RejectionMomentTable />
       <TransferPanel />
       <EvolutionPanel />
       <EvolutionControlsPanel />

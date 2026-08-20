@@ -471,6 +471,47 @@ export interface TrajectoryResponse {
   daysActive?: number;
 }
 
+export interface CrossGraphProcessSignal {
+  activity?: string;
+  currentDuration?: number;
+  normalDuration?: number;
+  slowdownFactor?: number;
+  source?: string;
+}
+
+export interface CrossGraphErpImpact {
+  affectedPos?: number;
+  affectedPlants?: number;
+  backlogValue?: number;
+  dailyCost?: number;
+  source?: string;
+}
+
+export interface CrossGraphRootCause {
+  changeType?: string;
+  field?: string;
+  newCombinations?: number;
+  fanoutMultiplier?: number;
+  upstreamSupplier?: string;
+  source?: string;
+}
+
+export interface CrossGraphCombinedImpact {
+  dailyCost?: number;
+  monthlyCost?: number;
+  annualizedCost?: number;
+  confidence?: number;
+}
+
+export interface CrossGraphInsightResponse {
+  alertId?: string;
+  processSignal?: CrossGraphProcessSignal;
+  erpImpact?: CrossGraphErpImpact;
+  rootCause?: CrossGraphRootCause;
+  combinedImpact?: CrossGraphCombinedImpact;
+  sourcesUsed?: string[];
+}
+
 export interface FingerprintResponse {
   factors?: FactorItem[];
   overallWinRate?: number;

@@ -21,6 +21,7 @@ import TrustRadarPanel from "../components/TrustRadarPanel";
 import VolSharpeCard from "../components/VolSharpeCard";
 import VolatilityPanel from "../components/VolatilityPanel";
 import VRPAttributionCard from "../components/VRPAttributionCard";
+import { ClaimGateBadge, RegimeMirrorPanel } from "../components/DemoBeatPanels";
 import type { Analytics, FingerprintResponse } from "../types";
 
 const displayNames: Record<string, string> = {
@@ -106,6 +107,8 @@ export default function AnalysisScreen() {
   return (
     <div data-screen-ready="true" className="flex flex-col gap-4">
       <TrustRadarPanel />
+      <RegimeMirrorPanel />
+      <ClaimGateBadge />
       <RegimePanel />
       <VolatilityPanel />
       <PatternDetectionPanel />

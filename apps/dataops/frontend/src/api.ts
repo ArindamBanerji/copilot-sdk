@@ -7,6 +7,7 @@ import type {
   AccuracyByCategoryResponse,
   BlastRadius,
   CentroidHistoryResponse,
+  CentroidSnapshot,
   ConservationHistory,
   ConservationState,
   ConservationWhatIfRequest,
@@ -53,6 +54,7 @@ import type {
   DIPerturbationStatus,
   DIPerturbationResult,
   QueryResponse,
+  CrossGraphInsightResponse,
 } from "./types";
 
 export const BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8030";
@@ -408,6 +410,12 @@ export function getCohortStatus(): Promise<CohortStatusResponse> {
   return apiGet<CohortStatusResponse>("/api/dataops/cohort-status");
 }
 
+export async function getCrossGraphInsight(alertId: string): Promise<CrossGraphInsightResponse | null> {
+  return safeApiGet<CrossGraphInsightResponse>(
+    `/api/context/cross-graph-insight/${encodeURIComponent(alertId)}`,
+  );
+}
+
 export async function getConservationStatus(): Promise<ConservationState> {
   const payload = await apiGet<ConservationState>("/api/conservation/status");
   return {
@@ -452,7 +460,7 @@ function centroidHistoryForEvolution(history: SelfCentroidHistoryResponse): Cent
     const rightTime = Number(right.createdAt ?? right.created_at ?? right.checkpointTime ?? right.checkpoint_time ?? 0);
     return leftTime - rightTime;
   });
-  const snapshots = checkpoints.map((checkpoint, index) => ({
+  const snapshots: CentroidSnapshot[] = checkpoints.map((checkpoint, index) => ({
     decisionIndex: Number(
       (checkpoint as CentroidCheckpointWithCount).decisions_count
         ?? checkpoint.metadata?.decision_count
@@ -474,7 +482,7 @@ function centroidHistoryForEvolution(history: SelfCentroidHistoryResponse): Cent
   }
   return {
     snapshots,
-    factorNames: DATAOPS_CENTROID_FACTORS,
+    factorNames: [...DATAOPS_CENTROID_FACTORS],
     totalDecisions: Number(history.total ?? checkpoints.length),
   };
 }

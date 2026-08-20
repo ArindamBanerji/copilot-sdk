@@ -4,8 +4,10 @@ import { getFingerprint, getIncident } from "../api";
 import AcquisitionPanel from "../components/AcquisitionPanel";
 import BottleneckPanel from "../components/BottleneckPanel";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
+import CompoundingCurveOverlay from "../components/CompoundingCurveOverlay";
 import CentroidTimelinePanel from "../components/CentroidTimelinePanel";
 import DecisionExplorerPanel from "../components/DecisionExplorerPanel";
+import FusionClimaxPanel from "../components/FusionClimaxPanel";
 import IncidentReplayCard from "../components/IncidentReplayCard";
 import { IntelligenceMapPanel } from "../components/IntelligenceMapPanel";
 import { ProcessTimelinePanel } from "../components/ProcessTimelinePanel";
@@ -110,6 +112,8 @@ export default function InsightScreen() {
       <AcquisitionPanel />
       <IntelligenceMapPanel />
       <CrossGraphInsightCard />
+      <FusionClimaxPanel />
+      <CompoundingCurveOverlay />
       <WhatIfReordering />
       <CentroidTimelinePanel />
       <SourceProfilePanel />
