@@ -1,0 +1,22 @@
+name: "line-check-copilot"
+domain: "inventory"
+tensor:
+  categories: 5
+  actions: 4
+  factors: 3
+penalty_ratio: 3.0
+accent_color: "#4CAF50"
+ports:
+  backend: 8040
+  frontend: 5178
+conservation:
+  eta_confirm: 0.05
+  eta_override: 0.01
+  q_window: 400
+factors:
+  - name: "demand_signal"
+    type: "numeric"
+  - name: "supplier_reliability"
+    type: "categorical"
+  - name: "delivery_window"
+    type: "numeric"

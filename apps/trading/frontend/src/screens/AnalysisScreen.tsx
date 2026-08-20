@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { FingerprintPanel, type FactorItem } from "../../../../../copilot_sdk/frontend";
-import { getAnalytics, getFingerprint } from "../api";
+import { FingerprintPanel, GovernedVsUngovernedPanel, type FactorItem, type ScoreResult } from "../../../../../copilot_sdk/frontend";
+import { fetchPromotion, getAnalytics, getConservationStatus, getFingerprint, prescoreTrade } from "../api";
 import ContrastCard from "../components/ContrastCard";
 import CorrelationPanel from "../components/CorrelationPanel";
 import CounterfactualCard from "../components/CounterfactualPanel";
@@ -65,31 +65,76 @@ export default function AnalysisScreen() {
   const [fingerprint, setFingerprint] = useState<FingerprintResponse | undefined>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [comparison, setComparison] = useState<{
+    score: ScoreResult | null;
+    conservationStatus?: string;
+    evidenceTier?: string;
+    promotionState?: string;
+  }>({ score: null });
   const factors = useMemo(() => factorItems(fingerprint), [fingerprint]);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([getAnalytics(), getFingerprint()])
+    Promise.all([
+      getAnalytics().catch(() => undefined),
+      getFingerprint().catch(() => undefined),
+    ])
       .then(([nextAnalytics, nextFingerprint]) => {
         if (cancelled) return;
         setAnalytics(nextAnalytics);
         setFingerprint(nextFingerprint);
         setError(null);
       })
-      .catch((loadError) => {
-        console.debug("analysis data unavailable", loadError);
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Analysis unavailable");
-        }
-      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
+    Promise.all([getConservationStatus(), fetchPromotion()])
+      .then(([conservation, promotion]) => {
+        const strategy = promotion?.strategies?.[0];
+        setComparison((current) => ({
+          ...current,
+          conservationStatus: conservation.status,
+          promotionState: strategy?.tier || "SHADOW",
+        }));
+      })
+      .catch(() => undefined);
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!fingerprint) return;
+    const factors = Object.fromEntries(
+      (fingerprint.factors || []).map((factor) => [factor.name, typeof factor.weight === "number" ? factor.weight : 0.5]),
+    );
+    prescoreTrade({
+      category: "trend_following",
+      ticker: "SPY",
+      direction: "long",
+      strategyTag: "trend_following",
+      sizePct: 0.1,
+    }).then((prescore) => {
+      if (!prescore) return;
+      const action = prescore.action || prescore.recommendation || "observe";
+      setComparison((current) => ({
+        ...current,
+        evidenceTier: "T_S",
+        score: {
+          decisionId: "analysis-prescore",
+          action,
+          actionIndex: 0,
+          confidence: typeof prescore.confidence === "number" ? prescore.confidence : 0,
+          probabilities: [typeof prescore.confidence === "number" ? prescore.confidence : 0],
+          category: prescore.category || "trend_following",
+          factors,
+          actionNames: [action],
+        },
+      }));
+    }).catch(() => undefined);
+  }, [fingerprint]);
 
   if (loading) {
     return <div data-screen-ready="false" className="copilot-card p-8 text-sm trading-muted">Loading analysis...</div>;
@@ -109,6 +154,13 @@ export default function AnalysisScreen() {
       <TrustRadarPanel />
       <RegimeMirrorPanel />
       <ClaimGateBadge />
+      <GovernedVsUngovernedPanel
+        scoreResponse={comparison.score}
+        copilot="Trading"
+        conservationStatus={comparison.conservationStatus}
+        evidenceTier={comparison.evidenceTier}
+        promotionState={comparison.promotionState}
+      />
       <RegimePanel />
       <VolatilityPanel />
       <PatternDetectionPanel />

@@ -16,10 +16,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import ast
+import hashlib
 import json
 import sys
 import warnings
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 DEFAULT_DSN = "host=localhost port=5433 dbname=soc_copilot user=postgres password=postgres sslmode=disable"
@@ -93,7 +96,7 @@ def _timestamp_from_props(props: dict[str, Any]) -> float | None:
 class L5CompletionProof:
     """Verify all expected L5 completion cells exist and are valid."""
 
-    def __init__(self, dsn: str = DEFAULT_DSN):
+    def __init__(self, dsn: str = DEFAULT_DSN, graph_name: str = GRAPH_NAME):
         if dsn == DEFAULT_DSN:
             warnings.warn(
                 "No DSN supplied - using localhost fallback. "
@@ -101,6 +104,7 @@ class L5CompletionProof:
                 stacklevel=2,
             )
         self.dsn = dsn
+        self.graph_name = graph_name
         self._conn: Any | None = None
 
     def connect(self) -> None:
@@ -160,14 +164,16 @@ class L5CompletionProof:
         return results
 
     def _fetchone(self, query: str) -> Any:
+        assert self._conn is not None
         return self._conn.execute(query).fetchone()
 
     def _fetchall(self, query: str) -> list[Any]:
+        assert self._conn is not None
         return list(self._conn.execute(query).fetchall())
 
     def _count_label(self, label: str) -> int:
         row = self._fetchone(
-            f"""SELECT * FROM cypher('{GRAPH_NAME}', $$
+            f"""SELECT * FROM cypher('{self.graph_name}', $$
                MATCH (n:{label}) RETURN count(n)
             $$) AS (cnt agtype)"""
         )
@@ -176,7 +182,7 @@ class L5CompletionProof:
     def _props_for_label(self, label: str, order_by: str | None = None) -> list[dict[str, Any]]:
         order_clause = f"ORDER BY n.{order_by}" if order_by else ""
         rows = self._fetchall(
-            f"""SELECT * FROM cypher('{GRAPH_NAME}', $$
+            f"""SELECT * FROM cypher('{self.graph_name}', $$
                MATCH (n:{label}) RETURN properties(n) {order_clause}
             $$) AS (props agtype)"""
         )
@@ -264,7 +270,7 @@ class L5CompletionProof:
         result: dict[str, Any] = {}
         for rel in ("SHAPED_BY", "TRIGGERED_BY"):
             row = self._fetchone(
-                f"""SELECT * FROM cypher('{GRAPH_NAME}', $$
+                f"""SELECT * FROM cypher('{self.graph_name}', $$
                     MATCH ()-[r:{rel}]->() RETURN count(r)
                 $$) AS (cnt agtype)"""
             )
@@ -321,13 +327,136 @@ class L5CompletionProof:
         }
 
 
+# C9 is intentionally expressed as nine independently auditable conditions.
+# The conditions are derived from the six detailed AGE reads above; splitting
+# population and validity makes the formal proof explicit without weakening
+# any of the existing raw checks.
+def check_centroids_present(result: dict[str, Any]) -> bool:
+    section = result["l5_centroids"]
+    return int(section["count"]) >= 6 and not section.get("missing", [])
+
+
+def check_centroids_valid(result: dict[str, Any]) -> bool:
+    section = result["l5_centroids"]
+    return bool(section.get("valid_range", True)) and not section.get("invalid", [])
+
+
+def check_dk_weights_present(result: dict[str, Any]) -> bool:
+    section = result["l5_dk_weights"]
+    return int(section["count"]) >= 3 and not section.get("missing", [])
+
+
+def check_dk_weights_valid(result: dict[str, Any]) -> bool:
+    section = result["l5_dk_weights"]
+    return bool(section.get("valid_range", True)) and not section.get("invalid", [])
+
+
+def check_conservation_present(result: dict[str, Any]) -> bool:
+    section = result["l5_conservation"]
+    return int(section["count"]) >= 1 and not section.get("missing", [])
+
+
+def check_conservation_valid(result: dict[str, Any]) -> bool:
+    section = result["l5_conservation"]
+    return bool(section.get("valid_range", True)) and not section.get("invalid", [])
+
+
+def check_provenance_edges(result: dict[str, Any]) -> bool:
+    section = result["l5_edges"]
+    return bool(section.get("all_linked", section.get("SHAPED_BY", 0) > 0 and section.get("TRIGGERED_BY", 0) > 0))
+
+
+def check_welford_state(result: dict[str, Any]) -> bool:
+    return bool(result["l5_welford"]["all_valid"])
+
+
+def check_timestamp_order(result: dict[str, Any]) -> bool:
+    return bool(result["l5_timestamps"]["sequential"])
+
+
+C9_CONDITIONS = (
+    ("centroids_present", check_centroids_present, "At least six L5Centroid nodes and no missing cells."),
+    ("centroids_valid", check_centroids_valid, "Every centroid value is within [0, 1]."),
+    ("dk_weights_present", check_dk_weights_present, "At least three L5DKWeight nodes and no missing cells."),
+    ("dk_weights_valid", check_dk_weights_valid, "Every DK weight value is within [0, 1]."),
+    ("conservation_present", check_conservation_present, "At least one L5ConservationState node exists."),
+    ("conservation_valid", check_conservation_valid, "Conservation alpha and volume values are valid."),
+    ("provenance_edges", check_provenance_edges, "SHAPED_BY and TRIGGERED_BY provenance edges are present."),
+    ("welford_state", check_welford_state, "All DK weights carry complete Welford fields."),
+    ("timestamp_order", check_timestamp_order, "L5 timestamps are sequential within each node type."),
+)
+
+
+def _count_test_functions() -> int:
+    """Count collected test functions without running or mutating the suite."""
+    tests_root = Path(__file__).resolve().parents[1] / "tests"
+    total = 0
+    for path in tests_root.rglob("*.py"):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (OSError, SyntaxError):
+            continue
+        total += sum(
+            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and node.name.startswith("test_")
+            for node in ast.walk(tree)
+        )
+    return total
+
+
+def formalize_proof(result: dict[str, Any], *, graph_name: str, test_count: int | None = None) -> dict[str, Any]:
+    """Build a deterministic, hashable C9 proof envelope from AGE reads."""
+    conditions = []
+    for name, check, evidence in C9_CONDITIONS:
+        passed = bool(check(result))
+        conditions.append({
+            "name": name,
+            "check_function": check.__name__,
+            "result": "PASS" if passed else "FAIL",
+            "evidence": evidence,
+        })
+
+    payload: dict[str, Any] = {
+        "schema_version": "c9-formal-proof-v1",
+        "graph_name": graph_name,
+        "conditions": conditions,
+        "all_pass": all(item["result"] == "PASS" for item in conditions),
+        "proof_status": "COMPLETE" if result.get("proof_status") == "COMPLETE" and all(item["result"] == "PASS" for item in conditions) else "INVALID",
+        "timestamp": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+        "git_hash": "uncommitted",
+        "test_count": _count_test_functions() if test_count is None else test_count,
+        "verification": result,
+    }
+    payload["artifact_sha256"] = proof_sha256(payload)
+    payload["hash_scope"] = "canonical JSON with artifact_sha256 and hash_scope omitted"
+    return payload
+
+
+def proof_sha256(proof: dict[str, Any]) -> str:
+    """Return the digest over the proof payload, excluding self-referential fields."""
+    unsigned = {
+        key: value
+        for key, value in proof.items()
+        if key not in {"artifact_sha256", "hash_scope"}
+    }
+    canonical = json.dumps(unsigned, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def write_proof_artifact(proof: dict[str, Any], path: str | Path) -> None:
+    destination = Path(path)
+    destination.write_text(json.dumps(proof, indent=2) + "\n", encoding="utf-8")
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="L5 Completion Proof")
     parser.add_argument("--dsn", default=DEFAULT_DSN)
+    parser.add_argument("--graph-name", default=GRAPH_NAME)
     parser.add_argument("--json", action="store_true", help="Machine-readable output")
+    parser.add_argument("--output", help="Write the formal C9 proof artifact to this JSON file")
     args = parser.parse_args(argv)
 
-    proof = L5CompletionProof(dsn=args.dsn)
+    proof = L5CompletionProof(dsn=args.dsn, graph_name=args.graph_name)
     try:
         proof.connect()
     except Exception as exc:
@@ -344,8 +473,16 @@ def main(argv: list[str] | None = None) -> None:
     finally:
         proof.close()
 
+    formal_proof = (
+        formalize_proof(result, graph_name=args.graph_name)
+        if "l5_centroids" in result
+        else None
+    )
+    if args.output and formal_proof is not None:
+        write_proof_artifact(formal_proof, args.output)
+
     if args.json:
-        print(json.dumps(result, indent=2))
+        print(json.dumps(formal_proof or result, indent=2))
     else:
         print("L5 Completion Proof")
         print(f"  Status: {result['proof_status']}")
@@ -368,7 +505,8 @@ def main(argv: list[str] | None = None) -> None:
         if result["invalid_cells"]:
             print(f"  Invalid: {result['invalid_cells']}")
 
-    raise SystemExit(0 if result["proof_status"] == "COMPLETE" else 1)
+    passed = bool(formal_proof["all_pass"]) and result["proof_status"] == "COMPLETE" if formal_proof else result["proof_status"] == "COMPLETE"
+    raise SystemExit(0 if passed else 1)
 
 
 if __name__ == "__main__":

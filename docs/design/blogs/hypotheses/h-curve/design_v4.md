@@ -4,6 +4,17 @@ This is the corrected, run-ready protocol for the H-CURVE parametric experiment.
 forward design_v3's all-cold initialization, independent oracle geometries, threshold straddle,
 full persistence, and scorer-free recomputation requirements. EXP-G1 remains out of scope.
 
+## Design fix DF-4 — fit-validity gate
+
+The earlier implementation incorrectly censored a cell when the absolute plateau ratio `d_inf/d0`
+exceeded 0.50. That violates the scale-free meaning of gamma and can discard a real decay when the
+noise floor is comparable to the firm mismatch. The authoritative gate is now only fit validity:
+positive fitted decay constant `k` and at least five retained ten-decision residual blocks in both
+phase fits. Plateau ratios remain persisted diagnostics and never gate gamma. The existing
+trajectories are recomputed under this rule by
+`experiments/h_curve_parametric_regen/recompute_fit_gate_v4.py`; no scorer or raw vector stream is
+changed.
+
 ## Corrected construction (GT-centered, coverage, active-cell)
 
 ### Frozen configuration carried forward
@@ -97,14 +108,14 @@ learning threshold is changed.
 
 ## Convergence gate before gamma
 
-For each seed, epsilon, and phase, set `d0` to the first active-cell distance and estimate the
-plateau `d_inf` as the mean of the final 20 percent of the active-cell trajectory. The gate passes
-only when the active trajectory has a valid positive decay fit and `d_inf/d0 <= 0.50` in both
-phases. The 0.50 cutoff is an operational low-plateau gate, not a theorem parameter; it makes the
-secondary half-distance crossing reachable. Also require all 24 cells to meet coverage and at least
-five positive residual blocks for the rate fit.
+For each seed, epsilon, and phase, set `d0` to the fixed-mask active-cell distance and estimate the
+plateau `d_inf` as the mean of the final 20 percent of the active-cell trajectory. The gate is
+fit-validity only: the phase has a valid positive decay fit (`k > 0`) and at least five retained
+positive residual blocks. It never gates on `d_inf/d0` or any other absolute depth, because gamma is
+a scale-free rate ratio and the noise floor is expected to be comparable to small firm mismatches.
+Also require all 24 cells to meet coverage.
 
-If any cell fails this gate, stop that run before forming either gamma and write exactly:
+If any cell fails this fit-validity gate, stop that cell before forming either gamma and write exactly:
 
     convergence not restored
 
@@ -192,7 +203,115 @@ clear paths to gamma_rate <= 1, F1, F2, or F3.
 
 ## Open questions for review
 
-1. Ratify the operational convergence gate `d_inf/d0 <= 0.50`; the theorem fixes the prediction but
-   does not supply a numerical phrase for “low plateau.”
+1. The fit-validity gate is frozen; plateau depth remains descriptive and is not a censoring rule.
 2. Approve the minimal experiment-local sampler/sample metadata and category-aware harness changes;
    without them, Changes 1 and 2 cannot be met by the code as-is.
+
+## Two-arm design (A production / B theorem) — final run-ready protocol
+
+This section is authoritative for execution. The apparatus is implemented in
+`graph-attention-engine-v50/experiments/h_curve_parametric_regen/run_two_arm_v4.py`; it does not
+call `OracleSeparationExperiment._run_phase` and does not inherit its hard-coded category-0 path.
+The only repo learning mechanism used by an arm is Arm A's real `gae.profile_scorer.ProfileScorer.update`.
+
+### Shared apparatus and outcome labels
+
+For every scheduled `(c,a)`, both arms receive the same persisted draw. Phase 1 uses GT1 and Phase
+2 uses the current phase target GT2:
+
+    f_phase = np.clip(GT_phase[c, a, :] + rng.normal(0.0, 0.08, size=6), 0.0, 1.0)
+
+The scheduled `a` is the ground-truth outcome label for that decision. It is not re-inferred from
+the noisy vector; reclassification would convert noise into label noise and break the full-coverage
+contract when neighboring GT action profiles are close. Both arms use the same clean-room nearest
+squared-L2 decision selection over their current centroids. Thus the only arm difference is the
+update rule. Every vector persists `(c,a)`, `center_label`, center, noise, unclipped value, clipped
+value, and the common draw index.
+
+Each phase uses a deterministic round-robin over all 24 cells. Budgets are 720, 720, and 1200 for
+epsilon 0.05, 0.20, and 0.35, giving 30, 30, and 50 scheduled outcomes per cell. Each arm asserts
+all per-cell counts meet that minimum. Phase 1 measures distance to GT1 and Phase 2 measures
+distance to GT2; the Phase 2 outcome labels remain the scheduled `(c,a)` labels for the same
+decision stream. At Phase-2 start, the harness asserts the disrupted-subspace distance is within
+0.10 of the GT1-to-GT2 shift and that empirical disrupted-cell vector means are closer to GT2 than
+GT1 and within 2 sigma of GT2.
+
+### Arm A — production update
+
+Arm A owns a fresh `gae.profile_scorer.ProfileScorer` initialized at the exact canonical prior,
+with default confirmation rate 0.05 and `eta_override=0.01`. For each common decision it calls:
+
+    scorer.update(f, c, predicted_action, predicted_action == a,
+                  gt_action_index=a)
+
+This preserves the deployed scorer's actual push/pull, clipping, count decay, and any conservation
+behavior implemented by that object. Its final centroid snapshots are the measured production
+dynamics. The scorer's scoring method is not used for Arm A selection, so scoring implementation
+cannot become a second arm difference.
+
+### Arm B — theorem reference update
+
+Arm B is clean-room code and imports no scorer. Its update is exactly:
+
+    mu[c, a, :] = clip(mu[c, a, :] + 0.05 * (f - mu[c, a, :]), 0, 1)
+
+It receives the same vector, category, outcome label, prediction stream definition, GTs, seeds, and
+phase schedules as Arm A. A-vs-B divergence is a first-class finding: it separates the theorem's
+idealized dynamics from the production policy's dynamics and is not reconciled or treated as an
+error.
+
+### Distances, gate, and gamma direction
+
+After every decision persist full-tensor distance, active-cell distance, disrupted-subspace distance
+for cells `[0,1]`, active masks, and counts. The final round-robin coverage mask is known before
+decision 1 and is used for active distance from t=0; the dynamic masks are persisted separately as
+coverage evidence. This prevents a changing denominator from creating a spurious first-decision
+half crossing. The convergence gate is fit-validity only: both phase fits must have positive `k`
+and at least five retained ten-decision blocks. Plateau depth is persisted and reported but never
+censors a scale-free gamma. If fit validity fails, record `convergence not restored`, F3, and do
+not compute gamma for that arm/cell. The expected epsilon=0.05 censoring is reported with the
+exact C3 statement above.
+
+Only after both phase gates pass, fit the primary exponential rate on ten-decision block means:
+Phase 1 uses all 24 cells; Phase 2 uses disrupted cells `[0,1]` only. The robust slope is the
+median of pairwise slopes of `log(distance - d_inf)`; `k` is its negative and
+`gamma_rate = k_phase2 / k_phase1`. Therefore gamma greater than one means Phase 2 is faster.
+The secondary half-distance metric uses `gamma_half = N_half_phase1 / N_half_phase2`; it and the
+theta-dependent theta=0.85 N_half are F2 direction checks only.
+
+F1 fires when the binary prediction fails (`gamma_rate < 1` below epsilon_star or `> 1` above it),
+F2 fires when gamma_rate and gamma_half disagree in direction on a non-censored cell, and F3 fires
+when the convergence gate fails. Raw step monotonicity is not a falsifier.
+
+### Persistence and analysis output
+
+Each seed × epsilon × arm cell persists GT-centered vectors and labels, canonical prior, GT1, GT2,
+mu0, both final centroid snapshots, all three trajectories, masks, counts, geometry assertions,
+and gamma/gate/falsifier records. `manifest.json` is written atomically after `summary.json` and
+all cell artifacts, with schema, UTC, runner, complete frozen config, config SHA-256, and path,
+size, SHA-256, and role for every artifact. The post-write verifier checks every listed hash and
+the 18 expected cells. The result must state that gamma and non-centroidality can be recomputed
+without importing the scorer.
+
+## Arm C policy sweep
+
+Arm C is a policy-only what-if on the same persisted apparatus, seeds, GTs, vectors, coverage,
+distance subspaces, fit-validity gate, and falsifiers. C1 raises `eta_override` from 0.01 to 0.05;
+C2 keeps the production rates except for a bounded 24-decision boost to 0.05 after an
+experiment-local rolling error-rate spike; and C3 routes the 0.05 theorem rate through the real
+ProfileScorer machinery with auto-pause enabled. Repository inspection found no production
+change-point/drift detector, so C2 is explicitly conditional on a shift detector not currently
+exposed by production. C3 is a standalone-harness policy probe; it does not alter the scorer.
+
+The C sweep is limited to the above-threshold epsilon values 0.20 and 0.35 because those are the
+binary claim arms. It must report every seed and every policy, with the unchanged fit-validity gate,
+`gamma_rate = k_phase2/k_phase1`, secondary N_half direction check, and F1/F2/F3 status. A policy
+is only promising, not validated, at n=3 and would require the separately ratified 20-seed extension.
+
+## Verification chart
+
+Every H-CURVE result includes a publication chart generated only from persisted artifacts:
+`experiments/h_curve_parametric_regen/figures/hcurve_gamma_by_epsilon.png` at 300 dpi and the
+corresponding PDF. It plots A, B, C1, C2, and C3 seed points and means, epsilon-star, gamma=1,
+and explicit non-numeric markers for censored cells. The chart source files and SHA-256 hashes are
+registered in the two-arm manifest.

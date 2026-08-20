@@ -1,0 +1,13 @@
+from fastapi import FastAPI
+from .config import CONFIG
+
+app = FastAPI(title="__COPILOT_NAME__")
+
+@app.get("/health")
+def health() -> dict[str, object]:
+    return {"status": "ok", "copilot": CONFIG["name"], "domain": CONFIG["domain"]}
+
+@app.get("/api/score")
+def score() -> dict[str, object]:
+    return {"observation_only": True, "message": "Decision evidence is accumulating."}
+

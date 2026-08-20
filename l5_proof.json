@@ -1,0 +1,126 @@
+{
+  "schema_version": "c9-formal-proof-v1",
+  "graph_name": "soc_graph",
+  "conditions": [
+    {
+      "name": "centroids_present",
+      "check_function": "check_centroids_present",
+      "result": "PASS",
+      "evidence": "At least six L5Centroid nodes and no missing cells."
+    },
+    {
+      "name": "centroids_valid",
+      "check_function": "check_centroids_valid",
+      "result": "PASS",
+      "evidence": "Every centroid value is within [0, 1]."
+    },
+    {
+      "name": "dk_weights_present",
+      "check_function": "check_dk_weights_present",
+      "result": "PASS",
+      "evidence": "At least three L5DKWeight nodes and no missing cells."
+    },
+    {
+      "name": "dk_weights_valid",
+      "check_function": "check_dk_weights_valid",
+      "result": "FAIL",
+      "evidence": "Every DK weight value is within [0, 1]."
+    },
+    {
+      "name": "conservation_present",
+      "check_function": "check_conservation_present",
+      "result": "PASS",
+      "evidence": "At least one L5ConservationState node exists."
+    },
+    {
+      "name": "conservation_valid",
+      "check_function": "check_conservation_valid",
+      "result": "FAIL",
+      "evidence": "Conservation alpha and volume values are valid."
+    },
+    {
+      "name": "provenance_edges",
+      "check_function": "check_provenance_edges",
+      "result": "FAIL",
+      "evidence": "SHAPED_BY and TRIGGERED_BY provenance edges are present."
+    },
+    {
+      "name": "welford_state",
+      "check_function": "check_welford_state",
+      "result": "PASS",
+      "evidence": "All DK weights carry complete Welford fields."
+    },
+    {
+      "name": "timestamp_order",
+      "check_function": "check_timestamp_order",
+      "result": "PASS",
+      "evidence": "L5 timestamps are sequential within each node type."
+    }
+  ],
+  "all_pass": false,
+  "proof_status": "INVALID",
+  "timestamp": "2026-08-20T18:36:41Z",
+  "git_hash": "uncommitted",
+  "test_count": 2877,
+  "verification": {
+    "total_expected": 15,
+    "l5_centroids": {
+      "count": 31,
+      "expected": ">=6 (one per category minimum)",
+      "valid_range": true,
+      "invalid": [],
+      "missing": []
+    },
+    "l5_dk_weights": {
+      "count": 4,
+      "expected": ">=3 (C9B: categories past VARIANCE_LEARNING)",
+      "valid_range": false,
+      "invalid": [
+        "L5DKWeight trading: value=5.0",
+        "L5DKWeight trading: value=5.0",
+        "L5DKWeight trading: value=5.0",
+        "L5DKWeight trading: value=5.0"
+      ],
+      "missing": []
+    },
+    "l5_conservation": {
+      "count": 5,
+      "expected": ">=1",
+      "valid_range": false,
+      "invalid": [
+        "Conservation alpha=0.0 out of (0,1]",
+        "Conservation V=0 not positive"
+      ],
+      "missing": []
+    },
+    "l5_edges": {
+      "SHAPED_BY": 21,
+      "TRIGGERED_BY": 0,
+      "all_linked": false
+    },
+    "l5_welford": {
+      "total_checked": 4,
+      "missing_welford": [],
+      "all_valid": true
+    },
+    "l5_timestamps": {
+      "total_timestamps": 40,
+      "sequential": true
+    },
+    "total_found": 40,
+    "complete": true,
+    "missing_cells": [],
+    "invalid_cells": [
+      "L5DKWeight trading: value=5.0",
+      "L5DKWeight trading: value=5.0",
+      "L5DKWeight trading: value=5.0",
+      "L5DKWeight trading: value=5.0",
+      "Conservation alpha=0.0 out of (0,1]",
+      "Conservation V=0 not positive",
+      "Some L5 nodes lack provenance edges"
+    ],
+    "proof_status": "INVALID"
+  },
+  "artifact_sha256": "e647a3f7728b65f524465998abd17dc4def17ea553f3862ac46855e2c0bc2db7",
+  "hash_scope": "canonical JSON with artifact_sha256 and hash_scope omitted"
+}

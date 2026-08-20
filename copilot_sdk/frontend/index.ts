@@ -15,6 +15,8 @@ export type { Annotation, TrajectoryChartProps, TrajectoryPoint } from "./Trajec
 
 export { default as ScoreResultCard } from "./ScoreResultCard";
 export type { CentroidDelta, RewardLine, ScoreResult, ScoreResultCardProps } from "./ScoreResultCard";
+export { default as GovernedVsUngovernedPanel } from "./GovernedVsUngovernedPanel";
+export type { GovernedVsUngovernedPanelProps } from "./GovernedVsUngovernedPanel";
 
 export { default as EvolutionPanel } from "./EvolutionPanel";
 export type { EvolutionPanelProps, EvolutionStatus, EvolutionVariant } from "./EvolutionPanel";
