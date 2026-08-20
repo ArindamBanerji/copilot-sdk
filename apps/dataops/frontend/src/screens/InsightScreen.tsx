@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FingerprintPanel } from "../../../../../copilot_sdk/frontend";
 import { getFingerprint, getIncident } from "../api";
 import AcquisitionPanel from "../components/AcquisitionPanel";
+import AcquisitionAdvisorPanel from "../components/AcquisitionAdvisorPanel";
 import BottleneckPanel from "../components/BottleneckPanel";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
 import CompoundingCurveOverlay from "../components/CompoundingCurveOverlay";
@@ -9,10 +10,12 @@ import CentroidTimelinePanel from "../components/CentroidTimelinePanel";
 import DecisionExplorerPanel from "../components/DecisionExplorerPanel";
 import FusionClimaxPanel from "../components/FusionClimaxPanel";
 import IncidentReplayCard from "../components/IncidentReplayCard";
+import EarnedProofPanel from "../components/EarnedProofPanel";
 import { IntelligenceMapPanel } from "../components/IntelligenceMapPanel";
 import { ProcessTimelinePanel } from "../components/ProcessTimelinePanel";
 import ProfileArchetype from "../components/ProfileArchetype";
 import SourceProfilePanel from "../components/SourceProfilePanel";
+import SourceCompoundingPanel from "../components/SourceCompoundingPanel";
 import SearchPanel from "../components/SearchPanel";
 import WhatIfReordering from "../components/WhatIfReordering";
 import type { FingerprintResponse, Incident } from "../types";
@@ -110,6 +113,9 @@ export default function InsightScreen() {
       <BottleneckPanel />
       <ProcessTimelinePanel />
       <AcquisitionPanel />
+      <EarnedProofPanel />
+      <AcquisitionAdvisorPanel />
+      <SourceCompoundingPanel />
       <IntelligenceMapPanel />
       <CrossGraphInsightCard />
       <FusionClimaxPanel />

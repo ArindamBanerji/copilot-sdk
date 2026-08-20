@@ -501,6 +501,16 @@ def _fallback_alerts_by_id() -> dict[str, dict[str, Any]]:
     return alerts
 
 
+def _append_abstention_fixture(alerts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep the deterministic abstention fixture visible in live and fallback modes."""
+    if any(str(alert.get("alert_id")) == "DI-ABSTENTION-001" for alert in alerts):
+        return alerts
+    fixture = _fallback_alerts_by_id().get("DI-ABSTENTION-001")
+    if fixture is not None:
+        return [*alerts, fixture]
+    return alerts
+
+
 def _metadata_for_alert(alert_id: str) -> dict[str, Any] | None:
     matches = [
         entry
@@ -784,8 +794,10 @@ async def _safe_connector_health(connector: Any) -> dict[str, Any]:
 async def alerts() -> dict[str, Any]:
     payload = await _graph_client().get_alerts()
     raw_alerts = payload.get("alerts")
-    if payload.get("source") == "fixture" and isinstance(raw_alerts, list):
-        return {**payload, "alerts": _inject_alert_runtime_fields([alert for alert in raw_alerts if isinstance(alert, dict)])}
+    if isinstance(raw_alerts, list):
+        normalized = [alert for alert in raw_alerts if isinstance(alert, dict)]
+        normalized = _append_abstention_fixture(normalized)
+        return {**payload, "alerts": _inject_alert_runtime_fields(normalized)}
     return payload
 
 
@@ -796,8 +808,10 @@ async def alert_groups() -> dict[str, Any]:
     alerts_payload = await graph.get_alerts()
     raw_pipelines = pipelines_payload.get("pipelines", []) if isinstance(pipelines_payload, dict) else []
     raw_alerts = alerts_payload.get("alerts", []) if isinstance(alerts_payload, dict) else []
-    if alerts_payload.get("source") == "fixture" and isinstance(raw_alerts, list):
-        raw_alerts = _inject_alert_runtime_fields([alert for alert in raw_alerts if isinstance(alert, dict)])
+    if isinstance(raw_alerts, list):
+        raw_alerts = _inject_alert_runtime_fields(
+            _append_abstention_fixture([alert for alert in raw_alerts if isinstance(alert, dict)])
+        )
 
     pipelines = {
         str(pipeline.get("name")): pipeline
@@ -1300,6 +1314,10 @@ async def system_detail(name: str) -> dict[str, Any]:
 async def alert_detail(id: str) -> dict[str, Any]:
     payload = await _graph_client().get_alert(id)
     alert = payload.get("alert")
+    if not alert and id == "DI-ABSTENTION-001":
+        alert = _fallback_alerts_by_id().get(id)
+        if alert:
+            return {"source": "fixture", "alert": _with_alert_runtime_fields(alert)}
     if payload.get("source") == "fixture" and isinstance(alert, dict):
         return {**payload, "alert": _with_alert_runtime_fields(alert)}
     return payload

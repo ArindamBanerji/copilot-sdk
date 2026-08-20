@@ -86,7 +86,7 @@ def test_alerts(client: TestClient) -> None:
     payload = client.get("/api/context/alerts").json()
 
     assert payload["source"] == "fixture"
-    assert len(payload["alerts"]) == 20
+    assert len(payload["alerts"]) == 21
     assert {"alert_id", "system", "category", "factors"} <= set(payload["alerts"][0])
 
 
@@ -609,7 +609,7 @@ def test_alert_groups_returns_groups(client: TestClient) -> None:
     assert response.status_code == 200
     payload = response.json()
     assert {"groups", "ungrouped", "total_alerts", "total_groups"} <= set(payload)
-    assert payload["total_alerts"] == 20
+    assert payload["total_alerts"] == 21
     assert payload["total_groups"] == len(payload["groups"])
     assert payload["groups"]
     for group in payload["groups"]:

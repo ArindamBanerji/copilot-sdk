@@ -133,6 +133,59 @@ export interface DIProductsResponse {
   products?: DIProduct[];
 }
 
+export interface AcquisitionAdvice {
+  source?: string;
+  sourceName?: string;
+  source_name?: string;
+  provider?: string;
+  signal?: string;
+  rationale?: string;
+  annualValue?: number;
+  annual_value?: number;
+  computedValueAnnual?: number;
+  computed_value_annual?: number;
+  currentTrust?: number;
+  projectedTrust?: number;
+  [key: string]: unknown;
+}
+
+export interface AcquisitionAdviceResponse {
+  recommendations?: AcquisitionAdvice[];
+}
+
+export interface SourceAccuracyEntry {
+  sourceCount: number;
+  accuracy: number | null;
+  label: string;
+  provenance: string;
+}
+
+export interface FrozenTwinReport {
+  state?: string;
+  frozen?: boolean;
+  baseline?: number | null;
+  live?: number | null;
+  delta?: number | null;
+  provenance?: string;
+  [key: string]: unknown;
+}
+
+export interface GatewayVerification {
+  id: string;
+  outcome: string;
+  trustScore: number | null;
+  gateResult: string;
+  provenance: string;
+}
+
+export interface AbstentionState {
+  shouldAbstain?: boolean;
+  reason?: string;
+  evidenceFloor?: number;
+  currentEvidence?: number;
+  [key: string]: unknown;
+}
+
 export interface SelfDiagnosticsResponse {
   measurementState?: {
     state?: string;
@@ -533,6 +586,8 @@ export interface TrustResponse {
   verifiedDecisions: number;
   iks: number | null;
   narrative: string;
+  evidenceTier?: string;
+  evidenceLabel?: string;
 }
 
 export interface DIPerturbationStatus {
@@ -1236,6 +1291,8 @@ export interface ScoreResponse {
   category: string;
   factors?: Record<string, number>;
   actionNames: string[];
+  abstentionWarning?: AbstentionState;
+  abstention_warning?: AbstentionState;
 }
 
 export interface LearnResponse {

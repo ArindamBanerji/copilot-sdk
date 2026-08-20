@@ -463,6 +463,30 @@
         "data_freshness": 0.4,
         "business_criticality": 0.96
       }
+    },
+    {
+      "alert_id": "DI-ABSTENTION-001",
+      "event_id": "DI-ABSTENTION-001",
+      "dataset": "UNSEEN_SUPPLIER_FEED",
+      "system": "unknown_supplier_gateway",
+      "category": "unseen_source_anomaly",
+      "title": "New supplier feed has insufficient evidence",
+      "description": "A newly observed supplier source has no verified decision history; the system must abstain until evidence is established.",
+      "action_taken": "refer_to_owner",
+      "is_correct": true,
+      "severity": "high",
+      "recurrence_count": 0,
+      "status": "active",
+      "novelty_score": 0.99,
+      "source_count": 0,
+      "factors": {
+        "impact_scope": 0.62,
+        "source_reliability": 0.05,
+        "recurrence_frequency": 0.0,
+        "downstream_urgency": 0.73,
+        "data_freshness": 0.12,
+        "business_criticality": 0.68
+      }
     }
   ],
   "provenance": "sample"

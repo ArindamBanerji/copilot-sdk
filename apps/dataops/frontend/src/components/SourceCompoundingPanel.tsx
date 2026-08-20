@@ -1,0 +1,9 @@
+import { useEffect, useState } from "react";
+import { fetchSourceCounts } from "../api";
+import type { SourceAccuracyEntry } from "../types";
+
+export default function SourceCompoundingPanel() {
+  const [entries, setEntries] = useState<SourceAccuracyEntry[]>([]);
+  useEffect(() => { let cancelled = false; fetchSourceCounts().then((response) => { if (!cancelled) { const sources = response?.sources ?? []; setEntries(sources.slice(0, 6).map((source, index) => { const profile = source.latestProfile; const quality = profile?.overallQuality ?? profile?.overall_quality; return { sourceCount: index + 1, accuracy: typeof quality === "number" ? quality : null, label: source.sourceName ?? source.source_name ?? `Source ${index + 1}`, provenance: "source-profile quality proxy" }; })); } }); return () => { cancelled = true; }; }, []);
+  return <article data-testid="source-compounding-panel" className="copilot-card p-5"><p className="text-xs font-semibold uppercase tracking-wide text-amber-700">DI-FIRSTVS6TH</p><h2 className="mt-1 text-lg font-semibold" style={{ color: "var(--copilot-text)" }}>First versus sixth source</h2><p className="mt-1 text-sm dataops-muted">Source-profile quality by source count. Saturation is falsifiable when measured outcomes arrive.</p>{entries.length === 0 ? <p className="mt-4 text-sm dataops-muted">Source history is not available yet.</p> : <div className="mt-4 space-y-3" data-testid="source-compounding-chart">{entries.map((entry) => <div key={entry.sourceCount}><div className="mb-1 flex justify-between text-xs"><span>{entry.sourceCount} source{entry.sourceCount === 1 ? "" : "s"} · {entry.label}</span><span>{entry.accuracy === null ? "pending" : `${Math.round(entry.accuracy * 100)}%`}</span></div><div className="h-3 rounded-full bg-white/10"><div className="h-3 rounded-full bg-emerald-400" style={{ width: `${Math.max(0, Math.min(100, (entry.accuracy ?? 0) * 100))}%` }} /></div></div>)}</div>}</article>;
+}

@@ -45,6 +45,7 @@ from .routers.query import create_query_router  # noqa: E402
 from .routers.di_enrichment_router import create_dataops_di_enrichment_router  # noqa: E402
 from .routers.perturbation_router import create_perturbation_router  # noqa: E402
 from .routers.trust_router import create_trust_router  # noqa: E402
+from .routers.di_gateway_router import create_di_gateway_router  # noqa: E402
 from .routers.regime_router import create_regime_router  # noqa: E402
 from .dataops_governance import DataOpsGovernance  # noqa: E402
 from .routers.governance_router import create_governance_router  # noqa: E402
@@ -733,6 +734,13 @@ def create_app(
         ),
         prefix="/api",
     )
+    app.include_router(
+        create_di_gateway_router(
+            scorer_provider=lambda: scorer_proxy,
+            graph_store_provider=lambda: selected_graph_store,
+        ),
+        prefix="/api/di",
+    )
     app.include_router(create_governance_router(app.state.dataops_governance))
     app.include_router(create_regime_router(lambda: scorer_proxy))
     app.include_router(create_transfer_router(scorer_proxy))
@@ -876,7 +884,7 @@ def create_app(
     async def evidence_headers_and_abstention(request, call_next):
         response = await call_next(request)
         path = request.url.path
-        if path.startswith(("/api/dataops", "/api/context", "/api/ae", "/api/score")):
+        if path.startswith(("/api/dataops", "/api/context", "/api/ae", "/api/di", "/api/score")):
             response.headers.setdefault("X-Evidence-Tier", "synthetic")
             response.headers.setdefault("X-Evidence-Label", "synthetic / modelled - not measured")
         if path == "/api/score" and response.status_code < 400:

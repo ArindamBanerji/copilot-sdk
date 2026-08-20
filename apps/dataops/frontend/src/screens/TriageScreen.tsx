@@ -16,6 +16,7 @@ import {
   scoreAlert,
 } from "../api";
 import ActionPicker, { actionFromScoreLabel, labelForAction } from "../components/ActionPicker";
+import AbstentionBanner from "../components/AbstentionBanner";
 import ApplyFixModal from "../components/ApplyFixModal";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
 import DependencyTree from "../components/DependencyTree";
@@ -403,6 +404,7 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
           />
           {score ? (
             <>
+              <AbstentionBanner state={score.abstentionWarning ?? score.abstention_warning} />
               <ScoreResultCard
                 result={score}
                 onConfirm={(decisionId) => void handleConfirm(decisionId)}

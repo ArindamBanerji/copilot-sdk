@@ -1,0 +1,9 @@
+import { useEffect, useState } from "react";
+import { fetchAcquisitionAdvice } from "../api";
+import type { AcquisitionAdvice } from "../types";
+
+export default function AcquisitionAdvisorPanel() {
+  const [recommendations, setRecommendations] = useState<AcquisitionAdvice[]>([]);
+  useEffect(() => { let cancelled = false; fetchAcquisitionAdvice().then((response) => { if (!cancelled) setRecommendations(response?.recommendations ?? []); }); return () => { cancelled = true; }; }, []);
+  return <article data-testid="acquisition-advisor-panel" className="copilot-card p-5"><p className="text-xs font-semibold uppercase tracking-wide text-amber-700">DI-GOLD</p><h2 className="mt-1 text-lg font-semibold" style={{ color: "var(--copilot-text)" }}>Data tells you what to buy</h2><p className="mt-1 text-sm dataops-muted">Prospective sources are shown as gold-line opportunities, not owned data.</p>{recommendations.length === 0 ? <p className="mt-4 rounded-md border border-dashed border-amber-300/30 p-4 text-sm dataops-muted">No prospective acquisition recommendation is available.</p> : <div className="mt-4 space-y-3">{recommendations.map((item, index) => { const name = item.sourceName ?? item.source_name ?? item.source ?? `Source ${index + 1}`; const value = item.computedValueAnnual ?? item.computed_value_annual ?? item.annualValue ?? item.annual_value; return <div key={`${name}-${index}`} data-testid="acquisition-recommendation" className="rounded-md border border-dashed border-amber-300/60 bg-amber-300/5 p-3"><div className="flex justify-between gap-3"><span className="font-semibold text-amber-100">{name}</span>{typeof value === "number" ? <span className="text-sm font-semibold text-amber-200">${value.toLocaleString()}/yr</span> : null}</div><p className="mt-1 text-xs dataops-muted">{item.rationale ?? item.signal ?? "Prospective source could improve trust coverage."}</p></div>; })}</div>}</article>;
+}

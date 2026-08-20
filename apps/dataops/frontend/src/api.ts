@@ -15,6 +15,7 @@ import type {
   DecisionExplorerResponse,
   DIProfilesResponse,
   DIProductsResponse,
+  AcquisitionAdviceResponse,
   DIIntelligenceMapResponse,
   DISourceConsumersResponse,
   DISourceTrustResponse,
@@ -55,6 +56,8 @@ import type {
   DIPerturbationResult,
   QueryResponse,
   CrossGraphInsightResponse,
+  GatewayVerification,
+  AbstentionState,
 } from "./types";
 
 export const BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8030";
@@ -246,6 +249,40 @@ export async function searchDIAssets(query: string, filters: Record<string, stri
 
 export async function fetchDIProducts(): Promise<DIProductsResponse | null> {
   return safeApiGet<DIProductsResponse>("/api/di/products");
+}
+
+export async function fetchAcquisitionAdvice(): Promise<AcquisitionAdviceResponse | null> {
+  return safeApiGet<AcquisitionAdviceResponse>("/api/di/acquisition-advice");
+}
+
+export async function fetchSourceCounts(): Promise<DIProfilesResponse | null> {
+  return safeApiGet<DIProfilesResponse>("/api/di/sources");
+}
+
+export async function fetchDataOpsTrust(): Promise<TrustResponse | null> {
+  return safeApiGet<TrustResponse>("/api/dataops/trust");
+}
+
+export async function fetchGatewayVerifications(): Promise<GatewayVerification[] | null> {
+  const payload = await safeApiGet<{
+    verifications?: Array<Record<string, unknown>>;
+  }>("/api/di/trust/verify");
+  if (!payload) return null;
+  return (payload.verifications || []).map((entry) => {
+    const gateResult = String(entry.gate_result ?? entry.gateResult ?? "ABSTAIN").toUpperCase();
+    const evidenceTier = String(entry.evidence_tier ?? entry.evidenceTier ?? "T_S");
+    return {
+      id: String(entry.action_id ?? entry.id ?? "unknown-verification"),
+      outcome: gateResult === "PASS" ? "allowed" : gateResult === "BLOCK" ? "blocked" : "abstained",
+      trustScore: typeof entry.trust_score === "number" ? entry.trust_score : typeof entry.trustScore === "number" ? entry.trustScore : null,
+      gateResult,
+      provenance: evidenceTier === "T_O" ? "measured" : "synthetic / modelled - not measured",
+    };
+  });
+}
+
+export async function fetchAbstentionState(): Promise<AbstentionState | null> {
+  return safeApiGet<AbstentionState>("/api/dataops/abstention-check?source_id=unknown");
 }
 
 export async function queryDataOps(question: string): Promise<QueryResponse> {

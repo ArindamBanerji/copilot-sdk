@@ -213,7 +213,7 @@ async def test_get_alerts_fixture(no_graph):
     payload = await client.get_alerts()
 
     assert payload["source"] == "fixture"
-    assert len(payload["alerts"]) == 20
+    assert len(payload["alerts"]) == 21
     assert {alert["alert_id"] for alert in payload["alerts"]} >= {"ALERT-TIRE-001", "ALERT-TIRE-015"}
 
 
