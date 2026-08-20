@@ -462,6 +462,7 @@ def create_app(
     app.state.trading_active_graph_config = active_graph_config
     app.state.trading_selected_graph_store = scorer_proxy.graph_store
     app.state.trading_regime_monitor = regime_monitor
+    app.state.trading_regime_conditioning = scorer_proxy
     app.state.trading_tab_state_cache = tab_state_cache
     app.state.l5_startup_status = l5_startup_status
     app.state.entity_cache = entity_cache

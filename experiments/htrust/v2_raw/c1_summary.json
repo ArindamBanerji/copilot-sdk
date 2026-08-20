@@ -1,0 +1,272 @@
+[
+  {
+    "dataset": "credit",
+    "scale": "minmax",
+    "mean": 0.019603300596700384,
+    "ci_low": 0.01776854810533832,
+    "ci_high": 0.02144102627293566,
+    "ci_width": 0.0036724781675973386,
+    "n": 20,
+    "contrast": "magnitude"
+  },
+  {
+    "dataset": "credit",
+    "scale": "robust_quantile",
+    "mean": 0.0045210539489401015,
+    "ci_low": 0.002400322185565972,
+    "ci_high": 0.0064432602394436265,
+    "ci_width": 0.004042938053877654,
+    "n": 20,
+    "contrast": "magnitude"
+  },
+  {
+    "dataset": "credit",
+    "scale": "standardized",
+    "mean": 0.04497484892637631,
+    "ci_low": 0.04325448423489517,
+    "ci_high": 0.04669495687164973,
+    "ci_width": 0.0034404726367545588,
+    "n": 20,
+    "contrast": "magnitude"
+  },
+  {
+    "dataset": "coil2000",
+    "scale": "minmax",
+    "mean": 0.005043062748170552,
+    "ci_low": 0.0019990366520358242,
+    "ci_high": 0.00836220964406116,
+    "ci_width": 0.006363172992025335,
+    "n": 20,
+    "contrast": "magnitude"
+  },
+  {
+    "dataset": "coil2000",
+    "scale": "robust_quantile",
+    "mean": 0.0066886213727131326,
+    "ci_low": 0.0015720004701423405,
+    "ci_high": 0.011884632361537965,
+    "ci_width": 0.010312631891395625,
+    "n": 20,
+    "contrast": "magnitude"
+  },
+  {
+    "dataset": "coil2000",
+    "scale": "standardized",
+    "mean": -0.001871341723886355,
+    "ci_low": -0.01006635588093675,
+    "ci_high": 0.006390516920579187,
+    "ci_width": 0.016456872801515938,
+    "n": 20,
+    "contrast": "magnitude"
+  },
+  {
+    "dataset": "adult",
+    "scale": "minmax",
+    "mean": 0.11057879139818967,
+    "ci_low": 0.10687792696085521,
+    "ci_high": 0.11437481533759465,
+    "ci_width": 0.007496888376739438,
+    "n": 20,
+    "contrast": "magnitude"
+  },
+  {
+    "dataset": "adult",
+    "scale": "robust_quantile",
+    "mean": 0.11128858450323123,
+    "ci_low": 0.1079279882043552,
+    "ci_high": 0.11476938181326508,
+    "ci_width": 0.006841393608909882,
+    "n": 20,
+    "contrast": "magnitude"
+  },
+  {
+    "dataset": "adult",
+    "scale": "standardized",
+    "mean": 0.004570551217594065,
+    "ci_low": 0.00275603222861395,
+    "ci_high": 0.006245308002700784,
+    "ci_width": 0.0034892757740868337,
+    "n": 20,
+    "contrast": "magnitude"
+  },
+  {
+    "dataset": "credit",
+    "scale": "minmax",
+    "mean": 0.008859329661902827,
+    "ci_low": 0.0061651470824709426,
+    "ci_high": 0.011646566386821822,
+    "ci_width": 0.005481419304350879,
+    "n": 20,
+    "contrast": "reliability"
+  },
+  {
+    "dataset": "credit",
+    "scale": "robust_quantile",
+    "mean": -0.0070822323976378835,
+    "ci_low": -0.008409480534992922,
+    "ci_high": -0.00558537369519578,
+    "ci_width": 0.0028241068397971423,
+    "n": 20,
+    "contrast": "reliability"
+  },
+  {
+    "dataset": "credit",
+    "scale": "standardized",
+    "mean": -0.002433527058069068,
+    "ci_low": -0.0032183746480393765,
+    "ci_high": -0.0015725701455083269,
+    "ci_width": 0.0016458045025310496,
+    "n": 20,
+    "contrast": "reliability"
+  },
+  {
+    "dataset": "coil2000",
+    "scale": "minmax",
+    "mean": 0.010054422331697182,
+    "ci_low": 0.0034510068426000327,
+    "ci_high": 0.01695098955803801,
+    "ci_width": 0.013499982715437979,
+    "n": 20,
+    "contrast": "reliability"
+  },
+  {
+    "dataset": "coil2000",
+    "scale": "robust_quantile",
+    "mean": -0.006270024072211522,
+    "ci_low": -0.013850314861479744,
+    "ci_high": 0.0016737735717622902,
+    "ci_width": 0.015524088433242034,
+    "n": 20,
+    "contrast": "reliability"
+  },
+  {
+    "dataset": "coil2000",
+    "scale": "standardized",
+    "mean": 0.003186058346777887,
+    "ci_low": -0.0007410491446228042,
+    "ci_high": 0.007251277565865896,
+    "ci_width": 0.0079923267104887,
+    "n": 20,
+    "contrast": "reliability"
+  },
+  {
+    "dataset": "adult",
+    "scale": "minmax",
+    "mean": 0.010750030499817103,
+    "ci_low": 0.009442024400458248,
+    "ci_high": 0.01190526906751306,
+    "ci_width": 0.0024632446670548123,
+    "n": 20,
+    "contrast": "reliability"
+  },
+  {
+    "dataset": "adult",
+    "scale": "robust_quantile",
+    "mean": 0.003047653749927054,
+    "ci_low": 0.0017686079574326468,
+    "ci_high": 0.00426465426154664,
+    "ci_width": 0.002496046304113993,
+    "n": 20,
+    "contrast": "reliability"
+  },
+  {
+    "dataset": "adult",
+    "scale": "standardized",
+    "mean": -0.0013236328859643153,
+    "ci_low": -0.0027413632987762296,
+    "ci_high": 0.0001536129644134341,
+    "ci_width": 0.0028949762631896637,
+    "n": 20,
+    "contrast": "reliability"
+  },
+  {
+    "dataset": "credit",
+    "scale": "minmax",
+    "mean": 0.08795402037190561,
+    "ci_low": 0.08431096399494047,
+    "ci_high": 0.09177114949233858,
+    "ci_width": 0.007460185497398117,
+    "n": 20,
+    "contrast": "primitive"
+  },
+  {
+    "dataset": "credit",
+    "scale": "robust_quantile",
+    "mean": 0.123464116376194,
+    "ci_low": 0.12122781493740052,
+    "ci_high": 0.1257013983626266,
+    "ci_width": 0.004473583425226066,
+    "n": 20,
+    "contrast": "primitive"
+  },
+  {
+    "dataset": "credit",
+    "scale": "standardized",
+    "mean": 0.04497484892637631,
+    "ci_low": 0.04325448423489517,
+    "ci_high": 0.04669495687164973,
+    "ci_width": 0.0034404726367545588,
+    "n": 20,
+    "contrast": "primitive"
+  },
+  {
+    "dataset": "coil2000",
+    "scale": "minmax",
+    "mean": 0.04722324186247213,
+    "ci_low": 0.03603121622951531,
+    "ci_high": 0.05909139623832063,
+    "ci_width": 0.023060180008805324,
+    "n": 20,
+    "contrast": "primitive"
+  },
+  {
+    "dataset": "coil2000",
+    "scale": "robust_quantile",
+    "mean": 0.08469150317410883,
+    "ci_low": 0.07539503612386585,
+    "ci_high": 0.09384601535745923,
+    "ci_width": 0.018450979233593387,
+    "n": 20,
+    "contrast": "primitive"
+  },
+  {
+    "dataset": "coil2000",
+    "scale": "standardized",
+    "mean": -0.001871341723886355,
+    "ci_low": -0.01006635588093675,
+    "ci_high": 0.006390516920579187,
+    "ci_width": 0.016456872801515938,
+    "n": 20,
+    "contrast": "primitive"
+  },
+  {
+    "dataset": "adult",
+    "scale": "minmax",
+    "mean": 0.22391016775754996,
+    "ci_low": 0.221082210419064,
+    "ci_high": 0.2267735584619158,
+    "ci_width": 0.00569134804285179,
+    "n": 20,
+    "contrast": "primitive"
+  },
+  {
+    "dataset": "adult",
+    "scale": "robust_quantile",
+    "mean": 0.24243460120265975,
+    "ci_low": 0.2399556951600862,
+    "ci_high": 0.24488425887238213,
+    "ci_width": 0.004928563712295941,
+    "n": 20,
+    "contrast": "primitive"
+  },
+  {
+    "dataset": "adult",
+    "scale": "standardized",
+    "mean": 0.004570551217594065,
+    "ci_low": 0.00275603222861395,
+    "ci_high": 0.006245308002700784,
+    "ci_width": 0.0034892757740868337,
+    "n": 20,
+    "contrast": "primitive"
+  }
+]

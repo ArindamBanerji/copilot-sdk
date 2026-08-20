@@ -5,6 +5,12 @@ from copilot_sdk.regime.detector import RegimeDetector
 from copilot_sdk.regime.models import RegimeState
 from copilot_sdk.regime.policy import RegimePolicy
 from copilot_sdk.regime.policies import DataOpsRegimePolicy, PurchasingRegimePolicy, S2PRegimePolicy
+from copilot_sdk.regime.conditioning import (
+    PerRegimeCentroidTracker,
+    RegimeConservation,
+    RegimeLearningRate,
+    RegimeParameters,
+)
 
 __all__ = [
     "ConditionedContext",
@@ -15,4 +21,8 @@ __all__ = [
     "DataOpsRegimePolicy",
     "PurchasingRegimePolicy",
     "S2PRegimePolicy",
+    "PerRegimeCentroidTracker",
+    "RegimeConservation",
+    "RegimeLearningRate",
+    "RegimeParameters",
 ]
