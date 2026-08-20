@@ -4,6 +4,8 @@ import { FinancialImpactTrendPanel } from "../components/FinancialImpactTrendPan
 import { OperationalSummary } from "../components/OperationalSummary";
 import { TrajectoryChart } from "../components/TrajectoryChart";
 import { WhatIfSimulator } from "../components/WhatIfSimulator";
+import ConfidenceBandPanel from "../components/ConfidenceBandPanel";
+import FrozenTwinComparisonPanel from "../components/FrozenTwinComparisonPanel";
 import { fetchConservation } from "../api";
 import type { ConservationStatus } from "../types";
 import { useEffect, useState } from "react";
@@ -36,6 +38,8 @@ export function PerformanceScreen() {
         <TrajectoryChart />
         <ConservationMiniGauge conservation={conservation} />
       </div>
+      <FrozenTwinComparisonPanel />
+      <ConfidenceBandPanel />
       <div className="grid gap-4 xl:grid-cols-2">
         <WhatIfSimulator />
         <OperationalSummary />

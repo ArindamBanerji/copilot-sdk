@@ -9,6 +9,7 @@ import { LeakageDetectionPanel } from "../components/LeakageDetectionPanel";
 import { ProcessSignalsPanel } from "../components/ProcessSignalsPanel";
 import ProcessFusionPanel from "../components/ProcessFusionPanel";
 import { SimilarInvoicesPanel } from "../components/SimilarInvoicesPanel";
+import WhatIfInspectorPanel from "../components/WhatIfInspectorPanel";
 import type { InvoiceException, PreviewQueueResponse } from "../types";
 
 function invoiceId(invoice?: InvoiceException | null): string {
@@ -71,7 +72,8 @@ export function InsightScreen() {
       </article>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <FactorFingerprintPanel invoiceId={invoiceId(selected)} />
+      <FactorFingerprintPanel invoiceId={invoiceId(selected)} />
+      <WhatIfInspectorPanel />
         <SimilarInvoicesPanel invoiceId={invoiceId(selected)} />
       </div>
       <CrossGraphInsightCard />

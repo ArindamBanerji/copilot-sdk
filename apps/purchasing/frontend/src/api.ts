@@ -794,6 +794,28 @@ export function fetchROISummary(): Promise<{ summary?: string; tier?: string; pr
   return apiGet<{ summary?: string; tier?: string; provenance?: string }>("/api/purchasing/economic/roi-summary");
 }
 
+export type PurchasingBeatPayload = Record<string, unknown>;
+
+export function fetchPurchasingBeat(path: string): Promise<PurchasingBeatPayload | null> {
+  return safeApiGet<PurchasingBeatPayload>(path);
+}
+
+export function fetchProofLedger(): Promise<PurchasingBeatPayload | null> {
+  return fetchPurchasingBeat("/api/purchasing/proof-ledger");
+}
+
+export function fetchDayZeroReadiness(): Promise<PurchasingBeatPayload | null> {
+  return fetchPurchasingBeat("/api/purchasing/day-0-readiness");
+}
+
+export function fetchFrozenTwin(): Promise<PurchasingBeatPayload | null> {
+  return fetchPurchasingBeat("/api/purchasing/frozen-twin");
+}
+
+export function fetchKitchenRamp(): Promise<PurchasingBeatPayload | null> {
+  return fetchPurchasingBeat("/api/purchasing/competence/ramp");
+}
+
 export interface GroupDashboardResponse {
   locations?: Array<{ name?: string; decisions?: number; accuracy?: number; foodCostPct?: number; conservation?: string }>;
   weightedAccuracy?: number;

@@ -293,6 +293,67 @@ export interface ProcessContext {
   crossCopilotSignal?: CrossCopilotSignal;
 }
 
+export interface PromotionRecord {
+  record_id: string;
+  copilot?: string;
+  decision_class: string;
+  current_stage: string;
+  authority?: string;
+  stage_history?: Array<Record<string, unknown>>;
+  shadow_decisions?: number;
+  measurement_decisions?: number;
+  improvement_delta?: number;
+  conservation_state_at_transition?: string;
+  evidence_tier?: string;
+  evidence_label?: string;
+  [key: string]: unknown;
+}
+
+export interface PromotionStatusResponse {
+  categories: PromotionRecord[];
+  evidence_tier?: string;
+  evidence_label?: string;
+  [key: string]: unknown;
+}
+
+export interface TwinStatusResponse {
+  frozen: boolean;
+  copilot?: string;
+  evidence_tier?: string;
+  evidence_label?: string;
+  [key: string]: unknown;
+}
+
+export interface TwinDriftReport {
+  frozen_accuracy?: number;
+  live_accuracy?: number;
+  baseline_accuracy?: number;
+  current_accuracy?: number;
+  centroid_delta?: number;
+  weight_delta?: number;
+  iks_delta?: number;
+  evidence_tier?: string;
+  evidence_label?: string;
+  [key: string]: unknown;
+}
+
+export interface ConfidenceBand {
+  category: string;
+  confidence: number;
+  status: string;
+  novelty?: number;
+  evidence_tier?: string;
+}
+
+export interface DayZeroStatus {
+  source_coverage?: number;
+  completeness?: number;
+  provenance?: string;
+  trust_tier?: string;
+  evidence_tier?: string;
+  [key: string]: unknown;
+}
+
 export interface CrossCopilotSignal {
   source: string;
   supplier: string;

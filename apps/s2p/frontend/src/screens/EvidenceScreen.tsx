@@ -7,6 +7,7 @@ import { ComplianceScreeningPanel } from "../components/ComplianceScreeningPanel
 import CohortStatusPanel from "../components/CohortStatusPanel";
 import { DiscoveryPanel } from "../components/DiscoveryPanel";
 import { DisruptionRecoveryPanel } from "../components/DisruptionRecoveryPanel";
+import ExceptionExtinctionTimeline from "../components/ExceptionExtinctionTimeline";
 import { EvolutionPanel } from "../components/EvolutionPanel";
 import FactorInsightPanel from "../components/FactorInsightPanel";
 import { ReceiptChainPanel } from "../components/ReceiptChainPanel";
@@ -69,6 +70,7 @@ export function EvidenceScreen() {
       </article>
 
       <AuditTrailPanel invoiceId={invoiceId(selected)} />
+      <ExceptionExtinctionTimeline />
       <CohortStatusPanel />
       <FactorInsightPanel />
       <EvolutionPanel />

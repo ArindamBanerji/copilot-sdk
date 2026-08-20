@@ -19,6 +19,12 @@ import WasteAlertCard from "../components/WasteAlertCard";
 import WasteCostCard from "../components/WasteCostCard";
 import WeeklyReportPanel from "../components/WeeklyReportPanel";
 import type { Analytics, ConservationState, TrajectoryResponse } from "../types";
+import {
+  ContinuityClosePanel,
+  ProofLedgerPanel,
+  SelfPausePanel,
+  TimeToCompetencePanel,
+} from "../components/PurchasingBeatPanels";
 
 function numberOr(value: unknown, fallback: number) {
   const numeric = Number(value);
@@ -97,6 +103,9 @@ export default function PerformanceScreen() {
   return (
     <div data-screen-ready="true" className="purchase-stack performance-screen">
       <PurchasingProofPanel />
+      <ProofLedgerPanel />
+      <SelfPausePanel />
+      <TimeToCompetencePanel />
       <section className="purchase-card">
         <p className="purchase-kicker">Performance</p>
         <h1 className="purchase-title">20 orders to learn what takes 11 years of gut instinct.</h1>
@@ -158,6 +167,7 @@ export default function PerformanceScreen() {
       <WasteCostCard analytics={analytics} />
       <WasteAlertCard />
       <CategoryAccuracyChart analytics={analytics} />
+      <ContinuityClosePanel />
     </div>
   );
 }

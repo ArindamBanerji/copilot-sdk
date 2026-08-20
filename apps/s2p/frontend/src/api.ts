@@ -36,6 +36,7 @@ import type {
   ProcessFusionResponse,
   PreviewQueueResponse,
   PreviewSuppliersResponse,
+  PromotionStatusResponse,
   RuleLifecycleResponse,
   S2PEvolutionRulesResponse,
   S2PEvolutionVariantsResponse,
@@ -46,6 +47,8 @@ import type {
   SupplierSimilarityResponse,
   SupplierProfile,
   SupplierProfilesResponse,
+  TwinDriftReport,
+  TwinStatusResponse,
   TrendSignal,
   NoveltyHistoryResponse,
   NoveltyTriggeredResponse,
@@ -144,6 +147,18 @@ export async function fetchPreviewQueue(): Promise<PreviewQueueResponse> {
 
 export async function getPreviewConservation(): Promise<ConservationStatus | null> {
   return apiGet<ConservationStatus>("/api/s2p/preview/conservation").catch(() => null);
+}
+
+export async function fetchPromotionStatus(): Promise<PromotionStatusResponse | null> {
+  return apiGet<PromotionStatusResponse>("/api/s2p/promotion/status").catch(() => null);
+}
+
+export async function fetchTwinStatus(): Promise<TwinStatusResponse | null> {
+  return apiGet<TwinStatusResponse>("/api/s2p/twin/status").catch(() => null);
+}
+
+export async function fetchTwinDrift(): Promise<TwinDriftReport | null> {
+  return apiGet<TwinDriftReport>("/api/s2p/twin/drift").catch(() => null);
 }
 
 export async function getPreviewSuppliers(): Promise<PreviewSuppliersResponse> {

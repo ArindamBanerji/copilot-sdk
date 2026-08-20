@@ -33,6 +33,7 @@ import type {
   Variant,
   WasteHistory,
 } from "../types";
+import { NotYetPanel } from "../components/PurchasingBeatPanels";
 
 interface DashboardScreenProps {
   onSelectItem: (item?: Item) => void;
@@ -179,6 +180,7 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
         <ProvenanceBadge source={state.today?.weather?.source ?? "scraped_external"} />
       </div>
       <DayZeroCard apiBase={BASE} copilot="purchasing" />
+      <NotYetPanel />
       <SpendSummaryPanel />
       <WeatherImpactCard />
       <CommodityPricePanel />

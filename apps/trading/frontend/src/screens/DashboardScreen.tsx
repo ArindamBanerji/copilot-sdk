@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DataTrustBadge, DayZeroCard, DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
+import { DataTrustBadge, DayZeroPanel, DecisionHistory, TransferBadge } from "../../../../../copilot_sdk/frontend";
 import {
   API_BASE,
   getAnalytics,
@@ -15,7 +15,6 @@ import MarketContext from "../components/MarketContext";
 import PatternBadge from "../components/PatternBadge";
 import PortfolioConcentration from "../components/PortfolioConcentration";
 import PortfolioSummary from "../components/PortfolioSummary";
-import ProvenanceBadge from "../components/ProvenanceBadge";
 import RegimePanel from "../components/RegimePanel";
 import ThesisBreakdown from "../components/ThesisBreakdown";
 import TradeCard from "../components/TradeCard";
@@ -224,6 +223,8 @@ export default function DashboardScreen({
         </button>
       </div>
 
+      <DayZeroPanel copilot="trading" port={8010} />
+
       {joinedTrades.length === 0 ? (
         <div className="copilot-card p-4">
           <h2 className="text-base font-semibold">Get started faster</h2>
@@ -237,12 +238,6 @@ export default function DashboardScreen({
       ) : null}
 
       <ArchetypeSelector />
-      <DayZeroCard
-        apiBase={API_BASE}
-        copilot="trading"
-        demoMode={import.meta.env.VITE_DEMO_PRESEED === "true"}
-        renderProvenance={(source) => <ProvenanceBadge source={source} />}
-      />
       <MarketContext snapshot={market} />
       <TickerPanel metadata={metadata} disabled={loading} onTickers={updateTickers} />
       <RegimePanel />

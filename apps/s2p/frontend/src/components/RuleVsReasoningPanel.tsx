@@ -58,6 +58,7 @@ export default function RuleVsReasoningPanel({
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Rule vs reasoning</p>
           <h2 className="mt-1 text-lg font-semibold text-slate-950">Rules do not read contracts.</h2>
+          <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">S14-CONTRAST</p>
         </div>
       </div>
 
@@ -69,10 +70,10 @@ export default function RuleVsReasoningPanel({
           </p>
           <div className="mt-4 text-2xl font-bold text-red-700">{rule.decision}</div>
           <p className="mt-2 text-sm text-slate-600">{rule.reason}</p>
+          <ProvenanceBadge source={rule.provenance ?? "live"} className="mt-3" />
           {rule.cost_of_error || rule.costOfError ? (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-900">
               <span>Est. cost: {rule.cost_of_error ?? rule.costOfError}</span>
-              <ProvenanceBadge source={rule.provenance ?? "sample"} />
             </div>
           ) : null}
         </section>
@@ -95,7 +96,7 @@ export default function RuleVsReasoningPanel({
             {accepts ? "ACCEPT" : situationAction.toUpperCase()}
           </div>
           <p className="mt-2 text-sm text-slate-600">Confidence: {pct((situationConfidence ?? score.confidence) * 100)}</p>
-          {situationProvenance ? <ProvenanceBadge source={situationProvenance} className="mt-3" /> : null}
+          <ProvenanceBadge source={situationProvenance ?? "context"} className="mt-3" />
         </section>
       </div>
       {rule.decision === "REJECT" && accepts ? (

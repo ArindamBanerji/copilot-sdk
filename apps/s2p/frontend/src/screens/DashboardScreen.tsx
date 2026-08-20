@@ -8,6 +8,7 @@ import { DisruptionSimPanel } from "../components/DisruptionSimPanel";
 import { FinancialImpactCard } from "../components/FinancialImpactCard";
 import { NoveltyStatusPanel } from "../components/NoveltyStatusPanel";
 import { ProcessContextCard } from "../components/ProcessContextCard";
+import DayZeroReadinessPanel from "../components/DayZeroReadinessPanel";
 import type { ConservationStatus, InvoiceException, PreviewQueueResponse } from "../types";
 
 function formatPercent(value?: number): string {
@@ -58,6 +59,7 @@ export function DashboardScreen() {
       </div>
 
       <DayZeroCard apiBase={API_URL} copilot="s2p" />
+      <DayZeroReadinessPanel />
 
       <div className="grid gap-4 md:grid-cols-2">
         <article className="copilot-card p-5">

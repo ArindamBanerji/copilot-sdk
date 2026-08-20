@@ -15,6 +15,7 @@ import TrustRadarPanel from "../components/TrustRadarPanel";
 import WasteCostCard from "../components/WasteCostCard";
 import { factorDisplayName } from "../factorDisplay";
 import type { Analytics, FingerprintFactor, FingerprintResponse } from "../types";
+import { GatedSignalReliabilityPanel, MirrorOpenPanel } from "../components/PurchasingBeatPanels";
 
 const interpretations: Record<string, string> = {
   historical_waste: "Items with low waste are your edge; high-waste items need guardrails.",
@@ -109,6 +110,8 @@ export default function AnalysisScreen() {
         />
       </div>
       <TrustRadarPanel />
+      <MirrorOpenPanel />
+      <GatedSignalReliabilityPanel />
       <ContrastCard analytics={analytics} />
       <ProfileArchetype fingerprint={fingerprint} />
       <FingerprintPanel

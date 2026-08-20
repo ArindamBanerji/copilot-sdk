@@ -22,7 +22,7 @@ export type { EvolutionPanelProps, EvolutionStatus, EvolutionVariant } from "./E
 export { default as ConservationSlider } from "./ConservationSlider";
 export type { ConservationSliderProps, ConservationStatusLevel } from "./ConservationSlider";
 export { default as DayZeroPanel } from "./DayZeroPanel";
-export type { MeasurementStateView } from "./DayZeroPanel";
+export type { DayZeroPanelProps, MeasurementStateView } from "./DayZeroPanel";
 
 export { default as ReasoningPanel } from "./ReasoningPanel";
 export type {

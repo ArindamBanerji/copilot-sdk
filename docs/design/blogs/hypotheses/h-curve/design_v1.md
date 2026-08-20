@@ -108,3 +108,16 @@ No: the fixed below/above-threshold cells, the raw monotonicity test, the fail-c
 1. The source API exposes the sampler and experiment, but no current dedicated runner or persistence format. Stage 3 must implement the runner in the reserved experiment directory and have review approve the exact `0.35` initialization before execution.
 2. The documented `epsilon★ ≈ 0.125` depends on disruption magnitude, disrupted-category fraction, and the theorem configuration. The runner must record these values and compute the threshold from the same inputs rather than hard-code the rounded headline.
 3. The precise canonical `mu_0` construction for the expert and cold cases is documented at the experiment level but is not exposed by a single current factory in the inspected source. Stage 3 must resolve that factory/configuration from the authoritative experiment setup before any run; if it cannot, the run stops rather than silently substituting an initialization.
+
+## Design review v1
+
+| Check | Result | Review note |
+|---|---|---|
+| 1. Parametric, non-centroidal vectors; not LLM | PASS | `FactorVectorSampler.sample` is specified as the sole vector source, with no LLM or scorer-state input. |
+| 2. GT distinct from scorer μ | FAIL | The design requires an assertion, but the exact cold/expert `mu_0` construction is still an open question; `OracleSeparationExperiment` receives scorer and GT separately, so the claimed separation is not yet established by a frozen source configuration. |
+| 3. θ-free γ primary; N_half secondary | PASS | `gamma_dist` is primary and `gamma_nhalf` is restricted to the F2 direction check. |
+| 4. Persistence and re-openability | PASS | Vectors, GT/scorer snapshots, trajectories, per-cell γ, and a hashed manifest are specified. |
+| 5. Real falsification and honest power reading | PASS | F1, F2, and F3 have independent failure paths; the design explicitly calls three seeds thin and fail-closes censored cells. |
+| 6. Bias test: could it only produce γ>1? | PASS | The design permits `gamma_dist < 1`, direction disagreement, censoring, and raw monotonicity violations; no favorable result is forced. |
+
+**VERDICT: SEND BACK — the exact cold/expert `mu_0` construction and its binding to `GT_1` remain unresolved, so the experiment cannot yet establish that it measures convergence toward a distinct unreached target.**
