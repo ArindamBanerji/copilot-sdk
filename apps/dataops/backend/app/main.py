@@ -611,6 +611,8 @@ def create_app(
     app.state.dataops_active_graph_config = active_config
     app.state.dataops_selected_graph_store = selected_graph_store
     app.state.graph_store = selected_graph_store
+    context_graph_client = DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+    context_router_module.set_graph_client_factory(lambda: context_graph_client)
     dataops_profiler_registry = _dataops_profiler_registry()
     app.state.dataops_profiler_registry = dataops_profiler_registry
     dataops_profiles = _profile_dataops_sources(dataops_profiler_registry)
@@ -901,7 +903,7 @@ def create_app(
 
     @app.get("/health")
     def health() -> dict[str, Any]:
-        graph = DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
+        graph = context_graph_client
         graph_source = graph.graph_source
         cache_stats = entity_cache.stats()
         return {

@@ -7,7 +7,7 @@ import math
 import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, HTTPException, status
 
@@ -66,6 +66,7 @@ AGE_JITTER_MINUTES = (-2, -1, 0, 1, 2)
 
 router = APIRouter()
 _evolution_store_factory: Callable[[], Any] | None = None
+_graph_client_factory: Callable[[], DataOpsGraphClient] | None = None
 
 
 def set_evolution_store_factory(factory: Callable[[], Any] | None) -> None:
@@ -73,7 +74,24 @@ def set_evolution_store_factory(factory: Callable[[], Any] | None) -> None:
     _evolution_store_factory = factory
 
 
+def set_graph_client_factory(factory: Callable[[], DataOpsGraphClient] | None) -> None:
+    """Use the application-owned AGE client for context reads.
+
+    The default remains a fixture-capable client for isolated router tests. The
+    running application injects one client configured from the centralized
+    DataOps GraphConfig, so all context routes share the same AGE connection
+    and fail-closed behavior.
+    """
+    global _graph_client_factory
+    _graph_client_factory = factory
+
+
 def _graph_client() -> DataOpsGraphClient:
+    if _graph_client_factory is not None:
+        client = _graph_client_factory()
+        if client is None:
+            raise HTTPException(status_code=503, detail="DataOps graph client unavailable")
+        return client
     return DataOpsGraphClient(fallback_dir=DATA_DIR / "fallback")
 
 
@@ -142,6 +160,7 @@ def _write_json(path: Path, payload: Any) -> None:
 
 def _variant_from_evolution_event(event: dict[str, Any]) -> dict[str, Any]:
     metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+    metadata = cast(dict[str, Any], metadata)
     variant = dict(metadata)
     event_type = str(variant.get("event_type") or event.get("event_type") or "")
     rule_name = str(event.get("rule_name") or variant.get("rule_name") or "")
@@ -523,7 +542,9 @@ def _metadata_for_alert(alert_id: str) -> dict[str, Any] | None:
 
 def _audit_variant_matches(alert: dict[str, Any], variant: dict[str, Any]) -> bool:
     match = variant.get("match") if isinstance(variant.get("match"), dict) else {}
+    match = cast(dict[str, Any], match)
     factors = alert.get("factors") if isinstance(alert.get("factors"), dict) else {}
+    factors = cast(dict[str, Any], factors)
     categories = match.get("categories")
     if categories and alert.get("category") not in categories:
         return False
@@ -696,7 +717,7 @@ def _ranked_transformation_steps(steps: list[dict[str, Any]]) -> list[dict[str, 
                 "status": step.get("status"),
             }
         )
-    ranked.sort(key=lambda step: step["duration_minutes"], reverse=True)
+    ranked.sort(key=lambda step: cast(float, step["duration_minutes"]), reverse=True)
     return ranked
 
 
@@ -1045,7 +1066,10 @@ def bottleneck(system: str) -> dict[str, Any]:
         }
 
     slowest = ranked[0]
-    source_step = next((step for step in steps if step.get("id") == slowest.get("id")), {})
+    source_step: dict[str, Any] = next(
+        (step for step in steps if step.get("id") == slowest.get("id")),
+        {},
+    )
     return {
         "system": system_key,
         "total_duration_minutes": round(total_duration, 3),
@@ -1200,9 +1224,12 @@ def cross_graph_insight(alert_id: str) -> dict[str, Any]:
     if not isinstance(refs, dict) or not refs:
         raise HTTPException(status_code=404, detail="No cross-graph data for this alert")
 
-    process_signal = dict(refs.get("process_signal")) if isinstance(refs.get("process_signal"), dict) else {}
-    erp_impact = dict(refs.get("erp_impact")) if isinstance(refs.get("erp_impact"), dict) else {}
-    root_cause = dict(refs.get("root_cause")) if isinstance(refs.get("root_cause"), dict) else {}
+    process_signal_raw = refs.get("process_signal")
+    erp_impact_raw = refs.get("erp_impact")
+    root_cause_raw = refs.get("root_cause")
+    process_signal = dict(cast(dict[str, Any], process_signal_raw)) if isinstance(process_signal_raw, dict) else {}
+    erp_impact = dict(cast(dict[str, Any], erp_impact_raw)) if isinstance(erp_impact_raw, dict) else {}
+    root_cause = dict(cast(dict[str, Any], root_cause_raw)) if isinstance(root_cause_raw, dict) else {}
 
     current_duration = _numeric_or_none(process_signal.get("current_duration"))
     normal_duration = _numeric_or_none(process_signal.get("normal_duration"))
@@ -1382,7 +1409,7 @@ def similar_alerts(
             }
         )
 
-    matches.sort(key=lambda item: item["similarity"], reverse=True)
+    matches.sort(key=lambda item: cast(float, item["similarity"]), reverse=True)
     limit = max(int(n), 0)
     return {
         "similar": matches[:limit],

@@ -26,6 +26,7 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH, CI_PLATFORM_PATH):
 
 from . import context_router as context_router_module  # noqa: E402
 from .graph_status import (  # noqa: E402
+    build_purchasing_graph_status,
     create_purchasing_active_graph_store,
     initialize_purchasing_active_graph_config,
     router as purchasing_graph_status_router,
@@ -576,9 +577,12 @@ def create_app(
     @app.get("/api/health")
     def api_health() -> dict[str, Any]:
         iks = build_iks_summary(lambda: selected_graph_store_factory(scoring_db))
+        graph_status = build_purchasing_graph_status(app.state)
         return {
             "phase": scorer_proxy.get_phase(),
             "alpha": scorer_proxy.get_alpha(),
+            "graph_backend": graph_status["active_backend"],
+            "graph_status": graph_status,
             "engine": {
                 "scoring": "copilot_sdk.scoring.CompoundingScorer",
                 "gae": "gae.profile_scorer.ProfileScorer",

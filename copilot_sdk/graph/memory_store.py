@@ -991,7 +991,16 @@ class InMemoryGraphStore:
             if (source_domain is None or pattern["source_domain"] == str(source_domain))
             and (target_domain is None or pattern["target_domain"] == str(target_domain))
         ]
-        return deepcopy(sorted(patterns, key=lambda item: (item["created_at"], item["pattern_id"])))
+        result = deepcopy(sorted(patterns, key=lambda item: (item["created_at"], item["pattern_id"])))
+        for pattern in result:
+            metadata = pattern.get("metadata")
+            raw_similarity = (
+                metadata.get("similarity_score")
+                if isinstance(metadata, dict) and metadata.get("similarity_score") is not None
+                else pattern.get("confidence")
+            )
+            pattern["similarity_score"] = float(str(raw_similarity or 0.0))
+        return result
 
     def get_latest_conservation_statuses(
         self,

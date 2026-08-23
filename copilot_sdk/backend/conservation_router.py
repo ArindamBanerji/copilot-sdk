@@ -42,8 +42,16 @@ def create_conservation_router(
     @router.get("/conservation/status", response_model=ConservationStatusResponse)
     @cached_static("conservation", copilot=domain)
     def status(request: Request) -> dict[str, Any]:
-        state = _resolve_state(state_provider)
-        return compute_conservation_status_payload(domain, state)
+        try:
+            state = _resolve_state(state_provider)
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
+        if state_provider is not None and state is None:
+            raise HTTPException(status_code=503, detail="Graph store unavailable")
+        try:
+            return compute_conservation_status_payload(domain, state)
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
 
     @router.post("/conservation/what-if", response_model=ConservationWhatIfResponse)
     def what_if(request: ConservationWhatIfRequest) -> dict[str, Any]:

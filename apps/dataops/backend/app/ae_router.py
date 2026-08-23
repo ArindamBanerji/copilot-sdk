@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter
 
@@ -49,6 +49,7 @@ def _events(evolution_store_factory: EvolutionStoreFactory | None, domain: str) 
 
 def _event_to_variant(event: dict[str, Any]) -> dict[str, Any]:
     metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+    metadata = cast(dict[str, Any], metadata)
     variant = dict(metadata)
     event_type = str(variant.get("event_type") or event.get("event_type") or "")
     rule_name = str(event.get("rule_name") or variant.get("rule_name") or "")
@@ -95,10 +96,13 @@ def _normalize_variant_status(variant: dict[str, Any]) -> str:
 
 def _variant_number(variant: dict[str, Any], keys: tuple[str, ...]) -> float | None:
     metadata = variant.get("metadata") if isinstance(variant.get("metadata"), dict) else {}
+    metadata = cast(dict[str, Any], metadata)
     for key in keys:
         value = variant.get(key)
         if value is None:
             value = metadata.get(key)
+        if value is None:
+            continue
         try:
             number = float(value)
         except (TypeError, ValueError):
@@ -126,6 +130,7 @@ def _variant_evaluations(variant: dict[str, Any]) -> int:
 
 def _variant_rejected_reason(variant: dict[str, Any]) -> str | None:
     metadata = variant.get("metadata") if isinstance(variant.get("metadata"), dict) else {}
+    metadata = cast(dict[str, Any], metadata)
     reason = (
         variant.get("rejected_reason")
         or variant.get("rejectReason")
@@ -153,6 +158,7 @@ def _canonical_copilot(value: str) -> str:
 
 def _explicit_source_copilot(variant: dict[str, Any]) -> str | None:
     metadata = variant.get("metadata") if isinstance(variant.get("metadata"), dict) else {}
+    metadata = cast(dict[str, Any], metadata)
     for key in ("source_copilot", "sourceCopilot", "source_domain", "sourceDomain", "source"):
         value = variant.get(key)
         if value is None:

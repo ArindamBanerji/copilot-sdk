@@ -10,6 +10,9 @@ from datetime import datetime, timezone
 from typing import Any
 
 
+DATAOPS_DOMAIN = "dataops"
+
+
 class DataOpsGraphEnricher:
     """Write idempotent enrichment records through a graph-store abstraction."""
 
@@ -33,7 +36,7 @@ class DataOpsGraphEnricher:
         "enrichment_type": normalized_type,
         "payload": dict(payload or {}),
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "domain": "dataops",
+        "domain": DATAOPS_DOMAIN,
         }
 
         writer = getattr(graph_store, "write_enrichment", None)
@@ -53,7 +56,7 @@ class DataOpsGraphEnricher:
             result = _run_graph_query(
                 run_query,
                 _age_find_query(),
-                {"enrichment_id": enrichment_id, "domain": "dataops"},
+                {"enrichment_id": enrichment_id, "domain": DATAOPS_DOMAIN},
             )
             query = _age_update_query() if result else _age_create_query()
             result = _run_graph_query(run_query, query, record)

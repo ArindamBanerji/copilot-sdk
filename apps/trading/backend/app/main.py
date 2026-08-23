@@ -26,6 +26,7 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH, CI_PLATFORM_PATH):
 
 from .context_router import router as context_router  # noqa: E402
 from .graph_status import (  # noqa: E402
+    build_trading_graph_status,
     create_trading_active_graph_store,
     initialize_trading_active_graph_config,
     router as trading_graph_status_router,
@@ -614,6 +615,7 @@ def create_app(
     @app.get("/health")
     def health() -> dict[str, Any]:
         cache_stats = entity_cache.stats()
+        graph_status = build_trading_graph_status(app.state)
         return {
             "status": "ok",
             "domain": DOMAIN,
@@ -622,6 +624,10 @@ def create_app(
             "cache_misses": cache_stats.misses,
             "cache_size": cache_stats.size,
             "conservation": conservation_provider.get_state(),
+            "graph_backend": graph_status["active_backend"],
+            "graph_status": graph_status,
+            "graph_store_status": "available" if graph_status["active_backend"] else "unavailable",
+            "dual_write_enabled": graph_status["requested_backend"] == "dual_write",
         }
 
     @app.get("/api/trading/fingerprint")

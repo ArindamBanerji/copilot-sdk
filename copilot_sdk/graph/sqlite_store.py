@@ -1844,7 +1844,7 @@ class SQLiteGraphStore:
             f"SELECT * FROM transfer_patterns {where} ORDER BY created_at ASC, pattern_id ASC",
             params,
         ).fetchall()
-        return [
+        result = [
             {
                 "pattern_id": row["pattern_id"],
                 "domain": row["domain"],
@@ -1864,6 +1864,15 @@ class SQLiteGraphStore:
             }
             for row in rows
         ]
+        for pattern in result:
+            metadata = pattern.get("metadata")
+            raw_similarity = (
+                metadata.get("similarity_score")
+                if isinstance(metadata, dict) and metadata.get("similarity_score") is not None
+                else pattern.get("confidence")
+            )
+            pattern["similarity_score"] = float(str(raw_similarity or 0.0))
+        return result
 
     def get_latest_conservation_statuses(
         self,

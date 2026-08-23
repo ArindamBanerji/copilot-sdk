@@ -31,9 +31,18 @@ def _http_json(method: str, url: str, payload: dict[str, Any] | None = None) -> 
         body = json.dumps(payload).encode("utf-8")
         headers["Content-Type"] = "application/json"
     request = urllib.request.Request(url, data=body, headers=headers, method=method)
-    with urllib.request.urlopen(request, timeout=30) as response:
-        raw = response.read().decode("utf-8")
-        return response.status, json.loads(raw) if raw else {}
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            raw = response.read().decode("utf-8")
+            return response.status, json.loads(raw) if raw else {}
+    except (urllib.error.URLError, ConnectionRefusedError) as exc:
+        print(
+            f"ERROR: Backend not reachable at {url}. "
+            "Start platform first: python demo.py --no-browser",
+            file=sys.stderr,
+        )
+        print(f"  reason: {exc}", file=sys.stderr)
+        return 0, None
 
 
 def _percentile(values: list[float], percentile: float) -> float:
@@ -154,11 +163,11 @@ def _run_requests(requests: list[tuple[str, dict[str, Any]]]) -> tuple[list[floa
     return latencies, errors
 
 
-def _explain_domain_query(cursor, graph: str) -> str:
+def _explain_domain_query(cursor, graph: str, domain: str) -> str:
     """Capture the PostgreSQL/AGE plan for a representative scoped read."""
     cursor.execute(
         "EXPLAIN SELECT * FROM cypher(%s, %s) AS (decision_id agtype)",
-        (graph, "MATCH (d:Decision) WHERE d.domain = 'soc' RETURN d.decision_id LIMIT 1"),
+        (graph, f"MATCH (d:Decision) WHERE d.domain = '{domain}' RETURN d.decision_id LIMIT 1"),
     )
     return "\n".join(str(row[0]) for row in cursor.fetchall())
 
@@ -189,36 +198,89 @@ def _build_report(domain: str, requested: int, latencies: list[float], errors: i
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--domain", default=DEFAULT_DOMAIN, choices=("soc", "trading", "purchasing", "dataops", "s2p"))
-    parser.add_argument("--requests", type=int, default=DEFAULT_REQUESTS)
+    parser.add_argument("--requests", type=int, default=None, help="Run one benchmark size")
+    parser.add_argument(
+        "--sizes",
+        type=int,
+        nargs="+",
+        default=[500, 1000, 2000],
+        help="Decision volumes for the scaling benchmark",
+    )
     parser.add_argument("--port", type=int, default=None, help="Override the configured API port")
     parser.add_argument("--output", type=Path, default=None, help="Write the JSON report to this path")
     parser.add_argument("--threshold", type=float, default=DEFAULT_P95_THRESHOLD_MS, help="p95 gate in milliseconds")
     args = parser.parse_args()
-    if args.requests <= 0:
-        parser.error("--requests must be positive")
+    sizes = [args.requests] if args.requests is not None else list(args.sizes)
+    if not sizes or any(size <= 0 for size in sizes):
+        parser.error("benchmark sizes must be positive")
     if args.threshold <= 0:
         parser.error("--threshold must be positive")
 
-    endpoint, request_plan, config = _request_plan(args.domain, args.requests, args.port)
+    try:
+        endpoint, request_plan, config = _request_plan(args.domain, sizes[0], args.port)
+    except (RuntimeError, OSError, ValueError) as exc:
+        print(f"ERROR: Could not prepare benchmark: {exc}", file=sys.stderr)
+        return 1
     dsn = config.get("age_dsn") or os.environ.get("GRAPH_DSN") or os.environ.get("AGE_DSN")
-    graph = config.get("graph") or config.get("graph_name") or os.environ.get("GRAPH_NAME", "soc_graph")
+    graph = str(
+        config.get("graph")
+        or config.get("graph_name")
+        or os.environ.get("GRAPH_NAME", "soc_graph")
+    )
     if not dsn:
         parser.error("set GRAPH_DSN or AGE_DSN for graph-size and index checks")
 
     connection, cursor = _age_connection(dsn, graph)
     try:
         _verify_indexes(cursor)
-        query_plan = _explain_domain_query(cursor, graph)
-        latencies, errors = _run_requests(request_plan)
-        graph_size = _age_scalar(cursor, graph, "MATCH (d:Decision) RETURN count(d)")
+        query_plan = _explain_domain_query(cursor, graph, args.domain)
+        reports: list[dict[str, Any]] = []
+        for size in sizes:
+            _, requests, _ = _request_plan(args.domain, size, args.port)
+            latencies, errors = _run_requests(requests)
+            graph_size = _age_scalar(
+                cursor,
+                graph,
+                f"MATCH (d:Decision) WHERE d.domain = '{args.domain}' RETURN count(d)",
+            )
+            reports.append(
+                _build_report(
+                    args.domain,
+                    size,
+                    latencies,
+                    errors,
+                    graph_size,
+                    args.threshold,
+                    endpoint,
+                    query_plan,
+                )
+            )
     finally:
         connection.close()
 
-    report = _build_report(args.domain, args.requests, latencies, errors, graph_size, args.threshold, endpoint, query_plan)
+    first = reports[0]
+    p95_by_size = {str(item["requests"]): item["p95_ms"] for item in reports}
+    p95_500 = p95_by_size.get("500")
+    p95_2000 = p95_by_size.get("2000")
+    scaling_ratio = None
+    if p95_500 and p95_2000 is not None:
+        scaling_ratio = float(p95_2000) / float(p95_500)
+    report = {
+        **first,
+        "benchmarks": reports,
+        "requested_sizes": sizes,
+        "p95_by_size": p95_by_size,
+        "scaling_ratio_2000_to_500": scaling_ratio,
+        "no_on_resurgence": scaling_ratio is None or scaling_ratio <= 4.0,
+        "gate_status": "PASS"
+        if all(item["gate_status"] == "PASS" for item in reports)
+        and (scaling_ratio is None or scaling_ratio <= 4.0)
+        else "FAIL",
+    }
     print("AGE latency benchmark")
     print(f"  domain       {report['domain']}")
     print(f"  endpoint     {report['score_endpoint']}")
-    print(f"  requests     {report['total_requests']}")
+    print(f"  sizes        {', '.join(str(size) for size in sizes)}")
     print(f"  graph size   {report['graph_decision_count']}")
     print(f"  p50          {report['p50_ms']:.3f} ms")
     print(f"  p95          {report['p95_ms']:.3f} ms (threshold {args.threshold:.3f} ms)")
@@ -227,6 +289,7 @@ def main() -> int:
     print(f"  min/max      {report['min_ms']:.3f}/{report['max_ms']:.3f} ms")
     print(f"  errors       {report['error_count']}")
     print(f"  gate         {report['gate_status']}")
+    print(f"  O(N) check   {'PASS' if report['no_on_resurgence'] else 'FAIL'}")
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

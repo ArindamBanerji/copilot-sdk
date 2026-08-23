@@ -6,7 +6,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +103,7 @@ class CelonisConnector:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.get(f"{self.base_url}{endpoint}", params=params, headers=headers)
             response.raise_for_status()
-            return response.json()
+            return cast(dict[str, Any], response.json())
 
     def _load_cache_list(self, filename: str) -> list[dict[str, Any]]:
         payload = self._load_cache_dict(filename)

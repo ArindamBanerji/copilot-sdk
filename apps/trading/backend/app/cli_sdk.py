@@ -104,10 +104,12 @@ def _get_scorer(db_path: str | None = None) -> CompoundingScorer:
         db_path=path,
         dsn=config.dsn,
         graph_name=config.graph,
-        env={},
         test_mode=config.active_test_mode,
         shared_graph_authorization=config.authorized,
         profile=profile,
+        # The typed GraphConfig is authoritative for backend, DSN, and graph;
+        # pass the live environment through for factory-level domain guards.
+        env=os.environ,
     )
     return CompoundingScorer.from_preset(
         DOMAIN, db_path=path, graph_store=store, profile=profile

@@ -22,6 +22,9 @@ class TransferPattern:
     confidence: float
     created_at: float = field(default_factory=time.time)
     metadata: dict[str, Any] = field(default_factory=dict)
+    source_domain: str = ""
+    target_domain: str = ""
+    similarity_score: float = 0.0
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "pattern_id", str(self.pattern_id or ""))
@@ -38,6 +41,13 @@ class TransferPattern:
         object.__setattr__(self, "confidence", float(self.confidence))
         object.__setattr__(self, "created_at", float(self.created_at))
         object.__setattr__(self, "metadata", dict(self.metadata or {}))
+        object.__setattr__(self, "source_domain", str(self.source_domain or self.source_copilot))
+        object.__setattr__(self, "target_domain", str(self.target_domain or self.metadata.get("target_domain") or ""))
+        object.__setattr__(
+            self,
+            "similarity_score",
+            float(self.similarity_score or self.metadata.get("similarity_score") or self.confidence),
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -55,6 +65,9 @@ class TransferPattern:
             confidence=float(payload.get("confidence") or 0.0),
             created_at=float(payload.get("created_at") or time.time()),
             metadata=dict(payload.get("metadata") or {}),
+            source_domain=str(payload.get("source_domain") or payload.get("source_copilot") or ""),
+            target_domain=str(payload.get("target_domain") or ""),
+            similarity_score=float(payload.get("similarity_score") or payload.get("confidence") or 0.0),
         )
 
 

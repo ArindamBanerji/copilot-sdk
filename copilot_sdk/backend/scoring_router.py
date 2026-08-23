@@ -43,6 +43,19 @@ ENGINE = {
 log = logging.getLogger(__name__)
 
 
+def _require_graph_store(scorer: Any, domain: str) -> Any:
+    """Reject a scorer that cannot persist or read governed graph state."""
+    store = getattr(scorer, "graph_store", None)
+    if store is None:
+        store = getattr(scorer, "_graph_store", None)
+    if store is None:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Graph store unavailable for domain {domain!r}",
+        )
+    return store
+
+
 class ScoreRequest(BaseModel):
     category: str
     factors: dict[str, float] = Field(default_factory=dict)
@@ -138,7 +151,7 @@ def create_scoring_router(
     def get_scorer() -> Any:
         if "scorer" not in scorer_cache:
             try:
-                scorer_cache["scorer"] = (
+                scorer = (
                     scorer_factory()
                     if scorer_factory is not None
                     else CompoundingScorer.from_preset(
@@ -149,9 +162,11 @@ def create_scoring_router(
                 raise HTTPException(status_code=404, detail=str(exc)) from exc
             except Exception as exc:
                 raise HTTPException(
-                    status_code=500,
-                    detail=f"Could not initialize scorer for domain {domain!r}",
+                    status_code=503,
+                    detail=f"Graph store unavailable for domain {domain!r}: {exc}",
                 ) from exc
+            _require_graph_store(scorer, domain)
+            scorer_cache["scorer"] = scorer
         return scorer_cache["scorer"]
 
     async def load_stable_context(request: ScoreRequest) -> None:
@@ -200,6 +215,8 @@ def create_scoring_router(
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
+            except Exception as exc:
+                raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
             payload = _json_safe(result)
             payload["engine"] = ENGINE
             payload = _score_response_payload(payload)
@@ -248,6 +265,8 @@ def create_scoring_router(
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
+            except Exception as exc:
+                raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
 
             if outcome_recorder is not None:
                 outcome_recorder(

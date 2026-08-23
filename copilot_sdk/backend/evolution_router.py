@@ -50,9 +50,22 @@ def create_evolution_router(
     def _get_evolver() -> AgentEvolver | PromptVariantEvolver:
         if evolver_cache["evolver"] is None:
             if evolver_factory is not None:
-                evolver_cache["evolver"] = evolver_factory()
+                try:
+                    evolver_cache["evolver"] = evolver_factory()
+                except Exception as exc:
+                    raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
+                if evolver_cache["evolver"] is None:
+                    raise HTTPException(status_code=503, detail="Graph store unavailable")
             else:
-                graph_store = graph_store_factory() if graph_store_factory is not None else None
+                if graph_store_factory is not None:
+                    try:
+                        graph_store = graph_store_factory()
+                    except Exception as exc:
+                        raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
+                    if graph_store is None:
+                        raise HTTPException(status_code=503, detail="Graph store unavailable")
+                else:
+                    graph_store = None
                 ledger = InMemoryEvolutionLedger(evolution_store=graph_store, domain=domain)
                 evolver_cache["evolver"] = AgentEvolver(
                     ledger=ledger,
