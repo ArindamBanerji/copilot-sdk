@@ -4763,6 +4763,10 @@
     "mtime": 1779622020.4432704,
     "hash": "e73d60b6fb363bb3623bfe93e497eb18"
   },
+  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\trading\\l-cdk.spec.ts": {
+    "mtime": 1787495387.489189,
+    "hash": "59a575ca073d7ee7f0f85428ecb2be74"
+  },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\trading\\log-trade.spec.ts": {
     "mtime": 1782045815.6820498,
     "hash": "45b00063fec6b2381c018ac8722cc577"
@@ -4868,8 +4872,8 @@
     "hash": "159ce8c068527e88711aefbb670e3395"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\trading\\vol-analytics.spec.ts": {
-    "mtime": 1785597549.2847745,
-    "hash": "980b192dea4f62657847e2ccfc4a6269"
+    "mtime": 1787495374.4891362,
+    "hash": "acb4e6976032f20ddd5040865e004b25"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\trading\\volatility-scenarios.spec.ts": {
     "mtime": 1787120881.1720772,
@@ -5104,8 +5108,8 @@
     "hash": "7885168c175780dc3f9fa55865e4d01f"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\scripts\\benchmark_age_latency.py": {
-    "mtime": 1787433050.0997384,
-    "hash": "f7c1518a5917c821050ee379a6a2aae9"
+    "mtime": 1787437704.9007053,
+    "hash": "cb2af3fc1cbc249261c649faaaae6881"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\scripts\\c9_live_age_smoke.py": {
     "mtime": 1782381032.1164272,

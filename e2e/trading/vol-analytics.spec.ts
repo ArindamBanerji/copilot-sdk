@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, waitForAppShell } from "../helpers/ui";
+import { clickTab, expectAnyText, waitForAppShell } from "../helpers/ui";
 
 const BACKEND = process.env.TRADING_BACKEND || "http://127.0.0.1:8010";
 
@@ -69,4 +69,29 @@ test("V6 dispersion follow-rate panel renders", async ({ page }) => {
 test("V7 tail bets panel renders", async ({ page }) => {
   await gotoAnalysis(page);
   await expect(page.getByTestId("tail-bets-card")).toContainText(/Effective Bets in a Tail/i);
+});
+
+test("TRD-V1: clustering adjustment factor is visible", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Performance");
+  const panel = page.getByTestId("vol-short-panel");
+  await expect(panel).toBeVisible({ timeout: 20_000 });
+  await expect(panel).toContainText(/Clustering-adjusted Sharpe/i);
+  await expect(panel).toContainText(/Adjusted quality/i);
+});
+
+test("TRD-V1: tail-risk indicator is present", async ({ page }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Performance");
+  await expectAnyText(page, [/VRP \/ tail dependence/i, /Effective bets in tail/i], { timeout: 20_000 });
+});
+
+test("TRD-V1: short-vol illusion detection warning is shown", async ({ page }) => {
+  await gotoAnalysis(page);
+  const panel = page.getByTestId("volatility-panel");
+  await expect(panel).toBeVisible({ timeout: 20_000 });
+  await expect(panel).toContainText(/clustering adjustment/i);
+  await expect(panel).toContainText(/Diagnostic only|Observation/i);
 });
