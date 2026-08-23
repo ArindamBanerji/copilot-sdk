@@ -44,6 +44,7 @@ from .routers.delivery_router import create_delivery_router  # noqa: E402
 from .routers.discovery_router import create_discovery_router  # noqa: E402
 from .routers.economic_router import create_economic_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
+from .routers.learning_beats import create_learning_beats_router  # noqa: E402
 from .routers.event_router import create_event_router, reset_event_state  # noqa: E402
 from .routers.iks import create_iks_router  # noqa: E402
 from .routers.match import create_match_router  # noqa: E402
@@ -792,6 +793,7 @@ def create_app(
     context_router_module.set_evolution_store_factory(lambda: selected_graph_store_factory(scoring_db))
     app.include_router(context_router_module.router, prefix="/api/context")
     app.include_router(create_evidence_router(scorer_proxy))
+    app.include_router(create_learning_beats_router(scorer_proxy))
     app.include_router(create_iks_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_match_router(lambda: selected_graph_store_factory(scoring_db)))
     app.include_router(create_auto_order_router(auto_order_gate, scorer_proxy))

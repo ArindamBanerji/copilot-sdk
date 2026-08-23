@@ -15,7 +15,7 @@ from copilot_sdk.backend.transfer import (
     TransferDetector,
     load_fingerprints_with_warnings,
 )
-from copilot_sdk.backend.models import TransferListResponse
+from copilot_sdk.backend.models import TransferDemoResponse, TransferListResponse
 from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
 from copilot_sdk.transfer import TransferPattern
@@ -80,6 +80,30 @@ def create_transfer_router(
             "opportunities": opportunities,
             "warnings": warnings,
             "available_transfers": list_available_transfers(),
+        }
+
+    @router.get("/demo", response_model=TransferDemoResponse)
+    def transfer_demo(request: Request) -> dict[str, Any]:
+        """Project the first persisted transfer edge as a demo-ready finding."""
+        store = _graph_store(scorer)
+        if store is None or not callable(getattr(store, "get_transfer_patterns", None)):
+            raise HTTPException(status_code=503, detail="Graph store unavailable")
+        patterns = store.get_transfer_patterns()
+        if not patterns:
+            raise HTTPException(status_code=404, detail="No transfer pattern available")
+        pattern = TransferPattern.from_dict(dict(patterns[0])).to_dict()
+        source = str(pattern.get("source_domain") or pattern.get("source_copilot") or "")
+        target = str(pattern.get("target_domain") or "")
+        if not source or not target:
+            raise HTTPException(status_code=422, detail="Transfer pattern has incomplete domains")
+        impact = _pattern_dollar_impact(store, pattern, source, target)
+        return {
+            "source_domain": source,
+            "target_domain": target,
+            "pattern": pattern,
+            "dollar_impact": impact,
+            "currency": "USD",
+            "provenance": "live_graph_store",
         }
 
     @router.post("/execute")
@@ -173,6 +197,31 @@ def create_transfer_router(
         }
 
     return router
+
+
+def _pattern_dollar_impact(store: Any, pattern: dict[str, Any], source: str, target: str) -> float:
+    """Sum persisted financial impact for decisions represented by an edge."""
+    metadata = pattern.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    direct = metadata.get("dollar_impact")
+    if isinstance(direct, (int, float)):
+        return float(direct)
+    total = 0.0
+    for domain in (source, target):
+        try:
+            # GraphStore decision enumeration is domain-bound by protocol.
+            rows = store.get_all_decisions(domain)
+        except Exception:
+            continue
+        for row in rows if isinstance(rows, list) else []:
+            if not isinstance(row, dict):
+                continue
+            for key in ("dollar_impact", "financial_impact", "impact", "value"):
+                value = row.get(key)
+                if isinstance(value, (int, float)):
+                    total += float(value)
+                    break
+    return total
 
 
 def create_self_transfer_router(scorer: Any) -> APIRouter:

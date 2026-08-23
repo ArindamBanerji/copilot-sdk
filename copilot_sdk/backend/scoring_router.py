@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from copilot_sdk.backend.conservation_utils import compute_conservation_metrics
 from copilot_sdk.backend.diagnostics_models import build_diagnostics
 from copilot_sdk.backend.models import (
+    DiagnosticsResponse,
     FingerprintResponse,
     LearnResponse,
     MeasurementStateResponse,
@@ -351,7 +352,7 @@ def create_scoring_router(
             "engine": ENGINE,
         }
 
-    @router.get("/diagnostics")
+    @router.get("/diagnostics", response_model=DiagnosticsResponse)
     def diagnostics(request: Request) -> dict[str, Any]:
         try:
             extras: dict[str, Any] = {}

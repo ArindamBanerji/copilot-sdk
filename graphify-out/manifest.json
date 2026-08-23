@@ -780,8 +780,8 @@
     "hash": "fc4ff1e8f65561de4c3d7c80db5bf624"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\app\\main.py": {
-    "mtime": 1787318511.8790572,
-    "hash": "d9214e1dac885449b16da7dcf901f0a3"
+    "mtime": 1787497295.2511392,
+    "hash": "c2264a51fff98315942def3baa3fb654"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\app\\seed_graph.py": {
     "mtime": 1785155935.3430245,
@@ -910,6 +910,10 @@
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\app\\routers\\iks.py": {
     "mtime": 1785330185.9115179,
     "hash": "72b57eb3da70411232fd82a96312e6cd"
+  },
+  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\app\\routers\\learning_beats.py": {
+    "mtime": 1787497360.5501025,
+    "hash": "eb97f81675e144e5fcc91f203a946bce"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\app\\routers\\match.py": {
     "mtime": 1783821690.7054439,
@@ -1138,6 +1142,10 @@
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\tests\\test_iks_trust.py": {
     "mtime": 1783124066.3204696,
     "hash": "d8118c4d34a964b428c5d74c7777bcbb"
+  },
+  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\tests\\test_learning_beats.py": {
+    "mtime": 1787497363.983608,
+    "hash": "43b1168f93808bd4d084a11421bfa3a5"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\backend\\tests\\test_match_queue.py": {
     "mtime": 1782150178.6344342,
@@ -3032,12 +3040,12 @@
     "hash": "dfd076a6ddd720dccf6338c31d8d5cb7"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\copilot_sdk\\backend\\evolution_router.py": {
-    "mtime": 1787311643.7989461,
-    "hash": "778c275313f5298defe7bdfaea041a56"
+    "mtime": 1787497500.9198267,
+    "hash": "11732d97146fc444543be7fd2b0ab2c5"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\copilot_sdk\\backend\\models.py": {
-    "mtime": 1786255632.912669,
-    "hash": "f1f827e4218a231ab33d96bbf800cff9"
+    "mtime": 1787497492.185102,
+    "hash": "5f8663af280a89a600076bb37387dc53"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\copilot_sdk\\backend\\report_router.py": {
     "mtime": 1783118587.6258042,
@@ -3048,8 +3056,8 @@
     "hash": "a83feae76a48302647854beaf13910fb"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\copilot_sdk\\backend\\scoring_router.py": {
-    "mtime": 1787311632.219367,
-    "hash": "aaabc848101348b6dd1eda3824c5f8f2"
+    "mtime": 1787497496.821146,
+    "hash": "3cbfa497b0d332932c715cd71237e482"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\copilot_sdk\\backend\\self_computation_router.py": {
     "mtime": 1786791528.685182,
@@ -3060,8 +3068,8 @@
     "hash": "170ee1f9588941d2e8c4b15700674ee7"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\copilot_sdk\\backend\\transfer_router.py": {
-    "mtime": 1786255522.933414,
-    "hash": "c55511d38f8ac9d0e154f1f2357fecef"
+    "mtime": 1787497284.9103162,
+    "hash": "04751b57ea19a683c86828df852ed538"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\copilot_sdk\\backend\\__init__.py": {
     "mtime": 1784503640.6010363,

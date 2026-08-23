@@ -55,6 +55,17 @@ class TransferListResponse(FlexibleResponse):
     total: int
 
 
+class TransferDemoResponse(BaseModel):
+    """A live, domain-scoped cross-copilot transfer example."""
+
+    source_domain: str
+    target_domain: str
+    pattern: dict[str, Any]
+    dollar_impact: float
+    currency: str = "USD"
+    provenance: str = "live_graph_store"
+
+
 class ScoreResponse(FlexibleResponse):
     decision_id: str
     action: str
@@ -227,6 +238,24 @@ class EvolutionHistoryResponse(BaseModel):
 class EvolutionPromotedResponse(BaseModel):
     domain: str
     promoted: list[Any]
+
+
+class EvolutionOutcomeResponse(FlexibleResponse):
+    domain: str
+    decision_id: str
+    variant_id: str
+    success: bool
+    recorded: bool
+    stats: dict[str, Any] | None = None
+
+
+class EvolutionPromotionResponse(FlexibleResponse):
+    domain: str
+    promoted: bool
+    eligible: bool
+    blocked: bool
+    reason: str | None = None
+    result: dict[str, Any]
 
 
 class CheckpointQuality(BaseModel):

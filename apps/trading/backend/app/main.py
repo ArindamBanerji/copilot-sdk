@@ -51,6 +51,7 @@ from .routers.regime import create_regime_router  # noqa: E402
 from .routers.regime_analytics import create_regime_analytics_router  # noqa: E402
 from .routers.regime_router import create_regime_router as create_regime_classifier_router  # noqa: E402
 from .routers.regime_status import create_regime_status_router  # noqa: E402
+from .routers.regime_beats import create_regime_beats_router  # noqa: E402
 from .routers.situation_router import create_situation_router  # noqa: E402
 from .routers.social import create_social_router  # noqa: E402
 from .routers.vix_timing import create_vix_timing_router  # noqa: E402
@@ -587,6 +588,13 @@ def create_app(
     app.include_router(create_regime_classifier_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_regime_analytics_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_regime_status_router(regime_monitor))
+    app.include_router(
+        create_regime_beats_router(
+            lambda: selected_graph_store_factory(scoring_db),
+            domain=DOMAIN,
+            regime_monitor=regime_monitor,
+        )
+    )
     app.include_router(create_situation_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_social_router(scorer_proxy))
     app.include_router(create_vix_timing_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))

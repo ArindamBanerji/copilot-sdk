@@ -15,6 +15,8 @@ from copilot_sdk.evolution import (
     PromptVariantEvolver,
 )
 from copilot_sdk.backend.models import (
+    EvolutionOutcomeResponse,
+    EvolutionPromotionResponse,
     EvolutionSummaryResponse,
     EvolutionHistoryResponse,
     EvolutionPromotedResponse,
@@ -164,7 +166,7 @@ def create_evolution_router(
             **prompt_summary,
         }
 
-    @router.post("/record-outcome")
+    @router.post("/record-outcome", response_model=EvolutionOutcomeResponse)
     def record_outcome(request: EvolutionOutcomeRequest) -> dict[str, Any]:
         """Record one verified outcome against the app's live evolver."""
         evolver = _get_evolver()
@@ -187,7 +189,7 @@ def create_evolution_router(
             "stats": stats,
         }
 
-    @router.post("/check-promotion")
+    @router.post("/check-promotion", response_model=EvolutionPromotionResponse)
     def check_promotion(request: EvolutionPromotionRequest | None = None) -> dict[str, Any]:
         """Explicitly evaluate promotion using the evolver's live gate/provider."""
         evolver = _get_evolver()
