@@ -56,6 +56,7 @@ from .routers.situation_router import create_situation_router  # noqa: E402
 from .routers.social import create_social_router  # noqa: E402
 from .routers.vix_timing import create_vix_timing_router  # noqa: E402
 from .routers.volatility_router import create_volatility_router  # noqa: E402
+from .routers.volatility_beats import create_volatility_beats_router  # noqa: E402
 from .routers.webhook import create_webhook_router  # noqa: E402
 from .services.journal_query import JournalQueryService  # noqa: E402
 from .services.regime_monitor import RegimeMonitor  # noqa: E402
@@ -599,6 +600,7 @@ def create_app(
     app.include_router(create_social_router(scorer_proxy))
     app.include_router(create_vix_timing_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_volatility_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(create_volatility_beats_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(
         create_cohort_status_router(
             graph_store_factory=lambda: selected_graph_store_factory(scoring_db)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter
 
@@ -29,7 +29,7 @@ def create_regime_beats_router(
     router = APIRouter(prefix="/api/trading/regime", tags=["trading-situational-beats"])
 
     def decisions() -> list[dict[str, Any]]:
-        return _read_decisions(graph_store_factory, domain)
+        return cast(list[dict[str, Any]], _read_decisions(graph_store_factory, domain))
 
     @router.get("/mirror")
     def regime_mirror() -> dict[str, Any]:
@@ -128,5 +128,27 @@ def create_regime_beats_router(
             }
         )
         return result
+
+    @router.get("/reconvergenc")
+    @router.get("/reconvergence")
+    def regime_reconvergence() -> dict[str, Any]:
+        rows = decisions()
+        status = regime_monitor.status()
+        analytics = RegimeAnalytics().compute(rows)
+        return {
+            "current_regime": status.current_regime,
+            "previous_regime": status.previous_regime,
+            "regime_break_active": status.regime_break_active,
+            "decisions_in_new_regime": status.decisions_in_new_regime,
+            "decisions_to_stabilize": status.decisions_to_stabilize,
+            "remaining": max(0, status.decisions_to_stabilize - status.decisions_in_new_regime),
+            "historical_regime_breaks": analytics.get("regimes", {}),
+            "cold_start_curves": {
+                "reset": status.regime_break_active,
+                "observed_decisions": len(rows),
+            },
+            "observation_only": True,
+            "evidence_tier": "T_O" if rows else "T_S",
+        }
 
     return router

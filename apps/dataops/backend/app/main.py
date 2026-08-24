@@ -46,6 +46,7 @@ from .routers.di_enrichment_router import create_dataops_di_enrichment_router  #
 from .routers.perturbation_router import create_perturbation_router  # noqa: E402
 from .routers.trust_router import create_trust_router  # noqa: E402
 from .routers.di_gateway_router import create_di_gateway_router  # noqa: E402
+from .routers.di_demo_beats import create_di_demo_beats_router  # noqa: E402
 from .routers.regime_router import create_regime_router  # noqa: E402
 from .dataops_governance import DataOpsGovernance  # noqa: E402
 from .routers.governance_router import create_governance_router  # noqa: E402
@@ -742,6 +743,14 @@ def create_app(
             graph_store_provider=lambda: selected_graph_store,
         ),
         prefix="/api/di",
+    )
+    app.include_router(
+        create_di_demo_beats_router(
+            scorer_provider=lambda: scorer_proxy,
+            graph_store_provider=lambda: selected_graph_store,
+            governance_provider=lambda: app.state.dataops_governance,
+        ),
+        prefix="/api/dataops/di",
     )
     app.include_router(create_governance_router(app.state.dataops_governance))
     app.include_router(create_regime_router(lambda: scorer_proxy))
