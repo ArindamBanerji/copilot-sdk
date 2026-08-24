@@ -2,6 +2,8 @@ import { type Page } from "@playwright/test";
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
 
+const TRADING_API = "http://127.0.0.1:8010";
+
 async function fillTrade(page: Page) {
   await page.getByPlaceholder("MSFT").fill("MSFT");
   await page.getByRole("button", { name: "Lookup" }).click();
@@ -273,4 +275,96 @@ test("api self features render populated or empty states", async ({ page }) => {
   await waitForAppShell(page);
   await expectAnyText(page, [/Decision Explorer/i, /No decisions match these filters/i, /Confidence/i]);
   await expectAnyText(page, [/Audit Trail/i, /No audit trail available yet/i, /decision/i]);
+});
+
+test("TRD-S3 flow: regime break lowers authority before re-convergence", async ({ page, request }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Performance");
+  await expect(page.getByTestId("autonomy-throttle-panel")).toBeVisible();
+  const regime = await request.get(`${TRADING_API}/api/trading/situation/regime`);
+  expect(regime.status()).toBe(200);
+  expect((await regime.json()).conservationStatus).toBeDefined();
+  const reconvergence = await request.get(`${TRADING_API}/api/trading/regime/reconvergenc`);
+  expect(reconvergence.status()).toBe(200);
+  expect((await reconvergence.json()).cold_start_curves).toBeDefined();
+});
+
+test("TRD-V1 flow: clustering adjustment exposes tail-risk illusion", async ({ page, request }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Analysis");
+  await expect(page.getByTestId("vol-sharpe-card")).toBeVisible();
+  const response = await request.get(`${TRADING_API}/api/trading/vol/short-vol-illusion`);
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.clustering_adjustment_factor).toBeDefined();
+  expect(body.tail_risk_indicator).toBeDefined();
+  await expect(page.getByTestId("vol-sharpe-card")).toContainText(/Adjusted quality|clustering/i);
+});
+
+test("TRD-V2 flow: VRP distinguishes edge from insurance cost", async ({ page, request }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Analysis");
+  await expect(page.getByTestId("vrp-attribution-card")).toBeVisible();
+  const response = await request.get(`${TRADING_API}/api/trading/vol/vrp-edge`);
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.vrp_edge).toBeDefined();
+  expect(body.insurance_cost).toBeDefined();
+  await expect(page.getByTestId("vrp-classification")).toContainText(/Edge|Insurance|Neutral|Accumulating/i);
+});
+
+test("TRD-V5 flow: IV rich-cheap signal is conditioned on regime", async ({ page, request }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Analysis");
+  await expect(page.getByTestId("regime-vrp-card")).toBeVisible();
+  const response = await request.get(`${TRADING_API}/api/trading/vol/rich-cheap`);
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.current_regime).toBeDefined();
+  expect(body.iv_percentile ?? body.ivPercentile ?? body.band).toBeDefined();
+  await expect(page.getByTestId("regime-vrp-card")).toContainText(/Regime|Rich|Cheap|Awaiting/i);
+});
+
+test("TRD-V6 flow: dispersion signal records follow, skip, and impact", async ({ page, request }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Analysis");
+  await expect(page.getByTestId("dispersion-follow-card")).toBeVisible();
+  const response = await request.get(`${TRADING_API}/api/trading/vol/dispersion-follow`);
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.signals_fired ?? body.signalsFired).toBeDefined();
+  expect(body.followed ?? body.followRate).toBeDefined();
+  await expect(page.getByTestId("dispersion-follow-card")).toContainText(/Follow-rate|Observed impact|Awaiting/i);
+});
+
+test("TRD-V7 flow: positions reduce to effective independent bets", async ({ page, request }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Analysis");
+  await expect(page.getByTestId("tail-bets-card")).toBeVisible();
+  const response = await request.get(`${TRADING_API}/api/trading/vol/effective-bets`);
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.effective_bets).toBeDefined();
+  expect(body.nominal_bets ?? body.tail_decisions).toBeDefined();
+  await expect(page.getByTestId("tail-bets-card")).toContainText(/Effective bets|Tail decisions|Awaiting/i);
+});
+
+test("TRD-GATE-DIVIDEND flow: withheld findings become replayable impact", async ({ page, request }) => {
+  await page.goto("/");
+  await waitForAppShell(page);
+  await clickTab(page, "Performance");
+  await expect(page.getByTestId("gate-dividend-panel")).toBeVisible();
+  const gate = await request.get(`${TRADING_API}/api/trading/claim-gate`);
+  expect(gate.status()).toBe(200);
+  const body = await gate.json();
+  expect(body.withheld).toBeDefined();
+  expect(body.savedImpact).toBeDefined();
+  await clickTab(page, "Analysis");
+  await expect(page.getByTestId("claim-gate-badge")).toBeVisible();
 });

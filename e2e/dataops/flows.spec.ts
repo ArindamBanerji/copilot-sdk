@@ -33,6 +33,8 @@ function expectNoActionableConsoleErrors(errors: string[]) {
   expectNoConsoleErrors(filtered);
 }
 
+const DATAOPS_API = "http://127.0.0.1:8030";
+
 async function openFirstAlert(page: Page): Promise<boolean> {
   await page.goto("/");
   await waitForScreenReady(page);
@@ -514,4 +516,32 @@ test("OE-5 what-if shows impact change on reorder interaction", async ({ page })
 
   await expect(whatIf.getByText(/Estimated impact|No transformation graph available/i).first()).toBeVisible();
   await expect(whatIf.getByText(/impact|savings|min|Move steps to estimate impact|No transformation graph available/i).first()).toBeVisible();
+});
+
+test("DI-DIRTY-DATA flow: dashboard trust profile supports deploy-and-learn", async ({ page, request }) => {
+  await page.goto("/");
+  await waitForScreenReady(page);
+  await expect(page.getByTestId("trust-card")).toBeVisible();
+  const trust = await request.get(`${DATAOPS_API}/api/dataops/trust`);
+  expect(trust.status()).toBe(200);
+  const body = await trust.json();
+  expect(body.factors).toBeDefined();
+  expect(body.verifiedDecisions ?? body.verified_decisions).toBeDefined();
+  await expect(page.getByTestId("trust-card")).toContainText(/trust|Conservation|verified decisions/i);
+});
+
+test("DI-AGENT-TRUST flow: source trust becomes an autonomy license", async ({ page, request }) => {
+  await page.goto("/");
+  await waitForScreenReady(page);
+  await clickTab(page, "Insight");
+  await expect(page.getByTestId("source-profile-panel")).toBeVisible();
+  const sourceTrust = await request.get(`${DATAOPS_API}/api/di/sources/sap_s4hana/trust`);
+  expect(sourceTrust.status()).toBe(200);
+  const body = await sourceTrust.json();
+  expect(body.trust_score ?? body.trustScore ?? body.trust).toBeDefined();
+  await clickTab(page, "Evidence");
+  await expect(page.getByTestId("agent-trust-gateway-panel")).toBeVisible();
+  const gateway = await request.get(`${DATAOPS_API}/api/di/trust/verify`);
+  expect(gateway.status()).toBe(200);
+  expect((await gateway.json()).summary).toBeDefined();
 });

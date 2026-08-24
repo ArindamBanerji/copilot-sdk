@@ -1,4 +1,7 @@
 import { type Locator, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { test, expect } from "../fixtures/copilot-fixture";
 import { clickTab, collectConsoleErrors, expectAnyText, expectNoConsoleErrors, waitForAppShell } from "../helpers/ui";
 
@@ -39,6 +42,12 @@ async function gotoPerformance(page: Page) {
   await expectAnyText(page, [/Performance Summary/i, /Trajectory/i, /IKS/i]);
 }
 
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+
+async function readRepoFile(relativePath: string): Promise<string> {
+  return readFile(resolve(repoRoot, relativePath), "utf-8");
+}
+
 async function fillTrade(page: Page) {
   await page.getByPlaceholder("MSFT").fill("MSFT");
   await page.getByRole("button", { name: "Lookup" }).click();
@@ -61,6 +70,18 @@ test("Act 1 Dashboard: portfolio summary and category accuracy are visible", asy
   const accuracy = panelByHeading(page, "Accuracy by Category");
   await expect(accuracy).toBeVisible();
   await expectAnyText(page, [/SC-12/i, /category accuracy/i, /No category accuracy yet/i, /verified trading decisions/i]);
+});
+
+test("L-CDK flow: dashboard entry to scaffold and open-source developer path", async ({ page }) => {
+  await gotoDashboard(page);
+  await expectAnyText(page, [/Dashboard/i, /Portfolio Summary/i]);
+  const quickstart = await readRepoFile("docs/quickstart.md");
+  expect(quickstart).toMatch(/quickstart|install|scaffold/i);
+  const scenario = await readRepoFile("docs/design/product/demo_scenarios_and_usecases_v2_7.md");
+  expect(scenario).toMatch(/hello-gae/i);
+  expect(scenario).toMatch(/build-your-own/i);
+  const scaffold = await readRepoFile("copilot_sdk/scaffold/generator.py");
+  expect(scaffold).toMatch(/CopilotScaffold|open-source|developer/i);
 });
 
 test("Act 2 Log Trade: score/factor input workflow is visible", async ({ page }) => {
