@@ -43,6 +43,11 @@ age_smoke*.py
 # SQLite WAL/SHM
 *.db-shm
 *.db-wal
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Application runtime state (sample fixtures remain tracked)
+apps/*/backend/data/promotion_state.json
 
 # Codex temp
 .codex_tmp/
