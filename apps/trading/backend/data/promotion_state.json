@@ -1,0 +1,44 @@
+{
+  "trend_following": {
+    "accuracy_in_stage": 0.0,
+    "current_stage": "paper",
+    "decisions_in_stage": 0,
+    "demoted_at": "2026-08-24T20:54:29.656465+00:00",
+    "promoted_at": "2026-08-24T12:44:21.125194+00:00",
+    "promotion_history": [
+      {
+        "action": "promote",
+        "category": "trend_following",
+        "confirmed_by": "e2e",
+        "evidence": {
+          "accuracy_in_stage": 1.0,
+          "conservation_status": "GREEN",
+          "decisions_in_stage": 246,
+          "max_sizing_pct": 0.0,
+          "min_accuracy": 0.55,
+          "min_decisions": 50
+        },
+        "from_stage": "paper",
+        "timestamp": "2026-08-24T12:44:21.125194+00:00",
+        "to_stage": "small_live"
+      },
+      {
+        "action": "demote",
+        "category": "trend_following",
+        "evidence": {
+          "accuracy_in_stage": 0.0,
+          "conservation_status": "RED",
+          "decisions_in_stage": 0,
+          "max_sizing_pct": 2.0,
+          "min_accuracy": 0.58,
+          "min_decisions": 100
+        },
+        "from_stage": "small_live",
+        "reason": "conservation RED",
+        "timestamp": "2026-08-24T20:54:29.656465+00:00",
+        "to_stage": "paper"
+      }
+    ],
+    "stage_start_count": 0
+  }
+}

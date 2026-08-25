@@ -10,7 +10,6 @@ from copilot_sdk.substantiation import populate_default_registry
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
-NON_FIXTURE_JSON = {"phase3_cycle_checkpoint.json", "trading_migration_checkpoint.json"}
 EXPECTED_TRADING_CLAIMS = {
     "P49-regime",
     "P50-market-data",
@@ -24,10 +23,23 @@ EXPECTED_TRADING_CLAIMS = {
 }
 
 
+def _is_sample_fixture(data: object) -> bool:
+    """Classify payloads by schema, keeping runtime state out of fixture checks."""
+    if isinstance(data, list):
+        return bool(data) and all(
+            isinstance(record, dict) and record.get("provenance") == "sample"
+            for record in data
+        )
+    return isinstance(data, dict) and data.get("provenance") == "sample"
+
+
 def _fixture_paths() -> list[Path]:
-    return sorted(
-        path for path in DATA_DIR.glob("*.json") if path.name not in NON_FIXTURE_JSON
-    )
+    paths: list[Path] = []
+    for path in sorted(DATA_DIR.glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if _is_sample_fixture(data):
+            paths.append(path)
+    return paths
 
 
 def _load_fixture(path: Path):

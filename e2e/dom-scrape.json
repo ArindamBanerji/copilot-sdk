@@ -12,15 +12,7 @@
         },
         {
           "tag": "h2",
-          "text": "Industry Archetype"
-        },
-        {
-          "tag": "h3",
-          "text": "Financial Services"
-        },
-        {
-          "tag": "h2",
-          "text": "Measurement State"
+          "text": "Measurement state"
         },
         {
           "tag": "h2",
@@ -41,6 +33,10 @@
         {
           "tag": "h3",
           "text": "Performance by regime"
+        },
+        {
+          "tag": "h3",
+          "text": "ranging context"
         },
         {
           "tag": "h2",
@@ -73,14 +69,54 @@
       ],
       "testIds": [
         {
-          "testId": "transfer-badge",
+          "testId": "day-zero-card",
           "tag": "div",
-          "text": "Warm-started from s2p: 1 patterns"
+          "text": "V6 · DZ-1 · Day-zero honestyMeasurement stateTrading · instrument stateT_S1Instr"
         },
         {
-          "testId": "day-zero-card",
+          "testId": "day-zero-panel",
           "tag": "section",
-          "text": "Day-Zero HonestyMeasurement StateUnable to load measurement state.Retry"
+          "text": "V6 · DZ-1 · Day-zero honestyMeasurement stateTrading · instrument stateT_S1Instr"
+        },
+        {
+          "testId": "day-zero-evidence-tier",
+          "tag": "div",
+          "text": "T_S"
+        },
+        {
+          "testId": "measurement-step-instrument_validated",
+          "tag": "div",
+          "text": "1Instrument validated"
+        },
+        {
+          "testId": "measurement-step-accumulating",
+          "tag": "div",
+          "text": "2Accumulating"
+        },
+        {
+          "testId": "measurement-step-measured",
+          "tag": "div",
+          "text": "3Measured"
+        },
+        {
+          "testId": "day-zero-state-summary",
+          "tag": "div",
+          "text": "INSTRUMENT_VALIDATED0 verified decisions30 needed"
+        },
+        {
+          "testId": "day-zero-state",
+          "tag": "span",
+          "text": "INSTRUMENT_VALIDATED"
+        },
+        {
+          "testId": "day-zero-instrument-body",
+          "tag": "div",
+          "text": "The instrument is working. The proof is calibrating.Awaiting verified decisions "
+        },
+        {
+          "testId": "day-zero-caption",
+          "tag": "p",
+          "text": "Day one we don't hand you a fake ROI. We show the instrument working and the pro"
         },
         {
           "testId": "provenance-badge",
@@ -155,7 +191,32 @@
         {
           "testId": "regime-recommendation",
           "tag": "div",
-          "text": "Regime recommendationLoading recommendation..."
+          "text": "Regime observationLoading observation..."
+        },
+        {
+          "testId": "situation-judgment",
+          "tag": "div",
+          "text": "Situation-conditioned judgmentranging contextEvidence: INSUFFICIENTVIX: -ADX: -C"
+        },
+        {
+          "testId": "situation-regime",
+          "tag": "h3",
+          "text": "ranging context"
+        },
+        {
+          "testId": "situation-evidence-tier",
+          "tag": "span",
+          "text": "Evidence: INSUFFICIENT"
+        },
+        {
+          "testId": "situation-strategy-accuracy",
+          "tag": "div",
+          "text": "No verified strategy observations in this regime."
+        },
+        {
+          "testId": "situation-observation",
+          "tag": "p",
+          "text": "Observation: situation data is loading. No forward action is inferred."
         },
         {
           "testId": "data-trust-badge",
@@ -205,112 +266,102 @@
           "name": ""
         },
         {
-          "text": "Apply",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Retry",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-HoldopenR:R-ResearchConviction",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         }
@@ -319,15 +370,13 @@
       "visibleText": [
         "Trading Copilot",
         "Dashboard",
-        "Industry Archetype",
-        "Template",
-        "Financial Services",
-        "Measurement State",
+        "Measurement state",
         "Market Context",
         "Market Regime",
         "Situation-conditioned discipline",
         "90-day regime history",
         "Performance by regime",
+        "ranging context",
         "Portfolio Summary",
         "Portfolio Concentration",
         "Thesis Breakdown",
@@ -378,9 +427,14 @@
       ],
       "testIds": [
         {
+          "testId": "situational-abstention-banner",
+          "tag": "div",
+          "text": "TRD-S2 · regime evidence stateChecking regime evidence...0 decisions observed; m"
+        },
+        {
           "testId": "pre-score-panel",
           "tag": "section",
-          "text": "Pre-Trade ScorePreview the recommendation before recording a trade.Preview only "
+          "text": "Pre-Trade ScorePreview the historical observation before recording a trade.Previ"
         },
         {
           "testId": "pre-score-indicator",
@@ -483,216 +537,9 @@
         {
           "tag": "h1",
           "text": "Trading Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "Loading signal trust..."
-        },
-        {
-          "tag": "h2",
-          "text": "Market Regime"
-        },
-        {
-          "tag": "h3",
-          "text": "Situation-conditioned discipline"
-        },
-        {
-          "tag": "h3",
-          "text": "90-day regime history"
-        },
-        {
-          "tag": "h3",
-          "text": "Performance by regime"
-        },
-        {
-          "tag": "h2",
-          "text": "Volatility reality check"
-        },
-        {
-          "tag": "h2",
-          "text": "Scanning imported trades..."
-        },
-        {
-          "tag": "h2",
-          "text": "YOUR TWO SELVES"
-        },
-        {
-          "tag": "h2",
-          "text": "Profile pending"
-        },
-        {
-          "tag": "h2",
-          "text": "Fingerprint"
-        },
-        {
-          "tag": "h3",
-          "text": "YOUR EDGE"
-        },
-        {
-          "tag": "h3",
-          "text": "Moderate"
-        },
-        {
-          "tag": "h3",
-          "text": "Category Precision"
-        },
-        {
-          "tag": "h2",
-          "text": "Decision Explorer"
-        },
-        {
-          "tag": "h2",
-          "text": "Cross-Position Correlation"
-        },
-        {
-          "tag": "h2",
-          "text": "What If?"
-        },
-        {
-          "tag": "h2",
-          "text": "Day of Week"
-        },
-        {
-          "tag": "h2",
-          "text": "Research Impact"
-        },
-        {
-          "tag": "h2",
-          "text": "Regime Analysis"
-        },
-        {
-          "tag": "h2",
-          "text": "Risk Management"
-        },
-        {
-          "tag": "h2",
-          "text": "Rule Genealogy"
-        },
-        {
-          "tag": "h3",
-          "text": "Loading evolution lineage"
-        },
-        {
-          "tag": "h2",
-          "text": "Rule Lifecycle"
-        },
-        {
-          "tag": "h3",
-          "text": "Loading lifecycle"
         }
       ],
-      "testIds": [
-        {
-          "testId": "trust-radar-panel",
-          "tag": "section",
-          "text": "Signal Trust AnalysisLoading signal trust..."
-        },
-        {
-          "testId": "regime-panel",
-          "tag": "section",
-          "text": "Market contextMarket RegimeLoading market regime...Ranging marketConfidence-Vola"
-        },
-        {
-          "testId": "regime-badge",
-          "tag": "span",
-          "text": "Ranging market"
-        },
-        {
-          "testId": "regime-confidence",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "regime-hurst",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "situation-conditioned",
-          "tag": "div",
-          "text": "TRD-S1 / S2 / S3Situation-conditioned disciplineConservation -Illustrative demoL"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "Illustrative demo"
-        },
-        {
-          "testId": "situation-regime-trending",
-          "tag": "div",
-          "text": "trendingAccumulating0 decisions · 1x frequency"
-        },
-        {
-          "testId": "situation-regime-choppy",
-          "tag": "div",
-          "text": "choppyAccumulating0 decisions · 1x frequency"
-        },
-        {
-          "testId": "situation-regime-volatile",
-          "tag": "div",
-          "text": "volatileAccumulating0 decisions · 1x frequency"
-        },
-        {
-          "testId": "situation-abstention",
-          "tag": "div",
-          "text": "TRD-S2 situational abstentionChecking regime sufficiency..."
-        },
-        {
-          "testId": "situation-rejections",
-          "tag": "div",
-          "text": "TRD-S4 regime-scoped rejectionChecking rejected variants..."
-        },
-        {
-          "testId": "regime-history",
-          "tag": "div",
-          "text": "90-day regime history0 recordsHistory starts after the classifier records market"
-        },
-        {
-          "testId": "regime-performance",
-          "tag": "div",
-          "text": "Performance by regimeVerified outcomes grouped by category and market regime.Cur"
-        },
-        {
-          "testId": "regime-recommendation",
-          "tag": "div",
-          "text": "Regime recommendationLoading recommendation..."
-        },
-        {
-          "testId": "volatility-panel",
-          "tag": "section",
-          "text": "TRD-V1 / V2Volatility reality checkIllustrative demoCalm-regime Sharpe-Cluster-a"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "Illustrative demo"
-        },
-        {
-          "testId": "volatility-raw-sharpe",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "volatility-adjusted-sharpe",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "volatility-vrp-capture",
-          "tag": "div",
-          "text": "-"
-        },
-        {
-          "testId": "vol-analytics-grid",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "counterfactual-card",
-          "tag": "section",
-          "text": "What If?Calculating counterfactual..."
-        }
-      ],
+      "testIds": [],
       "buttons": [
         {
           "text": "Dashboard",
@@ -727,33 +574,7 @@
       ],
       "roleHeadings": [],
       "visibleText": [
-        "Trading Copilot",
-        "Loading signal trust...",
-        "Market Regime",
-        "Situation-conditioned discipline",
-        "90-day regime history",
-        "Performance by regime",
-        "Volatility reality check",
-        "Scanning imported trades...",
-        "YOUR TWO SELVES",
-        "Profile pending",
-        "Fingerprint",
-        "YOUR EDGE",
-        "Moderate",
-        "Category Precision",
-        "Decision Explorer",
-        "CategoryAll categories",
-        "Verified only",
-        "Cross-Position Correlation",
-        "What If?",
-        "Day of Week",
-        "Research Impact",
-        "Regime Analysis",
-        "Risk Management",
-        "Rule Genealogy",
-        "Loading evolution lineage",
-        "Rule Lifecycle",
-        "Loading lifecycle"
+        "Trading Copilot"
       ]
     },
     "Performance": {
@@ -880,364 +701,9 @@
         {
           "tag": "h1",
           "text": "Purchasing Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "Accumulating Evidence"
-        },
-        {
-          "tag": "h2",
-          "text": "Spend dashboard"
-        },
-        {
-          "tag": "h3",
-          "text": "Supplier spend"
-        },
-        {
-          "tag": "h3",
-          "text": "Cost per cover trend"
-        },
-        {
-          "tag": "h2",
-          "text": "Weather changes tomorrow's prep plan"
-        },
-        {
-          "tag": "h2",
-          "text": "Category price indices"
-        },
-        {
-          "tag": "h2",
-          "text": "Recommended par levels"
-        },
-        {
-          "tag": "h2",
-          "text": "Conservation-gated auto-ordering"
-        },
-        {
-          "tag": "h2",
-          "text": "Saturday"
-        },
-        {
-          "tag": "h2",
-          "text": "No event pressure"
-        },
-        {
-          "tag": "h2",
-          "text": "4 items need attention"
-        },
-        {
-          "tag": "h2",
-          "text": "Real inventory, ranked by reorder pressure"
-        },
-        {
-          "tag": "h3",
-          "text": "Avocados"
-        },
-        {
-          "tag": "h3",
-          "text": "Strawberries"
-        },
-        {
-          "tag": "h3",
-          "text": "Mixed Greens"
-        },
-        {
-          "tag": "h3",
-          "text": "Tomatoes"
-        },
-        {
-          "tag": "h2",
-          "text": "Historical waste is the signal"
-        },
-        {
-          "tag": "h2",
-          "text": "Items you are consistent on can be managed"
-        },
-        {
-          "tag": "h3",
-          "text": "Category accuracy alerts"
-        },
-        {
-          "tag": "h2",
-          "text": "Today's decisions"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Ground Beef"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Ground Beef"
-        },
-        {
-          "tag": "h3",
-          "text": "Ground Beef"
-        },
-        {
-          "tag": "h2",
-          "text": "Learned source reliability"
         }
       ],
-      "testIds": [
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "░░ External"
-        },
-        {
-          "testId": "day-zero-card",
-          "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating500 / 528 decisions2 of 0 arms "
-        },
-        {
-          "testId": "spend-summary-panel",
-          "tag": "section",
-          "text": "Food costSpend dashboardPeriod7 days14 days30 days90 daysNo price alertsTotal sp"
-        },
-        {
-          "testId": "spend-period-selector",
-          "tag": "select",
-          "text": "7 days14 days30 days90 days"
-        },
-        {
-          "testId": "price-alerts-badge",
-          "tag": "span",
-          "text": "No price alerts"
-        },
-        {
-          "testId": "spend-overview",
-          "tag": "div",
-          "text": "Total spend$0Orders0Avg order$0Cost per coverNo cover data"
-        },
-        {
-          "testId": "spend-categories",
-          "tag": "div",
-          "text": "Protein$0 (0.0%)Produce$0 (0.0%)Dairy$0 (0.0%)Dry Goods$0 (0.0%)Beverages$0 (0.0"
-        },
-        {
-          "testId": "price-alerts-list",
-          "tag": "details",
-          "text": "Price alert detailsInvoice prices are within rolling ranges."
-        },
-        {
-          "testId": "supplier-spend-breakdown",
-          "tag": "div",
-          "text": "Supplier spendTop 0 suppliers"
-        },
-        {
-          "testId": "cost-per-cover-trend",
-          "tag": "div",
-          "text": "Cost per cover trendNo cover dataNo cover data available"
-        },
-        {
-          "testId": "cost-per-cover-empty",
-          "tag": "p",
-          "text": "No cover data available"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "░░ External"
-        },
-        {
-          "testId": "commodity-price-panel",
-          "tag": "section",
-          "text": "Commodity pricesCategory price indicesIndex compares current commodity price to "
-        },
-        {
-          "testId": "commodity-provenance",
-          "tag": "div",
-          "text": "Commodity data: sample"
-        },
-        {
-          "testId": "commodity-index-card",
-          "tag": "div",
-          "text": "Protein→ 0.996near average"
-        },
-        {
-          "testId": "commodity-index-card",
-          "tag": "div",
-          "text": "Produce↓ 0.966below average"
-        },
-        {
-          "testId": "commodity-index-card",
-          "tag": "div",
-          "text": "Dairy→ 1.027near average"
-        },
-        {
-          "testId": "commodity-index-card",
-          "tag": "div",
-          "text": "Beverages→ 1.008near average"
-        },
-        {
-          "testId": "par-level-panel",
-          "tag": "section",
-          "text": "Par intelligenceRecommended par levelsQBO order history tuned for service level "
-        },
-        {
-          "testId": "par-level-summary",
-          "tag": "div",
-          "text": "Items analyzed0quickbooks_onlineAdjustments recommended0par level changesWeekly "
-        },
-        {
-          "testId": "auto-order-status",
-          "tag": "span",
-          "text": "Auto-ordering disabled"
-        },
-        {
-          "testId": "auto-order-toggle",
-          "tag": "button",
-          "text": "Enable auto-ordering"
-        },
-        {
-          "testId": "auto-order-stats",
-          "tag": "div",
-          "text": "Threshold90%Auto-ordered0Spot checks0Error rate0%"
-        },
-        {
-          "testId": "auto-order-history",
-          "tag": "div",
-          "text": "Recent auto-ordersLast 10No auto-ordered entries yet."
-        },
-        {
-          "testId": "transfer-badge",
-          "tag": "div",
-          "text": "Warm-started from trading: 1 patterns"
-        },
-        {
-          "testId": "data-trust-badge",
-          "tag": "section",
-          "text": "Data TrustLearned source reliabilityPurchasingPrice memory1.00Demand forecast0.0"
-        },
-        {
-          "testId": "data-trust-factors",
-          "tag": "div",
-          "text": "Price memory1.00Demand forecast0.01Event signal0.01Weather forecast0.00Day-of-we"
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Price memory1.00"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Demand forecast0.01"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Event signal0.01"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Weather forecast0.00"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-factor",
-          "tag": "div",
-          "text": "Day-of-week signal0.00"
-        },
-        {
-          "testId": "data-trust-bar",
-          "tag": "div",
-          "text": ""
-        },
-        {
-          "testId": "data-trust-contrast",
-          "tag": "p",
-          "text": "Highest 1.00 · Lowest 0.00 · Spread 1.00"
-        }
-      ],
+      "testIds": [],
       "buttons": [
         {
           "text": "Dashboard",
@@ -1263,167 +729,11 @@
           "text": "Performance",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "Enable auto-ordering",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Order",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Order",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Order",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Order",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Order Something Else",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Ground Beeforder as planned$1830.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/25/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/29/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/29/2026Ground Beeforder as planned$1830.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR6/29/2026Ground Beeforder as planned$1830.00",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
       "visibleText": [
-        "Purchasing Copilot",
-        "Accumulating Evidence",
-        "Spend dashboard",
-        "Period7 days14 days30 days90 days",
-        "Price alert details",
-        "Supplier spend",
-        "Cost per cover trend",
-        "Weather changes tomorrow's prep plan",
-        "Category price indices",
-        "Recommended par levels",
-        "Conservation-gated auto-ordering",
-        "Saturday",
-        "No event pressure",
-        "4 items need attention",
-        "Real inventory, ranked by reorder pressure",
-        "Avocados",
-        "Strawberries",
-        "Mixed Greens",
-        "Tomatoes",
-        "Historical waste is the signal",
-        "Items you are consistent on can be managed",
-        "Category accuracy alerts",
-        "Today's decisions",
-        "Order",
-        "Chicken Breast",
-        "Ground Beef",
-        "Learned source reliability"
+        "Purchasing Copilot"
       ]
     },
     "Order": {
@@ -1431,87 +741,9 @@
         {
           "tag": "h1",
           "text": "Purchasing Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "Prioritized supplier orders"
-        },
-        {
-          "tag": "h1",
-          "text": "Score the next purchase"
-        },
-        {
-          "tag": "h2",
-          "text": "Order, receipt, and invoice checks"
-        },
-        {
-          "tag": "h2",
-          "text": "Tomorrow's order is mostly inventory history"
-        },
-        {
-          "tag": "h2",
-          "text": "Saturday"
-        },
-        {
-          "tag": "h2",
-          "text": "No event pressure"
-        },
-        {
-          "tag": "h2",
-          "text": "Stockout costs far more than waste"
-        },
-        {
-          "tag": "h2",
-          "text": "Seven scorer inputs"
         }
       ],
-      "testIds": [
-        {
-          "testId": "order-queue-panel",
-          "tag": "section",
-          "text": "Order queuePrioritized supplier ordersPending orders0High priority0ConservationG"
-        },
-        {
-          "testId": "queue-summary",
-          "tag": "div",
-          "text": "Pending orders0High priority0ConservationGREEN"
-        },
-        {
-          "testId": "queue-table",
-          "tag": "div",
-          "text": "No pending orders in the queue."
-        },
-        {
-          "testId": "order-item-select",
-          "tag": "select",
-          "text": "Chicken BreastGround BeefSalmon FilletPork ChopsTofu BlocksMixed GreensTomatoesA"
-        },
-        {
-          "testId": "match-queue-summary",
-          "tag": "div",
-          "text": "Pending matches0Auto-matched1Needs review0"
-        },
-        {
-          "testId": "match-results-table",
-          "tag": "div",
-          "text": "DEMO-MATCH-1Demo SupplierChickenFull Match100%$1,000No discrepancies found."
-        },
-        {
-          "testId": "match-result-row",
-          "tag": "details",
-          "text": "DEMO-MATCH-1Demo SupplierChickenFull Match100%$1,000No discrepancies found."
-        },
-        {
-          "testId": "match-confidence",
-          "tag": "span",
-          "text": "100%"
-        },
-        {
-          "testId": "match-discrepancies",
-          "tag": "div",
-          "text": "No discrepancies found."
-        }
-      ],
+      "testIds": [],
       "buttons": [
         {
           "text": "Dashboard",
@@ -1537,27 +769,11 @@
           "text": "Performance",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "Score This Order",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
       "visibleText": [
-        "Purchasing Copilot",
-        "Prioritized supplier orders",
-        "Score the next purchase",
-        "Whether They Show UpHighAbove averageAverageBelow averageLow",
-        "Quantity",
-        "Order, receipt, and invoice checks",
-        "DEMO-MATCH-1Demo SupplierChickenFull Match100%$1,000",
-        "Tomorrow's order is mostly inventory history",
-        "Saturday",
-        "No event pressure",
-        "Stockout costs far more than waste",
-        "Seven scorer inputs"
+        "Purchasing Copilot"
       ]
     },
     "Analysis": {
@@ -1565,282 +781,9 @@
         {
           "tag": "h1",
           "text": "Purchasing Copilot"
-        },
-        {
-          "tag": "h1",
-          "text": "The system learns which kitchen signals deserve trust"
-        },
-        {
-          "tag": "h1",
-          "text": "YOUR TWO SELVES"
-        },
-        {
-          "tag": "h2",
-          "text": "THE HISTORIAN"
-        },
-        {
-          "tag": "h2",
-          "text": "Fingerprint"
-        },
-        {
-          "tag": "h3",
-          "text": "YOUR SIGNAL"
-        },
-        {
-          "tag": "h3",
-          "text": "YOUR BLIND SPOTS"
-        },
-        {
-          "tag": "h3",
-          "text": "Purchasing decision history"
-        },
-        {
-          "tag": "h2",
-          "text": "Apply AE Friday produce rule"
-        },
-        {
-          "tag": "h2",
-          "text": "Where ordering is consistent"
-        },
-        {
-          "tag": "h2",
-          "text": "Friday is the stress test"
-        },
-        {
-          "tag": "h2",
-          "text": "Events create under-ordering risk"
-        },
-        {
-          "tag": "h2",
-          "text": "Weekly patterns across the kitchen"
-        },
-        {
-          "tag": "h2",
-          "text": "The cost leak is concentrated"
-        },
-        {
-          "tag": "h2",
-          "text": "Know which dishes deserve attention"
-        },
-        {
-          "tag": "h3",
-          "text": "Puzzles"
-        },
-        {
-          "tag": "h3",
-          "text": "Stars"
-        },
-        {
-          "tag": "h3",
-          "text": "Dogs"
-        },
-        {
-          "tag": "h3",
-          "text": "Plows"
         }
       ],
-      "testIds": [
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "██ Learned"
-        },
-        {
-          "testId": "trust-radar-panel",
-          "tag": "section",
-          "text": "Trust radarThe system learns which kitchen signals deserve trustDK trust weights"
-        },
-        {
-          "testId": "trust-radar-chart",
-          "tag": "svg",
-          "text": "Whether They Show UpWhat the Calendar SaysWhat the Weather SaysWhat Events Chang"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProteinYou rely on Whether They Show Up but the system learned What the Calendar"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProduceYou rely on Whether They Show Up but the system learned What the Calendar"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProduceYou rely on Whether They Show Up but the system learned What the Weather "
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "DairyYou rely on Whether They Show Up but the system learned What the Calendar S"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "DairyYou rely on Whether They Show Up but the system learned What the Weather Sa"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "Dry_goodsYou rely on Whether They Show Up but the system learned What the Calend"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "Dry_goodsYou rely on Whether They Show Up but the system learned What the Weathe"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "BeveragesYou rely on Whether They Show Up but the system learned What the Calend"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "BeveragesYou rely on Whether They Show Up but the system learned What the Weathe"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProteinYou rely on Whether They Show Up but the system learned What Events Chang"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProduceYou rely on Whether They Show Up but the system learned What Events Chang"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "DairyYou rely on Whether They Show Up but the system learned What Events Change "
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "Dry_goodsYou rely on Whether They Show Up but the system learned What Events Cha"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "BeveragesYou rely on Whether They Show Up but the system learned What Events Cha"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProteinYou rely on Whether They Show Up but the system learned When It Shows Up "
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProduceYou rely on Whether They Show Up but the system learned When It Shows Up "
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "DairyYou rely on Whether They Show Up but the system learned When It Shows Up ma"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "Dry_goodsYou rely on Whether They Show Up but the system learned When It Shows U"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "BeveragesYou rely on Whether They Show Up but the system learned When It Shows U"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProteinYou rely on Whether They Show Up but the system learned What Gets Thrown "
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProduceYou rely on Whether They Show Up but the system learned What Gets Thrown "
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "DairyYou rely on Whether They Show Up but the system learned What Gets Thrown Aw"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "Dry_goodsYou rely on Whether They Show Up but the system learned What Gets Throw"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "BeveragesYou rely on Whether They Show Up but the system learned What Gets Throw"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProteinYou rely on Whether They Show Up but the system learned Whether They Show"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProteinYou rely on Whether They Show Up but the system learned What They Used to"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProduceYou rely on Whether They Show Up but the system learned Whether They Show"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "ProduceYou rely on Whether They Show Up but the system learned What They Used to"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "DairyYou rely on Whether They Show Up but the system learned Whether They Show U"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "DairyYou rely on Whether They Show Up but the system learned What They Used to C"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "Dry_goodsYou rely on Whether They Show Up but the system learned Whether They Sh"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "Dry_goodsYou rely on Whether They Show Up but the system learned What They Used "
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "BeveragesYou rely on Whether They Show Up but the system learned Whether They Sh"
-        },
-        {
-          "testId": "trust-insight-card",
-          "tag": "article",
-          "text": "BeveragesYou rely on Whether They Show Up but the system learned What They Used "
-        },
-        {
-          "testId": "contrast-card",
-          "tag": "section",
-          "text": "Contrast cardYOUR TWO SELVESSame owner. Different outcome when the fingerprint i"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Unlabeled"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        }
-      ],
+      "testIds": [],
       "buttons": [
         {
           "text": "Dashboard",
@@ -1866,315 +809,11 @@
           "text": "Performance",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "Protein",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Produce",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Dairy",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Dry Goods",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Beverages",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c004e44c57aa",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-cdc866c04239",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-3a7b54fc3517",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c58558fa8b77",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-592576892420",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-24866af70ec2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-38f39b11b689",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-dfe1d8e3cc0a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-fb1f93e735c8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-aed093bf2a20",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-3a65f2b3570f",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b415e37af437",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7f77f00bc709",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8fba034f074d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-061cef8bb1d1",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-59de0045dfe1",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8b52b85a414a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e74969347fc8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7fdbce3c102c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e7b797df9149",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e34296122d32",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-42b3c1aee8db",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-03cfafee84a5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-391d88c77feb",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-a99035e35e57",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e51bba0c9e63",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-f01b06df38fb",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-31c127fc29eb",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-d8f000f65ac2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-2a73ad14933a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-961e9a381763",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-0c48e73fa89a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ab9f6f8b70f1",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7a8d335e68bf",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-447907de442f",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-55e109a91a90",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-47d10266de37",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-97bc16a199cb",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-a8d5d4ab1440",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-49860503794d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-379729066159",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-48656391dc8c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-bf422b7c2a63",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e579274daaa5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-2fcf7179e71c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-79a07c298b44",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-599b3490a562",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ce2b6b8a29c3",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-cf4e78d80489",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-4e66ee4f80de",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
       "visibleText": [
-        "Purchasing Copilot",
-        "The system learns which kitchen signals deserve trust",
-        "YOUR TWO SELVES",
-        "THE HISTORIAN",
-        "Fingerprint",
-        "YOUR SIGNAL",
-        "YOUR BLIND SPOTS",
-        "Purchasing decision history",
-        "verified only",
-        "Decision",
-        "Category",
-        "Action",
-        "Confidence",
-        "Verified",
-        "Apply AE Friday produce rule",
-        "Where ordering is consistent",
-        "Friday is the stress test",
-        "Events create under-ordering risk",
-        "Weekly patterns across the kitchen",
-        "The cost leak is concentrated",
-        "Know which dishes deserve attention",
-        "Puzzles",
-        "Stars",
-        "Dogs",
-        "Plows",
-        "Item",
-        "Price",
-        "Food cost",
-        "Margin",
-        "Class"
+        "Purchasing Copilot"
       ]
     },
     "Inventory": {
@@ -2182,224 +821,9 @@
         {
           "tag": "h1",
           "text": "Purchasing Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "System Improvements"
-        },
-        {
-          "tag": "h3",
-          "text": "WASTE_THRESHOLD_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "WASTE_THRESHOLD_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "LEAD_TIME_BUFFER_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "LEAD_TIME_BUFFER_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "ORDER_QUANTITY_THRESHOLD_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "ORDER_QUANTITY_THRESHOLD_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "WEATHER_SENSITIVITY_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "WEATHER_SENSITIVITY_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "EVENT_LEAD_TIME_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "EVENT_LEAD_TIME_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "PRICE_MEMORY_ALERT_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "PRICE_MEMORY_ALERT_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "variant-bc143356d053"
-        },
-        {
-          "tag": "h3",
-          "text": "variant-99ad88ebb4d8"
-        },
-        {
-          "tag": "h3",
-          "text": "variant-bb32a302714a"
-        },
-        {
-          "tag": "h3",
-          "text": "Purchasing rule lineage"
-        },
-        {
-          "tag": "h4",
-          "text": "WASTE_THRESHOLD_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "WASTE_THRESHOLD_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "LEAD_TIME_BUFFER_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "Rule promotion states"
-        },
-        {
-          "tag": "h4",
-          "text": "WASTE_THRESHOLD_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "WASTE_THRESHOLD_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "LEAD_TIME_BUFFER_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "LEAD_TIME_BUFFER_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "ORDER_QUANTITY_THRESHOLD_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "ORDER_QUANTITY_THRESHOLD_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "WEATHER_SENSITIVITY_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "WEATHER_SENSITIVITY_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "EVENT_LEAD_TIME_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "EVENT_LEAD_TIME_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "PRICE_MEMORY_ALERT_v1"
-        },
-        {
-          "tag": "h4",
-          "text": "PRICE_MEMORY_ALERT_v2"
-        },
-        {
-          "tag": "h4",
-          "text": "variant-bc143356d053"
-        },
-        {
-          "tag": "h4",
-          "text": "variant-99ad88ebb4d8"
-        },
-        {
-          "tag": "h4",
-          "text": "variant-bb32a302714a"
-        },
-        {
-          "tag": "h3",
-          "text": "Decision to outcome chain"
-        },
-        {
-          "tag": "h2",
-          "text": "Stop ordering Tuesday like Friday"
-        },
-        {
-          "tag": "h2",
-          "text": "Plan the next catering rush before service"
-        },
-        {
-          "tag": "h2",
-          "text": "Know who arrives before the rush"
-        },
-        {
-          "tag": "h1",
-          "text": "Waste pattern by category"
-        },
-        {
-          "tag": "h2",
-          "text": "protein"
-        },
-        {
-          "tag": "h2",
-          "text": "produce"
-        },
-        {
-          "tag": "h2",
-          "text": "dairy"
-        },
-        {
-          "tag": "h2",
-          "text": "dry goods"
-        },
-        {
-          "tag": "h2",
-          "text": "beverages"
         }
       ],
-      "testIds": [
-        {
-          "testId": "rule-genealogy-panel",
-          "tag": "section",
-          "text": "SC-13 Rule GenealogyPurchasing rule lineagestep 1WASTE_THRESHOLD_v1Current food-"
-        },
-        {
-          "testId": "rule-lifecycle-panel",
-          "tag": "section",
-          "text": "SC-15 Rule LifecycleRule promotion statesWASTE_THRESHOLD_v1Current food-service "
-        },
-        {
-          "testId": "supplier-loading",
-          "tag": "section",
-          "text": "Loading supplier intelligence..."
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        }
-      ],
+      "testIds": [],
       "buttons": [
         {
           "text": "Dashboard",
@@ -2425,244 +849,11 @@
           "text": "Performance",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "PUR-cdc866c04239decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-3a7b54fc3517decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c58558fa8b77decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-24866af70ec2decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-38f39b11b689decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-dfe1d8e3cc0adecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b415e37af437decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7f77f00bc709decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-061cef8bb1d1decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8b52b85a414adecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e74969347fc8decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7fdbce3c102cdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e7b797df9149decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-03cfafee84a5decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-391d88c77febdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-f01b06df38fbdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-31c127fc29ebdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-2a73ad14933adecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-0c48e73fa89adecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ab9f6f8b70f1decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRChicken BreastproteinManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRGround BeefproteinManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRSalmon FilletproteinManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRPork ChopsproteinManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRTofu BlocksproteinManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRTurkey SlicesproteinManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PDMixed GreensproduceManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PDTomatoesproduceManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PDAvocadosproduceManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PDStrawberriesproduceManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PDBananasproduceManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DYWhole MilkdairyManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DYGreek YogurtdairyManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DYShredded CheesedairyManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DGRice Bagsdry_goodsManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DGPasta Casesdry_goodsManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DGFlour Sacksdry_goodsManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "BVCold BrewbeveragesManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "BVOrange JuicebeveragesManual",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "BVSparkling WaterbeveragesManual",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
       "visibleText": [
-        "Purchasing Copilot",
-        "System Improvements",
-        "WASTE_THRESHOLD_v1",
-        "WASTE_THRESHOLD_v2",
-        "LEAD_TIME_BUFFER_v1",
-        "LEAD_TIME_BUFFER_v2",
-        "ORDER_QUANTITY_THRESHOLD_v1",
-        "ORDER_QUANTITY_THRESHOLD_v2",
-        "WEATHER_SENSITIVITY_v1",
-        "WEATHER_SENSITIVITY_v2",
-        "EVENT_LEAD_TIME_v1",
-        "EVENT_LEAD_TIME_v2",
-        "PRICE_MEMORY_ALERT_v1",
-        "PRICE_MEMORY_ALERT_v2",
-        "variant-bc143356d053",
-        "variant-99ad88ebb4d8",
-        "variant-bb32a302714a",
-        "Purchasing rule lineage",
-        "Rule promotion states",
-        "Decision to outcome chain",
-        "Stop ordering Tuesday like Friday",
-        "Plan the next catering rush before service",
-        "Guest count",
-        "CuisineMixedAmericanItalian",
-        "Category",
-        "Quantity",
-        "Est cost",
-        "Know who arrives before the rush",
-        "Waste pattern by category",
-        "protein",
-        "produce",
-        "dairy",
-        "dry goods",
-        "beverages"
+        "Purchasing Copilot"
       ]
     },
     "Performance": {
@@ -2670,312 +861,9 @@
         {
           "tag": "h1",
           "text": "Purchasing Copilot"
-        },
-        {
-          "tag": "h1",
-          "text": "20 orders to learn what takes 11 years of gut instinct."
-        },
-        {
-          "tag": "h2",
-          "text": "Downtown discipline becomes the baseline for all four"
-        },
-        {
-          "tag": "h2",
-          "text": "Year 1: $180,000 savings at current pace"
-        },
-        {
-          "tag": "h3",
-          "text": "Where savings came from"
-        },
-        {
-          "tag": "h3",
-          "text": "This week"
-        },
-        {
-          "tag": "h3",
-          "text": "Bank proof"
-        },
-        {
-          "tag": "h2",
-          "text": "Supply Disruption Recovery"
-        },
-        {
-          "tag": "h2",
-          "text": "Payment Timing Intelligence"
-        },
-        {
-          "tag": "h2",
-          "text": "Audit & Compliance Pack"
-        },
-        {
-          "tag": "h2",
-          "text": "Your Chicago team's experience helps Miami"
-        },
-        {
-          "tag": "h3",
-          "text": "Transfer opportunity"
-        },
-        {
-          "tag": "h3",
-          "text": "Purchasing power"
-        },
-        {
-          "tag": "h2",
-          "text": "What needs a manager today"
-        },
-        {
-          "tag": "h2",
-          "text": "Your system knows 73% of patterns"
-        },
-        {
-          "tag": "h2",
-          "text": "Cohort measurement readiness"
-        },
-        {
-          "tag": "h2",
-          "text": "Supplier reliability and price trend"
-        },
-        {
-          "tag": "h2",
-          "text": "Trajectory"
-        },
-        {
-          "tag": "h2",
-          "text": "Automation Projection"
-        },
-        {
-          "tag": "h3",
-          "text": "Learning centroid timeline"
-        },
-        {
-          "tag": "h2",
-          "text": "Waste and stockouts are now measurable"
-        },
-        {
-          "tag": "h2",
-          "text": "The cost leak is concentrated"
-        },
-        {
-          "tag": "h2",
-          "text": "Prep waste has a dollar target"
-        },
-        {
-          "tag": "h2",
-          "text": "Where ordering is consistent"
         }
       ],
-      "testIds": [
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        },
-        {
-          "testId": "economic-dashboard-card",
-          "tag": "section",
-          "text": "ROI DashboardYear 1: $180,000 savings at current paceSample dataMonth target$9,6"
-        },
-        {
-          "testId": "group-dashboard-card",
-          "tag": "section",
-          "text": "Chain IntelligenceYour Chicago team's experience helps MiamiSample dataGroup acc"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        },
-        {
-          "testId": "iks-tracker-panel",
-          "tag": "section",
-          "text": "Institutional knowledgeYour system knows 73% of patternsIKS is computed from ver"
-        },
-        {
-          "testId": "iks-gauge",
-          "tag": "div",
-          "text": "73%"
-        },
-        {
-          "testId": "cohort-status-panel",
-          "tag": "section",
-          "text": "Purchasing Measurement StatusCohort measurement readinessMeasurement readyLoadin"
-        },
-        {
-          "testId": "cohort-status-state",
-          "tag": "span",
-          "text": "Measurement ready"
-        },
-        {
-          "testId": "cohort-status-instrument",
-          "tag": "section",
-          "text": "T-O instrumentInstrument: Validated. The measurement instrument is validated and"
-        },
-        {
-          "testId": "cohort-status-real",
-          "tag": "section",
-          "text": "T-R real measurementThe measurement instrument is validated and running. Context"
-        },
-        {
-          "testId": "cohort-status-progress",
-          "tag": "p",
-          "text": "0/30 shown, 0/30 control"
-        },
-        {
-          "testId": "supplier-scorecard-panel",
-          "tag": "section",
-          "text": "Supplier scorecardsSupplier reliability and price trendQBO order history plus ve"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        }
-      ],
+      "testIds": [],
       "buttons": [
         {
           "text": "Dashboard",
@@ -3001,70 +889,11 @@
           "text": "Performance",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "Validate",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Dry run transfer",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Transfer Now",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
       "visibleText": [
-        "Purchasing Copilot",
-        "20 orders to learn what takes 11 years of gut instinct.",
-        "Downtown discipline becomes the baseline for all four",
-        "Year 1: $180,000 savings at current pace",
-        "Where savings came from",
-        "This week",
-        "Bank proof",
-        "Supply Disruption Recovery",
-        "Payment Timing Intelligence",
-        "Audit & Compliance Pack",
-        "Your Chicago team's experience helps Miami",
-        "Location",
-        "Decisions",
-        "Accuracy",
-        "Food cost",
-        "Learning",
-        "Transfer opportunity",
-        "Purchasing power",
-        "What needs a manager today",
-        "Your system knows 73% of patterns",
-        "Cohort measurement readiness",
-        "Supplier reliability and price trend",
-        "Supplier",
-        "Tier",
-        "On-time",
-        "Price trend",
-        "Exceptions",
-        "Summary",
-        "improving",
-        "stable",
-        "declining",
-        "Trajectory",
-        "Switching cost",
-        "Automation Projection",
-        "Learning centroid timeline",
-        "Waste and stockouts are now measurable",
-        "The cost leak is concentrated",
-        "Prep waste has a dollar target",
-        "Item",
-        "Waste",
-        "Kitchen benchmark",
-        "Trend",
-        "Cost",
-        "Recommendation",
-        "Where ordering is consistent"
+        "Purchasing Copilot"
       ]
     }
   },
@@ -3074,290 +903,9 @@
         {
           "tag": "h1",
           "text": "DataOps Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "Process-Tech Fusion"
-        },
-        {
-          "tag": "h2",
-          "text": "Enterprise Systems Integration"
-        },
-        {
-          "tag": "h2",
-          "text": "Measurement state"
-        },
-        {
-          "tag": "h2",
-          "text": "Pipeline Status"
-        },
-        {
-          "tag": "h3",
-          "text": "Billing API"
-        },
-        {
-          "tag": "h3",
-          "text": "CRM Sync"
-        },
-        {
-          "tag": "h3",
-          "text": "ERP Export"
-        },
-        {
-          "tag": "h3",
-          "text": "HR Feed"
-        },
-        {
-          "tag": "h3",
-          "text": "Inventory Feed"
-        },
-        {
-          "tag": "h3",
-          "text": "IoT Sensors"
-        },
-        {
-          "tag": "h3",
-          "text": "Marketing DB"
-        },
-        {
-          "tag": "h3",
-          "text": "Payment Gateway"
-        },
-        {
-          "tag": "h3",
-          "text": "Warehouse ETL"
-        },
-        {
-          "tag": "h2",
-          "text": "AgentEvolver Impact"
-        },
-        {
-          "tag": "h2",
-          "text": "Source reliability"
-        },
-        {
-          "tag": "h2",
-          "text": "Data Products"
-        },
-        {
-          "tag": "h3",
-          "text": "Customer 360"
-        },
-        {
-          "tag": "h3",
-          "text": "Operations Health"
-        },
-        {
-          "tag": "h3",
-          "text": "Alert Intelligence"
-        },
-        {
-          "tag": "h2",
-          "text": "Tire Procure-to-Pay Flow"
-        },
-        {
-          "tag": "h3",
-          "text": "Create Purchase Requisition"
-        },
-        {
-          "tag": "h3",
-          "text": "Approve Purchase Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Match Invoice to GR"
-        },
-        {
-          "tag": "h3",
-          "text": "Process Payment"
-        },
-        {
-          "tag": "h2",
-          "text": "Alert Root Causes"
-        },
-        {
-          "tag": "h2",
-          "text": "Conservation"
-        },
-        {
-          "tag": "h2",
-          "text": "Automation Projection"
-        },
-        {
-          "tag": "h2",
-          "text": "Conservation Timeline"
-        },
-        {
-          "tag": "h2",
-          "text": "Accuracy Alerts"
-        },
-        {
-          "tag": "h2",
-          "text": "Ask Your Data"
         }
       ],
-      "testIds": [
-        {
-          "testId": "enterprise-health",
-          "tag": "section",
-          "text": "Enterprise HealthProcess-Tech FusiondegradedSAP S/4HANAFixture3 recordsCelonisFi"
-        },
-        {
-          "testId": "enterprise-system-sap-s-4hana",
-          "tag": "div",
-          "text": "SAP S/4HANAFixture3 records"
-        },
-        {
-          "testId": "enterprise-system-celonis",
-          "tag": "div",
-          "text": "CelonisFixture2 KPIs"
-        },
-        {
-          "testId": "enterprise-system-graph",
-          "tag": "div",
-          "text": "GraphLive9 nodes"
-        },
-        {
-          "testId": "enterprise-impact",
-          "tag": "div",
-          "text": "Combined impact: 1 invoice exceptions · Match Invoice to GR"
-        },
-        {
-          "testId": "enterprise-value-card",
-          "tag": "section",
-          "text": "ENT-1 · Sunk-Investment MultiplierEnterprise Systems IntegrationYour existing sy"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        },
-        {
-          "testId": "day-zero-panel",
-          "tag": "section",
-          "text": "DZ-1 · Day zeroMeasurement statesample0Day zero1Instrument Validated2Accumulatin"
-        },
-        {
-          "testId": "measurement-provenance",
-          "tag": "span",
-          "text": "sample"
-        },
-        {
-          "testId": "measurement-step-day_zero",
-          "tag": "div",
-          "text": "0Day zero"
-        },
-        {
-          "testId": "measurement-step-instrument_validated",
-          "tag": "div",
-          "text": "1Instrument Validated"
-        },
-        {
-          "testId": "measurement-step-accumulating",
-          "tag": "div",
-          "text": "2Accumulating"
-        },
-        {
-          "testId": "measurement-step-measured",
-          "tag": "div",
-          "text": "3Measured"
-        },
-        {
-          "testId": "trust-card",
-          "tag": "section",
-          "text": "SC-TRUSTSource reliability0.48overall trustsource_reliability1.00 · reliabledown"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "source_reliability1.00 · reliable"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "downstream_urgency0.67 · moderate"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "business_criticality0.47 · moderate"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "impact_scope0.31 · moderate"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "data_freshness0.31 · moderate"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "recurrence_frequency0.15 · noisy"
-        },
-        {
-          "testId": "trust-perturbation",
-          "tag": "div",
-          "text": "DI-PROOF · What-ifSourceSnowflakeAirflowdbtMagnitude 0.5Perturb"
-        },
-        {
-          "testId": "trust-perturb-source",
-          "tag": "select",
-          "text": "SnowflakeAirflowdbt"
-        },
-        {
-          "testId": "trust-perturb-magnitude",
-          "tag": "input",
-          "text": ""
-        },
-        {
-          "testId": "trust-perturb-button",
-          "tag": "button",
-          "text": "Perturb"
-        },
-        {
-          "testId": "products-card",
-          "tag": "section",
-          "text": "Data IntelligenceData Products3 data products. Average IKS: 49.Customer 360Matur"
-        },
-        {
-          "testId": "di-product",
-          "tag": "article",
-          "text": "Customer 360Maturity: mature75GREENGREEN · safe for autonomous consumption2 sour"
-        },
-        {
-          "testId": "di-product",
-          "tag": "article",
-          "text": "Operations HealthMaturity: learning49GREENGREEN · safe for autonomous consumptio"
-        },
-        {
-          "testId": "di-product",
-          "tag": "article",
-          "text": "Alert IntelligenceMaturity: learning23GREENGREEN · safe for autonomous consumpti"
-        },
-        {
-          "testId": "nl-query-panel",
-          "tag": "section",
-          "text": "Natural language queryAsk Your DataAsk a question and see the answer, evidence, "
-        }
-      ],
+      "testIds": [],
       "buttons": [
         {
           "text": "Dashboard",
@@ -3383,142 +931,11 @@
           "text": "Curve",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "Perturb",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "CRM Synccrm_sync2 medium alerts4 alertsCollapse",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Triage",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Triage",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Triage",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Triage",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Marketing DBmarketing_db1 critical/high alerts3 alertsExpand",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Warehouse ETLwarehouse_etlNo high-severity alerts3 alertsExpand",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Billing APIbilling_api2 critical/high alerts2 alertsExpand",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "ERP Exporterp_export1 medium alerts2 alertsExpand",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "HR Feedhr_feed2 medium alerts2 alertsExpand",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Payment Gatewaypayment_gateway1 critical/high alerts2 alertsExpand",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Inventory Feedinventory_feedNo high-severity alerts1 alertsExpand",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "IoT Sensorsiot_sensorsNo high-severity alerts1 alertsExpand",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Ask",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "How many decisions?",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "What is accuracy?",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Which source is most reliable?",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
       "visibleText": [
-        "DataOps Copilot",
-        "Process-Tech Fusion",
-        "Enterprise Systems Integration",
-        "Measurement state",
-        "Pipeline Status",
-        "Billing API",
-        "CRM Sync",
-        "ERP Export",
-        "HR Feed",
-        "Inventory Feed",
-        "IoT Sensors",
-        "Marketing DB",
-        "Payment Gateway",
-        "Warehouse ETL",
-        "AgentEvolver Impact",
-        "Source reliability",
-        "Source",
-        "Magnitude 0.5",
-        "Data Products",
-        "Customer 360",
-        "Operations Health",
-        "Alert Intelligence",
-        "Tire Procure-to-Pay Flow",
-        "Create Purchase Requisition",
-        "Approve Purchase Order",
-        "Match Invoice to GR",
-        "Process Payment",
-        "Alert Root Causes",
-        "Conservation",
-        "Threshold6%",
-        "Automation Projection",
-        "Conservation Timeline",
-        "Accuracy Alerts",
-        "96%71%50%74%67%96%",
-        "96%",
-        "71%",
-        "50%",
-        "74%",
-        "67%",
-        "freshness violation",
-        "Ask Your Data",
-        "Ask about your data"
+        "DataOps Copilot"
       ]
     },
     "Triage": {
@@ -3576,1524 +993,6 @@
         {
           "tag": "h1",
           "text": "DataOps Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "The Trust Trader"
-        },
-        {
-          "tag": "h2",
-          "text": "Fingerprint"
-        },
-        {
-          "tag": "h3",
-          "text": "YOUR GRAPH SIGNAL"
-        },
-        {
-          "tag": "h3",
-          "text": "Moderate"
-        },
-        {
-          "tag": "h3",
-          "text": "YOUR BLIND SPOTS"
-        },
-        {
-          "tag": "h3",
-          "text": "Category Precision"
-        },
-        {
-          "tag": "h2",
-          "text": "Incident Replay"
-        },
-        {
-          "tag": "h2",
-          "text": "Pipeline Bottleneck: Warehouse Etl"
-        },
-        {
-          "tag": "h2",
-          "text": "Tire Procure-to-Pay Flow"
-        },
-        {
-          "tag": "h3",
-          "text": "Create Purchase Requisition"
-        },
-        {
-          "tag": "h3",
-          "text": "Approve Purchase Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Match Invoice to GR"
-        },
-        {
-          "tag": "h3",
-          "text": "Process Payment"
-        },
-        {
-          "tag": "h2",
-          "text": "Data Acquisition Recommendations"
-        },
-        {
-          "tag": "h3",
-          "text": "Google Trends"
-        },
-        {
-          "tag": "h3",
-          "text": "U.S. Census Bureau"
-        },
-        {
-          "tag": "h3",
-          "text": "OpenWeatherMap"
-        },
-        {
-          "tag": "h3",
-          "text": "Reddit API"
-        },
-        {
-          "tag": "h3",
-          "text": "MarineTraffic"
-        },
-        {
-          "tag": "h2",
-          "text": "Source trust and quality graph"
-        },
-        {
-          "tag": "h2",
-          "text": "SAP, Celonis, and graph evidence aligned"
-        },
-        {
-          "tag": "h3",
-          "text": "Process mining signal"
-        },
-        {
-          "tag": "h3",
-          "text": "Signal unavailable"
-        },
-        {
-          "tag": "h3",
-          "text": "Enterprise graph context"
-        },
-        {
-          "tag": "h2",
-          "text": "What-if: Reorder Warehouse Etl"
-        },
-        {
-          "tag": "h2",
-          "text": "Centroid Timeline"
-        },
-        {
-          "tag": "h2",
-          "text": "Data Source Trust"
-        },
-        {
-          "tag": "h3",
-          "text": "airflow"
-        },
-        {
-          "tag": "h3",
-          "text": "dbt"
-        },
-        {
-          "tag": "h3",
-          "text": "snowflake"
-        },
-        {
-          "tag": "h2",
-          "text": "Find trusted data assets"
-        },
-        {
-          "tag": "h2",
-          "text": "Decision Explorer"
-        }
-      ],
-      "testIds": [
-        {
-          "testId": "intelligence-map",
-          "tag": "section",
-          "text": "Intelligence MapSource trust and quality graphDI source profiles rendered from t"
-        },
-        {
-          "testId": "gold-line",
-          "tag": "g",
-          "text": "Suggested connection: $180K/yr.$180K/yr"
-        },
-        {
-          "testId": "gold-line-stroke",
-          "tag": "line",
-          "text": ""
-        },
-        {
-          "testId": "gold-line-label",
-          "tag": "text",
-          "text": "$180K/yr"
-        },
-        {
-          "testId": "intelligence-map-legend",
-          "tag": "div",
-          "text": "━━━ Existing correlation┅┅┅ Suggested (gold) — $ value"
-        },
-        {
-          "testId": "centroid-timeline",
-          "tag": "section",
-          "text": "SC-11 · TRAJECTORY OF INTELLIGENCECentroid Timeline50 checkpoints from GraphStor"
-        },
-        {
-          "testId": "centroid-current-drift",
-          "tag": "div",
-          "text": "Current drift0.000"
-        },
-        {
-          "testId": "centroid-phases",
-          "tag": "div",
-          "text": "bootstraplearningconverged"
-        },
-        {
-          "testId": "centroid-timeline-chart",
-          "tag": "div",
-          "text": "17859949711786117375178611751317861177781786118098178643605317864364021786487162"
-        },
-        {
-          "testId": "source-profile-panel",
-          "tag": "section",
-          "text": "Source ProfilerData Source TrustExpand a source to inspect column trust and cons"
-        },
-        {
-          "testId": "source-profile",
-          "tag": "article",
-          "text": "airfloworchestration60%moderateInspect details"
-        },
-        {
-          "testId": "source-profile-toggle-airflow",
-          "tag": "button",
-          "text": "airfloworchestration60%moderateInspect details"
-        },
-        {
-          "testId": "source-profile",
-          "tag": "article",
-          "text": "dbttransformation80%reliableInspect details"
-        },
-        {
-          "testId": "source-profile-toggle-dbt",
-          "tag": "button",
-          "text": "dbttransformation80%reliableInspect details"
-        },
-        {
-          "testId": "source-profile",
-          "tag": "article",
-          "text": "snowflakewarehouse_metadata60%moderateInspect details"
-        },
-        {
-          "testId": "source-profile-toggle-snowflake",
-          "tag": "button",
-          "text": "snowflakewarehouse_metadata60%moderateInspect details"
-        },
-        {
-          "testId": "search-panel",
-          "tag": "section",
-          "text": "Quality-aware searchFind trusted data assetsAll trust tiersTrust tier 1Trust tie"
-        },
-        {
-          "testId": "search-input",
-          "tag": "input",
-          "text": ""
-        },
-        {
-          "testId": "search-trust-filter",
-          "tag": "select",
-          "text": "All trust tiersTrust tier 1Trust tier 2Trust tier 3"
-        },
-        {
-          "testId": "search-summary",
-          "tag": "p",
-          "text": "33 of 33 assets match your quality criteria"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "stg_ordersmodel · dbtTier 2 (95%)1.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "orderstable · snowflakeTier 1 (95%)1.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "customerstable · snowflakeTier 1 (95%)2.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "stg_productsmodel · dbtTier 2 (95%)3.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "productstable · snowflakeTier 1 (95%)3.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "stg_suppliersmodel · dbtTier 2 (95%)4.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "supplierstable · snowflakeTier 1 (95%)4.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "stg_invoicesmodel · dbtTier 2 (95%)5.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "invoicestable · snowflakeTier 1 (95%)5.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "int_order_itemsmodel · dbtTier 2 (95%)6.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "paymentstable · snowflakeTier 1 (95%)6.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "int_customer_ordersmodel · dbtTier 2 (95%)7.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "shipmentstable · snowflakeTier 1 (95%)7.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "returnstable · snowflakeTier 1 (95%)8.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "fct_revenuemodel · dbtTier 2 (95%)9.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "inventorytable · snowflakeTier 1 (95%)9.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "fct_supplier_performancemodel · dbtTier 2 (95%)10.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "metricstable · snowflakeTier 1 (95%)10.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "dim_customersmodel · dbtTier 2 (95%)11.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "search-result",
-          "tag": "tr",
-          "text": "dim_productsmodel · dbtTier 2 (95%)12.0hhealthy"
-        },
-        {
-          "testId": "quality-badge",
-          "tag": "span",
-          "text": "healthy"
-        },
-        {
-          "testId": "decision-explorer",
-          "tag": "section",
-          "text": "SC-14Decision Explorer1143 GraphStore decisionsCategoryAllfreshness violationpip"
-        },
-        {
-          "testId": "decision-summary",
-          "tag": "div",
-          "text": "Decisions50Accuracy24%Common actionpause downstreamOutcome filterall"
-        }
-      ],
-      "buttons": [
-        {
-          "text": "Dashboard",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Triage",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Insight",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Evidence",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Curve",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "airfloworchestration60%moderateInspect details",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "dbttransformation80%reliableInspect details",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "snowflakewarehouse_metadata60%moderateInspect details",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "db682e9a72e4",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "1ecd36720357",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "1a400ceb4735",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "9b2d423b62b9",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "0c6f1455c469",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "7991083893f2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "9f493f33d730",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "de1007345bab",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "109ec9882dd6",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "8694e7c05a38",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "caa2e91266b2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "6f10ad48aee7",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "e6298a773b21",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "d9c5cc1c0952",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "759f367d5ac2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "65791b3af111",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "2faae6c29234",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "579ca123af32",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "dbef0386ee05",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "f6b9d4617b9c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "7a84a0fdc8a8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "89870d8cc792",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "f025622a15e7",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "08467dec20a2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "dea98ab28147",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "bc9b07577c13",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "6f253224f568",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "503c001b5a72",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "56164bd0ffd0",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "84ac47c52892",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "0a3681d5cae8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "7ac7371091b8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "10b257b7b7d3",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "ec99655940a0",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "22b859fccfa3",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "c70840e340cd",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "68f7f66c570c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "0f1c6bc997a9",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "61feb3376279",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "b33be6eb88d0",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "38abc481585d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "6b2a6f264629",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "8a1ff9418ec8",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "fd813b0a28a5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "18c9a224b2c4",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "508b9743c4ef",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "a2f9cb64a227",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "416d6e3aa532",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "3a9a1cc05272",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "36267b24e92e",
-          "ariaLabel": "",
-          "name": ""
-        }
-      ],
-      "roleHeadings": [],
-      "visibleText": [
-        "DataOps Copilot",
-        "The Trust Trader",
-        "Fingerprint",
-        "YOUR GRAPH SIGNAL",
-        "Moderate",
-        "YOUR BLIND SPOTS",
-        "Category Precision",
-        "Incident Replay",
-        "Pipeline Bottleneck: Warehouse Etl",
-        "SystemWarehouse EtlBilling ApiPayment GatewayCrm Sync",
-        "Tire Procure-to-Pay Flow",
-        "Create Purchase Requisition",
-        "Approve Purchase Order",
-        "Match Invoice to GR",
-        "Process Payment",
-        "Data Acquisition Recommendations",
-        "Google Trends",
-        "U.S. Census Bureau",
-        "OpenWeatherMap",
-        "Reddit API",
-        "MarineTraffic",
-        "Source trust and quality graph",
-        "$180K/yr",
-        "SAP, Celonis, and graph evidence aligned",
-        "Process mining signal",
-        "Signal unavailable",
-        "Enterprise graph context",
-        "Change type",
-        "What-if: Reorder Warehouse Etl",
-        "Centroid Timeline",
-        "Drift",
-        "IKS",
-        "Data Source Trust",
-        "airflow",
-        "dbt",
-        "snowflake",
-        "Find trusted data assets",
-        "Asset",
-        "Trust",
-        "Freshness",
-        "Quality",
-        "Decision Explorer",
-        "ActionAllauto approveescalate to ownerinvestigatepause downstream",
-        "OutcomeAllcorrectincorrectpending",
-        "Verified only",
-        "Decision",
-        "Category",
-        "Action",
-        "Outcome",
-        "Confidence",
-        "Timestamp",
-        "Verified"
-      ]
-    },
-    "Evidence": {
-      "headings": [
-        {
-          "tag": "h1",
-          "text": "DataOps Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "Cohort measurement readiness"
-        },
-        {
-          "tag": "h2",
-          "text": "Cross-System Insights"
-        },
-        {
-          "tag": "h3",
-          "text": "supplier-acme"
-        },
-        {
-          "tag": "h2",
-          "text": "AgentEvolver Impact"
-        },
-        {
-          "tag": "h2",
-          "text": "AgentEvolver Audit Trail"
-        },
-        {
-          "tag": "h3",
-          "text": "AUTO_APPROVE_THRESHOLD_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "AUTO_APPROVE_THRESHOLD_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "SCHEDULING_CRITERIA_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "SCHEDULING_CRITERIA_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "dataops-off-peak-scheduling-v1"
-        },
-        {
-          "tag": "h2",
-          "text": "Rule Genealogy"
-        },
-        {
-          "tag": "h2",
-          "text": "Audit Trail"
-        },
-        {
-          "tag": "h2",
-          "text": "Schema Impact: Warehouse Etl"
-        },
-        {
-          "tag": "h2",
-          "text": "Operational Rules"
-        },
-        {
-          "tag": "h3",
-          "text": "V-DO-SCHED-001"
-        },
-        {
-          "tag": "h2",
-          "text": "Accuracy Alerts"
-        },
-        {
-          "tag": "h2",
-          "text": "Rule Genealogy"
-        },
-        {
-          "tag": "h3",
-          "text": "dataops-off-peak-scheduling-v1"
-        },
-        {
-          "tag": "h2",
-          "text": "Rule Lifecycle"
-        },
-        {
-          "tag": "h2",
-          "text": "Pattern Origin"
-        },
-        {
-          "tag": "h2",
-          "text": "Pattern Transfer Status"
-        },
-        {
-          "tag": "h3",
-          "text": "Erp Core to Billing Api"
-        },
-        {
-          "tag": "h3",
-          "text": "Erp Core to Warehouse Sync"
-        },
-        {
-          "tag": "h3",
-          "text": "Billing Api to Payments Gateway"
-        },
-        {
-          "tag": "h2",
-          "text": "Audit Trail"
-        }
-      ],
-      "testIds": [
-        {
-          "testId": "cohort-status-panel",
-          "tag": "section",
-          "text": "DataOps Measurement StatusCohort measurement readinessMeasurement readyThe measu"
-        },
-        {
-          "testId": "cohort-status-state",
-          "tag": "span",
-          "text": "Measurement ready"
-        },
-        {
-          "testId": "cohort-status-instrument",
-          "tag": "section",
-          "text": "T-O instrumentInstrument: Validated. The measurement instrument is validated and"
-        },
-        {
-          "testId": "cohort-status-real",
-          "tag": "section",
-          "text": "T-R real measurementThe measurement instrument is validated and running. Context"
-        },
-        {
-          "testId": "cohort-status-progress",
-          "tag": "p",
-          "text": "0/30 shown, 0/30 control"
-        },
-        {
-          "testId": "accuracy-alerts",
-          "tag": "section",
-          "text": "SC-12 · SELF-COMPUTATIONAccuracy AlertsPer-category accuracy across 417 verified"
-        },
-        {
-          "testId": "accuracy-alert-summary",
-          "tag": "div",
-          "text": "Below threshold2 categories"
-        },
-        {
-          "testId": "accuracy-category-list",
-          "tag": "div",
-          "text": "Freshness Violation25/26 correct · stablegreen96%StablePipeline Failure165/233 c"
-        },
-        {
-          "testId": "accuracy-category",
-          "tag": "div",
-          "text": "Freshness Violation25/26 correct · stablegreen96%Stable"
-        },
-        {
-          "testId": "accuracy-category",
-          "tag": "div",
-          "text": "Pipeline Failure165/233 correct · stableamber71%Stable"
-        },
-        {
-          "testId": "accuracy-category",
-          "tag": "div",
-          "text": "Quality Anomaly4/8 correct · stableAlert50%Needs attention"
-        },
-        {
-          "testId": "accuracy-category",
-          "tag": "div",
-          "text": "Schema Change87/118 correct · stableamber74%Stable"
-        },
-        {
-          "testId": "accuracy-category",
-          "tag": "div",
-          "text": "Transform Drift4/6 correct · stableAlert67%Needs attention"
-        },
-        {
-          "testId": "accuracy-category",
-          "tag": "div",
-          "text": "Volume Anomaly25/26 correct · stablegreen96%Stable"
-        },
-        {
-          "testId": "rule-genealogy",
-          "tag": "section",
-          "text": "SC-13 · OPERATIONAL EVOLUTIONRule GenealogyHow AgentEvolver proposed, tested, pr"
-        },
-        {
-          "testId": "rule-genealogy-summary",
-          "tag": "div",
-          "text": "Rules tracked1"
-        },
-        {
-          "testId": "rule-genealogy-list",
-          "tag": "div",
-          "text": "dataops-off-peak-scheduling-v1Schedule resource-intensive quality checks during "
-        },
-        {
-          "testId": "rule-genealogy-rule",
-          "tag": "article",
-          "text": "dataops-off-peak-scheduling-v1Schedule resource-intensive quality checks during "
-        },
-        {
-          "testId": "rule-genealogy-status",
-          "tag": "span",
-          "text": "Shadow"
-        },
-        {
-          "testId": "rule-genealogy-narrative",
-          "tag": "div",
-          "text": "The system that admits failure: rejected rules remain visible as evidence of lea"
-        },
-        {
-          "testId": "rule-lifecycle",
-          "tag": "section",
-          "text": "SC-15Rule LifecycleProposals move through shadow testing before promotion or rej"
-        },
-        {
-          "testId": "rule-lifecycle-summary",
-          "tag": "div",
-          "text": "Active0Shadow-testing1Rejected0Promoted0"
-        },
-        {
-          "testId": "rule-status",
-          "tag": "span",
-          "text": "shadow"
-        },
-        {
-          "testId": "rule-lifecycle-track",
-          "tag": "div",
-          "text": "proposedshadowpromotedrejected"
-        },
-        {
-          "testId": "audit-trail",
-          "tag": "section",
-          "text": "SC-16Audit TrailChronological record of scores, learning, rule changes, and cons"
-        },
-        {
-          "testId": "audit-recent-summary",
-          "tag": "span",
-          "text": "0 events in last 24h"
-        },
-        {
-          "testId": "audit-event-filter",
-          "tag": "select",
-          "text": "All eventsscorelearnrule promotedrule rejectedconservation eventconfiguration ch"
-        },
-        {
-          "testId": "audit-search",
-          "tag": "input",
-          "text": ""
-        },
-        {
-          "testId": "audit-events",
-          "tag": "div",
-          "text": "5/9/2026, 4:44:45 PMlearntransform_drift auto_approvemigration5/9/2026, 4:44:38 "
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:45 PMlearntransform_drift auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:45 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:38 PMlearntransform_drift auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:38 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:32 PMlearnfreshness_violation escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:32 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:26 PMlearnfreshness_violation auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:26 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:20 PMlearnfreshness_violation auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:20 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:13 PMlearnquality_anomaly escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:13 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:07 PMlearnquality_anomaly escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:07 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:44:01 PMlearnquality_anomaly escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:44:01 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:55 PMlearnquality_anomaly auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:55 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:48 PMlearnvolume_anomaly investigatemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:48 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:42 PMlearnvolume_anomaly auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:42 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:36 PMlearnvolume_anomaly auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:36 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:30 PMlearnschema_change escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:30 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:23 PMlearnschema_change escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:23 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:17 PMlearnschema_change pause_downstreammigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:17 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:11 PMlearnpipeline_failure auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:11 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:43:05 PMlearnpipeline_failure escalate_to_ownermigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:43:05 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:42:58 PMlearnpipeline_failure pause_downstreammigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:42:58 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 4:42:52 PMlearnpipeline_failure auto_approvemigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 4:42:52 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        },
-        {
-          "testId": "audit-event",
-          "tag": "article",
-          "text": "5/9/2026, 3:31:29 PMlearnpipeline_failure pause_downstreammigration"
-        },
-        {
-          "testId": "audit-event-timestamp",
-          "tag": "time",
-          "text": "5/9/2026, 3:31:29 PM"
-        },
-        {
-          "testId": "audit-event-type",
-          "tag": "span",
-          "text": "learn"
-        }
-      ],
-      "buttons": [
-        {
-          "text": "Dashboard",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Triage",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Insight",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Evidence",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Curve",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "db682e9a72e4",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "1ecd36720357",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "1a400ceb4735",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "9b2d423b62b9",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "0c6f1455c469",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "7991083893f2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "9f493f33d730",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "de1007345bab",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "109ec9882dd6",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "8694e7c05a38",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "caa2e91266b2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "6f10ad48aee7",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "e6298a773b21",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "d9c5cc1c0952",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "759f367d5ac2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "65791b3af111",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "2faae6c29234",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "579ca123af32",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "dbef0386ee05",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "f6b9d4617b9c",
-          "ariaLabel": "",
-          "name": ""
-        }
-      ],
-      "roleHeadings": [],
-      "visibleText": [
-        "DataOps Copilot",
-        "Cohort measurement readiness",
-        "Cross-System Insights",
-        "supplier-acme",
-        "AgentEvolver Impact",
-        "AgentEvolver Audit Trail",
-        "AUTO_APPROVE_THRESHOLD_v1",
-        "AUTO_APPROVE_THRESHOLD_v2",
-        "SCHEDULING_CRITERIA_v1",
-        "SCHEDULING_CRITERIA_v2",
-        "dataops-off-peak-scheduling-v1",
-        "Rule Genealogy",
-        "Audit Trail",
-        "Schema Impact: Warehouse Etl",
-        "SystemWarehouse EtlBilling ApiPayment GatewayCrm Sync",
-        "Operational Rules",
-        "V-DO-SCHED-001",
-        "Accuracy Alerts",
-        "Rule Lifecycle",
-        "Pattern Origin",
-        "Pattern Transfer Status",
-        "Erp Core to Billing Api",
-        "Erp Core to Warehouse Sync",
-        "Billing Api to Payments Gateway",
-        "Event typeAll eventsscorelearnrule promotedrule rejectedconservation eventconfiguration change",
-        "Search"
-      ]
-    },
-    "Curve": {
-      "headings": [
-        {
-          "tag": "h1",
-          "text": "DataOps Copilot"
-        },
-        {
-          "tag": "h2",
-          "text": "Trajectory"
-        },
-        {
-          "tag": "h2",
-          "text": "Disruption Annotation"
-        },
-        {
-          "tag": "h2",
-          "text": "Centroid Evolution"
         }
       ],
       "testIds": [],
@@ -5126,10 +1025,87 @@
       ],
       "roleHeadings": [],
       "visibleText": [
-        "DataOps Copilot",
-        "Trajectory",
-        "Disruption Annotation",
-        "Centroid Evolution"
+        "DataOps Copilot"
+      ]
+    },
+    "Evidence": {
+      "headings": [
+        {
+          "tag": "h1",
+          "text": "DataOps Copilot"
+        }
+      ],
+      "testIds": [],
+      "buttons": [
+        {
+          "text": "Dashboard",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Triage",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Insight",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Evidence",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Curve",
+          "ariaLabel": "",
+          "name": ""
+        }
+      ],
+      "roleHeadings": [],
+      "visibleText": [
+        "DataOps Copilot"
+      ]
+    },
+    "Curve": {
+      "headings": [
+        {
+          "tag": "h1",
+          "text": "DataOps Copilot"
+        }
+      ],
+      "testIds": [],
+      "buttons": [
+        {
+          "text": "Dashboard",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Triage",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Insight",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Evidence",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Curve",
+          "ariaLabel": "",
+          "name": ""
+        }
+      ],
+      "roleHeadings": [],
+      "visibleText": [
+        "DataOps Copilot"
       ]
     }
   },
@@ -5146,7 +1122,11 @@
         },
         {
           "tag": "h2",
-          "text": "Accumulating Evidence"
+          "text": "Measurement State"
+        },
+        {
+          "tag": "h2",
+          "text": "Day-zero data readiness"
         },
         {
           "tag": "h2",
@@ -5209,7 +1189,12 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating140 / 170 decisions1 of 25 arms"
+          "text": "Day-Zero HonestyMeasurement StateUnable to load measurement state.Retry"
+        },
+        {
+          "testId": "day-zero-readiness-panel",
+          "tag": "article",
+          "text": "S2P-DAY0Day-zero data readinessDay one we don’t hand you a number. We hand you t"
         }
       ],
       "buttons": [
@@ -5244,6 +1229,11 @@
           "name": ""
         },
         {
+          "text": "Retry",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
           "text": "View Expansion Proof",
           "ariaLabel": "",
           "name": ""
@@ -5258,7 +1248,8 @@
       "visibleText": [
         "S2P Copilot",
         "Dashboard",
-        "Accumulating Evidence",
+        "Measurement State",
+        "Day-zero data readiness",
         "Exception Queue",
         "Conservation Status",
         "Recent Decisions",
@@ -5364,22 +1355,22 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000385%Northstar Packagingprice_variance · $3,782",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "S2P-INV-001085%Helix Lab Suppliesquantity_mismatch · $8,565",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "S2P-INV-000583%Yangtze Raw Materialsprice_variance · $41,290",
+          "text": "S2P-INV-000385%Northstar Packagingprice_variance · $3,782",
           "ariaLabel": "",
           "name": ""
         },
         {
           "text": "S2P-INV-000483%Novatek IT Servicescontract_gap · $30,171",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "S2P-INV-000583%Yangtze Raw Materialsprice_variance · $41,290",
           "ariaLabel": "",
           "name": ""
         },
@@ -5419,6 +1410,10 @@
         {
           "tag": "h2",
           "text": "Why this invoice was flagged"
+        },
+        {
+          "tag": "h2",
+          "text": "What would change this decision?"
         },
         {
           "tag": "h2",
@@ -5499,6 +1494,11 @@
       ],
       "testIds": [
         {
+          "testId": "what-if-inspector-panel",
+          "tag": "article",
+          "text": "S2P-WHATIFWhat would change this decision?Probe one factor at a time and inspect"
+        },
+        {
           "testId": "process-fusion-panel",
           "tag": "article",
           "text": "Process intelligence fusionWhere to What to Why to Decisionsample (demo)WHEREChi"
@@ -5554,6 +1554,11 @@
           "text": "Performance",
           "ariaLabel": "",
           "name": ""
+        },
+        {
+          "text": "Inspect factor boundaries",
+          "ariaLabel": "",
+          "name": ""
         }
       ],
       "roleHeadings": [],
@@ -5561,6 +1566,7 @@
         "S2P Copilot",
         "Insight",
         "Why this invoice was flagged",
+        "What would change this decision?",
         "Nearest exceptions by factor shape",
         "Supplier exceptions align with process delay",
         "Where to What to Why to Decision",
@@ -5595,6 +1601,10 @@
         {
           "tag": "h2",
           "text": "Decision to outcome chain"
+        },
+        {
+          "tag": "h2",
+          "text": "Exception extinction lifecycle"
         },
         {
           "tag": "h2",
@@ -5679,6 +1689,11 @@
       ],
       "testIds": [
         {
+          "testId": "exception-extinction-timeline",
+          "tag": "article",
+          "text": "S2P-EXTINCTException extinction lifecycleDiscover → shadow → promote → measure →"
+        },
+        {
           "testId": "cohort-status-panel",
           "tag": "section",
           "text": "S2P Measurement StatusCohort measurement readinessMeasurement readyLoading measu"
@@ -5751,6 +1766,7 @@
         "S2P Copilot",
         "Evidence",
         "Decision to outcome chain",
+        "Exception extinction lifecycle",
         "Cohort measurement readiness",
         "Factor Intelligence",
         "Factor",
@@ -5794,22 +1810,6 @@
           "text": "Behavioral Clusters"
         },
         {
-          "tag": "h3",
-          "text": "Reliable Premium"
-        },
-        {
-          "tag": "h3",
-          "text": "Budget Volatile"
-        },
-        {
-          "tag": "h3",
-          "text": "Mid-Tier Consistent"
-        },
-        {
-          "tag": "h3",
-          "text": "Niche Specialist"
-        },
-        {
           "tag": "h2",
           "text": "Payment Timing Optimization."
         },
@@ -5818,52 +1818,8 @@
           "text": "Supplier Rationalization"
         },
         {
-          "tag": "h3",
-          "text": "Aster Industrial Chemicals"
-        },
-        {
-          "tag": "h3",
-          "text": "Pacifica Logistics"
-        },
-        {
-          "tag": "h3",
-          "text": "Northstar Packaging"
-        },
-        {
-          "tag": "h3",
-          "text": "Novatek IT Services"
-        },
-        {
-          "tag": "h3",
-          "text": "Yangtze Raw Materials"
-        },
-        {
-          "tag": "h3",
-          "text": "Meridian Office Services"
-        },
-        {
-          "tag": "h3",
-          "text": "Boreal Equipment Maintenance"
-        },
-        {
-          "tag": "h3",
-          "text": "Gridline Utilities"
-        },
-        {
-          "tag": "h3",
-          "text": "Rhine-Stahl Metals"
-        },
-        {
-          "tag": "h3",
-          "text": "Helix Lab Supplies"
-        },
-        {
           "tag": "h2",
           "text": "Profile source"
-        },
-        {
-          "tag": "h2",
-          "text": "Aster Industrial Chemicals"
         },
         {
           "tag": "h2",
@@ -5909,61 +1865,6 @@
           "text": "Performance",
           "ariaLabel": "",
           "name": ""
-        },
-        {
-          "text": "Aster Industrial ChemicalsDemo DataExceptions 12%OTIF 88%1242 invoices- Insuffic",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Pacifica LogisticsDemo DataExceptions 9%OTIF 91%880 invoices- Insufficient data",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Northstar PackagingDemo DataExceptions 4%OTIF 96%2120 invoices- Insufficient dat",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Novatek IT ServicesDemo DataExceptions 3%OTIF 98%530 invoices- Insufficient data",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Yangtze Raw MaterialsDemo DataExceptions 14%OTIF 84%760 invoices- Insufficient d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Meridian Office ServicesDemo DataExceptions 2%OTIF 97%3180 invoices- Insufficien",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Boreal Equipment MaintenanceDemo DataExceptions 8%OTIF 90%640 invoices- Insuffic",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Gridline UtilitiesDemo DataExceptions 5%OTIF 94%420 invoices- Insufficient data",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Rhine-Stahl MetalsDemo DataExceptions 11%OTIF 86%590 invoices- Insufficient data",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Helix Lab SuppliesDemo DataExceptions 6%OTIF 93%1380 invoices- Insufficient data",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "SUP-PW-EVIDLive ProfilesExceptions 0%OTIF 0%1 invoices- Insufficient data",
-          "ariaLabel": "",
-          "name": ""
         }
       ],
       "roleHeadings": [],
@@ -5971,37 +1872,11 @@
         "S2P Copilot",
         "Suppliers",
         "Behavioral Clusters",
-        "Reliable Premium",
-        "Budget Volatile",
-        "Mid-Tier Consistent",
-        "Niche Specialist",
         "Payment Timing Optimization.",
-        "Strategy",
-        "Supplier",
-        "Terms",
-        "Discount",
-        "Confidence",
-        "Reason",
         "Supplier Rationalization",
-        "Aster Industrial Chemicals",
-        "Pacifica Logistics",
-        "Northstar Packaging",
-        "Novatek IT Services",
-        "Yangtze Raw Materials",
-        "Meridian Office Services",
-        "Boreal Equipment Maintenance",
-        "Gridline Utilities",
-        "Rhine-Stahl Metals",
-        "Helix Lab Supplies",
         "Profile source",
         "Quarterly pattern",
         "Accumulator events",
-        "Invoice",
-        "Date",
-        "Category",
-        "Result",
-        "Reward",
-        "Amount",
         "Category exception pattern"
       ]
     },
@@ -6021,7 +1896,15 @@
         },
         {
           "tag": "h2",
-          "text": "GREEN"
+          "text": "n/a"
+        },
+        {
+          "tag": "h2",
+          "text": "Frozen Twin: day-zero baseline vs live"
+        },
+        {
+          "tag": "h2",
+          "text": "Confidence, always visible"
         },
         {
           "tag": "h2",
@@ -6040,7 +1923,23 @@
           "text": "Process bottleneck"
         }
       ],
-      "testIds": [],
+      "testIds": [
+        {
+          "testId": "frozen-twin-comparison-panel",
+          "tag": "article",
+          "text": "S2P-TWINFrozen Twin: day-zero baseline vs liveThe gap between the pinned baselin"
+        },
+        {
+          "testId": "frozen-twin-modeled-label",
+          "tag": "span",
+          "text": "MODELED / PILOT-TARGET"
+        },
+        {
+          "testId": "confidence-band-panel",
+          "tag": "article",
+          "text": "S2P-CONFIDENCEConfidence, always visibleAuthority expands only while confidence "
+        }
+      ],
       "buttons": [
         {
           "text": "Dashboard",
@@ -6083,7 +1982,9 @@
         "S2P Copilot",
         "Performance",
         "Centroid checkpoints",
-        "GREEN",
+        "n/a",
+        "Frozen Twin: day-zero baseline vs live",
+        "Confidence, always visible",
         "Projected conservation state",
         "Additional correct",
         "Additional incorrect",

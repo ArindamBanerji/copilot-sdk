@@ -2085,8 +2085,12 @@ class CompoundingScorer:
 
     def _checkpoint_quality(self, decision_time_end: str | None) -> dict[str, Any]:
         """Compute the explicit rolling accuracy contract for a new checkpoint."""
-        verified = self._graph_store.get_verified_decisions(self._domain)
-        window = verified[-QUALITY_WINDOW_SIZE:]
+        recent_reader = getattr(self._graph_store, "get_recent_verified_decisions", None)
+        if callable(recent_reader):
+            window = list(recent_reader(self._domain, QUALITY_WINDOW_SIZE))
+        else:
+            verified = self._graph_store.get_verified_decisions(self._domain)
+            window = verified[-QUALITY_WINDOW_SIZE:]
         verified_count = len(window)
         correct_count = sum(
             1
@@ -2552,6 +2556,12 @@ class CompoundingScorer:
     def graph_store(self) -> GraphStore:
         """The GraphStore single source of truth."""
         return self._graph_store
+
+    def close(self) -> None:
+        """Release persistence resources owned by this scorer."""
+        if self._outbox is not None:
+            self._outbox.stop_periodic_drain()
+        self._graph_store.close()
 
     @property
     def gae_scorer(self) -> ProfileScorer:

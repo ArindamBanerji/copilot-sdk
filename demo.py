@@ -269,7 +269,7 @@ COPILOTS = [
 
 # Named groups for convenience flags
 SDK_NAMES = {"trading", "purchasing", "dataops"}
-PLAYWRIGHT_NAMES = {"soc", "s2p"}
+PLAYWRIGHT_NAMES = {c["name"].lower() for c in COPILOTS}
 
 
 # --- Helpers ---
@@ -582,6 +582,35 @@ def wait_for_frontend(name: str, port: int, timeout: int = 15) -> bool:
             return True
     print(f"  ✗ {name} frontend not ready on :{port} after {timeout}s")
     return False
+
+
+def _wait_all_healthy(ports: list[int], timeout: int = 60) -> tuple[bool, list[int]]:
+    """Wait until every requested backend health endpoint responds."""
+    deadline = time.monotonic() + timeout
+    pending = set(ports)
+    while pending and time.monotonic() < deadline:
+        pending = {port for port in pending if check_health(port) is None}
+        if pending:
+            time.sleep(2)
+    return not pending, sorted(pending)
+
+
+def _wait_frontends_ready(urls: list[str], timeout: int = 30) -> tuple[bool, list[str]]:
+    """Wait until every frontend URL accepts an HTTP request."""
+    deadline = time.monotonic() + timeout
+    pending = set(urls)
+    while pending and time.monotonic() < deadline:
+        ready: set[str] = set()
+        for url in pending:
+            try:
+                with urlopen(url, timeout=5):
+                    ready.add(url)
+            except Exception:
+                continue
+        pending -= ready
+        if pending:
+            time.sleep(2)
+    return not pending, sorted(pending)
 
 
 def find_pids_on_port(port: int) -> list[int]:
@@ -986,7 +1015,7 @@ def cmd_start(selected: list[dict], args):
     print("Starting frontends...")
     for c in selected:
         fe_port = c.get("fe_port")
-        if fe_port is None:
+        if fe_port is None or (getattr(args, "playwright", False) and c["name"].lower() == "soc"):
             print(f"  {c['name']} has no frontend; skipping")
             continue
 
@@ -1018,8 +1047,28 @@ def cmd_start(selected: list[dict], args):
     print("Waiting for frontends...")
     for c in selected:
         fe_port = c.get("fe_port")
-        if fe_port is not None:
+        if fe_port is not None and not (getattr(args, "playwright", False) and c["name"].lower() == "soc"):
             wait_for_frontend(c["name"], fe_port, timeout=15)
+
+    if getattr(args, "playwright", False):
+        backend_ok, backend_pending = _wait_all_healthy(
+            [int(c["be_port"]) for c in selected], timeout=60
+        )
+        frontend_urls = [
+            f"http://127.0.0.1:{c['fe_port']}"
+            for c in selected
+            if c.get("fe_port") is not None and c["name"].lower() != "soc"
+        ]
+        frontend_ok, frontend_pending = _wait_frontends_ready(frontend_urls, timeout=30)
+        if not backend_ok or not frontend_ok:
+            details = []
+            if backend_pending:
+                details.append(f"backends unavailable: {backend_pending}")
+            if frontend_pending:
+                details.append(f"frontends unavailable: {frontend_pending}")
+            print(f"PW-FAILED: {'; '.join(details)}")
+            raise SystemExit(1)
+        print("PW-READY: all 5 backends + 4 frontends healthy")
 
     # --- Open browsers ---
     if not args.no_browser:

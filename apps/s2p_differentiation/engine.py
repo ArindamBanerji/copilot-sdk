@@ -186,6 +186,11 @@ def _make_scorer(path: Path, *, enable_rl: bool) -> CompoundingScorer:
     )
 
 
+def _close_scorer(scorer: CompoundingScorer) -> None:
+    """Close the scorer's graph store after a bounded experiment run."""
+    scorer.close()
+
+
 def _evaluate_poisoned_rule(
     ci_result: ArmResult,
     baseline_result: ArmResult,
@@ -236,23 +241,26 @@ def run_tg1(
     path = Path(output_dir)
     path.mkdir(parents=True, exist_ok=True)
     scorer = _make_scorer(path / "tg1.db", enable_rl=True)
-    generator = SyntheticGenerator(generator_config)
-    category, factors = generator.generate()
-    before = scorer.score_read_only(factors, category)
-    after = scorer.score_read_only(factors, category)
-    baseline = RewardMaxBaseline(5, 5, 8)
-    baseline_before, _ = baseline.score(factors, S2P_CATEGORIES.index(category))
-    baseline.swap_reward_function(PreferredActionRewardFunction(S2P_ACTIONS[(baseline_before + 1) % 5]))
-    baseline_after, _ = baseline.score(factors, S2P_CATEGORIES.index(category))
-    return {
-        "ci_action_unchanged": before.action == after.action,
-        "ci_probabilities_unchanged": before.probabilities == after.probabilities,
-        "reward_max_action_flipped": baseline_before != baseline_after,
-        "ci_before": {"action": before.action, "probabilities": before.probabilities},
-        "ci_after": {"action": after.action, "probabilities": after.probabilities},
-        "reward_max_before": baseline_before,
-        "reward_max_after": baseline_after,
-    }
+    try:
+        generator = SyntheticGenerator(generator_config)
+        category, factors = generator.generate()
+        before = scorer.score_read_only(factors, category)
+        after = scorer.score_read_only(factors, category)
+        baseline = RewardMaxBaseline(5, 5, 8)
+        baseline_before, _ = baseline.score(factors, S2P_CATEGORIES.index(category))
+        baseline.swap_reward_function(PreferredActionRewardFunction(S2P_ACTIONS[(baseline_before + 1) % 5]))
+        baseline_after, _ = baseline.score(factors, S2P_CATEGORIES.index(category))
+        return {
+            "ci_action_unchanged": before.action == after.action,
+            "ci_probabilities_unchanged": before.probabilities == after.probabilities,
+            "reward_max_action_flipped": baseline_before != baseline_after,
+            "ci_before": {"action": before.action, "probabilities": before.probabilities},
+            "ci_after": {"action": after.action, "probabilities": after.probabilities},
+            "reward_max_before": baseline_before,
+            "reward_max_after": baseline_after,
+        }
+    finally:
+        _close_scorer(scorer)
 
 
 def run_three_arms(
@@ -352,4 +360,6 @@ def run_three_arms(
         },
     }
     (output / "engine_result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+    _close_scorer(ci)
+    _close_scorer(hand)
     return result

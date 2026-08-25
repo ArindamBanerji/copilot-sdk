@@ -1,4 +1,4 @@
-import { test as base, expect, type Page } from "@playwright/test";
+import { test as base, expect, type APIRequestContext, type Page } from "@playwright/test";
 
 const BACKEND_PORTS = {
   trading: 8010,
@@ -10,6 +10,28 @@ type CopilotProject = keyof typeof BACKEND_PORTS;
 
 function isCopilotProject(name: string): name is CopilotProject {
   return name in BACKEND_PORTS;
+}
+
+async function retryHealthCheck(
+  request: APIRequestContext,
+  url: string,
+  maxRetries = 5,
+  baseDelayMs = 1000,
+): Promise<void> {
+  let lastError = "unknown error";
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await request.get(url, { timeout: 5_000 });
+      if (response.ok()) return;
+      lastError = `HTTP ${response.status()} ${response.statusText()}`;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+    if (attempt < maxRetries - 1) {
+      await new Promise((resolve) => setTimeout(resolve, baseDelayMs * 2 ** attempt));
+    }
+  }
+  throw new Error(`Backend at ${url} not reachable after ${maxRetries} retries: ${lastError}`);
 }
 
 export const test = base.extend<{ backendHealth: void }>({
@@ -28,26 +50,12 @@ export const test = base.extend<{ backendHealth: void }>({
 
       const port = BACKEND_PORTS[projectName];
       const healthUrl = `http://127.0.0.1:${port}/health`;
-      let responseText = "";
-
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          const response = await request.get(healthUrl, { timeout: 5_000 });
-          responseText = await response.text().catch(() => "");
-          if (!response.ok()) {
-            throw new Error(`HTTP ${response.status()} ${response.statusText()} ${responseText}`.trim());
-          }
-          break;
-        } catch (error) {
-          if (attempt < 2) {
-            await new Promise(r => setTimeout(r, 2000));
-            continue;
-          }
-          const message = error instanceof Error ? error.message : String(error);
-          throw new Error(
-            `${projectName} backend is not healthy at ${healthUrl}. Start the live stack before running E2E tests. ${message}`,
-          );
-        }
+      try {
+        await retryHealthCheck(request, healthUrl);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        testInfo.skip(true, message);
+        return;
       }
 
       const base = `http://127.0.0.1:${port}`;

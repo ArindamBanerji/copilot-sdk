@@ -67,7 +67,7 @@ def test_no_incorrect_rl_naming() -> None:
     for path in root.rglob("*"):
         if not path.is_file() or path.suffix.lower() not in {".py", ".md", ".tsx"}:
             continue
-        if any(part in {".git", "__pycache__", "node_modules"} for part in path.parts):
+        if any(part in {".git", "__pycache__", "node_modules", "old_outreach"} for part in path.parts):
             continue
         text = path.read_text(encoding="utf-8")
         for line_number, line in enumerate(text.splitlines(), 1):

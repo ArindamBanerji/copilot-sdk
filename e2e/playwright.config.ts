@@ -3,8 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   timeout: 30_000,
   retries: 1,
-  // Local workers=4. DataOps needs --workers=1 in run command (cold Vite issue).
-  workers: process.env.CI ? 2 : 4,
+  workers: parseInt(process.env.CI_WORKERS || "1", 10),
   globalSetup: "./global-setup",
   reporter: [
     ["list"],

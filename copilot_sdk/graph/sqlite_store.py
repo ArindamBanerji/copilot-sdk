@@ -2347,6 +2347,33 @@ class SQLiteGraphStore:
         ).fetchall()
         return [self._verified_from_row(row) for row in rows]
 
+    def get_recent_verified_decisions(
+        self, domain: str, limit: int
+    ) -> list[dict[str, Any]]:
+        """Return the latest verified decisions in chronological order."""
+        bounded_limit = max(int(limit), 0)
+        if bounded_limit == 0:
+            return []
+        rows = self.connection.execute(
+            """
+            SELECT
+                d.*,
+                o.actual_action,
+                o.actual_index,
+                o.is_correct,
+                o.verified_at,
+                o.context_json
+            FROM decisions d
+            INNER JOIN outcomes o ON d.decision_id = o.decision_id
+            WHERE d.domain = ?
+              AND d.status IN ('confirmed', 'overridden')
+            ORDER BY d.created_at DESC, d.decision_id DESC
+            LIMIT ?
+            """,
+            (str(domain), bounded_limit),
+        ).fetchall()
+        return [self._verified_from_row(row) for row in reversed(rows)]
+
     def count_decisions(self, domain: str) -> int:
         row = self.connection.execute(
             "SELECT COUNT(*) AS n FROM decisions WHERE domain = ?",

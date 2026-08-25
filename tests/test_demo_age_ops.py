@@ -74,7 +74,7 @@ def test_current_public_constants_define_expected_copilots() -> None:
 
     assert names == {"soc", "trading", "purchasing", "dataops", "s2p"}
     assert demo.SDK_NAMES == {"trading", "purchasing", "dataops"}
-    assert demo.PLAYWRIGHT_NAMES == {"soc", "s2p"}
+    assert demo.PLAYWRIGHT_NAMES == {"soc", "trading", "purchasing", "dataops", "s2p"}
 
 
 def test_all_copilots_have_explicit_age_graph_env() -> None:
