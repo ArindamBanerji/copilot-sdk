@@ -10,7 +10,7 @@ import time
 import warnings
 from dataclasses import replace
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -529,7 +529,7 @@ def _seed_demo_evolution_events_if_needed(graph_store: GraphStore) -> None:
 
 def _variant_from_event(event: dict[str, Any]) -> dict[str, Any]:
     metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
-    variant = dict(metadata)
+    variant: dict[str, Any] = dict(cast(dict[str, Any], metadata))
     event_type = str(variant.get("event_type") or event.get("event_type") or "")
     rule_name = str(event.get("rule_name") or variant.get("rule_name") or "")
     variant_id = str(
@@ -594,12 +594,13 @@ def create_app(
         source="dataops.entity_context_cache",
     )
     entity_context_cache = EntityContextCacheAdapter(entity_cache, enabled=True)
+    _bundle_path: str | Path | bool
     if demo_bundle_path is None:
         _bundle_path = REPO_ROOT / "demo" / f"{DOMAIN}_demo_bundle.json"
     elif demo_bundle_path is False:
         _bundle_path = False
     else:
-        _bundle_path = Path(demo_bundle_path)
+        _bundle_path = Path(cast(str | Path, demo_bundle_path))
     active_config = DataOpsActiveGraphConfig.from_env()
     selected_graph_store = _selected_graph_store_factory(
         scoring_db,
@@ -726,6 +727,12 @@ def create_app(
             variant_selector=select_dataops_variant,
             query_cache_invalidator=di_query_service.invalidate_cache,
             entity_context_cache=entity_context_cache,
+            score_payload_enricher=lambda payload: {
+                **payload,
+                "abstention_warning": app.state.dataops_governance.abstention(
+                    str(payload.get("category") or "unknown")
+                ),
+            },
         ),
         prefix="/api",
     )
@@ -769,7 +776,7 @@ def create_app(
 
     @app.get("/api/dataops/di/profiles")
     def dataops_prefixed_profiles_response() -> dict[str, Any]:
-        return dataops_profiles_response()
+        return cast(dict[str, Any], dataops_profiles_response())
 
     @app.get("/api/dataops/di/acquisitions")
     def dataops_acquisitions_response() -> dict[str, Any]:
@@ -865,7 +872,7 @@ def create_app(
         now = time.time()
         cached = app.state.dataops_intelligence_map_cache
         if cached is not None and now - app.state.dataops_intelligence_map_cached_at < 300:
-            return cached
+            return cast(dict[str, Any], cached)
         sources = _dataops_intelligence_map_sources(dataops_profiler_registry)
         payload = dataops_map_builder.build(sources=sources).to_dict()
         if not payload.get("gold_lines"):
@@ -875,11 +882,11 @@ def create_app(
             )
         app.state.dataops_intelligence_map_cache = payload
         app.state.dataops_intelligence_map_cached_at = now
-        return payload
+        return cast(dict[str, Any], payload)
 
     @app.get("/api/dataops/di/intelligence-map")
     def dataops_prefixed_intelligence_map() -> dict[str, Any]:
-        return dataops_intelligence_map()
+        return cast(dict[str, Any], dataops_intelligence_map())
 
     @app.on_event("startup")
     async def auto_seed_on_startup() -> None:
@@ -898,16 +905,6 @@ def create_app(
         if path.startswith(("/api/dataops", "/api/context", "/api/ae", "/api/di", "/api/score")):
             response.headers.setdefault("X-Evidence-Tier", "synthetic")
             response.headers.setdefault("X-Evidence-Label", "synthetic / modelled - not measured")
-        if path == "/api/score" and response.status_code < 400:
-            body = b"".join([chunk async for chunk in response.body_iterator])
-            try:
-                payload = json.loads(body.decode("utf-8"))
-                if isinstance(payload, dict):
-                    payload["abstention_warning"] = app.state.dataops_governance.abstention("unknown")
-                    from starlette.responses import JSONResponse
-                    return JSONResponse(payload, status_code=response.status_code, headers=dict(response.headers))
-            except (UnicodeDecodeError, json.JSONDecodeError, TypeError):
-                pass
         return response
 
     @app.get("/health")

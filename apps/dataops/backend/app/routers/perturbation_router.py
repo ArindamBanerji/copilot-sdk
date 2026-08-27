@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -34,13 +34,13 @@ def create_perturbation_router(
     def perturb(request: PerturbRequest) -> dict[str, Any]:
         _require_demo_mode()
         try:
-            return service.perturb(
+            return cast(dict[str, Any], service.perturb(
                 scorer_provider(),
                 source_name=request.source_name,
                 perturbation=request.perturbation,
                 magnitude=request.magnitude,
                 decisions=request.decisions,
-            )
+            ))
         except PerturbationActiveError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except PerturbationError as exc:
@@ -49,7 +49,7 @@ def create_perturbation_router(
     @router.post("/perturb/revert")
     def revert() -> dict[str, Any]:
         _require_demo_mode()
-        return service.revert()
+        return cast(dict[str, Any], service.revert())
 
     return router
 

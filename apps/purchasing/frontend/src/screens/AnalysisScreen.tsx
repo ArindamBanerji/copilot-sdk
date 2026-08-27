@@ -86,15 +86,23 @@ export default function AnalysisScreen() {
   const factors = useMemo(() => toFactorItems(fingerprint), [fingerprint]);
 
   if (loading) {
-    return <section data-screen-ready="false" className="purchase-card">Loading analysis...</section>;
+    return (
+      <div data-screen-ready="false" className="purchase-stack analysis-screen">
+        <section className="purchase-card">Loading analysis...</section>
+        <MenuMatrixCard />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <section data-screen-ready="true" className="purchase-card error-card">
-        <p className="purchase-kicker">Analysis unavailable</p>
-        <p>{error}</p>
-      </section>
+      <div data-screen-ready="true" className="purchase-stack analysis-screen">
+        <section className="purchase-card error-card">
+          <p className="purchase-kicker">Analysis unavailable</p>
+          <p>{error}</p>
+        </section>
+        <MenuMatrixCard />
+      </div>
     );
   }
 

@@ -6,7 +6,7 @@ import logging
 import time
 from copy import deepcopy
 from collections.abc import Iterable, Mapping, Sequence
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -38,7 +38,7 @@ def _coerce_vector(vector: Any) -> np.ndarray:
         raise ValueError("vector must be 1D")
     if not np.all(np.isfinite(array)):
         raise ValueError("vector must contain only finite numeric values")
-    return array
+    return cast(np.ndarray, array)
 
 
 def _coerce_count(value: Any, name: str) -> int:

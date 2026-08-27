@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -33,15 +33,15 @@ def create_query_router(
             raise HTTPException(status_code=400, detail="question is required")
         if query_service is not None:
             try:
-                response = query_service.execute(
+                response: dict[str, Any] = cast(dict[str, Any], query_service.execute(
                     {"question": question, "context": {"domain": "dataops"}}
-                ).model_dump()
+                ).model_dump())
                 # Preserve the legacy compatibility field while sharing the
                 # same DIQueryService execution path as the canonical route.
                 response["intent"] = response["query"]["intent"]
                 return response
             except InvalidQueryError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
-        return query_router.query(question, graph_store_factory())
+        return cast(dict[str, Any], query_router.query(question, graph_store_factory()))
 
     return router

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
+from typing import cast
 
 from copilot_sdk.evolution import PlateauConfig
 from copilot_sdk.scoring.config import DomainShape
@@ -82,7 +83,7 @@ class SOCPreset:
 
     @property
     def bootstrap_centroids(self) -> np.ndarray:
-        return np.asarray(
+        return cast(np.ndarray, np.asarray(
             [
                 [
                     [0.75, 0.85, 0.8, 0.6, 0.65, 0.15],
@@ -122,4 +123,4 @@ class SOCPreset:
                 ],
             ],
             dtype=np.float64,
-        )
+        ))

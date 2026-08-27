@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 import time
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -179,7 +179,7 @@ def _scorer_from_state(state: dict[str, Any], kernel_state: dict[str, Any]) -> A
 def _nested_array(value: Any) -> np.ndarray | None:
     if value is None:
         return None
-    return np.asarray(value, dtype=np.float64)
+    return cast(np.ndarray, np.asarray(value, dtype=np.float64))
 
 
 def _l2(left: Any, right: Any) -> float:

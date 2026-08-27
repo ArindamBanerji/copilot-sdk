@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from app import context_router
 from app.analytics.dispersion_follow import compute_dispersion_follow_rate
@@ -59,7 +59,7 @@ def create_trading_tab_state_cache(
         return graph_store_factory()
 
     def verified() -> list[dict[str, Any]]:
-        return compute_verified_decisions(graph_store_factory)
+        return cast(list[dict[str, Any]], compute_verified_decisions(graph_store_factory))
 
     def centroid_history_summary() -> dict[str, Any]:
         store = graph_store()
@@ -73,7 +73,7 @@ def create_trading_tab_state_cache(
     def measurement_state() -> dict[str, Any]:
         payload = compute_measurement_state(scorer()).to_dict()
         payload["engine"] = "copilot_sdk.scoring.CompoundingScorer"
-        return payload
+        return cast(dict[str, Any], payload)
 
     def regime_status() -> dict[str, Any]:
         status = regime_monitor.status()
@@ -95,7 +95,7 @@ def create_trading_tab_state_cache(
 
     def transfer_status() -> dict[str, Any]:
         info = getattr(scorer(), "_warm_start_info", None)
-        return _normalize_transfer_status(info if isinstance(info, dict) else None)
+        return cast(dict[str, Any], _normalize_transfer_status(info if isinstance(info, dict) else None))
 
     def trust_analysis() -> dict[str, Any]:
         trades = [row for row in (context_router._as_trade_dict(trade) for trade in list(context_router._trade_store_ref)) if row]
@@ -104,17 +104,17 @@ def create_trading_tab_state_cache(
         result["factor_details"] = factor_details
         result["factors"] = list(result["factor_names"])
         result["trust_scores"] = {factor["name"]: factor for factor in factor_details}
-        return result
+        return cast(dict[str, Any], result)
 
     def correlation() -> dict[str, Any]:
         from app.routers.correlation import _correlation_service
 
-        return _correlation_service(20).compute(_journal_records(graph_store_factory, "trading"))
+        return cast(dict[str, Any], _correlation_service(20).compute(_journal_records(graph_store_factory, "trading")))
 
     def rejection_summary() -> dict[str, Any]:
         persisted = _load_persisted_rejection_summary()
         if isinstance(persisted, dict):
-            return persisted
+            return cast(dict[str, Any], persisted)
         return {
             "total_tested": 0,
             "total_promoted": 0,
@@ -125,7 +125,7 @@ def create_trading_tab_state_cache(
         }
 
     def execution() -> dict[str, Any]:
-        return json_safe(ExecutionAnalyzer().analyze(_journal_records(graph_store_factory, "trading")))
+        return cast(dict[str, Any], json_safe(ExecutionAnalyzer().analyze(_journal_records(graph_store_factory, "trading"))))
 
     compute: dict[TradingKey, Callable[[], Any]] = {
         TradingKey.ANALYTICS: context_router.analytics,

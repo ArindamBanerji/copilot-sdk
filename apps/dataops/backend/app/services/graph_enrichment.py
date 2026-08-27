@@ -7,7 +7,7 @@ import asyncio
 import inspect
 import json
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Coroutine, cast
 
 
 DATAOPS_DOMAIN = "dataops"
@@ -94,7 +94,7 @@ def _run_graph_query(run_query: Any, query: str, parameters: dict[str, Any]) -> 
         try:
             asyncio.get_running_loop()
         except RuntimeError:
-            return asyncio.run(result)
+            return asyncio.run(cast(Coroutine[Any, Any, Any], result))
         raise RuntimeError("async graph query must be awaited by the caller")
     return result
 

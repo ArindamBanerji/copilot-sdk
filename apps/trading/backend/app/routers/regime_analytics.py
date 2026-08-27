@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, Request
 
@@ -27,12 +27,12 @@ def create_regime_analytics_router(
     @router.get("/regime-analytics")
     @cached_static("regime-analytics")
     def regime_analytics(request: Request) -> dict[str, Any]:
-        return payload()
+        return cast(dict[str, Any], payload())
 
     @router.get("/regime-analytics/summary")
     @cached_static("regime-analytics-summary")
     def regime_analytics_summary(request: Request) -> dict[str, Any]:
-        return payload()
+        return cast(dict[str, Any], payload())
 
     return router
 

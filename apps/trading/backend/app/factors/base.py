@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from copilot_sdk.protocols.factor_computer import FactorComputer
 
@@ -12,7 +12,7 @@ def clamp(value: Any, default: float = 0.5) -> float:
         numeric = float(value)
     except (TypeError, ValueError):
         return default
-    return max(0.0, min(1.0, numeric))
+    return cast(float, max(0.0, min(1.0, numeric)))
 
 
 def mean_or_neutral(values: list[float]) -> float:

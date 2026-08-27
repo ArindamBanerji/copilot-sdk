@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 
@@ -121,9 +122,9 @@ def _load_bootstrap(preset: TradingPreset) -> np.ndarray:
             return _migrate_legacy_centroids(centroids)
         if centroids.shape != expected_shape:
             raise ValueError(f"trading bootstrap shape {centroids.shape} != {expected_shape}")
-        return centroids
+        return cast(np.ndarray, centroids)
     except Exception:
-        return np.full(expected_shape, 0.5, dtype=np.float64)
+        return cast(np.ndarray, np.full(expected_shape, 0.5, dtype=np.float64))
 
 
 def _migrate_legacy_centroids(centroids: np.ndarray) -> np.ndarray:
@@ -134,4 +135,4 @@ def _migrate_legacy_centroids(centroids: np.ndarray) -> np.ndarray:
     # Legacy bootstrap data did not include the skip action; use the conservative
     # neutral skip profile for every strategy category until pilot data lands.
     migrated[:, 3, :] = np.asarray(_NEUTRAL_SKIP_CENTROID, dtype=np.float64)
-    return migrated
+    return cast(np.ndarray, migrated)

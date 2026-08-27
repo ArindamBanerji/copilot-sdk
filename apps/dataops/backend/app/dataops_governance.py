@@ -117,7 +117,7 @@ class DataOpsGovernance:
         record = self.promotions.store.load_by_class("dataops", decision_class)
         if record is None:
             record = self.promotions.create("dataops", decision_class)
-        return record.to_dict()
+        return cast(dict[str, Any], record.to_dict())
 
     def advance_promotion(self, record_id: str, evidence: dict[str, Any]) -> dict[str, Any]:
         record = self.promotions.store.load(record_id)

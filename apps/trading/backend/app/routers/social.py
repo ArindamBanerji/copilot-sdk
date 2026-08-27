@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import asdict, is_dataclass
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -29,38 +29,38 @@ def create_social_router(scorer_proxy: Any) -> APIRouter:
     @router.get("/traders")
     def list_traders() -> dict[str, Any]:
         traders = service().list_traders()
-        return _json_safe({"traders": traders, "count": len(traders), "source": "graphstore"})
+        return cast(dict[str, Any], _json_safe({"traders": traders, "count": len(traders), "source": "graphstore"}))
 
     @router.get("/traders/compare")
     def compare_traders(ids: str = Query("")) -> dict[str, Any]:
         trader_ids = [part.strip() for part in ids.split(",") if part.strip()]
         if len(trader_ids) < 2:
             raise HTTPException(status_code=400, detail="ids must include at least two traders")
-        return _json_safe(service().get_trader_comparison(trader_ids))
+        return cast(dict[str, Any], _json_safe(service().get_trader_comparison(trader_ids)))
 
     @router.get("/traders/{trader_id}/profile")
     def trader_profile(trader_id: str) -> dict[str, Any]:
-        return _json_safe(service().get_trader_profile(trader_id))
+        return cast(dict[str, Any], _json_safe(service().get_trader_profile(trader_id)))
 
     @router.get("/traders/{trader_id}/edge")
     def trader_edge(trader_id: str) -> dict[str, Any]:
-        return _json_safe(service().get_trader_edge(trader_id))
+        return cast(dict[str, Any], _json_safe(service().get_trader_edge(trader_id)))
 
     @router.get("/social/leaderboard")
     def leaderboard(metric: str = "accuracy") -> dict[str, Any]:
         ranking = service().leaderboard(metric)
-        return _json_safe({"metric": metric, "ranking": ranking, "source": "graphstore"})
+        return cast(dict[str, Any], _json_safe({"metric": metric, "ranking": ranking, "source": "graphstore"}))
 
     @router.get("/social")
     def social_summary() -> dict[str, Any]:
         ranking = service().leaderboard()
-        return _json_safe({"traders": ranking, "leaderboard": ranking, "source": "graphstore"})
+        return cast(dict[str, Any], _json_safe({"traders": ranking, "leaderboard": ranking, "source": "graphstore"}))
 
     @router.get("/profiles")
     def profiles() -> dict[str, Any]:
         trader_ids = [row["trader_id"] for row in service().list_traders()]
         profiles = [service().get_trader_profile(trader_id) for trader_id in trader_ids]
-        return _json_safe({"profiles": profiles, "count": len(profiles), "source": "graphstore"})
+        return cast(dict[str, Any], _json_safe({"profiles": profiles, "count": len(profiles), "source": "graphstore"}))
 
     @router.get("/trader/{trader_id}")
     def legacy_trader_profile(trader_id: str) -> dict[str, Any]:
@@ -87,7 +87,7 @@ def create_social_router(scorer_proxy: Any) -> APIRouter:
         payload = _json_safe(result)
         if isinstance(payload, dict):
             payload["trader_id"] = trader_id
-        return payload
+        return cast(dict[str, Any], payload)
 
     return router
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from copilot_sdk.regime import RegimeDetector, RegimePolicy
 
@@ -35,7 +35,7 @@ class RegimeClassifier:
             "calm_vix": 0.0,
             "calm_adx": 0.0,
         })).detect({"vix": vix, "adx": adx})
-        return state.regime
+        return cast(str, state.regime)
 
     def classify_with_confidence(self, vix: float, adx: float) -> dict[str, Any]:
         """Classify regime with boundary-aware confidence metadata."""

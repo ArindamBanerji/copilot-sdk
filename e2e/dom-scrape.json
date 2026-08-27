@@ -122,7 +122,7 @@
         {
           "testId": "day-zero-state-summary",
           "tag": "div",
-          "text": "ACCUMULATING354 verified decisions30 needed"
+          "text": "ACCUMULATING360 verified decisions30 needed"
         },
         {
           "testId": "day-zero-state",
@@ -132,7 +132,7 @@
         {
           "testId": "day-zero-accumulating-body",
           "tag": "div",
-          "text": "Accumulating. 354 decisions verified. Building judgment.354 / 384 decisions · ma"
+          "text": "Accumulating. 360 decisions verified. Building judgment.360 / 390 decisions · ma"
         },
         {
           "testId": "day-zero-caption",
@@ -182,22 +182,22 @@
         {
           "testId": "situation-regime-trending",
           "tag": "div",
-          "text": "trending100% accuracy44 decisions · 1x frequency"
+          "text": "trending100% accuracy40 decisions · 1x frequency"
         },
         {
           "testId": "situation-regime-choppy",
           "tag": "div",
-          "text": "choppy100% accuracy735 decisions · 2.1x frequency"
+          "text": "choppy100% accuracy744 decisions · 2.1x frequency"
         },
         {
           "testId": "situation-regime-volatile",
           "tag": "div",
-          "text": "volatile100% accuracy23 decisions · 1x frequency"
+          "text": "volatile100% accuracy18 decisions · 1x frequency"
         },
         {
           "testId": "situation-abstention",
           "tag": "div",
-          "text": "TRD-S2 situational abstentionI've seen 735 decisions in this regime; situation-c"
+          "text": "TRD-S2 situational abstentionI've seen 744 decisions in this regime; situation-c"
         },
         {
           "testId": "situation-rejections",
@@ -357,7 +357,7 @@
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
+          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
@@ -382,7 +382,7 @@
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
@@ -417,12 +417,7 @@
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         },
@@ -438,6 +433,11 @@
         },
         {
           "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
@@ -530,7 +530,7 @@
         {
           "testId": "situational-abstention-banner",
           "tag": "div",
-          "text": "TRD-S2 · regime evidence stateI've seen 735 decisions in this regime; situation-"
+          "text": "TRD-S2 · regime evidence stateI've seen 744 decisions in this regime; situation-"
         },
         {
           "testId": "pre-score-panel",
@@ -1054,18 +1054,6 @@
         {
           "tag": "h3",
           "text": "Journal Filters"
-        },
-        {
-          "tag": "h3",
-          "text": "Earnings Style Analysis"
-        },
-        {
-          "tag": "h3",
-          "text": "Trades"
-        },
-        {
-          "tag": "h3",
-          "text": "Category Analytics"
         }
       ],
       "testIds": [
@@ -1122,16 +1110,7 @@
         "Strategy",
         "OutcomeAllWinLoss",
         "Limit",
-        "Ask your journal",
-        "Earnings Style Analysis",
-        "Trades",
-        "Date",
-        "Direction",
-        "P&L",
-        "Category",
-        "Confidence",
-        "Action",
-        "Category Analytics"
+        "Ask your journal"
       ]
     }
   },
@@ -1228,66 +1207,6 @@
         },
         {
           "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
           "text": "Ground Beef"
         },
         {
@@ -1307,6 +1226,66 @@
           "text": "Chicken Breast"
         },
         {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Ground Beef"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
           "tag": "h2",
           "text": "Learned source reliability"
         }
@@ -1320,7 +1299,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating499 / 527 decisions3 of 0 arms "
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating500 / 528 decisions3 of 0 arms "
         },
         {
           "testId": "not-yet-panel",
@@ -1575,81 +1554,6 @@
           "name": ""
         },
         {
-          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PR7/9/2026Ground Beeforder as planned$1830.00",
           "ariaLabel": "",
           "name": ""
@@ -1671,6 +1575,81 @@
         },
         {
           "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR7/13/2026Ground Beeforder as planned$1830.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR7/13/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR7/13/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         }
@@ -1701,9 +1680,9 @@
         "Items you are consistent on can be managed",
         "Category accuracy alerts",
         "Today's decisions",
-        "Chicken Breast",
-        "Order",
         "Ground Beef",
+        "Order",
+        "Chicken Breast",
         "Learned source reliability"
       ]
     },
@@ -1720,10 +1699,6 @@
         {
           "tag": "h1",
           "text": "Score the next purchase"
-        },
-        {
-          "tag": "h2",
-          "text": "Order, receipt, and invoice checks"
         },
         {
           "tag": "h2",
@@ -1750,62 +1725,27 @@
         {
           "testId": "order-queue-panel",
           "tag": "section",
-          "text": "Order queuePrioritized supplier ordersPending orders0High priority0ConservationG"
+          "text": "Order queuePrioritized supplier ordersOrder queueLoading...Loading queue...Loadi"
         },
         {
           "testId": "queue-summary",
           "tag": "div",
-          "text": "Pending orders0High priority0ConservationGREEN"
+          "text": "Order queueLoading...Loading queue..."
+        },
+        {
+          "testId": "queue-loading",
+          "tag": "div",
+          "text": "Order queueLoading...Loading queue..."
         },
         {
           "testId": "queue-table",
           "tag": "div",
-          "text": "No pending orders in the queue."
+          "text": "Loading queue..."
         },
         {
           "testId": "order-item-select",
           "tag": "select",
           "text": "Chicken BreastGround BeefSalmon FilletPork ChopsTofu BlocksMixed GreensTomatoesA"
-        },
-        {
-          "testId": "match-queue-summary",
-          "tag": "div",
-          "text": "Pending matches1Auto-matched1Needs review1"
-        },
-        {
-          "testId": "match-results-table",
-          "tag": "div",
-          "text": "PW-MATCH-2SUP-PWChickenMismatch10%$1,000Ordered 100 units, received 85 (15% shor"
-        },
-        {
-          "testId": "match-result-row",
-          "tag": "details",
-          "text": "PW-MATCH-2SUP-PWChickenMismatch10%$1,000Ordered 100 units, received 85 (15% shor"
-        },
-        {
-          "testId": "match-confidence",
-          "tag": "span",
-          "text": "10%"
-        },
-        {
-          "testId": "match-discrepancies",
-          "tag": "div",
-          "text": "Ordered 100 units, received 85 (15% short)Invoice $12.00/unit vs order $10.00/un"
-        },
-        {
-          "testId": "match-result-row",
-          "tag": "details",
-          "text": "PW-MATCH-1SUP-PWChickenFull Match100%$1,000No discrepancies found."
-        },
-        {
-          "testId": "match-confidence",
-          "tag": "span",
-          "text": "100%"
-        },
-        {
-          "testId": "match-discrepancies",
-          "tag": "div",
-          "text": "No discrepancies found."
         }
       ],
       "buttons": [
@@ -1847,9 +1787,6 @@
         "Score the next purchase",
         "Whether They Show UpHighAbove averageAverageBelow averageLow",
         "Quantity",
-        "Order, receipt, and invoice checks",
-        "PW-MATCH-2SUP-PWChickenMismatch10%$1,000",
-        "PW-MATCH-1SUP-PWChickenFull Match100%$1,000",
         "Tomorrow's order is mostly inventory history",
         "Wednesday",
         "No event pressure",
@@ -2233,81 +2170,6 @@
           "name": ""
         },
         {
-          "text": "PUR-4e9194d4ccdc",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-181c70c4897c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-6fba99e5283b",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-40c6699ceb87",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-d02ad1aa80e1",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-12314656f003",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8d99599eb28c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-34b2a1453403",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8447b0c91e52",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8a19c036b365",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-50fabb99d4f5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7611f6e71b28",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-dcbb334db18d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e61bbd774f6c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-dc5b309d5675",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PUR-f5fd5dd89ad9",
           "ariaLabel": "",
           "name": ""
@@ -2479,6 +2341,81 @@
         },
         {
           "text": "PUR-969500e9d05f",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-ab7c3161621d",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-73a30297ac93",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-9e339cd10fbc",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-29fc13af9843",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-4f3182b5a979",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-f980f98ca46f",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-873962d86d4f",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-d1a51ce67c58",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-ee75f0e6b4c4",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-1633584cf79a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-b1570ecefe70",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-e20e1720beaa",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-e7e8523c1d24",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-aa4f376fbe2b",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-aea6aa6de766",
           "ariaLabel": "",
           "name": ""
         }
@@ -2952,46 +2889,6 @@
           "name": ""
         },
         {
-          "text": "PUR-4e9194d4ccdcdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-40c6699ceb87decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-d02ad1aa80e1decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8d99599eb28cdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8447b0c91e52decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-50fabb99d4f5decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7611f6e71b28decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-dc5b309d5675decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PUR-f5fd5dd89ad9decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
@@ -3048,6 +2945,46 @@
         },
         {
           "text": "PUR-b2c0308da2d2decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-e02a063e0273decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-d6737d71b48adecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-b34ef65f3640decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-b602d302b90edecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-4e237fdfe5fedecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-c32e06bdb48ddecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-c6fb57645d96decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-9cc738cbfa8edecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
@@ -3521,7 +3458,7 @@
         {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Unlabeled"
+          "text": "Sample"
         },
         {
           "testId": "iks-tracker-panel",
@@ -3661,7 +3598,7 @@
         },
         {
           "tag": "h2",
-          "text": "Accumulating evidence"
+          "text": "Instrument Calibrated"
         },
         {
           "tag": "h2",
@@ -3720,18 +3657,6 @@
           "text": "Data Products"
         },
         {
-          "tag": "h3",
-          "text": "Customer 360"
-        },
-        {
-          "tag": "h3",
-          "text": "Operations Health"
-        },
-        {
-          "tag": "h3",
-          "text": "Alert Intelligence"
-        },
-        {
           "tag": "h2",
           "text": "Source trust and quality graph"
         },
@@ -3761,11 +3686,7 @@
         },
         {
           "tag": "h2",
-          "text": "Alert Root Causes"
-        },
-        {
-          "tag": "h2",
-          "text": "Ungrouped (1)"
+          "text": "Alert Queue"
         },
         {
           "tag": "h2",
@@ -3792,27 +3713,22 @@
         {
           "testId": "enterprise-health",
           "tag": "section",
-          "text": "Enterprise HealthProcess-Tech FusiondegradedSAP S/4HANAFixture3 recordsCelonisFi"
+          "text": "Enterprise HealthProcess-Tech FusionloadingSAP S/4HANAunavailable0 recordsCeloni"
         },
         {
           "testId": "enterprise-system-sap-s-4hana",
           "tag": "div",
-          "text": "SAP S/4HANAFixture3 records"
+          "text": "SAP S/4HANAunavailable0 records"
         },
         {
           "testId": "enterprise-system-celonis",
           "tag": "div",
-          "text": "CelonisFixture2 KPIs"
+          "text": "Celonisunavailable0 KPIs"
         },
         {
           "testId": "enterprise-system-graph",
           "tag": "div",
-          "text": "GraphLive9 nodes"
-        },
-        {
-          "testId": "enterprise-impact",
-          "tag": "div",
-          "text": "Combined impact: 1 invoice exceptions · Match Invoice to GR"
+          "text": "Graphunavailable0 nodes"
         },
         {
           "testId": "enterprise-value-card",
@@ -3835,19 +3751,14 @@
           "text": "Sample"
         },
         {
-          "testId": "provenance-badge",
-          "tag": "span",
-          "text": "Sample"
-        },
-        {
           "testId": "day-zero-card",
           "tag": "div",
-          "text": "V6 · DZ-1 · Day-zero honestyAccumulating evidenceInstrument stateT_S1Instrument "
+          "text": "V6 · DZ-1 · Day-zero honestyInstrument CalibratedInstrument stateT_S1Instrument "
         },
         {
           "testId": "day-zero-panel",
           "tag": "section",
-          "text": "V6 · DZ-1 · Day-zero honestyAccumulating evidenceInstrument stateT_S1Instrument "
+          "text": "V6 · DZ-1 · Day-zero honestyInstrument CalibratedInstrument stateT_S1Instrument "
         },
         {
           "testId": "day-zero-evidence-tier",
@@ -3872,17 +3783,17 @@
         {
           "testId": "day-zero-state-summary",
           "tag": "div",
-          "text": "ACCUMULATING417 verified decisions30 needed"
+          "text": "INSTRUMENT_VALIDATED0 verified decisions30 needed"
         },
         {
           "testId": "day-zero-state",
           "tag": "span",
-          "text": "ACCUMULATING"
+          "text": "INSTRUMENT_VALIDATED"
         },
         {
-          "testId": "day-zero-accumulating-body",
+          "testId": "day-zero-instrument-body",
           "tag": "div",
-          "text": "Accumulating. 417 decisions verified. Building judgment.417 / 447 decisions · ma"
+          "text": "The instrument is working. The proof is calibrating.Awaiting verified decisions "
         },
         {
           "testId": "day-zero-caption",
@@ -3897,87 +3808,22 @@
         {
           "testId": "di-wiring-trust",
           "tag": "div",
-          "text": "SC-TRUSTSource reliability0.48overall trustsource_reliability1.00 · reliabledown"
+          "text": "SC-TRUSTSource reliabilityTrust profile unavailable."
         },
         {
           "testId": "trust-card",
           "tag": "section",
-          "text": "SC-TRUSTSource reliability0.48overall trustsource_reliability1.00 · reliabledown"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "source_reliability1.00 · reliable"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "downstream_urgency0.67 · moderate"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "business_criticality0.47 · moderate"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "impact_scope0.31 · moderate"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "data_freshness0.31 · moderate"
-        },
-        {
-          "testId": "trust-factor",
-          "tag": "div",
-          "text": "recurrence_frequency0.15 · noisy"
-        },
-        {
-          "testId": "trust-perturbation",
-          "tag": "div",
-          "text": "DI-PROOF · What-ifSourceSnowflakeAirflowdbtMagnitude 0.5Perturb"
-        },
-        {
-          "testId": "trust-perturb-source",
-          "tag": "select",
-          "text": "SnowflakeAirflowdbt"
-        },
-        {
-          "testId": "trust-perturb-magnitude",
-          "tag": "input",
-          "text": ""
-        },
-        {
-          "testId": "trust-perturb-button",
-          "tag": "button",
-          "text": "Perturb"
+          "text": "SC-TRUSTSource reliabilityTrust profile unavailable."
         },
         {
           "testId": "di-wiring-products",
           "tag": "div",
-          "text": "Data IntelligenceData Products3 data products. Average IKS: 49.Customer 360Matur"
+          "text": "Data IntelligenceData ProductsLoading products..."
         },
         {
           "testId": "products-card",
           "tag": "section",
-          "text": "Data IntelligenceData Products3 data products. Average IKS: 49.Customer 360Matur"
-        },
-        {
-          "testId": "di-product",
-          "tag": "article",
-          "text": "Customer 360Maturity: mature75GREENGREEN · safe for autonomous consumption2 sour"
-        },
-        {
-          "testId": "di-product",
-          "tag": "article",
-          "text": "Operations HealthMaturity: learning49GREENGREEN · safe for autonomous consumptio"
-        },
-        {
-          "testId": "di-product",
-          "tag": "article",
-          "text": "Alert IntelligenceMaturity: learning23GREENGREEN · safe for autonomous consumpti"
+          "text": "Data IntelligenceData ProductsLoading products..."
         },
         {
           "testId": "di-wiring-map",
@@ -4017,7 +3863,7 @@
         {
           "testId": "compounding-measurement-state",
           "tag": "span",
-          "text": "INSTRUMENT_VALIDATED"
+          "text": "Loading"
         },
         {
           "testId": "compounding-curve-chart",
@@ -4077,77 +3923,107 @@
           "name": ""
         },
         {
-          "text": "Perturb",
+          "text": "DQ-002highpayments_hourlyFirst-time ⚡payment_gatewaypipeline failureAEAuto appro",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "CRM Synccrm_sync2 medium alerts4 alertsCollapse",
+          "text": "DQ-006highrevenue_martFirst-time ⚡billing_apischema changeAEAuto approve48%",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Triage",
+          "text": "DQ-012highlead_scoringFirst-time ⚡marketing_dbquality anomalyAEAuto approve48%",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Triage",
+          "text": "DI-ABSTENTION-001highUNSEEN_SUPPLIER_FEEDFirst-time ⚡unknown_supplier_gatewayuns",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Triage",
+          "text": "DQ-010mediumsettlement_batchesFirst-time ⚡payment_gatewayvolume anomaly",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Triage",
+          "text": "DQ-013mediumpolicy_scoresFirst-time ⚡hr_feedquality anomaly",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Marketing DBmarketing_db1 critical/high alerts3 alertsExpand",
+          "text": "DQ-004lowrisk_featuresFirst-time ⚡warehouse_etlpipeline failure",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Warehouse ETLwarehouse_etlNo high-severity alerts3 alertsExpand",
+          "text": "DQ-017highbilling_exportsFirst-time ⚡billing_apifreshness violation",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Billing APIbilling_api2 critical/high alerts2 alertsExpand",
+          "text": "DQ-003mediumcustomer_eventsFirst-time ⚡crm_syncpipeline failure",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "ERP Exporterp_export1 medium alerts2 alertsExpand",
+          "text": "DQ-007mediumidentity_dimFirst-time ⚡hr_feedschema change",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "HR Feedhr_feed2 medium alerts2 alertsExpand",
+          "text": "DQ-014mediumsupplier_riskFirst-time ⚡erp_exportquality anomaly",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Payment Gatewaypayment_gateway1 critical/high alerts2 alertsExpand",
+          "text": "DQ-020mediumcustomer_360First-time ⚡crm_synctransform drift",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Inventory Feedinventory_feedNo high-severity alerts1 alertsExpand",
+          "text": "DQ-001loworders_dailyRecurring (12x)warehouse_etlpipeline failureAEAuto approve8",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "IoT Sensorsiot_sensorsNo high-severity alerts1 alertsExpand",
+          "text": "DQ-005lowproduct_catalogSeen 3x beforeerp_exportschema changeAEAuto approve82%",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "Triage",
+          "text": "DQ-008lowtraffic_countsSeen 3x beforeiot_sensorsvolume anomalyAEAuto approve82%",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-009lowpartner_uploadsSeen 3x beforecrm_syncvolume anomalyAEAuto approve82%",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-011lowinventory_snapshotsRecurring (12x)inventory_feedquality anomalyAEAuto a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-015lowuser_activitySeen 3x beforecrm_syncfreshness violationAEAuto approve82%",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-016lowsearch_indexSeen 3x beforemarketing_dbfreshness violationAEAuto approve",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-018lowfeature_storeSeen 3x beforewarehouse_etltransform driftAEAuto approve82",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "DQ-019lowcampaign_attributionSeen 3x beforemarketing_dbtransform driftAEAuto app",
           "ariaLabel": "",
           "name": ""
         },
@@ -4177,7 +4053,7 @@
         "DataOps Copilot",
         "Process-Tech Fusion",
         "Enterprise Systems Integration",
-        "Accumulating evidence",
+        "Instrument Calibrated",
         "Pipeline Status",
         "Billing API",
         "CRM Sync",
@@ -4191,12 +4067,7 @@
         "AgentEvolver Impact",
         "Trust → Products → Intelligence Map",
         "Source reliability",
-        "Source",
-        "Magnitude 0.5",
         "Data Products",
-        "Customer 360",
-        "Operations Health",
-        "Alert Intelligence",
         "Source trust and quality graph",
         "$180K/yr",
         "The system gets better — and governance is why you can trust it.",
@@ -4205,20 +4076,12 @@
         "Approve Purchase Order",
         "Match Invoice to GR",
         "Process Payment",
-        "Alert Root Causes",
-        "Ungrouped (1)",
+        "Alert Queue",
         "Conservation",
         "Threshold6%",
         "Automation Projection",
         "Conservation Timeline",
         "Accuracy Alerts",
-        "96%71%50%74%67%96%",
-        "96%",
-        "71%",
-        "50%",
-        "74%",
-        "67%",
-        "freshness violation",
         "Ask Your Data",
         "Ask about your data"
       ]
@@ -4708,7 +4571,7 @@
         {
           "testId": "search-result",
           "tag": "tr",
-          "text": "stg_suppliersmodel · dbtTier 2 (95%)4.0hhealthy"
+          "text": "supplierstable · snowflakeTier 1 (95%)4.0hhealthy"
         },
         {
           "testId": "quality-badge",
@@ -4718,7 +4581,7 @@
         {
           "testId": "search-result",
           "tag": "tr",
-          "text": "supplierstable · snowflakeTier 1 (95%)4.0hhealthy"
+          "text": "stg_suppliersmodel · dbtTier 2 (95%)4.0hhealthy"
         },
         {
           "testId": "quality-badge",
@@ -4858,7 +4721,12 @@
         {
           "testId": "decision-explorer",
           "tag": "section",
-          "text": "SC-14Decision ExplorerLoading decisions...CategoryAllActionAllOutcomeAllcorrecti"
+          "text": "SC-14Decision Explorer1242 GraphStore decisionsCategoryAllfreshness violationpip"
+        },
+        {
+          "testId": "decision-summary",
+          "tag": "div",
+          "text": "Decisions50Accuracy24%Common actionpause downstreamOutcome filterall"
         }
       ],
       "buttons": [
@@ -5394,506 +5262,6 @@
           "testId": "agent-trust-gateway-panel",
           "tag": "article",
           "text": "DI-GATEWAYAgent-trust gatewayEvery automated action should pass a trust and cons"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.68PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.55PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.68BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.50BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.73BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.52BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.70BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.55PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.99PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.99PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.68PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed1.00PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.96BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.64BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.54BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.98PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.91PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.94PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.78PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.81PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.54BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.65BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.97ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.97ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.97BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.96ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.96BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.96ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.96BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.95ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.95BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.94ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.94ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.94ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.94BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.94BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.93ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.93BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.92ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.92ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.92ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.92BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.91ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.91ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.91BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.90BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.88ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.88BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.87ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.87ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.87BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.85BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.83BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.80ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.80BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.78BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.75ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.75ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.75BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.71BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.68BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.64BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.60BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.55BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.51ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.51BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.46ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.46ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.46BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.41BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.38BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.39BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.37BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.36ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.36BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.34ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.34ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.34BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.33BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.32BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.32BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.30BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.29ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.29BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.29ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.29ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.29BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationblocked0.26BLOCK"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.28PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.32PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.36PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.40ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.40PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.45ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationabstained0.45ABSTAIN"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.45PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.49PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.53PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.57PASS"
-        },
-        {
-          "testId": "gateway-verification-row",
-          "tag": "tr",
-          "text": "unknown-verificationallowed0.61PASS"
         },
         {
           "testId": "dataops-governance-panel",
@@ -6469,10 +5837,6 @@
         "Cohort measurement readiness",
         "Frozen Twin control",
         "Agent-trust gateway",
-        "Verification",
-        "Outcome",
-        "Trust",
-        "Gate result",
         "Measured proof, clearly separated from modelled value",
         "Cross-System Insights",
         "supplier-acme",
@@ -6569,7 +5933,7 @@
         },
         {
           "tag": "h2",
-          "text": "Accumulating Evidence"
+          "text": "Measurement State"
         },
         {
           "tag": "h2",
@@ -6636,7 +6000,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating140 / 170 decisions1 of 25 arms"
+          "text": "Day-Zero HonestyMeasurement StateUnable to load measurement state.Retry"
         },
         {
           "testId": "day-zero-readiness-panel",
@@ -6676,6 +6040,11 @@
           "name": ""
         },
         {
+          "text": "Retry",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
           "text": "View Expansion Proof",
           "ariaLabel": "",
           "name": ""
@@ -6690,7 +6059,7 @@
       "visibleText": [
         "S2P Copilot",
         "Dashboard",
-        "Accumulating Evidence",
+        "Measurement State",
         "Day-zero data readiness",
         "Exception Queue",
         "Conservation Status",
@@ -7136,34 +6505,9 @@
           "text": "S2P-EXTINCTException extinction lifecycleDiscover → shadow → promote → measure →"
         },
         {
-          "testId": "extinction-price_variance",
-          "tag": "div",
-          "text": "price_varianceSHADOWINGShadow decisions: 0Measured: 0Last transition: 2026-08-19"
-        },
-        {
-          "testId": "extinction-quantity_mismatch",
-          "tag": "div",
-          "text": "quantity_mismatchMEASURINGShadow decisions: 0Measured: 0Last transition: 2026-08"
-        },
-        {
-          "testId": "extinction-duplicate_risk",
-          "tag": "div",
-          "text": "duplicate_riskROLLED BACKShadow decisions: 0Measured: 0Last transition: 2026-08-"
-        },
-        {
-          "testId": "extinction-contract_gap",
-          "tag": "div",
-          "text": "contract_gapDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-08-19T"
-        },
-        {
-          "testId": "extinction-format_compliance",
-          "tag": "div",
-          "text": "format_complianceDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-0"
-        },
-        {
           "testId": "cohort-status-panel",
           "tag": "section",
-          "text": "S2P Measurement StatusCohort measurement readinessMeasurement readyThe measureme"
+          "text": "S2P Measurement StatusCohort measurement readinessMeasurement readyLoading measu"
         },
         {
           "testId": "cohort-status-state",

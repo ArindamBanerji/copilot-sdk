@@ -18,7 +18,7 @@ export default async function globalSetup() {
       FRONTENDS.map(async (url) => {
         const page = await browser.newPage();
         try {
-          await page.goto(url, { waitUntil: "networkidle", timeout: 30_000 });
+          await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
           await page.locator("main").waitFor({ state: "attached", timeout: 15_000 });
         } catch (error) {
           console.warn(`[global-setup] frontend warmup skipped for ${url}: ${errorMessage(error)}`);

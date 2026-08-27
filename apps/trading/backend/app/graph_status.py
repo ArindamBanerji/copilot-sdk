@@ -360,7 +360,7 @@ def create_trading_active_graph_store(
         from copilot_sdk.graph.factory import create_graph_store
 
         factory = create_graph_store
-    factory_args = {
+    factory_args: dict[str, Any] = {
         "backend": config.requested_backend,
         "domain": config.domain,
         "dsn": config.dsn,

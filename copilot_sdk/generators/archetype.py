@@ -8,7 +8,7 @@ import math
 import re
 import sys
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -316,7 +316,7 @@ def _generate_centroids(
     rng = np.random.default_rng(seed)
     base = np.full(shape.tensor_shape, 0.5, dtype=np.float64)
     noise = rng.uniform(-0.1, 0.1, size=shape.tensor_shape)
-    return np.clip(base + noise, 0.0, 1.0).astype(np.float64)
+    return cast(np.ndarray, np.clip(base + noise, 0.0, 1.0).astype(np.float64))
 
 
 def _expected_initial_accuracy(centroids: np.ndarray) -> float:

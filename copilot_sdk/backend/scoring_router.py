@@ -139,6 +139,7 @@ def create_scoring_router(
     outcome_recorder: Callable[[dict[str, Any], bool], None] | None = None,
     variant_selector: Callable[[str], str | None] | None = None,
     entity_context_cache: Any | None = None,
+    score_payload_enricher: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> APIRouter:
     """Create a domain-parametric scoring router."""
 
@@ -221,6 +222,8 @@ def create_scoring_router(
             payload = _json_safe(result)
             payload["engine"] = ENGINE
             payload = _score_response_payload(payload)
+            if score_payload_enricher is not None:
+                payload = score_payload_enricher(payload)
             apply_cache_invalidation_event(domain, "score")
             if query_cache_invalidator is not None:
                 query_cache_invalidator()

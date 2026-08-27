@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
+from typing import cast
 
 from copilot_sdk.evolution import PlateauConfig
 from copilot_sdk.scoring.config import DomainShape
@@ -105,21 +106,21 @@ class S2PPreset:
         """Pad legacy seven-factor tensors to eight factors with neutral risk."""
         array = np.asarray(centroids, dtype=np.float64)
         if array.size == 0:
-            return array
+            return cast(np.ndarray, array)
         if array.shape[-1] == 8:
-            return array
+            return cast(np.ndarray, array)
         if array.shape[-1] == 7:
             pad = np.full((*array.shape[:-1], 1), 0.5, dtype=np.float64)
-            return np.concatenate([array, pad], axis=-1)
+            return cast(np.ndarray, np.concatenate([array, pad], axis=-1))
         raise ValueError(f"s2p legacy tensor has unsupported factor width {array.shape[-1]}")
 
     def migrate_legacy_vector(self, vector: np.ndarray | list[float]) -> np.ndarray:
         """Pad a legacy seven-factor decision vector to eight factors."""
         array = np.asarray(vector, dtype=np.float64)
         if array.size == 0:
-            return array
+            return cast(np.ndarray, array)
         if array.shape[-1] == 8:
-            return array
+            return cast(np.ndarray, array)
         if array.shape[-1] == 7:
-            return np.concatenate([array, np.asarray([0.5], dtype=np.float64)])
+            return cast(np.ndarray, np.concatenate([array, np.asarray([0.5], dtype=np.float64)]))
         raise ValueError(f"s2p legacy vector has unsupported factor width {array.shape[-1]}")

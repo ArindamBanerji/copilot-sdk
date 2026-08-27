@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 
@@ -105,13 +106,13 @@ def _load_bootstrap(preset: PurchasingPreset) -> np.ndarray:
             raise ValueError(
                 f"purchasing bootstrap shape {centroids.shape} != {expected_shape}"
             )
-        return centroids
+        return cast(np.ndarray, centroids)
     except Exception:
-        return np.full(expected_shape, 0.5, dtype=np.float64)
+        return cast(np.ndarray, np.full(expected_shape, 0.5, dtype=np.float64))
 
 
 def _migrate_legacy_centroids(centroids: np.ndarray) -> np.ndarray:
     migrated = np.full((5, 4, 7), 0.5, dtype=np.float64)
     migrated[:, :, :6] = centroids
     migrated[:, :, 6] = 0.5
-    return migrated
+    return cast(np.ndarray, migrated)

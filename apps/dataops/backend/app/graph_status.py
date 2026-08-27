@@ -336,7 +336,7 @@ def create_dataops_active_graph_store(
         from copilot_sdk.graph.factory import create_graph_store
 
         factory = create_graph_store
-    factory_args = {
+    factory_args: dict[str, Any] = {
         "backend": "age", "domain": config.domain, "dsn": config.dsn,
         "graph_name": config.graph, "env": {}, "test_mode": config.test_mode,
     }

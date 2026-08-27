@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 
@@ -95,6 +96,6 @@ def _load_bootstrap(preset: DataOpsPreset) -> np.ndarray:
         centroids = np.asarray(data["centroids"], dtype=np.float64)
         if centroids.shape != expected_shape:
             raise ValueError(f"dataops bootstrap shape {centroids.shape} != {expected_shape}")
-        return centroids
+        return cast(np.ndarray, centroids)
     except Exception:
-        return np.full(expected_shape, 0.5, dtype=np.float64)
+        return cast(np.ndarray, np.full(expected_shape, 0.5, dtype=np.float64))
