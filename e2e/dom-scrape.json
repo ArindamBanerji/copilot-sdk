@@ -48,7 +48,7 @@
         },
         {
           "tag": "h3",
-          "text": "ranging context"
+          "text": "calm context"
         },
         {
           "tag": "h2",
@@ -122,7 +122,7 @@
         {
           "testId": "day-zero-state-summary",
           "tag": "div",
-          "text": "ACCUMULATING360 verified decisions30 needed"
+          "text": "ACCUMULATING366 verified decisions30 needed"
         },
         {
           "testId": "day-zero-state",
@@ -132,7 +132,7 @@
         {
           "testId": "day-zero-accumulating-body",
           "tag": "div",
-          "text": "Accumulating. 360 decisions verified. Building judgment.360 / 390 decisions · ma"
+          "text": "Accumulating. 366 decisions verified. Building judgment.366 / 396 decisions · ma"
         },
         {
           "testId": "day-zero-caption",
@@ -152,7 +152,7 @@
         {
           "testId": "regime-panel",
           "tag": "section",
-          "text": "Market contextMarket Regimescraped_externalRanging marketConfidence48%Volatility"
+          "text": "Market contextMarket Regimescraped_externalRanging marketConfidence50%Volatility"
         },
         {
           "testId": "regime-badge",
@@ -162,7 +162,7 @@
         {
           "testId": "regime-confidence",
           "tag": "div",
-          "text": "48%"
+          "text": "50%"
         },
         {
           "testId": "regime-hurst",
@@ -182,22 +182,22 @@
         {
           "testId": "situation-regime-trending",
           "tag": "div",
-          "text": "trending100% accuracy40 decisions · 1x frequency"
+          "text": "trending100% accuracy36 decisions · 1x frequency"
         },
         {
           "testId": "situation-regime-choppy",
           "tag": "div",
-          "text": "choppy100% accuracy744 decisions · 2.1x frequency"
+          "text": "choppy100% accuracy752 decisions · 2.1x frequency"
         },
         {
           "testId": "situation-regime-volatile",
           "tag": "div",
-          "text": "volatile100% accuracy18 decisions · 1x frequency"
+          "text": "volatile100% accuracy14 decisions · 1x frequency"
         },
         {
           "testId": "situation-abstention",
           "tag": "div",
-          "text": "TRD-S2 situational abstentionI've seen 744 decisions in this regime; situation-c"
+          "text": "TRD-S2 situational abstentionI've seen 752 decisions in this regime; situation-c"
         },
         {
           "testId": "situation-rejections",
@@ -222,12 +222,12 @@
         {
           "testId": "situation-judgment",
           "tag": "div",
-          "text": "Situation-conditioned judgmentranging contextEvidence: INSUFFICIENTVIX: 15.21ADX"
+          "text": "Situation-conditioned judgmentcalm contextEvidence: INSUFFICIENTVIX: 14.47ADX: 2"
         },
         {
           "testId": "situation-regime",
           "tag": "h3",
-          "text": "ranging context"
+          "text": "calm context"
         },
         {
           "testId": "situation-evidence-tier",
@@ -242,7 +242,7 @@
         {
           "testId": "situation-observation",
           "tag": "p",
-          "text": "Observation: measured ranging regime history is available for review. No forward"
+          "text": "Observation: insufficient regime-specific evidence in calm conditions (0/10 veri"
         },
         {
           "testId": "evidence-tier-badge",
@@ -357,42 +357,27 @@
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
+          "text": "MSFTstrong_executionmomentum · swing+19.98%-Holding periodopenR:R1.75ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
+          "text": "MSFTstrong_executionmomentum · swing+19.98%-Holding periodopenR:R1.75ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
+          "text": "MSFTstrong_executionmomentum · swing+19.98%-Holding periodopenR:R2.00ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
+          "text": "MSFTstrong_executionmomentum · swing+19.98%-Holding periodopenR:R1.75ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
+          "text": "MSFTstrong_executionmomentum · swing+19.98%-Holding periodopenR:R2.00ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
@@ -402,17 +387,12 @@
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
+          "text": "MSFTstrong_executionmomentum · swing+19.98%-Holding periodopenR:R1.75ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
+          "text": "MSFTstrong_executionmomentum · swing+19.98%-Holding periodopenR:R1.75ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
@@ -422,27 +402,7 @@
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R2.00ResearchCon",
+          "text": "MSFTstrong_executionmomentum · swing+19.98%-Holding periodopenR:R1.75ResearchCon",
           "ariaLabel": "",
           "name": ""
         },
@@ -452,7 +412,47 @@
           "name": ""
         },
         {
-          "text": "MSFTstrong_executionmomentum · swing+18.18%-Holding periodopenR:R1.75ResearchCon",
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Unknowntradeunclassified · timeframe n/aopen-Holding periodopenR:R-ResearchConvi",
           "ariaLabel": "",
           "name": ""
         }
@@ -476,7 +476,7 @@
         "Ranging market",
         "Volatile market",
         "trendFollowing",
-        "ranging context",
+        "calm context",
         "Portfolio Summary",
         "Accuracy by Category",
         "Portfolio Concentration",
@@ -530,7 +530,7 @@
         {
           "testId": "situational-abstention-banner",
           "tag": "div",
-          "text": "TRD-S2 · regime evidence stateI've seen 744 decisions in this regime; situation-"
+          "text": "TRD-S2 · regime evidence stateI've seen 752 decisions in this regime; situation-"
         },
         {
           "testId": "pre-score-panel",
@@ -641,7 +641,7 @@
         },
         {
           "tag": "h2",
-          "text": "Loading signal trust..."
+          "text": "Which of your signals are stable across your outcomes?"
         },
         {
           "tag": "h2",
@@ -689,7 +689,7 @@
         },
         {
           "tag": "h2",
-          "text": "Scanning imported trades..."
+          "text": "Repeat behaviors across imported trades"
         },
         {
           "tag": "h2",
@@ -718,6 +718,22 @@
         {
           "tag": "h2",
           "text": "Decision Explorer"
+        },
+        {
+          "tag": "h2",
+          "text": "Risk-Adjusted Decision Quality"
+        },
+        {
+          "tag": "h2",
+          "text": "VRP Edge or Insurance"
+        },
+        {
+          "tag": "h2",
+          "text": "Regime-Conditioned Rich/Cheap"
+        },
+        {
+          "tag": "h2",
+          "text": "Dispersion Follow-Rate"
         },
         {
           "tag": "h2",
@@ -764,7 +780,7 @@
         {
           "testId": "trust-radar-panel",
           "tag": "section",
-          "text": "Signal Trust AnalysisLoading signal trust..."
+          "text": "Signal Trust AnalysisWhich of your signals are stable across your outcomes?DK we"
         },
         {
           "testId": "regime-mirror-panel",
@@ -774,7 +790,7 @@
         {
           "testId": "claim-gate-badge",
           "tag": "div",
-          "text": "TRD-CLAIM-GATEEvidence claim gateEvidence: insufficientTested-Powered-Survived-"
+          "text": "TRD-CLAIM-GATEEvidence claim gateEvidence: T-OTested802Powered366Survived365"
         },
         {
           "testId": "governed-vs-ungoverned-panel",
@@ -919,12 +935,92 @@
         {
           "testId": "vol-analytics-grid",
           "tag": "div",
-          "text": ""
+          "text": "V1 quality diagnosticRisk-Adjusted Decision Quality██ LearnedT_S: synthetic / mo"
+        },
+        {
+          "testId": "vol-sharpe-card",
+          "tag": "section",
+          "text": "V1 quality diagnosticRisk-Adjusted Decision Quality██ LearnedT_S: synthetic / mo"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "██ Learned"
+        },
+        {
+          "testId": "evidence-tier-badge",
+          "tag": "span",
+          "text": "T_S: synthetic / modelled — not measured"
+        },
+        {
+          "testId": "vol-sharpe-clusters",
+          "tag": "table",
+          "text": "Market conditionDecisionsQuality scoreStateranging35518.79measuredunclassified6-"
+        },
+        {
+          "testId": "vrp-attribution-card",
+          "tag": "section",
+          "text": "V2 volatility diagnosticVRP Edge or InsuranceSampleAverage IV-RV spread-Current "
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Sample"
+        },
+        {
+          "testId": "vrp-classification",
+          "tag": "div",
+          "text": "ReadingAccumulating"
+        },
+        {
+          "testId": "regime-vrp-card",
+          "tag": "section",
+          "text": "V5 volatility diagnosticRegime-Conditioned Rich/CheapAccumulatingAwaiting regime"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Accumulating"
+        },
+        {
+          "testId": "dispersion-follow-card",
+          "tag": "section",
+          "text": "V6 volatility diagnosticDispersion Follow-RateAccumulatingSignals0Followed0Follo"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Accumulating"
         },
         {
           "testId": "counterfactual-card",
           "tag": "section",
-          "text": "What If?Calculating counterfactual..."
+          "text": "What If?██ LearnedOriginal score0.65Perturbed score0.47Delta-0.18Signal alignmen"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "██ Learned"
+        },
+        {
+          "testId": "counterfactual-base-score",
+          "tag": "div",
+          "text": "Original score0.65"
+        },
+        {
+          "testId": "counterfactual-perturbed-score",
+          "tag": "div",
+          "text": "Perturbed score0.47"
+        },
+        {
+          "testId": "counterfactual-delta",
+          "tag": "div",
+          "text": "Delta-0.18"
+        },
+        {
+          "testId": "counterfactual-factor-slider",
+          "tag": "input",
+          "text": ""
         }
       ],
       "buttons": [
@@ -957,12 +1053,23 @@
           "text": "Trade Detail",
           "ariaLabel": "",
           "name": ""
+        },
+        {
+          "text": "Re-score",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Try sample",
+          "ariaLabel": "",
+          "name": ""
         }
       ],
       "roleHeadings": [],
       "visibleText": [
         "Trading Copilot",
-        "Loading signal trust...",
+        "Which of your signals are stable across your outcomes?",
+        "CategoryOverallTrend FollowingMean ReversionEvent DrivenIncome StrategyScalp Intraday",
         "Regime mirror",
         "Evidence claim gate",
         "Governed versus ungoverned",
@@ -974,7 +1081,7 @@
         "Performance by regime",
         "ranging context",
         "Volatility reality check",
-        "Scanning imported trades...",
+        "Repeat behaviors across imported trades",
         "YOUR TWO SELVES",
         "Profile pending",
         "Fingerprint",
@@ -984,8 +1091,17 @@
         "Decision Explorer",
         "CategoryAll categories",
         "Verified only",
+        "Risk-Adjusted Decision Quality",
+        "Market condition",
+        "Decisions",
+        "Quality score",
+        "State",
+        "VRP Edge or Insurance",
+        "Regime-Conditioned Rich/Cheap",
+        "Dispersion Follow-Rate",
         "Cross-Position Correlation",
         "What If?",
+        "Perturb signal alignment",
         "Day of Week",
         "Research Impact",
         "Regime Analysis",
@@ -1001,9 +1117,423 @@
         {
           "tag": "h1",
           "text": "Trading Copilot"
+        },
+        {
+          "tag": "h2",
+          "text": "Performance Summary"
+        },
+        {
+          "tag": "h2",
+          "text": "Trajectory"
+        },
+        {
+          "tag": "h2",
+          "text": "Centroid Timeline"
+        },
+        {
+          "tag": "h2",
+          "text": "Re-convergence"
+        },
+        {
+          "tag": "h3",
+          "text": "Convergence curve overlay"
+        },
+        {
+          "tag": "h2",
+          "text": "Audit Trail"
+        },
+        {
+          "tag": "h2",
+          "text": "Automation Projection"
+        },
+        {
+          "tag": "h2",
+          "text": "Situation-conditioned autonomy"
+        },
+        {
+          "tag": "h2",
+          "text": "Regime-scoped rejection"
+        },
+        {
+          "tag": "h2",
+          "text": "Market Regime"
+        },
+        {
+          "tag": "h3",
+          "text": "Situation-conditioned discipline"
+        },
+        {
+          "tag": "h3",
+          "text": "90-day regime history"
+        },
+        {
+          "tag": "h3",
+          "text": "Performance by regime"
+        },
+        {
+          "tag": "h3",
+          "text": "ranging context"
+        },
+        {
+          "tag": "h2",
+          "text": "Volatility scenario surfaces"
+        },
+        {
+          "tag": "h2",
+          "text": "Clustering-adjusted Sharpe"
+        },
+        {
+          "tag": "h2",
+          "text": "VRP and tail-dependence window"
+        },
+        {
+          "tag": "h2",
+          "text": "Regime-conditioned rich / cheap"
+        },
+        {
+          "tag": "h2",
+          "text": "Dispersion follow-rate"
+        },
+        {
+          "tag": "h2",
+          "text": "Effective bets in tail"
+        },
+        {
+          "tag": "h2",
+          "text": "Clean-trader certificate"
+        },
+        {
+          "tag": "h2",
+          "text": "Gate dividend"
+        },
+        {
+          "tag": "h2",
+          "text": "Strategy Promotion"
+        },
+        {
+          "tag": "h2",
+          "text": "Agent Evolution Summary"
+        },
+        {
+          "tag": "h2",
+          "text": "Rejection moments"
+        },
+        {
+          "tag": "h2",
+          "text": "Cross-Copilot Transfer"
+        },
+        {
+          "tag": "h3",
+          "text": "Transfer Impact"
+        },
+        {
+          "tag": "h2",
+          "text": "Agent Evolution"
+        },
+        {
+          "tag": "h2",
+          "text": "Parameter Evolution"
+        },
+        {
+          "tag": "h3",
+          "text": "Hard Bounds Reference"
+        },
+        {
+          "tag": "h2",
+          "text": "Execution Quality"
+        },
+        {
+          "tag": "h2",
+          "text": "Signal Integration"
+        },
+        {
+          "tag": "h2",
+          "text": "Cohort measurement readiness"
+        },
+        {
+          "tag": "h2",
+          "text": "VIX-Aware Hold Timing"
+        },
+        {
+          "tag": "h2",
+          "text": "Rolling 10"
+        },
+        {
+          "tag": "h2",
+          "text": "Category Performance"
+        },
+        {
+          "tag": "h2",
+          "text": "Risk Management"
         }
       ],
-      "testIds": [],
+      "testIds": [
+        {
+          "testId": "reconvergence-panel",
+          "tag": "section",
+          "text": "TRD-S7 / ARCHExperimental — labeled roadmapRe-convergenceCold-start versus regim"
+        },
+        {
+          "testId": "reconvergence-regime",
+          "tag": "div",
+          "text": "ranging"
+        },
+        {
+          "testId": "reconvergence-depth",
+          "tag": "div",
+          "text": "0 checkpoints in 'ranging'"
+        },
+        {
+          "testId": "reconvergence-gamma",
+          "tag": "div",
+          "text": "Experiment pending"
+        },
+        {
+          "testId": "autonomy-throttle-panel",
+          "tag": "section",
+          "text": "TRD-S3Situation-conditioned autonomyCurrent regime: -Conservation: unavailableOb"
+        },
+        {
+          "testId": "autonomy-throttle-status",
+          "tag": "span",
+          "text": "unavailable"
+        },
+        {
+          "testId": "regime-rejection-panel",
+          "tag": "section",
+          "text": "TRD-S4Regime-scoped rejectionTested-Rejected-StateobservationObservation only: n"
+        },
+        {
+          "testId": "regime-panel",
+          "tag": "section",
+          "text": "Market contextMarket RegimeLoading market regime...Ranging marketConfidence-Vola"
+        },
+        {
+          "testId": "regime-badge",
+          "tag": "span",
+          "text": "Ranging market"
+        },
+        {
+          "testId": "regime-confidence",
+          "tag": "div",
+          "text": "-"
+        },
+        {
+          "testId": "regime-hurst",
+          "tag": "div",
+          "text": "-"
+        },
+        {
+          "testId": "situation-conditioned",
+          "tag": "div",
+          "text": "TRD-S1 / S2 / S3Situation-conditioned disciplineConservation -Illustrative demoL"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Illustrative demo"
+        },
+        {
+          "testId": "situation-regime-trending",
+          "tag": "div",
+          "text": "trendingAccumulating0 decisions · 1x frequency"
+        },
+        {
+          "testId": "situation-regime-choppy",
+          "tag": "div",
+          "text": "choppyAccumulating0 decisions · 1x frequency"
+        },
+        {
+          "testId": "situation-regime-volatile",
+          "tag": "div",
+          "text": "volatileAccumulating0 decisions · 1x frequency"
+        },
+        {
+          "testId": "situation-abstention",
+          "tag": "div",
+          "text": "TRD-S2 situational abstentionChecking regime sufficiency..."
+        },
+        {
+          "testId": "situation-rejections",
+          "tag": "div",
+          "text": "TRD-S4 regime-scoped rejectionChecking rejected variants..."
+        },
+        {
+          "testId": "regime-history",
+          "tag": "div",
+          "text": "90-day regime history0 recordsHistory starts after the classifier records market"
+        },
+        {
+          "testId": "regime-performance",
+          "tag": "div",
+          "text": "Performance by regimeVerified outcomes grouped by category and market regime.Cur"
+        },
+        {
+          "testId": "regime-recommendation",
+          "tag": "div",
+          "text": "Regime observationLoading observation..."
+        },
+        {
+          "testId": "situation-judgment",
+          "tag": "div",
+          "text": "Situation-conditioned judgmentranging contextEvidence: INSUFFICIENTVIX: -ADX: -C"
+        },
+        {
+          "testId": "situation-regime",
+          "tag": "h3",
+          "text": "ranging context"
+        },
+        {
+          "testId": "situation-evidence-tier",
+          "tag": "span",
+          "text": "Evidence: INSUFFICIENT"
+        },
+        {
+          "testId": "situation-strategy-accuracy",
+          "tag": "div",
+          "text": "No verified strategy observations in this regime."
+        },
+        {
+          "testId": "situation-observation",
+          "tag": "p",
+          "text": "Observation: situation data is loading. No forward action is inferred."
+        },
+        {
+          "testId": "volatility-scenario-panel",
+          "tag": "section",
+          "text": "TRD-V1 / V2 / V5 / V6 / V7Volatility scenario surfacesEvidence: T-OCluster-adjus"
+        },
+        {
+          "testId": "volatility-scenario-evidence",
+          "tag": "span",
+          "text": "Evidence: T-O"
+        },
+        {
+          "testId": "volatility-surface-sharpe",
+          "tag": "div",
+          "text": "Cluster-adjusted Sharpe-"
+        },
+        {
+          "testId": "volatility-surface-vrp",
+          "tag": "div",
+          "text": "VRP / tail dependence-"
+        },
+        {
+          "testId": "volatility-surface-rich-cheap",
+          "tag": "div",
+          "text": "Regime rich / cheap-"
+        },
+        {
+          "testId": "volatility-surface-dispersion",
+          "tag": "div",
+          "text": "Dispersion follow-rate-"
+        },
+        {
+          "testId": "volatility-surface-tail",
+          "tag": "div",
+          "text": "Effective bets in tail-"
+        },
+        {
+          "testId": "volatility-surface-observation",
+          "tag": "p",
+          "text": "Observation: volatility surfaces are loading. No forward action is inferred."
+        },
+        {
+          "testId": "trading-volatility-beats",
+          "tag": "div",
+          "text": "TRD-V1Clustering-adjusted SharpeAdjusted quality-Decisions-Evidence: insufficien"
+        },
+        {
+          "testId": "vol-short-panel",
+          "tag": "section",
+          "text": "TRD-V1Clustering-adjusted SharpeAdjusted quality-Decisions-Evidence: insufficien"
+        },
+        {
+          "testId": "vrp-panel",
+          "tag": "section",
+          "text": "TRD-V2VRP and tail-dependence windowVRP spread-Tail capture-Evidence: insufficie"
+        },
+        {
+          "testId": "rich-cheap-panel",
+          "tag": "section",
+          "text": "TRD-V5Regime-conditioned rich / cheapIV percentile-Band-Evidence: insufficientOb"
+        },
+        {
+          "testId": "dispersion-panel",
+          "tag": "section",
+          "text": "TRD-V6Dispersion follow-rateFollow-rate-Observed impact-Evidence: insufficientOb"
+        },
+        {
+          "testId": "tail-bets-panel",
+          "tag": "section",
+          "text": "TRD-V7Effective bets in tailEffective bets-Tail decisions-Evidence: insufficient"
+        },
+        {
+          "testId": "certificate-panel",
+          "tag": "section",
+          "text": "TRD-CERTIFICATEClean-trader certificateChecking certificate state...Observation "
+        },
+        {
+          "testId": "gate-dividend-panel",
+          "tag": "section",
+          "text": "TRD-GATE-DIVIDENDGate dividendFindings withheld-Observed impact-Observation only"
+        },
+        {
+          "testId": "promotion-dashboard",
+          "tag": "section",
+          "text": "Promotion pipelineStrategy PromotionCategory stages use verified decisions, accu"
+        },
+        {
+          "testId": "rejection-moment-panel",
+          "tag": "section",
+          "text": "Agent Evolution SummaryLoading rejection summary..."
+        },
+        {
+          "testId": "rejection-moment-table",
+          "tag": "section",
+          "text": "DM-1 / TR3Rejection momentsStateCountTested-Promoted-Rejected-Observation only: "
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Sample"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "██ Learned"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "██ Learned"
+        },
+        {
+          "testId": "cohort-status-panel",
+          "tag": "section",
+          "text": "Trading Measurement StatusCohort measurement readinessMeasurement readyLoading m"
+        },
+        {
+          "testId": "cohort-status-state",
+          "tag": "span",
+          "text": "Measurement ready"
+        },
+        {
+          "testId": "cohort-status-instrument",
+          "tag": "section",
+          "text": "T-O instrumentInstrument: Validated. The measurement instrument is validated and"
+        },
+        {
+          "testId": "cohort-status-real",
+          "tag": "section",
+          "text": "T-R real measurementThe measurement instrument is validated and running. Context"
+        },
+        {
+          "testId": "cohort-status-progress",
+          "tag": "p",
+          "text": "0/30 shown, 0/30 control"
+        }
+      ],
       "buttons": [
         {
           "text": "Dashboard",
@@ -1034,11 +1564,57 @@
           "text": "Trade Detail",
           "ariaLabel": "",
           "name": ""
+        },
+        {
+          "text": "Execute Transfer",
+          "ariaLabel": "",
+          "name": ""
         }
       ],
       "roleHeadings": [],
       "visibleText": [
-        "Trading Copilot"
+        "Trading Copilot",
+        "Performance Summary",
+        "Trajectory",
+        "Switching cost",
+        "Centroid Timeline",
+        "Re-convergence",
+        "Convergence curve overlay",
+        "Audit Trail",
+        "Automation Projection",
+        "Situation-conditioned autonomy",
+        "Regime-scoped rejection",
+        "Market Regime",
+        "Situation-conditioned discipline",
+        "90-day regime history",
+        "Performance by regime",
+        "ranging context",
+        "Volatility scenario surfaces",
+        "Clustering-adjusted Sharpe",
+        "VRP and tail-dependence window",
+        "Regime-conditioned rich / cheap",
+        "Dispersion follow-rate",
+        "Effective bets in tail",
+        "Clean-trader certificate",
+        "Gate dividend",
+        "Strategy Promotion",
+        "Agent Evolution Summary",
+        "Rejection moments",
+        "State",
+        "Count",
+        "Cross-Copilot Transfer",
+        "Dry run",
+        "Transfer Impact",
+        "Agent Evolution",
+        "Parameter Evolution",
+        "Hard Bounds Reference",
+        "Execution Quality",
+        "Signal Integration",
+        "Cohort measurement readiness",
+        "VIX-Aware Hold Timing",
+        "Rolling 10",
+        "Category Performance",
+        "Risk Management"
       ]
     },
     "Journal": {
@@ -1159,7 +1735,7 @@
         },
         {
           "tag": "h2",
-          "text": "Wednesday"
+          "text": "Thursday"
         },
         {
           "tag": "h2",
@@ -1207,30 +1783,6 @@
         },
         {
           "tag": "h3",
-          "text": "Ground Beef"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
           "text": "Order"
         },
         {
@@ -1260,6 +1812,22 @@
         {
           "tag": "h3",
           "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
         },
         {
           "tag": "h3",
@@ -1271,6 +1839,10 @@
         },
         {
           "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
           "text": "Order"
         },
         {
@@ -1280,6 +1852,10 @@
         {
           "tag": "h3",
           "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
         },
         {
           "tag": "h3",
@@ -1299,7 +1875,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating500 / 528 decisions3 of 0 arms "
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating501 / 529 decisions3 of 0 arms "
         },
         {
           "testId": "not-yet-panel",
@@ -1439,7 +2015,7 @@
         {
           "testId": "data-trust-factors",
           "tag": "div",
-          "text": "Price memory1.00Demand forecast0.01Event signal0.01Weather forecast0.00Day-of-we"
+          "text": "Price memory1.00Demand forecast0.01Event signal0.01Waste history0.00Day-of-week "
         },
         {
           "testId": "data-trust-factor",
@@ -1474,7 +2050,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Weather forecast0.00"
+          "text": "Waste history0.00"
         },
         {
           "testId": "data-trust-bar",
@@ -1554,31 +2130,6 @@
           "name": ""
         },
         {
-          "text": "PR7/9/2026Ground Beeforder as planned$1830.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
@@ -1614,12 +2165,27 @@
           "name": ""
         },
         {
+          "text": "PR7/13/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
           "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PR7/9/2026Chicken Breastorder as planned$1770.00",
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
@@ -1634,6 +2200,11 @@
           "name": ""
         },
         {
+          "text": "PR7/13/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
           "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
@@ -1645,6 +2216,11 @@
         },
         {
           "text": "PR7/13/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
@@ -1668,7 +2244,7 @@
         "Category price indices",
         "Recommended par levels",
         "Conservation-gated auto-ordering",
-        "Wednesday",
+        "Thursday",
         "No event pressure",
         "4 items need attention",
         "Real inventory, ranked by reorder pressure",
@@ -1680,9 +2256,9 @@
         "Items you are consistent on can be managed",
         "Category accuracy alerts",
         "Today's decisions",
-        "Ground Beef",
         "Order",
         "Chicken Breast",
+        "Ground Beef",
         "Learned source reliability"
       ]
     },
@@ -1702,11 +2278,15 @@
         },
         {
           "tag": "h2",
+          "text": "Order, receipt, and invoice checks"
+        },
+        {
+          "tag": "h2",
           "text": "Tomorrow's order is mostly inventory history"
         },
         {
           "tag": "h2",
-          "text": "Wednesday"
+          "text": "Thursday"
         },
         {
           "tag": "h2",
@@ -1725,27 +2305,62 @@
         {
           "testId": "order-queue-panel",
           "tag": "section",
-          "text": "Order queuePrioritized supplier ordersOrder queueLoading...Loading queue...Loadi"
+          "text": "Order queuePrioritized supplier ordersPending orders0High priority0ConservationG"
         },
         {
           "testId": "queue-summary",
           "tag": "div",
-          "text": "Order queueLoading...Loading queue..."
-        },
-        {
-          "testId": "queue-loading",
-          "tag": "div",
-          "text": "Order queueLoading...Loading queue..."
+          "text": "Pending orders0High priority0ConservationGREEN"
         },
         {
           "testId": "queue-table",
           "tag": "div",
-          "text": "Loading queue..."
+          "text": "No pending orders in the queue."
         },
         {
           "testId": "order-item-select",
           "tag": "select",
           "text": "Chicken BreastGround BeefSalmon FilletPork ChopsTofu BlocksMixed GreensTomatoesA"
+        },
+        {
+          "testId": "match-queue-summary",
+          "tag": "div",
+          "text": "Pending matches1Auto-matched1Needs review1"
+        },
+        {
+          "testId": "match-results-table",
+          "tag": "div",
+          "text": "PW-MATCH-2SUP-PWChickenMismatch10%$1,000Ordered 100 units, received 85 (15% shor"
+        },
+        {
+          "testId": "match-result-row",
+          "tag": "details",
+          "text": "PW-MATCH-2SUP-PWChickenMismatch10%$1,000Ordered 100 units, received 85 (15% shor"
+        },
+        {
+          "testId": "match-confidence",
+          "tag": "span",
+          "text": "10%"
+        },
+        {
+          "testId": "match-discrepancies",
+          "tag": "div",
+          "text": "Ordered 100 units, received 85 (15% short)Invoice $12.00/unit vs order $10.00/un"
+        },
+        {
+          "testId": "match-result-row",
+          "tag": "details",
+          "text": "PW-MATCH-1SUP-PWChickenFull Match100%$1,000No discrepancies found."
+        },
+        {
+          "testId": "match-confidence",
+          "tag": "span",
+          "text": "100%"
+        },
+        {
+          "testId": "match-discrepancies",
+          "tag": "div",
+          "text": "No discrepancies found."
         }
       ],
       "buttons": [
@@ -1787,8 +2402,11 @@
         "Score the next purchase",
         "Whether They Show UpHighAbove averageAverageBelow averageLow",
         "Quantity",
+        "Order, receipt, and invoice checks",
+        "PW-MATCH-2SUP-PWChickenMismatch10%$1,000",
+        "PW-MATCH-1SUP-PWChickenFull Match100%$1,000",
         "Tomorrow's order is mostly inventory history",
-        "Wednesday",
+        "Thursday",
         "No event pressure",
         "Stockout costs far more than waste",
         "Seven scorer inputs"
@@ -2170,186 +2788,6 @@
           "name": ""
         },
         {
-          "text": "PUR-f5fd5dd89ad9",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-6743e78b3ce5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-dd90237d73af",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-f3d187045aa3",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b676c5af9391",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-0d2c8da654f5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-0d5405306aa9",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-476995ea6e44",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-853356998e59",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b883ae8a6042",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-cd9456ca1b58",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-33335756ef11",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-55b0f1f75d11",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-dab8778ad59c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-d00adde42ae1",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-6c9eac379743",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-33b0bb49bcca",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-32568cca3edc",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b2c0308da2d2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c7647a01188e",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-9bd6f6634326",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-e02a063e0273",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-f013af4d4258",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-d6737d71b48a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b34ef65f3640",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-0f6092fb119d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b602d302b90e",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c0d07b3f9174",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-4e237fdfe5fe",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c32e06bdb48d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c6fb57645d96",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-9623d26d88b1",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-9cc738cbfa8e",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ff64cf719e0f",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-969500e9d05f",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ab7c3161621d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PUR-73a30297ac93",
           "ariaLabel": "",
           "name": ""
@@ -2416,6 +2854,186 @@
         },
         {
           "text": "PUR-aea6aa6de766",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-ef30f5581f81",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-e079f24c2e16",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-1f566dc0a451",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-578b36212070",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-4a51d426531d",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-1adc316407a0",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-6484868b5f31",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-aa0c09809284",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-ad7f571d9aea",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-115d6a4013fa",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-a6c71cb2eb1d",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-db8fe5a3a1ae",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-e1334002a48c",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-4ff0eb2a3c42",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-7d11a182663f",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-5d89a9024088",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-8c390133666c",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-c0e962a27ce2",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-39c663c56526",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-54777602304e",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-b485b70968c4",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-c42079d968b9",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-7347021d75c5",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-02142d637a0c",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-4abd3ed79d02",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-ac64c71f9709",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-ad0d217bcc49",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-1aa17d1a6e88",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-691258600494",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-ef9db598e0ae",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-94b8be5b8e22",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-b9a2e89d639d",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-fae03137608a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-8a58b9ee7ca1",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-8475c01db01c",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-6f361bf3b52f",
           "ariaLabel": "",
           "name": ""
         }
@@ -2889,102 +3507,102 @@
           "name": ""
         },
         {
-          "text": "PUR-f5fd5dd89ad9decision -> factors -> outcome",
+          "text": "PUR-4f3182b5a979decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-dd90237d73afdecision -> factors -> outcome",
+          "text": "PUR-873962d86d4fdecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-f3d187045aa3decision -> factors -> outcome",
+          "text": "PUR-ee75f0e6b4c4decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b676c5af9391decision -> factors -> outcome",
+          "text": "PUR-b1570ecefe70decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-853356998e59decision -> factors -> outcome",
+          "text": "PUR-e20e1720beaadecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b883ae8a6042decision -> factors -> outcome",
+          "text": "PUR-e7e8523c1d24decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-33335756ef11decision -> factors -> outcome",
+          "text": "PUR-aa4f376fbe2bdecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-dab8778ad59cdecision -> factors -> outcome",
+          "text": "PUR-aea6aa6de766decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-d00adde42ae1decision -> factors -> outcome",
+          "text": "PUR-ef30f5581f81decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-6c9eac379743decision -> factors -> outcome",
+          "text": "PUR-1f566dc0a451decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-32568cca3edcdecision -> factors -> outcome",
+          "text": "PUR-578b36212070decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b2c0308da2d2decision -> factors -> outcome",
+          "text": "PUR-aa0c09809284decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-e02a063e0273decision -> factors -> outcome",
+          "text": "PUR-115d6a4013fadecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-d6737d71b48adecision -> factors -> outcome",
+          "text": "PUR-db8fe5a3a1aedecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b34ef65f3640decision -> factors -> outcome",
+          "text": "PUR-e1334002a48cdecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b602d302b90edecision -> factors -> outcome",
+          "text": "PUR-4ff0eb2a3c42decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-4e237fdfe5fedecision -> factors -> outcome",
+          "text": "PUR-5d89a9024088decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-c32e06bdb48ddecision -> factors -> outcome",
+          "text": "PUR-c0e962a27ce2decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-c6fb57645d96decision -> factors -> outcome",
+          "text": "PUR-39c663c56526decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-9cc738cbfa8edecision -> factors -> outcome",
+          "text": "PUR-54777602304edecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
@@ -3315,22 +3933,6 @@
         },
         {
           "tag": "h2",
-          "text": "Year 1: $180,000 savings at current pace"
-        },
-        {
-          "tag": "h3",
-          "text": "Where savings came from"
-        },
-        {
-          "tag": "h3",
-          "text": "This week"
-        },
-        {
-          "tag": "h3",
-          "text": "Bank proof"
-        },
-        {
-          "tag": "h2",
           "text": "Supply Disruption Recovery"
         },
         {
@@ -3340,18 +3942,6 @@
         {
           "tag": "h2",
           "text": "Audit & Compliance Pack"
-        },
-        {
-          "tag": "h2",
-          "text": "Your Chicago team's experience helps Miami"
-        },
-        {
-          "tag": "h3",
-          "text": "Transfer opportunity"
-        },
-        {
-          "tag": "h3",
-          "text": "Purchasing power"
         },
         {
           "tag": "h2",
@@ -3446,19 +4036,9 @@
           "text": "Sample"
         },
         {
-          "testId": "economic-dashboard-card",
-          "tag": "section",
-          "text": "ROI DashboardYear 1: $180,000 savings at current paceSample dataMonth target$9,6"
-        },
-        {
-          "testId": "group-dashboard-card",
-          "tag": "section",
-          "text": "Chain IntelligenceYour Chicago team's experience helps MiamiSample dataGroup acc"
-        },
-        {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Sample"
+          "text": "Unlabeled"
         },
         {
           "testId": "iks-tracker-panel",
@@ -3552,21 +4132,9 @@
         "Time to kitchen competence",
         "20 orders to learn what takes 11 years of gut instinct.",
         "Downtown discipline becomes the baseline for all four",
-        "Year 1: $180,000 savings at current pace",
-        "Where savings came from",
-        "This week",
-        "Bank proof",
         "Supply Disruption Recovery",
         "Payment Timing Intelligence",
         "Audit & Compliance Pack",
-        "Your Chicago team's experience helps Miami",
-        "Location",
-        "Decisions",
-        "Accuracy",
-        "Food cost",
-        "Learning",
-        "Transfer opportunity",
-        "Purchasing power",
         "What needs a manager today",
         "Cohort measurement readiness",
         "Trajectory",
@@ -3598,7 +4166,7 @@
         },
         {
           "tag": "h2",
-          "text": "Instrument Calibrated"
+          "text": "Accumulating evidence"
         },
         {
           "tag": "h2",
@@ -3657,6 +4225,18 @@
           "text": "Data Products"
         },
         {
+          "tag": "h3",
+          "text": "Customer 360"
+        },
+        {
+          "tag": "h3",
+          "text": "Operations Health"
+        },
+        {
+          "tag": "h3",
+          "text": "Alert Intelligence"
+        },
+        {
           "tag": "h2",
           "text": "Source trust and quality graph"
         },
@@ -3686,7 +4266,11 @@
         },
         {
           "tag": "h2",
-          "text": "Alert Queue"
+          "text": "Alert Root Causes"
+        },
+        {
+          "tag": "h2",
+          "text": "Ungrouped (1)"
         },
         {
           "tag": "h2",
@@ -3713,22 +4297,27 @@
         {
           "testId": "enterprise-health",
           "tag": "section",
-          "text": "Enterprise HealthProcess-Tech FusionloadingSAP S/4HANAunavailable0 recordsCeloni"
+          "text": "Enterprise HealthProcess-Tech FusiondegradedSAP S/4HANAFixture3 recordsCelonisFi"
         },
         {
           "testId": "enterprise-system-sap-s-4hana",
           "tag": "div",
-          "text": "SAP S/4HANAunavailable0 records"
+          "text": "SAP S/4HANAFixture3 records"
         },
         {
           "testId": "enterprise-system-celonis",
           "tag": "div",
-          "text": "Celonisunavailable0 KPIs"
+          "text": "CelonisFixture2 KPIs"
         },
         {
           "testId": "enterprise-system-graph",
           "tag": "div",
-          "text": "Graphunavailable0 nodes"
+          "text": "GraphLive9 nodes"
+        },
+        {
+          "testId": "enterprise-impact",
+          "tag": "div",
+          "text": "Combined impact: 1 invoice exceptions · Match Invoice to GR"
         },
         {
           "testId": "enterprise-value-card",
@@ -3751,14 +4340,19 @@
           "text": "Sample"
         },
         {
+          "testId": "provenance-badge",
+          "tag": "span",
+          "text": "Sample"
+        },
+        {
           "testId": "day-zero-card",
           "tag": "div",
-          "text": "V6 · DZ-1 · Day-zero honestyInstrument CalibratedInstrument stateT_S1Instrument "
+          "text": "V6 · DZ-1 · Day-zero honestyAccumulating evidenceInstrument stateT_S1Instrument "
         },
         {
           "testId": "day-zero-panel",
           "tag": "section",
-          "text": "V6 · DZ-1 · Day-zero honestyInstrument CalibratedInstrument stateT_S1Instrument "
+          "text": "V6 · DZ-1 · Day-zero honestyAccumulating evidenceInstrument stateT_S1Instrument "
         },
         {
           "testId": "day-zero-evidence-tier",
@@ -3783,17 +4377,17 @@
         {
           "testId": "day-zero-state-summary",
           "tag": "div",
-          "text": "INSTRUMENT_VALIDATED0 verified decisions30 needed"
+          "text": "ACCUMULATING417 verified decisions30 needed"
         },
         {
           "testId": "day-zero-state",
           "tag": "span",
-          "text": "INSTRUMENT_VALIDATED"
+          "text": "ACCUMULATING"
         },
         {
-          "testId": "day-zero-instrument-body",
+          "testId": "day-zero-accumulating-body",
           "tag": "div",
-          "text": "The instrument is working. The proof is calibrating.Awaiting verified decisions "
+          "text": "Accumulating. 417 decisions verified. Building judgment.417 / 447 decisions · ma"
         },
         {
           "testId": "day-zero-caption",
@@ -3808,22 +4402,87 @@
         {
           "testId": "di-wiring-trust",
           "tag": "div",
-          "text": "SC-TRUSTSource reliabilityTrust profile unavailable."
+          "text": "SC-TRUSTSource reliability0.48overall trustsource_reliability1.00 · reliabledown"
         },
         {
           "testId": "trust-card",
           "tag": "section",
-          "text": "SC-TRUSTSource reliabilityTrust profile unavailable."
+          "text": "SC-TRUSTSource reliability0.48overall trustsource_reliability1.00 · reliabledown"
+        },
+        {
+          "testId": "trust-factor",
+          "tag": "div",
+          "text": "source_reliability1.00 · reliable"
+        },
+        {
+          "testId": "trust-factor",
+          "tag": "div",
+          "text": "downstream_urgency0.67 · moderate"
+        },
+        {
+          "testId": "trust-factor",
+          "tag": "div",
+          "text": "business_criticality0.47 · moderate"
+        },
+        {
+          "testId": "trust-factor",
+          "tag": "div",
+          "text": "impact_scope0.31 · moderate"
+        },
+        {
+          "testId": "trust-factor",
+          "tag": "div",
+          "text": "data_freshness0.31 · moderate"
+        },
+        {
+          "testId": "trust-factor",
+          "tag": "div",
+          "text": "recurrence_frequency0.15 · noisy"
+        },
+        {
+          "testId": "trust-perturbation",
+          "tag": "div",
+          "text": "DI-PROOF · What-ifSourceSnowflakeAirflowdbtMagnitude 0.5Perturb"
+        },
+        {
+          "testId": "trust-perturb-source",
+          "tag": "select",
+          "text": "SnowflakeAirflowdbt"
+        },
+        {
+          "testId": "trust-perturb-magnitude",
+          "tag": "input",
+          "text": ""
+        },
+        {
+          "testId": "trust-perturb-button",
+          "tag": "button",
+          "text": "Perturb"
         },
         {
           "testId": "di-wiring-products",
           "tag": "div",
-          "text": "Data IntelligenceData ProductsLoading products..."
+          "text": "Data IntelligenceData Products3 data products. Average IKS: 49.Customer 360Matur"
         },
         {
           "testId": "products-card",
           "tag": "section",
-          "text": "Data IntelligenceData ProductsLoading products..."
+          "text": "Data IntelligenceData Products3 data products. Average IKS: 49.Customer 360Matur"
+        },
+        {
+          "testId": "di-product",
+          "tag": "article",
+          "text": "Customer 360Maturity: mature75GREENGREEN · safe for autonomous consumption2 sour"
+        },
+        {
+          "testId": "di-product",
+          "tag": "article",
+          "text": "Operations HealthMaturity: learning49GREENGREEN · safe for autonomous consumptio"
+        },
+        {
+          "testId": "di-product",
+          "tag": "article",
+          "text": "Alert IntelligenceMaturity: learning23GREENGREEN · safe for autonomous consumpti"
         },
         {
           "testId": "di-wiring-map",
@@ -3863,7 +4522,7 @@
         {
           "testId": "compounding-measurement-state",
           "tag": "span",
-          "text": "Loading"
+          "text": "INSTRUMENT_VALIDATED"
         },
         {
           "testId": "compounding-curve-chart",
@@ -3923,107 +4582,77 @@
           "name": ""
         },
         {
-          "text": "DQ-002highpayments_hourlyFirst-time ⚡payment_gatewaypipeline failureAEAuto appro",
+          "text": "Perturb",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-006highrevenue_martFirst-time ⚡billing_apischema changeAEAuto approve48%",
+          "text": "CRM Synccrm_sync2 medium alerts4 alertsCollapse",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-012highlead_scoringFirst-time ⚡marketing_dbquality anomalyAEAuto approve48%",
+          "text": "Triage",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DI-ABSTENTION-001highUNSEEN_SUPPLIER_FEEDFirst-time ⚡unknown_supplier_gatewayuns",
+          "text": "Triage",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-010mediumsettlement_batchesFirst-time ⚡payment_gatewayvolume anomaly",
+          "text": "Triage",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-013mediumpolicy_scoresFirst-time ⚡hr_feedquality anomaly",
+          "text": "Triage",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-004lowrisk_featuresFirst-time ⚡warehouse_etlpipeline failure",
+          "text": "Marketing DBmarketing_db1 critical/high alerts3 alertsExpand",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-017highbilling_exportsFirst-time ⚡billing_apifreshness violation",
+          "text": "Warehouse ETLwarehouse_etlNo high-severity alerts3 alertsExpand",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-003mediumcustomer_eventsFirst-time ⚡crm_syncpipeline failure",
+          "text": "Billing APIbilling_api2 critical/high alerts2 alertsExpand",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-007mediumidentity_dimFirst-time ⚡hr_feedschema change",
+          "text": "ERP Exporterp_export1 medium alerts2 alertsExpand",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-014mediumsupplier_riskFirst-time ⚡erp_exportquality anomaly",
+          "text": "HR Feedhr_feed2 medium alerts2 alertsExpand",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-020mediumcustomer_360First-time ⚡crm_synctransform drift",
+          "text": "Payment Gatewaypayment_gateway1 critical/high alerts2 alertsExpand",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-001loworders_dailyRecurring (12x)warehouse_etlpipeline failureAEAuto approve8",
+          "text": "Inventory Feedinventory_feedNo high-severity alerts1 alertsExpand",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-005lowproduct_catalogSeen 3x beforeerp_exportschema changeAEAuto approve82%",
+          "text": "IoT Sensorsiot_sensorsNo high-severity alerts1 alertsExpand",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "DQ-008lowtraffic_countsSeen 3x beforeiot_sensorsvolume anomalyAEAuto approve82%",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DQ-009lowpartner_uploadsSeen 3x beforecrm_syncvolume anomalyAEAuto approve82%",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DQ-011lowinventory_snapshotsRecurring (12x)inventory_feedquality anomalyAEAuto a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DQ-015lowuser_activitySeen 3x beforecrm_syncfreshness violationAEAuto approve82%",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DQ-016lowsearch_indexSeen 3x beforemarketing_dbfreshness violationAEAuto approve",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DQ-018lowfeature_storeSeen 3x beforewarehouse_etltransform driftAEAuto approve82",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "DQ-019lowcampaign_attributionSeen 3x beforemarketing_dbtransform driftAEAuto app",
+          "text": "Triage",
           "ariaLabel": "",
           "name": ""
         },
@@ -4053,7 +4682,7 @@
         "DataOps Copilot",
         "Process-Tech Fusion",
         "Enterprise Systems Integration",
-        "Instrument Calibrated",
+        "Accumulating evidence",
         "Pipeline Status",
         "Billing API",
         "CRM Sync",
@@ -4067,7 +4696,12 @@
         "AgentEvolver Impact",
         "Trust → Products → Intelligence Map",
         "Source reliability",
+        "Source",
+        "Magnitude 0.5",
         "Data Products",
+        "Customer 360",
+        "Operations Health",
+        "Alert Intelligence",
         "Source trust and quality graph",
         "$180K/yr",
         "The system gets better — and governance is why you can trust it.",
@@ -4076,12 +4710,20 @@
         "Approve Purchase Order",
         "Match Invoice to GR",
         "Process Payment",
-        "Alert Queue",
+        "Alert Root Causes",
+        "Ungrouped (1)",
         "Conservation",
         "Threshold6%",
         "Automation Projection",
         "Conservation Timeline",
         "Accuracy Alerts",
+        "96%71%50%74%67%96%",
+        "96%",
+        "71%",
+        "50%",
+        "74%",
+        "67%",
+        "freshness violation",
         "Ask Your Data",
         "Ask about your data"
       ]
@@ -4571,7 +5213,7 @@
         {
           "testId": "search-result",
           "tag": "tr",
-          "text": "supplierstable · snowflakeTier 1 (95%)4.0hhealthy"
+          "text": "stg_suppliersmodel · dbtTier 2 (95%)4.0hhealthy"
         },
         {
           "testId": "quality-badge",
@@ -4581,7 +5223,7 @@
         {
           "testId": "search-result",
           "tag": "tr",
-          "text": "stg_suppliersmodel · dbtTier 2 (95%)4.0hhealthy"
+          "text": "supplierstable · snowflakeTier 1 (95%)4.0hhealthy"
         },
         {
           "testId": "quality-badge",
@@ -4721,7 +5363,7 @@
         {
           "testId": "decision-explorer",
           "tag": "section",
-          "text": "SC-14Decision Explorer1242 GraphStore decisionsCategoryAllfreshness violationpip"
+          "text": "SC-14Decision Explorer1264 GraphStore decisionsCategoryAllfreshness violationpip"
         },
         {
           "testId": "decision-summary",
@@ -5262,6 +5904,506 @@
           "testId": "agent-trust-gateway-panel",
           "tag": "article",
           "text": "DI-GATEWAYAgent-trust gatewayEvery automated action should pass a trust and cons"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.68PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.55PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.68BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.50BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.73BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.52BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.70BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.55PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.99PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.99PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.68PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed1.00PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.96BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.64BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.54BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.98PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.91PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.94PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.78PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.81PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.54BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.65BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.97ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.97ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.97BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.96ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.96BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.96ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.96BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.95ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.95BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.94ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.94ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.94ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.94BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.94BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.93ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.93BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.92ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.92ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.92ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.92BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.91ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.91ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.91BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.90BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.88ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.88BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.87ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.87ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.87BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.85BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.83BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.80ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.80BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.78BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.75ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.75ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.75BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.71BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.68BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.64BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.60BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.55BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.51ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.51BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.46ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.46ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.46BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.41BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.38BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.39BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.37BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.36ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.36BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.34ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.34ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.34BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.33BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.32BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.32BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.30BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.29ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.29BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.29ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.29ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.29BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationblocked0.26BLOCK"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.28PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.32PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.36PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.40ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.40PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.45ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationabstained0.45ABSTAIN"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.45PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.49PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.53PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.57PASS"
+        },
+        {
+          "testId": "gateway-verification-row",
+          "tag": "tr",
+          "text": "unknown-verificationallowed0.61PASS"
         },
         {
           "testId": "dataops-governance-panel",
@@ -5837,6 +6979,10 @@
         "Cohort measurement readiness",
         "Frozen Twin control",
         "Agent-trust gateway",
+        "Verification",
+        "Outcome",
+        "Trust",
+        "Gate result",
         "Measured proof, clearly separated from modelled value",
         "Cross-System Insights",
         "supplier-acme",
@@ -5933,7 +7079,7 @@
         },
         {
           "tag": "h2",
-          "text": "Measurement State"
+          "text": "Accumulating Evidence"
         },
         {
           "tag": "h2",
@@ -6000,7 +7146,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyMeasurement StateUnable to load measurement state.Retry"
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating140 / 170 decisions1 of 25 arms"
         },
         {
           "testId": "day-zero-readiness-panel",
@@ -6040,11 +7186,6 @@
           "name": ""
         },
         {
-          "text": "Retry",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "View Expansion Proof",
           "ariaLabel": "",
           "name": ""
@@ -6059,7 +7200,7 @@
       "visibleText": [
         "S2P Copilot",
         "Dashboard",
-        "Measurement State",
+        "Accumulating Evidence",
         "Day-zero data readiness",
         "Exception Queue",
         "Conservation Status",
@@ -6505,9 +7646,34 @@
           "text": "S2P-EXTINCTException extinction lifecycleDiscover → shadow → promote → measure →"
         },
         {
+          "testId": "extinction-price_variance",
+          "tag": "div",
+          "text": "price_varianceSHADOWINGShadow decisions: 0Measured: 0Last transition: 2026-08-19"
+        },
+        {
+          "testId": "extinction-quantity_mismatch",
+          "tag": "div",
+          "text": "quantity_mismatchMEASURINGShadow decisions: 0Measured: 0Last transition: 2026-08"
+        },
+        {
+          "testId": "extinction-duplicate_risk",
+          "tag": "div",
+          "text": "duplicate_riskROLLED BACKShadow decisions: 0Measured: 0Last transition: 2026-08-"
+        },
+        {
+          "testId": "extinction-contract_gap",
+          "tag": "div",
+          "text": "contract_gapDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-08-19T"
+        },
+        {
+          "testId": "extinction-format_compliance",
+          "tag": "div",
+          "text": "format_complianceDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-0"
+        },
+        {
           "testId": "cohort-status-panel",
           "tag": "section",
-          "text": "S2P Measurement StatusCohort measurement readinessMeasurement readyLoading measu"
+          "text": "S2P Measurement StatusCohort measurement readinessMeasurement readyThe measureme"
         },
         {
           "testId": "cohort-status-state",
@@ -6837,7 +8003,7 @@
         },
         {
           "tag": "h2",
-          "text": "n/a"
+          "text": "GREEN"
         },
         {
           "tag": "h2",
@@ -6923,7 +8089,7 @@
         "S2P Copilot",
         "Performance",
         "Centroid checkpoints",
-        "n/a",
+        "GREEN",
         "Frozen Twin: day-zero baseline vs live",
         "Confidence, always visible",
         "Projected conservation state",

@@ -281,8 +281,8 @@ export async function fetchGatewayVerifications(): Promise<GatewayVerification[]
   });
 }
 
-export async function fetchAbstentionState(): Promise<AbstentionState | null> {
-  return safeApiGet<AbstentionState>("/api/dataops/abstention-check?source_id=unknown");
+export async function fetchAbstentionState(sourceId = "unknown"): Promise<AbstentionState | null> {
+  return safeApiGet<AbstentionState>(`/api/dataops/abstention-check?source_id=${encodeURIComponent(sourceId)}`);
 }
 
 export async function queryDataOps(question: string): Promise<QueryResponse> {

@@ -1339,7 +1339,14 @@ async def system_detail(name: str) -> dict[str, Any]:
 
 @router.get("/alert/{id}")
 async def alert_detail(id: str) -> dict[str, Any]:
-    payload = await _graph_client().get_alert(id)
+    try:
+        payload = await _graph_client().get_alert(id)
+    except Exception:
+        if id == "DI-ABSTENTION-001":
+            alert = _fallback_alerts_by_id().get(id)
+            if alert:
+                return {"source": "fixture", "alert": _with_alert_runtime_fields(alert)}
+        raise
     alert = payload.get("alert")
     if not alert and id == "DI-ABSTENTION-001":
         alert = _fallback_alerts_by_id().get(id)

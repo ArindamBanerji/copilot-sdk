@@ -1,12 +1,12 @@
 # Graph Report - copilot-sdk  (2026-08-27)
 
 ## Corpus Check
-- 1628 files · ~3,098,134 words
+- 1628 files · ~3,071,454 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 20354 nodes · 38832 edges · 423 communities detected
-- Extraction: 80% EXTRACTED · 20% INFERRED · 0% AMBIGUOUS · INFERRED: 7615 edges (avg confidence: 0.74)
+- 20356 nodes · 38836 edges · 423 communities detected
+- Extraction: 80% EXTRACTED · 20% INFERRED · 0% AMBIGUOUS · INFERRED: 7616 edges (avg confidence: 0.74)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -121,9 +121,9 @@
 - [[_COMMUNITY_Community 108|Community 108]]
 - [[_COMMUNITY_Community 109|Community 109]]
 - [[_COMMUNITY_Community 110|Community 110]]
+- [[_COMMUNITY_Community 111|Community 111]]
 - [[_COMMUNITY_Community 112|Community 112]]
 - [[_COMMUNITY_Community 113|Community 113]]
-- [[_COMMUNITY_Community 114|Community 114]]
 - [[_COMMUNITY_Community 115|Community 115]]
 - [[_COMMUNITY_Community 116|Community 116]]
 - [[_COMMUNITY_Community 117|Community 117]]
@@ -222,8 +222,8 @@
 - [[_COMMUNITY_Community 212|Community 212]]
 - [[_COMMUNITY_Community 213|Community 213]]
 - [[_COMMUNITY_Community 214|Community 214]]
-- [[_COMMUNITY_Community 216|Community 216]]
-- [[_COMMUNITY_Community 219|Community 219]]
+- [[_COMMUNITY_Community 215|Community 215]]
+- [[_COMMUNITY_Community 217|Community 217]]
 - [[_COMMUNITY_Community 220|Community 220]]
 - [[_COMMUNITY_Community 221|Community 221]]
 - [[_COMMUNITY_Community 222|Community 222]]
@@ -259,11 +259,12 @@
 - [[_COMMUNITY_Community 266|Community 266]]
 - [[_COMMUNITY_Community 268|Community 268]]
 - [[_COMMUNITY_Community 269|Community 269]]
-- [[_COMMUNITY_Community 278|Community 278]]
-- [[_COMMUNITY_Community 280|Community 280]]
+- [[_COMMUNITY_Community 277|Community 277]]
+- [[_COMMUNITY_Community 279|Community 279]]
+- [[_COMMUNITY_Community 283|Community 283]]
 - [[_COMMUNITY_Community 284|Community 284]]
 - [[_COMMUNITY_Community 285|Community 285]]
-- [[_COMMUNITY_Community 286|Community 286]]
+- [[_COMMUNITY_Community 287|Community 287]]
 - [[_COMMUNITY_Community 288|Community 288]]
 - [[_COMMUNITY_Community 289|Community 289]]
 - [[_COMMUNITY_Community 290|Community 290]]
@@ -273,7 +274,6 @@
 - [[_COMMUNITY_Community 294|Community 294]]
 - [[_COMMUNITY_Community 295|Community 295]]
 - [[_COMMUNITY_Community 296|Community 296]]
-- [[_COMMUNITY_Community 297|Community 297]]
 - [[_COMMUNITY_Community 299|Community 299]]
 - [[_COMMUNITY_Community 300|Community 300]]
 - [[_COMMUNITY_Community 312|Community 312]]
@@ -453,20 +453,20 @@
   apps\dataops\backend\tests\test_provenance_label.py → apps\dataops\backend\app\celonis_connector.py
 - `test_f26_dataops_celonis_labeled_sample()` --calls--> `CelonisConnector`  [INFERRED]
   tests\test_substantiation_e2e.py → apps\dataops\backend\app\celonis_connector.py
+- `create_app()` --calls--> `create_governance_router()`  [INFERRED]
+  apps\trading\backend\app\main.py → apps\dataops\backend\app\routers\governance_router.py
 - `create_app()` --calls--> `create_learning_beats_router()`  [INFERRED]
   apps\trading\backend\app\main.py → apps\purchasing\backend\app\routers\learning_beats.py
-- `create_app()` --calls--> `create_event_router()`  [INFERRED]
-  apps\trading\backend\app\main.py → apps\purchasing\backend\app\routers\event_router.py
 
 ## Communities
 
 ### Community 0 - "Community 0"
 Cohesion: 0.0
-Nodes (608): money(), roiLabel(), AERecommendationBadge(), isApprovedVariant(), isRejectedVariant(), money(), pct(), load() (+600 more)
+Nodes (613): money(), roiLabel(), AERecommendationBadge(), isApprovedVariant(), isRejectedVariant(), money(), pct(), load() (+605 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.01
-Nodes (665): accuracy_by_category(), _accuracy_for_decisions(), _alert_category_by_id(), alert_deps(), alert_detail(), alert_factors(), alert_groups(), _alert_level_for_accuracy() (+657 more)
+Nodes (615): accuracy_by_category(), _accuracy_for_decisions(), _alert_category_by_id(), alert_deps(), alert_detail(), alert_factors(), alert_groups(), _alert_level_for_accuracy() (+607 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.0
@@ -474,139 +474,139 @@ Nodes (709): _age_about_edge_count(), _age_conservation_status_count(), _age_dec
 
 ### Community 3 - "Community 3"
 Cohesion: 0.01
-Nodes (383): main(), Experiment 1: RL Posterior Persistence — Which Approach Actually Works?  Tests T, Test: Can we add a simple rl_state table via raw sqlite3?, Test: Can save_centroids metadata carry RL posteriors reliably?, test_approach_a_metadata(), test_approach_b_dedicated(), main(), Experiment 2: FreshScorerProxy Store Behavior  Tests the ACTUAL behavior of the (+375 more)
+Nodes (408): main(), Experiment 1: RL Posterior Persistence — Which Approach Actually Works?  Tests T, Test: Can we add a simple rl_state table via raw sqlite3?, Test: Can save_centroids metadata carry RL posteriors reliably?, test_approach_a_metadata(), test_approach_b_dedicated(), main(), Experiment 2: FreshScorerProxy Store Behavior  Tests the ACTUAL behavior of the (+400 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.0
-Nodes (514): _baseline_q(), _call_count(), _call_count_optional(), category_count(), check_payload(), compute_conservation_metrics(), compute_conservation_status_payload(), _conservation_reason() (+506 more)
+Nodes (514): EvolutionStore, Persistence for evolution events. Separate from GraphStore., test_action_bias_rule_deterministic_variant(), test_all_rules_handle_empty_context(), test_factor_weight_rule_works_with_dataops_action_count(), test_rules_require_at_least_two_actions(), ActionBiasRule, _bounded_index() (+506 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.01
-Nodes (316): AirflowConnector, create_di_router(), Create domain-agnostic Data Intelligence source profile endpoints., Create domain-agnostic Data Intelligence source profile endpoints., Create domain-agnostic Data Intelligence source profile endpoints., Create domain-agnostic Data Intelligence source profile endpoints., get_connector(), list_connectors() (+308 more)
+Nodes (384): get_factor_to_source_map(), known_source_ids(), DataOps-specific configuration for Data Intelligence enrichment., Return the default map with validated JSON environment overrides., Return source identifiers exposed by the DataOps DI contract., Trading Copilot backend app., _airflow_connector(), _auto_seed_if_needed() (+376 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.01
-Nodes (478): _append_baseline_reset_event(), _build_age_dsn(), _build_graph_env(), check_health(), check_port(), cmd_diagnose(), cmd_kill_all(), cmd_reset() (+470 more)
+Nodes (303): AirflowConnector, get_connector(), list_connectors(), Connector registry for Data Intelligence source connectors., Lookup connector class by source name., Return registered connector names., MockAirflowConnector, Mock Airflow connector for demos and tests. (+295 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.01
-Nodes (325): build_dataops_graph_status(), build_purchasing_graph_status(), build_trading_graph_status(), create_dataops_active_graph_store(), create_purchasing_active_graph_store(), create_trading_active_graph_store(), DataOpsActiveAGEGraphStore, DataOpsActiveGraphConfig (+317 more)
+Nodes (478): _append_baseline_reset_event(), _build_age_dsn(), _build_graph_env(), check_health(), check_port(), cmd_diagnose(), cmd_kill_all(), cmd_reset() (+470 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.01
-Nodes (341): BaseDomainConfig, Check(), Impl-Quality(), Router-Hit(), Test-Info(), W(), BaseDomainConfig, DomainAction (+333 more)
+Nodes (346): BaseDomainConfig, Check(), Impl-Quality(), Router-Hit(), Test-Info(), W(), BaseDomainConfig, DomainAction (+338 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.01
-Nodes (268): _artifact_count(), ArtifactsDiag, build_diagnostics(), _call(), _centroid_source(), _centroid_source_with_status(), ConservationDiag, _count_rows() (+260 more)
+Nodes (206): gotoInsight(), gotoPanel(), gotoDashboard(), gotoInsight(), openEvidence(), gotoCurve(), gotoDashboard(), gotoDashboard() (+198 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.01
-Nodes (319): DataOpsGovernance, DataOps-local governance adapters for shared evidence services., Own DataOps policy state while delegating scoring mechanisms to the SDK., _row_payload(), get_factor_to_source_map(), known_source_ids(), DataOps-specific configuration for Data Intelligence enrichment., Return the default map with validated JSON environment overrides. (+311 more)
+Nodes (238): main(), Experiment 3: Evolution Adapter — Safe to Remove?  Tests whether _PreDomainEvolu, What does scorer.py actually use at line ~770?, Find ALL production callers of InMemoryEvolutionLedger., Does the adapter class still exist?, What parameters does InMemoryEvolutionLedger accept?, What happens if both graph_store= AND evolution_store= are passed?, test_adapter_exists() (+230 more)
 
 ### Community 11 - "Community 11"
 Cohesion: 0.01
-Nodes (206): gotoInsight(), gotoPanel(), gotoDashboard(), gotoInsight(), openEvidence(), gotoCurve(), gotoDashboard(), gotoDashboard() (+198 more)
+Nodes (236): BaseGraphEnricher, BaseGraphEnricher, _decision_ids(), GraphEnricher, GraphEnrichmentReport, GraphEnrichmentResult, SDK-level graph enrichment framework for Data Intelligence jobs., Concrete graph enricher configured with callables. (+228 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.01
-Nodes (230): main(), Experiment 3: Evolution Adapter — Safe to Remove?  Tests whether _PreDomainEvolu, What does scorer.py actually use at line ~770?, Find ALL production callers of InMemoryEvolutionLedger., Does the adapter class still exist?, What parameters does InMemoryEvolutionLedger accept?, What happens if both graph_store= AND evolution_store= are passed?, test_adapter_exists() (+222 more)
+Nodes (227): _baseline_q(), _call_count(), _call_count_optional(), category_count(), check_payload(), compute_conservation_metrics(), compute_conservation_status_payload(), _conservation_reason() (+219 more)
 
 ### Community 13 - "Community 13"
-Cohesion: 0.02
-Nodes (255): ConservationWhatIfRequest, DIProfileResponse, DIProfilesResponse, DIRefreshResponse, DISourceSummary, ProfileRefreshRequest, FastAPI router factory for Data Intelligence source profiles., EvolutionOutcomeRequest (+247 more)
+Cohesion: 0.01
+Nodes (266): ConservationWhatIfRequest, create_conservation_router(), Create a domain-parametric conservation router., Create a domain-parametric conservation router., Create a domain-parametric conservation router., Create a domain-parametric conservation router., _artifact_count(), ArtifactsDiag (+258 more)
 
 ### Community 14 - "Community 14"
 Cohesion: 0.01
-Nodes (206): AirflowConnector, Airflow REST metadata connector., Airflow REST API client. No apache-airflow dependency., DBTConnector, dbt metadata connector., dbt Cloud API or local artifact connector., Snowflake metadata connector.  The connector exposes metadata only. It does not, Return query history metadata. (+198 more)
+Nodes (230): BuildYourOwnPreset, canonical_centroids(), make_preset(), Shared configuration adapter for the two build-your-own domain skins., ArmResult, _new_governed_arm(), Shared governed and ungoverned engine for the two domain skins.  The governed ar, Run one domain through the same governed/ungoverned template loop. (+222 more)
 
 ### Community 15 - "Community 15"
 Cohesion: 0.01
-Nodes (214): build_evolution_summary(), create_evolution_router(), _evolver_variants(), _prompt_summary(), FastAPI evolution router factory backed by SDK AgentEvolver., Normalize PromptVariantEvolver inventory without changing legacy behavior., Normalize PromptVariantEvolver inventory without changing legacy behavior., Normalize SDK and copilot-specific evolvers to WP-4 telemetry. (+206 more)
+Nodes (196): build_evolution_summary(), create_evolution_router(), _evolver_variants(), _prompt_summary(), FastAPI evolution router factory backed by SDK AgentEvolver., Normalize PromptVariantEvolver inventory without changing legacy behavior., Normalize PromptVariantEvolver inventory without changing legacy behavior., Normalize SDK and copilot-specific evolvers to WP-4 telemetry. (+188 more)
 
 ### Community 16 - "Community 16"
 Cohesion: 0.01
-Nodes (265): compute_dispersion_follow_rate(), _dispersion_row(), _finite(), Dispersion signal follow-rate analytics., _black_scholes(), compute_regime_vrp(), _finite(), _implied_variance() (+257 more)
+Nodes (196): _fred_commodity_source(), _coerce_factors(), CounterfactualRequest, create_counterfactual_router(), Shared counterfactual scoring endpoint., CommodityDataProvider, Commodity data provider with cache-first provenance cascade., Pre-populate cache for all commodity categories. (+188 more)
 
 ### Community 17 - "Community 17"
 Cohesion: 0.01
-Nodes (230): BuildYourOwnPreset, canonical_centroids(), make_preset(), Shared configuration adapter for the two build-your-own domain skins., ArmResult, _new_governed_arm(), Shared governed and ungoverned engine for the two domain skins.  The governed ar, Run one domain through the same governed/ungoverned template loop. (+222 more)
+Nodes (214): BaseOracle, formatPct(), Instrument(), Claim(), W(), ChefOracle, ChefPipelineTest, _order_lift() (+206 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.01
-Nodes (203): _load_broker_trades(), BrokerProtocol, AlpacaBroker, _float(), _optional_float(), _order_from_alpaca(), _position_from_alpaca(), Alpaca broker execution adapter using httpx directly. (+195 more)
+Nodes (172): build_dataops_graph_status(), build_purchasing_graph_status(), build_trading_graph_status(), create_dataops_active_graph_store(), create_purchasing_active_graph_store(), create_trading_active_graph_store(), DataOpsActiveAGEGraphStore, DataOpsActiveGraphConfig (+164 more)
 
 ### Community 19 - "Community 19"
 Cohesion: 0.01
-Nodes (205): PurchasingActiveAGEGraphStore, Active AGE adapter preserving governed Decision write semantics., Active AGE adapter preserving governed Decision write semantics., Purchasing active AGE IDs use the PUR- prefix., Active AGE adapter preserving governed Decision write semantics., Purchasing active AGE IDs use the PUR- prefix., create_report_router(), Create GET /report/weekly under the supplied router prefix. (+197 more)
+Nodes (179): PurchasingActiveAGEGraphStore, Active AGE adapter preserving governed Decision write semantics., Active AGE adapter preserving governed Decision write semantics., Purchasing active AGE IDs use the PUR- prefix., Active AGE adapter preserving governed Decision write semantics., Purchasing active AGE IDs use the PUR- prefix., PurchasingPreset, create_event_router() (+171 more)
 
 ### Community 20 - "Community 20"
-Cohesion: 0.01
-Nodes (214): BaseOracle, formatPct(), Instrument(), Claim(), W(), ChefOracle, ChefPipelineTest, _order_lift() (+206 more)
+Cohesion: 0.02
+Nodes (181): create_di_router(), DIProfileResponse, DIProfilesResponse, DIRefreshResponse, DISourceSummary, ProfileRefreshRequest, FastAPI router factory for Data Intelligence source profiles., Create domain-agnostic Data Intelligence source profile endpoints. (+173 more)
 
 ### Community 21 - "Community 21"
 Cohesion: 0.01
-Nodes (222): assert_no_sample_in_metric(), get_orders_by_category(), get_orders_by_supplier(), get_supplier_by_id(), is_sample_data(), _load_json(), load_purchasing_orders(), load_purchasing_suppliers() (+214 more)
+Nodes (225): compute_dispersion_follow_rate(), _dispersion_row(), _finite(), Dispersion signal follow-rate analytics., _black_scholes(), compute_regime_vrp(), _finite(), _implied_variance() (+217 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.02
-Nodes (225): build_parser(), main(), Command-line entrypoint for Copilot SDK migrations., _age_sql(), copy_to_live(), create_scratch_graph(), drop_scratch_graph(), _identifier() (+217 more)
+Cohesion: 0.01
+Nodes (226): assert_no_sample_in_metric(), get_orders_by_category(), get_orders_by_supplier(), get_supplier_by_id(), is_sample_data(), _load_json(), load_purchasing_orders(), load_purchasing_suppliers() (+218 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.02
-Nodes (149): ApplyProposalRequest, _canonical_rejection_reason(), create_trading_evolution_router(), _default_parameter_config(), _load_persisted_rejection_summary(), PromoteRequest, Trading AgentEvolver API., _rejection_detail() (+141 more)
+Nodes (225): build_parser(), main(), Command-line entrypoint for Copilot SDK migrations., _age_sql(), copy_to_live(), create_scratch_graph(), drop_scratch_graph(), _identifier() (+217 more)
 
 ### Community 24 - "Community 24"
 Cohesion: 0.01
-Nodes (210): AGEProjection, classify_domain_context(), d2_correct_predicate(), d2_predicate(), first_present(), normalize_domain(), normalize_projection_node(), parse_projection_json() (+202 more)
+Nodes (187): _defaults(), MarketSource, MockMarketSource, Market data source implementations for Trading., Test double. Deterministic fixture data. No network calls.      Returns realisti, Test double. Deterministic fixture data. No network calls.      Returns realisti, yfinance implementation. Dev/demo source.      All methods return None on any ex, yfinance implementation. Dev/demo source.      All methods return None on any ex (+179 more)
 
 ### Community 25 - "Community 25"
-Cohesion: 0.01
-Nodes (175): _defaults(), MarketSource, MockMarketSource, Market data source implementations for Trading., Test double. Deterministic fixture data. No network calls.      Returns realisti, Test double. Deterministic fixture data. No network calls.      Returns realisti, Swappable upstream feed. yfinance now; Alpaca/Polygon later.      Returns None o, build_provenance() (+167 more)
+Cohesion: 0.02
+Nodes (178): _count(), _float(), from_dict(), _history_entry(), _normalize_status(), PromotionEngine, PromotionRecord, PromotionResult (+170 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.02
-Nodes (149): _coerce_factors(), CounterfactualRequest, Shared counterfactual scoring endpoint., CommoditySource, FREDCommoditySource, Commodity price source implementations for Purchasing., Current price divided by the available 12-month average., Real commodity price source. FRED API or equivalent. (+141 more)
+Cohesion: 0.01
+Nodes (210): AGEProjection, classify_domain_context(), d2_correct_predicate(), d2_predicate(), first_present(), normalize_domain(), normalize_projection_node(), parse_projection_json() (+202 more)
 
 ### Community 27 - "Community 27"
 Cohesion: 0.02
-Nodes (203): _add_db_path(), add_sdk_subcommands(), _add_top_level_subcommands(), _age_configured(), backup_sdk(), build_parser(), _cli_profile(), CLIUsageError (+195 more)
+Nodes (146): assert_no_sample(), F-26 protection for sample values in computed responses., Find paths where a sample-scoped response contains a metric value.      Structur, Raise when F-26 finds a sample value in a computed metric., scan_for_sample(), ClaimRecord, _coerce_tier(), EvidenceGate (+138 more)
 
 ### Community 28 - "Community 28"
 Cohesion: 0.02
-Nodes (150): _count(), _float(), from_dict(), _history_entry(), _normalize_status(), PromotionEngine, PromotionPolicy, PromotionRecord (+142 more)
+Nodes (203): _add_db_path(), add_sdk_subcommands(), _add_top_level_subcommands(), _age_configured(), backup_sdk(), build_parser(), _cli_profile(), CLIUsageError (+195 more)
 
 ### Community 29 - "Community 29"
 Cohesion: 0.02
-Nodes (156): create_counterfactual_router(), create_journal_router(), create_webhook_router(), get_mutation_lock(), mutation_lock_held(), mutation_lock_scope(), Per-domain mutation serialization for shared scorer state., Return the mutation lock for one copilot/scorer domain. (+148 more)
+Nodes (149): get_mutation_lock(), mutation_lock_held(), mutation_lock_scope(), Per-domain mutation serialization for shared scorer state., Return the mutation lock for one copilot/scorer domain., Return the mutation lock for one copilot/scorer domain., _base_version(), _cache() (+141 more)
 
 ### Community 30 - "Community 30"
 Cohesion: 0.02
-Nodes (122): PurchasingPathConfig, Typed local-path configuration; it never selects the graph backend., Typed local-path configuration; it never selects the graph backend., Typed local-path configuration; it never selects the graph backend., Typed local-path configuration; it never selects the graph backend., Typed local-path configuration; it never selects the graph backend., Typed local-path configuration; it never selects the graph backend., Typed local-path configuration; it never selects the graph backend. (+114 more)
+Nodes (171): _bool_or_none(), _category_flow_stats(), create_self_computation_router(), _decision_chain(), _decision_sort_key(), _flow_statistics(), _json_safe(), mount_self_computation_router() (+163 more)
 
 ### Community 31 - "Community 31"
 Cohesion: 0.02
-Nodes (131): _dedupe(), _demo_menu(), demo_orders(), demo_suppliers(), _par_items_from_orders(), PurchasingAlert, PurchasingAlertEngine, Aggregated purchasing alerts. (+123 more)
+Nodes (135): create_delivery_router(), Delivery schedule endpoints., create_menu_router(), Menu engineering endpoints., _dedupe(), _demo_menu(), demo_orders(), demo_suppliers() (+127 more)
 
 ### Community 32 - "Community 32"
 Cohesion: 0.02
-Nodes (144): clamp(), mean_or_neutral(), Shared helpers for Trading factor computers., ConvictionFactor, Conviction factor computer., _sizing_score(), classify_regime(), classify_regime_context() (+136 more)
+Nodes (114): ApplyProposalRequest, _canonical_rejection_reason(), create_trading_evolution_router(), _default_parameter_config(), _load_persisted_rejection_summary(), PromoteRequest, Trading AgentEvolver API., _rejection_detail() (+106 more)
 
 ### Community 33 - "Community 33"
 Cohesion: 0.02
-Nodes (140): _bool_or_none(), _category_flow_stats(), _decision_chain(), _decision_sort_key(), _flow_statistics(), _json_safe(), mount_self_computation_router(), _normalize_checkpoint() (+132 more)
+Nodes (112): DataOpsGovernance, DataOps-local governance adapters for shared evidence services., Own DataOps policy state while delegating scoring mechanisms to the SDK., _row_payload(), _factor_vector(), outcome_to_reward(), Compatibility adapters for legacy outcome payloads., Translate a legacy feedback mapping into the canonical receipt.      Legacy nume (+104 more)
 
 ### Community 34 - "Community 34"
 Cohesion: 0.02
-Nodes (120): build_parser(), dead_letters_command(), _default_db_path(), main(), process_command(), Build the outbox CLI parser., Show outbox status counts., Show outbox status counts. (+112 more)
+Nodes (130): plateau_config(), Security operations center alert-triage scoring preset., Security operations center alert-triage scoring preset., shape(), SOCPreset, get_factor_polarities(), interpret_factor(), Polarity (+122 more)
 
 ### Community 35 - "Community 35"
 Cohesion: 0.02
-Nodes (135): Capture Type A state artifacts without recording a learning event., Return current verified accuracy from GraphStore counts., Apply shared transfer patterns to the active GAE centroid tensor., Return the current SDK phase from GraphStore verification counts., Return the current SDK phase from GraphStore verification counts., Return current verified accuracy from GraphStore counts., Return current verified accuracy from GraphStore counts., Apply shared transfer patterns to the active GAE centroid tensor. (+127 more)
+Nodes (135): backup(), cli(), _cli_profile(), conservation(), fingerprint(), _finite_float(), _int_in_range(), _json_dump() (+127 more)
 
 ### Community 36 - "Community 36"
-Cohesion: 0.03
-Nodes (117): _answer(), _decision_payload(), _decisions(), _evidence_for_intent(), NLQueryRouter, _query_template(), Pattern-based natural language routing for Data Intelligence queries., Route natural-language questions to deterministic graph query templates. (+109 more)
+Cohesion: 0.02
+Nodes (121): build_parser(), dead_letters_command(), _default_db_path(), main(), process_command(), Build the outbox CLI parser., Show outbox status counts., Show outbox status counts. (+113 more)
 
 ### Community 37 - "Community 37"
 Cohesion: 0.03
@@ -617,220 +617,220 @@ Cohesion: 0.02
 Nodes (107): _call_count(), _category_coverage_alpha(), ComparisonResult, _first_present(), _get_field(), _is_number(), _is_numeric_sequence(), Shadow scorer discipline for SQLite-to-AGE backend validation.  This utility is (+99 more)
 
 ### Community 39 - "Community 39"
+Cohesion: 0.05
+Nodes (112): _load_broker_trades(), BrokerProtocol, AlpacaBroker, _float(), _optional_float(), _order_from_alpaca(), _position_from_alpaca(), Alpaca broker execution adapter using httpx directly. (+104 more)
+
+### Community 40 - "Community 40"
 Cohesion: 0.03
 Nodes (108): _chain_stores(), ChainRequest, create_chain_router(), create_demo_chain_stores(), Same-brand location transfer endpoints., reset_chain_state(), _stores_for_request(), create_multi_unit_router() (+100 more)
 
-### Community 40 - "Community 40"
-Cohesion: 0.04
-Nodes (116): _display_name(), _emotional_detail(), _emotional_label(), _load_factor_polarities(), _number(), _optional_float(), _options_analytics_text(), _polarity_quality() (+108 more)
-
 ### Community 41 - "Community 41"
+Cohesion: 0.03
+Nodes (106): cmd_score(), _is_options_like_trade(), _print_factor_table(), _print_options_factor_table(), _print_options_journal_summary(), classify_regime(), classify_regime_context(), _classify_regime_legacy() (+98 more)
+
+### Community 42 - "Community 42"
 Cohesion: 0.03
 Nodes (92): _coerce_context_snapshot(), _coerce_datetime(), _coerce_policies(), _normalize_raw_signal_dict(), _optional_str(), Domain-agnostic Situation Analyzer., Normalize signals and dispatch typed intents to traversal patterns., SituationAnalyzer (+84 more)
 
-### Community 42 - "Community 42"
+### Community 43 - "Community 43"
 Cohesion: 0.02
 Nodes (105): _build_age_dsn(), check_health(), check_port(), cmd_kill_all(), cmd_start(), cmd_status(), cmd_stop(), cmd_verify() (+97 more)
 
-### Community 43 - "Community 43"
+### Community 44 - "Community 44"
 Cohesion: 0.03
 Nodes (95): _canonical_copilot(), conservation_history(), create_ae_router(), _event_to_variant(), _events(), _explicit_source_copilot(), _factor(), _generate_lifecycle_events() (+87 more)
 
-### Community 44 - "Community 44"
-Cohesion: 0.03
-Nodes (116): backup(), cli(), _cli_profile(), conservation(), fingerprint(), _finite_float(), _int_in_range(), _json_dump() (+108 more)
-
 ### Community 45 - "Community 45"
+Cohesion: 0.04
+Nodes (108): _strategy_rows(), _demotion_target(), _group_trades(), _is_conservation_green(), _is_verified(), _metrics(), _promotion_reason(), _promotion_target() (+100 more)
+
+### Community 46 - "Community 46"
 Cohesion: 0.05
 Nodes (113): _accuracy(), _annualized_count(), _as_trade_dict(), _avg_loss(), _avg_trade_size(), _chi_squared(), _clamp(), _cost_payload() (+105 more)
 
-### Community 46 - "Community 46"
+### Community 47 - "Community 47"
+Cohesion: 0.03
+Nodes (76): _seed_metadata(), _distance(), _finite_nonnegative(), _flatten(), PerRegimeCentroidTracker, Regime-conditioned conservation, learning, and centroid telemetry., Runtime values selected for one scoring/learning regime., Adjust conservation sensitivity without changing its base formula. (+68 more)
+
+### Community 48 - "Community 48"
+Cohesion: 0.03
+Nodes (101): clamp(), mean_or_neutral(), Shared helpers for Trading factor computers., ConvictionFactor, Conviction factor computer., _sizing_score(), _concentration_score(), _correlated_exposure_score() (+93 more)
+
+### Community 49 - "Community 49"
 Cohesion: 0.03
 Nodes (60): check_playwright_available(), _extract_api_calls(), _extract_components(), _extract_tabs_from_source(), generate_markdown(), _is_tab_noise(), main(), _prettify_id() (+52 more)
 
-### Community 47 - "Community 47"
+### Community 50 - "Community 50"
 Cohesion: 0.03
 Nodes (74): create_discovery_router(), _cross_system_alerts(), _cross_system_provenance(), _demo_domain_decisions(), _domain_decisions(), _is_demo_data(), FastAPI discovery router factory., Create advisory discovery endpoints for a DiscoveryEngine. (+66 more)
 
-### Community 48 - "Community 48"
-Cohesion: 0.04
-Nodes (90): _capture_existing_state(), _copy_welford_tracker_state(), _expected_factor_count(), _pad_legacy_s2p_centroids(), _pad_legacy_s2p_dk(), _pad_legacy_s2p_vector(), Startup restore helpers for L5 runtime state., Best-effort L5 startup restore with explicit source reporting. (+82 more)
+### Community 51 - "Community 51"
+Cohesion: 0.05
+Nodes (91): _display_name(), _emotional_detail(), _emotional_label(), _load_factor_polarities(), _number(), _optional_float(), _options_analytics_text(), _polarity_quality() (+83 more)
 
-### Community 49 - "Community 49"
+### Community 52 - "Community 52"
 Cohesion: 0.04
 Nodes (81): create_par_router(), _items_from_orders(), _line_items(), Par intelligence API sourced from QBO order history., _to_float(), _assert_no_sample_orders(), _line_items(), ParLevelOptimizer (+73 more)
 
-### Community 50 - "Community 50"
+### Community 53 - "Community 53"
 Cohesion: 0.03
 Nodes (65): ABC, BaseCohortDayZeroState, cosine_similarity(), get_theta(), SimilarCaseFinder ABC for CopilotFramework. Domain implementations supply SOC/S, Return up to k similar past Decision nodes for *category*.          Category fil, Return up to k similar past Decision nodes for *category*.          Category f, Return fraction of *similar_cases* whose action matches *current_action*. (+57 more)
 
-### Community 51 - "Community 51"
-Cohesion: 0.04
-Nodes (82): _regime_recommendations(), classify_regime(), _classify_regime_details(), _classify_regime_legacy(), compute_adx(), _fill_trade_dates(), _is_win(), Market regime classification service. (+74 more)
-
-### Community 52 - "Community 52"
-Cohesion: 0.03
-Nodes (90): _archetype_detail(), _archetype_summary(), _calibration_note_for(), create_archetype_router(), _description_for(), _domain_overrides(), _json_centroids(), _preset_or_404() (+82 more)
-
-### Community 53 - "Community 53"
-Cohesion: 0.03
-Nodes (66): _canonical(), _canonical_domain(), ConditionedContext, _correct(), Shared regime-conditioned scoring context., Return the explicitly stored copilot domain for a decision row., Observation-only regime context returned to a scoring consumer., Attach verified, regime-scoped evidence to any scoring context. (+58 more)
-
 ### Community 54 - "Community 54"
-Cohesion: 0.04
-Nodes (94): allowlist_match(), _allowlisted(), AllowlistEntry, AllowlistRule, build_report(), caller_injects_domain(), classify_path(), code_only_source() (+86 more)
+Cohesion: 0.03
+Nodes (82): CommoditySource, Commodity price source implementations for Purchasing., Real commodity price source. FRED API or equivalent., Real commodity price source. FRED API or equivalent., Fetch recent commodity prices for a food category., Fetch recent commodity prices for a food category., Fetch recent commodity prices for a food category., Current price index for category versus 12-month average. (+74 more)
 
 ### Community 55 - "Community 55"
-Cohesion: 0.04
-Nodes (64): _dataops_acquisition_advice(), _dataops_acquisition_recommendations(), AcquisitionAdvisor, ExternalDataSource, _money(), _pp(), _priority(), External data acquisition recommendations for DataOps. (+56 more)
+Cohesion: 0.03
+Nodes (67): _canonical(), _canonical_domain(), ConditionedContext, _correct(), Shared regime-conditioned scoring context., Return the explicitly stored copilot domain for a decision row., Observation-only regime context returned to a scoring consumer., Attach verified, regime-scoped evidence to any scoring context. (+59 more)
 
 ### Community 56 - "Community 56"
-Cohesion: 0.03
-Nodes (82): plateau_config(), Security operations center alert-triage scoring preset., Security operations center alert-triage scoring preset., shape(), SOCPreset, get_factor_polarities(), interpret_factor(), Polarity (+74 more)
+Cohesion: 0.05
+Nodes (77): _answer(), _decision_payload(), _decisions(), _evidence_for_intent(), NLQueryRouter, _query_template(), Pattern-based natural language routing for Data Intelligence queries., Route natural-language questions to deterministic graph query templates. (+69 more)
 
 ### Community 57 - "Community 57"
 Cohesion: 0.04
-Nodes (69): ProfileConfig, Data Intelligence source profiling models., Configuration for deterministic source quality scoring., Quality profile for records fetched from one source connector., SourceProfile, BaseSourceProfiler, _clamp(), _parse_timestamp() (+61 more)
+Nodes (94): allowlist_match(), _allowlisted(), AllowlistEntry, AllowlistRule, build_report(), caller_injects_domain(), classify_path(), code_only_source() (+86 more)
 
 ### Community 58 - "Community 58"
+Cohesion: 0.04
+Nodes (62): AcquisitionAdvisor, ExternalDataSource, _money(), _pp(), _priority(), External data acquisition recommendations for DataOps., Recommend external data sources ranked by expected value., Recommend external data sources ranked by expected value. (+54 more)
+
+### Community 59 - "Community 59"
+Cohesion: 0.04
+Nodes (69): ProfileConfig, Data Intelligence source profiling models., Configuration for deterministic source quality scoring., Quality profile for records fetched from one source connector., SourceProfile, BaseSourceProfiler, _clamp(), _parse_timestamp() (+61 more)
+
+### Community 60 - "Community 60"
 Cohesion: 0.05
 Nodes (65): _accuracy(), _boolish(), CombinationCandidate, CombinationDiscoveryEngine, discover_combinations(), DiscoveryReport, _factor_names(), _format_percent() (+57 more)
 
-### Community 59 - "Community 59"
+### Community 61 - "Community 61"
 Cohesion: 0.05
 Nodes (67): _assert_finite_vector(), _expected_action(), _factor_payload(), FullFlowGraphStore, _run_sdk_full_flow(), _score_and_learn(), sdk_full_flow(), test_dk_welford_storage_roundtrip_full_flow() (+59 more)
 
-### Community 60 - "Community 60"
+### Community 62 - "Community 62"
 Cohesion: 0.03
 Nodes (77): _centroid_delta_norm(), _centroid_learning_store_for(), _clamp(), compute_reward(), _context_identifier(), create_measurement_state_router(), _decision_category(), _decision_factor_vector() (+69 more)
 
-### Community 61 - "Community 61"
-Cohesion: 0.03
-Nodes (71): _default_fixtures(), MockToastConnector, Deterministic Toast POS test double for Purchasing., Return fixture data for entity_id; missing date returns empty., Validate a Toast POS fixture record., Test double for ToastConnector. Returns fixture data.      Same 5-member SourceC, Fetch records for entity_id, expected as date string YYYY-MM-DD., Validate a Toast POS record. (+63 more)
-
-### Community 62 - "Community 62"
-Cohesion: 0.06
-Nodes (58): _clamp(), compute_options_factors(), _fetch_quant_ivrv_context(), GreeksExposureFactor, _has_any(), IVRVRatioFactor, _IVRVRatioFactorLegacy, _number() (+50 more)
-
 ### Community 63 - "Community 63"
 Cohesion: 0.05
-Nodes (50): _append_suggested_node(), _as_dict(), _connector_columns(), _dependency_rows(), _dict_rows(), _endpoint(), enrich_payload_with_suggestions(), _find_node_id() (+42 more)
+Nodes (66): _capture_existing_state(), _copy_welford_tracker_state(), _expected_factor_count(), _pad_legacy_s2p_centroids(), _pad_legacy_s2p_dk(), _pad_legacy_s2p_vector(), Startup restore helpers for L5 runtime state., Best-effort L5 startup restore with explicit source reporting. (+58 more)
 
 ### Community 64 - "Community 64"
-Cohesion: 0.07
-Nodes (55): _strategy_rows(), _demotion_target(), _group_trades(), _is_conservation_green(), _is_verified(), _metrics(), _promotion_reason(), _promotion_target() (+47 more)
+Cohesion: 0.05
+Nodes (50): _append_suggested_node(), _as_dict(), _connector_columns(), _dependency_rows(), _dict_rows(), _endpoint(), enrich_payload_with_suggestions(), _find_node_id() (+42 more)
 
 ### Community 65 - "Community 65"
 Cohesion: 0.05
 Nodes (52): AutonomousPromotionGate, _evaluate_base_gate(), PromotionDecision, Opt-in autonomous promotion checks layered over shadow promotion data., GREEN-only autonomous gate for opt-in promotion workflows., _regressions(), _win_rate(), _base_score() (+44 more)
 
 ### Community 66 - "Community 66"
-Cohesion: 0.05
-Nodes (57): NamedTuple, actual_action(), alternate_action(), annotate_trading_regime(), api_get(), _api_json(), api_post(), ApiError (+49 more)
-
-### Community 67 - "Community 67"
 Cohesion: 0.08
 Nodes (53): _cosine_similarity(), _decision_regime(), _decision_vector(), _finite_float(), _is_zero_vector(), _normalize_regime(), _percent(), PreScorer (+45 more)
 
-### Community 68 - "Community 68"
+### Community 67 - "Community 67"
 Cohesion: 0.05
 Nodes (54): load_benchmark(), Loader for frozen benchmark fixture v1., _read_json(), _validate_header(), _confirmed_training(), _dk_variance(), _eval_accuracy(), Train a scorer on `count` benchmark decisions.      Reuses the nearest cached sc (+46 more)
+
+### Community 68 - "Community 68"
+Cohesion: 0.06
+Nodes (52): create_report_router(), Create GET /report/weekly under the supplied router prefix., Create GET /report/weekly under the supplied router prefix., CategorySummary, CostImpact, _factor_names(), _first_float(), _get_factor_value() (+44 more)
 
 ### Community 69 - "Community 69"
 Cohesion: 0.06
 Nodes (49): _coerce_factor(), create_match_router(), _date_variance_days(), _discrepancy_messages(), _factors(), _first_item(), _first_number(), _first_present() (+41 more)
 
 ### Community 70 - "Community 70"
-Cohesion: 0.04
-Nodes (43): MockWeatherConnector, Mock weather connector for purchasing demos and tests., Test double. Seven days of fixture data. No network., compute(), Purchasing day-of-week factor computer.  Kitchen meaning: service-day demand pre, Return the day demand modifier; missing data is neutral., _clamp(), compute() (+35 more)
+Cohesion: 0.07
+Nodes (54): NamedTuple, actual_action(), alternate_action(), annotate_trading_regime(), api_get(), _api_json(), api_post(), ApiError (+46 more)
 
 ### Community 71 - "Community 71"
-Cohesion: 0.06
-Nodes (36): _ActivityStats, _duration_ms(), _normalize_event(), _optional_number(), _optional_text(), ProcessExportIngester, Process-mining export ingestion utilities., Ingest process-mining export into the S2P context graph. (+28 more)
+Cohesion: 0.04
+Nodes (43): MockWeatherConnector, Mock weather connector for purchasing demos and tests., Test double. Seven days of fixture data. No network., compute(), Purchasing day-of-week factor computer.  Kitchen meaning: service-day demand pre, Return the day demand modifier; missing data is neutral., _clamp(), compute() (+35 more)
 
 ### Community 72 - "Community 72"
 Cohesion: 0.07
 Nodes (47): _ActivePerturbation, _factor_for_source(), _fingerprint_factors(), _overall(), PerturbationActiveError, PerturbationError, PerturbationService, Memory-only, demo-gated trust perturbations for the DI proof moment. (+39 more)
 
 ### Community 73 - "Community 73"
-Cohesion: 0.24
-Nodes (56): FlexibleModel, AnalyticsResponse, CohortStatusResponse, ConservationResponse, FingerprintFactor, FingerprintResponse, FlexibleModel, Shared schemas for materialized tab-state keys used by multiple copilots. (+48 more)
-
-### Community 74 - "Community 74"
 Cohesion: 0.06
 Nodes (38): create_auto_order_router(), AutoOrderEvent, AutoOrderGate, _clamp(), _now_iso(), Conservation-gated auto-ordering for purchasing., Enable auto-ordering only when conservation is GREEN., Disable auto-ordering. (+30 more)
 
-### Community 75 - "Community 75"
+### Community 74 - "Community 74"
 Cohesion: 0.06
 Nodes (32): _agtype_to_python(), _count_test_functions(), _flatten_numbers(), formalize_proof(), _jsonish_to_python(), L5CompletionProof, main(), proof_sha256() (+24 more)
 
+### Community 75 - "Community 75"
+Cohesion: 0.09
+Nodes (49): _checkpoint_values(), _coerce_correctness(), _decision_values(), _event_values(), _iso_timestamp(), _items(), _outcome_values(), Restore demo state bundles into a cold SQLite graph store. (+41 more)
+
 ### Community 76 - "Community 76"
-Cohesion: 0.06
-Nodes (13): MinimalOldStore, MinimalStore, _sqlite_events(), test_graphstore_protocol_remains_narrow_for_entity_link_helpers(), test_graphstore_protocol_remains_narrow_for_old_shape_stores(), test_inmemory_decision_id_prefix_applied(), test_inmemory_decision_id_prefix_default_unchanged(), test_inmemory_decision_id_prefix_does_not_double_prefix_metadata() (+5 more)
-
-### Community 77 - "Community 77"
-Cohesion: 0.08
-Nodes (34): CelonisConnector, _list_from_payload(), Celonis connector with deterministic cache fallback for DataOps demos., _parse_odata_results(), SAP connector with deterministic cache fallback for DataOps demos., SAPConnector, _load_json(), _patch_context_connectors() (+26 more)
-
-### Community 78 - "Community 78"
 Cohesion: 0.09
 Nodes (40): _clamp(), _field_note(), _field_reliability(), _fields(), _fuzzy_value_overlap(), _identifier_bonus(), _identifier_priority(), JoinCandidate (+32 more)
 
+### Community 77 - "Community 77"
+Cohesion: 0.06
+Nodes (13): MinimalOldStore, MinimalStore, _sqlite_events(), test_graphstore_protocol_remains_narrow_for_entity_link_helpers(), test_graphstore_protocol_remains_narrow_for_old_shape_stores(), test_inmemory_decision_id_prefix_applied(), test_inmemory_decision_id_prefix_default_unchanged(), test_inmemory_decision_id_prefix_does_not_double_prefix_metadata() (+5 more)
+
+### Community 78 - "Community 78"
+Cohesion: 0.08
+Nodes (34): CelonisConnector, _list_from_payload(), Celonis connector with deterministic cache fallback for DataOps demos., _parse_odata_results(), SAP connector with deterministic cache fallback for DataOps demos., SAPConnector, _load_json(), _patch_context_connectors() (+26 more)
+
 ### Community 79 - "Community 79"
+Cohesion: 0.09
+Nodes (39): _accuracy_group_dimension(), AccuracyPattern, _aggregate_sort_key(), AggregationPattern, _apply_time_window(), _comparison_terms(), ComparisonPattern, _correctness() (+31 more)
+
+### Community 80 - "Community 80"
 Cohesion: 0.06
 Nodes (28): _canonical_regime(), _clamp(), ConvergenceCurve, _distance(), ExperimentReport, _gamma(), generate_regime_break(), _json() (+20 more)
 
-### Community 80 - "Community 80"
-Cohesion: 0.08
+### Community 81 - "Community 81"
+Cohesion: 0.09
 Nodes (43): _bucket_hold_period(), _bucket_vix(), _empty_matrix(), _entry_date_key(), _generate_recommendations(), _is_win(), _number(), _parse_datetime() (+35 more)
 
-### Community 81 - "Community 81"
+### Community 82 - "Community 82"
 Cohesion: 0.1
 Nodes (21): _close_scorer_store(), FreshScorerProxy, Cached scorer proxy for app backends.  Each proxy lazily constructs one scorer a, Return the scorer-backed conservation state for evolution gates., FakeScorer, _graph_store(), test_fresh_scorer_proxy_close_helper_leaves_shared_store_open(), test_fresh_scorer_proxy_concurrent_scores_share_cached_scorer() (+13 more)
 
-### Community 82 - "Community 82"
+### Community 83 - "Community 83"
 Cohesion: 0.08
 Nodes (39): _journal_client(), _seed_trades(), _set_journal_dir(), test_add_tags(), test_analytics_group_by_category(), test_analytics_group_by_month(), test_analytics_group_by_strategy(), test_analytics_group_by_ticker() (+31 more)
 
-### Community 83 - "Community 83"
+### Community 84 - "Community 84"
 Cohesion: 0.08
 Nodes (38): build_situation_judgment(), _canonical_regime(), check_regime_data_sufficiency(), compute_regime_conditioned_stats(), compute_regime_rejections(), compute_regime_strategy_accuracy(), compute_sharpe_adjustment(), _correct() (+30 more)
-
-### Community 84 - "Community 84"
-Cohesion: 0.09
-Nodes (39): _clamp(), _exit_for_r(), _expected_r_for_action(), _factor_values(), generate_trades(), _hold_hours(), main(), _preset_terms() (+31 more)
 
 ### Community 85 - "Community 85"
 Cohesion: 0.09
 Nodes (26): _add_edge(), _add_node(), _dataset_id(), _load_json(), _node_id(), Deterministic Trading graph seed plan., seed_dataops_graph(), seed_purchasing_graph() (+18 more)
 
 ### Community 86 - "Community 86"
+Cohesion: 0.09
+Nodes (38): _clamp(), _exit_for_r(), _expected_r_for_action(), _factor_values(), generate_trades(), _hold_hours(), main(), _preset_terms() (+30 more)
+
+### Community 87 - "Community 87"
 Cohesion: 0.05
 Nodes (27): compute_iks(), interpret(), interpret_iks_v2(), _mean_centroid_drift(), IKS (Institutional Knowledge Score) algorithm for CopilotFramework. compute_iks(, Return a human-readable interpretation of the IKS (v1) score., Return a human-readable interpretation of the IKS v2 composite score., Compute mean ||mu(t)[c,a,:] - mu_0[c,a,:]||_2 over all (c, a) pairs.      Parame (+19 more)
 
-### Community 87 - "Community 87"
+### Community 88 - "Community 88"
 Cohesion: 0.09
 Nodes (33): build_enterprise_health(), create_enterprise_router(), _graph_health(), _health_with_fallback(), _is_live(), _load_process(), _load_sap(), _process_metrics() (+25 more)
 
-### Community 88 - "Community 88"
+### Community 89 - "Community 89"
+Cohesion: 0.12
+Nodes (40): _db_path(), _decision_count(), _decision_id(), _invoke(), _runner(), _score(), test_backup_exits_zero_and_creates_json_file(), test_backup_json_includes_decision_count() (+32 more)
+
+### Community 90 - "Community 90"
 Cohesion: 0.1
 Nodes (30): _as_record(), create_execution_router(), Trading execution analysis endpoints., BrokerStats, ExecutionAnalyzer, ExecutionComparison, _fill_time_seconds(), _is_filled() (+22 more)
 
-### Community 89 - "Community 89"
+### Community 91 - "Community 91"
 Cohesion: 0.11
 Nodes (24): _entry_date(), _factor_key(), FactorCondition, JournalQueryService, _match_known(), _normalize(), _number(), _quarter_range() (+16 more)
 
-### Community 90 - "Community 90"
+### Community 92 - "Community 92"
 Cohesion: 0.06
 Nodes (36): _entry_to_dict(), get_decision_rows(), get_decisions(), _outcome_to_dict(), SOC Audit Service — thin adapter over ci_platform Evidence Ledger.  Hash-chain, Append a sealed LedgerEntry to the ci_platform ledger and return it as a SOC dic, Append a sealed LedgerEntry to the ci_platform ledger and return it as a SOC dic, Find the most-recent LedgerEntry for alert_id and update its outcome.      Mutat (+28 more)
-
-### Community 91 - "Community 91"
-Cohesion: 0.16
-Nodes (30): Restore a demo bundle into ``store`` when the requested domain is cold., Restore a demo bundle into ``store`` when the requested domain is cold., restore_bundle_if_empty(), _bundle(), _store(), test_bundle_restore_none_correctness_stays_pending(), test_centroid_checkpoints_written(), test_domain_mismatch_returns_false() (+22 more)
-
-### Community 92 - "Community 92"
-Cohesion: 0.1
-Nodes (24): _decision_category(), IKSService, _normalize_decision(), _point_payload(), Service wrapper for SDK Institutional Knowledge Score computation., Compute IKS summaries from verified decisions using canonical SDK trajectory log, make_decisions(), test_days_active_computed() (+16 more)
 
 ### Community 93 - "Community 93"
 Cohesion: 0.15
@@ -841,144 +841,144 @@ Cohesion: 0.14
 Nodes (26): _factors(), _payload(), response_payload(), test_consecutive_wins_counts_correctly(), test_prescore_all_10_factors_wired(), test_prescore_auto_classifies_category(), test_prescore_empty_history_defaults_gracefully(), test_prescore_includes_evidence_text() (+18 more)
 
 ### Community 95 - "Community 95"
+Cohesion: 0.19
+Nodes (24): _count(), Cursor, In-memory transaction boundary used to exercise direct migration Cypher., _run(), _source_db(), test_already_complete_resume_performs_no_writes(), test_batch_size_edge_case_three_three_one(), test_batch_size_one_creates_one_batch_per_decision() (+16 more)
+
+### Community 96 - "Community 96"
 Cohesion: 0.1
 Nodes (21): CopilotValue, EnterpriseROI, _evidence_label(), _field(), _finite(), _first(), _float(), _int() (+13 more)
 
-### Community 96 - "Community 96"
+### Community 97 - "Community 97"
 Cohesion: 0.08
 Nodes (8): test_memory_count_verified_decisions_excludes_pending_and_preserves_all_count(), test_memory_counts_empty_and_after_outcomes(), test_memory_domain_isolation(), test_memory_get_decisions_all_category_and_limit(), test_memory_reset_clears_and_close_noop(), test_memory_store_archive(), test_memory_write_outcome_links_to_decision(), _write()
 
-### Community 97 - "Community 97"
+### Community 98 - "Community 98"
 Cohesion: 0.1
 Nodes (20): ConservationMetrics, CachedAsyncProvider, ConservationState, normalize_conservation_state(), WP-0: formal conservation-state contract for evolution gating.  Providers are sy, Synchronous snapshot adapter for an async-origin conservation source., Discard the synchronous cache after an async source refreshes., Provider for SDK copilots backed by their live scorer/graph state. (+12 more)
-
-### Community 98 - "Community 98"
-Cohesion: 0.15
-Nodes (19): apiGet(), apiPost(), checkBackendHealth(), checkPreseedActive(), copilotUrl(), expectAnyText(), getJson(), gotoCopilot() (+11 more)
 
 ### Community 99 - "Community 99"
 Cohesion: 0.14
 Nodes (19): centroid(), conservation(), dk_weight(), FakeConnection, FakeResult, make_proof(), test_conservation_negative_v(), test_edges_all_linked() (+11 more)
 
 ### Community 100 - "Community 100"
+Cohesion: 0.15
+Nodes (19): apiGet(), apiPost(), checkBackendHealth(), checkPreseedActive(), copilotUrl(), expectAnyText(), getJson(), gotoCopilot() (+11 more)
+
+### Community 101 - "Community 101"
 Cohesion: 0.19
 Nodes (26): ba(), cell_scores(), centers(), ci(), download_origin(), feature_groups(), homogenize(), load_adult() (+18 more)
 
-### Community 101 - "Community 101"
+### Community 102 - "Community 102"
+Cohesion: 0.16
+Nodes (16): _by_category(), _complementary_edges(), _decision_factors(), _decision_trader(), _edge_summary(), _execution_recommendations(), _factor_strengths(), _finite_float() (+8 more)
+
+### Community 103 - "Community 103"
 Cohesion: 0.1
 Nodes (25): _py_files(), Drift detector: framework files in copilot-sdk vs SOC (canonical source), and S, Every KNOWN_DRIFT entry must actually exist and actually differ; stale entries f, SDK framework must be a subset of SOC — no files in SDK that don't exist in SOC., SDK framework must be a subset of SOC — no files in SDK that don't exist in SOC., SDK framework must be a subset of SOC — no files in SDK that don't exist in SOC., S2P framework files must be byte-identical to SOC unless listed in S2P_KNOWN_DRI, S2P framework files must be byte-identical to SOC unless listed in S2P_KNOWN_DRI (+17 more)
 
-### Community 102 - "Community 102"
+### Community 104 - "Community 104"
 Cohesion: 0.17
 Nodes (14): _store(), test_category_divergence_detected(), test_no_traps_on_healthy_data(), test_recency_bias_detected(), test_volume_skew_detected(), _types(), _accuracy(), _category() (+6 more)
 
-### Community 103 - "Community 103"
+### Community 105 - "Community 105"
 Cohesion: 0.12
 Nodes (19): CopilotConfig, CopilotScaffold, from_mapping(), from_yaml(), _identifier(), _mapping(), parse_yaml(), _positive_float() (+11 more)
 
-### Community 104 - "Community 104"
+### Community 106 - "Community 106"
 Cohesion: 0.12
 Nodes (9): _args(), _FakeProcess, _patch_safe_start(), _selected_app(), _selected_copilot(), test_args_helper_includes_all_parser_attributes(), test_cmd_start_age_precheck_blocks_age_only_selection(), test_cmd_start_diag_mode_writes_contract_after_healthy_backend() (+1 more)
 
-### Community 105 - "Community 105"
+### Community 107 - "Community 107"
 Cohesion: 0.16
 Nodes (19): _clean_regime(), _conservation_safe(), _decision_regime(), _is_correct(), _is_verified(), _nested_value(), Read-only per-regime decision quality analytics., Compute per-regime accuracy, IKS, conservation from tagged decisions.      ZERO (+11 more)
 
-### Community 106 - "Community 106"
+### Community 108 - "Community 108"
+Cohesion: 0.24
+Nodes (18): _age_client_class(), _assert_no_pool_closed(), _disposable_graph(), _dsn(), execute_stress_suite(), _query(), AGE-STRESS: cross-domain concurrency and pool exhaustion stress coverage.  Queue, Run the shared AGE-STRESS suite for the legacy conformance wrapper. (+10 more)
+
+### Community 109 - "Community 109"
+Cohesion: 0.13
+Nodes (9): cachedAge(), normalizeSource(), ProvenanceBadge(), tierStyle(), ensureArray(), factorList(), label(), nodeText() (+1 more)
+
+### Community 110 - "Community 110"
 Cohesion: 0.19
 Nodes (17): EdgeType, GraphContract, NodeType, Domain graph contract dataclasses., _clean_contract(), test_edge_type_fields(), test_empty_contract_invalid(), test_graph_contract_counts() (+9 more)
 
-### Community 107 - "Community 107"
+### Community 111 - "Community 111"
 Cohesion: 0.13
 Nodes (17): APP-5: YAML configuration uses the real SDK scoring loop., test_yaml_config_runs(), test_yaml_equals_python(), test_yaml_override_changes_behavior(), build_scorer(), ConfiguredScorer, load_domain_config(), load_scorer() (+9 more)
 
-### Community 108 - "Community 108"
-Cohesion: 0.13
-Nodes (8): cachedAge(), normalizeSource(), ProvenanceBadge(), tierStyle(), ensureArray(), factorList(), label(), nodeText()
-
-### Community 109 - "Community 109"
+### Community 112 - "Community 112"
 Cohesion: 0.18
 Nodes (19): _safe_float(), _was_correct(), _breakdown(), _category(), test_5_categories_present(), test_can_trade_false_when_red(), test_empty_categories_bootstrap(), test_endpoint_200_empty() (+11 more)
 
-### Community 110 - "Community 110"
+### Community 113 - "Community 113"
 Cohesion: 0.25
 Nodes (18): check_age_merge(), check_age_raw_sql(), check_learning_names(), check_mu_access(), check_provenance_badges(), check_purchasing_kitchen_language(), CheckResult, _docstring_lines() (+10 more)
 
-### Community 112 - "Community 112"
+### Community 115 - "Community 115"
 Cohesion: 0.2
 Nodes (16): _assert_json_safe(), _clear_alpaca_env(), test_broker_account_method_failure_returns_error_json(), test_broker_account_returns_json_without_env(), test_broker_mock_happy_path_returns_account_positions_orders_shapes(), test_broker_orders_method_failure_returns_error_json(), test_broker_orders_returns_json_without_env(), test_broker_positions_method_failure_returns_error_json() (+8 more)
 
-### Community 113 - "Community 113"
+### Community 116 - "Community 116"
 Cohesion: 0.1
 Nodes (12): tests/test_discipline.py — SDK boundary discipline tests.  Enforces:  - No domai, FactorComputer defines compute(event) -> float as required by GAE., SourceConnector has fetch/validate; ReferralRule has evaluate., Top-level `import copilot_sdk` completes without error and is versioned., Importing copilot_sdk must not trigger torch, tensorflow,         transformers,, No domains.soc module appears in sys.modules after importing copilot_sdk., No domains.s2p module appears in sys.modules after importing copilot_sdk., AST scan of all .py files under copilot_sdk/ for forbidden import patterns. (+4 more)
 
-### Community 114 - "Community 114"
+### Community 117 - "Community 117"
 Cohesion: 0.18
 Nodes (18): FakeReadbackStore, load_script(), test_argument_parser_defaults_and_readback_only(), test_database_url_preferred_over_passwordless_graph_dsn(), test_domain_plan_rejects_non_positive_loops(), test_dry_run_json_shape(), test_main_json_output_is_parseable_and_redacted(), test_missing_cell_classification_lists_each_missing_requirement() (+10 more)
 
-### Community 115 - "Community 115"
+### Community 118 - "Community 118"
 Cohesion: 0.19
 Nodes (13): _beat_lines(), BeatResult, _display(), _find_number(), GauntletReport, GauntletRunner, main(), parse_args() (+5 more)
 
-### Community 116 - "Community 116"
+### Community 119 - "Community 119"
 Cohesion: 0.16
 Nodes (13): _age_store(), _first(), store(), test_checkpoint_created_at_is_epoch(), test_checkpoint_ordering_newest_first(), test_checkpoint_preserves_factor_hash(), test_include_v2_controls_visibility(), test_load_latest_across_legacy_and_v2() (+5 more)
 
-### Community 117 - "Community 117"
+### Community 120 - "Community 120"
 Cohesion: 0.17
 Nodes (15): _state(), test_dump_creates_json(), test_integrity_all_present(), test_integrity_missing_conservation(), test_print_summary_no_crash(), test_verdict_blocks_missing_artifact_for_green_copilot(), test_verdict_blocks_missing_non_soc_receipts(), test_verdict_classifies_soc_non_scorable_gaps() (+7 more)
 
-### Community 118 - "Community 118"
+### Community 121 - "Community 121"
 Cohesion: 0.19
 Nodes (17): Five-domain contract coverage for the portable graph stores., store(), test_domain_anchors_created_for_all_five(), test_global_conservation_all_five_domains(), test_global_conservation_domain_filter(), test_global_conservation_empty_domain(), test_iks_trajectory_all_five_domains(), test_iks_trajectory_domain_filter() (+9 more)
 
-### Community 119 - "Community 119"
+### Community 122 - "Community 122"
 Cohesion: 0.29
 Nodes (18): _admin_connection(), age_graph(), _counts(), _cypher(), _dsn_or_skip(), _make_source(), _migrate(), _properties() (+10 more)
 
-### Community 120 - "Community 120"
+### Community 123 - "Community 123"
 Cohesion: 0.26
 Nodes (16): Get-Health(), Get-PortProcessIds(), Get-SelectedCopilots(), Show-Status(), Start-Backend(), Start-Builds(), Start-Frontend(), Start-GraphMode() (+8 more)
 
-### Community 121 - "Community 121"
+### Community 124 - "Community 124"
 Cohesion: 0.26
 Nodes (15): assert_json_safe(), assert_no_forbidden_terms(), _learn(), _score_as(), test_alice_and_bob_are_listed(), test_alice_verified_count_reaches_five(), test_leaderboard_returns_sorted_ranking(), test_nonexistent_trader_profile_returns_defaults() (+7 more)
 
-### Community 122 - "Community 122"
-Cohesion: 0.21
-Nodes (12): _client(), FakeAdvisor, FakeMapBuilder, test_acquisition_recommendations_have_priority_and_rationale(), test_acquisition_returns_recommendations(), test_combinations_have_correlation_strength(), test_combinations_have_value_estimates(), test_combinations_returns_list() (+4 more)
+### Community 125 - "Community 125"
+Cohesion: 0.22
+Nodes (16): build_bundle(), build_centroids(), build_checkpoints(), build_decisions(), build_events(), build_rl_state(), coerce_member(), confidence_for() (+8 more)
 
-### Community 123 - "Community 123"
+### Community 126 - "Community 126"
 Cohesion: 0.32
 Nodes (16): _category(), _close(), _factors(), _scorer(), test_from_preset_dataops_wires_financial_reward(), test_from_preset_enable_rl_false_preserves_no_auto_rl_behavior(), test_from_preset_preserves_old_positional_evolve_argument_order(), test_from_preset_purchasing_wires_waste_reward() (+8 more)
 
-### Community 124 - "Community 124"
+### Community 127 - "Community 127"
 Cohesion: 0.21
 Nodes (6): AGEConnection, check_outbox(), Phase 3 — durable 40-cycle dual-write validation gate.  Per-cycle verification (, Score, learn, verify one cycle., Reusable AGE connection for one cycle's queries., run_cycle()
 
-### Community 125 - "Community 125"
-Cohesion: 0.17
-Nodes (9): _stores(), test_centroid_checkpoint_v2_parity(), test_checkpoint_created_at_is_numeric_epoch(), test_count_verified_correct_parity(), test_include_v2_false_parity(), test_load_latest_centroids_parity(), test_write_outcome_idempotent_parity(), _write_checkpoint_pair() (+1 more)
-
-### Community 126 - "Community 126"
+### Community 128 - "Community 128"
 Cohesion: 0.2
 Nodes (9): _client(), test_trust_includes_conservation_status(), test_trust_includes_iks(), test_trust_labels_correct(), test_trust_narrative_mentions_highest_and_lowest(), test_trust_overall_is_weighted_average(), test_trust_returns_6_factors(), _TrustScorer (+1 more)
 
-### Community 127 - "Community 127"
-Cohesion: 0.18
-Nodes (8): _metrics(), _Preset, _Shape, _State, _Store, test_alpha_high_verification(), test_alpha_low_verification(), test_theta_min_floor()
-
-### Community 128 - "Community 128"
+### Community 129 - "Community 129"
 Cohesion: 0.13
 Nodes (11): DecisionMade, EventBus, GraphMutated, OutcomeVerified, Lightweight event bus for SOC Copilot (v4.1 -- replaced by ci-platform at v4.5)., Emitted after a Decision node is written to the graph.     Channel A: Decision n, Emitted after a Decision node is marked correct/incorrect.     Channel B: Outcom, Emitted for every graph write (decision or outcome).     Provides a single audit (+3 more)
 
-### Community 129 - "Community 129"
+### Community 130 - "Community 130"
 Cohesion: 0.16
 Nodes (8): ChefOracle, _clamp_probability(), DataOpsOracle, Parametric oracles for measurement-pipeline validation., Parametric oracle for Trading copilot.      Treatment = trust-radar shown to tra, Parametric oracle for DataOps copilot.      Treatment = intelligence-map / recom, Parametric oracle for Purchasing copilot.      Treatment = par-intelligence / tr, TraderOracle
-
-### Community 130 - "Community 130"
-Cohesion: 0.29
-Nodes (14): age_labels(), db_path(), finding_one(), finding_three(), finding_two(), ghost_classification(), main(), nonempty_json() (+6 more)
 
 ### Community 131 - "Community 131"
 Cohesion: 0.19
@@ -1017,24 +1017,24 @@ Cohesion: 0.15
 Nodes (4): Verify /market/ohlcv route is mounted and returns expected shape., Verify /market/vix route is mounted and returns expected shape., test_ohlcv_endpoint_exists(), test_vix_endpoint_exists()
 
 ### Community 140 - "Community 140"
+Cohesion: 0.24
+Nodes (10): _ActivityStats, _duration_ms(), _normalize_event(), _optional_number(), _optional_text(), ProcessExportIngester, Process-mining export ingestion utilities., Ingest process-mining export into the S2P context graph. (+2 more)
+
+### Community 141 - "Community 141"
 Cohesion: 0.19
 Nodes (8): Trading-specific oracle-separated synthetic configurations., Oracle-separated synthetic generator reused by the Trading clone., Ground-truth oracle reused by the Trading clone., Trading clone report, using the APP-1 renderer., main(), SQLite-backed, oracle-separated Trading clone-and-compound demo.  This example g, Run one Trading experiment through the shared APP-1 implementation., run_experiment()
 
-### Community 141 - "Community 141"
+### Community 142 - "Community 142"
 Cohesion: 0.24
 Nodes (12): audit_sqlite(), check_graph_gates(), check_rule38(), check_special(), find_db(), main(), SQLite Copilot Audit — All 4 SDK Copilots  Per-copilot: - Decision count (total,, Check Rule #38: does main.py construct SQLiteGraphStore directly? (+4 more)
 
-### Community 142 - "Community 142"
+### Community 143 - "Community 143"
 Cohesion: 0.19
 Nodes (5): CompleteClient, _load(), test_launcher_exposes_preseed_and_preflight_flags(), test_preflight_passes_complete_copilot(), test_preflight_rejects_f26_sample_metric()
 
-### Community 143 - "Community 143"
+### Community 144 - "Community 144"
 Cohesion: 0.24
 Nodes (10): _evolver(), _load_app(), Regression coverage for live prompt-variant evolution wiring., Load an app package in isolation; Purchasing and DataOps both use ``app``., test_dataops_conservation_provider_live(), test_dataops_evolver_instantiated(), test_dataops_variants_registered(), test_purchasing_conservation_provider_live() (+2 more)
-
-### Community 144 - "Community 144"
-Cohesion: 0.29
-Nodes (11): _contracts(), _load_module(), _seeds(), test_all_contract_names_unique(), test_all_contracts_have_decision_and_decided_on(), test_all_contracts_validate(), test_all_seed_edges_reference_seeded_node_ids(), test_all_seed_outputs_cover_contract_labels() (+3 more)
 
 ### Community 145 - "Community 145"
 Cohesion: 0.28
@@ -1057,100 +1057,100 @@ Cohesion: 0.42
 Nodes (11): _has_domain_argument(), _is_allowed_getattr(), _is_allowed_type_error(), Rule #72 enforcement for SDK Decision graph access., _raw_unscoped_decision_query(), _relative(), _repo_root(), _scan_paths() (+3 more)
 
 ### Community 150 - "Community 150"
+Cohesion: 0.32
+Nodes (11): _clear_status(), _set_correct(), test_confirmed_correct_counted(), test_confirmed_decision_counted(), test_count_verified_matches_count_correct_upper_bound(), test_decision_with_outcome_but_no_status_not_counted(), test_overridden_decision_counted(), test_overridden_incorrect_not_counted_correct() (+3 more)
+
+### Community 151 - "Community 151"
 Cohesion: 0.36
 Nodes (10): assert_json_safe(), _score_and_learn(), test_audit_and_conservation_reflect_verified_decision_without_overclaim(), test_audit_trail_empty_store_is_honest_fixture_structure(), test_conservation_proof_empty_store_has_required_keys(), test_evidence_decisions_empty_store_returns_list(), test_evidence_summary_empty_store_returns_defaults(), test_evidence_uses_purchasing_domain_terms_only() (+2 more)
 
-### Community 151 - "Community 151"
+### Community 152 - "Community 152"
 Cohesion: 0.27
 Nodes (8): EmotionalIndicatorFactor, _number(), Trading decision-context factor computer., test_combined_flags_bounded(), test_day_extreme_penalty(), test_no_context_neutral(), test_overconfidence_penalty(), test_revenge_pattern_penalty()
 
-### Community 152 - "Community 152"
+### Community 153 - "Community 153"
 Cohesion: 0.27
 Nodes (8): _number(), _optional_number(), Trading timing-quality factor computer., TimingQualityFactor, test_early_exit_penalty(), test_late_entry_penalty(), test_no_context_neutral(), test_time_of_day_accuracy_penalty()
 
-### Community 153 - "Community 153"
+### Community 154 - "Community 154"
 Cohesion: 0.33
 Nodes (10): apiBase(), fetchIndividual(), fetchTabState(), individualEndpoint(), missingEnvelope(), normalizeEnvelope(), normalizeKeys(), TabDataProvider() (+2 more)
 
-### Community 154 - "Community 154"
+### Community 155 - "Community 155"
 Cohesion: 0.29
 Nodes (9): _function_at_line(), _function_ranges(), _is_excluded(), main(), Static checks for the correctness-unification write and count invariants., Scan the four repositories under *root* and return sorted violations., scan(), scan_file() (+1 more)
 
-### Community 155 - "Community 155"
+### Community 156 - "Community 156"
 Cohesion: 0.24
 Nodes (5): Acceptance tests for the Level-3 build-your-own template., _run(), test_email_domain_runs(), test_reading_domain_runs(), test_ungoverned_runs()
 
-### Community 156 - "Community 156"
+### Community 157 - "Community 157"
 Cohesion: 0.25
 Nodes (5): _canonical_hash(), NonJsonValue, test_in_memory_conflict_quarantines_new_payload_and_preserves_original(), test_in_memory_enqueue_creates_pending_outbox_entry(), test_in_memory_non_json_native_payload_uses_default_str()
 
-### Community 157 - "Community 157"
+### Community 158 - "Community 158"
 Cohesion: 0.29
 Nodes (7): _number(), Trading risk/reward factor computer., RiskRewardActualFactor, test_actual_r_multiple_without_plan(), test_actual_vs_planned_risk_reward(), test_invalid_plan_neutral(), test_no_context_neutral()
 
-### Community 158 - "Community 158"
+### Community 159 - "Community 159"
 Cohesion: 0.2
 Nodes (6): CompositeDiscriminant, CompositeDiscriminant — multi-signal auto-approve gate (Phase 5).  Uses 13 fea, Multi-signal auto-approve gate.      Uses scorer output features + graph conte, DecisionHistoryService, DecisionHistoryService -- per-category decision counts and rolling accuracy., Tracks per-category decision counts and rolling accuracy.
 
-### Community 159 - "Community 159"
+### Community 160 - "Community 160"
 Cohesion: 0.2
 Nodes (9): get_all_trust_scores(), get_reward_summary(), get_trust_status(), Feedback trust/reward mechanics for CopilotFramework. Domain-agnostic — no SOC r, Return all current trust scores and the full update history.      Returns     --, Aggregate current in-memory feedback state into an RL reward summary.      Rewar, Update trust score for a situation type after a decision outcome.      Asymmetri, Get trust status for a single situation type.      Returns     -------     { (+1 more)
 
-### Community 160 - "Community 160"
+### Community 161 - "Community 161"
 Cohesion: 0.2
 Nodes (9): load_from_file(), make_state(), LearningState singleton for CopilotFramework. Domain layer (SOC/S2P) builds the, Read the metadata field from the checkpoint. Returns {} if absent., Atomically persist W matrix + WeightUpdate history to a JSON checkpoint.      Us, Create a fresh LearningState from raw parameters., Deserialize W matrix and WeightUpdate history from a JSON checkpoint.      Param, read_checkpoint_metadata() (+1 more)
 
-### Community 161 - "Community 161"
+### Community 162 - "Community 162"
 Cohesion: 0.29
 Nodes (9): build_factor_vector(), build_proposed_tensor(), l2_distance(), l2_distance_without_factor(), main(), Factor-0 Margin Contribution Analysis v2  The naive L2 share measurement (scenar, Current tensor with factor-0 column replaced by proposed values., L2 excluding one factor (set both sides to 0 so contribution = 0). (+1 more)
 
-### Community 162 - "Community 162"
+### Community 163 - "Community 163"
 Cohesion: 0.36
 Nodes (7): Q(), Sec(), W(), WL(), PyRun(), Section(), W()
 
-### Community 163 - "Community 163"
+### Community 164 - "Community 164"
 Cohesion: 0.33
 Nodes (8): main(), parse_agtype_props(), q(), AGE Complete Inventory — All 5 Copilots  Checks EVERY node and edge label in the, Best-effort parse of agtype properties to dict., run_section(), section(), try_q()
 
-### Community 164 - "Community 164"
+### Community 165 - "Community 165"
 Cohesion: 0.31
 Nodes (8): build_proposed_tensor(), l2_distance(), l2_distance_without_factor(), main(), Factor-0 Margin Contribution Analysis  The naive L2 share measurement (scenario, Current tensor with factor-0 column replaced by proposed values., Euclidean L2 distance., L2 distance with one factor zeroed out (set equal).
 
-### Community 165 - "Community 165"
+### Community 166 - "Community 166"
 Cohesion: 0.36
 Nodes (8): _count(), _cypher(), _delete(), main(), Phase 1 cleanup — §5.2 stale orphans + §5.3 stale L5.  Run: python scripts/phase, Run a single cypher query and return all rows., Count nodes with a given label., Delete all nodes with a given label and return count deleted.
 
-### Community 166 - "Community 166"
+### Community 167 - "Community 167"
 Cohesion: 0.64
 Nodes (8): _args(), _load_preseed_module(), _source_seed(), test_preseed_creates_200_decisions(), test_preseed_has_overrides(), test_preseed_idempotent(), test_preseed_nearly_complete_count_tops_up_one(), test_preseed_partial_count_tops_up_only_remaining()
 
-### Community 167 - "Community 167"
+### Community 168 - "Community 168"
 Cohesion: 0.43
 Nodes (6): assert_json_safe(), test_celonis_status_alias_is_offline_safe(), test_dataops_health_alias_returns_domain_status(), test_enterprise_health_alias_handles_subsystem_failure(), test_enterprise_health_alias_returns_combined_payload(), test_sap_status_alias_is_offline_safe()
 
-### Community 168 - "Community 168"
+### Community 169 - "Community 169"
 Cohesion: 0.39
 Nodes (7): load_inputs(), main(), proposed_centroids(), Compare SOC bootstrap scoring before and after factor-0 proposals.  This is a ve, Return winner, squared L2 distances, and winner margin., scenario_vector(), score_scenario()
 
-### Community 169 - "Community 169"
+### Community 170 - "Community 170"
 Cohesion: 0.43
 Nodes (7): _python_sources(), Guards for Pydantic v2-compatible SDK source., _source_hits(), test_sdk_source_has_no_inner_config_classes(), test_sdk_source_has_no_pydantic_v1_dict_serialization(), test_sdk_source_has_no_pydantic_v1_schema_introspection(), test_sdk_source_has_no_pydantic_v1_validator_api()
 
-### Community 170 - "Community 170"
+### Community 171 - "Community 171"
 Cohesion: 0.38
 Nodes (3): Q(), Sec(), WL()
 
-### Community 171 - "Community 171"
+### Community 172 - "Community 172"
 Cohesion: 0.33
 Nodes (2): Sec(), WL()
 
-### Community 172 - "Community 172"
+### Community 173 - "Community 173"
 Cohesion: 0.38
 Nodes (6): collect_frontend_strings(), collect_selectors(), main(), Playwright static selector scan.  Cross-references getByText/getByRole strings i, Extract getByText and role name strings from spec files., Extract visible strings from frontend source.
-
-### Community 173 - "Community 173"
-Cohesion: 0.48
-Nodes (6): expectDownState(), goToS2P(), goToTriage(), scoreSelected(), situationPanel(), waitForScoreResponse()
 
 ### Community 174 - "Community 174"
 Cohesion: 0.29
@@ -1273,48 +1273,48 @@ Cohesion: 0.6
 Nodes (3): ReadFile(), ReadSection(), W()
 
 ### Community 206 - "Community 206"
+Cohesion: 0.6
+Nodes (3): normalizeDecision(), RuleVsReasoningPanel(), situationDecision()
+
+### Community 207 - "Community 207"
 Cohesion: 0.4
 Nodes (3): Trading runtime settings used by safety-sensitive application boundaries., Environment-backed settings with safe observation-only defaults., TradingSettings
 
-### Community 207 - "Community 207"
+### Community 208 - "Community 208"
 Cohesion: 0.5
 Nodes (2): asMetric(), RiskManagementCard()
 
-### Community 208 - "Community 208"
+### Community 209 - "Community 209"
 Cohesion: 0.5
 Nodes (2): gateFor(), GovernedVsUngovernedPanel()
 
-### Community 209 - "Community 209"
+### Community 210 - "Community 210"
 Cohesion: 0.5
 Nodes (4): block_bootstrap_mean_se(), DispersionDiagnostic, Clustering-aware dispersion diagnostics for conservation quality series., Stationary (circular) block-bootstrap SE of the mean of q.      q     : 1-D arra
 
-### Community 210 - "Community 210"
+### Community 211 - "Community 211"
 Cohesion: 0.6
 Nodes (4): autoApprovePanel(), expansionProofPanel(), mockDashboardApis(), openDashboard()
 
-### Community 211 - "Community 211"
+### Community 212 - "Community 212"
 Cohesion: 0.6
 Nodes (3): clickAnalysisTab(), gotoPatternPanel(), patternPanel()
 
-### Community 212 - "Community 212"
+### Community 213 - "Community 213"
 Cohesion: 0.6
 Nodes (4): main(), Commercial smoke check for core copilot score-confirm loop., run(), _status()
 
-### Community 213 - "Community 213"
+### Community 214 - "Community 214"
 Cohesion: 0.6
 Nodes (4): iter_test_files(), main(), Scan test files for forbidden scorer/store mock patterns.  Exit 1 if any forbidd, scan_file()
 
-### Community 214 - "Community 214"
+### Community 215 - "Community 215"
 Cohesion: 0.5
 Nodes (3): cypher_int(), cypher_one(), Phase 3 flip verification — score + learn through AGE active read.  Proves the f
 
-### Community 216 - "Community 216"
+### Community 217 - "Community 217"
 Cohesion: 0.5
 Nodes (4): F-27 enforcement checks for user-facing routers., F-27: K1/K2 oracle outputs must not surface through API routers., _router_dirs(), test_no_router_returns_oracle_synthetic_outcome()
-
-### Community 219 - "Community 219"
-Cohesion: 0.6
-Nodes (3): normalizeDecision(), RuleVsReasoningPanel(), situationDecision()
 
 ### Community 220 - "Community 220"
 Cohesion: 0.67
@@ -1456,29 +1456,33 @@ Nodes (1): Materialized tab-state cache infrastructure.
 Cohesion: 0.67
 Nodes (1): Shared tab-state Pydantic schemas.
 
-### Community 278 - "Community 278"
+### Community 277 - "Community 277"
 Cohesion: 0.67
 Nodes (1): Add create_conservation_router to Trading and Purchasing backends. Pattern copie
 
-### Community 280 - "Community 280"
+### Community 279 - "Community 279"
 Cohesion: 1.0
 Nodes (2): discoverTab(), withTimeout()
 
-### Community 284 - "Community 284"
+### Community 283 - "Community 283"
 Cohesion: 1.0
 Nodes (2): goToS2P(), openTab()
 
-### Community 285 - "Community 285"
+### Community 284 - "Community 284"
 Cohesion: 1.0
 Nodes (2): gotoPerformance(), mockRegimeStatus()
 
-### Community 286 - "Community 286"
+### Community 285 - "Community 285"
 Cohesion: 1.0
 Nodes (2): gotoPerformance(), rejectionPanel()
 
-### Community 288 - "Community 288"
+### Community 287 - "Community 287"
 Cohesion: 0.67
 Nodes (1): Verify the ag_label fix: find the correct way to get the graph OID and query ver
+
+### Community 288 - "Community 288"
+Cohesion: 0.67
+Nodes (1): Create AGE indexes on Decision.domain and Decision.archived.  Usage:     python
 
 ### Community 289 - "Community 289"
 Cohesion: 0.67
@@ -1486,33 +1490,29 @@ Nodes (1): Create AGE indexes on Decision.domain and Decision.archived.  Usage: 
 
 ### Community 290 - "Community 290"
 Cohesion: 0.67
-Nodes (1): Create AGE indexes on Decision.domain and Decision.archived.  Usage:     python
+Nodes (1): CLI for the L-CDK open-source developer cut.
 
 ### Community 291 - "Community 291"
 Cohesion: 0.67
-Nodes (1): CLI for the L-CDK open-source developer cut.
+Nodes (1): D2 V_soc diagnostic — investigate 4,899 vs 4,862 discrepancy.  Run: python scrip
 
 ### Community 292 - "Community 292"
 Cohesion: 0.67
-Nodes (1): D2 V_soc diagnostic — investigate 4,899 vs 4,862 discrepancy.  Run: python scrip
+Nodes (1): Graph census — check what exists in soc_graph per domain.  Usage:     python gra
 
 ### Community 293 - "Community 293"
 Cohesion: 0.67
-Nodes (1): Graph census — check what exists in soc_graph per domain.  Usage:     python gra
+Nodes (1): Phase 3 — verify Trading migration in AGE. Auto-discovers expected counts.
 
 ### Community 294 - "Community 294"
 Cohesion: 0.67
-Nodes (1): Phase 3 — verify Trading migration in AGE. Auto-discovers expected counts.
+Nodes (1): Check AGE clean slate for a domain before migration.  Usage:     python scripts/
 
 ### Community 295 - "Community 295"
 Cohesion: 0.67
-Nodes (1): Check AGE clean slate for a domain before migration.  Usage:     python scripts/
-
-### Community 296 - "Community 296"
-Cohesion: 0.67
 Nodes (1): Run the synthetic EXP-REGIME re-convergence experiment.
 
-### Community 297 - "Community 297"
+### Community 296 - "Community 296"
 Cohesion: 1.0
 Nodes (2): _static_urls(), test_no_static_fetch_inside_provider()
 
@@ -2157,7 +2157,7 @@ Nodes (1): Retrieve a stored decision's factor vector from Neo4j and rebuild pro
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 132`** (14 nodes): `test_regime_beats.py`, `Contract tests for TRD-S1 through TRD-S4 situational endpoints.`, `test_trd_s1_regime_mirror_exposes_behavior_change()`, `test_trd_s1_regime_mirror_has_regime_history()`, `test_trd_s1_regime_mirror_labels_evidence()`, `test_trd_s2_abstention_has_day_zero_state()`, `test_trd_s2_abstention_has_reasons_field()`, `test_trd_s2_abstention_returns_json_safe_counts()`, `test_trd_s3_throttle_has_authority_and_timeline()`, `test_trd_s3_throttle_labels_monitor_state()`, `test_trd_s3_throttle_timeline_has_remaining()`, `test_trd_s4_rejection_has_regime_context()`, `test_trd_s4_rejection_labels_evidence()`, `test_trd_s4_rejection_preserves_rejection_counts()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 171`** (7 nodes): `Count-PyTests()`, `List-PyTestFiles()`, `List-SpecFiles()`, `Sec()`, `W()`, `WL()`, `generate_test_inventory.ps1`
+- **Thin community `Community 172`** (7 nodes): `Count-PyTests()`, `List-PyTestFiles()`, `List-SpecFiles()`, `Sec()`, `W()`, `WL()`, `generate_test_inventory.ps1`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 189`** (6 nodes): `test_ent03_models.py`, `ENT-03 response-model and B2 naming contract checks.`, `test_conservation_response_model()`, `test_diagnostics_response_model()`, `test_evolution_and_transfer_response_models()`, `test_no_incorrect_rl_naming()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -2171,9 +2171,9 @@ Nodes (1): Retrieve a stored decision's factor vector from Neo4j and rebuild pro
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 203`** (5 nodes): `FindFirst()`, `ReadFile()`, `Sec()`, `W()`, `scan_ci_v39_update.ps1`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 207`** (5 nodes): `RiskManagementCard.tsx`, `asMetric()`, `money()`, `pct()`, `RiskManagementCard()`
+- **Thin community `Community 208`** (5 nodes): `RiskManagementCard.tsx`, `asMetric()`, `money()`, `pct()`, `RiskManagementCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 208`** (5 nodes): `GovernedVsUngovernedPanel.tsx`, `Badge()`, `gateFor()`, `GovernedVsUngovernedPanel()`, `PathCard()`
+- **Thin community `Community 209`** (5 nodes): `GovernedVsUngovernedPanel.tsx`, `Badge()`, `gateFor()`, `GovernedVsUngovernedPanel()`, `PathCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 220`** (4 nodes): `batch11_finalization_scans.ps1`, `Section()`, `W()`, `WL()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -2229,35 +2229,35 @@ Nodes (1): Retrieve a stored decision's factor vector from Neo4j and rebuild pro
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 269`** (3 nodes): `__init__.py`, `__init__.py`, `Shared tab-state Pydantic schemas.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 278`** (3 nodes): `fix_main()`, `fix_conservation_router.py`, `Add create_conservation_router to Trading and Purchasing backends. Pattern copie`
+- **Thin community `Community 277`** (3 nodes): `fix_main()`, `fix_conservation_router.py`, `Add create_conservation_router to Trading and Purchasing backends. Pattern copie`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 280`** (3 nodes): `discoverTab()`, `withTimeout()`, `collect_live_tabs_v3.spec.ts`
+- **Thin community `Community 279`** (3 nodes): `discoverTab()`, `withTimeout()`, `collect_live_tabs_v3.spec.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 284`** (3 nodes): `tabs.spec.ts`, `goToS2P()`, `openTab()`
+- **Thin community `Community 283`** (3 nodes): `tabs.spec.ts`, `goToS2P()`, `openTab()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 285`** (3 nodes): `regime-status.spec.ts`, `gotoPerformance()`, `mockRegimeStatus()`
+- **Thin community `Community 284`** (3 nodes): `regime-status.spec.ts`, `gotoPerformance()`, `mockRegimeStatus()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 286`** (3 nodes): `rejection-moment.spec.ts`, `gotoPerformance()`, `rejectionPanel()`
+- **Thin community `Community 285`** (3 nodes): `rejection-moment.spec.ts`, `gotoPerformance()`, `rejectionPanel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 288`** (3 nodes): `main()`, `age_catalog_fix.py`, `Verify the ag_label fix: find the correct way to get the graph OID and query ver`
+- **Thin community `Community 287`** (3 nodes): `main()`, `age_catalog_fix.py`, `Verify the ag_label fix: find the correct way to get the graph OID and query ver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 289`** (3 nodes): `main()`, `create_age_indexes.py`, `Create AGE indexes on Decision.domain and Decision.archived.  Usage:     python`
+- **Thin community `Community 288`** (3 nodes): `main()`, `create_age_indexes.py`, `Create AGE indexes on Decision.domain and Decision.archived.  Usage:     python`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 290`** (3 nodes): `main()`, `create_age_indexes_v2.py`, `Create AGE indexes on Decision.domain and Decision.archived.  Usage:     python`
+- **Thin community `Community 289`** (3 nodes): `main()`, `create_age_indexes_v2.py`, `Create AGE indexes on Decision.domain and Decision.archived.  Usage:     python`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 291`** (3 nodes): `main()`, `create_copilot.py`, `CLI for the L-CDK open-source developer cut.`
+- **Thin community `Community 290`** (3 nodes): `main()`, `create_copilot.py`, `CLI for the L-CDK open-source developer cut.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 292`** (3 nodes): `main()`, `d2_v_diagnostic.py`, `D2 V_soc diagnostic — investigate 4,899 vs 4,862 discrepancy.  Run: python scrip`
+- **Thin community `Community 291`** (3 nodes): `main()`, `d2_v_diagnostic.py`, `D2 V_soc diagnostic — investigate 4,899 vs 4,862 discrepancy.  Run: python scrip`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 293`** (3 nodes): `main()`, `graph_census.py`, `Graph census — check what exists in soc_graph per domain.  Usage:     python gra`
+- **Thin community `Community 292`** (3 nodes): `main()`, `graph_census.py`, `Graph census — check what exists in soc_graph per domain.  Usage:     python gra`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 294`** (3 nodes): `age_count()`, `phase3_verify_v3.py`, `Phase 3 — verify Trading migration in AGE. Auto-discovers expected counts.`
+- **Thin community `Community 293`** (3 nodes): `age_count()`, `phase3_verify_v3.py`, `Phase 3 — verify Trading migration in AGE. Auto-discovers expected counts.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 295`** (3 nodes): `main()`, `phase_age_check.py`, `Check AGE clean slate for a domain before migration.  Usage:     python scripts/`
+- **Thin community `Community 294`** (3 nodes): `main()`, `phase_age_check.py`, `Check AGE clean slate for a domain before migration.  Usage:     python scripts/`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 296`** (3 nodes): `main()`, `run_exp_regime.py`, `Run the synthetic EXP-REGIME re-convergence experiment.`
+- **Thin community `Community 295`** (3 nodes): `main()`, `run_exp_regime.py`, `Run the synthetic EXP-REGIME re-convergence experiment.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 297`** (3 nodes): `test_no_bypass_fetch.py`, `_static_urls()`, `test_no_static_fetch_inside_provider()`
+- **Thin community `Community 296`** (3 nodes): `test_no_bypass_fetch.py`, `_static_urls()`, `test_no_static_fetch_inside_provider()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 299`** (2 nodes): `DI-3 NL Query Engine — Live endpoint verification.`, `verify_di3.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -2581,10 +2581,12 @@ Nodes (1): Retrieve a stored decision's factor vector from Neo4j and rebuild pro
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `SourceConnector` connect `Community 0` to `Community 9`?**
-  _High betweenness centrality (0.154) - this node is a cross-community bridge._
-- **Why does `create_app()` connect `Community 10` to `Community 1`, `Community 4`, `Community 5`, `Community 7`, `Community 8`, `Community 13`, `Community 15`, `Community 16`, `Community 19`, `Community 21`, `Community 23`, `Community 26`, `Community 28`, `Community 29`, `Community 30`, `Community 31`, `Community 33`, `Community 34`, `Community 36`, `Community 39`, `Community 40`, `Community 43`, `Community 49`, `Community 52`, `Community 55`, `Community 59`, `Community 61`, `Community 63`, `Community 69`, `Community 71`, `Community 72`, `Community 74`, `Community 81`, `Community 88`, `Community 97`?**
-  _High betweenness centrality (0.100) - this node is a cross-community bridge._
+- **Why does `SourceConnector` connect `Community 0` to `Community 11`?**
+  _High betweenness centrality (0.131) - this node is a cross-community bridge._
+- **Why does `create_app()` connect `Community 5` to `Community 1`, `Community 6`, `Community 8`, `Community 13`, `Community 15`, `Community 16`, `Community 18`, `Community 19`, `Community 20`, `Community 22`, `Community 25`, `Community 29`, `Community 30`, `Community 31`, `Community 32`, `Community 33`, `Community 36`, `Community 40`, `Community 44`, `Community 47`, `Community 52`, `Community 54`, `Community 56`, `Community 58`, `Community 61`, `Community 64`, `Community 68`, `Community 69`, `Community 72`, `Community 73`, `Community 82`, `Community 90`, `Community 98`?**
+  _High betweenness centrality (0.102) - this node is a cross-community bridge._
+- **Why does `apiGet()` connect `Community 0` to `Community 109`?**
+  _High betweenness centrality (0.091) - this node is a cross-community bridge._
 - **Are the 746 inferred relationships involving `str` (e.g. with `redact_dsn()` and `_start_wsl2_keepalive()`) actually correct?**
   _`str` has 746 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 323 inferred relationships involving `dict` (e.g. with `_shared_graph_proof()` and `_event_to_variant()`) actually correct?**
@@ -2593,5 +2595,3 @@ _Questions this graph is uniquely positioned to answer:_
   _`SQLiteGraphStore` has 192 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 121 inferred relationships involving `CompoundingScorer` (e.g. with `PurchasingPathConfig` and `ArmResult`) actually correct?**
   _`CompoundingScorer` has 121 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Resolve the WSL2 NAT IP dynamically (changes per boot).      Falls back to local`, `Build an AGE DSN using the dynamic WSL2 IP or GRAPH_DSN env override.`, `Build explicit AGE graph environment for one copilot.` to the rest of the system?**
-  _3968 weakly-connected nodes found - possible documentation gaps or missing edges._

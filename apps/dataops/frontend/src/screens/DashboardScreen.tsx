@@ -299,19 +299,19 @@ function UngroupedAlerts({
                 <div className="mt-1 text-xs dataops-muted">
                   {alert.systemName || alert.system_name || "unknown system"} · {formatCategory(alert.category)} · {alert.severity || "unknown"}
                 </div>
+                <button
+                  type="button"
+                  className="copilot-button-secondary mt-2 px-3 py-2 text-xs"
+                  disabled={!id}
+                  onClick={() => {
+                    if (id) {
+                      onSelectAlert(id);
+                    }
+                  }}
+                >
+                  Triage
+                </button>
               </div>
-              <button
-                type="button"
-                className="copilot-button-secondary px-3 py-2 text-xs"
-                disabled={!id}
-                onClick={() => {
-                  if (id) {
-                    onSelectAlert(id);
-                  }
-                }}
-              >
-                Triage
-              </button>
             </div>
           );
         })}

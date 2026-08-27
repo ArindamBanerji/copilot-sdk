@@ -228,8 +228,8 @@
     "hash": "5077bd060a6fc7b5558d391f6322fd7d"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\backend\\app\\context_router.py": {
-    "mtime": 1787384691.0219367,
-    "hash": "c9ea8b280b573c4dc6fc3eb84e9e5ea2"
+    "mtime": 1787854211.3814576,
+    "hash": "60fb99a09cee5b01c6310da23332cb82"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\backend\\app\\dataops_governance.py": {
     "mtime": 1787824899.8764532,
@@ -440,8 +440,8 @@
     "hash": "400c94962c4683d7089459e21dc6334c"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\frontend\\src\\api.ts": {
-    "mtime": 1787245927.5727255,
-    "hash": "7d749a63ddbfcb29666c61df03a98b55"
+    "mtime": 1787854069.003704,
+    "hash": "a131b6915548a5d252d916216caa5952"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\frontend\\src\\App.tsx": {
     "mtime": 1778362335.2568872,
@@ -620,8 +620,8 @@
     "hash": "09fb706d9e6f77f3a5da4d311e189e36"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\frontend\\src\\components\\IntelligenceMapPanel.tsx": {
-    "mtime": 1786250604.3732176,
-    "hash": "0331f1c2b0b716247a36138fbce031e8"
+    "mtime": 1787853904.5282364,
+    "hash": "a8ce5793992c328225d9b47540212eda"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\frontend\\src\\components\\NLQueryPanel.tsx": {
     "mtime": 1785902000.5713625,
@@ -736,8 +736,8 @@
     "hash": "fc3b7e1cfe196d731cbd7886d29fb2f9"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\frontend\\src\\screens\\DashboardScreen.tsx": {
-    "mtime": 1787211076.0143414,
-    "hash": "70fe68166340c2d5170c483ecd520ad4"
+    "mtime": 1787853902.3326006,
+    "hash": "0d99075b6bb8f3c6bbb070952a8b3770"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\frontend\\src\\screens\\EvidenceScreen.tsx": {
     "mtime": 1787245020.1813047,
@@ -748,8 +748,8 @@
     "hash": "76fc333dfcf4deb4c7a0f147616483b8"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\frontend\\src\\screens\\TriageScreen.tsx": {
-    "mtime": 1787245022.476763,
-    "hash": "e96f5b536c245287707c81dbb69c7c1e"
+    "mtime": 1787854071.6779187,
+    "hash": "a018c2f5d0561a290bf2c44e3bc84a09"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\purchasing\\__init__.py": {
     "mtime": 1778282667.2501934,
@@ -1892,8 +1892,8 @@
     "hash": "82daef386a7a6c6f85649da31cf815d1"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\graph_status.py": {
-    "mtime": 1786347913.023131,
-    "hash": "39e3c27ffceb61b71c8decf142ce1c36"
+    "mtime": 1787847999.3967397,
+    "hash": "1a0d1034d42cd5bc56df5e84a11a830d"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\main.py": {
     "mtime": 1787686989.0079367,
@@ -1996,8 +1996,8 @@
     "hash": "a8b54f1d89d7625b50cfd8ec43690f30"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\factors\\base.py": {
-    "mtime": 1779423097.1742485,
-    "hash": "de4cd16b7eb0386b1f2c0c46fc429365"
+    "mtime": 1787848061.5420213,
+    "hash": "d388d22b8472f0d7f3d2e35c136c9c89"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\factors\\conviction.py": {
     "mtime": 1779601679.362405,
@@ -2128,8 +2128,8 @@
     "hash": "195e8634c66e24b74d644f4c93d1604f"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\routers\\regime_analytics.py": {
-    "mtime": 1784281448.9183066,
-    "hash": "9d5f7396c74005d9ae3b2740112cdd2f"
+    "mtime": 1787848016.9225185,
+    "hash": "0909a6d583d13939a16fbc6e593d680b"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\routers\\regime_beats.py": {
     "mtime": 1787514150.3881388,
@@ -2148,8 +2148,8 @@
     "hash": "7a740836953591e81e0ac7d318bc8650"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\routers\\social.py": {
-    "mtime": 1784367048.661576,
-    "hash": "120748b2bc14089360ef6a75e7f8c025"
+    "mtime": 1787848013.176673,
+    "hash": "844f05d0b3f2852f57774e4fdc83e6c1"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\routers\\vix_timing.py": {
     "mtime": 1784281468.3282194,
@@ -2224,8 +2224,8 @@
     "hash": "d546d535d2ae218731f449ae99e38a43"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\services\\regime_classifier.py": {
-    "mtime": 1787125751.1618698,
-    "hash": "bafb06a9859b5950ed889ee086e79cc8"
+    "mtime": 1787848008.4777842,
+    "hash": "be800fdba9168342951307be2d9467a9"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\services\\regime_history.py": {
     "mtime": 1782040211.9548252,
@@ -2292,8 +2292,8 @@
     "hash": "96f7962572ccf9e939318cdc2fb88489"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\state\\trading_registry.py": {
-    "mtime": 1785342555.5942335,
-    "hash": "23aefecf2a25e97569158e2f1e5284a5"
+    "mtime": 1787848004.342066,
+    "hash": "c1cad37fb32f434d03f9d475a7f94cf2"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\trading\\backend\\app\\state\\__init__.py": {
     "mtime": 1784203420.9204154,
@@ -8471,34 +8471,6 @@
     "mtime": 1778438082.8954284,
     "hash": "93ad4e5ba336c402a351282c48b3ce51"
   },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\alert-alert-dashboard-card-renders-on-Performance-tab-purchasing\\error-context.md": {
-    "mtime": 1787822683.9948123,
-    "hash": "e5b00cc62126fc1277ada47c72a1c203"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\alert-alert-dashboard-card-renders-on-Performance-tab-purchasing-retry1\\error-context.md": {
-    "mtime": 1787822749.7686722,
-    "hash": "d225dcd5f56801f18bd9fc55955b5de3"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\alert-alert-flow-verifies-severity-colors-and-no-jargon-purchasing\\error-context.md": {
-    "mtime": 1787822809.6318817,
-    "hash": "17cc0f6d902fe5507197e6c42631127e"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\analysis-profile-archetype-shows-Researcher-or-profile-trading\\error-context.md": {
-    "mtime": 1787822718.0439835,
-    "hash": "c23ad7b0340c02b348571a15c1347174"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\analysis-profile-archetype-shows-Researcher-or-profile-trading-retry1\\error-context.md": {
-    "mtime": 1787822756.006282,
-    "hash": "1ed54dc63ca9da80355b3cac12e92b38"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\chain-transfer-chain-flow-checks-conservation-explanation-purchasing\\error-context.md": {
-    "mtime": 1787823194.297189,
-    "hash": "fa8c00ae62a2427e5ae3b361abde3bce"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\conservation-breakdown-Panel-has-no-SOC-vocabulary-trading\\error-context.md": {
-    "mtime": 1787823191.7860613,
-    "hash": "fd6d6a1f63578aad38e81c063a413ca6"
-  },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\examples\\build_your_own\\README.md": {
     "mtime": 1786243482.4291966,
     "hash": "e891b1ee2702062b2a06a705cce19d45"
@@ -8622,33 +8594,5 @@
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\docsscreenshots\\trading_performance.png": {
     "mtime": 1780608198.5785694,
     "hash": "b10bc4bc457ab64433dcfc1c49217115"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\alert-alert-dashboard-card-renders-on-Performance-tab-purchasing\\test-failed-1.png": {
-    "mtime": 1787822683.6537936,
-    "hash": "745a9d7871d8e68902698e651cfdc0b3"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\alert-alert-dashboard-card-renders-on-Performance-tab-purchasing-retry1\\test-failed-1.png": {
-    "mtime": 1787822749.2958047,
-    "hash": "94b424015f11964ae3466b5c995d1237"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\alert-alert-flow-verifies-severity-colors-and-no-jargon-purchasing\\test-failed-1.png": {
-    "mtime": 1787822809.1822999,
-    "hash": "a946c530d21205b05ade1715c5532921"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\analysis-profile-archetype-shows-Researcher-or-profile-trading\\test-failed-1.png": {
-    "mtime": 1787822716.2233796,
-    "hash": "94c5964ec171139fd19d0d87ec0432d3"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\analysis-profile-archetype-shows-Researcher-or-profile-trading-retry1\\test-failed-1.png": {
-    "mtime": 1787822755.7162209,
-    "hash": "33a843ec01cbc91cf39b6e52fbb04e7d"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\chain-transfer-chain-flow-checks-conservation-explanation-purchasing\\test-failed-1.png": {
-    "mtime": 1787823185.6407676,
-    "hash": "94b424015f11964ae3466b5c995d1237"
-  },
-  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\conservation-breakdown-Panel-has-no-SOC-vocabulary-trading\\test-failed-1.png": {
-    "mtime": 1787823184.2240808,
-    "hash": "b57563b9ae06fedb10d3feee96a57219"
   }
 }

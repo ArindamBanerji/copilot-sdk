@@ -284,7 +284,7 @@ export function IntelligenceMapPanel() {
                 textAnchor="middle"
                 className="fill-white text-[13px] font-semibold"
               >
-                {truncate(node.sourceName, 18)}
+                {formatSourceName(truncate(node.sourceName, 18))}
               </text>
               <text
                 y={node.radius + 41}
@@ -358,7 +358,7 @@ function SourceCard({ node }: { node: MapNode }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold" style={{ color: "var(--copilot-text)" }}>
-            {node.sourceName}
+            {formatSourceName(node.sourceName)}
           </p>
           <p className="text-xs dataops-muted">{node.entityType}</p>
         </div>
@@ -372,10 +372,14 @@ function SourceCard({ node }: { node: MapNode }) {
         <Metric label="Trust" value={node.trustTier === null ? "n/a" : `T${node.trustTier}`} />
       </div>
       <p className="mt-3 text-xs dataops-muted">
-        Cache: {node.cacheStatus || "unknown"} - source reliability controls map brightness
+        Cache: {node.cacheStatus || "unknown"} - trust signal controls map brightness
       </p>
     </div>
   );
+}
+
+function formatSourceName(value: string): string {
+  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

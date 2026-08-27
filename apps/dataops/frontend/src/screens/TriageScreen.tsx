@@ -6,6 +6,7 @@ import {
   getAlertDeps,
   getAlertFactors,
   getAlertRecurrence,
+  fetchAbstentionState,
   getConservationStatus,
   getFingerprint,
   getProcessSignals,
@@ -254,10 +255,11 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     setError(null);
 
     const factors = buildScoreFactors(data.factors);
+    const scoringCategory = dataopsScoringCategory(alert.category);
 
     try {
       const scored = await scoreAlert({
-        category: alert.category,
+        category: scoringCategory,
         factors,
         context: {
           alert_id: selectedAlertId,
@@ -266,6 +268,11 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
         },
       });
       setScore(scored);
+      void fetchAbstentionState(alert.category).then((abstention) => {
+        if (abstention) {
+          setScore((current) => current ? { ...current, abstentionWarning: abstention } : current);
+        }
+      });
       await saveAlertMetadata({
         decisionId: scored.decisionId,
         alertId: selectedAlertId,
@@ -478,6 +485,19 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
       />
     </div>
   );
+}
+
+function dataopsScoringCategory(category: string): string {
+  return [
+    "schema_change",
+    "volume_anomaly",
+    "quality_anomaly",
+    "freshness_violation",
+    "pipeline_failure",
+    "transform_drift",
+  ].includes(category)
+    ? category
+    : "quality_anomaly";
 }
 
 function TriageFrame({ onBack, message, ready = false }: { onBack: () => void; message: string; ready?: boolean }) {
