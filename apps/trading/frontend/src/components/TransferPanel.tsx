@@ -67,10 +67,6 @@ export default function TransferPanel() {
     }
   }
 
-  if (loading) {
-    return <section className="copilot-card p-4 text-sm trading-muted">Loading transfer opportunities...</section>;
-  }
-
   return (
     <section className="copilot-card p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -85,7 +81,9 @@ export default function TransferPanel() {
 
       {error ? <p className="mt-3 text-sm text-red-300">{error}</p> : null}
 
-      {transfers.length === 0 ? (
+      {loading ? (
+        <p className="mt-4 text-sm trading-muted">Loading transfer opportunities...</p>
+      ) : transfers.length === 0 ? (
         <p className="mt-4 text-sm trading-muted">No transfer mappings are available.</p>
       ) : (
         <div className="mt-4 overflow-x-auto">

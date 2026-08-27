@@ -104,6 +104,19 @@ export default function EvolutionControlsPanel() {
         <ProvenanceBadge source="real_measured" />
       </div>
 
+      <article className="mt-5 rounded-md border p-4" style={{ borderColor: "var(--copilot-border)" }}>
+        <h3 className="text-sm font-semibold">Hard Bounds Reference</h3>
+        <p className="mt-1 text-sm trading-muted">These bounds cannot be overridden.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {bounds.map(([parameter, range]) => (
+            <div key={parameter} className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--copilot-border)" }}>
+              <div className="text-xs trading-muted">{parameter}</div>
+              <div className="font-semibold">{Array.isArray(range) ? `${range[0]} to ${range[1]}` : "-"}</div>
+            </div>
+          ))}
+        </div>
+      </article>
+
       {loading ? (
         <p className="mt-4 text-sm trading-muted">Loading parameter evolution...</p>
       ) : error ? (
@@ -193,19 +206,6 @@ export default function EvolutionControlsPanel() {
                 </table>
               </div>
             )}
-          </article>
-
-          <article className="rounded-md border p-4" style={{ borderColor: "var(--copilot-border)" }}>
-            <h3 className="text-sm font-semibold">Hard Bounds Reference</h3>
-            <p className="mt-1 text-sm trading-muted">These bounds cannot be overridden.</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {bounds.map(([parameter, range]) => (
-                <div key={parameter} className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--copilot-border)" }}>
-                  <div className="text-xs trading-muted">{parameter}</div>
-                  <div className="font-semibold">{Array.isArray(range) ? `${range[0]} to ${range[1]}` : "-"}</div>
-                </div>
-              ))}
-            </div>
           </article>
 
           <article className="rounded-md border p-4" style={{ borderColor: "var(--copilot-border)" }}>

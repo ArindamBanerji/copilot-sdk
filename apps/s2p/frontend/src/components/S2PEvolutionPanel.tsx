@@ -14,6 +14,10 @@ import type {
   S2PShadowResultsResponse
 } from "../types";
 
+function ensureArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? value as T[] : [];
+}
+
 interface EvolutionData {
   rules: S2PEvolutionRule[];
   variants: S2PEvolutionVariant[];
@@ -125,7 +129,7 @@ export function S2PEvolutionPanel() {
       .then(([rules, variants, shadowResults, promoted]) => {
         if (cancelled) return;
         setData({
-          rules: rules?.rules ?? [],
+          rules: ensureArray<S2PEvolutionRule>(rules?.rules),
           variants: variants?.variants ?? [],
           shadowResults,
           promoted
@@ -170,9 +174,9 @@ export function S2PEvolutionPanel() {
           <p className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-500">No evolution data yet.</p>
         ) : null}
 
-        {data?.rules.length ? (
+        {ensureArray<S2PEvolutionRule>(data?.rules).length ? (
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {data.rules.map((rule) => (
+            {ensureArray<S2PEvolutionRule>(data?.rules).map((rule) => (
               <div key={rule.rule_id ?? rule.ruleId ?? rule.name} className="rounded-md border border-slate-200 bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="text-sm font-semibold text-slate-950">{titleCase(text(rule.label, rule.name))}</h3>
@@ -184,7 +188,7 @@ export function S2PEvolutionPanel() {
                   {titleCase(text(rule.success_metric_name, text(rule.successMetricName, "success metric")))}
                 </p>
                 <p className="mt-2 text-xs text-slate-500">
-                  {(rule.applicable_categories ?? rule.applicableCategories ?? []).map(titleCase).join(", ") || "All S2P categories"}
+                  {ensureArray<string>(rule.applicable_categories ?? rule.applicableCategories).map(titleCase).join(", ") || "All S2P categories"}
                 </p>
               </div>
             ))}

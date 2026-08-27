@@ -24,14 +24,12 @@ export function AuditExportPanel() {
       .then((response) => {
         if (!response) {
           setError("Audit pack is unavailable.");
-          setData(null);
           return;
         }
         setData(response);
       })
       .catch(() => {
         setError("Audit pack is unavailable.");
-        setData(null);
       })
       .finally(() => setLoading(false));
   }

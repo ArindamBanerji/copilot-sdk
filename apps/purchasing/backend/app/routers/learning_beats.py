@@ -118,6 +118,7 @@ def create_learning_beats_router(state_provider: Any) -> APIRouter:
         )
 
     @router.get("/diagnostics/ramp", response_model=RampResponse)
+    @router.get("/competence/ramp", response_model=RampResponse)
     def ramp() -> RampResponse:
         stats = _stats(state_provider)
         remaining = max(TARGET_VERIFIED - stats["verified_count"], 0)

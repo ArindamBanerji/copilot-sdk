@@ -41,11 +41,15 @@ def create_evidence_router(
         action = _action_for(trade)
         confidence = _confidence_for(trade)
         evidence_text = engine.render(trade, factors, action, confidence, context)
+        factor_breakdown = engine.render_factor_breakdown(factors)
 
         response = {
             "trade_id": str(trade.get("trade_id")),
+            "tradeId": str(trade.get("trade_id")),
             "evidence_text": evidence_text,
-            "factor_breakdown": engine.render_factor_breakdown(factors),
+            "evidenceText": evidence_text,
+            "factor_breakdown": factor_breakdown,
+            "factorBreakdown": factor_breakdown,
             "factors": factors,
             "action": action,
             "confidence": confidence,

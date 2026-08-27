@@ -21,7 +21,8 @@ export const S2P_FACTORS = [
   "supplier_exception_history",
   "payment_terms_impact",
   "commodity_index_correlation",
-  "tax_regulatory_compliance"
+  "tax_regulatory_compliance",
+  "environmental_risk"
 ] as const;
 
 export type S2PCategory = (typeof S2P_CATEGORIES)[number];

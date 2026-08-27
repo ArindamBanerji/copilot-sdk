@@ -35,6 +35,7 @@ from .routers.broker_router import create_broker_router  # noqa: E402
 from .routers.analytics import create_analytics_router  # noqa: E402
 from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.correlation import create_correlation_router  # noqa: E402
+from .routers.claim_gate_router import create_claim_gate_router  # noqa: E402
 from .routers.data_import import router as data_import_router  # noqa: E402
 from .routers.evidence import create_evidence_router  # noqa: E402
 from .routers.evolution_router import (  # noqa: E402
@@ -529,6 +530,7 @@ def create_app(
     app.include_router(context_router, prefix="/api/context")
     app.include_router(create_evidence_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
     app.include_router(create_journal_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
+    app.include_router(create_claim_gate_router(lambda: selected_graph_store_factory(scoring_db), domain=DOMAIN))
 
     @app.post("/api/trading/journal/query")
     def query_journal(payload: dict[str, Any]) -> dict[str, Any]:

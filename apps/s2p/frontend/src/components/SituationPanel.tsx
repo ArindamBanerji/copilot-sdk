@@ -3,6 +3,10 @@ import { fetchSituation } from "../api";
 import type { ContextChainNode, SituationResponse } from "../types";
 import { ProvenanceBadge } from "./ProvenanceBadge";
 
+function ensureArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? value as T[] : [];
+}
+
 // SituationPanel provenance declaration:
 // - surfaced values: nl_explanation, confidence, context chain nodes
 // - provenance per value: API-driven (single-source rule A2)
@@ -30,7 +34,8 @@ function nodeText(node: ContextChainNode): string {
 }
 
 function factorList(data: SituationResponse): string {
-  return data.factors_used.length > 0 ? data.factors_used.map(label).join(", ") : "none";
+  const factors = ensureArray<string>(data.factors_used);
+  return factors.length > 0 ? factors.map(label).join(", ") : "none";
 }
 
 export function SituationPanel({

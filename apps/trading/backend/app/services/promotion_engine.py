@@ -170,7 +170,10 @@ class PromotionEngine:
     def _blockers(self, state: PromotionState, config: Any) -> list[str]:
         blockers: list[str] = []
         if state.decisions_in_stage < config.min_decisions:
-            blockers.append(f"Need {config.min_decisions - state.decisions_in_stage} more decisions.")
+            blockers.append(
+                f"Need {config.min_decisions - state.decisions_in_stage} more decisions. "
+                "Conservation gate: promotion is not yet safe."
+            )
         if state.accuracy_in_stage < config.min_accuracy:
             blockers.append(f"Need accuracy of at least {_percent(config.min_accuracy)}.")
         conservation = _category_status(self._conservation, state.category)

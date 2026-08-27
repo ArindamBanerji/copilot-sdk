@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { fetchS2PSimilar } from "../api";
 import type { SimilarResponse } from "../types";
 
+function ensureArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? value as T[] : [];
+}
+
 function money(value?: number) {
   if (typeof value !== "number") return "n/a";
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
@@ -10,6 +14,7 @@ function money(value?: number) {
 export function SimilarInvoicesPanel({ invoiceId }: { invoiceId?: string }) {
   const [data, setData] = useState<SimilarResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const similar = ensureArray<SimilarResponse["similar"][number]>(data?.similar);
 
   useEffect(() => {
     if (!invoiceId) {
@@ -36,11 +41,11 @@ export function SimilarInvoicesPanel({ invoiceId }: { invoiceId?: string }) {
       <h2 className="mt-1 text-xl font-semibold text-slate-950">Nearest exceptions by factor shape</h2>
       {loading ? (
         <p className="mt-4 text-sm text-slate-500">Loading similar invoices...</p>
-      ) : !data || data.similar.length === 0 ? (
+      ) : similar.length === 0 ? (
         <p className="mt-4 text-sm text-slate-500">No similar invoice evidence available.</p>
       ) : (
         <div className="mt-4 divide-y divide-slate-100">
-          {data.similar.map((invoice) => (
+          {similar.map((invoice) => (
             <div key={invoice.invoice_id ?? invoice.invoiceId} className="py-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-mono text-xs font-semibold text-slate-700">

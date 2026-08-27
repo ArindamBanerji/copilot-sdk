@@ -47,10 +47,6 @@ export default function TransferComparisonCard() {
     };
   }, []);
 
-  if (loading) {
-    return <div className="mt-4 rounded-md border p-3 text-sm trading-muted" style={{ borderColor: "var(--copilot-border)" }}>Loading transfer impact...</div>;
-  }
-
   return (
     <div className="mt-4 rounded-md border p-3 text-sm" style={{ borderColor: "var(--copilot-border)" }}>
       <div className="flex flex-wrap items-start justify-between gap-3">

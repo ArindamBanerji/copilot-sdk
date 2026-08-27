@@ -74,7 +74,6 @@ export function AutoApprovePanel() {
         if (cancelled) return;
         if (!response) {
           setError("Auto-approve stats are unavailable.");
-          setStats(null);
           return;
         }
         const categories = Object.keys(categoryStats(response));
@@ -102,14 +101,12 @@ export function AutoApprovePanel() {
     fetchExpansionProof(category)
       .then((response) => {
         if (!response) {
-          setProof(null);
           setProofError("Expansion proof is unavailable for this category.");
           return;
         }
         setProof(response);
       })
       .catch((caught) => {
-        setProof(null);
         setProofError(caught instanceof Error ? caught.message : "Unable to load expansion proof.");
       })
       .finally(() => setLoadingProof(false));

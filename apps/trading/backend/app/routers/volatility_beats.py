@@ -90,7 +90,15 @@ def create_volatility_beats_router(
 
     @router.get("/rich-cheap")
     def rich_cheap(regime: str | None = Query(default=None)) -> dict[str, Any]:
-        return cast(dict[str, Any], analytics.rich_cheap_regime(decisions(), regime))
+        payload = cast(dict[str, Any], analytics.rich_cheap_regime(decisions(), regime))
+        selected_regime = str(payload.get("current_regime") or "")
+        cell = payload.get("regimes", {}).get(selected_regime, {}) if isinstance(payload.get("regimes"), dict) else {}
+        percentile = cell.get("percentile") if isinstance(cell, dict) else None
+        band = cell.get("band") if isinstance(cell, dict) else None
+        payload["iv_percentile"] = percentile
+        payload["ivPercentile"] = percentile
+        payload["band"] = band or "unknown"
+        return payload
 
     @router.get("/dispersion-follow")
     def dispersion_follow() -> dict[str, Any]:

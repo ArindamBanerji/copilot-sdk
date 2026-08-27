@@ -15,6 +15,7 @@ import EvolutionPanel from "../components/EvolutionPanel";
 import ExecutionQualityCard from "../components/ExecutionQualityCard";
 import PromotionDashboard from "../components/PromotionDashboard";
 import RegimeAnalyticsPanel from "../components/RegimeAnalyticsPanel";
+import RegimePanel from "../components/RegimePanel";
 import VolatilityScenarioPanel from "../components/VolatilityScenarioPanel";
 import RegimeStatusPanel from "../components/RegimeStatusPanel";
 import RejectionMomentPanel from "../components/RejectionMomentPanel";
@@ -139,6 +140,7 @@ export default function PerformanceScreen() {
       <AutonomyThrottlePanel />
       <RegimeRejectionPanel />
       <RegimeAnalyticsPanel />
+      <RegimePanel />
       <VolatilityScenarioPanel />
       <div className="grid gap-4 xl:grid-cols-2" data-testid="trading-volatility-beats">
         <VolShortPanel />

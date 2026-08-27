@@ -56,6 +56,7 @@ def create_situation_router(
         regime = detect_regime(rows)
         conditioned = compute_regime_conditioned_stats(rows, regime)
         regime_break = _regime_break(rows)
+        conservation_status = "AMBER" if regime_break["active"] else "GREEN"
         return {
             "regime": regime,
             "previous_regime": regime_break["previous_regime"],
@@ -63,7 +64,8 @@ def create_situation_router(
             "detected_by": "synthetic preseed regime tags",
             "hurst": 0.62 if regime == "trending" else 0.48,
             "vol_state": "elevated" if regime == "volatile" else "normal",
-            "conservation_status": "AMBER" if regime_break["active"] else "GREEN",
+            "conservation_status": conservation_status,
+            "conservationStatus": conservation_status,
             "autonomy": "throttled" if regime_break["active"] else "normal",
             "autonomy_multiplier": 0.5 if regime_break["active"] else 1.0,
             "message": "Observation: regime break detected; conservation is AMBER and autonomy state is reduced." if regime_break["active"] else f"Current illustrative regime: {regime}.",
