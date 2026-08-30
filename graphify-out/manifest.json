@@ -228,8 +228,8 @@
     "hash": "5077bd060a6fc7b5558d391f6322fd7d"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\backend\\app\\context_router.py": {
-    "mtime": 1787854211.3814576,
-    "hash": "60fb99a09cee5b01c6310da23332cb82"
+    "mtime": 1787981892.215558,
+    "hash": "7c566fbab9fb55edb798702be87e5d83"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\dataops\\backend\\app\\dataops_governance.py": {
     "mtime": 1787824899.8764532,
@@ -1764,8 +1764,8 @@
     "hash": "d1da017a024beed399594554945932f9"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\s2p\\frontend\\src\\components\\RuleVsReasoningPanel.tsx": {
-    "mtime": 1787217476.5589552,
-    "hash": "1508ca5f2133cd27663b941305f1394e"
+    "mtime": 1787892523.66247,
+    "hash": "232c2e0f39c1beb5c489ca2b7868f5ed"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\s2p\\frontend\\src\\components\\S2PConservationProjection.tsx": {
     "mtime": 1784433879.6960826,
@@ -1832,8 +1832,8 @@
     "hash": "fbb0d48551b9459b8e8aa011f09f5ef9"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\s2p\\frontend\\src\\screens\\TriageScreen.tsx": {
-    "mtime": 1786256568.9194674,
-    "hash": "8232312ac11a5b4cdc4c244b5d4d522e"
+    "mtime": 1787892525.922602,
+    "hash": "8e6277cd46c68b88ba2b9f7a15e619f1"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\apps\\s2p_differentiation\\config.py": {
     "mtime": 1786240496.8767788,
@@ -8470,6 +8470,10 @@
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\README.md": {
     "mtime": 1778438082.8954284,
     "hash": "93ad4e5ba336c402a351282c48b3ce51"
+  },
+  "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\e2e\\test-results\\sweep-S2P-sweep-\u2014-point-te-8797d-ts-expose-explainable-state-s2p\\error-context.md": {
+    "mtime": 1787977366.4830735,
+    "hash": "afa85e70594d8b78e440d4518c26b6fc"
   },
   "C:\\Users\\baner\\CopyFolder\\IoT_thoughts\\python-projects\\kaggle_experiments\\claude_projects\\copilot-sdk\\examples\\build_your_own\\README.md": {
     "mtime": 1786243482.4291966,

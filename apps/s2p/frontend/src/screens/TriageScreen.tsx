@@ -348,17 +348,15 @@ export function TriageScreen() {
             onSituationChange={handleSituationChange}
           />
 
-          {score ? (
-            <RuleVsReasoningPanel
-              score={score}
-              invoice={selected}
-              situationExplanation={situation?.nl_explanation ?? null}
-              situationConfidence={situation?.confidence ?? null}
-              situationSources={situation?.context_chain.map((node) => node.node || node.id || "context") ?? null}
-              situationProvenance={situation?.provenance.overall ?? null}
-              situationLoading={situationLoading}
-            />
-          ) : null}
+          <RuleVsReasoningPanel
+            score={score}
+            invoice={selected}
+            situationExplanation={situation?.nl_explanation ?? null}
+            situationConfidence={situation?.confidence ?? null}
+            situationSources={situation?.context_chain.map((node) => node.node || node.id || "context") ?? null}
+            situationProvenance={situation?.provenance.overall ?? null}
+            situationLoading={situationLoading}
+          />
 
           {crossCopilotSignal ? <CrossCopilotSignalBanner signal={crossCopilotSignal} /> : null}
 

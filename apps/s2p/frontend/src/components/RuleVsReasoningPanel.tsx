@@ -36,7 +36,7 @@ export default function RuleVsReasoningPanel({
   situationProvenance = null,
   situationLoading = false,
 }: {
-  score: ScoreInvoiceResponse;
+  score: ScoreInvoiceResponse | null;
   invoice?: InvoiceException | null;
   situationExplanation?: string | null;
   situationConfidence?: number | null;
@@ -44,6 +44,17 @@ export default function RuleVsReasoningPanel({
   situationProvenance?: string | null;
   situationLoading?: boolean;
 }) {
+  if (!score) {
+    return (
+      <article className="copilot-card p-5" data-testid="rule-vs-reasoning-panel">
+        <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Rule vs reasoning</p>
+        <h2 className="mt-1 text-lg font-semibold text-slate-950">Rules do not read contracts.</h2>
+        <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">S14-CONTRAST</p>
+        <p className="mt-4 text-sm leading-6 text-slate-700">Score an invoice to compare the rule-based threshold with situation-aware reasoning.</p>
+      </article>
+    );
+  }
+
   const rule = normalizeDecision(score, invoice);
   if (!rule) return null;
 

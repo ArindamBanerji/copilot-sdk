@@ -1217,6 +1217,18 @@ def _cross_graph_combined_impact(erp_impact: dict[str, Any], sources_used: list[
 @router.get("/cross-graph-insight/{alert_id}")
 def cross_graph_insight(alert_id: str) -> dict[str, Any]:
     alert = _fallback_alerts_by_id().get(alert_id)
+    metadata_alert_ids = {
+        str(entry.get("alert_id") or entry.get("event_id") or "")
+        for entry in _iter_metadata_decisions()
+        if isinstance(entry, dict)
+    }
+    if alert is None and alert_id in metadata_alert_ids:
+        timeline = _load_json(DATA_DIR / "process_timeline.json", {})
+        timeline_refs = timeline.get("cross_graph_refs") if isinstance(timeline, dict) else None
+        if isinstance(timeline_refs, dict) and timeline_refs:
+            # DQ-003 is retained in demo metadata as a legacy alert ID while
+            # the cross-system fixture is keyed by the current tire scenario.
+            alert = {"alert_id": alert_id, "cross_graph_refs": timeline_refs}
     if not alert:
         raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
 
