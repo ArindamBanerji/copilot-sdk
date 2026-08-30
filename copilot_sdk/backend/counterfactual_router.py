@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from copilot_sdk.evidence.provenance import Provenanced
 from copilot_sdk.scoring import CompoundingScorer
@@ -16,6 +16,20 @@ class CounterfactualRequest(BaseModel):
     base_factors: dict[str, Any] = Field(default_factory=dict)
     perturbed_factors: dict[str, Any] = Field(default_factory=dict)
     category: str
+
+
+class CounterfactualResponse(BaseModel):
+    """Successful counterfactual scoring response."""
+
+    model_config = ConfigDict(extra="allow")
+
+    base_score: float | None = None
+    perturbed_score: float | None = None
+    delta: float | None = None
+    perturbed_factor: str | None = None
+    base_action: str | None = None
+    perturbed_action: str | None = None
+    provenance: str | None = None
 
 
 def create_counterfactual_router(
@@ -37,7 +51,7 @@ def create_counterfactual_router(
             scorer_cache[domain] = scorer
         return scorer
 
-    @router.post("/counterfactual", response_model=None)
+    @router.post("/counterfactual", response_model=CounterfactualResponse)
     def counterfactual(request: CounterfactualRequest):
         try:
             base_factors = _coerce_factors(request.base_factors)

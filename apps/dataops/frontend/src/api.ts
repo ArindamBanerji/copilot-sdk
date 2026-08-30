@@ -615,7 +615,13 @@ export async function getAlertRecurrence(id: string): Promise<RecurrenceResponse
 }
 
 export async function getAlertFactors(id: string): Promise<FactorAutoFillResponse> {
-  return apiGet<FactorAutoFillResponse>(`/api/context/alert/${encodeURIComponent(id)}/factors`);
+  const payload = await apiGet<FactorAutoFillResponse & { all_auto_computed?: boolean }>(
+    `/api/context/alert/${encodeURIComponent(id)}/factors`,
+  );
+  return {
+    ...payload,
+    allAutoComputed: payload.allAutoComputed ?? payload.all_auto_computed,
+  };
 }
 
 export async function getSimilar(factors: Record<string, number>, category: string): Promise<SimilarAlertsResponse> {
