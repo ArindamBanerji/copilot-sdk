@@ -19,6 +19,7 @@ from copilot_sdk.backend.models import (
     DiagnosticsResponse,
     DecisionFlowResponse,
     EvolutionSummaryResponse,
+    FlexibleResponse,
     SelfDecisionsResponse,
 )
 from copilot_sdk.backend.evolution_router import build_evolution_summary
@@ -140,7 +141,7 @@ def create_self_computation_router(
             normalized.append(checkpoint_dict)
         return {"checkpoints": normalized, "total": len(normalized)}
 
-    @router.post("/regime-reinit")
+    @router.post("/regime-reinit", response_model=FlexibleResponse)
     def regime_reinit(
         regime_tag: str,
         strategy: str = "A",
@@ -314,7 +315,7 @@ def create_self_computation_router(
             "details": details,
         }
 
-    @router.get("/centroid-history/{checkpoint_id}/lineage")
+    @router.get("/centroid-history/{checkpoint_id}/lineage", response_model=FlexibleResponse)
     def checkpoint_lineage(checkpoint_id: str) -> dict[str, Any]:
         result = _gs().get_checkpoint_lineage(_domain(), checkpoint_id)
         if result is None:
@@ -325,7 +326,7 @@ def create_self_computation_router(
             "edge_type": "SNAPSHOT_AFTER",
         }
 
-    @router.get("/centroid-history/{checkpoint_id}/replay")
+    @router.get("/centroid-history/{checkpoint_id}/replay", response_model=FlexibleResponse)
     def checkpoint_replay(checkpoint_id: str) -> dict[str, Any]:
         """Return the complete model state captured at a checkpoint."""
         checkpoint = _find_checkpoint(_gs(), _domain(), checkpoint_id)
@@ -345,7 +346,7 @@ def create_self_computation_router(
             ),
         }
 
-    @router.post("/replay-score")
+    @router.post("/replay-score", response_model=FlexibleResponse)
     def replay_score(payload: ReplayScoreRequest) -> dict[str, Any]:
         """Score a factor vector using the model state at a checkpoint."""
         checkpoint = _find_checkpoint(_gs(), _domain(), payload.checkpoint_id)
@@ -390,7 +391,7 @@ def create_self_computation_router(
             "factors": result.factors,
         }
 
-    @router.get("/decisions/{decision_id}/checkpoints")
+    @router.get("/decisions/{decision_id}/checkpoints", response_model=FlexibleResponse)
     def decision_checkpoints(decision_id: str) -> dict[str, Any]:
         results = _gs().get_decision_checkpoints(_domain(), decision_id)
         return {
@@ -434,13 +435,13 @@ def create_self_computation_router(
             "overall_verified": len(verified),
         }
 
-    @router.get("/trust-traps")
+    @router.get("/trust-traps", response_model=FlexibleResponse)
     def trust_traps() -> dict[str, Any]:
         detector = TrustTrapDetector(_trap_scorer(), _gs(), _domain())
         traps = detector.scan()
         return {"traps": [trap_asdict(trap) for trap in traps], "total": len(traps)}
 
-    @router.post("/rollback")
+    @router.post("/rollback", response_model=FlexibleResponse)
     def rollback(checkpoint_id: str = Query(..., min_length=1)) -> dict[str, Any]:
         scorer = _trap_scorer()
         if scorer is None or not hasattr(scorer, "rollback_to_checkpoint"):
@@ -474,7 +475,7 @@ def create_self_computation_router(
         ]
         return {"decisions": filtered[:limit], "total": len(filtered)}
 
-    @router.get("/audit-trail")
+    @router.get("/audit-trail", response_model=dict[str, Any])
     def audit_trail(
         request: Request,
         decision_id: str | None = None,

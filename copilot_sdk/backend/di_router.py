@@ -14,6 +14,7 @@ from copilot_sdk.di.query_service import DIQueryService, InvalidQueryError
 from copilot_sdk.di.catalog import ExternalDataCatalog
 from copilot_sdk.di.search_models import SearchResult
 from copilot_sdk.di.search_service import DISearchService
+from copilot_sdk.backend.models import FlexibleResponse
 
 
 class ProfileRefreshRequest(BaseModel):
@@ -164,7 +165,7 @@ def create_di_router(
             **_cache_metadata(cache[source_name], generated_at),
         }
 
-    @router.get("/di/combinations")
+    @router.get("/di/combinations", response_model=FlexibleResponse)
     def combinations() -> dict[str, Any]:
         discovered = resolved_map_builder.discover_combinations()
         combinations_payload = [
@@ -180,13 +181,13 @@ def create_di_router(
             "total_value": round(total_value, 2),
         }
 
-    @router.get("/di/acquisition-advice")
+    @router.get("/di/acquisition-advice", response_model=FlexibleResponse)
     def acquisition_advice() -> dict[str, Any]:
         result = resolved_advisor.recommend()
         recommendations = result.get("recommendations", []) if isinstance(result, dict) else result
         return {"recommendations": list(recommendations)}
 
-    @router.get("/di/valuation")
+    @router.get("/di/valuation", response_model=FlexibleResponse)
     def valuation() -> dict[str, Any]:
         model = resolved_valuation_model or getattr(resolved_advisor, "valuation_model", None)
         if model is not None and callable(getattr(model, "compute_all_recommendations", None)):
@@ -216,7 +217,7 @@ def create_di_router(
             ),
         }
 
-    @router.get("/di/intelligence-map")
+    @router.get("/di/intelligence-map", response_model=FlexibleResponse)
     def intelligence_map() -> dict[str, Any]:
         nonlocal intelligence_map_cache
         if intelligence_map_cache is not None:
@@ -299,7 +300,7 @@ def create_di_router(
         }
         return search_service.search(q, filters)
 
-    @router.get("/di/catalog")
+    @router.get("/di/catalog", response_model=FlexibleResponse)
     def catalog_entries(
         q: str = Query(default=""),
         domain: str | None = Query(default=None),
@@ -309,7 +310,7 @@ def create_di_router(
         entries = resolved_catalog.search(q, domain=domain, cost_tier=cost_tier, data_type=data_type)
         return {"entries": [entry.to_dict() for entry in entries], "total": len(entries)}
 
-    @router.get("/di/catalog/{provider_id}")
+    @router.get("/di/catalog/{provider_id}", response_model=FlexibleResponse)
     def catalog_entry(provider_id: str) -> dict[str, Any]:
         entry = resolved_catalog.get_by_id(provider_id)
         if entry is None:

@@ -15,7 +15,7 @@ from copilot_sdk.backend.transfer import (
     TransferDetector,
     load_fingerprints_with_warnings,
 )
-from copilot_sdk.backend.models import TransferDemoResponse, TransferListResponse
+from copilot_sdk.backend.models import FlexibleResponse, TransferDemoResponse, TransferListResponse
 from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.config.domains import ALL_COPILOT_DOMAINS
 from copilot_sdk.transfer import TransferPattern
@@ -49,13 +49,13 @@ def create_transfer_router(
             return "__uncached__"
         return _own_domain(scorer)
 
-    @router.get("/status")
+    @router.get("/status", response_model=FlexibleResponse)
     @cached_static("transfer-status", copilot=_cache_domain)
     def transfer_status(request: Request) -> dict[str, Any]:
         info = _find_warm_start_info(scorer, warm_start_info)
         return _normalize_transfer_status(info)
 
-    @router.get("/opportunities")
+    @router.get("/opportunities", response_model=FlexibleResponse)
     @cached_static("transfer", copilot=_cache_domain)
     def transfer_opportunities(request: Request) -> dict[str, Any]:
         own_domain = _own_domain(scorer)
@@ -106,7 +106,7 @@ def create_transfer_router(
             "provenance": "live_graph_store",
         }
 
-    @router.post("/execute")
+    @router.post("/execute", response_model=FlexibleResponse)
     @serialize_mutation(lambda *args, **kwargs: _own_domain(scorer), event="transfer")
     def transfer_execute(request: TransferExecuteRequest) -> dict[str, Any]:
         source_domain = _clean_domain(request.source_domain)
@@ -261,7 +261,7 @@ def create_self_transfer_router(scorer: Any) -> APIRouter:
             "transfers": transfers,
         }
 
-    @router.post("/transfer")
+    @router.post("/transfer", response_model=FlexibleResponse)
     @serialize_mutation(lambda *args, **kwargs: _own_domain(scorer), event="cross_copilot_transfer")
     def transfer(request: CrossCopilotTransferRequest) -> dict[str, Any]:
         source_domain = _clean_domain(request.source_domain)

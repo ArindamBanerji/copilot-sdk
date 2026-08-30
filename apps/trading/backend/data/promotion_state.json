@@ -1,10 +1,10 @@
 {
   "trend_following": {
     "accuracy_in_stage": 0.0,
-    "current_stage": "paper",
+    "current_stage": "small_live",
     "decisions_in_stage": 0,
-    "demoted_at": "2026-08-30T16:28:46.060108+00:00",
-    "promoted_at": "2026-08-27T09:29:05.037686+00:00",
+    "demoted_at": null,
+    "promoted_at": "2026-08-30T17:16:06.163958+00:00",
     "promotion_history": [
       {
         "action": "promote",
@@ -165,8 +165,24 @@
         "reason": "conservation RED",
         "timestamp": "2026-08-30T16:28:46.060108+00:00",
         "to_stage": "paper"
+      },
+      {
+        "action": "promote",
+        "category": "trend_following",
+        "confirmed_by": "e2e",
+        "evidence": {
+          "accuracy_in_stage": 1.0,
+          "conservation_status": "GREEN",
+          "decisions_in_stage": 303,
+          "max_sizing_pct": 0.0,
+          "min_accuracy": 0.55,
+          "min_decisions": 50
+        },
+        "from_stage": "paper",
+        "timestamp": "2026-08-30T17:16:06.163958+00:00",
+        "to_stage": "small_live"
       }
     ],
-    "stage_start_count": 0
+    "stage_start_count": 303
   }
 }

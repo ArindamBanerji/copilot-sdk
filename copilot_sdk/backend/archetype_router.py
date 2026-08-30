@@ -8,6 +8,7 @@ import numpy as np
 from fastapi import APIRouter, HTTPException, Request
 
 from copilot_sdk.generators.archetype import ArchetypeGenerator
+from copilot_sdk.backend.models import FlexibleResponse
 from copilot_sdk.scoring.presets.dataops import DataOpsPreset
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 from copilot_sdk.scoring.presets.soc import SOCPreset
@@ -25,7 +26,7 @@ _ARCHETYPE_DOMAINS = {
 def create_archetype_router() -> APIRouter:
     router = APIRouter(prefix="/api/archetypes", tags=["Archetypes"])
 
-    @router.get("")
+    @router.get("", response_model=list[dict[str, Any]])
     def list_archetypes(request: Request, domain: str | None = None) -> list[dict[str, Any]]:
         rows = [_archetype_summary(name) for name in ArchetypeGenerator.list_archetypes()]
         if domain:
@@ -33,16 +34,16 @@ def create_archetype_router() -> APIRouter:
             rows = [row for row in rows if row["domain"] == wanted]
         return rows
 
-    @router.get("/current")
+    @router.get("/current", response_model=FlexibleResponse)
     def get_current_archetype(request: Request) -> dict[str, str]:
         current = getattr(request.app.state, "current_archetype", "default")
         return {"current": str(current or "default")}
 
-    @router.get("/{name}")
+    @router.get("/{name}", response_model=FlexibleResponse)
     def get_archetype(name: str) -> dict[str, Any]:
         return _archetype_detail(name)
 
-    @router.post("/apply/{name}")
+    @router.post("/apply/{name}", response_model=FlexibleResponse)
     def apply_archetype(name: str, request: Request) -> dict[str, Any]:
         detail = _archetype_detail(name)
         event = {

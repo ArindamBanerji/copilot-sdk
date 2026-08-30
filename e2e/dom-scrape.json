@@ -122,7 +122,7 @@
         {
           "testId": "day-zero-state-summary",
           "tag": "div",
-          "text": "ACCUMULATING371 verified decisions30 needed"
+          "text": "ACCUMULATING370 verified decisions30 needed"
         },
         {
           "testId": "day-zero-state",
@@ -132,7 +132,7 @@
         {
           "testId": "day-zero-accumulating-body",
           "tag": "div",
-          "text": "Accumulating. 371 decisions verified. Building judgment.371 / 401 decisions · ma"
+          "text": "Accumulating. 370 decisions verified. Building judgment.370 / 400 decisions · ma"
         },
         {
           "testId": "day-zero-caption",
@@ -147,7 +147,7 @@
         {
           "testId": "provenance-badge",
           "tag": "div",
-          "text": "Market data: sample"
+          "text": "Market data: live external"
         },
         {
           "testId": "regime-panel",
@@ -252,12 +252,12 @@
         {
           "testId": "data-trust-badge",
           "tag": "section",
-          "text": "Data TrustLearned source reliabilityTradingOptions delta1.00Research depth0.92Op"
+          "text": "Data TrustLearned source reliabilityTradingOptions delta1.00Research depth0.93Op"
         },
         {
           "testId": "data-trust-factors",
           "tag": "div",
-          "text": "Options delta1.00Research depth0.92Options IV0.91Market conditions0.58Timing qua"
+          "text": "Options delta1.00Research depth0.93Options IV0.91Market conditions0.59Timing qua"
         },
         {
           "testId": "data-trust-factor",
@@ -272,7 +272,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Research depth0.92"
+          "text": "Research depth0.93"
         },
         {
           "testId": "data-trust-bar",
@@ -292,7 +292,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Market conditions0.58"
+          "text": "Market conditions0.59"
         },
         {
           "testId": "data-trust-bar",
@@ -302,7 +302,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Timing quality0.50"
+          "text": "Timing quality0.49"
         },
         {
           "testId": "data-trust-bar",
@@ -312,7 +312,7 @@
         {
           "testId": "data-trust-contrast",
           "tag": "p",
-          "text": "Highest 1.00 · Lowest 0.50 · Spread 0.50"
+          "text": "Highest 1.00 · Lowest 0.49 · Spread 0.51"
         }
       ],
       "buttons": [
@@ -721,22 +721,6 @@
         },
         {
           "tag": "h2",
-          "text": "Risk-Adjusted Decision Quality"
-        },
-        {
-          "tag": "h2",
-          "text": "VRP Edge or Insurance"
-        },
-        {
-          "tag": "h2",
-          "text": "Regime-Conditioned Rich/Cheap"
-        },
-        {
-          "tag": "h2",
-          "text": "Dispersion Follow-Rate"
-        },
-        {
-          "tag": "h2",
           "text": "Cross-Position Correlation"
         },
         {
@@ -790,7 +774,7 @@
         {
           "testId": "claim-gate-badge",
           "tag": "div",
-          "text": "TRD-CLAIM-GATEEvidence claim gateEvidence: T-OTested802Powered371Survived370"
+          "text": "TRD-CLAIM-GATEEvidence claim gateEvidence: insufficientTested-Powered-Survived-"
         },
         {
           "testId": "governed-vs-ungoverned-panel",
@@ -955,72 +939,12 @@
         {
           "testId": "vol-sharpe-clusters",
           "tag": "table",
-          "text": "Market conditionDecisionsQuality scoreStateranging36719.11measuredunclassified3-"
-        },
-        {
-          "testId": "vrp-attribution-card",
-          "tag": "section",
-          "text": "V2 volatility diagnosticVRP Edge or InsuranceSampleAverage IV-RV spread-Current "
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "Sample"
-        },
-        {
-          "testId": "vrp-classification",
-          "tag": "div",
-          "text": "ReadingAccumulating"
-        },
-        {
-          "testId": "regime-vrp-card",
-          "tag": "section",
-          "text": "V5 volatility diagnosticRegime-Conditioned Rich/CheapAccumulatingAwaiting regime"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "Accumulating"
-        },
-        {
-          "testId": "dispersion-follow-card",
-          "tag": "section",
-          "text": "V6 volatility diagnosticDispersion Follow-RateAccumulatingSignals0Followed0Follo"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "Accumulating"
+          "text": "Market conditionDecisionsQuality scoreStateranging37119.21measured"
         },
         {
           "testId": "counterfactual-card",
           "tag": "section",
-          "text": "What If?██ LearnedOriginal score0.65Perturbed score0.47Delta-0.18Signal alignmen"
-        },
-        {
-          "testId": "provenance-badge",
-          "tag": "div",
-          "text": "██ Learned"
-        },
-        {
-          "testId": "counterfactual-base-score",
-          "tag": "div",
-          "text": "Original score0.65"
-        },
-        {
-          "testId": "counterfactual-perturbed-score",
-          "tag": "div",
-          "text": "Perturbed score0.47"
-        },
-        {
-          "testId": "counterfactual-delta",
-          "tag": "div",
-          "text": "Delta-0.18"
-        },
-        {
-          "testId": "counterfactual-factor-slider",
-          "tag": "input",
-          "text": ""
+          "text": "What If?Calculating counterfactual..."
         }
       ],
       "buttons": [
@@ -1051,16 +975,6 @@
         },
         {
           "text": "Trade Detail",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Re-score",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Try sample",
           "ariaLabel": "",
           "name": ""
         }
@@ -1101,7 +1015,6 @@
         "Dispersion Follow-Rate",
         "Cross-Position Correlation",
         "What If?",
-        "Perturb signal alignment",
         "Day of Week",
         "Research Impact",
         "Regime Analysis",
@@ -1735,7 +1648,7 @@
         },
         {
           "tag": "h2",
-          "text": "Friday"
+          "text": "Sunday"
         },
         {
           "tag": "h2",
@@ -1791,71 +1704,71 @@
         },
         {
           "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Ground Beef"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
           "text": "Order"
         },
         {
           "tag": "h3",
           "text": "Ground Beef"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Chicken Breast"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
         },
         {
           "tag": "h3",
@@ -2135,81 +2048,6 @@
           "name": ""
         },
         {
-          "text": "PR7/13/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/14/2026Ground Beeforder as planned$1830.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
           "ariaLabel": "",
           "name": ""
@@ -2221,6 +2059,81 @@
         },
         {
           "text": "PR7/14/2026Ground Beeforder as planned$1830.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
@@ -2244,7 +2157,7 @@
         "Category price indices",
         "Recommended par levels",
         "Conservation-gated auto-ordering",
-        "Friday",
+        "Sunday",
         "No event pressure",
         "4 items need attention",
         "Real inventory, ranked by reorder pressure",
@@ -2286,7 +2199,7 @@
         },
         {
           "tag": "h2",
-          "text": "Friday"
+          "text": "Sunday"
         },
         {
           "tag": "h2",
@@ -2406,7 +2319,7 @@
         "PW-MATCH-2SUP-PWChickenMismatch10%$1,000",
         "PW-MATCH-1SUP-PWChickenFull Match100%$1,000",
         "Tomorrow's order is mostly inventory history",
-        "Friday",
+        "Sunday",
         "No event pressure",
         "Stockout costs far more than waste",
         "Seven scorer inputs"
@@ -2788,81 +2701,6 @@
           "name": ""
         },
         {
-          "text": "PUR-8c390133666c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c0e962a27ce2",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-39c663c56526",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-54777602304e",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b485b70968c4",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-c42079d968b9",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7347021d75c5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-02142d637a0c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-4abd3ed79d02",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ac64c71f9709",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ad0d217bcc49",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-1aa17d1a6e88",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-691258600494",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ef9db598e0ae",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-94b8be5b8e22",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PUR-b9a2e89d639d",
           "ariaLabel": "",
           "name": ""
@@ -3034,6 +2872,81 @@
         },
         {
           "text": "PUR-b2ea4cd8c768",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-057a579c67a4",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-197d647619e3",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-09db329b98b8",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-6ca8971cecac",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-d6c08446cb3b",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-815b5fa1bf2b",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-9bd635d14e88",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-34119604ce46",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-2a6804d3e898",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-d5c746598bc8",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-c68b15c75e27",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-abc7a58a440e",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-5e09802fafbe",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-0ab4e0335af8",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-f01897a771dd",
           "ariaLabel": "",
           "name": ""
         }
@@ -3507,51 +3420,6 @@
           "name": ""
         },
         {
-          "text": "PUR-c0e962a27ce2decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-39c663c56526decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-54777602304edecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-b485b70968c4decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-02142d637a0cdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-4abd3ed79d02decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-1aa17d1a6e88decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-691258600494decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-94b8be5b8e22decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PUR-fae03137608adecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
@@ -3603,6 +3471,51 @@
         },
         {
           "text": "PUR-6b46354fde9adecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-320b94014933decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-2798dea50a92decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-5a4352463fa1decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-589db8856f3edecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-b5ec10b9d6b4decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-b7397c27e9d3decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-b262f002e222decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-2b3983aa2a51decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-f9100b635335decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
@@ -3889,10 +3802,6 @@
         "Quantity",
         "Est cost",
         "Know who arrives before the rush",
-        "Supplier",
-        "Time window",
-        "Items",
-        "Amount",
         "Waste pattern by category",
         "protein",
         "produce",
@@ -3961,31 +3870,11 @@
         },
         {
           "tag": "h2",
-          "text": "Your Chicago team's experience helps Miami"
-        },
-        {
-          "tag": "h3",
-          "text": "Transfer opportunity"
-        },
-        {
-          "tag": "h3",
-          "text": "Purchasing power"
-        },
-        {
-          "tag": "h2",
           "text": "What needs a manager today"
         },
         {
           "tag": "h2",
-          "text": "Your system knows 73% of patterns"
-        },
-        {
-          "tag": "h2",
           "text": "Cohort measurement readiness"
-        },
-        {
-          "tag": "h2",
-          "text": "Supplier reliability and price trend"
         },
         {
           "tag": "h2",
@@ -4084,17 +3973,12 @@
         {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Sample"
+          "text": "Unlabeled"
         },
         {
           "testId": "iks-tracker-panel",
           "tag": "section",
-          "text": "Institutional knowledgeYour system knows 73% of patternsIKS is computed from ver"
-        },
-        {
-          "testId": "iks-gauge",
-          "tag": "div",
-          "text": "73%"
+          "text": "Loading IKS..."
         },
         {
           "testId": "cohort-status-panel",
@@ -4124,157 +4008,7 @@
         {
           "testId": "supplier-scorecard-panel",
           "tag": "section",
-          "text": "Supplier scorecardsSupplier reliability and price trendQBO order history plus ve"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "A"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
-        },
-        {
-          "testId": "supplier-tier-badge",
-          "tag": "span",
-          "text": "B"
+          "text": "Loading supplier scorecards..."
         },
         {
           "testId": "continuity-close-panel",
@@ -4349,18 +4083,7 @@
         "Transfer opportunity",
         "Purchasing power",
         "What needs a manager today",
-        "Your system knows 73% of patterns",
         "Cohort measurement readiness",
-        "Supplier reliability and price trend",
-        "Supplier",
-        "Tier",
-        "On-time",
-        "Price trend",
-        "Exceptions",
-        "Summary",
-        "improving",
-        "stable",
-        "declining",
         "Trajectory",
         "Switching cost",
         "Automation Projection",
@@ -4368,12 +4091,6 @@
         "Waste and stockouts are now measurable",
         "The cost leak is concentrated",
         "Prep waste has a dollar target",
-        "Item",
-        "Waste",
-        "Kitchen benchmark",
-        "Trend",
-        "Cost",
-        "Recommendation",
         "Where ordering is consistent",
         "Everything in this kitchen turns over. This doesn't."
       ]
@@ -5112,15 +4829,15 @@
         },
         {
           "tag": "h3",
-          "text": "Process mining signal"
+          "text": "Match Invoice to GR"
         },
         {
           "tag": "h3",
-          "text": "Signal unavailable"
+          "text": "340 POs affected"
         },
         {
           "tag": "h3",
-          "text": "Enterprise graph context"
+          "text": "MATKL_V2"
         },
         {
           "tag": "h2",
@@ -5333,7 +5050,7 @@
         {
           "testId": "centroid-timeline-chart",
           "tag": "div",
-          "text": "17864873881786493753178649401817867814561786781708178683180417868321201787851576"
+          "text": "17868321201787851576178785201517878549821787855457178789897717878994961787976358"
         },
         {
           "testId": "source-profile-panel",
@@ -5593,7 +5310,7 @@
         {
           "testId": "decision-explorer",
           "tag": "section",
-          "text": "SC-14Decision Explorer1300 GraphStore decisionsCategoryAllfreshness violationpip"
+          "text": "SC-14Decision Explorer1336 GraphStore decisionsCategoryAllfreshness violationpip"
         },
         {
           "testId": "decision-summary",
@@ -5932,11 +5649,6 @@
         "Source trust and quality graph",
         "$180K/yr",
         "SAP, Celonis, and graph evidence aligned",
-        "Process mining signal",
-        "Signal unavailable",
-        "Enterprise graph context",
-        "Change type",
-        "Celonis sees where. SAP sees what. The graph answers why.",
         "Current duration",
         "Normal duration",
         "Slowdown",
@@ -5945,9 +5657,11 @@
         "Backlog value",
         "Daily cost",
         "MATKL_V2",
+        "Change type",
         "New combinations",
         "Fanout",
         "Supplier",
+        "Celonis sees where. SAP sees what. The graph answers why.",
         "The system gets better — and governance is why you can trust it.",
         "What-if: Reorder Warehouse Etl",
         "Centroid Timeline",
@@ -7379,7 +7093,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating112 / 142 decisions2 of 25 arms"
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating132 / 162 decisions2 of 25 arms"
         },
         {
           "testId": "day-zero-readiness-panel",
@@ -7564,7 +7278,7 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000582%Yangtze Raw Materialsprice_variance · $41,290",
+          "text": "S2P-INV-000581%Yangtze Raw Materialsprice_variance · $41,290",
           "ariaLabel": "",
           "name": ""
         },
@@ -7889,9 +7603,34 @@
           "text": "S2P-EXTINCTException extinction lifecycleDiscover → shadow → promote → measure →"
         },
         {
+          "testId": "extinction-price_variance",
+          "tag": "div",
+          "text": "price_varianceSHADOWINGShadow decisions: 0Measured: 0Last transition: 2026-08-19"
+        },
+        {
+          "testId": "extinction-quantity_mismatch",
+          "tag": "div",
+          "text": "quantity_mismatchMEASURINGShadow decisions: 0Measured: 0Last transition: 2026-08"
+        },
+        {
+          "testId": "extinction-duplicate_risk",
+          "tag": "div",
+          "text": "duplicate_riskROLLED BACKShadow decisions: 0Measured: 0Last transition: 2026-08-"
+        },
+        {
+          "testId": "extinction-contract_gap",
+          "tag": "div",
+          "text": "contract_gapDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-08-19T"
+        },
+        {
+          "testId": "extinction-format_compliance",
+          "tag": "div",
+          "text": "format_complianceDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-0"
+        },
+        {
           "testId": "cohort-status-panel",
           "tag": "section",
-          "text": "S2P Measurement StatusCohort measurement readinessMeasurement readyLoading measu"
+          "text": "S2P Measurement StatusCohort measurement readinessMeasurement readyThe measureme"
         },
         {
           "testId": "cohort-status-state",
@@ -7942,6 +7681,11 @@
         },
         {
           "text": "Performance",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Propose Replacement",
           "ariaLabel": "",
           "name": ""
         },

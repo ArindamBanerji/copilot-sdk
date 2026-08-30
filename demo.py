@@ -58,10 +58,12 @@ CREATE_FLAGS = subprocess.CREATE_NEW_CONSOLE if IS_WINDOWS else 0
 
 # AGE connection parameters (Rule #40 REVISED June 23, 2026):
 #   - Database DSNs use the WSL2 NAT IP (changes per boot), NOT localhost.
-#   - sslmode=disable required (OS update broke psycopg3 SSL over WSL2 NAT).
+#   - CI_DEV_MODE=true keeps local WSL2 AGE connections on sslmode=disable.
 #   - HTTP/FastAPI URLs still use 127.0.0.1.
 #   - PostgreSQL 17; start via: wsl -u root pg_ctlcluster 17 main start
 #   - See standing_note_wsl2_age_fix_june23.md for full diagnostic history.
+
+os.environ.setdefault("CI_DEV_MODE", "true")
 
 
 def _resolve_wsl2_ip() -> str:
@@ -89,9 +91,6 @@ def _build_age_dsn(dbname: str = "soc_copilot") -> str:
     """Build an AGE DSN using the dynamic WSL2 IP or GRAPH_DSN env override."""
     env_dsn = os.environ.get("GRAPH_DSN", "").strip()
     if env_dsn:
-        # Ensure sslmode=disable is present even in env-provided DSNs
-        if "sslmode" not in env_dsn:
-            env_dsn += " sslmode=disable"
         return env_dsn
     host = _resolve_wsl2_ip()
     return f"host={host} port=5433 dbname={dbname} user=postgres password=postgres sslmode=disable"
@@ -269,7 +268,7 @@ COPILOTS = [
 
 # Named groups for convenience flags
 SDK_NAMES = {"trading", "purchasing", "dataops"}
-PLAYWRIGHT_NAMES = {c["name"].lower() for c in COPILOTS}
+PLAYWRIGHT_NAMES = {str(c["name"]).lower() for c in COPILOTS}
 
 
 # --- Helpers ---

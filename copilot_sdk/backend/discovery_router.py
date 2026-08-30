@@ -10,6 +10,7 @@ from fastapi import APIRouter, Query
 from copilot_sdk.backend.models import (
     DiscoveryAlertsResponse,
     DiscoverySweepResponse,
+    FlexibleResponse,
 )
 from copilot_sdk.discovery.cross_system import CrossSystemCorrelator
 
@@ -27,7 +28,7 @@ def create_discovery_router(engine: Any) -> APIRouter:
             "alerts": [_alert_payload(alert) for alert in alerts],
         }
 
-    @router.get("/digest")
+    @router.get("/digest", response_model=FlexibleResponse)
     def digest(min_confidence: float = Query(0.5, ge=0.0, le=1.0)) -> dict[str, Any]:
         get_digest = getattr(engine, "get_digest", None)
         digest_alerts = get_digest(min_confidence=min_confidence) if callable(get_digest) else []
@@ -47,7 +48,7 @@ def create_discovery_router(engine: Any) -> APIRouter:
             "alerts": [_alert_payload(alert) for alert in all_alerts],
         }
 
-    @router.get("/cross-system")
+    @router.get("/cross-system", response_model=FlexibleResponse)
     def cross_system(min_correlation: float = Query(0.5, ge=0.0, le=1.0)) -> dict[str, Any]:
         decisions, used_demo = _domain_decisions(engine)
         return {
