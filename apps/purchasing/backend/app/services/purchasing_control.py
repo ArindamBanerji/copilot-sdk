@@ -16,7 +16,12 @@ from starlette.responses import Response
 from copilot_sdk.evidence import ClaimRecord, EvidenceGate, EvidenceTier
 from copilot_sdk.outcome import OutcomeLedger, OutcomeProcessor, VerifiedOutcome
 from copilot_sdk.promotion import PromotionEngine, PromotionStage, PromotionStore, PurchasingPromotionPolicy
+from copilot_sdk.evolution import GraphOutcomeLedger, GraphProofLedger, GraphPromotionStore
 from copilot_sdk.twin import FrozenTwin, FrozenTwinStore
+
+
+class PurchasingGraphUnavailableError(RuntimeError):
+    """Raised when purchasing evidence cannot be read from the graph."""
 
 
 CLAIMS = {
@@ -144,15 +149,18 @@ class PurchasingControlService:
     def __init__(self, graph_store_factory: Any, scorer_provider: Any, data_dir: Path) -> None:
         self.graph_store_factory = graph_store_factory
         self.scorer_provider = scorer_provider
-        self.proof = ProofLedger(data_dir / "purchasing_proof_ledger.sqlite3")
-        self.outcomes = OutcomeLedger(data_dir / "purchasing_verified_outcomes.sqlite3")
+        graph_store = graph_store_factory()
+        age_events = callable(getattr(graph_store, "write_evolution_event", None)) and callable(getattr(graph_store, "get_evolution_events", None))
+        self.proof = GraphProofLedger(graph_store, "purchasing") if age_events else ProofLedger(data_dir / "purchasing_proof_ledger.sqlite3")
+        self.outcomes = GraphOutcomeLedger(graph_store, "purchasing") if age_events else OutcomeLedger(data_dir / "purchasing_verified_outcomes.sqlite3")
         self.processor = OutcomeProcessor(self.outcomes)
         self.twin = FrozenTwin(FrozenTwinStore(data_dir / "frozen_twins"))
         try:
             self.twin.load("purchasing")
         except FileNotFoundError:
             pass
-        self.promotion = PromotionEngine(PurchasingPromotionPolicy(), PromotionStore(str(data_dir / "purchasing_promotion.sqlite3")))
+        promotion_store = GraphPromotionStore(graph_store, "purchasing") if age_events else PromotionStore(str(data_dir / "purchasing_promotion.sqlite3"))
+        self.promotion = PromotionEngine(PurchasingPromotionPolicy(), promotion_store)
 
     def _store(self) -> Any:
         return self.graph_store_factory()
@@ -160,14 +168,18 @@ class PurchasingControlService:
     def _decisions(self) -> list[dict[str, Any]]:
         try:
             return [row for row in self._store().get_all_decisions("purchasing") if isinstance(row, dict)]
-        except Exception:
-            return []
+        except Exception as exc:
+            raise PurchasingGraphUnavailableError(
+                "Purchasing graph read failed: get_all_decisions"
+            ) from exc
 
     def _verified(self) -> list[dict[str, Any]]:
         try:
             return [row for row in self._store().get_verified_decisions("purchasing") if isinstance(row, dict)]
-        except Exception:
-            return []
+        except Exception as exc:
+            raise PurchasingGraphUnavailableError(
+                "Purchasing graph read failed: get_verified_decisions"
+            ) from exc
 
     def proof_ledger(self) -> dict[str, Any]:
         decisions, verified = self._decisions(), self._verified()

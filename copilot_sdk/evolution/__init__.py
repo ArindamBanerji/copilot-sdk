@@ -33,6 +33,7 @@ from copilot_sdk.evolution.variant_store import (
     VariantSpec,
     VariantStats,
 )
+from copilot_sdk.evolution.graph_store import GraphOutcomeLedger, GraphProofLedger, GraphPromotionStore, GraphVariantStore, create_variant_store
 
 __all__ = [
     "AgentEvolver",
@@ -68,4 +69,9 @@ __all__ = [
     "CategoryVariantStats",
     "VariantSpec",
     "VariantStats",
+    "GraphVariantStore",
+    "GraphPromotionStore",
+    "GraphOutcomeLedger",
+    "GraphProofLedger",
+    "create_variant_store",
 ]

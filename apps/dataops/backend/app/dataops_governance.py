@@ -12,6 +12,7 @@ from typing import Any, cast
 
 from copilot_sdk.evidence import ClaimRecord, EvidenceGate, EvidenceTier
 from copilot_sdk.outcome import OutcomeLedger, OutcomeProcessor, VerifiedOutcome
+from copilot_sdk.evolution import GraphOutcomeLedger, GraphPromotionStore
 from copilot_sdk.promotion import DataOpsPromotionPolicy, PromotionEngine, PromotionStage, PromotionStore
 from copilot_sdk.twin import FrozenTwin
 
@@ -38,10 +39,11 @@ class DataOpsGovernance:
             self._db.commit()
         except sqlite3.OperationalError:
             pass
-        self._outcomes = OutcomeLedger(":memory:" if str(db_path) == ":memory:" else str(Path(db_path).with_name("dataops_outcomes.sqlite3")))
+        age_events = callable(getattr(graph_store, "write_evolution_event", None)) and callable(getattr(graph_store, "get_evolution_events", None))
+        self._outcomes = GraphOutcomeLedger(graph_store, "dataops") if age_events else OutcomeLedger(":memory:" if str(db_path) == ":memory:" else str(Path(db_path).with_name("dataops_outcomes.sqlite3")))
         self.outcome_processor = OutcomeProcessor(self._outcomes)
-        promotion_db = str(Path(db_path).with_name("dataops_promotion.sqlite3"))
-        self.promotions = PromotionEngine(policy=DataOpsPromotionPolicy(), store=PromotionStore(promotion_db), conservation_provider=conservation)
+        promotion_store = GraphPromotionStore(graph_store, "dataops") if age_events else PromotionStore(str(Path(db_path).with_name("dataops_promotion.sqlite3")))
+        self.promotions = PromotionEngine(policy=DataOpsPromotionPolicy(), store=promotion_store, conservation_provider=conservation)
         self.frozen_twin = FrozenTwin()
         self.claim_ids = ("DATAOPS-TRUST", "DATAOPS-ACCURACY", "DATAOPS-IKS")
         self._register_default_claims()

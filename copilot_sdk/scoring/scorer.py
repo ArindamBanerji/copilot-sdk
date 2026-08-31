@@ -283,11 +283,20 @@ class CompoundingScorer:
         if profile == "production":
             from copilot_sdk.graph.memory_store import InMemoryGraphStore
             from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+            from copilot_sdk.graph.dual_write_store import DualWriteStore
 
             if isinstance(graph_store, (SQLiteGraphStore, InMemoryGraphStore)):
                 raise RuntimeError(
                     "Production scorer requires an AGE-backed GraphStore; "
                     "SQLite and InMemoryGraphStore are test/development stores."
+                )
+            if isinstance(graph_store, DualWriteStore) and isinstance(
+                graph_store.primary, (SQLiteGraphStore, InMemoryGraphStore)
+            ):
+                raise RuntimeError(
+                    "Production scorer requires AGE to be the primary GraphStore; "
+                    "dual-write stores with a SQLite or in-memory primary are "
+                    "test/migration stores."
                 )
         centroids = graph_store.load_latest_centroids(preset.name)
         latest_checkpoints = graph_store.get_centroid_checkpoints(

@@ -84,7 +84,7 @@ from copilot_sdk.backend import (  # noqa: E402
     mount_self_computation_router,
 )
 from copilot_sdk.outbox import OutboxStore  # noqa: E402
-from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, SQLiteVariantStore  # noqa: E402
+from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, create_variant_store  # noqa: E402
 from .evolution.evolver_config import PURCHASING_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.backend.conservation_utils import compute_conservation_status_payload  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
@@ -510,8 +510,7 @@ def create_app(
         PURCHASING_EVOLVER_CONFIG,
         conservation_state_provider=conservation_provider,
     )
-    evolution_db = ":memory:" if scoring_db == ":memory:" else str(Path(scoring_db).with_name(f"{DOMAIN}_evolution.sqlite3"))
-    evolver = PromptVariantEvolver(config=evolver_config, store=SQLiteVariantStore(evolution_db))
+    evolver = PromptVariantEvolver(config=evolver_config, store=create_variant_store(active_graph_store or seed_graph_store, DOMAIN, test_mode=_resolve_profile() == "test"))
     evolver.register_variants(get_purchasing_variant_specs())
     app.state.evolver = evolver
 

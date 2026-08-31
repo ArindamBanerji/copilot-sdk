@@ -351,6 +351,7 @@ class InMemoryGraphStore:
         self._centroid_checkpoints: list[dict[str, Any]] = []
         self._evolution_events: list[dict[str, Any]] = []
         self._rl_state: dict[tuple[str, str], dict[str, Any]] = {}
+        self._platform_state: dict[tuple[str, str, str], dict[str, Any]] = {}
         self._archive: list[dict[str, Any]] = []
         self._outbox: list[dict[str, Any]] = []
         self._outbox_quarantine: list[dict[str, Any]] = []
@@ -1435,6 +1436,91 @@ class InMemoryGraphStore:
     def load_rl_state(self, key: str) -> dict | None:
         data = self._rl_state.get((self.domain, str(key)))
         return deepcopy(data) if data is not None else None
+
+    def _save_platform_state(self, kind: str, domain: str, key: str, state: dict[str, Any]) -> None:
+        if not str(domain).strip() or not str(key).strip():
+            raise ValueError("platform state requires non-empty domain and key")
+        self._platform_state[(str(kind), str(domain), str(key))] = deepcopy(dict(state))
+
+    def _get_platform_state(self, kind: str, domain: str, key: str) -> dict[str, Any] | None:
+        value = self._platform_state.get((str(kind), str(domain), str(key)))
+        return deepcopy(value) if value is not None else None
+
+    def _list_platform_state(self, kind: str, domain: str) -> list[dict[str, Any]]:
+        return [
+            {"key": key, **deepcopy(value)}
+            for (stored_kind, stored_domain, key), value in self._platform_state.items()
+            if stored_kind == kind and stored_domain == str(domain)
+        ]
+
+    def _delete_platform_state(self, kind: str, domain: str, key: str) -> None:
+        self._platform_state.pop((str(kind), str(domain), str(key)), None)
+
+    def save_evolution(self, domain: str, variant_id: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("EvolutionState", domain, variant_id, state)
+
+    def get_evolution(self, domain: str, variant_id: str) -> dict[str, Any] | None:
+        return self._get_platform_state("EvolutionState", domain, variant_id)
+
+    def list_evolutions(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_state("EvolutionState", domain)
+
+    def delete_evolution(self, domain: str, variant_id: str) -> None:
+        self._delete_platform_state("EvolutionState", domain, variant_id)
+
+    def save_evolution_state(self, domain: str, variant_id: str, state: dict[str, Any]) -> None:
+        self.save_evolution(domain, variant_id, state)
+
+    def get_evolution_state(self, domain: str, variant_id: str) -> dict[str, Any] | None:
+        return self.get_evolution(domain, variant_id)
+
+    def save_posterior(self, domain: str, key: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("PosteriorState", domain, key, state)
+
+    def get_posterior(self, domain: str, key: str) -> dict[str, Any] | None:
+        return self._get_platform_state("PosteriorState", domain, key)
+
+    def list_posteriors(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_state("PosteriorState", domain)
+
+    def delete_posterior(self, domain: str, key: str) -> None:
+        self._delete_platform_state("PosteriorState", domain, key)
+
+    def save_promotion(self, domain: str, rule_id: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("PromotionState", domain, rule_id, state)
+
+    def get_promotion(self, domain: str, rule_id: str) -> dict[str, Any] | None:
+        return self._get_platform_state("PromotionState", domain, rule_id)
+
+    def list_promotions(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_state("PromotionState", domain)
+
+    def delete_promotion(self, domain: str, rule_id: str) -> None:
+        self._delete_platform_state("PromotionState", domain, rule_id)
+
+    def save_ledger(self, domain: str, entry_id: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("CompoundingLedger", domain, entry_id, state)
+
+    def get_ledger(self, domain: str, entry_id: str) -> dict[str, Any] | None:
+        return self._get_platform_state("CompoundingLedger", domain, entry_id)
+
+    def list_ledgers(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_state("CompoundingLedger", domain)
+
+    def delete_ledger(self, domain: str, entry_id: str) -> None:
+        self._delete_platform_state("CompoundingLedger", domain, entry_id)
+
+    def save_governance(self, domain: str, key: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("GovernanceState", domain, key, state)
+
+    def get_governance(self, domain: str, key: str) -> dict[str, Any] | None:
+        return self._get_platform_state("GovernanceState", domain, key)
+
+    def list_governance(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_state("GovernanceState", domain)
+
+    def delete_governance(self, domain: str, key: str) -> None:
+        self._delete_platform_state("GovernanceState", domain, key)
 
     def get_centroid_checkpoints(
         self,

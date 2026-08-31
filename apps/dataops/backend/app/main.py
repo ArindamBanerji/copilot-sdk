@@ -63,7 +63,7 @@ from copilot_sdk.backend import (  # noqa: E402
 )
 from copilot_sdk.backend.discovery_router import create_discovery_router  # noqa: E402
 from copilot_sdk.backend.scorer_proxy import FreshScorerProxy  # noqa: E402
-from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, SQLiteVariantStore  # noqa: E402
+from copilot_sdk.evolution import PromptVariantEvolver, ScorerBackedProvider, create_variant_store  # noqa: E402
 from .evolution.evolver_config import DATAOPS_EVOLVER_CONFIG  # noqa: E402
 from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_graph  # noqa: E402
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
@@ -659,8 +659,7 @@ def create_app(
         DATAOPS_EVOLVER_CONFIG,
         conservation_state_provider=conservation_provider,
     )
-    evolution_db = ":memory:" if scoring_db == ":memory:" else str(Path(scoring_db).with_name(f"{DOMAIN}_evolution.sqlite3"))
-    evolver = PromptVariantEvolver(config=evolver_config, store=SQLiteVariantStore(evolution_db))
+    evolver = PromptVariantEvolver(config=evolver_config, store=create_variant_store(selected_graph_store, DOMAIN, test_mode=_resolve_profile() == "test"))
     evolver.register_variants(get_dataops_variant_specs())
     app.state.evolver = evolver
 

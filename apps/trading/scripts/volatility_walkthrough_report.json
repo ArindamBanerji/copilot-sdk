@@ -1,0 +1,149 @@
+{
+  "scenario": {
+    "name": "high_volatility_income_trade",
+    "requested_regime": "volatile",
+    "vix_at_entry": 42.0,
+    "trend_strength_at_entry": 35.0,
+    "category": "income_strategy"
+  },
+  "regime": {
+    "regime": "ranging",
+    "confidence": 0.5,
+    "vix": 14.43,
+    "adx": 20.0,
+    "near_boundary": false,
+    "hurst": 0.5,
+    "vol_state": null,
+    "vix_percentile": null,
+    "timestamp": "2026-08-30T20:03:06.186036+00:00",
+    "source": "scraped_external"
+  },
+  "score": {
+    "decision_id": "fcc218fceb4d",
+    "action": "partial_execution",
+    "action_index": 1,
+    "confidence": 0.5113916549141737,
+    "probabilities": [
+      0.38608697632252115,
+      0.5113916549141737,
+      0.08176091203671519,
+      0.02076045672659
+    ],
+    "category": "income_strategy",
+    "factors": {
+      "signal_alignment": 0.72,
+      "market_regime": 0.92,
+      "position_sizing": 0.32,
+      "timing_quality": 0.38,
+      "risk_reward_actual": 0.68,
+      "emotional_indicator": 0.18,
+      "signal_confidence": 0.78,
+      "options_delta_exposure": 0.56,
+      "options_iv_percentile": 0.86,
+      "options_gamma_risk": 0.74
+    },
+    "regime_context": {
+      "regime": "ranging",
+      "hurst": null,
+      "vol_state": "calm",
+      "vix_percentile": null
+    },
+    "regime_parameters": {
+      "regime": "ranging",
+      "theta_min": 0.1,
+      "penalty_ratio": 3.0,
+      "eta": 0.05
+    },
+    "trader_id": "volatility-walkthrough"
+  },
+  "factor_weights": {
+    "status": "unavailable",
+    "regime": "ranging",
+    "factor_weights": [],
+    "source": "per_regime_dk_unavailable",
+    "sample_size": 0,
+    "reason": "Per-regime DK/factor trust weights are not available; observed factor influence is reported separately when sample-backed."
+  },
+  "iv_analysis": {
+    "regimes": {},
+    "n_decisions": 0,
+    "provenance": "accumulating",
+    "substantiation": "T-O",
+    "day_zero": true,
+    "decisions_until_measured": 30,
+    "current_regime": "volatile",
+    "evidence_tier": "T_O",
+    "observation": "Observation: regime-conditioned IV/RV bands are reported as rich, cheap, or unknown from measured history.",
+    "observation_only": true,
+    "evidence_label": "measured",
+    "evidence_gate": "passed",
+    "claim_id": "CLAIM-TRD-REGIME"
+  },
+  "vrp": {
+    "tail_attribution": {
+      "low_tail_capture_pct": 0.0,
+      "high_tail_loss_ratio": 0.0,
+      "total_vrp_decisions": 0,
+      "high_tail_decisions": 0,
+      "low_tail_decisions": 0,
+      "provenance": "accumulating",
+      "substantiation": "T-O",
+      "day_zero": true,
+      "decisions_until_measured": 30
+    },
+    "status": "instrument_validated",
+    "provenance": "instrument_validated",
+    "substantiation": "T-O",
+    "day_zero": true,
+    "decisions_until_measured": 30,
+    "vrp_spread_mean": null,
+    "vrp_spread_current": null,
+    "classification": null,
+    "iv_mean": null,
+    "rv_mean": null,
+    "n_eligible": 0,
+    "n_excluded_missing_iv_rv": 366,
+    "min_observations": 30,
+    "source": "live",
+    "analytics_provenance": "instrument_validated",
+    "evidence_tier": "T_S",
+    "observation": "Observation: IV/RV spread and tail-dependence attribution are reported from eligible decisions.",
+    "observation_only": true,
+    "evidence_label": "synthetic / modelled \u2014 not measured",
+    "evidence_gate": "passed",
+    "claim_id": "CLAIM-TRD-ROI"
+  },
+  "conservation": {
+    "engine": {
+      "gae": "gae.calibration",
+      "component": "conservation_status"
+    },
+    "domain": "trading",
+    "verified_count": 366,
+    "correct_count": 365,
+    "total_decisions": 366,
+    "penalty_ratio": 3.0,
+    "alpha": 1.0,
+    "q": 0.9972677595628415,
+    "V": 366,
+    "baseline": 0.9972677595628415,
+    "baseline_q": 0.9972677595628415,
+    "relative_trigger": 0.698087431693989,
+    "relative_trigger_ratio": 0.7,
+    "categories_total": 5,
+    "total_categories": 5,
+    "categories_with_data": 5,
+    "reason": "Signal 365.00 exceeds theta_min 0.0643 with headroom 364.94. Accuracy 99.7% is above 70% of baseline (99.7%). Status is GREEN with \u03b1=1.00 across 366 verified decisions.",
+    "signal": 365.0,
+    "theta_min": 0.1,
+    "headroom": 364.9,
+    "status": "GREEN",
+    "passed": true
+  },
+  "decision": {
+    "action": "partial_execution",
+    "confidence": 0.5113916549141737,
+    "decision_id": "fcc218fceb4d",
+    "observation_only": false
+  }
+}

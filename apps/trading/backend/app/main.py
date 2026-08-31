@@ -69,7 +69,7 @@ from .services.claim_gate import (  # noqa: E402
     TradingPromotionGuard,
     promotion_store_path,
 )
-from copilot_sdk.evolution import SQLiteVariantStore  # noqa: E402
+from copilot_sdk.evolution import create_variant_store  # noqa: E402
 from .state import create_trading_tab_state_cache  # noqa: E402
 from .state.compute_helpers import compute_counterfactual_default  # noqa: E402
 from copilot_sdk.backend.transfer_router import (  # noqa: E402
@@ -407,12 +407,7 @@ def create_app(
     app.state.trading_promotion_guard = trading_promotion_guard
     claim_registry.refresh_from_store(selected_graph_store_factory(scoring_db))
     conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
-    evolution_db = (
-        ":memory:"
-        if scoring_db == ":memory:"
-        else str(Path(scoring_db).with_name(f"{DOMAIN}_evolution.sqlite3"))
-    )
-    variant_store = SQLiteVariantStore(evolution_db)
+    variant_store = create_variant_store(store, DOMAIN, test_mode=_resolve_profile() == "test")
     trading_evolver = TradingAgentEvolver(
         baseline_scorer=scorer_proxy,
         store_factory=trading_store_factory,

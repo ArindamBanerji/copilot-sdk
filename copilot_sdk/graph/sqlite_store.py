@@ -415,6 +415,81 @@ class SQLiteGraphStore:
             raise RuntimeError("SQLiteGraphStore is closed")
         return self._conn
 
+    def save_evolution(self, domain: str, variant_id: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("evolution", domain, variant_id, state)
+
+    def get_evolution(self, domain: str, variant_id: str) -> dict[str, Any] | None:
+        return self._get_platform_state("evolution", domain, variant_id)
+
+    def list_evolutions(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_states("evolution", domain)
+
+    def delete_evolution(self, domain: str, variant_id: str) -> None:
+        self._delete_platform_state("evolution", domain, variant_id)
+
+    def save_evolution_state(self, domain: str, variant_id: str, state: dict[str, Any]) -> None:
+        self.save_evolution(domain, variant_id, state)
+
+    def get_evolution_state(self, domain: str, variant_id: str) -> dict[str, Any] | None:
+        return self.get_evolution(domain, variant_id)
+
+    def _save_platform_state(
+        self, state_type: str, domain: str, state_key: str, state: dict[str, Any]
+    ) -> None:
+        payload = _to_json(state)
+        with self._write_lock:
+            self.connection.execute(
+                """
+                INSERT INTO platform_state (state_type, domain, state_key, payload_json)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(state_type, domain, state_key) DO UPDATE SET
+                    payload_json = excluded.payload_json
+                """,
+                (state_type, domain, state_key, payload),
+            )
+            self.connection.commit()
+
+    def _get_platform_state(
+        self, state_type: str, domain: str, state_key: str
+    ) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            """
+            SELECT payload_json FROM platform_state
+            WHERE state_type = ? AND domain = ? AND state_key = ?
+            """,
+            (state_type, domain, state_key),
+        ).fetchone()
+        if row is None:
+            return None
+        payload = _from_json(str(row[0]))
+        if not isinstance(payload, dict):
+            raise TypeError(f"Stored {state_type} state is not an object")
+        return payload
+
+    def _list_platform_states(self, state_type: str, domain: str) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT state_key, payload_json FROM platform_state
+            WHERE state_type = ? AND domain = ? ORDER BY state_key
+            """,
+            (state_type, domain),
+        ).fetchall()
+        states: list[dict[str, Any]] = []
+        for row in rows:
+            payload = _from_json(str(row[1]))
+            if not isinstance(payload, dict):
+                raise TypeError(f"Stored {state_type} state is not an object")
+            states.append({"key": str(row[0]), **payload})
+        return states
+
+    def _delete_platform_state(self, state_type: str, domain: str, state_key: str) -> None:
+        with self._write_lock:
+            self.connection.execute(
+                "DELETE FROM platform_state WHERE state_type = ? AND domain = ? AND state_key = ?",
+                (state_type, domain, state_key),
+            )
+            self.connection.commit()
+
     def _create_tables(self) -> None:
         self.connection.executescript(
             """
@@ -450,6 +525,14 @@ class SQLiteGraphStore:
                 is_correct INTEGER NOT NULL,
                 verified_at REAL NOT NULL,
                 context_json TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS platform_state (
+                state_type TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                state_key TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                PRIMARY KEY (state_type, domain, state_key)
             );
 
             CREATE TABLE IF NOT EXISTS centroid_checkpoints (
