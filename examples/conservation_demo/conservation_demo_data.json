@@ -1,0 +1,270 @@
+{
+  "status": {
+    "engine": {
+      "gae": "gae.calibration",
+      "component": "conservation_status"
+    },
+    "domain": "trading",
+    "verified_count": 366,
+    "correct_count": 365,
+    "total_decisions": 366,
+    "penalty_ratio": 3.0,
+    "alpha": 1.0,
+    "q": 0.9972677595628415,
+    "V": 366,
+    "baseline": 0.9972677595628415,
+    "baseline_q": 0.9972677595628415,
+    "relative_trigger": 0.698087431693989,
+    "relative_trigger_ratio": 0.7,
+    "categories_total": 5,
+    "total_categories": 5,
+    "categories_with_data": 5,
+    "reason": "Signal 365.00 exceeds theta_min 0.0643 with headroom 364.94. Accuracy 99.7% is above 70% of baseline (99.7%). Status is GREEN with \u03b1=1.00 across 366 verified decisions.",
+    "signal": 365.0,
+    "theta_min": 0.1,
+    "headroom": 364.9,
+    "status": "GREEN",
+    "passed": true
+  },
+  "trajectory": {
+    "points": [
+      {
+        "decisions": 0,
+        "iks": 12.5,
+        "win_rate": 0.5,
+        "timestamp": 1784852868.6053193
+      },
+      {
+        "decisions": 10,
+        "iks": 27.2,
+        "win_rate": 1.0,
+        "timestamp": 1784852874.904828
+      },
+      {
+        "decisions": 20,
+        "iks": 29.5,
+        "win_rate": 1.0,
+        "timestamp": 1784852880.8705719
+      },
+      {
+        "decisions": 30,
+        "iks": 31.8,
+        "win_rate": 1.0,
+        "timestamp": 1784852887.247436
+      },
+      {
+        "decisions": 40,
+        "iks": 34.0,
+        "win_rate": 1.0,
+        "timestamp": 1784852893.491711
+      },
+      {
+        "decisions": 50,
+        "iks": 36.2,
+        "win_rate": 1.0,
+        "timestamp": 1784852899.797617
+      },
+      {
+        "decisions": 60,
+        "iks": 38.5,
+        "win_rate": 1.0,
+        "timestamp": 1784852906.2314491
+      },
+      {
+        "decisions": 70,
+        "iks": 40.4,
+        "win_rate": 0.986,
+        "timestamp": 1785381625.071473
+      },
+      {
+        "decisions": 80,
+        "iks": 42.7,
+        "win_rate": 0.988,
+        "timestamp": 1785403836.4732513
+      },
+      {
+        "decisions": 90,
+        "iks": 45.0,
+        "win_rate": 0.989,
+        "timestamp": 1785403857.9889092
+      },
+      {
+        "decisions": 100,
+        "iks": 47.2,
+        "win_rate": 0.99,
+        "timestamp": 1785403880.2112372
+      },
+      {
+        "decisions": 110,
+        "iks": 48.5,
+        "win_rate": 0.991,
+        "timestamp": 1785403902.702663
+      },
+      {
+        "decisions": 120,
+        "iks": 49.8,
+        "win_rate": 0.992,
+        "timestamp": 1785403925.7847443
+      },
+      {
+        "decisions": 130,
+        "iks": 51.0,
+        "win_rate": 0.992,
+        "timestamp": 1785403983.2623806
+      },
+      {
+        "decisions": 140,
+        "iks": 52.3,
+        "win_rate": 0.993,
+        "timestamp": 1785404004.736405
+      },
+      {
+        "decisions": 150,
+        "iks": 53.6,
+        "win_rate": 0.993,
+        "timestamp": 1785404027.1060941
+      },
+      {
+        "decisions": 160,
+        "iks": 54.9,
+        "win_rate": 0.994,
+        "timestamp": 1785404049.2597837
+      },
+      {
+        "decisions": 170,
+        "iks": 56.1,
+        "win_rate": 0.994,
+        "timestamp": 1785404073.3576703
+      },
+      {
+        "decisions": 180,
+        "iks": 57.4,
+        "win_rate": 0.994,
+        "timestamp": 1785579027.062096
+      },
+      {
+        "decisions": 190,
+        "iks": 58.6,
+        "win_rate": 0.995,
+        "timestamp": 1785585706.2252584
+      },
+      {
+        "decisions": 200,
+        "iks": 59.9,
+        "win_rate": 0.995,
+        "timestamp": 1785595240.646482
+      },
+      {
+        "decisions": 210,
+        "iks": 60.4,
+        "win_rate": 0.995,
+        "timestamp": 1785648837.070016
+      },
+      {
+        "decisions": 220,
+        "iks": 60.9,
+        "win_rate": 0.995,
+        "timestamp": 1785650858.79178
+      },
+      {
+        "decisions": 230,
+        "iks": 61.4,
+        "win_rate": 0.996,
+        "timestamp": 1785878034.421772
+      },
+      {
+        "decisions": 240,
+        "iks": 61.9,
+        "win_rate": 0.996,
+        "timestamp": 1786435030.5913756
+      },
+      {
+        "decisions": 250,
+        "iks": 62.4,
+        "win_rate": 0.996,
+        "timestamp": 1786485576.6584487
+      },
+      {
+        "decisions": 260,
+        "iks": 62.9,
+        "win_rate": 0.996,
+        "timestamp": 1786497781.6147418
+      },
+      {
+        "decisions": 270,
+        "iks": 63.4,
+        "win_rate": 0.996,
+        "timestamp": 1786518962.272084
+      },
+      {
+        "decisions": 280,
+        "iks": 63.9,
+        "win_rate": 0.996,
+        "timestamp": 1786780417.9422884
+      },
+      {
+        "decisions": 290,
+        "iks": 64.4,
+        "win_rate": 0.997,
+        "timestamp": 1786834835.1787128
+      },
+      {
+        "decisions": 300,
+        "iks": 64.9,
+        "win_rate": 0.997,
+        "timestamp": 1787576062.645949
+      },
+      {
+        "decisions": 310,
+        "iks": 65.4,
+        "win_rate": 0.997,
+        "timestamp": 1787689343.2694314
+      },
+      {
+        "decisions": 320,
+        "iks": 65.9,
+        "win_rate": 0.997,
+        "timestamp": 1787777485.2614226
+      },
+      {
+        "decisions": 330,
+        "iks": 66.4,
+        "win_rate": 0.997,
+        "timestamp": 1787789387.6820998
+      },
+      {
+        "decisions": 340,
+        "iks": 66.9,
+        "win_rate": 0.997,
+        "timestamp": 1787850252.5155153
+      },
+      {
+        "decisions": 350,
+        "iks": 67.4,
+        "win_rate": 0.997,
+        "timestamp": 1787975130.2415946
+      },
+      {
+        "decisions": 360,
+        "iks": 67.9,
+        "win_rate": 0.997,
+        "timestamp": 1788110917.6305904
+      },
+      {
+        "decisions": 366,
+        "iks": 68.2,
+        "win_rate": 0.997,
+        "timestamp": 1788120946.940501
+      }
+    ],
+    "current_iks": 68.2,
+    "current_win_rate": 0.997,
+    "decisions_total": 366,
+    "days_active": 37.8,
+    "engine": {
+      "scoring": "copilot_sdk.scoring.CompoundingScorer",
+      "gae": "gae.profile_scorer.ProfileScorer"
+    }
+  },
+  "categories": {}
+}

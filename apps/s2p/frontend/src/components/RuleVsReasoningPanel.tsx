@@ -20,7 +20,11 @@ function normalizeDecision(score: ScoreInvoiceResponse, invoice?: InvoiceExcepti
       cost_of_error: "$340K",
     };
   }
-  return score.threshold_decision ?? score.thresholdDecision ?? null;
+  return score.threshold_decision ?? score.thresholdDecision ?? {
+    decision: "REVIEW",
+    reason: "No variance signal is available for a threshold comparison yet.",
+    provenance: "unavailable",
+  };
 }
 
 function situationDecision(score: ScoreInvoiceResponse): string {

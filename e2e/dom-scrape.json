@@ -122,7 +122,7 @@
         {
           "testId": "day-zero-state-summary",
           "tag": "div",
-          "text": "ACCUMULATING370 verified decisions30 needed"
+          "text": "ACCUMULATING367 verified decisions30 needed"
         },
         {
           "testId": "day-zero-state",
@@ -132,7 +132,7 @@
         {
           "testId": "day-zero-accumulating-body",
           "tag": "div",
-          "text": "Accumulating. 370 decisions verified. Building judgment.370 / 400 decisions · ma"
+          "text": "Accumulating. 367 decisions verified. Building judgment.367 / 397 decisions · ma"
         },
         {
           "testId": "day-zero-caption",
@@ -147,7 +147,7 @@
         {
           "testId": "provenance-badge",
           "tag": "div",
-          "text": "Market data: live external"
+          "text": "Market data: sample"
         },
         {
           "testId": "regime-panel",
@@ -257,7 +257,7 @@
         {
           "testId": "data-trust-factors",
           "tag": "div",
-          "text": "Options delta1.00Research depth0.93Options IV0.91Market conditions0.59Timing qua"
+          "text": "Options delta1.00Research depth0.93Options IV0.92Market conditions0.58Timing qua"
         },
         {
           "testId": "data-trust-factor",
@@ -282,7 +282,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Options IV0.91"
+          "text": "Options IV0.92"
         },
         {
           "testId": "data-trust-bar",
@@ -292,7 +292,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Market conditions0.59"
+          "text": "Market conditions0.58"
         },
         {
           "testId": "data-trust-bar",
@@ -721,6 +721,22 @@
         },
         {
           "tag": "h2",
+          "text": "Risk-Adjusted Decision Quality"
+        },
+        {
+          "tag": "h2",
+          "text": "VRP Edge or Insurance"
+        },
+        {
+          "tag": "h2",
+          "text": "Regime-Conditioned Rich/Cheap"
+        },
+        {
+          "tag": "h2",
+          "text": "Dispersion Follow-Rate"
+        },
+        {
+          "tag": "h2",
           "text": "Cross-Position Correlation"
         },
         {
@@ -774,7 +790,7 @@
         {
           "testId": "claim-gate-badge",
           "tag": "div",
-          "text": "TRD-CLAIM-GATEEvidence claim gateEvidence: insufficientTested-Powered-Survived-"
+          "text": "TRD-CLAIM-GATEEvidence claim gateEvidence: T-OTested802Powered367Survived366"
         },
         {
           "testId": "governed-vs-ungoverned-panel",
@@ -939,12 +955,72 @@
         {
           "testId": "vol-sharpe-clusters",
           "tag": "table",
-          "text": "Market conditionDecisionsQuality scoreStateranging37119.21measured"
+          "text": "Market conditionDecisionsQuality scoreStateranging36919.16measured"
+        },
+        {
+          "testId": "vrp-attribution-card",
+          "tag": "section",
+          "text": "V2 volatility diagnosticVRP Edge or InsuranceSampleAverage IV-RV spread-Current "
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Sample"
+        },
+        {
+          "testId": "vrp-classification",
+          "tag": "div",
+          "text": "ReadingAccumulating"
+        },
+        {
+          "testId": "regime-vrp-card",
+          "tag": "section",
+          "text": "V5 volatility diagnosticRegime-Conditioned Rich/CheapAccumulatingAwaiting regime"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Accumulating"
+        },
+        {
+          "testId": "dispersion-follow-card",
+          "tag": "section",
+          "text": "V6 volatility diagnosticDispersion Follow-RateAccumulatingSignals0Followed0Follo"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Accumulating"
         },
         {
           "testId": "counterfactual-card",
           "tag": "section",
-          "text": "What If?Calculating counterfactual..."
+          "text": "What If?██ LearnedOriginal score0.65Perturbed score0.47Delta-0.18Signal alignmen"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "██ Learned"
+        },
+        {
+          "testId": "counterfactual-base-score",
+          "tag": "div",
+          "text": "Original score0.65"
+        },
+        {
+          "testId": "counterfactual-perturbed-score",
+          "tag": "div",
+          "text": "Perturbed score0.47"
+        },
+        {
+          "testId": "counterfactual-delta",
+          "tag": "div",
+          "text": "Delta-0.18"
+        },
+        {
+          "testId": "counterfactual-factor-slider",
+          "tag": "input",
+          "text": ""
         }
       ],
       "buttons": [
@@ -975,6 +1051,16 @@
         },
         {
           "text": "Trade Detail",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Re-score",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Try sample",
           "ariaLabel": "",
           "name": ""
         }
@@ -1015,6 +1101,7 @@
         "Dispersion Follow-Rate",
         "Cross-Position Correlation",
         "What If?",
+        "Perturb signal alignment",
         "Day of Week",
         "Research Impact",
         "Regime Analysis",
@@ -1700,6 +1787,30 @@
         },
         {
           "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
+          "text": "Order"
+        },
+        {
+          "tag": "h3",
           "text": "Chicken Breast"
         },
         {
@@ -1725,30 +1836,6 @@
         {
           "tag": "h3",
           "text": "Chicken Breast"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
-        },
-        {
-          "tag": "h3",
-          "text": "Order"
         },
         {
           "tag": "h3",
@@ -1928,7 +2015,7 @@
         {
           "testId": "data-trust-factors",
           "tag": "div",
-          "text": "Price memory1.00Demand forecast0.01Event signal0.01Weather forecast0.00Day-of-we"
+          "text": "Price memory1.00Demand forecast0.01Supplier lead time0.01Weather forecast0.00Day"
         },
         {
           "testId": "data-trust-factor",
@@ -1953,7 +2040,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Event signal0.01"
+          "text": "Supplier lead time0.01"
         },
         {
           "testId": "data-trust-bar",
@@ -2048,7 +2135,37 @@
           "name": ""
         },
         {
-          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PR7/14/2026Chicken Breastorder more$1770.00",
           "ariaLabel": "",
           "name": ""
         },
@@ -2079,36 +2196,6 @@
         },
         {
           "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
@@ -2701,81 +2788,6 @@
           "name": ""
         },
         {
-          "text": "PUR-b9a2e89d639d",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-fae03137608a",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8a58b9ee7ca1",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8475c01db01c",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-6f361bf3b52f",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-75adca9bbc81",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7fa93d6c6652",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ac195a6f6872",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-1cea2f1ad98e",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-1c340b9afa45",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-0b2a0363579e",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-afc4e130bcdc",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-412e044a05b5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-aa031ad8bfdc",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8d0374e033e5",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PUR-c1fdbcfbfbb1",
           "ariaLabel": "",
           "name": ""
@@ -2947,6 +2959,81 @@
         },
         {
           "text": "PUR-f01897a771dd",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-20b23b709806",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-3d594f063b05",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-11c0314d0106",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-93b83609f9ca",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-09d584d8c8dd",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-9dcbaab36005",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-2c4b82e3988a",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-dfc86b98eef8",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-690694a4a0d2",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-d69e8f6ee1b2",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-32e4891c6b2f",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-4f5327cb0ab2",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-202d6ff601f4",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-064b27eba9c5",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-075495447bd5",
           "ariaLabel": "",
           "name": ""
         }
@@ -3420,51 +3507,6 @@
           "name": ""
         },
         {
-          "text": "PUR-fae03137608adecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8a58b9ee7ca1decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8475c01db01cdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-75adca9bbc81decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-7fa93d6c6652decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-ac195a6f6872decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-afc4e130bcdcdecision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-412e044a05b5decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "PUR-8d0374e033e5decision -> factors -> outcome",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "PUR-91a1647d3007decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
@@ -3516,6 +3558,51 @@
         },
         {
           "text": "PUR-f9100b635335decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-057a579c67a4decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-09db329b98b8decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-6ca8971cecacdecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-d6c08446cb3bdecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-9bd635d14e88decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-34119604ce46decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-2a6804d3e898decision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-abc7a58a440edecision -> factors -> outcome",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "PUR-5e09802fafbedecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
@@ -3842,6 +3929,18 @@
         },
         {
           "tag": "h2",
+          "text": "What the kitchen found this week"
+        },
+        {
+          "tag": "h3",
+          "text": "Top Items"
+        },
+        {
+          "tag": "h3",
+          "text": "Supplier Flags"
+        },
+        {
+          "tag": "h2",
           "text": "Year 1: $180,000 savings at current pace"
         },
         {
@@ -3870,11 +3969,31 @@
         },
         {
           "tag": "h2",
+          "text": "Your Chicago team's experience helps Miami"
+        },
+        {
+          "tag": "h3",
+          "text": "Transfer opportunity"
+        },
+        {
+          "tag": "h3",
+          "text": "Purchasing power"
+        },
+        {
+          "tag": "h2",
           "text": "What needs a manager today"
         },
         {
           "tag": "h2",
+          "text": "Your system knows 73% of patterns"
+        },
+        {
+          "tag": "h2",
           "text": "Cohort measurement readiness"
+        },
+        {
+          "tag": "h2",
+          "text": "Supplier reliability and price trend"
         },
         {
           "tag": "h2",
@@ -3961,6 +4080,11 @@
           "text": "Sample"
         },
         {
+          "testId": "weekly-report-panel",
+          "tag": "section",
+          "text": "Weekly ReportWhat the kitchen found this week121 verified decisions from 200 ord"
+        },
+        {
           "testId": "economic-dashboard-card",
           "tag": "section",
           "text": "ROI DashboardYear 1: $180,000 savings at current paceSample dataMonth target$9,6"
@@ -3973,17 +4097,22 @@
         {
           "testId": "provenance-badge",
           "tag": "span",
-          "text": "Unlabeled"
+          "text": "Sample"
         },
         {
           "testId": "iks-tracker-panel",
           "tag": "section",
-          "text": "Loading IKS..."
+          "text": "Institutional knowledgeYour system knows 73% of patternsIKS is computed from ver"
+        },
+        {
+          "testId": "iks-gauge",
+          "tag": "div",
+          "text": "73%"
         },
         {
           "testId": "cohort-status-panel",
           "tag": "section",
-          "text": "Purchasing Measurement StatusCohort measurement readinessMeasurement readyLoadin"
+          "text": "Purchasing Measurement StatusCohort measurement readinessMeasurement readyThe me"
         },
         {
           "testId": "cohort-status-state",
@@ -4008,7 +4137,157 @@
         {
           "testId": "supplier-scorecard-panel",
           "tag": "section",
-          "text": "Loading supplier scorecards..."
+          "text": "Supplier scorecardsSupplier reliability and price trendQBO order history plus ve"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "A"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "B"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "B"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "B"
+        },
+        {
+          "testId": "supplier-tier-badge",
+          "tag": "span",
+          "text": "B"
         },
         {
           "testId": "continuity-close-panel",
@@ -4067,6 +4346,9 @@
         "Time to kitchen competence",
         "20 orders to learn what takes 11 years of gut instinct.",
         "Downtown discipline becomes the baseline for all four",
+        "What the kitchen found this week",
+        "Top Items",
+        "Supplier Flags",
         "Year 1: $180,000 savings at current pace",
         "Where savings came from",
         "This week",
@@ -4083,7 +4365,18 @@
         "Transfer opportunity",
         "Purchasing power",
         "What needs a manager today",
+        "Your system knows 73% of patterns",
         "Cohort measurement readiness",
+        "Supplier reliability and price trend",
+        "Supplier",
+        "Tier",
+        "On-time",
+        "Price trend",
+        "Exceptions",
+        "Summary",
+        "improving",
+        "stable",
+        "declining",
         "Trajectory",
         "Switching cost",
         "Automation Projection",
@@ -4091,6 +4384,12 @@
         "Waste and stockouts are now measurable",
         "The cost leak is concentrated",
         "Prep waste has a dollar target",
+        "Item",
+        "Waste",
+        "Kitchen benchmark",
+        "Trend",
+        "Cost",
+        "Recommendation",
         "Where ordering is consistent",
         "Everything in this kitchen turns over. This doesn't."
       ]
@@ -5050,7 +5349,7 @@
         {
           "testId": "centroid-timeline-chart",
           "tag": "div",
-          "text": "17868321201787851576178785201517878549821787855457178789897717878994961787976358"
+          "text": "17878520151787854982178785545717878989771787899496178797635817879768051787983620"
         },
         {
           "testId": "source-profile-panel",
@@ -5310,7 +5609,7 @@
         {
           "testId": "decision-explorer",
           "tag": "section",
-          "text": "SC-14Decision Explorer1336 GraphStore decisionsCategoryAllfreshness violationpip"
+          "text": "SC-14Decision Explorer1348 GraphStore decisionsCategoryAllfreshness violationpip"
         },
         {
           "testId": "decision-summary",
@@ -7093,7 +7392,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating132 / 162 decisions2 of 25 arms"
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating198 / 228 decisions4 of 25 arms"
         },
         {
           "testId": "day-zero-readiness-panel",
@@ -7258,12 +7557,12 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000384%Northstar Packagingprice_variance · $3,782",
+          "text": "S2P-INV-000784%Boreal Equipment Maintenancequantity_mismatch · $14,966",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "S2P-INV-000784%Boreal Equipment Maintenancequantity_mismatch · $14,966",
+          "text": "S2P-INV-000383%Northstar Packagingprice_variance · $3,782",
           "ariaLabel": "",
           "name": ""
         },
@@ -7278,7 +7577,7 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000581%Yangtze Raw Materialsprice_variance · $41,290",
+          "text": "S2P-INV-000681%Meridian Office Servicesprice_variance · $1,403",
           "ariaLabel": "",
           "name": ""
         },
@@ -7681,16 +7980,6 @@
         },
         {
           "text": "Performance",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Propose Replacement",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
-          "text": "Propose Replacement",
           "ariaLabel": "",
           "name": ""
         },
