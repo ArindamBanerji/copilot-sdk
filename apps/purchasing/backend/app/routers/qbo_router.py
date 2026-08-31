@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import os
-import warnings
+import logging
 from typing import Any
 
 from fastapi import APIRouter
 
-from app.connectors.mock_qbo import MockQBOConnector
+from app.connectors.mock_qbo import DemoQBOConnector
+
+logger = logging.getLogger(__name__)
 from copilot_sdk.di.profiler import BaseSourceProfiler
 
 
@@ -29,10 +31,11 @@ def _default_qbo_connector() -> Any:
             connector.validate_connection_config()
             return connector
         except ImportError:
-            warnings.warn("QBO_CLIENT_ID set but client library not installed. Using mock.")
+            logger.info("CONNECTOR: QBO = DEMO (client library unavailable)")
         except Exception as exc:
-            warnings.warn(f"QBO connector failed to initialize: {exc}. Using mock.")
-    return MockQBOConnector()
+            logger.info("CONNECTOR: QBO = DEMO (initialization unavailable: %s)", exc)
+    logger.info("CONNECTOR: QBO = DEMO (no credentials)")
+    return DemoQBOConnector()
 
 
 def create_qbo_router(connector: Any | None = None) -> APIRouter:
@@ -83,7 +86,8 @@ def create_qbo_router(connector: Any | None = None) -> APIRouter:
                 "realm_id": None,
                 "error": str(exc),
             }
-        status["source_name"] = str(getattr(active, "source_name", "quickbooks_online_mock"))
+        status["source_name"] = str(getattr(active, "source_name", "quickbooks_online_demo"))
+        status["connector_mode"] = "demo" if type(active).__name__.startswith("Demo") else "real"
         status["entity_type"] = str(getattr(active, "entity_type", "accounting"))
         return status
 

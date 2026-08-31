@@ -41,6 +41,17 @@ def dataops_health() -> dict[str, Any]:
             "path": "/api/conservation/status",
         },
         "connectors": connectors,
+        "connector_status": {
+            "snowflake": "real" if all(os.environ.get(name) for name in (
+                "SNOWFLAKE_ACCOUNT", "SNOWFLAKE_USER", "SNOWFLAKE_PASSWORD"
+            )) else "demo",
+            "dbt": "real" if os.environ.get("DBT_API_TOKEN") and (
+                os.environ.get("DBT_ACCOUNT_ID") or os.environ.get("DBT_ARTIFACTS_PATH")
+            ) else "demo",
+            "airflow": "real" if os.environ.get("AIRFLOW_BASE_URL") and (
+                os.environ.get("AIRFLOW_USER") or os.environ.get("AIRFLOW_TOKEN")
+            ) else "demo",
+        },
     }
 
 

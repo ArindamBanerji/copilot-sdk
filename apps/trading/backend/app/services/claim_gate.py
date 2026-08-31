@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Mapping, cast
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -23,6 +22,7 @@ from copilot_sdk.promotion import (
     PromotionStore,
     TradingPromotionPolicy,
 )
+from copilot_sdk.evolution import GraphPromotionStore
 
 from app.settings import settings
 
@@ -120,9 +120,14 @@ class PromotionDecision:
 class TradingPromotionGuard:
     """Fail-closed claim and safety gate around promotion authority."""
 
-    def __init__(self, registry: TradingClaimRegistry, store_path: str = ":memory:") -> None:
+    def __init__(self, registry: TradingClaimRegistry, store_path: str = ":memory:", graph_store: Any = None) -> None:
         self.registry = registry
-        self.engine = PromotionEngine(TradingPromotionPolicy(), PromotionStore(store_path))
+        promotion_store = (
+            GraphPromotionStore(graph_store, "trading")
+            if graph_store is not None
+            else PromotionStore(store_path)
+        )
+        self.engine = PromotionEngine(TradingPromotionPolicy(), promotion_store)
 
     def authorize(self, category: str, conservation: Mapping[str, Any] | None = None) -> PromotionDecision:
         result = self.registry.gate.check(CLAIM_TRD_PROMOTION, "pilot")
@@ -188,7 +193,3 @@ class TradingEvidenceMiddleware(BaseHTTPMiddleware):
         headers = dict(response.headers)
         headers.pop("content-length", None)
         return Response(json.dumps(payload, allow_nan=False), response.status_code, headers, "application/json")
-
-
-def promotion_store_path(data_dir: Path) -> str:
-    return str(data_dir / "trading_promotion_engine.sqlite3")

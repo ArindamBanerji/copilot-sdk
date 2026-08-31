@@ -67,7 +67,6 @@ from .services.claim_gate import (  # noqa: E402
     TradingClaimRegistry,
     TradingEvidenceMiddleware,
     TradingPromotionGuard,
-    promotion_store_path,
 )
 from copilot_sdk.evolution import create_variant_store  # noqa: E402
 from .state import create_trading_tab_state_cache  # noqa: E402
@@ -399,10 +398,9 @@ def create_app(
     }
 
     trading_store_factory = lambda: selected_graph_store_factory(scoring_db)
-    promotion_data_dir = DATA_DIR if scoring_db == ":memory:" else Path(scoring_db).parent
     trading_promotion_guard = TradingPromotionGuard(
         claim_registry,
-        promotion_store_path(promotion_data_dir),
+        graph_store=selected_graph_store_factory(scoring_db),
     )
     app.state.trading_promotion_guard = trading_promotion_guard
     claim_registry.refresh_from_store(selected_graph_store_factory(scoring_db))

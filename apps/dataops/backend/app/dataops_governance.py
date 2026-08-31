@@ -13,8 +13,9 @@ from typing import Any, cast
 from copilot_sdk.evidence import ClaimRecord, EvidenceGate, EvidenceTier
 from copilot_sdk.outcome import OutcomeLedger, OutcomeProcessor, VerifiedOutcome
 from copilot_sdk.evolution import GraphOutcomeLedger, GraphPromotionStore
-from copilot_sdk.promotion import DataOpsPromotionPolicy, PromotionEngine, PromotionStage, PromotionStore
+from copilot_sdk.promotion import DataOpsPromotionPolicy, PromotionEngine, PromotionStage
 from copilot_sdk.twin import FrozenTwin
+from copilot_sdk.twin.store import GraphFrozenTwinStore
 
 
 class DataOpsGovernance:
@@ -42,9 +43,14 @@ class DataOpsGovernance:
         age_events = callable(getattr(graph_store, "write_evolution_event", None)) and callable(getattr(graph_store, "get_evolution_events", None))
         self._outcomes = GraphOutcomeLedger(graph_store, "dataops") if age_events else OutcomeLedger(":memory:" if str(db_path) == ":memory:" else str(Path(db_path).with_name("dataops_outcomes.sqlite3")))
         self.outcome_processor = OutcomeProcessor(self._outcomes)
-        promotion_store = GraphPromotionStore(graph_store, "dataops") if age_events else PromotionStore(str(Path(db_path).with_name("dataops_promotion.sqlite3")))
+        promotion_store_type = GraphPromotionStore
+        promotion_store = promotion_store_type(graph_store, "dataops")
         self.promotions = PromotionEngine(policy=DataOpsPromotionPolicy(), store=promotion_store, conservation_provider=conservation)
-        self.frozen_twin = FrozenTwin()
+        self.frozen_twin = FrozenTwin(
+            GraphFrozenTwinStore(graph_store, "dataops")
+            if callable(getattr(graph_store, "save_promotion", None))
+            else None
+        )
         self.claim_ids = ("DATAOPS-TRUST", "DATAOPS-ACCURACY", "DATAOPS-IKS")
         self._register_default_claims()
 

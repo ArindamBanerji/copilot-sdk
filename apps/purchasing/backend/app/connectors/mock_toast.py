@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-class MockToastConnector:
+class DemoToastConnector:
     """Test double for ToastConnector. Returns fixture data.
 
     Same 5-member SourceConnector protocol. No network calls.
@@ -108,3 +108,6 @@ class MockToastConnector:
             ]
 
         return fixtures
+
+
+MockToastConnector = DemoToastConnector

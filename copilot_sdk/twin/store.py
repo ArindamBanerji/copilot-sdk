@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import os
+import json
 import threading
 from pathlib import Path
+from typing import Any
 
 from .models import FrozenSnapshot
 
@@ -59,3 +61,48 @@ class FrozenTwinStore:
         with self._lock:
             self._path(copilot).unlink(missing_ok=True)
 
+
+class GraphFrozenTwinStore(FrozenTwinStore):
+    """Immutable Frozen Twin snapshots persisted in domain-scoped AGE state."""
+
+    def __init__(self, graph_store: Any, domain: str) -> None:
+        self._graph_store = graph_store
+        self._domain = str(domain)
+        self._lock = threading.RLock()
+
+    def save(self, snapshot: FrozenSnapshot) -> None:
+        copilot = str(snapshot.metadata.get("copilot") or "")
+        if not copilot:
+            raise ValueError("Frozen Twin snapshot requires copilot metadata")
+        with self._lock:
+            if self.exists(copilot):
+                raise FileExistsError(f"Frozen Twin already exists for copilot {copilot!r}")
+            payload = json.loads(snapshot.to_json())
+            self._graph_store.save_promotion(
+                self._domain, f"frozen_twin:{copilot}", {"snapshot": payload}
+            )
+
+    def load(self, copilot: str) -> FrozenSnapshot | None:
+        with self._lock:
+            state = self._graph_store.get_promotion(
+                self._domain, f"frozen_twin:{copilot}"
+            )
+            if state is None:
+                return None
+            payload = state.get("snapshot")
+            if not isinstance(payload, dict):
+                raise ValueError("AGE Frozen Twin payload is not a snapshot")
+            return FrozenSnapshot.from_json(json.dumps(payload))
+
+    def exists(self, copilot: str) -> bool:
+        return self._graph_store.get_promotion(
+            self._domain, f"frozen_twin:{copilot}"
+        ) is not None
+
+    def delete(self, copilot: str, *, confirmation: str | None = None) -> None:
+        if confirmation != copilot:
+            raise PermissionError("Frozen Twin deletion requires confirmation=copilot")
+        delete = getattr(self._graph_store, "delete_promotion", None)
+        if not callable(delete):
+            raise RuntimeError("AGE GraphStore cannot delete Frozen Twin state")
+        delete(self._domain, f"frozen_twin:{copilot}")

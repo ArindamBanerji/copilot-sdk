@@ -15,9 +15,10 @@ from starlette.responses import Response
 
 from copilot_sdk.evidence import ClaimRecord, EvidenceGate, EvidenceTier
 from copilot_sdk.outcome import OutcomeLedger, OutcomeProcessor, VerifiedOutcome
-from copilot_sdk.promotion import PromotionEngine, PromotionStage, PromotionStore, PurchasingPromotionPolicy
+from copilot_sdk.promotion import PromotionEngine, PromotionStage, PurchasingPromotionPolicy
 from copilot_sdk.evolution import GraphOutcomeLedger, GraphProofLedger, GraphPromotionStore
 from copilot_sdk.twin import FrozenTwin, FrozenTwinStore
+from copilot_sdk.twin.store import GraphFrozenTwinStore
 
 
 class PurchasingGraphUnavailableError(RuntimeError):
@@ -154,12 +155,17 @@ class PurchasingControlService:
         self.proof = GraphProofLedger(graph_store, "purchasing") if age_events else ProofLedger(data_dir / "purchasing_proof_ledger.sqlite3")
         self.outcomes = GraphOutcomeLedger(graph_store, "purchasing") if age_events else OutcomeLedger(data_dir / "purchasing_verified_outcomes.sqlite3")
         self.processor = OutcomeProcessor(self.outcomes)
-        self.twin = FrozenTwin(FrozenTwinStore(data_dir / "frozen_twins"))
+        self.twin = FrozenTwin(
+            GraphFrozenTwinStore(graph_store, "purchasing")
+            if callable(getattr(graph_store, "save_promotion", None))
+            else FrozenTwinStore(data_dir / "frozen_twins")
+        )
         try:
             self.twin.load("purchasing")
         except FileNotFoundError:
             pass
-        promotion_store = GraphPromotionStore(graph_store, "purchasing") if age_events else PromotionStore(str(data_dir / "purchasing_promotion.sqlite3"))
+        promotion_store_type = GraphPromotionStore
+        promotion_store = promotion_store_type(graph_store, "purchasing")
         self.promotion = PromotionEngine(PurchasingPromotionPolicy(), promotion_store)
 
     def _store(self) -> Any:
@@ -192,7 +198,7 @@ class PurchasingControlService:
         return {"proof_curve": {"decisions": len(decisions), "verified": len(verified), "correct": correct}, "competence_curve": {"accuracy": round(correct / len(verified), 4) if verified else 0.0}, "entries": entries, "attribution": "verified outcomes only; no synthetic uplift", "honest_dollars": 0.0, "source": "graphstore + proof ledger"}
 
     def list_entries(self) -> list[dict[str, Any]]:
-        return self.proof.list_entries()
+        return cast(list[dict[str, Any]], self.proof.list_entries())
 
     def readiness(self) -> dict[str, Any]:
         ledger = self.proof_ledger()

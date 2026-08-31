@@ -7,7 +7,7 @@ from statistics import mean, median, pstdev
 from typing import Any
 
 
-class MockQBOConnector:
+class DemoQBOConnector:
     """Test double for QBOConnector. Returns fixture accounting data.
 
     Same 5-member SourceConnector protocol. No network calls.
@@ -267,6 +267,8 @@ def _item_for(supplier: dict, index: int) -> tuple[str, str, float]:
         "dry_goods": ("flour sack", 22.0),
         "beverages": ("cold brew keg", 38.0),
     }
+
+
     category = str(supplier["primary_category"])
     if supplier["archetype"] == "seasonal_premium":
         category = "protein"
@@ -349,3 +351,6 @@ def _lead_time_payload(lead_days: list[int], by_quarter: dict[str, list[int]]) -
         "sample_count": len(lead_days),
         "by_quarter": {key: round(mean(values), 2) for key, values in sorted(by_quarter.items())},
     }
+
+
+MockQBOConnector = DemoQBOConnector

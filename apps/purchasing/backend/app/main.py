@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
-import warnings
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -221,9 +223,10 @@ def _fred_commodity_source() -> Any | None:
 
             return FREDCommoditySource(api_key=os.environ["FRED_API_KEY"])
         except ImportError:
-            warnings.warn("FRED_API_KEY set but client library not installed. Using mock.")
+            logger.info("CONNECTOR: FRED = DEMO (client library unavailable)")
         except Exception as exc:
-            warnings.warn(f"FRED connector failed to initialize: {exc}. Using mock.")
+            logger.info("CONNECTOR: FRED = DEMO (initialization unavailable: %s)", exc)
+    logger.info("CONNECTOR: FRED = DEMO (no credentials; sample provider retained)")
     return None
 
 
@@ -593,6 +596,11 @@ def create_app(
             "cache_hits": entity_cache.stats().hits,
             "cache_misses": entity_cache.stats().misses,
             "cache_size": entity_cache.stats().size,
+            "connectors": {
+                "fred": "demo" if type(commodity_source).__name__.startswith("Demo") else "real",
+                "qbo": "real" if os.environ.get("QBO_CLIENT_ID") else "demo",
+                "toast": "real" if os.environ.get("TOAST_CLIENT_ID") else "demo",
+            },
         }
 
     def _load_order_rows() -> list[dict[str, Any]]:

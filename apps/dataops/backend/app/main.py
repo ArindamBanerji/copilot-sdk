@@ -7,7 +7,6 @@ import logging
 import os
 import sys
 import time
-import warnings
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
@@ -195,12 +194,13 @@ def _snowflake_connector():
                 schema=os.environ.get("SNOWFLAKE_SCHEMA", "PUBLIC"),
             )
         except ImportError:
-            warnings.warn("SNOWFLAKE_ACCOUNT set but client library not installed. Using mock.")
+            logger.info("CONNECTOR: SNOWFLAKE = DEMO (client library unavailable)")
         except Exception as exc:
-            warnings.warn(f"Snowflake connector failed to initialize: {exc}. Using mock.")
-    from copilot_sdk.connectors.mock_snowflake import MockSnowflakeConnector
+            logger.info("CONNECTOR: SNOWFLAKE = DEMO (initialization unavailable: %s)", exc)
+    from copilot_sdk.connectors.mock_snowflake import DemoSnowflakeConnector
 
-    return MockSnowflakeConnector()
+    logger.info("CONNECTOR: SNOWFLAKE = DEMO (no credentials)")
+    return DemoSnowflakeConnector()
 
 
 def _dbt_connector():
@@ -216,12 +216,13 @@ def _dbt_connector():
                 artifacts_path=os.environ.get("DBT_ARTIFACTS_PATH"),
             )
         except ImportError:
-            warnings.warn("DBT_API_TOKEN set but client library not installed. Using mock.")
+            logger.info("CONNECTOR: DBT = DEMO (client library unavailable)")
         except Exception as exc:
-            warnings.warn(f"dbt connector failed to initialize: {exc}. Using mock.")
-    from copilot_sdk.connectors.mock_dbt import MockDBTConnector
+            logger.info("CONNECTOR: DBT = DEMO (initialization unavailable: %s)", exc)
+    from copilot_sdk.connectors.mock_dbt import DemoDBTConnector
 
-    return MockDBTConnector()
+    logger.info("CONNECTOR: DBT = DEMO (no credentials)")
+    return DemoDBTConnector()
 
 
 def _airflow_connector():
@@ -238,12 +239,13 @@ def _airflow_connector():
                 token=os.environ.get("AIRFLOW_TOKEN", ""),
             )
         except ImportError:
-            warnings.warn("AIRFLOW_BASE_URL set but client library not installed. Using mock.")
+            logger.info("CONNECTOR: AIRFLOW = DEMO (client library unavailable)")
         except Exception as exc:
-            warnings.warn(f"Airflow connector failed to initialize: {exc}. Using mock.")
-    from copilot_sdk.connectors.mock_airflow import MockAirflowConnector
+            logger.info("CONNECTOR: AIRFLOW = DEMO (initialization unavailable: %s)", exc)
+    from copilot_sdk.connectors.mock_airflow import DemoAirflowConnector
 
-    return MockAirflowConnector()
+    logger.info("CONNECTOR: AIRFLOW = DEMO (no credentials)")
+    return DemoAirflowConnector()
 
 
 def _dataops_profiler_registry() -> dict[str, BaseSourceProfiler]:
@@ -907,6 +909,7 @@ def create_app(
         return response
 
     @app.get("/health")
+    @app.get("/api/health")
     def health() -> dict[str, Any]:
         graph = context_graph_client
         graph_source = graph.graph_source
@@ -923,6 +926,10 @@ def create_app(
             "cache_hits": cache_stats.hits,
             "cache_misses": cache_stats.misses,
             "cache_size": cache_stats.size,
+            "connectors": {
+                name: "demo" if type(dataops_profiler_registry[name].connector).__name__.startswith("Demo") else "real"
+                for name in sorted(dataops_profiler_registry)
+            },
         }
 
     return app

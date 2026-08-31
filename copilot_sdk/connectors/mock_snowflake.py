@@ -8,7 +8,7 @@ from typing import Any
 from copilot_sdk.connectors.snowflake_meta import SnowflakeMetaConnector
 
 
-class MockSnowflakeConnector(SnowflakeMetaConnector):
+class DemoSnowflakeConnector(SnowflakeMetaConnector):
     """Ten tables, fifty columns, and twenty query history records. No network."""
 
     source_name = "snowflake"
@@ -95,3 +95,6 @@ class MockSnowflakeConnector(SnowflakeMetaConnector):
             }
             for index in range(20)
         ]
+
+
+MockSnowflakeConnector = DemoSnowflakeConnector

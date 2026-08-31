@@ -8,7 +8,7 @@ from typing import Any
 from copilot_sdk.connectors.dbt_connector import DBTConnector
 
 
-class MockDBTConnector(DBTConnector):
+class DemoDBTConnector(DBTConnector):
     """Fifteen models and eight test results. No network."""
 
     source_name = "dbt"
@@ -92,3 +92,6 @@ class MockDBTConnector(DBTConnector):
                 }
             )
         return rows
+
+
+MockDBTConnector = DemoDBTConnector

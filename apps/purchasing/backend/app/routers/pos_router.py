@@ -3,17 +3,18 @@
 from __future__ import annotations
 
 import os
-import warnings
+import logging
 from collections.abc import Callable
 from datetime import date, timedelta
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from app.connectors.mock_toast import MockToastConnector
+from app.connectors.mock_toast import DemoToastConnector
 from copilot_sdk.di.profiler import BaseSourceProfiler
 
 ConnectorFactory = Callable[[], Any]
+logger = logging.getLogger(__name__)
 
 
 def _demo_mode() -> bool:
@@ -25,7 +26,7 @@ def _demo_mode() -> bool:
 
 def _is_mock_connector(connector: Any) -> bool:
     source = str(getattr(connector, "source_name", "") or type(connector).__name__).lower()
-    return "mock" in source or "fixture" in source
+    return "demo" in source or "fixture" in source or type(connector).__name__.startswith("Demo")
 
 
 def _default_toast_connector() -> Any:
@@ -44,14 +45,15 @@ def _default_toast_connector() -> Any:
         except ImportError:
             if not _demo_mode():
                 raise RuntimeError("Toast provider is unavailable")
-            warnings.warn("TOAST_CLIENT_ID set but client library not installed. Using mock.")
+            logger.info("CONNECTOR: TOAST = DEMO (client library unavailable)")
         except Exception as exc:
             if not _demo_mode():
                 raise RuntimeError("Toast provider failed to initialize") from exc
-            warnings.warn(f"Toast connector failed to initialize: {exc}. Using mock.")
+            logger.info("CONNECTOR: TOAST = DEMO (initialization unavailable: %s)", exc)
     if not _demo_mode():
         raise RuntimeError("Toast provider is not configured")
-    return MockToastConnector()
+    logger.info("CONNECTOR: TOAST = DEMO (no credentials)")
+    return DemoToastConnector()
 
 
 def create_pos_router(
@@ -133,7 +135,7 @@ def _empty_summary(
     source_status: str,
 ) -> dict[str, Any]:
     return {
-        "source_name": str(getattr(connector, "source_name", "toast_pos_mock")),
+        "source_name": str(getattr(connector, "source_name", "toast_pos_demo")),
         "entity_type": str(getattr(connector, "entity_type", "restaurant_sales")),
         "requested_date": requested_date,
         "date": effective_date,

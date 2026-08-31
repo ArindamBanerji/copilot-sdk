@@ -156,13 +156,18 @@ class GraphVariantStore:
 
 
 class GraphPromotionStore:
-    """PromotionStore-compatible adapter backed by domain-scoped AGE events."""
+    """PromotionStore-compatible adapter backed by domain-scoped AGE state."""
 
     def __init__(self, graph_store: GraphStore, domain: str) -> None:
         self.graph_store = graph_store
         self.domain = str(domain)
 
     def save(self, record: PromotionRecord) -> None:
+        if callable(getattr(self.graph_store, "save_promotion", None)):
+            self.graph_store.save_promotion(
+                self.domain, record.record_id, {"record": record.to_dict()}
+            )
+            return
         self.graph_store.write_evolution_event(
             event_id=f"promotion:{self.domain}:{record.record_id}:{uuid4().hex}",
             domain=self.domain, event_type="promotion_record", rule_name=record.decision_class,
@@ -171,6 +176,14 @@ class GraphPromotionStore:
 
     def _records(self) -> dict[str, PromotionRecord]:
         result: dict[str, PromotionRecord] = {}
+        if callable(getattr(self.graph_store, "list_promotions", None)):
+            entries = self.graph_store.list_promotions(self.domain)
+            for event in entries:
+                raw = event.get("record")
+                if isinstance(raw, dict):
+                    record = PromotionRecord.from_dict(raw)
+                    result[record.record_id] = record
+            return result
         for event in _events(self.graph_store, self.domain, "promotion_record"):
             raw = _metadata(event).get("record")
             if isinstance(raw, dict):

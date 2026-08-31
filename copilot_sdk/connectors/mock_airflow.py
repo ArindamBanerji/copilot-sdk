@@ -9,7 +9,7 @@ from typing import Any
 from copilot_sdk.connectors.airflow_connector import AirflowConnector
 
 
-class MockAirflowConnector(AirflowConnector):
+class DemoAirflowConnector(AirflowConnector):
     """Eight DAGs, thirty runs, and deterministic task metadata. No network."""
 
     source_name = "airflow"
@@ -116,3 +116,6 @@ class MockAirflowConnector(AirflowConnector):
                 node["success_rate"] = 1.0
                 node["source_reliability"] = 1.0
         return nodes
+
+
+MockAirflowConnector = DemoAirflowConnector
