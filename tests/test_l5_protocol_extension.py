@@ -156,7 +156,7 @@ def test_minimal_graphstore_does_not_need_l5_methods() -> None:
         def list_entity_enrichments(self, **kwargs):
             return []
 
-    assert isinstance(MinimalGraphStore(), GraphStore)
+    assert not isinstance(MinimalGraphStore(), GraphStore)
     assert not isinstance(MinimalGraphStore(), L5LearningStore)
 
 

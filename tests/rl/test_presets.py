@@ -13,11 +13,12 @@ from copilot_sdk.rl.presets import RL_PRESET_REGISTRY, get_rl_components
 from copilot_sdk.scoring.presets.dataops import DataOpsPreset
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset
 from copilot_sdk.scoring.presets.s2p import S2PPreset
+from copilot_sdk.scoring.presets.soc import SOCPreset
 from copilot_sdk.scoring.presets.trading import TradingPreset
 
 
 def test_rl_preset_registry_has_expected_domains():
-    assert set(RL_PRESET_REGISTRY) == {"trading", "purchasing", "dataops", "s2p"}
+    assert set(RL_PRESET_REGISTRY) == {"soc", "trading", "purchasing", "dataops", "s2p"}
 
 
 def test_get_rl_components_returns_components_for_supported_domains():
@@ -25,6 +26,7 @@ def test_get_rl_components_returns_components_for_supported_domains():
     assert get_rl_components("purchasing", PurchasingPreset()) is not None
     assert get_rl_components("dataops", DataOpsPreset()) is not None
     assert get_rl_components("s2p", S2PPreset()) is not None
+    assert get_rl_components("soc", SOCPreset()) is not None
 
 
 def test_get_rl_components_unknown_domain_returns_none():

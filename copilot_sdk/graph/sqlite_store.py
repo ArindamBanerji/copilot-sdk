@@ -490,6 +490,54 @@ class SQLiteGraphStore:
             )
             self.connection.commit()
 
+    def save_posterior(self, domain: str, key: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("posterior", domain, key, state)
+
+    def get_posterior(self, domain: str, key: str) -> dict[str, Any] | None:
+        return self._get_platform_state("posterior", domain, key)
+
+    def list_posteriors(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_states("posterior", domain)
+
+    def delete_posterior(self, domain: str, key: str) -> None:
+        self._delete_platform_state("posterior", domain, key)
+
+    def save_promotion(self, domain: str, rule_id: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("promotion", domain, rule_id, state)
+
+    def get_promotion(self, domain: str, rule_id: str) -> dict[str, Any] | None:
+        return self._get_platform_state("promotion", domain, rule_id)
+
+    def list_promotions(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_states("promotion", domain)
+
+    def delete_promotion(self, domain: str, rule_id: str) -> None:
+        self._delete_platform_state("promotion", domain, rule_id)
+
+    def save_ledger(self, domain: str, entry_id: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("ledger", domain, entry_id, state)
+
+    def get_ledger(self, domain: str, entry_id: str) -> dict[str, Any] | None:
+        return self._get_platform_state("ledger", domain, entry_id)
+
+    def list_ledgers(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_states("ledger", domain)
+
+    def delete_ledger(self, domain: str, entry_id: str) -> None:
+        self._delete_platform_state("ledger", domain, entry_id)
+
+    def save_governance(self, domain: str, key: str, state: dict[str, Any]) -> None:
+        self._save_platform_state("governance", domain, key, state)
+
+    def get_governance(self, domain: str, key: str) -> dict[str, Any] | None:
+        return self._get_platform_state("governance", domain, key)
+
+    def list_governance(self, domain: str) -> list[dict[str, Any]]:
+        return self._list_platform_states("governance", domain)
+
+    def delete_governance(self, domain: str, key: str) -> None:
+        self._delete_platform_state("governance", domain, key)
+
     def _create_tables(self) -> None:
         self.connection.executescript(
             """

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
-from copilot_sdk.graph.protocol import GraphStore
+from copilot_sdk.graph.protocol import ProtocolV2GraphStore
 from copilot_sdk.evolution.variant_store import (
     CategoryVariantStats,
     InMemoryVariantStore,
@@ -19,21 +19,18 @@ from copilot_sdk.promotion.core import PromotionRecord
 from copilot_sdk.outcome.models import VerifiedOutcome
 
 
-def _events(store: GraphStore, domain: str, event_type: str | None = None) -> list[dict[str, Any]]:
-    reader = getattr(store, "get_evolution_events", None)
-    if not callable(reader):
-        raise RuntimeError("AGE GraphStore does not expose evolution-event reads")
+def _events(
+    store: ProtocolV2GraphStore, domain: str, event_type: str | None = None
+) -> list[dict[str, Any]]:
     kwargs = {} if event_type is None else {"event_type": event_type}
-    return [dict(row) for row in reader(domain, limit=10_000, **kwargs)]
+    return [dict(row) for row in store.get_evolution_events(domain, limit=10_000, **kwargs)]
 
 
 def create_variant_store(
-    graph_store: GraphStore, domain: str, *, test_mode: bool = False
+    graph_store: ProtocolV2GraphStore, domain: str, *, test_mode: bool = False
 ) -> GraphVariantStore | InMemoryVariantStore:
     """Select AGE evolution storage, allowing only explicit test doubles in tests."""
-    if callable(getattr(graph_store, "write_evolution_event", None)) and callable(
-        getattr(graph_store, "get_evolution_events", None)
-    ):
+    if isinstance(graph_store, ProtocolV2GraphStore):
         return GraphVariantStore(graph_store, domain)
     if test_mode:
         return InMemoryVariantStore()
@@ -54,7 +51,7 @@ def _metadata(event: dict[str, Any]) -> dict[str, Any]:
 class GraphVariantStore:
     """VariantStore implementation whose source of truth is AGE events."""
 
-    def __init__(self, graph_store: GraphStore, domain: str) -> None:
+    def __init__(self, graph_store: ProtocolV2GraphStore, domain: str) -> None:
         self.graph_store = graph_store
         self.domain = str(domain)
 
@@ -158,34 +155,19 @@ class GraphVariantStore:
 class GraphPromotionStore:
     """PromotionStore-compatible adapter backed by domain-scoped AGE state."""
 
-    def __init__(self, graph_store: GraphStore, domain: str) -> None:
+    def __init__(self, graph_store: ProtocolV2GraphStore, domain: str) -> None:
         self.graph_store = graph_store
         self.domain = str(domain)
 
     def save(self, record: PromotionRecord) -> None:
-        if callable(getattr(self.graph_store, "save_promotion", None)):
-            self.graph_store.save_promotion(
-                self.domain, record.record_id, {"record": record.to_dict()}
-            )
-            return
-        self.graph_store.write_evolution_event(
-            event_id=f"promotion:{self.domain}:{record.record_id}:{uuid4().hex}",
-            domain=self.domain, event_type="promotion_record", rule_name=record.decision_class,
-            variant_id=record.record_id, metadata={"record": record.to_dict()},
+        self.graph_store.save_promotion(
+            self.domain, record.record_id, {"record": record.to_dict()}
         )
 
     def _records(self) -> dict[str, PromotionRecord]:
         result: dict[str, PromotionRecord] = {}
-        if callable(getattr(self.graph_store, "list_promotions", None)):
-            entries = self.graph_store.list_promotions(self.domain)
-            for event in entries:
-                raw = event.get("record")
-                if isinstance(raw, dict):
-                    record = PromotionRecord.from_dict(raw)
-                    result[record.record_id] = record
-            return result
-        for event in _events(self.graph_store, self.domain, "promotion_record"):
-            raw = _metadata(event).get("record")
+        for event in self.graph_store.list_promotions(self.domain):
+            raw = event.get("record")
             if isinstance(raw, dict):
                 record = PromotionRecord.from_dict(raw)
                 result[record.record_id] = record
@@ -207,7 +189,7 @@ class GraphPromotionStore:
 class GraphOutcomeLedger:
     """OutcomeLedger-compatible AGE event adapter."""
 
-    def __init__(self, graph_store: GraphStore, domain: str) -> None:
+    def __init__(self, graph_store: ProtocolV2GraphStore, domain: str) -> None:
         self.graph_store = graph_store
         self.domain = str(domain)
 
@@ -250,7 +232,7 @@ class GraphOutcomeLedger:
 class GraphProofLedger:
     """Small append-only proof ledger stored as AGE evidence events."""
 
-    def __init__(self, graph_store: GraphStore, domain: str) -> None:
+    def __init__(self, graph_store: ProtocolV2GraphStore, domain: str) -> None:
         self.graph_store = graph_store
         self.domain = str(domain)
 

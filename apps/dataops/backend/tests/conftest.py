@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 import sys
 from pathlib import Path
+from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
@@ -20,8 +21,18 @@ for path in (BACKEND_ROOT, REPO_ROOT, CI_PLATFORM_ROOT):
 
 
 @pytest.fixture()
-def dataops_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+def dataops_data_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> Generator[Path, None, None]:
     monkeypatch.delenv("GRAPH_DSN", raising=False)
+    monkeypatch.setenv("DATAOPS_ACTIVE_GRAPH_BACKEND", "sqlite")
+    for key in (
+        "DATAOPS_ACTIVE_AGE_DSN",
+        "DATAOPS_ACTIVE_AGE_GRAPH",
+        "DATAOPS_ACTIVE_AGE_TEST_MODE",
+        "DATAOPS_ACTIVE_LIVE_AGE_TEST",
+    ):
+        monkeypatch.delenv(key, raising=False)
 
     source = BACKEND_ROOT / "data"
     target = tmp_path / "data"

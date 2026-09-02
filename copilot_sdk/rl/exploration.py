@@ -3,22 +3,22 @@
 from __future__ import annotations
 
 import random
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
-
-_THOMPSON_STATE_KEY = "thompson_posteriors"
+from copilot_sdk.rl.types import ExplorationDecision
 
 
 class ConservationBoundedThompson:
-    """Thompson sampler that disables exploration outside GREEN conservation."""
+    """Compatibility Thompson policy used by the SDK compounding scorer."""
 
     def __init__(self, n_actions: int, graph_store: Any | None = None) -> None:
         if int(n_actions) <= 0:
             raise ValueError("n_actions must be positive")
         self.n_actions = int(n_actions)
         self._graph_store = graph_store
-        self.alpha = [1.0 for _ in range(self.n_actions)]
-        self.beta = [1.0 for _ in range(self.n_actions)]
+        self.alpha = [1.0] * self.n_actions
+        self.beta = [1.0] * self.n_actions
         self._conservation_status = "GREEN"
         self._load_from_store()
 
@@ -28,28 +28,21 @@ class ConservationBoundedThompson:
             raise ValueError("probabilities must not be empty")
         if len(values) != self.n_actions:
             raise ValueError("probabilities length must match n_actions")
-
-        best_action = _argmax(values)
-        if self._conservation_status in {"AMBER", "RED"}:
-            return best_action
-
+        best = _argmax(values)
+        if self._conservation_status != "GREEN":
+            return best
         explore_probability = max(0.0, min(1.0, 1.0 - max(values)))
         if random.random() >= explore_probability:
-            return best_action
-
-        samples = [
-            _beta_sample(self.alpha[index], self.beta[index])
-            for index in range(self.n_actions)
-        ]
+            return best
+        samples = [self._beta_sample(a, b) for a, b in zip(self.alpha, self.beta)]
         return _argmax(samples)
 
     def update(self, action: int, reward: float) -> None:
-        action_index = self._safe_action(action)
-        value = float(reward)
-        if value > 0.0:
-            self.alpha[action_index] += value
-        elif value < 0.0:
-            self.beta[action_index] += abs(value)
+        index = self._safe_action(action)
+        if float(reward) >= 0.0:
+            self.alpha[index] += float(reward)
+        else:
+            self.beta[index] += abs(float(reward))
         self._persist()
 
     def set_conservation_status(self, status: str) -> None:
@@ -58,7 +51,11 @@ class ConservationBoundedThompson:
             raise ValueError("status must be GREEN, AMBER, or RED")
         self._conservation_status = normalized
 
-    def get_priors(self) -> dict[str, list[float] | str]:
+    @property
+    def conservation_status(self) -> str:
+        return self._conservation_status
+
+    def get_priors(self) -> dict[str, Any]:
         return {
             "alpha": list(self.alpha),
             "beta": list(self.beta),
@@ -66,67 +63,113 @@ class ConservationBoundedThompson:
         }
 
     def reset(self) -> None:
-        self.alpha = [1.0 for _ in range(self.n_actions)]
-        self.beta = [1.0 for _ in range(self.n_actions)]
+        self.alpha = [1.0] * self.n_actions
+        self.beta = [1.0] * self.n_actions
         self._conservation_status = "GREEN"
+        self._persist()
 
     def _safe_action(self, action: int) -> int:
-        action_index = int(action)
-        if not 0 <= action_index < self.n_actions:
-            raise IndexError("action out of range")
-        return action_index
+        index = int(action)
+        if not 0 <= index < self.n_actions:
+            raise IndexError("action must be within n_actions")
+        return index
+
+    @staticmethod
+    def _beta_sample(alpha: float, beta: float) -> float:
+        left = random.gammavariate(alpha, 1.0)
+        right = random.gammavariate(beta, 1.0)
+        return left / (left + right) if left + right else 0.5
 
     def _load_from_store(self) -> None:
         loader = getattr(self._graph_store, "load_rl_state", None)
         if not callable(loader):
             return
         try:
-            data = loader(_THOMPSON_STATE_KEY)
-            if not isinstance(data, dict):
-                return
-            alpha = _state_vector(data.get("alpha"), self.n_actions)
-            beta = _state_vector(data.get("beta"), self.n_actions)
-            if alpha is None or beta is None:
-                return
-            self.alpha = alpha
-            self.beta = beta
-            status = str(data.get("conservation_status", "GREEN")).strip().upper()
-            if status in {"GREEN", "AMBER", "RED"}:
-                self._conservation_status = status
+            state = loader("thompson_posteriors")
         except Exception:
             return
+        if not isinstance(state, dict):
+            return
+        alpha = state.get("alpha")
+        beta = state.get("beta")
+        if (
+            not isinstance(alpha, list)
+            or not isinstance(beta, list)
+            or len(alpha) != self.n_actions
+            or len(beta) != self.n_actions
+        ):
+            return
+        try:
+            self.alpha = [float(value) for value in alpha]
+            self.beta = [float(value) for value in beta]
+        except (TypeError, ValueError):
+            return
+        status = state.get("conservation_status")
+        if isinstance(status, str) and status.upper() in {"GREEN", "AMBER", "RED"}:
+            self._conservation_status = status.upper()
 
     def _persist(self) -> None:
         saver = getattr(self._graph_store, "save_rl_state", None)
         if not callable(saver):
             return
         try:
-            saver(_THOMPSON_STATE_KEY, self.get_priors())
+            saver("thompson_posteriors", self.get_priors())
         except Exception:
             return
 
 
-def _state_vector(value: Any, expected_length: int) -> list[float] | None:
-    if not isinstance(value, list | tuple) or len(value) != expected_length:
-        return None
-    try:
-        return [float(item) for item in value]
-    except (TypeError, ValueError):
-        return None
+class ExplorationPolicy:
+    """Epsilon-greedy exploration bounded by the conservation safety floor."""
 
+    EPSILON_FIRM_STAR = 0.125
 
-def _beta_sample(alpha: float, beta: float) -> float:
-    x = random.gammavariate(max(float(alpha), 0.0001), 1.0)
-    y = random.gammavariate(max(float(beta), 0.0001), 1.0)
-    total = x + y
-    return x / total if total > 0.0 else 0.0
+    def __init__(
+        self,
+        n_actions: int,
+        epsilon: float = EPSILON_FIRM_STAR,
+        graph_store: Any | None = None,
+        penalty_ratio: float = 1.0,
+    ) -> None:
+        if int(n_actions) <= 0:
+            raise ValueError("n_actions must be positive")
+        if not 0.0 <= float(epsilon) <= self.EPSILON_FIRM_STAR:
+            raise ValueError("epsilon must be between 0 and epsilon_firm_star")
+        if float(penalty_ratio) <= 0.0:
+            raise ValueError("penalty_ratio must be positive")
+        self.n_actions = int(n_actions)
+        self.epsilon = float(epsilon)
+        self.graph_store = graph_store
+        self._graph_store = graph_store
+        self.penalty_ratio = float(penalty_ratio)
+        self._conservation_status = "GREEN"
+
+    def select_action(
+        self, values: Iterable[float], conservation_fraction: float = 0.0
+    ) -> ExplorationDecision:
+        scores = [float(value) for value in values]
+        if len(scores) != self.n_actions:
+            raise ValueError("values length must match n_actions")
+        best = _argmax(scores)
+        fraction = max(0.0, min(1.0, float(conservation_fraction)))
+        effective_epsilon = min(
+            self.epsilon, self.EPSILON_FIRM_STAR * (1.0 - fraction)
+        )
+        if self._conservation_status != "GREEN":
+            effective_epsilon = 0.0
+        explored = effective_epsilon > 0.0 and random.random() < effective_epsilon
+        action = random.randrange(self.n_actions) if explored else best
+        return ExplorationDecision(action, explored, effective_epsilon, self._conservation_status)
+
+    def set_conservation_status(self, status: str) -> None:
+        normalized = str(status).strip().upper()
+        if normalized not in {"GREEN", "AMBER", "RED"}:
+            raise ValueError("status must be GREEN, AMBER, or RED")
+        self._conservation_status = normalized
+
+    @property
+    def conservation_status(self) -> str:
+        return self._conservation_status
 
 
 def _argmax(values: list[float]) -> int:
-    best_index = 0
-    best_value = values[0]
-    for index, value in enumerate(values[1:], start=1):
-        if value > best_value:
-            best_index = index
-            best_value = value
-    return best_index
+    return max(range(len(values)), key=values.__getitem__)

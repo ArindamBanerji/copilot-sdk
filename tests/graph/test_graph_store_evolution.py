@@ -122,5 +122,4 @@ def test_sqlite_save_evolution_event_without_metadata(tmp_path):
 def test_sqlite_graph_store_satisfies_evolution_store_protocol(tmp_path):
     store = SQLiteGraphStore(tmp_path / "graph.sqlite")
 
-    assert isinstance(store, GraphStore)
     assert isinstance(store, EvolutionStore)

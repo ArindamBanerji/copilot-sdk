@@ -16,6 +16,7 @@ from copilot_sdk.graph.enrichment import (
     ProvenancedValue,
 )
 from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
+from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 from copilot_sdk.graph.outbox import DurableOutbox
 
 
@@ -52,10 +53,14 @@ class DualWriteStore(GraphStore):
     ) -> None:
         if max_failures < 1:
             raise ValueError("max_failures must be at least 1")
-        if not isinstance(primary, ProtocolV2GraphStore):
-            raise TypeError("primary must implement ProtocolV2GraphStore")
+        if not isinstance(primary, GraphStore):
+            raise TypeError("primary must implement GraphStore")
         if not isinstance(secondary, ProtocolV2GraphStore):
             raise TypeError("secondary must implement ProtocolV2GraphStore")
+        if isinstance(primary, SQLiteGraphStore) and isinstance(secondary, SQLiteGraphStore):
+            raise TypeError(
+                "SQLite primary and secondary do not implement ProtocolV2GraphStore"
+            )
         self.primary = cast(ProtocolV2GraphStore, primary)
         self.secondary = cast(ProtocolV2GraphStore, secondary)
         self.logger = logger or logging.getLogger(__name__)
@@ -297,11 +302,11 @@ class DualWriteStore(GraphStore):
             {"metadata": metadata},
             "identity_mismatch_risk",
         )
-        return result
+        return cast(str, result)
 
     def generate_decision_id(self, domain: str) -> str:
         """Use the primary store as the identity authority during dual-write."""
-        return self.primary.generate_decision_id(domain)
+        return cast(str, self.primary.generate_decision_id(domain))
 
     def write_outcome(
         self,
@@ -395,44 +400,67 @@ class DualWriteStore(GraphStore):
         self._write("link_entity", lambda: self.primary.link_entity(decision_id, entity_id, entity_type, domain), lambda: self.secondary.link_entity(decision_id, entity_id, entity_type, domain), (decision_id, entity_id, entity_type, domain), {})
 
     def append_evidence_receipt(self, receipt_intent_id: str, domain: str, decision_id: str, canonical_payload: dict[str, Any], actor: str, source_route: str, metadata: dict[str, Any] | None = None) -> tuple[int, str]:
-        return self._write("append_evidence_receipt", lambda: self.primary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), lambda: self.secondary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), (receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route), {"metadata": metadata})
+        return cast(tuple[int, str], self._write("append_evidence_receipt", lambda: self.primary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), lambda: self.secondary.append_evidence_receipt(receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route, metadata), (receipt_intent_id, domain, decision_id, canonical_payload, actor, source_route), {"metadata": metadata}))
 
     # Reads are intentionally primary-only.
-    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None: return self.primary.get_decision(decision_id, domain)
-    def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict[str, Any]]: return self.primary.get_decisions(domain, category, limit)
-    def get_all_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_all_decisions(domain)
-    def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_archived_decisions(domain)
-    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]: return self.primary.get_verified_decisions(domain)
-    def count_verified(self, domain: str) -> int: return self.primary.count_verified(domain)
-    def count_correct(self, domain: str) -> int: return self.primary.count_correct(domain)
-    def count_decisions(self, domain: str) -> int: return self.primary.count_decisions(domain)
+    def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_decision(decision_id, domain))
+    def get_evolution_events(self, domain: str, **kwargs: Any) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.get_evolution_events(domain, **kwargs))
+    def save_evolution(self, domain: str, variant_id: str, state: dict[str, Any]) -> None: self._write("save_evolution", lambda: self.primary.save_evolution(domain, variant_id, state), lambda: self.secondary.save_evolution(domain, variant_id, state), (domain, variant_id), {"state": state})
+    def get_evolution(self, domain: str, variant_id: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_evolution(domain, variant_id))
+    def list_evolutions(self, domain: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.list_evolutions(domain))
+    def delete_evolution(self, domain: str, variant_id: str) -> None: self._write("delete_evolution", lambda: self.primary.delete_evolution(domain, variant_id), lambda: self.secondary.delete_evolution(domain, variant_id), (domain, variant_id), {})
+    def save_evolution_state(self, domain: str, variant_id: str, state: dict[str, Any]) -> None: self._write("save_evolution_state", lambda: self.primary.save_evolution_state(domain, variant_id, state), lambda: self.secondary.save_evolution_state(domain, variant_id, state), (domain, variant_id), {"state": state})
+    def get_evolution_state(self, domain: str, variant_id: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_evolution_state(domain, variant_id))
+    def save_posterior(self, domain: str, key: str, state: dict[str, Any]) -> None: self._write("save_posterior", lambda: self.primary.save_posterior(domain, key, state), lambda: self.secondary.save_posterior(domain, key, state), (domain, key), {"state": state})
+    def get_posterior(self, domain: str, key: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_posterior(domain, key))
+    def list_posteriors(self, domain: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.list_posteriors(domain))
+    def delete_posterior(self, domain: str, key: str) -> None: self._write("delete_posterior", lambda: self.primary.delete_posterior(domain, key), lambda: self.secondary.delete_posterior(domain, key), (domain, key), {})
+    def save_promotion(self, domain: str, rule_id: str, state: dict[str, Any]) -> None: self._write("save_promotion", lambda: self.primary.save_promotion(domain, rule_id, state), lambda: self.secondary.save_promotion(domain, rule_id, state), (domain, rule_id), {"state": state})
+    def get_promotion(self, domain: str, rule_id: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_promotion(domain, rule_id))
+    def list_promotions(self, domain: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.list_promotions(domain))
+    def delete_promotion(self, domain: str, rule_id: str) -> None: self._write("delete_promotion", lambda: self.primary.delete_promotion(domain, rule_id), lambda: self.secondary.delete_promotion(domain, rule_id), (domain, rule_id), {})
+    def save_ledger(self, domain: str, entry_id: str, state: dict[str, Any]) -> None: self._write("save_ledger", lambda: self.primary.save_ledger(domain, entry_id, state), lambda: self.secondary.save_ledger(domain, entry_id, state), (domain, entry_id), {"state": state})
+    def get_ledger(self, domain: str, entry_id: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_ledger(domain, entry_id))
+    def list_ledgers(self, domain: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.list_ledgers(domain))
+    def delete_ledger(self, domain: str, entry_id: str) -> None: self._write("delete_ledger", lambda: self.primary.delete_ledger(domain, entry_id), lambda: self.secondary.delete_ledger(domain, entry_id), (domain, entry_id), {})
+    def save_governance(self, domain: str, key: str, state: dict[str, Any]) -> None: self._write("save_governance", lambda: self.primary.save_governance(domain, key, state), lambda: self.secondary.save_governance(domain, key, state), (domain, key), {"state": state})
+    def get_governance(self, domain: str, key: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_governance(domain, key))
+    def list_governance(self, domain: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.list_governance(domain))
+    def delete_governance(self, domain: str, key: str) -> None: self._write("delete_governance", lambda: self.primary.delete_governance(domain, key), lambda: self.secondary.delete_governance(domain, key), (domain, key), {})
+    def get_decisions(self, domain: str, category: str | None = None, limit: int = 400) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.get_decisions(domain, category, limit))
+    def get_all_decisions(self, domain: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.get_all_decisions(domain))
+    def get_archived_decisions(self, domain: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.get_archived_decisions(domain))
+    def get_verified_decisions(self, domain: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.get_verified_decisions(domain))
+    def count_verified(self, domain: str) -> int: return cast(int, self.primary.count_verified(domain))
+    def count_correct(self, domain: str) -> int: return cast(int, self.primary.count_correct(domain))
+    def count_decisions(self, domain: str) -> int: return cast(int, self.primary.count_decisions(domain))
     def load_latest_centroids(self, domain: str) -> Any | None: return self.primary.load_latest_centroids(domain)
-    def get_centroid_checkpoints(self, domain: str, include_v2: bool = False, **kwargs: Any) -> list[dict[str, Any]]: return self.primary.get_centroid_checkpoints(domain, include_v2=include_v2, **kwargs)
-    def load_latest_checkpoint_for_regime(self, domain: str, regime_tag: str) -> dict[str, Any] | None: return self.primary.load_latest_checkpoint_for_regime(domain, regime_tag)
-    def get_checkpoint_lineage(self, domain: str, checkpoint_id: str) -> dict[str, Any] | None: return self.primary.get_checkpoint_lineage(domain, checkpoint_id)
-    def get_decision_checkpoints(self, domain: str, decision_id: str) -> list[dict[str, Any]]: return self.primary.get_decision_checkpoints(domain, decision_id)
-    def count_archived(self, domain: str) -> int: return self.primary.count_archived(domain)
-    def read_entity_enrichment(self, *, domain: str, entity_type: str, entity_id: str, namespace: str | None = None) -> dict[str, ProvenancedValue]: return self.primary.read_entity_enrichment(domain=domain, entity_type=entity_type, entity_id=entity_id, namespace=namespace)
-    def list_entity_enrichments(self, *, domain: str, entity_type: str | None = None, namespace: str | None = None, limit: int = 500) -> list[EntityEnrichmentRecord]: return self.primary.list_entity_enrichments(domain=domain, entity_type=entity_type, namespace=namespace, limit=limit)
-    def count_verified_decisions(self, domain: str) -> int: return self.primary.count_verified_decisions(domain)
+    def get_centroid_checkpoints(self, domain: str, include_v2: bool = False, **kwargs: Any) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.get_centroid_checkpoints(domain, include_v2=include_v2, **kwargs))
+    def load_latest_checkpoint_for_regime(self, domain: str, regime_tag: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.load_latest_checkpoint_for_regime(domain, regime_tag))
+    def get_checkpoint_lineage(self, domain: str, checkpoint_id: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_checkpoint_lineage(domain, checkpoint_id))
+    def get_decision_checkpoints(self, domain: str, decision_id: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.get_decision_checkpoints(domain, decision_id))
+    def count_archived(self, domain: str) -> int: return cast(int, self.primary.count_archived(domain))
+    def read_entity_enrichment(self, *, domain: str, entity_type: str, entity_id: str, namespace: str | None = None) -> dict[str, ProvenancedValue]: return cast(dict[str, ProvenancedValue], self.primary.read_entity_enrichment(domain=domain, entity_type=entity_type, entity_id=entity_id, namespace=namespace))
+    def list_entity_enrichments(self, *, domain: str, entity_type: str | None = None, namespace: str | None = None, limit: int = 500) -> list[EntityEnrichmentRecord]: return cast(list[EntityEnrichmentRecord], self.primary.list_entity_enrichments(domain=domain, entity_type=entity_type, namespace=namespace, limit=limit))
+    def count_verified_decisions(self, domain: str) -> int: return cast(int, self.primary.count_verified_decisions(domain))
 
     def write_transfer_pattern(self, pattern_id: str, source_domain: str, target_domain: str, pattern_type: str, factor_mapping: dict[str, Any], confidence: float, validation_status: str, conservation_status: str, source_rule: str | None = None, target_rule: str | None = None, source_fingerprint_id: str | None = None, evolution_event_id: str | None = None, metadata: dict[str, Any] | None = None) -> None:
         self._write("write_transfer_pattern", lambda: self.primary.write_transfer_pattern(pattern_id, source_domain, target_domain, pattern_type, factor_mapping, confidence, validation_status, conservation_status, source_rule, target_rule, source_fingerprint_id, evolution_event_id, metadata), lambda: self.secondary.write_transfer_pattern(pattern_id, source_domain, target_domain, pattern_type, factor_mapping, confidence, validation_status, conservation_status, source_rule, target_rule, source_fingerprint_id, evolution_event_id, metadata), (pattern_id, source_domain, target_domain, pattern_type, factor_mapping, confidence, validation_status, conservation_status), {"source_rule": source_rule, "target_rule": target_rule, "source_fingerprint_id": source_fingerprint_id, "evolution_event_id": evolution_event_id, "metadata": metadata})
 
     def get_transfer_patterns(self, source_domain: str | None = None, target_domain: str | None = None) -> list[dict[str, Any]]:
-        return self.primary.get_transfer_patterns(source_domain=source_domain, target_domain=target_domain)
+        return cast(list[dict[str, Any]], self.primary.get_transfer_patterns(source_domain=source_domain, target_domain=target_domain))
 
     def get_latest_conservation_statuses(self, domains: list[str] | None = None) -> list[dict[str, Any]]:
-        return self.primary.get_latest_conservation_statuses(domains=domains)
+        return cast(list[dict[str, Any]], self.primary.get_latest_conservation_statuses(domains=domains))
 
     def get_iks_trajectory(self, domains: list[str] | None = None, start: float | None = None, end: float | None = None) -> list[dict[str, Any]]:
-        return self.primary.get_iks_trajectory(domains=domains, start=start, end=end)
+        return cast(list[dict[str, Any]], self.primary.get_iks_trajectory(domains=domains, start=start, end=end))
 
     def archive_old_decisions(self, domain: str, keep_recent: int = 800) -> int:
-        return self._write("archive_old_decisions", lambda: self.primary.archive_old_decisions(domain, keep_recent), lambda: self.secondary.archive_old_decisions(domain, keep_recent), (domain,), {"keep_recent": keep_recent})
+        return cast(int, self._write("archive_old_decisions", lambda: self.primary.archive_old_decisions(domain, keep_recent), lambda: self.secondary.archive_old_decisions(domain, keep_recent), (domain,), {"keep_recent": keep_recent}))
 
     def archive_decisions(self, domain: str, before: float, status_filter: str = "pending", confirm_verified: bool = False) -> int:
-        return self._write("archive_decisions", lambda: self.primary.archive_decisions(domain, before, status_filter, confirm_verified), lambda: self.secondary.archive_decisions(domain, before, status_filter, confirm_verified), (domain, before), {"status_filter": status_filter, "confirm_verified": confirm_verified})
+        return cast(int, self._write("archive_decisions", lambda: self.primary.archive_decisions(domain, before, status_filter, confirm_verified), lambda: self.secondary.archive_decisions(domain, before, status_filter, confirm_verified), (domain, before), {"status_filter": status_filter, "confirm_verified": confirm_verified}))
 
     def domain_scoped_reset(self, domain: str) -> None:
         self._write("domain_scoped_reset", lambda: self.primary.domain_scoped_reset(domain), lambda: self.secondary.domain_scoped_reset(domain), (domain,), {})

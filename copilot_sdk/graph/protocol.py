@@ -391,6 +391,11 @@ class ProtocolV2GraphStore(GraphStore, Protocol):
     ) -> None:
         ...
 
+    def get_evolution_events(
+        self, domain: str, **kwargs: Any
+    ) -> list[dict[str, Any]]:
+        ...
+
     def write_transfer_pattern(
         self,
         pattern_id: str,

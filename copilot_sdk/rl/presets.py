@@ -5,8 +5,12 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from copilot_sdk.rl.credit import CreditAssigner
+from copilot_sdk.rl.domains.dataops import DataOpsReward
+from copilot_sdk.rl.domains.purchasing import PurchasingReward
+from copilot_sdk.rl.domains.trading import TradingReward
 from copilot_sdk.rl.exploration import ConservationBoundedThompson
 from copilot_sdk.rl.reward_functions import (
+    BinaryRewardFunction,
     GradedFinancialRewardFunction,
     PnLRewardFunction,
     WasteReductionRewardFunction,
@@ -14,16 +18,20 @@ from copilot_sdk.rl.reward_functions import (
 
 
 RL_PRESET_REGISTRY: dict[str, dict[str, Any]] = {
+    "soc": {
+        "reward_function": BinaryRewardFunction,
+        "penalty_ratio": 20.0,
+    },
     "trading": {
-        "reward_function": PnLRewardFunction,
+        "reward_function": TradingReward,
         "penalty_ratio": 3.0,
     },
     "purchasing": {
-        "reward_function": WasteReductionRewardFunction,
+        "reward_function": PurchasingReward,
         "penalty_ratio": 3.0,
     },
     "dataops": {
-        "reward_function": GradedFinancialRewardFunction,
+        "reward_function": DataOpsReward,
         "penalty_ratio": 10.0,
     },
     "s2p": {

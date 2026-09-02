@@ -27,6 +27,7 @@ from copilot_sdk.scoring.presets import PRESET_REGISTRY
 from copilot_sdk.scoring.trajectory import TrajectoryResult, compute_trajectory
 from copilot_sdk.evolution.protocol import EvolutionStore
 from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
+from copilot_sdk.graph.dual_write_store import DualWriteStore
 from copilot_sdk.scoring.persistence_outbox import PersistenceOutbox
 from copilot_sdk.stats.bootstrap import block_bootstrap_mean_se
 
@@ -145,7 +146,12 @@ class CompoundingScorer:
         self._last_conflict: JudgmentConflict | None = None
         self._consolidation_enabled = bool(consolidation_enabled)
         self._governed_writes = _resolve_governed_writes(governed_writes)
-        if self._governed_writes and not isinstance(graph_store, ProtocolV2GraphStore):
+        governed_store = isinstance(graph_store, ProtocolV2GraphStore) or (
+            isinstance(graph_store, DualWriteStore)
+            and isinstance(graph_store.primary, ProtocolV2GraphStore)
+            and isinstance(graph_store.secondary, ProtocolV2GraphStore)
+        )
+        if self._governed_writes and not governed_store:
             raise TypeError(
                 "Governed writes require a Protocol V2 graph store. "
                 "Ensure GRAPH_BACKEND supports V2."
@@ -279,7 +285,11 @@ class CompoundingScorer:
             # AGE-backed store and is rejected above.
             from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 
-            graph_store = SQLiteGraphStore(db_path, domain=preset.name)
+            graph_store = cast(
+                GraphStore,
+                SQLiteGraphStore(db_path, domain=preset.name),
+            )
+        assert graph_store is not None
         if profile == "production":
             from copilot_sdk.graph.memory_store import InMemoryGraphStore
             from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
@@ -291,7 +301,8 @@ class CompoundingScorer:
                     "SQLite and InMemoryGraphStore are test/development stores."
                 )
             if isinstance(graph_store, DualWriteStore) and isinstance(
-                graph_store.primary, (SQLiteGraphStore, InMemoryGraphStore)
+                cast(DualWriteStore, graph_store).primary,
+                (SQLiteGraphStore, InMemoryGraphStore),
             ):
                 raise RuntimeError(
                     "Production scorer requires AGE to be the primary GraphStore; "

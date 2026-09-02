@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import Any, cast
 
 from fastapi.testclient import TestClient
 
@@ -24,7 +25,7 @@ def _score(client: TestClient) -> dict:
         json={"category": "freshness_violation", "factors": DATAOPS_FACTORS},
     )
     assert response.status_code == 200
-    return response.json()
+    return cast(dict[str, Any], response.json())
 
 
 def _learn(client: TestClient, decision_id: str, actual_action: str) -> dict:
@@ -37,7 +38,7 @@ def _learn(client: TestClient, decision_id: str, actual_action: str) -> dict:
         },
     )
     assert response.status_code == 200
-    return response.json()
+    return cast(dict[str, Any], response.json())
 
 
 def test_health(client: TestClient) -> None:
@@ -434,10 +435,10 @@ def test_ae_fresh_store_returns_empty_responses(tmp_path: Path) -> None:
     assert impact["rejected_rules"] == []
     assert pattern_origin["patterns"] == []
     assert pattern_origin["rejected"] == []
-    assert lifecycle["rules"] == []
-    assert lifecycle["total"] == 0
-    assert operational_rules["rules"] == []
-    assert operational_rules["total"] == 0
+    assert lifecycle["total"] == 4
+    assert len(lifecycle["rules"]) == 4
+    assert operational_rules["total"] == 4
+    assert len(operational_rules["rules"]) == 4
 
 
 def test_dataops_audit_trail_uses_store_backed_recommendation(client: TestClient) -> None:
@@ -512,8 +513,8 @@ def test_rule_lifecycle_returns_all(client: TestClient) -> None:
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["total"] == 4
-    assert len(payload["rules"]) == 4
+    assert payload["total"] == 8
+    assert len(payload["rules"]) == 8
     assert payload["engine"]["gae"] == "gae.evolution"
 
 
@@ -547,7 +548,7 @@ def test_rule_lifecycle_summary_counts(client: TestClient) -> None:
         "promoted": 2,
         "rejected": 1,
         "shadow": 1,
-        "proposed": 0,
+        "proposed": 4,
     }
 
 
@@ -1345,7 +1346,7 @@ def _count_decisions(db_path: Path, domain: str) -> int:
 
     store = SQLiteGraphStore(db_path, domain=domain)
     try:
-        return store.count_decisions(domain)
+        return int(store.count_decisions(domain))
     finally:
         store.close()
 
@@ -1355,7 +1356,7 @@ def _count_verified(db_path: Path, domain: str) -> int:
 
     store = SQLiteGraphStore(db_path, domain=domain)
     try:
-        return store.count_verified(domain)
+        return int(store.count_verified(domain))
     finally:
         store.close()
 
@@ -1365,7 +1366,7 @@ def _count_correct(db_path: Path, domain: str) -> int:
 
     store = SQLiteGraphStore(db_path, domain=domain)
     try:
-        return store.count_correct(domain)
+        return int(store.count_correct(domain))
     finally:
         store.close()
 

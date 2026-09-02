@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 
@@ -12,7 +13,7 @@ class BinaryRewardFunction:
         self,
         recommended_action: str,
         actual_action: str,
-        outcome: dict[str, Any],
+        outcome: Mapping[str, Any],
     ) -> float:
         del outcome
         return 1.0 if actual_action == recommended_action else -1.0
@@ -25,7 +26,7 @@ class GradedFinancialRewardFunction:
         self,
         recommended_action: str,
         actual_action: str,
-        outcome: dict[str, Any],
+        outcome: Mapping[str, Any],
     ) -> float:
         if actual_action == recommended_action:
             recovered = _number(outcome.get("recovered"))
@@ -43,7 +44,7 @@ class PnLRewardFunction:
         self,
         recommended_action: str,
         actual_action: str,
-        outcome: dict[str, Any],
+        outcome: Mapping[str, Any],
     ) -> float:
         del recommended_action, actual_action
         return _clamp(_number(outcome.get("pnl_bps")) / 100.0, -1.0, 1.0)
@@ -56,7 +57,7 @@ class WasteReductionRewardFunction:
         self,
         recommended_action: str,
         actual_action: str,
-        outcome: dict[str, Any],
+        outcome: Mapping[str, Any],
     ) -> float:
         del recommended_action, actual_action
         waste_delta = _number(outcome.get("waste_pct_change"))

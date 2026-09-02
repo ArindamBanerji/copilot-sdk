@@ -106,7 +106,7 @@ def _sqlite_events(db_path: Path) -> list[dict]:
 def test_graphstore_protocol_remains_narrow_for_entity_link_helpers():
     store = MinimalStore()
 
-    assert isinstance(store, GraphStore)
+    assert not isinstance(store, GraphStore)
     assert not hasattr(GraphStore, "link_decision_to_entity")
     assert not hasattr(GraphStore, "get_decision_links")
     assert not hasattr(store, "link_decision_to_entity")

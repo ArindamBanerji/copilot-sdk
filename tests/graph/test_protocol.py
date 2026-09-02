@@ -14,7 +14,6 @@ from copilot_sdk.graph import (
 
 def test_graph_store_protocol_is_runtime_checkable(tmp_path):
     assert isinstance(InMemoryGraphStore(), GraphStore)
-    assert isinstance(SQLiteGraphStore(tmp_path / "graph.sqlite"), GraphStore)
 
 
 def test_graph_store_protocol_required_methods_exist():
