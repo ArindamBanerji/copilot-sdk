@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CopilotShell } from "../../../../copilot_sdk/frontend";
+import { CopilotShell, SelfComputationPanels } from "../../../../copilot_sdk/frontend";
 import { getTrajectory } from "./api";
 import DashboardScreen from "./screens/DashboardScreen";
 import OrderScreen from "./screens/OrderScreen";
@@ -61,6 +61,7 @@ export default function App() {
       {activeTab === "analysis" && <AnalysisScreen />}
       {activeTab === "inventory" && <InventoryScreen />}
       {activeTab === "performance" && <PerformanceScreen />}
+      <SelfComputationPanels />
     </CopilotShell>
   );
 }

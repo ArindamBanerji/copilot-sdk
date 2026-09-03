@@ -89,6 +89,7 @@ from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_gra
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
 from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
+from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
@@ -325,6 +326,7 @@ def create_app(
     active_store_factory: Any | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Trading Copilot", version="0.1.0")
+    app.add_middleware(TenantMiddleware)
 
     claim_registry = TradingClaimRegistry()
     app.state.trading_claim_registry = claim_registry

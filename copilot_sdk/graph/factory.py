@@ -11,10 +11,16 @@ from typing import Mapping, cast
 from copilot_sdk.config import GraphConfig, GraphConfigError
 from copilot_sdk.graph.protocol import GraphStore
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.tenant_store import TenantScopedGraphStore
 
 logger = logging.getLogger(__name__)
 
 _VALID_BACKENDS = {"sqlite", "age", "dual_write"}
+
+
+def _tenant_store(store: GraphStore, env: Mapping[str, str]) -> GraphStore:
+    enabled = str(env.get("TENANT_ISOLATION_ENABLED", "false")).strip().lower() == "true"
+    return TenantScopedGraphStore(store) if enabled else store
 
 
 def _env_value(env: Mapping[str, str], key: str) -> str | None:
@@ -185,14 +191,14 @@ def create_graph_store(
             selected_domain,
             sqlite_path,
         )
-        return cast(
+        return _tenant_store(cast(
             GraphStore,
             SQLiteGraphStore(
                 sqlite_path,
                 domain=selected_domain,
                 decision_id_prefix=decision_id_prefix,
             ),
-        )
+        ), env_map)
 
     if selected_backend == "dual_write":
         sqlite_path = _resolve_sqlite_path(
@@ -259,12 +265,12 @@ def create_graph_store(
             selected_graph,
         )
         outbox_path = Path(sqlite_path).parent / f"{selected_domain}_dual_write_outbox.db"
-        return cast(
+        return _tenant_store(cast(
             GraphStore,
             DualWriteStore(
                 cast(GraphStore, primary), secondary, outbox_path=str(outbox_path)
             ),
-        )
+        ), env_map)
 
     if not selected_domain.strip():
         raise ValueError("AGE graph backend requires explicit non-blank domain")
@@ -296,4 +302,4 @@ def create_graph_store(
     )
     adapter = adapter_cls(dsn=str(selected_dsn), graph_name=selected_graph)
     setattr(adapter, "domain", selected_domain)
-    return cast(GraphStore, adapter)
+    return _tenant_store(cast(GraphStore, adapter), env_map)

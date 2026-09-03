@@ -141,6 +141,15 @@ def create_self_computation_router(
             normalized.append(checkpoint_dict)
         return {"checkpoints": normalized, "total": len(normalized)}
 
+    @router.get("/centroid-timeline", response_model=CentroidHistoryResponse)
+    def centroid_timeline(
+        request: Request,
+        limit: int = Query(50, ge=1, le=500),
+        category: str | None = None,
+    ) -> dict[str, Any]:
+        """Expose centroid evolution under the self-computation surface name."""
+        return centroid_history(request, limit=limit, category=category)
+
     @router.post("/regime-reinit", response_model=FlexibleResponse)
     def regime_reinit(
         regime_tag: str,
@@ -435,6 +444,14 @@ def create_self_computation_router(
             "overall_verified": len(verified),
         }
 
+    @router.get("/accuracy-alerts", response_model=AccuracyByCategoryResponse)
+    def accuracy_alerts(
+        request: Request,
+        threshold: float = Query(0.70, ge=0.0, le=1.0),
+    ) -> dict[str, Any]:
+        """Return category accuracy data with below-threshold alert flags."""
+        return accuracy_by_category(request, threshold=threshold)
+
     @router.get("/trust-traps", response_model=FlexibleResponse)
     def trust_traps() -> dict[str, Any]:
         detector = TrustTrapDetector(_trap_scorer(), _gs(), _domain())
@@ -456,6 +473,7 @@ def create_self_computation_router(
         request: Request,
         category: str | None = None,
         action: str | None = None,
+        outcome: str | None = None,
         limit: int = Query(50, ge=1, le=500),
         verified_only: bool = False,
     ) -> dict[str, Any]:
@@ -471,11 +489,30 @@ def create_self_computation_router(
         filtered = [
             decision
             for decision in source
-            if _matches_decision(decision, category=category, action=action)
+            if _matches_decision(
+                decision, category=category, action=action, outcome=outcome
+            )
         ]
         return {"decisions": filtered[:limit], "total": len(filtered)}
 
-    @router.get("/audit-trail", response_model=dict[str, Any])
+    @router.get("/rule-genealogy", response_model=FlexibleResponse)
+    def rule_genealogy() -> dict[str, Any]:
+        """Return variant lineage from domain-scoped evolution state."""
+        evolutions = _gs().list_evolutions(_domain())
+        return {"domain": _domain(), "rules": _json_safe(evolutions), "total": len(evolutions)}
+
+    @router.get("/rule-lifecycle/{rule_id}", response_model=FlexibleResponse)
+    def rule_lifecycle(rule_id: str) -> dict[str, Any]:
+        """Combine evolution and promotion records for one rule."""
+        store = _gs()
+        return {
+            "domain": _domain(),
+            "rule_id": rule_id,
+            "evolution": _json_safe(store.get_evolution_state(_domain(), rule_id)),
+            "promotion": _json_safe(store.get_promotion(_domain(), rule_id)),
+        }
+
+    @router.get("/audit-trail")
     def audit_trail(
         request: Request,
         decision_id: str | None = None,
@@ -500,6 +537,9 @@ def create_self_computation_router(
                 "chain_complete": outcome is not None,
             }
 
+        ledgers = store.list_ledgers(_domain())
+        if ledgers:
+            return {"trails": _json_safe(ledgers[:limit]), "total": len(ledgers)}
         verified = store.get_verified_decisions(_domain())[:limit]
         return {"trails": verified, "total": len(verified)}
 
@@ -568,16 +608,21 @@ def _matches_decision(
     *,
     category: str | None,
     action: str | None,
+    outcome: str | None,
 ) -> bool:
     if category is not None and decision.get("category") != category:
         return False
     if action is None:
-        return True
-    return action in {
-        decision.get("recommended_action"),
-        decision.get("actual_action"),
-        decision.get("action"),
-    }
+        action_matches = True
+    else:
+        action_matches = action in {
+            decision.get("recommended_action"),
+            decision.get("actual_action"),
+            decision.get("action"),
+        }
+    if not action_matches:
+        return False
+    return outcome is None or decision.get("outcome") == outcome
 
 
 def _merge_verified_fields(

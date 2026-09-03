@@ -80,6 +80,7 @@ from copilot_sdk.di.catalog import ExternalDataCatalog  # noqa: E402
 from copilot_sdk.di.search_service import DISearchService  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
 from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
+from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
@@ -579,6 +580,7 @@ def create_app(
     active_store_factory: Any | None = None,
 ) -> FastAPI:
     app = FastAPI(title="DataOps Copilot", version="0.1.0")
+    app.add_middleware(TenantMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins(),

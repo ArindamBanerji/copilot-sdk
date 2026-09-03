@@ -94,6 +94,7 @@ from copilot_sdk.config import GraphConfig, GraphConfigError, require_shared_gra
 from copilot_sdk.demo.bundle import restore_bundle_if_empty as _restore_demo_bundle  # noqa: E402
 from copilot_sdk.graph.factory import create_graph_store  # noqa: E402
 from copilot_sdk.graph.protocol import GraphStore  # noqa: E402
+from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
 from copilot_sdk.reporting.weekly import (  # noqa: E402
     WeeklyReportGenerator,
     purchasing_cost_extractor,
@@ -448,6 +449,7 @@ def create_app(
     active_store_factory: Any | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Purchasing Copilot", version="0.1.0")
+    app.add_middleware(TenantMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins(),

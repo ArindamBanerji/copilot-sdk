@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CopilotShell } from "../../../../copilot_sdk/frontend";
+import { CopilotShell, SelfComputationPanels } from "../../../../copilot_sdk/frontend";
 import { getHealth, getTrajectory } from "./api";
 import type { Health } from "./types";
 import DashboardScreen from "./screens/DashboardScreen";
@@ -92,6 +92,7 @@ export default function App() {
         </div>
       ) : null}
       {content}
+      <SelfComputationPanels />
     </CopilotShell>
   );
 }

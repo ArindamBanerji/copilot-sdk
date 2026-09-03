@@ -9,6 +9,7 @@ from copilot_sdk.graph.protocol import (
     ProtocolV2GraphStore,
 )
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
+from copilot_sdk.graph.tenant_store import TenantScopedGraphStore
 from copilot_sdk.graph.outcome_service import ProtocolV2OutcomeService
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "ProtocolV2GraphStore",
     "ProtocolV2OutcomeService",
     "SQLiteGraphStore",
+    "TenantScopedGraphStore",
 ]
