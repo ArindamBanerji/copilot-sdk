@@ -907,6 +907,48 @@ class InMemoryGraphStore:
         self._link_evolution_decision(decision_id, event_id, str(domain))
         return None
 
+    def prune_evolution_events(self, domain: str, keep_recent: int = 10_000) -> int:
+        """Delete old proof events while preserving non-proof events first."""
+        domain_value = str(domain)
+        keep_recent = max(int(keep_recent), 0)
+        domain_events = [
+            event for event in self._evolution_events if event.get("domain") == domain_value
+        ]
+        non_proof_count = sum(
+            1 for event in domain_events if event.get("event_type") != "proof_record"
+        )
+        proof_keep = max(keep_recent - non_proof_count, 0)
+        proof_events = [
+            event
+            for event in domain_events
+            if event.get("event_type") == "proof_record"
+        ]
+        to_delete = {
+            id(event)
+            for event in proof_events[: max(len(proof_events) - proof_keep, 0)]
+        }
+        if not to_delete:
+            return 0
+        self._evolution_events = [
+            event for event in self._evolution_events if id(event) not in to_delete
+        ]
+        deleted_event_ids = {
+            str(event.get("event_id"))
+            for event in proof_events
+            if id(event) in to_delete and event.get("event_id") is not None
+        }
+        self._protocol_evolution_events = {
+            event_id: event
+            for event_id, event in self._protocol_evolution_events.items()
+            if event_id not in deleted_event_ids
+        }
+        self._edges = [
+            edge
+            for edge in self._edges
+            if edge.get("event_id") not in deleted_event_ids
+        ]
+        return len(to_delete)
+
     def _link_evolution_decision(
         self,
         decision_id: str | None,

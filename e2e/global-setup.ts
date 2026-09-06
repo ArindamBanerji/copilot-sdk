@@ -1,10 +1,12 @@
 import { chromium } from "@playwright/test";
 
+const HOST = process.env.COPILOT_HOST || "127.0.0.1";
+
 const FRONTENDS = [
-  "http://127.0.0.1:5174",
-  "http://127.0.0.1:5175",
-  "http://127.0.0.1:5176",
-  "http://127.0.0.1:5177",
+  `http://${HOST}:5174`,
+  `http://${HOST}:5175`,
+  `http://${HOST}:5176`,
+  `http://${HOST}:5177`,
 ];
 
 function errorMessage(error: unknown): string {

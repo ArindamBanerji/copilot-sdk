@@ -9,13 +9,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
-DEFAULT_BACKEND = "http://localhost:8010"
+DEFAULT_BACKEND = f"http://{os.environ.get('COPILOT_HOST', '127.0.0.1')}:8010"
 DEFAULT_REPORT = Path(__file__).with_name("volatility_walkthrough_report.json")
 HIGH_VOLATILITY_VIX = 42.0
 HIGH_VOLATILITY_ADX = 35.0

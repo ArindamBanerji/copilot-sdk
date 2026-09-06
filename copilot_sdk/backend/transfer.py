@@ -8,6 +8,8 @@ import time
 from pathlib import Path
 from typing import Any, Mapping
 
+from copilot_sdk.atomic_json import write_json_atomic
+
 
 LEARNED_SIGMA_THRESHOLD = 0.15
 UNLEARNED_SIGMA_THRESHOLD = 0.30
@@ -37,7 +39,7 @@ def save_fingerprint(
     if source_url:
         payload["source_url"] = str(source_url)
     path = directory / f"{normalized_domain}.json"
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    write_json_atomic(path, payload)
     return path
 
 

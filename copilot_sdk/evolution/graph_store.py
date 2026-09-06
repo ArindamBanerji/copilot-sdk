@@ -48,6 +48,38 @@ def _metadata(event: dict[str, Any]) -> dict[str, Any]:
     return dict(value) if isinstance(value, dict) else {}
 
 
+def _event_epoch(event: dict[str, Any]) -> float | None:
+    value = event.get("timestamp", event.get("created_at"))
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return parsed.replace(tzinfo=parsed.tzinfo or timezone.utc).timestamp()
+        except ValueError:
+            return None
+
+
+def _latest_variant_specs(events: list[dict[str, Any]]) -> list[VariantSpec]:
+    latest: dict[str, VariantSpec] = {}
+    times: dict[str, float | None] = {}
+    for event in events:
+        spec_data = _metadata(event).get("spec")
+        if not isinstance(spec_data, dict):
+            continue
+        identifier = str(spec_data["id"])
+        timestamp, previous = _event_epoch(event), times.get(identifier)
+        if timestamp is not None and previous is not None and timestamp < previous:
+            continue
+        latest[identifier] = VariantSpec(
+            id=identifier, family=str(spec_data["family"]),
+            version=int(spec_data.get("version", 1)), template=str(spec_data.get("template", "")),
+            status=str(spec_data.get("status", "active")), metadata=dict(spec_data.get("metadata", {})),
+        )
+        times[identifier] = timestamp
+    return list(latest.values())
+
+
 class GraphVariantStore:
     """VariantStore implementation whose source of truth is AGE events."""
 
@@ -79,18 +111,8 @@ class GraphVariantStore:
         )
 
     def _specs(self) -> list[VariantSpec]:
-        latest: dict[str, VariantSpec] = {}
-        for event in self._variant_events():
-            spec_data = _metadata(event).get("spec")
-            if not isinstance(spec_data, dict):
-                continue
-            spec = VariantSpec(
-                id=str(spec_data["id"]), family=str(spec_data["family"]),
-                version=int(spec_data.get("version", 1)), template=str(spec_data.get("template", "")),
-                status=str(spec_data.get("status", "active")), metadata=dict(spec_data.get("metadata", {})),
-            )
-            latest[spec.id] = spec
-        return list(latest.values())
+        # AGE returns newest first; SQLite returns the selected rows oldest first.
+        return _latest_variant_specs(self._variant_events())
 
     def get_variant(self, variant_id: str) -> VariantSpec | None:
         return next((s for s in self._specs() if s.id == variant_id), None)
@@ -103,6 +125,22 @@ class GraphVariantStore:
 
     def get_active_variants(self) -> list[VariantSpec]:
         return [s for s in self._specs() if s.status == "active"]
+
+    def selection_snapshot(self) -> InMemoryVariantStore:
+        """Read each event stream once for a single selection; retain no cache."""
+        snapshot = InMemoryVariantStore()
+        specs = self._specs()
+        ids = {spec.id for spec in specs}
+        for spec in specs:
+            snapshot.register_variant(spec)
+        for event in self._outcome_events():
+            variant_id = str(event.get("variant_id"))
+            if variant_id not in ids:
+                continue
+            metadata = _metadata(event)
+            snapshot.record_outcome(variant_id, bool(metadata.get("success")),
+                                    category=metadata.get("category"))
+        return snapshot
 
     def _stats(self, variant_id: str, category: str | None = None) -> VariantStats:
         rows = [e for e in self._outcome_events() if str(e.get("variant_id")) == variant_id]
@@ -245,7 +283,9 @@ class GraphProofLedger:
         )
 
     def list_entries(self, limit: int = 100) -> list[dict[str, Any]]:
-        rows = _events(self.graph_store, self.domain, "proof_record")
+        rows = self.graph_store.get_evolution_events(
+            self.domain, event_type="proof_record", limit=max(1, min(int(limit), 1000))
+        )
         entries = [{"kind": _metadata(row).get("kind"), "payload": _metadata(row).get("payload", {}), "created_at": row.get("created_at")} for row in rows]
         return entries[-max(1, min(int(limit), 1000)) :][::-1]
 

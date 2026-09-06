@@ -1,11 +1,14 @@
+import { coalesceRead, withReadInvalidation } from "../../../../copilot_sdk/frontend/requestCoalescing";
 import type {
   Analytics,
   AutoOrderAuditEvent,
   AutoOrderEvaluateResponse,
   AutoOrderStatus,
   ConservationState,
+  DashboardOrderProjection,
   FingerprintResponse,
   HistoryDecision,
+  InventorySummary,
   IKSSummary,
   Item,
   ItemProfile,
@@ -51,7 +54,8 @@ import type {
   Weather,
 } from "./types";
 
-export const BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8020";
+const HOST = import.meta.env.VITE_COPILOT_HOST || "127.0.0.1";
+export const BASE = import.meta.env.VITE_API_URL ?? `http://${HOST}:8020`;
 
 type JsonValue =
   | null
@@ -101,25 +105,24 @@ function denormalize(value: unknown): JsonValue {
 }
 
 async function apiGet<T>(path: string): Promise<T> {
-  const response = await fetch(`${BASE}${path}`);
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
-  }
-  return normalize<T>(await response.json());
+  return apiGetWithTimeout<T>(path, 5_000);
 }
 
 async function apiGetWithTimeout<T>(path: string, timeoutMs: number): Promise<T> {
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(`${BASE}${path}`, { signal: controller.signal });
-    if (!response.ok) {
-      throw new Error(`${response.status} ${response.statusText}`);
+  const payload = await coalesceRead(JSON.stringify([BASE, path, timeoutMs]), async () => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(`${BASE}${path}`, { signal: controller.signal });
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+      }
+      return await response.json();
+    } finally {
+      window.clearTimeout(timeout);
     }
-    return normalize<T>(await response.json());
-  } finally {
-    window.clearTimeout(timeout);
-  }
+  });
+  return normalize<T>(payload);
 }
 
 async function safeApiGet<T>(path: string, timeoutMs?: number): Promise<T | null> {
@@ -131,15 +134,17 @@ async function safeApiGet<T>(path: string, timeoutMs?: number): Promise<T | null
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${BASE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(denormalize(body)),
+  return withReadInvalidation(async () => {
+    const response = await fetch(`${BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(denormalize(body)),
+    });
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+    return normalize<T>(await response.json());
   });
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
-  }
-  return normalize<T>(await response.json());
 }
 
 function withParams(path: string, params: Record<string, unknown>): string {
@@ -159,6 +164,10 @@ export function getAnalytics(): Promise<Analytics> {
 
 export function getItems(): Promise<Item[]> {
   return apiGet<Item[]>("/api/context/items");
+}
+
+export function getInventorySummary(): Promise<InventorySummary> {
+  return apiGet<InventorySummary>("/api/inventory/summary");
 }
 
 export function getTodaySummary(): Promise<TodaySummary> {
@@ -405,6 +414,10 @@ export async function getOrderMetadata(): Promise<Record<string, OrderMetadata>>
   return payload ?? {};
 }
 
+export function getDashboardOrders(): Promise<Record<string, DashboardOrderProjection>> {
+  return apiGet<Record<string, DashboardOrderProjection>>("/api/dashboard/orders");
+}
+
 export function saveOrderMetadata(
   metadata: OrderMetadata | OrderMetadataPayload,
 ): Promise<{ decisionId?: string; metadata?: OrderMetadata }> {
@@ -595,7 +608,7 @@ export function getTrustInsights(): Promise<TrustInsight[]> {
 }
 
 export function getAutoOrderStatus(): Promise<AutoOrderStatus> {
-  return apiGet<AutoOrderStatus>("/api/purchasing/auto-order/status");
+  return apiGetWithTimeout<AutoOrderStatus>("/api/purchasing/auto-order/status", 10_000);
 }
 
 export function enableAutoOrder(): Promise<AutoOrderStatus> {
@@ -607,7 +620,7 @@ export function disableAutoOrder(): Promise<AutoOrderStatus> {
 }
 
 export function getAutoOrderAudit(): Promise<AutoOrderAuditEvent[]> {
-  return apiGet<AutoOrderAuditEvent[]>("/api/purchasing/auto-order/audit");
+  return apiGetWithTimeout<AutoOrderAuditEvent[]>("/api/purchasing/auto-order/audit", 10_000);
 }
 
 export function evaluateAutoOrder(payload: {

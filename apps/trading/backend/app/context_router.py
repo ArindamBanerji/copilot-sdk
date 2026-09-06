@@ -6,7 +6,7 @@ import json
 import math
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, HTTPException, Request, status
 
@@ -17,6 +17,8 @@ from copilot_sdk.state.cached_static import cached_static
 from copilot_sdk.scoring.mutation_lock import serialize_mutation
 from copilot_sdk.scoring.presets.trading import TradingPreset
 from copilot_sdk.scoring.scorer import CompoundingScorer
+from copilot_sdk.atomic_json import write_json_atomic
+from copilot_sdk.process_lock import file_lock
 
 
 router = APIRouter(tags=["context"])
@@ -71,7 +73,7 @@ def _load_json_optional(filename: str) -> Any | None:
 def _write_json(filename: str, payload: Any) -> None:
     path = _DATA_DIR / filename
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    write_json_atomic(path, payload)
 
 
 def _empty_analytics() -> dict[str, Any]:
@@ -184,7 +186,7 @@ def _as_trade_dict(trade: Any) -> dict[str, Any]:
     if isinstance(trade, dict):
         return trade
     if hasattr(trade, "to_dict"):
-        return trade.to_dict()
+        return cast(dict[str, Any], trade.to_dict())
     return {}
 
 
@@ -193,33 +195,13 @@ def _unwrap_shared_scorer(candidate: Any) -> Any:
     return scorer_factory() if callable(scorer_factory) else candidate
 
 
-def _scoring_route_scorer(request: Request) -> Any | None:
-    for route in getattr(request.app, "routes", []):
-        if getattr(route, "path", None) != "/api/score":
-            continue
-        endpoint = getattr(route, "endpoint", None)
-        code = getattr(endpoint, "__code__", None)
-        closure = getattr(endpoint, "__closure__", None)
-        if code is None or not closure:
-            continue
-        for name, cell in zip(code.co_freevars, closure):
-            if name != "get_scorer":
-                continue
-            get_scorer = cell.cell_contents
-            if callable(get_scorer):
-                return _unwrap_shared_scorer(get_scorer())
-    return None
-
-
 def _trust_scorer(request: Request) -> Any:
-    shared_scorer = _scoring_route_scorer(request)
-    if shared_scorer is not None:
-        return shared_scorer
-
-    store = getattr(request.app.state, "trading_selected_graph_store", None)
-    if store is not None:
-        return CompoundingScorer.from_preset("trading", graph_store=store)
-    return CompoundingScorer.from_preset("trading")
+    # App ownership is explicit; endpoint closures change when handlers are
+    # decorated or moved into a threadpool and are not a dependency interface.
+    shared = getattr(request.app.state, "trading_regime_conditioning", None)
+    if shared is None:
+        raise HTTPException(status_code=503, detail="Shared Trading scorer unavailable")
+    return _unwrap_shared_scorer(shared)
 
 
 def _trading_conservation_config() -> dict[str, Any]:
@@ -391,7 +373,7 @@ def portfolio_summary() -> dict[str, Any]:
         summary = _load_json("portfolio_summary.json")
     if _explicit_demo_mode():
         return {**summary, "source": "demo_fixture", "provenance": "demo_fixture"}
-    return summary
+    return cast(dict[str, Any], summary)
 
 
 @router.get("/analytics")
@@ -414,7 +396,7 @@ def trust_analysis(request: Request, category: str | None = None) -> dict[str, A
     result["factor_details"] = factor_details
     result["factors"] = list(result["factor_names"])
     result["trust_scores"] = {factor["name"]: factor for factor in factor_details}
-    return result
+    return cast(dict[str, Any], result)
 
 
 @router.get("/patterns")
@@ -526,7 +508,7 @@ def similar_trades(
             }
         )
 
-    matches.sort(key=lambda item: item["similarity"], reverse=True)
+    matches.sort(key=lambda item: float(item["similarity"] or 0.0), reverse=True)
     limit = max(n, 0)
     return {
         "similar": matches[:limit],
@@ -543,10 +525,11 @@ def save_trade_metadata(payload: dict[str, Any]) -> dict[str, Any]:
     if not decision_id:
         raise HTTPException(status_code=400, detail="decision_id is required")
 
-    metadata = _load_json_optional("trade_metadata.json") or {}
     record = dict(payload)
-    metadata[str(decision_id)] = record
-    _write_json("trade_metadata.json", metadata)
+    with file_lock(str((_DATA_DIR / "trade_metadata.json").resolve()) + ".lock"):
+        metadata = _load_json_optional("trade_metadata.json") or {}
+        metadata[str(decision_id)] = record
+        _write_json("trade_metadata.json", metadata)
     return {"decision_id": str(decision_id), "metadata": record}
 
 

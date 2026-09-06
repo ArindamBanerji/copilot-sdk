@@ -9,12 +9,15 @@ import threading
 import time
 import uuid
 from collections.abc import Iterable, Mapping
+from contextlib import nullcontext
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
+
+from copilot_sdk.process_lock import file_lock
 
 from copilot_sdk.graph.enrichment import (
     EnrichmentSourceSet,
@@ -403,11 +406,22 @@ class SQLiteGraphStore:
         )
         self._conn.row_factory = sqlite3.Row
         self._conn.execute(f"PRAGMA busy_timeout={SQLITE_BUSY_TIMEOUT_MS}")
-        with self._write_lock:
-            if self.db_path != ":memory:":
-                self._conn.execute("PRAGMA journal_mode=WAL")
-            self._create_tables()
-            self._ensure_migrations()
+        try:
+            # Schema inspection followed by ALTER and WAL initialization must
+            # also be serialized between Windows spawn-mode processes.
+            schema_lock = (
+                nullcontext() if self.db_path == ":memory:"
+                else file_lock(str(Path(self.db_path).resolve()) + ".schema.lock")
+            )
+            with self._write_lock, schema_lock:
+                if self.db_path != ":memory:":
+                    self._conn.execute("PRAGMA journal_mode=WAL")
+                self._create_tables()
+                self._ensure_migrations()
+        except BaseException:
+            self._conn.close()
+            self._conn = None
+            raise
 
     @property
     def connection(self) -> sqlite3.Connection:
@@ -3043,6 +3057,41 @@ class SQLiteGraphStore:
 
         self._run_write(persist)
 
+    def prune_evolution_events(self, domain: str, keep_recent: int = 10_000) -> int:
+        """Delete old legacy proof events so the domain's event history is bounded."""
+        domain_value = str(domain)
+        keep_recent = max(int(keep_recent), 0)
+
+        def persist() -> int:
+            non_proof = self.connection.execute(
+                """
+                SELECT count(*) AS cnt
+                FROM evolution_events
+                WHERE domain = ? AND event_type != 'proof_record'
+                """,
+                (domain_value,),
+            ).fetchone()
+            proof_keep = max(keep_recent - int(non_proof["cnt"] if non_proof else 0), 0)
+            deleted = self.connection.execute(
+                """
+                DELETE FROM evolution_events
+                WHERE domain = ?
+                  AND event_type = 'proof_record'
+                  AND id NOT IN (
+                    SELECT id
+                    FROM evolution_events
+                    WHERE domain = ?
+                      AND event_type = 'proof_record'
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT ?
+                  )
+                """,
+                (domain_value, domain_value, proof_keep),
+            ).rowcount
+            return max(int(deleted), 0)
+
+        return int(self._run_write(persist))
+
     def get_evolution_events(
         self,
         domain: str,
@@ -3055,6 +3104,10 @@ class SQLiteGraphStore:
         if rule_name is not None:
             clauses.append("rule_name = ?")
             params.append(rule_name)
+        for field in ("event_type", "variant_id"):
+            if kwargs.get(field) is not None:
+                clauses.append(f"{field} = ?")
+                params.append(kwargs[field])
         rows = self.connection.execute(
             f"""
             SELECT domain, event_type, rule_name, variant_id, metadata, timestamp

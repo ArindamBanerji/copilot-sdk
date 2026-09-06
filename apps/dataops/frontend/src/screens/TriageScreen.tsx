@@ -237,6 +237,9 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
     () => data.recommendation?.recommendations?.[0] || null,
     [data.recommendation],
   );
+  const aeBadgeText = primaryRecommendation
+    ? primaryRecommendation.variantId || primaryRecommendation.id || primaryRecommendation.matchReason || "matched"
+    : "recommendation pending";
   const applyFixReady = Boolean(selectedAlertId && score && rewardLine && APPLY_FIX_DEMO.conservationPreview.safe);
   const dataReady =
     Boolean(selectedAlertId) &&
@@ -374,11 +377,9 @@ export default function TriageScreen({ selectedAlertId, onBack }: TriageScreenPr
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <RecurrenceBadge count={data.recurrence?.priorCount ?? alert?.recurrenceCount} />
-            {primaryRecommendation ? (
-              <span className="rounded-full px-2 py-1 text-xs font-semibold" style={{ background: "var(--copilot-primary-light)", color: "var(--copilot-primary)" }}>
-                AE: {primaryRecommendation.variantId || primaryRecommendation.id || "matched"}
-              </span>
-            ) : null}
+            <span className="rounded-full px-2 py-1 text-xs font-semibold" style={{ background: "var(--copilot-primary-light)", color: "var(--copilot-primary)" }}>
+              AE: {aeBadgeText}
+            </span>
           </div>
         </div>
       </section>

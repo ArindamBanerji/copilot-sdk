@@ -56,7 +56,7 @@ export default function RuleLifecyclePanel() {
       {status === "error" ? <p className="mt-5 text-sm dataops-muted">Rule lifecycle is unavailable right now.</p> : null}
       {status === "ready" && rules.length === 0 ? <p className="mt-5 text-sm dataops-muted">No rules have entered the lifecycle yet.</p> : null}
       {rules.length > 0 ? (
-        <div className="mt-5 grid gap-4">
+        <div data-testid="rule-lifecycle-track" className="mt-5 grid gap-4">
           {rules.map((rule, index) => <LifecycleTrack key={`${rule.id || rule.variantId || rule.name || "rule"}-${index}`} rule={rule} />)}
         </div>
       ) : null}
@@ -78,7 +78,7 @@ function LifecycleTrack({ rule }: { rule: RuleWithLifecycle }) {
           {humanize(current)}
         </span>
       </div>
-      <div data-testid="rule-lifecycle-track" className="mt-5 grid grid-cols-4 gap-2">
+      <div data-testid="rule-lifecycle-stage-track" className="mt-5 grid grid-cols-4 gap-2">
         {stages.map((stage, index) => {
           const reached = eventTypes.has(stage) || stage === current || (current === "promoted" && index < 3) || (current === "rejected" && index < 2);
           return (

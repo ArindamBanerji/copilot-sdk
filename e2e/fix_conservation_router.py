@@ -73,5 +73,5 @@ fix_main("trading")
 fix_main("purchasing")
 
 print("\nDone. Restart backends and verify:")
-print('  Invoke-RestMethod "http://localhost:8010/api/conservation/status"')
-print('  Invoke-RestMethod "http://localhost:8020/api/conservation/status"')
+print('  Invoke-RestMethod "http://127.0.0.1:8010/api/conservation/status"')
+print('  Invoke-RestMethod "http://127.0.0.1:8020/api/conservation/status"')

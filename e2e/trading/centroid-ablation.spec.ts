@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
-const BASE = "http://localhost:8010";
+const HOST = process.env.COPILOT_HOST || "127.0.0.1";
+const BASE = `http://${HOST}:8010`;
 
 test("centroid ablation returns correct shape", async ({ request }) => {
   const historyResponse = await request.get(`${BASE}/api/self/centroid-history?limit=1`);

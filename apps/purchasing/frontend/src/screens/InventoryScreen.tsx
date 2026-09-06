@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import EvolutionPanel, { type EvolutionStatus, type EvolutionVariant } from "../../../../../copilot_sdk/frontend/EvolutionPanel";
-import { getEvolutionVariants, getItems, getWasteHistory } from "../api";
+import { getInventorySummary } from "../api";
 import { AuditTrailViewer } from "../components/AuditTrailViewer";
 import CategoryEmoji from "../components/CategoryEmoji";
 import DeliveryScheduleCard from "../components/DeliveryScheduleCard";
@@ -98,20 +98,11 @@ export default function InventoryScreen() {
       setLoading(true);
       setError(undefined);
       try {
-        const [nextItems, nextVariants] = await Promise.all([getItems(), getEvolutionVariants()]);
-        const entries = await Promise.all(
-          nextItems.map(async (item) => {
-            try {
-              return [item.name, await getWasteHistory(item.name)] as const;
-            } catch {
-              return [item.name, { item: item.name, wastePct: [] }] as const;
-            }
-          }),
-        );
+        const summary = await getInventorySummary();
         if (mounted) {
-          setItems(nextItems);
-          setVariants(nextVariants);
-          setWasteByItem(Object.fromEntries(entries));
+          setItems(summary.items);
+          setVariants(summary.variants);
+          setWasteByItem(Object.fromEntries(summary.items.map((item) => [item.name, item.wasteHistory])));
         }
       } catch (caught) {
         if (mounted) {

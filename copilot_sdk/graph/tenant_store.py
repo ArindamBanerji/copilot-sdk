@@ -117,6 +117,12 @@ class TenantScopedGraphStore:
     def delete_evolution(self, domain: str, variant_id: str) -> None:
         self._store.delete_evolution(domain, variant_id)
 
+    def prune_evolution_events(self, domain: str, keep_recent: int = 10_000) -> int:
+        pruner = getattr(cast(Any, self._store), "prune_evolution_events", None)
+        if not callable(pruner):
+            return 0
+        return int(pruner(domain, keep_recent=keep_recent))
+
     def save_evolution_state(self, domain: str, variant_id: str, state: dict[str, Any]) -> None:
         self._store.save_evolution_state(domain, variant_id, self._stamp(state))
 

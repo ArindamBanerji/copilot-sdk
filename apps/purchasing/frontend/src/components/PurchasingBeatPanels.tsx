@@ -44,6 +44,10 @@ function useData(loader: () => Promise<unknown>): Data | null {
   return data;
 }
 
+function fetchRoiSummary(): Promise<PurchasingBeatPayload | null> {
+  return fetchPurchasingBeat("/api/purchasing/economic/roi-summary");
+}
+
 export function MirrorOpenPanel() {
   const proof = useData(fetchProofLedger);
   const twin = useData(fetchFrozenTwin);
@@ -81,7 +85,7 @@ export function TimeToCompetencePanel() {
 
 export function NotYetPanel() {
   const readiness = useData(fetchDayZeroReadiness);
-  const roi = useData(() => fetchPurchasingBeat("/api/purchasing/economic/roi-summary"));
+  const roi = useData(fetchRoiSummary);
   const remaining = pick(readiness, "decisionsUntilMeasured", "decisions_until_measured", "remaining");
   return <Panel id="not-yet-panel" beat="PUR-NOT-YET" title="Not yet" note="Quiet weeks are part of the kitchen evidence story."><div className="grid gap-3 md:grid-cols-2"><div data-testid="not-yet-signal" className="rounded-md border border-amber-300/40 bg-amber-500/10 p-4"><div className="font-semibold">No supplier factor is reliably misleading yet</div><p className="purchase-muted mt-1">{remaining === undefined ? "~60 more deliveries" : String(remaining)}</p></div><div data-testid="not-yet-week" className="rounded-md border border-white/10 p-4"><div className="text-xl font-semibold">{display(roi, "weeklyIncremental", "weekly_incremental", "incremental") === "Not yet measured" ? "$0 incremental this week" : display(roi, "weeklyIncremental", "weekly_incremental", "incremental")}</div><p className="purchase-muted mt-1">Coverage {display(roi, "coverage", "coveragePct", "coverage_pct") === "Not yet measured" ? "94%" : display(roi, "coverage", "coveragePct", "coverage_pct")}</p></div></div></Panel>;
 }

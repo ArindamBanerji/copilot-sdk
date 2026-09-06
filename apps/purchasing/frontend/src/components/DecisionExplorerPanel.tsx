@@ -24,7 +24,10 @@ export function DecisionExplorerPanel() {
     fetchDecisions({ category: category || undefined, verifiedOnly }).then((response) => {
       if (!active) return;
       setDecisions(response?.decisions ?? []);
-      setLoading(false);
+    }).catch(() => {
+      if (active) setDecisions([]);
+    }).finally(() => {
+      if (active) setLoading(false);
     });
     return () => {
       active = false;
@@ -108,4 +111,3 @@ export function DecisionExplorerPanel() {
     </section>
   );
 }
-

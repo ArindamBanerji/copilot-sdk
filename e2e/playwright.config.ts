@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const HOST = process.env.COPILOT_HOST || "127.0.0.1";
+
 export default defineConfig({
   timeout: 30_000,
   retries: 1,
@@ -24,21 +26,21 @@ export default defineConfig({
       name: "trading",
       testDir: "./trading",
       use: {
-        baseURL: "http://127.0.0.1:5174",
+        baseURL: `http://${HOST}:5174`,
       },
     },
     {
       name: "purchasing",
       testDir: "./purchasing",
       use: {
-        baseURL: "http://127.0.0.1:5175",
+        baseURL: `http://${HOST}:5175`,
       },
     },
     {
       name: "dataops",
       testDir: "./dataops",
       use: {
-        baseURL: "http://127.0.0.1:5176",
+        baseURL: `http://${HOST}:5176`,
       },
     },
     {
@@ -47,7 +49,7 @@ export default defineConfig({
       timeout: 60_000,
       expect: { timeout: 10_000 },
       use: {
-        baseURL: "http://127.0.0.1:5177",
+        baseURL: `http://${HOST}:5177`,
       },
     },
     {

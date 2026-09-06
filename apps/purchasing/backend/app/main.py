@@ -8,7 +8,7 @@ import os
 import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,8 @@ for path in (BACKEND_ROOT, REPO_ROOT, GAE_PATH, CI_PLATFORM_PATH):
         sys.path.insert(0, str(path))
 
 from . import context_router as context_router_module  # noqa: E402
+from .dashboard_router import router as dashboard_router  # noqa: E402
+from .inventory_router import router as inventory_router  # noqa: E402
 from .graph_status import (  # noqa: E402
     build_purchasing_graph_status,
     create_purchasing_active_graph_store,
@@ -103,6 +105,7 @@ from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.presets.purchasing import PurchasingPreset  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
+from copilot_sdk.demo.startup import startup_lock  # noqa: E402
 from copilot_sdk.transfer.chain_transfer import ChainTransfer  # noqa: E402
 from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
 
@@ -361,8 +364,8 @@ def _auto_seed_if_needed(graph_store: GraphStore) -> int:
 
 
 def _variant_from_event(event: dict[str, Any]) -> dict[str, Any]:
-    metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
-    variant = dict(metadata)
+    metadata = event.get("metadata")
+    variant = dict(metadata) if isinstance(metadata, dict) else {}
     event_type = str(variant.get("event_type") or event.get("event_type") or "")
     rule_name = str(event.get("rule_name") or variant.get("rule_name") or "")
     variant_id = str(
@@ -485,12 +488,13 @@ def create_app(
             return active_graph_store
         return _graph_store(path, backend=active_graph_config.requested_backend)
 
+    _bundle_path: Path | bool
     if demo_bundle_path is None:
         _bundle_path = REPO_ROOT / "demo" / f"{DOMAIN}_demo_bundle.json"
     elif demo_bundle_path is False:
         _bundle_path = False
     else:
-        _bundle_path = Path(demo_bundle_path)
+        _bundle_path = Path(cast(str | Path, demo_bundle_path))
     # Active AGE owns the selected store; no separate generic factory call is
     # needed for startup seeding (seeding is skipped while AGE is active).
     seed_graph_store = (
@@ -549,6 +553,10 @@ def create_app(
     }
 
     def _run_startup_seed_once() -> None:
+        with startup_lock(scoring_db):
+            _run_startup_locked()
+
+    def _run_startup_locked() -> None:
         if not startup_state["seeded"]:
             startup_state["seeded"] = True
             if os.environ.get("DEMO_NO_RESEED") == "1":
@@ -652,19 +660,19 @@ def create_app(
     @app.get("/api/purchasing/waste/summary")
     def waste_summary() -> dict[str, Any]:
         tracker = WasteTracker(_load_order_rows())
-        return tracker.weekly_waste_cost()
+        return cast(dict[str, Any], tracker.weekly_waste_cost())
 
     @app.get("/api/purchasing/par/predict")
     def predictive_par(item: str = "salmon", category: str = "protein", date: str = "2026-06-26") -> dict[str, Any]:
         service = PredictivePar(optimizer=_par_optimizer())
         base = service.base_from_optimizer(item, category, _load_order_rows())
-        return service.predict(
+        return cast(dict[str, Any], service.predict(
             item,
             category,
             date,
             base_par=base,
             conservation_status=_conservation_status(category),
-        ).to_dict()
+        ).to_dict())
 
     @app.get("/api/purchasing/par/predict-week")
     def predictive_par_week() -> dict[str, Any]:
@@ -677,7 +685,7 @@ def create_app(
             with_base["base_par"] = service.base_from_optimizer(item, category, _load_order_rows())
             with_base["conservation_status"] = _conservation_status(category)
             items.append(with_base)
-        return service.predict_week(items)
+        return cast(dict[str, Any], service.predict_week(items))
 
     disruption_recovery_service = DisruptionRecoveryService()
     payment_timing_service = PaymentTimingService()
@@ -686,23 +694,23 @@ def create_app(
 
     @app.get("/api/purchasing/disruption/status")
     def disruption_status() -> dict[str, Any]:
-        return disruption_recovery_service.recovery_status()
+        return cast(dict[str, Any], disruption_recovery_service.recovery_status())
 
     @app.get("/api/purchasing/disruption/history")
     def disruption_history() -> list[dict[str, Any]]:
-        return disruption_recovery_service.recovery_history()
+        return cast(list[dict[str, Any]], disruption_recovery_service.recovery_history())
 
     @app.get("/api/purchasing/payment/timing")
     def payment_timing(supplier_id: str | None = None) -> dict[str, Any] | list[dict[str, Any]]:
-        return payment_timing_service.analyze(supplier_id)
+        return cast(dict[str, Any] | list[dict[str, Any]], payment_timing_service.analyze(supplier_id))
 
     @app.get("/api/purchasing/payment/summary")
     def payment_summary() -> dict[str, Any]:
-        return payment_timing_service.portfolio_summary()
+        return cast(dict[str, Any], payment_timing_service.portfolio_summary())
 
     @app.get("/api/purchasing/audit/pack")
     def audit_pack(period: str = "last_quarter") -> dict[str, Any]:
-        return audit_export_service.generate_pack(period)
+        return cast(dict[str, Any], audit_export_service.generate_pack(period))
 
     @app.get("/api/purchasing/audit/export/json")
     def audit_export_json(period: str = "last_quarter") -> Response:
@@ -718,7 +726,7 @@ def create_app(
             raise HTTPException(status_code=404, detail="Purchasing demo route is disabled")
         state = chain_demo.seed()
         app.state.purchasing_chain_demo = state
-        return chain_demo.seed_response(state)
+        return cast(dict[str, Any], chain_demo.seed_response(state))
 
     @app.post("/api/purchasing/chain/transfer")
     def chain_demo_transfer(payload: dict[str, Any], request: Request) -> dict[str, Any]:
@@ -730,14 +738,14 @@ def create_app(
                 state = chain_demo.seed()
                 app.state.purchasing_chain_demo = state
             try:
-                return chain_demo.transfer(
+                return cast(dict[str, Any], chain_demo.transfer(
                     state,
                     source_location=str(payload.get("source_location") or "downtown"),
                     target_locations=[
                         str(target)
                         for target in payload.get("target_locations", ["airport", "suburb", "new"])
                     ],
-                )
+                ))
             except KeyError as exc:
                 raise HTTPException(status_code=404, detail=f"Unknown location: {exc.args[0]}") from exc
 
@@ -801,6 +809,8 @@ def create_app(
     )
     context_router_module.set_evolution_store_factory(lambda: selected_graph_store_factory(scoring_db))
     app.include_router(context_router_module.router, prefix="/api/context")
+    app.include_router(dashboard_router, prefix="/api")
+    app.include_router(inventory_router, prefix="/api")
     app.include_router(create_evidence_router(scorer_proxy))
     app.include_router(create_learning_beats_router(scorer_proxy))
     app.include_router(create_iks_router(lambda: selected_graph_store_factory(scoring_db)))
@@ -902,7 +912,7 @@ def create_app(
             }
             for factor in getattr(fingerprint, "factors", [])
         ]
-        dominant = max(factors, key=lambda item: item["weight"], default=None)
+        dominant = max(factors, key=lambda item: cast(float, item["weight"]), default=None)
         return {
             "domain": DOMAIN,
             "factors": factors,

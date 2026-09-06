@@ -9,6 +9,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from copilot_sdk.process_lock import file_lock
+
 
 class DurableOutbox:
     """SQLite-backed durable outbox for failed secondary writes."""
@@ -17,9 +19,11 @@ class DurableOutbox:
         self.path = str(path)
         Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
-        self._connection = sqlite3.connect(self.path, check_same_thread=False)
+        self._connection = sqlite3.connect(self.path, check_same_thread=False, timeout=30.0)
         self._connection.row_factory = sqlite3.Row
-        with self._lock:
+        self._connection.execute("PRAGMA busy_timeout=30000")
+        with self._lock, file_lock(str(Path(self.path).resolve()) + ".schema.lock"):
+            self._connection.execute("PRAGMA journal_mode=WAL")
             self._connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS secondary_outbox (

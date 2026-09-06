@@ -13,14 +13,14 @@ function panelByHeading(page: Page, heading: string | RegExp): Locator {
 }
 
 async function mockEmptyDIProfiles(page: Page) {
-  await page.route(/https?:\/\/(?:localhost|127\.0\.0\.1):8030\/api\/di\/profiles$/, async (route) => {
+  await page.route(/https?:\/\/127\.0\.0\.1:8030\/api\/di\/profiles$/, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ sources: [], total: 0 }),
     });
   });
-  await page.route(/https?:\/\/(?:localhost|127\.0\.0\.1):8030\/api\/di\/intelligence-map$/, async (route) => {
+  await page.route(/https?:\/\/127\.0\.0\.1:8030\/api\/di\/intelligence-map$/, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",

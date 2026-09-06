@@ -48,15 +48,22 @@ def compute_trajectory(
     if counts[-1] != total:
         counts.append(total)
 
-    points = [
-        TrajectoryPoint(
+    points = []
+    correct = outcomes = previous_count = 0
+    for count in counts:
+        for index in range(previous_count, count):
+            decision = ordered[index]
+            if "is_correct" in decision:
+                outcomes += 1
+                correct += bool(decision["is_correct"])
+        win_rate = round(correct / outcomes, 3) if outcomes else 0.50
+        points.append(TrajectoryPoint(
             decisions=count,
-            iks=_compute_iks(count, _win_rate(ordered[:count])),
-            win_rate=_win_rate(ordered[:count]),
+            iks=_compute_iks(count, win_rate),
+            win_rate=win_rate,
             timestamp=_timestamp_for_count(ordered, count),
-        )
-        for count in counts
-    ]
+        ))
+        previous_count = count
 
     days_active = round(
         (float(ordered[-1]["created_at"]) - float(ordered[0]["created_at"])) / 86400.0,

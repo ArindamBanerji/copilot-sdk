@@ -23,6 +23,8 @@ from copilot_sdk.backend.models import (
     SelfDecisionsResponse,
 )
 from copilot_sdk.backend.evolution_router import build_evolution_summary
+from copilot_sdk.backend.coalesced_read import CoalescedRead
+from copilot_sdk.config.tenant import current_tenant_id
 from copilot_sdk.graph import GraphStore
 from copilot_sdk.scoring.measurement_state import compute_measurement_state
 from copilot_sdk.scoring.trust_traps import TrustTrapDetector, trap_asdict
@@ -49,12 +51,20 @@ def create_self_computation_router(
 ) -> APIRouter:
     """Create GraphStore-backed self-computation endpoints for one app instance."""
     router = APIRouter(prefix=prefix, tags=["self-computation"])
+    verified_reads = CoalescedRead()
 
     def _gs() -> GraphStore:
         return graph_store() if callable(graph_store) else graph_store
 
     def _domain() -> str:
         return str(domain or getattr(_gs(), "domain", "") or "")
+
+    def _verified(store: GraphStore) -> list[dict[str, Any]]:
+        current_domain = _domain()
+        return verified_reads.run(
+            (id(store), current_domain, current_tenant_id()),
+            lambda: store.get_verified_decisions(current_domain),
+        )
 
     def _scorer() -> Any:
         if scorer_provider is None:
@@ -278,7 +288,7 @@ def create_self_computation_router(
                 detail="Checkpoint factor_names_hash does not match the current preset",
             )
 
-        verified = store.get_verified_decisions(current_domain)[-window:]
+        verified = _verified(store)[-window:]
         details: list[dict[str, Any]] = []
         for decision in verified:
             factors = decision.get("factors")
@@ -414,7 +424,7 @@ def create_self_computation_router(
         request: Request,
         threshold: float = Query(0.70, ge=0.0, le=1.0),
     ) -> dict[str, Any]:
-        verified = _gs().get_verified_decisions(_domain())
+        verified = _verified(_gs())
         grouped: dict[str, dict[str, int]] = {}
         for decision in verified:
             category = str(decision.get("category") or "uncategorized")
@@ -479,11 +489,11 @@ def create_self_computation_router(
     ) -> dict[str, Any]:
         store = _gs()
         source = (
-            store.get_verified_decisions(_domain())
+            _verified(store)
             if verified_only
             else _merge_verified_fields(
                 store.get_all_decisions(_domain()),
-                store.get_verified_decisions(_domain()),
+                _verified(store),
             )
         )
         filtered = [
@@ -526,7 +536,7 @@ def create_self_computation_router(
             outcome = next(
                 (
                     verified
-                    for verified in store.get_verified_decisions(_domain())
+                    for verified in _verified(store)
                     if verified.get("decision_id") == decision_id
                 ),
                 None,
@@ -540,7 +550,7 @@ def create_self_computation_router(
         ledgers = store.list_ledgers(_domain())
         if ledgers:
             return {"trails": _json_safe(ledgers[:limit]), "total": len(ledgers)}
-        verified = store.get_verified_decisions(_domain())[:limit]
+        verified = _verified(store)[:limit]
         return {"trails": verified, "total": len(verified)}
 
     @router.get("/decision-flow", response_model=DecisionFlowResponse)
@@ -548,7 +558,7 @@ def create_self_computation_router(
         store = _gs()
         domain = _domain()
         all_decisions = _get_all_decisions(store, domain)
-        verified = _get_verified_decisions(store, domain)
+        verified = _verified(store)
         merged = _merge_verified_fields(all_decisions, verified)
         ordered = sorted(merged, key=_decision_sort_key, reverse=True)
         recent = ordered[:limit]

@@ -1,5 +1,7 @@
 import { test as base, expect, type APIRequestContext, type Page } from "@playwright/test";
 
+const HOST = process.env.COPILOT_HOST || "127.0.0.1";
+
 const BACKEND_PORTS = {
   trading: 8010,
   purchasing: 8020,
@@ -49,7 +51,7 @@ export const test = base.extend<{ backendHealth: void }>({
       }
 
       const port = BACKEND_PORTS[projectName];
-      const healthUrl = `http://127.0.0.1:${port}/health`;
+      const healthUrl = `http://${HOST}:${port}/health`;
       try {
         await retryHealthCheck(request, healthUrl);
       } catch (error) {
@@ -58,7 +60,7 @@ export const test = base.extend<{ backendHealth: void }>({
         return;
       }
 
-      const base = `http://127.0.0.1:${port}`;
+      const base = `http://${HOST}:${port}`;
       await Promise.all([
         request.get(`${base}/api/fingerprint`, { timeout: 5_000 }).catch(() => {}),
         request.get(`${base}/api/conservation/status`, { timeout: 5_000 }).catch(() => {}),

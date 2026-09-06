@@ -63,7 +63,8 @@ import type {
   WhatIfResponse
 } from "./types";
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8002";
+const HOST = import.meta.env.VITE_COPILOT_HOST || "127.0.0.1";
+export const API_URL = import.meta.env.VITE_API_URL || `http://${HOST}:8002`;
 
 export async function apiGet<T>(path: string): Promise<T> {
   const response = await fetch(`${API_URL}${path}`);

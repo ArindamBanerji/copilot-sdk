@@ -5,7 +5,7 @@ import io
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
-from typing import cast
+from typing import TypedDict, cast
 
 import pytest
 
@@ -19,8 +19,24 @@ from demo import COPILOTS
 # create_parser/_inject_active_graph_env/_maybe_migrate_dev_db.
 
 
+class _StartCapture(TypedDict, total=False):
+    selected: list[dict]
+    args: argparse.Namespace
+
+
+def _record(calls: list[tuple], event: tuple, result: bool) -> bool:
+    calls.append(event)
+    return result
+
+
 class _FakeProcess:
     pid = 4242
+
+
+@pytest.fixture(autouse=True)
+def isolated_launcher_logs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(demo, "BACKEND_LOG_DIR", tmp_path / "logs")
+    monkeypatch.setattr(demo, "KEEPALIVE_PID_FILE", tmp_path / "keepalive.pid")
 
 
 def _args(**overrides) -> argparse.Namespace:
@@ -56,10 +72,10 @@ def _selected_copilot(tmp_path: Path, *, name: str = "Trading") -> dict:
 
 
 def _patch_safe_start(monkeypatch: pytest.MonkeyPatch, calls: list[tuple]) -> None:
-    monkeypatch.setattr(demo, "kill_port", lambda port, label=None: calls.append(("kill", port, label)) or False)
+    monkeypatch.setattr(demo, "kill_port", lambda port, label=None: _record(calls, ("kill", port, label), False))
     monkeypatch.setattr(demo, "check_port", lambda port: False)
-    monkeypatch.setattr(demo, "wait_for_health", lambda name, port, timeout=30: calls.append(("health", name, port, timeout)) or True)
-    monkeypatch.setattr(demo, "wait_for_frontend", lambda name, port, timeout=15: calls.append(("frontend_wait", name, port, timeout)) or True)
+    monkeypatch.setattr(demo, "wait_for_health", lambda name, port, timeout=30: _record(calls, ("health", name, port, timeout), True))
+    monkeypatch.setattr(demo, "wait_for_frontend", lambda name, port, timeout=15: _record(calls, ("frontend_wait", name, port, timeout), True))
     monkeypatch.setattr(demo.webbrowser, "open_new_tab", lambda url: calls.append(("browser", url)))
 
     def fake_popen(command, **kwargs):
@@ -143,7 +159,7 @@ def test_known_ports_includes_backend_and_frontend_ports() -> None:
 
 
 def test_main_defaults_to_starting_all_copilots(monkeypatch: pytest.MonkeyPatch) -> None:
-    captured: dict[str, object] = {}
+    captured: _StartCapture = {}
     monkeypatch.setattr(sys, "argv", ["demo.py", "--no-browser"])
     monkeypatch.setattr(
         demo,
@@ -164,7 +180,7 @@ def test_main_defaults_to_starting_all_copilots(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_main_sdk_flag_selects_sdk_copilots(monkeypatch: pytest.MonkeyPatch) -> None:
-    captured: dict[str, object] = {}
+    captured: _StartCapture = {}
     monkeypatch.setattr(sys, "argv", ["demo.py", "--sdk", "--no-browser"])
     monkeypatch.setattr(
         demo,
@@ -178,7 +194,7 @@ def test_main_sdk_flag_selects_sdk_copilots(monkeypatch: pytest.MonkeyPatch) -> 
 
 
 def test_main_playwright_flag_selects_playwright_copilots(monkeypatch: pytest.MonkeyPatch) -> None:
-    captured: dict[str, object] = {}
+    captured: _StartCapture = {}
     monkeypatch.setattr(sys, "argv", ["demo.py", "--playwright", "--no-browser"])
     monkeypatch.setattr(
         demo,
@@ -192,7 +208,7 @@ def test_main_playwright_flag_selects_playwright_copilots(monkeypatch: pytest.Mo
 
 
 def test_main_diag_mode_selects_soc_and_sets_diag_args(monkeypatch: pytest.MonkeyPatch) -> None:
-    captured: dict[str, object] = {}
+    captured: _StartCapture = {}
     monkeypatch.setattr(
         sys,
         "argv",
@@ -274,7 +290,7 @@ def test_cmd_start_age_precheck_blocks_age_only_selection(
 ) -> None:
     calls: list[tuple] = []
     _patch_safe_start(monkeypatch, calls)
-    monkeypatch.setattr(demo, "ensure_age_available", lambda dsn: calls.append(("age", dsn)) or False)
+    monkeypatch.setattr(demo, "ensure_age_available", lambda dsn: _record(calls, ("age", dsn), False))
     selected = [_selected_copilot(tmp_path, name="DataOps")]
 
     buf = io.StringIO()

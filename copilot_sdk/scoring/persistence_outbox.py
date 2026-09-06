@@ -15,6 +15,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from copilot_sdk.process_lock import file_lock
+
 CURRENT_PAYLOAD_SCHEMA = 1
 _LOG = logging.getLogger(__name__)
 
@@ -55,7 +57,8 @@ class PersistenceOutbox:
                 Path(tempfile.gettempdir()) / ".ci-platform" / self.domain / "outbox.db"
             )
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        with self._connection() as connection:
+        with file_lock(str(self.db_path.resolve()) + ".lock"), self._connection() as connection:
+            connection.execute("PRAGMA journal_mode=WAL")
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS failed_artifacts (
@@ -122,8 +125,9 @@ class PersistenceOutbox:
             )
 
     def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(self.db_path, timeout=30.0)
         connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA busy_timeout=30000")
         return connection
 
     @contextmanager
@@ -136,6 +140,16 @@ class PersistenceOutbox:
             connection.close()
 
     def record_failure(
+        self,
+        decision_id: str,
+        artifact_type: str,
+        payload: dict[str, Any],
+        error: str,
+    ) -> None:
+        with file_lock(str(self.db_path.resolve()) + ".lock"):
+            self._record_failure_locked(decision_id, artifact_type, payload, error)
+
+    def _record_failure_locked(
         self,
         decision_id: str,
         artifact_type: str,
@@ -200,7 +214,7 @@ class PersistenceOutbox:
         if artifact_type == "outcome":
             raise ValueError("outcome is fail-closed (§12b) and must not be deferred")
         serialized = json.dumps(payload, default=_json_default, sort_keys=True)
-        with self._connection() as connection:
+        with file_lock(str(self.db_path.resolve()) + ".lock"), self._connection() as connection:
             if idempotency_key:
                 connection.execute(
                     "DELETE FROM failed_artifacts "
@@ -225,6 +239,12 @@ class PersistenceOutbox:
 
     def drain(self, graph_store: Any) -> tuple[int, int]:
         """Replay pending artifacts, returning ``(succeeded, failed)``."""
+        # The claim spans SELECT, graph replay and acknowledgement. SQLite WAL
+        # alone cannot prevent two processes replaying the same selected rows.
+        with file_lock(str(self.db_path.resolve()) + ".lock"):
+            return self._drain_locked(graph_store)
+
+    def _drain_locked(self, graph_store: Any) -> tuple[int, int]:
         with self._connection() as connection:
             rows = connection.execute(
                 """
@@ -344,7 +364,7 @@ class PersistenceOutbox:
 
     def clear(self) -> None:
         """Remove pending or failed records for this domain without deleting the DB."""
-        with self._connection() as connection:
+        with file_lock(str(self.db_path.resolve()) + ".lock"), self._connection() as connection:
             connection.execute(
                 """
                 DELETE FROM failed_artifacts

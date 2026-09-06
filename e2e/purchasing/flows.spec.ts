@@ -18,6 +18,16 @@ async function scoreCurrentOrder(page: Page) {
   await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
 }
 
+async function confirmCurrentOrder(page: Page) {
+  const verified = page.waitForResponse(
+    (response) => new URL(response.url()).pathname === "/api/purchasing/verify" && response.request().method() === "POST",
+    { timeout: 15_000 },
+  );
+  await page.getByRole("button", { name: "Confirm" }).click();
+  const response = await verified;
+  expect(response.ok(), `verification returned ${response.status()}: ${await response.text()}`).toBeTruthy();
+}
+
 test("full order lifecycle: dashboard item, order, score, confirm", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
@@ -33,8 +43,8 @@ test("full order lifecycle: dashboard item, order, score, confirm", async ({ pag
 
   await expect(page.getByRole("heading", { name: "Score the next purchase" })).toBeVisible();
   await scoreCurrentOrder(page);
-  await page.getByRole("button", { name: "Confirm" }).click();
-  await expectAnyText(page, [/system learned/i, /Confirming and storing order metadata/i, /ordering decision/i]);
+  await confirmCurrentOrder(page);
+  await expectAnyText(page, [/system learned/i, /ordering decision/i]);
 });
 
 test("score confirm then Performance shows IKS", async ({ page }) => {
@@ -58,12 +68,7 @@ test("score confirm then Performance shows IKS", async ({ page }) => {
   }
 
   await scoreCurrentOrder(page);
-  const learnResponse = page.waitForResponse(
-    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok(),
-    { timeout: 15_000 },
-  ).catch(() => null);
-  await page.getByRole("button", { name: "Confirm" }).click();
-  await learnResponse;
+  await confirmCurrentOrder(page);
   await expectAnyText(page, [/system learned/i, /reward/i, /ordering decision/i, /IKS/i]);
 
   await clickTab(page, "Performance");
@@ -142,10 +147,10 @@ test("order from dropdown versus dashboard item click", async ({ page }) => {
 test("AE-managed and rejected items show different badges", async ({ page }) => {
   await page.goto("/");
   await waitForScreenReady(page);
-  await expectAnyText(page, [/AE managed/i, /managed/i]);
 
   await clickTab(page, "Inventory");
   await expectAnyText(page, [/System Improvements/i, /variant/i, /produce/i, /dairy/i]);
+  await expectAnyText(page, [/AE managed/i, /managed/i]);
   await expectAnyText(page, [/Reject aggressive dairy skip/i, /purchasing-skip-dairy-v1/i, /rejected/i, /excluded/i]);
 });
 
@@ -184,12 +189,7 @@ test("Dashboard to Order score to confirm to Performance IKS", async ({ page }) 
   }
 
   await scoreCurrentOrder(page);
-  const learnResponse = page.waitForResponse(
-    (response) => response.url().includes("/api/learn") && response.request().method() === "POST" && response.ok(),
-    { timeout: 15_000 },
-  ).catch(() => null);
-  await page.getByRole("button", { name: "Confirm" }).click();
-  await learnResponse;
+  await confirmCurrentOrder(page);
   await expectAnyText(page, [/system learned/i, /reward/i, /ordering decision/i, /IKS/i]);
 
   await clickTab(page, "Performance");

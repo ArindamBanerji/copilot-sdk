@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/copilot-fixture";
-import { clickTab, waitForAppShell } from "../helpers/ui";
+import { clickTab, waitForAppShell, waitForScreenReady } from "../helpers/ui";
 
 const directiveText = /reduce\s+size|\bavoid\b|\bhold\s+sizing\b|\b(buy|sell)\b/i;
 
@@ -29,7 +29,8 @@ test("SAFE-PW-02 trading tabs expose no buy or sell action text", async ({ page 
 test("SAFE-PW-03 pattern insights use observation language", async ({ page }) => {
   await page.goto("/");
   await waitForAppShell(page);
-  await openTab(page, "Performance");
+  await openTab(page, "Analysis");
+  await waitForScreenReady(page);
   const mainText = await page.locator("main").innerText();
   expect(mainText).not.toMatch(/reduce\s+size|\bavoid\b|\bhold\s+sizing\b/i);
   expect(mainText).toMatch(/Observation:|Behavioral Pattern Detection|Pattern detection unavailable/i);

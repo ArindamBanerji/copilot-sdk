@@ -64,13 +64,17 @@ export default function OperationalRulesPanel() {
 
       {!error && rules.length > 0 ? (
         <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {rules.map((rule) => (
-            <RuleCard key={rule.id || rule.name || "rule"} rule={rule} />
+          {rules.map((rule, index) => (
+            <RuleCard key={ruleCardKey(rule, index)} rule={rule} />
           ))}
         </div>
       ) : null}
     </section>
   );
+}
+
+function ruleCardKey(rule: OperationalRule, index: number): string {
+  return `${rule.id || "rule"}-${rule.name || "unnamed"}-${rule.status || "proposed"}-${rule.recommendation || "none"}-${index}`;
 }
 
 function Summary({ summary }: { summary?: OperationalRulesResponse["summary"] }) {

@@ -89,9 +89,9 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
           setState((current) => ({ ...current, conservation }));
         }
       })
-      .catch((caught: unknown) => {
+      .catch(() => {
         if (!cancelled) {
-          setError(caught instanceof Error ? caught.message : "Could not load conservation status.");
+          setState((current) => ({ ...current, conservation: null }));
         }
       })
       .finally(() => {
@@ -243,7 +243,17 @@ export default function DashboardScreen({ onSelectAlert }: DashboardScreenProps)
             ) : null}
           </section>
         ) : (
-          <AlertQueue alerts={state.alerts} onAlertClick={onSelectAlert} />
+          <section className="grid gap-3">
+            <div className="copilot-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="dataops-section-title">Alert Root Causes</h2>
+                <span className="text-sm dataops-muted">
+                  {numberOr(state.alertGroups?.totalAlerts ?? state.alertGroups?.total_alerts, state.alerts.length)} total alerts
+                </span>
+              </div>
+            </div>
+            <AlertQueue alerts={state.alerts} onAlertClick={onSelectAlert} />
+          </section>
         )}
         <div className="grid gap-4">
           {conservation ? (

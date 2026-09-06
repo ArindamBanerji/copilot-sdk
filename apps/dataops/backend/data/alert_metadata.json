@@ -199,6 +199,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "0356d00d74ec": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "0356d00d74ec",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "03ede99346dd": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -1184,6 +1203,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "0dbde4cb3a0b": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "0dbde4cb3a0b",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "0e13fc3baada": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -1597,6 +1635,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "10bc47c8a81f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "10bc47c8a81f",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "10e7b10f08bc": {
     "_preseed_sequence": 99,
     "_preseed_source_index": 19,
@@ -1973,6 +2030,25 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "14d3f44ea85e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "14d3f44ea85e",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "14d9dbaeea77": {
     "action_taken": "investigate",
@@ -2501,6 +2577,25 @@
       "source_reliability": 0.86
     }
   },
+  "1a52d48af236": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "1a52d48af236",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "1a668b8b8ba7": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -2517,6 +2612,25 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "1a8af3b944a8": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "1a8af3b944a8",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "1a932b777f37": {
     "action_taken": "investigate",
@@ -3513,6 +3627,25 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "25a05b48836e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "25a05b48836e",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "25a9de756625": {
     "_preseed_sequence": 178,
     "_preseed_source_index": 18,
@@ -3640,6 +3773,25 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "272d3ed7f284": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "272d3ed7f284",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "27c7424293d2": {
     "action_taken": "investigate",
@@ -3860,6 +4012,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "29a3f214e77b": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "29a3f214e77b",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "29dd658e0037": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -3893,6 +4064,25 @@
       "impact_scope": 0.25,
       "recurrence_frequency": 0.0833,
       "source_reliability": 0.76
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "29fb23edb420": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "29fb23edb420",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
     },
     "followed_ae": false,
     "provenance": "demo",
@@ -4023,6 +4213,44 @@
     },
     "followed_ae": false,
     "system_name": "sap_mm"
+  },
+  "2aca0b56914e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "2aca0b56914e",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "2b2de7a405a7": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "2b2de7a405a7",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "2b6e7c2aab42": {
     "action_taken": "investigate",
@@ -4197,6 +4425,25 @@
       "impact_scope": 0.25,
       "recurrence_frequency": 0.0833,
       "source_reliability": 0.76
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "2cf00c791295": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "2cf00c791295",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
     },
     "followed_ae": false,
     "provenance": "demo",
@@ -4431,6 +4678,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "30ec9baf62fd": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "30ec9baf62fd",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "31428983bdcc": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -4541,6 +4807,25 @@
       "recurrence_frequency": 0.28,
       "source_reliability": 0.72
     }
+  },
+  "3220be90328c": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "3220be90328c",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "326f4ed458b9": {
     "_preseed_sequence": 88,
@@ -4761,6 +5046,44 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "33e1cccdc740": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "33e1cccdc740",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "33ea7dcde9d1": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "33ea7dcde9d1",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "33fec0eeba7f": {
     "action_taken": "investigate",
@@ -5127,6 +5450,25 @@
     "followed_ae": false,
     "provenance": "demo",
     "system_name": "crm_sync"
+  },
+  "380aa797602f": {
+    "action_taken": "auto_approve",
+    "ae_suggested": false,
+    "alert_id": "DI-ABSTENTION-001",
+    "category": "unseen_source_anomaly",
+    "decision_id": "380aa797602f",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "unknown_supplier_gateway"
   },
   "38805cb5ea34": {
     "action_taken": "investigate",
@@ -5600,6 +5942,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "3fcc7755e727": {
+    "action_taken": "auto_approve",
+    "ae_suggested": false,
+    "alert_id": "DI-ABSTENTION-001",
+    "category": "unseen_source_anomaly",
+    "decision_id": "3fcc7755e727",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "unknown_supplier_gateway"
+  },
   "40013d81467b": {
     "_preseed_sequence": 155,
     "_preseed_source_index": 15,
@@ -5734,6 +6095,44 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "41744828a316": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "41744828a316",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "41a02597166f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "41a02597166f",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "41ca1d9b592f": {
     "action_taken": "investigate",
@@ -6049,6 +6448,25 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "46d11d26da96": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "46d11d26da96",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "471d93f8ff6a": {
     "_preseed_sequence": 73,
     "_preseed_source_index": 13,
@@ -6258,6 +6676,25 @@
       "source_reliability": 0.84
     }
   },
+  "4a7ac08d9ace": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "4a7ac08d9ace",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "4ab537c9d2ca": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -6274,6 +6711,25 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "4ac66edc555b": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "4ac66edc555b",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "4ae2055467f4": {
     "action_taken": "investigate",
@@ -6321,6 +6777,25 @@
       "recurrence_frequency": 0.74,
       "source_reliability": 0.78
     }
+  },
+  "4b2948768acd": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "4b2948768acd",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "4b444174d0e4": {
     "_preseed_sequence": 31,
@@ -6596,6 +7071,25 @@
       "recurrence_frequency": 0.24,
       "source_reliability": 0.36
     }
+  },
+  "4f0c68fdfc98": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "4f0c68fdfc98",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "4f605e075185": {
     "_preseed_sequence": 161,
@@ -7111,6 +7605,25 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "5733a0ac88d6": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "5733a0ac88d6",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "5734d4dcb191": {
     "_preseed_sequence": 29,
     "_preseed_source_index": 9,
@@ -7250,6 +7763,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "5859328b22aa": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "5859328b22aa",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "58b955c4e45e": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -7383,6 +7915,25 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "5b45e01e0c04": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "5b45e01e0c04",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "5b573ee74d96": {
     "action_taken": "investigate",
@@ -7706,6 +8257,25 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "5f905d5958d8": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "5f905d5958d8",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "5ff8251d8f0a": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -7956,6 +8526,25 @@
       "impact_scope": 0.25,
       "recurrence_frequency": 0.0833,
       "source_reliability": 0.76
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "63d9f0cdc3cf": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "63d9f0cdc3cf",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
     },
     "followed_ae": false,
     "provenance": "demo",
@@ -8426,6 +9015,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "6a314a51ce98": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "6a314a51ce98",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "6a3a8d8e7c2b": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -8775,6 +9383,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "6e9872856f78": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "6e9872856f78",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "6e9ae5311e6b": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -8789,6 +9416,25 @@
       "impact_scope": 0.25,
       "recurrence_frequency": 0.0833,
       "source_reliability": 0.76
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "6e9b8a973163": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "6e9b8a973163",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
     },
     "followed_ae": false,
     "provenance": "demo",
@@ -9034,6 +9680,25 @@
       "impact_scope": 0.25,
       "recurrence_frequency": 0.0833,
       "source_reliability": 0.76
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "70ec9cad8a1c": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "70ec9cad8a1c",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
     },
     "followed_ae": false,
     "provenance": "demo",
@@ -9998,6 +10663,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "7cfdf88cf086": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "7cfdf88cf086",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "7d2c5b8be5a1": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -10367,6 +11051,44 @@
       "recurrence_frequency": 0.12,
       "source_reliability": 0.66
     }
+  },
+  "808b4c835388": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "808b4c835388",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "809661a1388e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "809661a1388e",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "80db893c4851": {
     "action_taken": "investigate",
@@ -10867,6 +11589,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "855c5ae52826": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "855c5ae52826",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "859aa54927ce": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -11297,6 +12038,25 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "8a7d817de700": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "8a7d817de700",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "8b1a3f5969ab": {
     "_preseed_sequence": 193,
     "_preseed_source_index": 13,
@@ -11636,6 +12396,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "8e9c59ef528e": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "8e9c59ef528e",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "8f3468235df8": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -11674,6 +12453,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "8f83ed109ea7": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "8f83ed109ea7",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "8fa3af5982b5": {
     "_preseed_sequence": 94,
     "_preseed_source_index": 14,
@@ -11701,6 +12499,44 @@
       "recurrence_frequency": 0.24,
       "source_reliability": 0.36
     }
+  },
+  "900895cc4f3c": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "900895cc4f3c",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "90b91c120fe8": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "90b91c120fe8",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "90c1009903d5": {
     "action_taken": "investigate",
@@ -11735,6 +12571,25 @@
       "impact_scope": 0.25,
       "recurrence_frequency": 0.0833,
       "source_reliability": 0.76
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "90dc1f6ce08d": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "90dc1f6ce08d",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
     },
     "followed_ae": false,
     "provenance": "demo",
@@ -12419,6 +13274,25 @@
     "followed_ae": false,
     "system_name": "sap_mm"
   },
+  "976af5518d6b": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "976af5518d6b",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "97e47c048e74": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -13028,6 +13902,25 @@
       "impact_scope": 0.25,
       "recurrence_frequency": 0.0833,
       "source_reliability": 0.76
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "9dbc6d4f395f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "9dbc6d4f395f",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
     },
     "followed_ae": false,
     "provenance": "demo",
@@ -28181,6 +29074,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "b6e5a3134bc2": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "b6e5a3134bc2",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "b6fa4d15a2db": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -29142,6 +30054,25 @@
       "recurrence_frequency": 0.18,
       "source_reliability": 0.76
     }
+  },
+  "c12562ae202f": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "c12562ae202f",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "c12ead6bf3e2": {
     "action_taken": "investigate",
@@ -30237,6 +31168,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "cda09acbcefc": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "cda09acbcefc",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "cdd4b64e6031": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -31181,6 +32131,25 @@
     "followed_ae": false,
     "system_name": "warehouse_etl"
   },
+  "d86416a3234d": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "d86416a3234d",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "d86bba15aabf": {
     "action_taken": "investigate",
     "ae_suggested": true,
@@ -31701,6 +32670,25 @@
     },
     "followed_ae": false,
     "system_name": "warehouse_etl"
+  },
+  "df778a2a6659": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "df778a2a6659",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
   },
   "dfe27ca43a1c": {
     "_preseed_sequence": 84,
@@ -32428,6 +33416,25 @@
     "provenance": "demo",
     "system_name": "crm_sync"
   },
+  "e8479d696511": {
+    "action_taken": "auto_approve",
+    "ae_suggested": false,
+    "alert_id": "DI-ABSTENTION-001",
+    "category": "unseen_source_anomaly",
+    "decision_id": "e8479d696511",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "unknown_supplier_gateway"
+  },
   "e88eea443bf3": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -32919,6 +33926,25 @@
       "impact_scope": 0.25,
       "recurrence_frequency": 0.0833,
       "source_reliability": 0.76
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "ec753cc5fda7": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "ec753cc5fda7",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
     },
     "followed_ae": false,
     "provenance": "demo",
@@ -33618,6 +34644,25 @@
       "source_reliability": 0.69
     }
   },
+  "f40b51386e4b": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "f40b51386e4b",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
   "f4347f0d15a4": {
     "action_taken": "investigate",
     "ae_suggested": false,
@@ -33636,6 +34681,44 @@
     "followed_ae": false,
     "provenance": "demo",
     "system_name": "crm_sync"
+  },
+  "f45ff7cca884": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "f45ff7cca884",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "f4613d40e40d": {
+    "action_taken": "auto_approve",
+    "ae_suggested": false,
+    "alert_id": "DI-ABSTENTION-001",
+    "category": "unseen_source_anomaly",
+    "decision_id": "f4613d40e40d",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "unknown_supplier_gateway"
   },
   "f47ffc388aaa": {
     "action_taken": "investigate",
@@ -34589,6 +35672,25 @@
       "impact_scope": 0.25,
       "recurrence_frequency": 0.0833,
       "source_reliability": 0.76
+    },
+    "followed_ae": false,
+    "provenance": "demo",
+    "system_name": "crm_sync"
+  },
+  "ffc66c6e5381": {
+    "action_taken": "investigate",
+    "ae_suggested": false,
+    "alert_id": "DQ-003",
+    "category": "pipeline_failure",
+    "decision_id": "ffc66c6e5381",
+    "domain": "dataops",
+    "factors": {
+      "business_criticality": 0,
+      "data_freshness": 0,
+      "downstream_urgency": 0,
+      "impact_scope": 0,
+      "recurrence_frequency": 0,
+      "source_reliability": 0
     },
     "followed_ae": false,
     "provenance": "demo",

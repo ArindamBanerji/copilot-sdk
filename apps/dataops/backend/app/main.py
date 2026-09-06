@@ -84,6 +84,7 @@ from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
+from copilot_sdk.demo.startup import startup_lock  # noqa: E402
 from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
 
 
@@ -181,7 +182,9 @@ def _graph_store(db_path: str | Path):
 def _snowflake_connector():
     if os.environ.get("SNOWFLAKE_ACCOUNT"):
         try:
-            import snowflake.connector  # type: ignore[import-not-found]  # noqa: F401
+            from importlib import import_module
+
+            import_module("snowflake.connector")
             from copilot_sdk.connectors.snowflake_meta import SnowflakeMetaConnector
 
             if not all((os.environ.get("SNOWFLAKE_ACCOUNT"), os.environ.get("SNOWFLAKE_USER"), os.environ.get("SNOWFLAKE_PASSWORD"))):
@@ -697,6 +700,10 @@ def create_app(
     }
 
     def _run_startup_seed_once() -> None:
+        with startup_lock(scoring_db):
+            _run_startup_locked()
+
+    def _run_startup_locked() -> None:
         if not startup_state["seeded"]:
             startup_state["seeded"] = True
             if os.environ.get("DEMO_NO_RESEED") == "1":

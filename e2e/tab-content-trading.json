@@ -1,6 +1,6 @@
 {
   "copilot": "trading",
-  "url": "http://localhost:5174",
+  "url": "http://127.0.0.1:5174",
   "capturedAt": "2026-05-10T21:32:04.582Z",
   "healthStatus": "ok (trading)",
   "tabs": {

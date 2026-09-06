@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import threading
+import time
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,6 +29,16 @@ _WEATHER_CACHE: dict[str, WeatherForecast] = {
     "cold": WeatherForecast(28.0, 0.20, 11.0, 0.62, "cached"),
 }
 
+_FORECAST_URL = (
+    "https://api.open-meteo.com/v1/forecast"
+    "?latitude=40.7128&longitude=-74.0060"
+    "&current=temperature_2m,precipitation,wind_speed_10m"
+)
+_LIVE_CACHE: dict[str, tuple[float, WeatherForecast]] = {}
+_LIVE_CACHE_LOCK = threading.Lock()
+_LIVE_TTL_SECONDS = 300.0
+_FALLBACK_TTL_SECONDS = 15.0
+
 
 def get_weather_factor(
     zip_code: str = "10001",
@@ -39,7 +51,18 @@ def get_weather_factor(
         return frozen
     if not use_live:
         return _WEATHER_CACHE.get(zip_code, _WEATHER_CACHE["overcast"])
-    return _fetch_live_weather(zip_code)
+    # Forecasts are external context, not learning authority. Coalesce refreshes
+    # so simultaneous dashboard/weather requests cannot stampede the provider.
+    with _LIVE_CACHE_LOCK:
+        cached = _LIVE_CACHE.get(zip_code)
+        if cached is not None and time.monotonic() < cached[0]:
+            return cached[1]
+        forecast = _fetch_live_weather(zip_code)
+        ttl = _LIVE_TTL_SECONDS if forecast.source == "live" else _FALLBACK_TTL_SECONDS
+        if len(_LIVE_CACHE) >= 128 and zip_code not in _LIVE_CACHE:
+            _LIVE_CACHE.pop(next(iter(_LIVE_CACHE)))
+        _LIVE_CACHE[zip_code] = (time.monotonic() + ttl, forecast)
+        return forecast
 
 
 def _frozen_weather() -> WeatherForecast | None:
@@ -61,12 +84,7 @@ def _frozen_weather() -> WeatherForecast | None:
 
 def _fetch_live_weather(zip_code: str) -> WeatherForecast:
     try:
-        url = (
-            "https://api.open-meteo.com/v1/forecast"
-            "?latitude=40.7128&longitude=-74.0060"
-            "&current=temperature_2m,precipitation,wind_speed_10m"
-        )
-        with urllib.request.urlopen(url, timeout=5) as response:
+        with urllib.request.urlopen(_FORECAST_URL, timeout=5) as response:
             payload = json.loads(response.read().decode("utf-8"))
         current = payload["current"]
         temperature_c = float(current.get("temperature_2m", 16.0))

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { CopilotShell, SelfComputationPanels } from "../../../../copilot_sdk/frontend";
-import { getHealth, getTrajectory } from "./api";
+import { CopilotShell } from "../../../../copilot_sdk/frontend";
+import { BASE, getHealth, getTrajectory } from "./api";
 import type { Health } from "./types";
 import DashboardScreen from "./screens/DashboardScreen";
 import TriageScreen from "./screens/TriageScreen";
@@ -92,7 +92,6 @@ export default function App() {
         </div>
       ) : null}
       {content}
-      <SelfComputationPanels />
     </CopilotShell>
   );
 }

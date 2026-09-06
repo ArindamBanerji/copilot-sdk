@@ -3,10 +3,10 @@ import { DataTrustBadge, DayZeroCard, DecisionHistory, TransferBadge } from "../
 import {
   BASE,
   getAnalytics,
+  getDashboardOrders,
   getEvolutionVariants,
   getHistory,
   getItems,
-  getOrderMetadata,
   getTodaySummary,
   getWasteHistory,
 } from "../api";
@@ -111,20 +111,11 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
           getItems(),
           getTodaySummary(),
           getHistory(),
-          getOrderMetadata(),
+          getDashboardOrders(),
           getAnalytics(),
           getEvolutionVariants(),
         ]);
         const lowItems = items.filter(needsOrder);
-        const wasteEntries = await Promise.all(
-          lowItems.map(async (item) => {
-            try {
-              return [item.name, await getWasteHistory(item.name)] as const;
-            } catch {
-              return [item.name, { item: item.name }] as const;
-            }
-          }),
-        );
 
         if (mounted) {
           setState({
@@ -134,8 +125,25 @@ export default function DashboardScreen({ onSelectItem }: DashboardScreenProps) 
             metadata,
             analytics,
             variants,
-            wasteByItem: Object.fromEntries(wasteEntries),
+            wasteByItem: {},
           });
+          setLoading(false);
+        }
+
+        const wasteEntries = await Promise.all(
+          lowItems.map(async (item) => {
+            try {
+              return [item.name, await getWasteHistory(item.name)] as const;
+            } catch {
+              return [item.name, { item: item.name }] as const;
+            }
+          }),
+        );
+        if (mounted) {
+          setState((current) => ({
+            ...current,
+            wasteByItem: Object.fromEntries(wasteEntries),
+          }));
         }
       } catch (caught) {
         if (mounted) {

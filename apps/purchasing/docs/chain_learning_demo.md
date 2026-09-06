@@ -7,7 +7,7 @@ Lisa's pitch: your best location's purchasing discipline becomes the baseline fo
 1. Seed the chain demo:
 
    ```bash
-   curl -X POST http://localhost:8020/api/purchasing/demo/chain-seed
+   curl -X POST http://127.0.0.1:8020/api/purchasing/demo/chain-seed
    ```
 
    Expected response:

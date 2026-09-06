@@ -18,6 +18,7 @@ from copilot_sdk.graph.enrichment import (
 from copilot_sdk.graph.protocol import GraphStore, ProtocolV2GraphStore
 from copilot_sdk.graph.sqlite_store import SQLiteGraphStore
 from copilot_sdk.graph.outbox import DurableOutbox
+from copilot_sdk.process_lock import file_lock
 
 
 _T = TypeVar("_T")
@@ -227,6 +228,12 @@ class DualWriteStore(GraphStore):
         """Replay pending secondary writes directly, without rewriting primary data."""
         if self._durable_outbox is None:
             raise RuntimeError("durable outbox is not configured; provide outbox_path")
+        with file_lock(str(Path(self._durable_outbox.path).resolve()) + ".replay.lock"):
+            return self._replay_outbox_locked(secondary)
+
+    def _replay_outbox_locked(self, secondary: GraphStore | None = None) -> ReplayReport:
+        if self._durable_outbox is None:
+            raise RuntimeError("durable outbox is not configured; provide outbox_path")
         target = cast(ProtocolV2GraphStore, secondary) if secondary is not None else self.secondary
         replayed = 0
         failed = 0
@@ -405,6 +412,7 @@ class DualWriteStore(GraphStore):
     # Reads are intentionally primary-only.
     def get_decision(self, decision_id: str, domain: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_decision(decision_id, domain))
     def get_evolution_events(self, domain: str, **kwargs: Any) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.get_evolution_events(domain, **kwargs))
+    def prune_evolution_events(self, domain: str, keep_recent: int = 10_000) -> int: return cast(int, self._write("prune_evolution_events", lambda: getattr(cast(Any, self.primary), "prune_evolution_events", lambda *_args, **_kwargs: 0)(domain, keep_recent=keep_recent), lambda: getattr(cast(Any, self.secondary), "prune_evolution_events", lambda *_args, **_kwargs: 0)(domain, keep_recent=keep_recent), (domain, keep_recent), {}))
     def save_evolution(self, domain: str, variant_id: str, state: dict[str, Any]) -> None: self._write("save_evolution", lambda: self.primary.save_evolution(domain, variant_id, state), lambda: self.secondary.save_evolution(domain, variant_id, state), (domain, variant_id), {"state": state})
     def get_evolution(self, domain: str, variant_id: str) -> dict[str, Any] | None: return cast(dict[str, Any] | None, self.primary.get_evolution(domain, variant_id))
     def list_evolutions(self, domain: str) -> list[dict[str, Any]]: return cast(list[dict[str, Any]], self.primary.list_evolutions(domain))

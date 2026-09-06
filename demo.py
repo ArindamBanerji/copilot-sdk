@@ -20,6 +20,7 @@ Usage:
     python demo.py --verify         # Check platform state (IKS, conservation, pending items)
     python demo.py --graph          # AGE graph mode for DataOps
     python demo.py --no-browser     # Don't open browser tabs
+    python demo.py --workers 2      # Experimental multi-process serving (see audit)
     python demo.py --kill-all       # Kill all known copilot ports
     python demo.py --no-reseed      # Start without bundle restore or fixture seeding
     python demo.py --preseed-only   # Pre-seed without restarting backends
@@ -29,12 +30,14 @@ Usage:
 import argparse
 import asyncio
 import json
+import ipaddress
 import os
 import platform
 import subprocess
 import sys
 import time
 import webbrowser
+from collections import deque
 from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
@@ -52,9 +55,11 @@ for _stream in (sys.stdout, sys.stderr):
 SCRIPT_DIR = Path(__file__).resolve().parent
 CI_PLATFORM = SCRIPT_DIR.parent / "ci-platform"
 KEEPALIVE_PID_FILE = SCRIPT_DIR / ".wsl_keepalive.pid"
+BACKEND_LOG_DIR = SCRIPT_DIR / "logs"
+BACKEND_STDERR_TAIL_LINES = 20
 
 IS_WINDOWS = sys.platform == "win32"
-CREATE_FLAGS = subprocess.CREATE_NEW_CONSOLE if IS_WINDOWS else 0
+CREATE_FLAGS = subprocess.CREATE_NO_WINDOW if IS_WINDOWS else 0
 
 # AGE connection parameters (Rule #40 REVISED June 23, 2026):
 #   - Database DSNs use the WSL2 NAT IP (changes per boot), NOT localhost.
@@ -64,6 +69,8 @@ CREATE_FLAGS = subprocess.CREATE_NEW_CONSOLE if IS_WINDOWS else 0
 #   - See standing_note_wsl2_age_fix_june23.md for full diagnostic history.
 
 os.environ.setdefault("CI_DEV_MODE", "true")
+os.environ.setdefault("COPILOT_HOST", "127.0.0.1")
+COPILOT_HOST = os.environ["COPILOT_HOST"]
 
 
 def _resolve_wsl2_ip() -> str:
@@ -79,9 +86,14 @@ def _resolve_wsl2_ip() -> str:
             ["wsl", "-u", "root", "hostname", "-I"],
             capture_output=True, text=True, timeout=5,
         )
-        ip = result.stdout.strip().split()[0]
-        if ip:
-            return ip
+        if result.returncode == 0:
+            for candidate in result.stdout.split():
+                try:
+                    address = ipaddress.ip_address(candidate)
+                except ValueError:
+                    continue
+                if address.version == 4:
+                    return str(address)
     except Exception:
         pass
     return "localhost"
@@ -107,6 +119,11 @@ def _port_env(name: str, default: int) -> int:
 
 def _url_env(name: str, default: str) -> str:
     return os.environ.get(name, default).rstrip("/")
+
+
+def _http_url(port: int, path: str = "") -> str:
+    """Build a local HTTP URL using the configured IPv4-safe host."""
+    return f"http://{COPILOT_HOST}:{port}{path}"
 
 
 # Resolve once at import time (WSL IP is stable within a boot session)
@@ -218,7 +235,7 @@ COPILOTS = [
         "graph_dsn": AGE_DSN_SOC,
         "env": _build_graph_env("soc", AGE_DSN_SOC),
         "fe_env": {
-            "VITE_S2P_API_URL": _url_env("S2P_BACKEND_URL", "http://127.0.0.1:8002"),
+            "VITE_S2P_API_URL": _url_env("S2P_BACKEND_URL", _http_url(8002)),
         },
     },
     {
@@ -289,7 +306,7 @@ def check_port(port: int) -> bool:
 def check_health(port: int, path: str = "/health") -> dict | None:
     """Check backend health endpoint."""
     try:
-        r = urlopen(f"http://127.0.0.1:{port}{path}", timeout=5)
+        r = urlopen(_http_url(port, path), timeout=5)
         payload = json.loads(r.read())
         return payload if isinstance(payload, dict) else None
     except Exception:
@@ -551,7 +568,7 @@ def write_soc_diag_contract(
         "pool_available": pool_available,
         "pythonpath": os.getenv("PYTHONPATH", ""),
         "ci_platform_import_path": ci_platform_import_path,
-        "health_url": f"http://127.0.0.1:{backend_port}/health",
+        "health_url": _http_url(backend_port, "/health"),
         "launched_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
     }
     contract_path.write_text(json.dumps(contract, indent=2), encoding="utf-8")
@@ -563,13 +580,48 @@ def wait_for_health(name: str, port: int, timeout: int = 30) -> bool:
     for i in range(timeout):
         time.sleep(1)
         h = check_health(port)
-        if h:
+        if h and str(h.get("status", "ok")).lower() in {"ok", "healthy", "ready"}:
             status = h.get("status", "ok")
             domain = h.get("domain", "")
             print(f"  ✓ {name}: {status} {domain}")
             return True
     print(f"  ✗ {name}: not healthy after {timeout}s on :{port}")
     return False
+
+
+def print_backend_startup_diagnostics(name: str, log_path: Path) -> None:
+    """Print a bounded stderr tail for a backend that failed its health check."""
+    print()
+    print(f"  --- {name} backend stderr ({log_path}) ---")
+    hints = (
+        (("importerror", "modulenotfounderror"), "Activate the project environment and check PYTHONPATH/dependencies."),
+        (("keyerror",), "Check the missing configuration key and its startup traceback."),
+        (("address already in use", "address in use", "winerror 10048"), "Run demo.py --stop and inspect the port owner before retrying."),
+        (("graph_dsn",), "Check GRAPH_DSN and the copilot's active graph configuration."),
+        (("connectionrefused", "connection refused", "winerror 10061"), "Check PostgreSQL/AGE and the current WSL address."),
+    )
+    matched: set[str] = set()
+    try:
+        with log_path.open(encoding="utf-8", errors="replace") as log_file:
+            tail: deque[str] = deque(maxlen=BACKEND_STDERR_TAIL_LINES)
+            for line in log_file:
+                tail.append(line)
+                for patterns, hint in hints:
+                    if any(pattern in line.lower() for pattern in patterns):
+                        matched.add(hint)
+            stderr_output = "".join(tail)
+    except OSError as exc:
+        print(f"  Unable to read captured stderr: {exc}")
+        return
+
+    if not stderr_output.strip():
+        print("  (no stderr output captured)")
+        return
+
+    print(stderr_output.rstrip())
+    for _, hint in hints:
+        if hint in matched:
+            print(f"  Hint: {hint}")
 
 
 def wait_for_frontend(name: str, port: int, timeout: int = 15) -> bool:
@@ -659,7 +711,7 @@ def kill_port(port: int, name: str = "") -> bool:
             attempted = True
             if IS_WINDOWS:
                 result = subprocess.run(
-                    ["taskkill", "/F", "/PID", str(pid)],
+                    ["taskkill", "/F", "/T", "/PID", str(pid)],
                     capture_output=True, text=True, timeout=5,
                 )
                 if result.returncode != 0:
@@ -762,7 +814,7 @@ def cmd_status(selected: list[dict]):
             try:
                 learning_health = _json_request(
                     "GET",
-                    f"http://127.0.0.1:{c['be_port']}/api/soc/learning-health",
+                    _http_url(int(c["be_port"]), "/api/soc/learning-health"),
                     timeout=2,
                 )
                 learning_enabled = learning_health.get("learning_enabled")
@@ -797,7 +849,7 @@ def cmd_verify(selected: list[dict]):
         iks = None
         try:
             response = json.loads(urlopen(
-                f"http://127.0.0.1:{port}/api/trajectory", timeout=5
+                _http_url(port, "/api/trajectory"), timeout=5
             ).read())
             if isinstance(response, dict):
                 iks = response.get("iks") or response.get("current_iks")
@@ -808,7 +860,7 @@ def cmd_verify(selected: list[dict]):
         for path in ("/api/conservation/status", f"/api/{name.lower()}/learning-health"):
             try:
                 response = json.loads(urlopen(
-                    f"http://127.0.0.1:{port}{path}", timeout=5
+                    _http_url(port, path), timeout=5
                 ).read())
                 conservation = str(
                     response.get("status") or response.get("conservation_status") or "unknown"
@@ -821,7 +873,7 @@ def cmd_verify(selected: list[dict]):
         pending = ""
         if name == "SOC":
             try:
-                response = _json_request("GET", f"http://127.0.0.1:{port}/api/alerts/queue")
+                response = _json_request("GET", _http_url(port, "/api/alerts/queue"))
                 alerts = response.get("alerts") or response.get("items") or response.get("queue") or []
                 if isinstance(alerts, list):
                     pending = f"  pending_alerts={len(alerts)}"
@@ -918,8 +970,18 @@ def cmd_start(selected: list[dict], args):
     if args.graph and not args.no_reseed:
         setup_graph_mode()
 
+    reload_enabled = args.reload
+    if args.workers > 1 and reload_enabled:
+        print("WARNING: --workers > 1 is incompatible with --reload; disabling --reload.")
+        reload_enabled = False
+    if args.workers > 1:
+        print("WARNING: multiple workers are NOT certified for mutable workflows. "
+              "Scorer/control state and invalidation remain process-local; "
+              "see docs/design/workers_safety_audit.md. Use --workers 1 for writes.")
+
     # --- Start backends ---
     print("Starting backends...")
+    backend_stderr_logs: dict[int, Path] = {}
     for c in selected:
         port = c["be_port"]
         kill_port(port, f"{c['name']} backend")
@@ -936,6 +998,12 @@ def cmd_start(selected: list[dict], args):
         env = os.environ.copy()
         if c.get("env"):
             env.update(c["env"])
+        env["COPILOT_WORKERS"] = str(args.workers)
+        if args.workers > 1:
+            # AGE has several client instances per copilot. Do not multiply
+            # the previous 15-connection pool by every spawned worker.
+            env["AGE_POOL_MIN_SIZE"] = "1"
+            env["AGE_POOL_MAX_SIZE"] = "2"
         if args.no_reseed:
             env["DEMO_NO_RESEED"] = "1"
         if c["name"].lower() == "soc":
@@ -954,13 +1022,23 @@ def cmd_start(selected: list[dict], args):
         ]
         if platform.system() == "Windows":
             backend_command.extend(["--loop", "asyncio"])
+        if args.workers > 1:
+            backend_command.extend(["--workers", str(args.workers)])
+        elif reload_enabled:
+            backend_command.append("--reload")
 
-        proc = subprocess.Popen(
-            backend_command,
-            cwd=str(be_path),
-            env=env,
-            creationflags=CREATE_FLAGS,
-        )
+        BACKEND_LOG_DIR.mkdir(parents=True, exist_ok=True)
+        log_path = BACKEND_LOG_DIR / f"{c['name'].lower()}.log"
+        with log_path.open("w", encoding="utf-8") as stderr_log:
+            proc = subprocess.Popen(
+                backend_command,
+                cwd=str(be_path),
+                env=env,
+                stderr=stderr_log,
+                stdout=stderr_log,
+                creationflags=CREATE_FLAGS,
+            )
+        backend_stderr_logs[port] = log_path
         print(f"  {c['name']} backend starting on :{port} (PID {proc.pid})")
 
     # --- Wait for health ---
@@ -974,10 +1052,15 @@ def cmd_start(selected: list[dict], args):
             timeout = 60 if c.get("requires_age") else 30
         if not wait_for_health(c["name"], c["be_port"], timeout=timeout):
             all_healthy = False
+            failure_log_path = backend_stderr_logs.get(c["be_port"])
+            if failure_log_path is not None:
+                print_backend_startup_diagnostics(c["name"], failure_log_path)
+            else:
+                print(f"  No captured stderr: {c['name']} was not launched by this invocation.")
 
     if not all_healthy:
         print()
-        print("Some backends failed. Check the console windows for errors.")
+        print("Some backends failed. Captured startup diagnostics are shown above.")
         # Continue anyway — some backends may be up
     elif args.diag_mode:
         write_soc_diag_contract(
@@ -1005,7 +1088,7 @@ def cmd_start(selected: list[dict], args):
         print()
         print("SOC diagnostic backend is ready for T2 proof/perf validation.")
         print(f"  graph: {args.diag_graph_name}")
-        print(f"  health: http://127.0.0.1:{args.diag_backend_port}/health")
+        print(f"  health: {_http_url(args.diag_backend_port, '/health')}")
         print(f"  contract: {args.diag_contract.resolve()}")
         return
 
@@ -1029,6 +1112,8 @@ def cmd_start(selected: list[dict], args):
             continue
 
         fe_env = os.environ.copy()
+        fe_env["VITE_COPILOT_HOST"] = COPILOT_HOST
+        fe_env["VITE_API_URL"] = _http_url(int(c["be_port"]))
         if c.get("fe_env"):
             fe_env.update(c["fe_env"])
 
@@ -1054,7 +1139,7 @@ def cmd_start(selected: list[dict], args):
             [int(c["be_port"]) for c in selected], timeout=60
         )
         frontend_urls = [
-            f"http://127.0.0.1:{c['fe_port']}"
+            _http_url(int(c["fe_port"]))
             for c in selected
             if c.get("fe_port") is not None and c["name"].lower() != "soc"
         ]
@@ -1075,7 +1160,7 @@ def cmd_start(selected: list[dict], args):
         for c in selected:
             fe_port = c.get("fe_port")
             if fe_port is not None:
-                urls.append((c["name"], f"http://localhost:{fe_port}"))
+                urls.append((c["name"], _http_url(int(fe_port))))
         if urls:
             print()
             print("Opening browsers...")
@@ -1117,9 +1202,9 @@ def cmd_start(selected: list[dict], args):
             learning_state = "enabled" if learning_enabled else "disabled"
             learning_flag = f"  learning={learning_state}"
         if fe_port is None:
-            print(f"  {c['name']:12s}  backend http://localhost:{c['be_port']}{age_flag}{learning_flag}")
+            print(f"  {c['name']:12s}  backend {_http_url(int(c['be_port']))}{age_flag}{learning_flag}")
         else:
-            print(f"  {c['name']:12s}  http://localhost:{fe_port}"
+            print(f"  {c['name']:12s}  {_http_url(int(fe_port))}"
                   f"  (backend :{c['be_port']}){age_flag}{learning_flag}")
     print()
     print("  Stop:       python demo.py --stop")
@@ -1248,7 +1333,7 @@ def cmd_diagnose(selected: list[dict]) -> None:
     for copilot in selected:
         name = copilot["name"]
         try:
-            payload = _json_request("GET", f"http://127.0.0.1:{copilot['be_port']}/api/diagnostics")
+            payload = _json_request("GET", _http_url(int(copilot["be_port"]), "/api/diagnostics"))
             print(f"{name}: domain={payload.get('domain')} issues={len(payload.get('issues', []))}")
             for issue in payload.get("issues", []):
                 print(f"  - {issue}")
@@ -1373,7 +1458,7 @@ def _first_list(payload: dict, keys: tuple[str, ...]) -> list:
 
 def run_soc_preseed(copilot: dict, *, fail_hard: bool = False) -> None:
     """Enable SOC learning and verify a short live learning preseed."""
-    base_url = f"http://127.0.0.1:{copilot['be_port']}"
+    base_url = _http_url(int(copilot["be_port"]))
     print("  SOC: learning enabled for demo preseed")
     try:
         queue = _json_request("GET", f"{base_url}/api/alerts/queue")
@@ -1420,6 +1505,17 @@ def run_soc_preseed(copilot: dict, *, fail_hard: bool = False) -> None:
             raise
 
 
+def positive_worker_count(value: str) -> int:
+    """Parse a strictly positive uvicorn worker count."""
+    try:
+        workers = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("--workers must be an integer") from exc
+    if workers < 1:
+        raise argparse.ArgumentTypeError("--workers must be at least 1")
+    return workers
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Build the launcher parser for both CLI execution and tests."""
     parser = argparse.ArgumentParser(
@@ -1461,6 +1557,10 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-reseed", action="store_true",
                         help="Start backends without bundle restore or fixture seeding")
     parser.add_argument("--no-browser", action="store_true", help="Don't open browsers")
+    parser.add_argument("--workers", type=positive_worker_count, default=1,
+                        help="Number of uvicorn workers per backend (default: 1)")
+    parser.add_argument("--reload", action="store_true",
+                        help="Enable uvicorn auto-reload (disabled when --workers > 1)")
     parser.add_argument("--diag-mode", action="store_true", help="SOC proof/perf backend-only diagnostic mode")
     parser.add_argument("--diag-graph-name", default="soc_graph_diag_f", help="SOC AGE graph for --diag-mode")
     parser.add_argument("--diag-backend-port", type=int, default=8001, help="SOC backend port for --diag-mode")

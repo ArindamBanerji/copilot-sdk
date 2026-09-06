@@ -1,3 +1,4 @@
+import { coalesceRead, withReadInvalidation } from "../../../../copilot_sdk/frontend/requestCoalescing";
 import type {
   AEImpact,
   AERecommendationResponse,
@@ -60,7 +61,8 @@ import type {
   AbstentionState,
 } from "./types";
 
-export const BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8030";
+const HOST = import.meta.env.VITE_COPILOT_HOST || "127.0.0.1";
+export const BASE = import.meta.env.VITE_API_URL || `http://${HOST}:8030`;
 
 export interface DataOpsGovernanceStatus {
   claims: Array<Record<string, unknown>>;
@@ -175,11 +177,20 @@ export function normalize<T = unknown>(value: unknown): T {
 }
 
 async function apiGet<T>(path: string): Promise<T> {
-  const response = await fetch(`${BASE}${path}`);
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
-  }
-  return normalize<T>(await response.json());
+  const payload = await coalesceRead(JSON.stringify([BASE, path, 5_000]), async () => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 5_000);
+    try {
+      const response = await fetch(`${BASE}${path}`, { signal: controller.signal });
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+      }
+      return await response.json();
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  });
+  return normalize<T>(payload);
 }
 
 async function safeApiGet<T>(path: string): Promise<T | null> {
@@ -203,15 +214,17 @@ async function safeRawApiGet<T>(path: string): Promise<T | null> {
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${BASE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(toSnakePayload(body)),
+  return withReadInvalidation(async () => {
+    const response = await fetch(`${BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(toSnakePayload(body)),
+    });
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+    return normalize<T>(await response.json());
   });
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
-  }
-  return normalize<T>(await response.json());
 }
 
 function toSnakeKey(key: string): string {

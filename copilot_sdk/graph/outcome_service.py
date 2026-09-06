@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Protocol, cast
+from pathlib import Path
 
 from copilot_sdk.graph.outbox import DurableOutbox
+from copilot_sdk.process_lock import file_lock
 from copilot_sdk.graph.protocol import L5LearningStore, ProtocolV2GraphStore
 
 
@@ -73,6 +75,10 @@ class ProtocolV2OutcomeService:
         }
 
     def replay(self) -> dict[str, int]:
+        with file_lock(str(Path(self.outbox.path).resolve()) + ".replay.lock"):
+            return self._replay_locked()
+
+    def _replay_locked(self) -> dict[str, int]:
         replayed = 0
         failed = 0
         for entry in self.outbox.get_pending():

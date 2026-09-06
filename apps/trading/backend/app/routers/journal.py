@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse
 from app.routers.data_import import _trade_store_ref
 from app.services.subcategory import get_subcategory
 from copilot_sdk.scoring.mutation_lock import serialize_mutation
+from copilot_sdk.process_lock import file_lock
 
 
 GraphStoreFactory = Callable[[], Any]
@@ -339,11 +340,11 @@ def _apply_filters(
     if "date_from" in filters:
         start = _parse_date(filters["date_from"])
         if start is not None:
-            output = [trade for trade in output if _entry_date(trade) is not None and _entry_date(trade) >= start]
+            output = [trade for trade in output if (date := _entry_date(trade)) is not None and date >= start]
     if "date_to" in filters:
         end = _parse_date(filters["date_to"])
         if end is not None:
-            output = [trade for trade in output if _entry_date(trade) is not None and _entry_date(trade) <= end]
+            output = [trade for trade in output if (date := _entry_date(trade)) is not None and date <= end]
     return output
 
 
@@ -584,7 +585,7 @@ def _write_json_atomic_unlocked(path: Path, payload: Any) -> None:
 
 
 def _locked_append(path: Path, entry: dict[str, Any], default_factory=list) -> None:
-    with _JOURNAL_LOCK:
+    with _JOURNAL_LOCK, file_lock(str(path.resolve()) + ".lock"):
         data = _read_json_unlocked(path, default_factory)
         if not isinstance(data, list):
             data = default_factory()
@@ -593,7 +594,7 @@ def _locked_append(path: Path, entry: dict[str, Any], default_factory=list) -> N
 
 
 def _locked_update(path: Path, key: str, value_factory, default_factory=dict) -> None:
-    with _JOURNAL_LOCK:
+    with _JOURNAL_LOCK, file_lock(str(path.resolve()) + ".lock"):
         data = _read_json_unlocked(path, default_factory)
         if not isinstance(data, dict):
             data = default_factory()

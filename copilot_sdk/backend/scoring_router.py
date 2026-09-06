@@ -13,6 +13,7 @@ from typing import Any, Callable
 import numpy as np
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 
 from copilot_sdk.backend.conservation_utils import compute_conservation_metrics
 from copilot_sdk.backend.diagnostics_models import build_diagnostics
@@ -201,10 +202,20 @@ def create_scoring_router(
 
     @router.post("/score", response_model=ScoreResponse)
     async def score(request: ScoreRequest) -> dict[str, Any]:
+        # The context adapter can await. Never hold a threading lock across
+        # that await, or perform synchronous graph I/O on the ASGI event loop.
+        try:
+            await load_stable_context(request)
+        except (AssertionError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
+        return await run_in_threadpool(score_sync, request)
+
+    def score_sync(request: ScoreRequest) -> dict[str, Any]:
         with mutation_lock_scope(domain):
             scorer = get_scorer()
             try:
-                await load_stable_context(request)
                 if variant_selector is not None:
                     selected_variant = variant_selector(request.category)
                     if selected_variant and not _decision_variant_id({"metadata": request.metadata or {}}):

@@ -1,6 +1,6 @@
 {
   "copilot": "dataops",
-  "url": "http://localhost:5176",
+  "url": "http://127.0.0.1:5176",
   "capturedAt": "2026-05-10T21:32:24.253Z",
   "healthStatus": "ok (dataops)",
   "tabs": {

@@ -8,13 +8,16 @@ import os
 from dataclasses import asdict
 from datetime import date
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from fastapi import APIRouter, HTTPException, status
 
 from app.data_helpers import write_purchasing_fixture
+from copilot_sdk.process_lock import file_lock
 from app.factors import compute_factors
 from copilot_sdk.scoring.verification.weather import get_weather_factor
+
+from app.data_cache import load_cached_json
 
 
 router = APIRouter(tags=["context"])
@@ -34,17 +37,13 @@ _FACTOR_NAMES = (
 )
 
 
-def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
 def _load_data_json(filename: str, default: Any) -> Any:
     path = _DATA_DIR / filename
     if path.exists():
-        return _load_json(path)
+        return load_cached_json(path)
     fallback_path = _DEFAULT_DATA_DIR / filename
     if fallback_path.exists():
-        return _load_json(fallback_path)
+        return load_cached_json(fallback_path)
     return default
 
 
@@ -54,7 +53,8 @@ def set_evolution_store_factory(factory: Callable[[], Any] | None) -> None:
 
 
 def _variant_from_evolution_event(event: dict[str, Any]) -> dict[str, Any]:
-    metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+    metadata_value = event.get("metadata")
+    metadata: dict[str, Any] = metadata_value if isinstance(metadata_value, dict) else {}
     variant = dict(metadata)
     event_type = str(variant.get("event_type") or event.get("event_type") or "")
     rule_name = str(event.get("rule_name") or variant.get("rule_name") or "")
@@ -107,7 +107,8 @@ def _merged_order_factors(order: dict[str, Any]) -> dict[str, float]:
 
 
 def _factor_context(order: dict[str, Any]) -> dict[str, Any]:
-    outcome = order.get("outcome") if isinstance(order.get("outcome"), dict) else {}
+    outcome_value = order.get("outcome")
+    outcome: dict[str, Any] = outcome_value if isinstance(outcome_value, dict) else {}
     context = {
         "forecast_demand": order.get("forecast_demand") or order.get("expected_demand"),
         "par_level": order.get("par_level"),
@@ -200,7 +201,7 @@ def _get_weather() -> dict[str, Any]:
 
     cache_path = _DATA_DIR / "weather_cache.json"
     if cache_path.exists():
-        return _with_weather_risk_levels(_load_json(cache_path))
+        return _with_weather_risk_levels(load_cached_json(cache_path))
     return _with_weather_risk_levels(asdict(get_weather_factor(use_live=False)))
 
 
@@ -262,13 +263,13 @@ def items() -> list[dict[str, Any]]:
                 "supplier_lead_time": 0.45,
             }
         ]
-    return _load_json(path)
+    return cast(list[dict[str, Any]], load_cached_json(path))
 
 
 @router.get("/waste-history/{item}")
 def waste_history(item: str) -> dict[str, Any]:
     key = _item_key(item)
-    history = _load_json(_DATA_DIR / "waste_history.json")
+    history = load_cached_json(_DATA_DIR / "waste_history.json")
     values = history.get(key, [])
     return {"item": key, "waste_pct": values, "count": len(values)}
 
@@ -285,17 +286,18 @@ def save_order_metadata(payload: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="decision_id is required")
 
     metadata_path = _DATA_DIR / "order_metadata.json"
-    metadata = _load_json(metadata_path) if metadata_path.exists() else {}
     record = dict(payload)
     record.setdefault("provenance", "sample")
-    metadata[str(decision_id)] = record
-    write_purchasing_fixture(metadata_path, metadata)
+    with file_lock(str(metadata_path.resolve()) + ".lock"):
+        metadata = load_cached_json(metadata_path) if metadata_path.exists() else {}
+        metadata[str(decision_id)] = record
+        write_purchasing_fixture(metadata_path, metadata)
     return {"decision_id": str(decision_id), "metadata": record}
 
 
 @router.get("/order-metadata")
 def get_order_metadata() -> dict[str, Any]:
-    return _load_json(_DATA_DIR / "order_metadata.json")
+    return cast(dict[str, Any], load_cached_json(_DATA_DIR / "order_metadata.json"))
 
 
 @router.get("/analytics")

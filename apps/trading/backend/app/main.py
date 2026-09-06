@@ -93,6 +93,7 @@ from copilot_sdk.tenant_middleware import TenantMiddleware  # noqa: E402
 from copilot_sdk.scoring.dk_persistence import DKWelfordTracker  # noqa: E402
 from copilot_sdk.scoring.scorer import CompoundingScorer  # noqa: E402
 from copilot_sdk.scoring.startup_restore import restore_l5_runtime_state  # noqa: E402
+from copilot_sdk.demo.startup import startup_lock  # noqa: E402
 from copilot_sdk.scoring.presets.trading import TradingPreset  # noqa: E402
 from copilot_sdk.state import cached_static, create_invalidation_header_middleware, create_tab_state_router  # noqa: E402
 from ci_platform.copilot_core import EntityCache, EntityContextCacheAdapter  # noqa: E402
@@ -436,6 +437,10 @@ def create_app(
         return None
 
     def _run_startup_seed_once() -> None:
+        with startup_lock(scoring_db):
+            _run_startup_locked()
+
+    def _run_startup_locked() -> None:
         if not startup_state["seeded"]:
             startup_state["seeded"] = True
             if os.environ.get("DEMO_NO_RESEED") == "1":

@@ -124,18 +124,7 @@ def _trained_real_dk_scorer() -> CompoundingScorer:
 
 
 def _scoring_route_scorer_proxy(app):
-    for route in app.routes:
-        if getattr(route, "path", None) != "/api/score":
-            continue
-        endpoint = getattr(route, "endpoint", None)
-        code = getattr(endpoint, "__code__", None)
-        closure = getattr(endpoint, "__closure__", None)
-        if code is None or not closure:
-            continue
-        for name, cell in zip(code.co_freevars, closure):
-            if name == "get_scorer":
-                return cell.cell_contents()
-    raise AssertionError("Could not find /api/score get_scorer closure")
+    return app.state.trading_regime_conditioning
 
 
 def test_trust_endpoint_200_empty(client):

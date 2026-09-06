@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Callable, cast
 
 from fastapi import APIRouter
+from starlette.concurrency import run_in_threadpool
 
 from .graph_queries import DataOpsGraphClient
 
@@ -399,7 +400,7 @@ def create_ae_router(
             }
 
         recommendations = []
-        for variant in store_variants():
+        for variant in await run_in_threadpool(store_variants):
             if _normalize_variant_status(variant) != "promoted":
                 continue
             matched, reason = match_ae_rule(alert, variant)

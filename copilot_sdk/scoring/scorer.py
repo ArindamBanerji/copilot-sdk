@@ -1728,15 +1728,11 @@ class CompoundingScorer:
         decision_time_end: str | None = None,
         category: str | None = None,
     ) -> TrajectoryResult:
+        # Trajectory is derived solely from verified decisions. The legacy
+        # checkpoint filter arguments remain accepted for API compatibility;
+        # compute_trajectory has always ignored checkpoints and these filters.
         return compute_trajectory(
-            self._graph_store.get_centroid_checkpoints(
-                self._domain,
-                checkpoint_time_start=checkpoint_time_start,
-                checkpoint_time_end=checkpoint_time_end,
-                decision_time_start=decision_time_start,
-                decision_time_end=decision_time_end,
-                category=category,
-            ),
+            [],
             self._graph_store.get_verified_decisions(self._domain),
             self._preset.shape,
         )

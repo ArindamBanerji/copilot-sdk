@@ -1,3 +1,4 @@
+import { coalesceRead, withReadInvalidation } from "../../../../copilot_sdk/frontend/requestCoalescing";
 import type {
   Analytics,
   AnalyticsResponse,
@@ -46,7 +47,8 @@ import type {
   ClaimGateResponse,
 } from "./types";
 
-export const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8010";
+const HOST = import.meta.env.VITE_COPILOT_HOST || "127.0.0.1";
+export const API_BASE = import.meta.env.VITE_API_URL ?? `http://${HOST}:8010`;
 
 type JsonObject = Record<string, unknown>;
 
@@ -69,11 +71,20 @@ export function normalizeKeys<T = unknown>(value: unknown): T {
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`);
-  if (!response.ok) {
-    throw new Error(`GET ${path} failed with ${response.status}`);
-  }
-  return normalizeKeys<T>(await response.json());
+  const payload = await coalesceRead(JSON.stringify([API_BASE, path, 5_000]), async () => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 5_000);
+    try {
+      const response = await fetch(`${API_BASE}${path}`, { signal: controller.signal });
+      if (!response.ok) {
+        throw new Error(`GET ${path} failed with ${response.status}`);
+      }
+      return await response.json();
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  });
+  return normalizeKeys<T>(payload);
 }
 
 export async function safeApiGet<T>(path: string): Promise<T | null> {
@@ -85,15 +96,17 @@ export async function safeApiGet<T>(path: string): Promise<T | null> {
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  return withReadInvalidation(async () => {
+    const response = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`POST ${path} failed with ${response.status}`);
+    }
+    return normalizeKeys<T>(await response.json());
   });
-  if (!response.ok) {
-    throw new Error(`POST ${path} failed with ${response.status}`);
-  }
-  return normalizeKeys<T>(await response.json());
 }
 
 export function getAnalytics(): Promise<Analytics> {

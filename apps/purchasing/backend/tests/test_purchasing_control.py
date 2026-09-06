@@ -21,7 +21,7 @@ def test_claim_registry_starts_synthetic_and_gate_is_fail_closed() -> None:
     assert "not measured" in result.label
 
 
-def test_evidence_middleware_adds_headers_and_fields() -> None:
+def test_evidence_middleware_adds_get_headers_without_body_rewrite() -> None:
     registry = PurchasingClaimRegistry()
     app = FastAPI()
     app.add_middleware(PurchasingEvidenceMiddleware, registry=registry)
@@ -32,6 +32,24 @@ def test_evidence_middleware_adds_headers_and_fields() -> None:
 
     with TestClient(app) as client:
         response = client.get("/api/purchasing/proof-ledger")
+    assert response.status_code == 200
+    assert response.headers["X-Evidence-Tier"] == "T_S"
+    assert response.headers["X-Evidence-Label"] == "synthetic / modelled - not measured"
+    assert response.headers["X-Evidence-Gate"] in {"passed", "blocked"}
+    assert response.json() == {"status": "ok"}
+
+
+def test_evidence_middleware_adds_post_headers_and_fields() -> None:
+    registry = PurchasingClaimRegistry()
+    app = FastAPI()
+    app.add_middleware(PurchasingEvidenceMiddleware, registry=registry)
+
+    @app.post("/api/purchasing/proof-ledger")
+    def route() -> dict[str, str]:
+        return {"status": "ok"}
+
+    with TestClient(app) as client:
+        response = client.post("/api/purchasing/proof-ledger", json={"kind": "outcome"})
     assert response.status_code == 200
     assert response.headers["X-Evidence-Tier"] == "T_S"
     assert response.json()["evidence_tier"] == "T_S"
@@ -65,7 +83,7 @@ def test_purchasing_control_routes_are_mounted_and_json_safe(client) -> None:
     ):
         response = client.get(path)
         assert response.status_code == 200, path
-        assert "evidence_tier" in response.json()
+        assert response.headers["X-Evidence-Tier"]
 
 
 def test_day_zero_and_discovery_are_not_yet_without_measured_outcomes(client) -> None:

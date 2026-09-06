@@ -35,6 +35,7 @@ CLAIMS = {
     "yield_audit": "CLAIM-PUR-YIELD-AUDIT",
     "general": "CLAIM-PUR-GENERAL",
 }
+PURCHASING_EVOLUTION_EVENT_CAP = 10_000
 
 _ROUTES = (
     ("/api/purchasing/proof-ledger", CLAIMS["proof"]),
@@ -103,6 +104,8 @@ class PurchasingEvidenceMiddleware(BaseHTTPMiddleware):
         response.headers["X-Evidence-Tier"] = result.tier.name
         response.headers["X-Evidence-Label"] = result.label.replace("—", "-")
         response.headers["X-Evidence-Gate"] = "passed" if result.passed else "blocked"
+        if request.method == "GET":
+            return response
         if claim_id is None or response.status_code >= 400 or "application/json" not in response.headers.get("content-type", ""):
             return response
         body = b"".join([chunk async for chunk in response.body_iterator])
@@ -167,9 +170,17 @@ class PurchasingControlService:
         promotion_store_type = GraphPromotionStore
         promotion_store = promotion_store_type(graph_store, "purchasing")
         self.promotion = PromotionEngine(PurchasingPromotionPolicy(), promotion_store)
+        self.retention_pruned = self._prune_evolution_events(graph_store)
 
     def _store(self) -> Any:
         return self.graph_store_factory()
+
+    def _prune_evolution_events(self, graph_store: Any | None = None) -> int:
+        store = graph_store if graph_store is not None else self._store()
+        pruner = getattr(store, "prune_evolution_events", None)
+        if not callable(pruner):
+            return 0
+        return int(pruner("purchasing", keep_recent=PURCHASING_EVOLUTION_EVENT_CAP))
 
     def _decisions(self) -> list[dict[str, Any]]:
         try:
@@ -189,11 +200,23 @@ class PurchasingControlService:
 
     def proof_ledger(self) -> dict[str, Any]:
         decisions, verified = self._decisions(), self._verified()
-        for row in decisions:
-            self.proof.record("decision", {"decision_id": row.get("decision_id"), "category": row.get("category"), "evidence_provenance": "graphstore"})
-        for row in verified:
-            self.proof.record("outcome", {"decision_id": row.get("decision_id"), "correct": row.get("is_correct"), "evidence_provenance": "verified_outcome"})
+        # Decisions/outcomes already persist in GraphStore. Project them for
+        # display; reading a page must not append duplicate proof events.
         entries = self.list_entries()
+        represented = {(entry.get("kind"), entry.get("payload", {}).get("decision_id"))
+                       for entry in entries}
+        for kind, rows in (("outcome", verified), ("decision", decisions)):
+            for row in reversed(rows):
+                if len(entries) >= 100:
+                    break
+                identity = (kind, row.get("decision_id"))
+                if identity in represented:
+                    continue
+                payload = {"decision_id": row.get("decision_id"),
+                           "evidence_provenance": "verified_outcome" if kind == "outcome" else "graphstore"}
+                payload["correct" if kind == "outcome" else "category"] = row.get("is_correct" if kind == "outcome" else "category")
+                entries.append({"kind": kind, "payload": payload, "created_at": row.get("created_at")})
+                represented.add(identity)
         correct = sum(1 for row in verified if row.get("is_correct") is True)
         return {"proof_curve": {"decisions": len(decisions), "verified": len(verified), "correct": correct}, "competence_curve": {"accuracy": round(correct / len(verified), 4) if verified else 0.0}, "entries": entries, "attribution": "verified outcomes only; no synthetic uplift", "honest_dollars": 0.0, "source": "graphstore + proof ledger"}
 
@@ -201,10 +224,13 @@ class PurchasingControlService:
         return cast(list[dict[str, Any]], self.proof.list_entries())
 
     def readiness(self) -> dict[str, Any]:
-        ledger = self.proof_ledger()
-        verified = int(ledger["proof_curve"]["verified"])
-        conservation = "GREEN" if verified and ledger["competence_curve"]["accuracy"] >= 0.5 else ("BOOTSTRAP" if not verified else "AMBER")
-        return {"ready": conservation == "GREEN", "day_zero": {"immutable": False, "frozen_twin_available": self.twin.is_frozen()}, "coverage": ledger["proof_curve"], "conservation_status": conservation, "evidence_floor": "T_O" if verified else "T_S", "not_yet": conservation != "GREEN"}
+        decisions, outcomes = self._decisions(), self._verified()
+        verified = len(outcomes)
+        correct = sum(row.get("is_correct") is True for row in outcomes)
+        accuracy = round(correct / verified, 4) if verified else 0.0
+        conservation = "GREEN" if verified and accuracy >= 0.5 else ("BOOTSTRAP" if not verified else "AMBER")
+        coverage = {"decisions": len(decisions), "verified": verified, "correct": correct}
+        return {"ready": conservation == "GREEN", "day_zero": {"immutable": False, "frozen_twin_available": self.twin.is_frozen()}, "coverage": coverage, "conservation_status": conservation, "evidence_floor": "T_O" if verified else "T_S", "not_yet": conservation != "GREEN"}
 
     def handoff(self) -> dict[str, Any]:
         ledger = self.proof_ledger()
@@ -256,4 +282,5 @@ class PurchasingControlService:
         outcome = VerifiedOutcome.from_dict(dict(payload))
         result = self.processor.process(outcome)
         self.proof.record("outcome", {"decision_id": outcome.decision_id, "receipt_id": result.receipt_id, "evidence_provenance": outcome.evidence_provenance, "processed": result.processed})
+        self._prune_evolution_events()
         return cast(dict[str, Any], result.to_dict())

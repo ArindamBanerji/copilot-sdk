@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -17,21 +19,21 @@ _order_cache: list[dict[str, Any]] | None = None
 
 
 def _load_json(path: Path) -> list[dict[str, Any]]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return cast(list[dict[str, Any]], json.loads(path.read_text(encoding="utf-8")))
 
 
 def load_purchasing_suppliers() -> list[dict[str, Any]]:
     global _supplier_cache
-    if _supplier_cache is None:
-        _supplier_cache = _load_json(SUPPLIERS_PATH)
-    return list(_supplier_cache)
+    suppliers = _load_json(SUPPLIERS_PATH)
+    _supplier_cache = suppliers
+    return suppliers
 
 
 def load_purchasing_orders() -> list[dict[str, Any]]:
     global _order_cache
-    if _order_cache is None:
-        _order_cache = _load_json(ORDERS_PATH)
-    return list(_order_cache)
+    orders = _load_json(ORDERS_PATH)
+    _order_cache = orders
+    return orders
 
 
 def reset_purchasing_fixtures() -> None:
@@ -56,7 +58,19 @@ def write_purchasing_fixture(path: Path, data: dict) -> None:
                 "Expected sample or demo."
             )
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+    # Publish complete JSON. Callers doing read/modify/write must also hold a
+    # file_lock across that whole operation, as save_order_metadata does.
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False) as handle:
+            temporary = Path(handle.name)
+            json.dump(data, handle, indent=2, sort_keys=True)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def is_sample_data(record: dict) -> bool:

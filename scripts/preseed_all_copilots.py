@@ -19,6 +19,7 @@ from urllib import error, request
 from copilot_sdk.backend.transfer import save_fingerprint
 
 
+HOST = os.environ.get("COPILOT_HOST", "127.0.0.1")
 TIMEOUT_SECONDS = 10
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PRESEED_DECISIONS_PER_COPILOT = 200
@@ -141,7 +142,7 @@ DOMAINS = [
     DomainConfig(
         name="trading",
         env_var="TRADING_URL",
-        default_url="http://127.0.0.1:8010",
+        default_url=f"http://{HOST}:8010",
         seed_path=REPO_ROOT / "apps" / "trading" / "backend" / "data" / "trading_seed_v2.json",
         factors=TRADING_FACTORS,
         actions=["strong_execution", "partial_execution", "poor_execution", "skip_recommended"],
@@ -151,7 +152,7 @@ DOMAINS = [
     DomainConfig(
         name="purchasing",
         env_var="PURCHASING_URL",
-        default_url="http://127.0.0.1:8020",
+        default_url=f"http://{HOST}:8020",
         seed_path=REPO_ROOT / "apps" / "purchasing" / "backend" / "data" / "purchasing_seed_v2.json",
         factors=PURCHASING_FACTORS,
         actions=["order_as_planned", "order_more", "order_less", "skip"],
@@ -161,7 +162,7 @@ DOMAINS = [
     DomainConfig(
         name="dataops",
         env_var="DATAOPS_URL",
-        default_url="http://127.0.0.1:8030",
+        default_url=f"http://{HOST}:8030",
         seed_path=REPO_ROOT / "copilot_sdk" / "scoring" / "presets" / "dataops_seed.json",
         factors=DATAOPS_FACTORS,
         actions=[
@@ -361,7 +362,7 @@ def s2p_event(index: int) -> Dict[str, Any]:
 
 def seed_s2p_domain(args: argparse.Namespace) -> DomainResult:
     """Seed S2P through its separate live HTTP API, when it is running."""
-    base_url = os.environ.get("S2P_URL", "http://127.0.0.1:8002")
+    base_url = os.environ.get("S2P_URL", f"http://{HOST}:8002")
     total = S2P_PRESEED_DECISIONS
     print("\n== s2p ==")
     print("seed: %s deterministic invoice decisions" % total)

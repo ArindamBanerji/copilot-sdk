@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Callable
 
+from copilot_sdk.process_lock import file_lock
+
 from .models import OutboxEvent
 from .store import OutboxStore
 
@@ -39,6 +41,10 @@ class OutboxWorker:
 
     def process_batch(self) -> int:
         """Process up to batch_size pending events."""
+        with file_lock(str(self._store.db_path.resolve()) + ".dispatch.lock"):
+            return self._process_batch_locked()
+
+    def _process_batch_locked(self) -> int:
 
         events = self._store.get_unprocessed(self._batch_size)
         processed = 0
@@ -76,6 +82,10 @@ class OutboxWorker:
 
     def replay(self, from_offset: int = 0) -> int:
         """Replay all events from an event id offset."""
+        with file_lock(str(self._store.db_path.resolve()) + ".dispatch.lock"):
+            return self._replay_locked(from_offset)
+
+    def _replay_locked(self, from_offset: int) -> int:
 
         replayed = 0
         for event in self._store.replay_from(from_offset):
@@ -103,4 +113,4 @@ class OutboxWorker:
     def pending(self) -> int:
         """Return the number of pending events."""
 
-        return self._store.count_unprocessed()
+        return int(self._store.count_unprocessed())

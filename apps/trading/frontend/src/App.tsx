@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CopilotShell, SelfComputationPanels, type CopilotShellTab } from "../../../../copilot_sdk/frontend";
-import { getTrajectory } from "./api";
+import { API_BASE, getTrajectory } from "./api";
 import PaperBadge from "./components/PaperBadge";
 import AnalysisScreen from "./screens/AnalysisScreen";
 import DashboardScreen from "./screens/DashboardScreen";
@@ -80,7 +80,7 @@ export default function App() {
           onBack={() => setActiveTab("dashboard")}
         />
       ) : null}
-      <SelfComputationPanels />
+      <SelfComputationPanels baseUrl={`${API_BASE}/api/self`} />
     </CopilotShell>
   );
 }

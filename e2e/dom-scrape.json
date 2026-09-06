@@ -81,6 +81,30 @@
         {
           "tag": "h2",
           "text": "Learned source reliability"
+        },
+        {
+          "tag": "h2",
+          "text": "Centroid Timeline"
+        },
+        {
+          "tag": "h2",
+          "text": "Accuracy Alerts"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Genealogy"
+        },
+        {
+          "tag": "h2",
+          "text": "Decision Explorer"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Lifecycle"
+        },
+        {
+          "tag": "h2",
+          "text": "Audit Trail"
         }
       ],
       "testIds": [
@@ -122,7 +146,7 @@
         {
           "testId": "day-zero-state-summary",
           "tag": "div",
-          "text": "ACCUMULATING367 verified decisions30 needed"
+          "text": "ACCUMULATING361 verified decisions30 needed"
         },
         {
           "testId": "day-zero-state",
@@ -132,7 +156,7 @@
         {
           "testId": "day-zero-accumulating-body",
           "tag": "div",
-          "text": "Accumulating. 367 decisions verified. Building judgment.367 / 397 decisions · ma"
+          "text": "Accumulating. 361 decisions verified. Building judgment.361 / 391 decisions · ma"
         },
         {
           "testId": "day-zero-caption",
@@ -222,7 +246,7 @@
         {
           "testId": "situation-judgment",
           "tag": "div",
-          "text": "Situation-conditioned judgmentcalm contextEvidence: INSUFFICIENTVIX: 14.43ADX: 2"
+          "text": "Situation-conditioned judgmentcalm contextEvidence: INSUFFICIENTVIX: 14.53ADX: 2"
         },
         {
           "testId": "situation-regime",
@@ -252,12 +276,12 @@
         {
           "testId": "data-trust-badge",
           "tag": "section",
-          "text": "Data TrustLearned source reliabilityTradingOptions delta1.00Research depth0.93Op"
+          "text": "Data TrustLearned source reliabilityTradingOptions delta1.00Research depth0.94Op"
         },
         {
           "testId": "data-trust-factors",
           "tag": "div",
-          "text": "Options delta1.00Research depth0.93Options IV0.92Market conditions0.58Timing qua"
+          "text": "Options delta1.00Research depth0.94Options IV0.93Market conditions0.58Timing qua"
         },
         {
           "testId": "data-trust-factor",
@@ -272,7 +296,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Research depth0.93"
+          "text": "Research depth0.94"
         },
         {
           "testId": "data-trust-bar",
@@ -282,7 +306,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Options IV0.92"
+          "text": "Options IV0.93"
         },
         {
           "testId": "data-trust-bar",
@@ -313,6 +337,41 @@
           "testId": "data-trust-contrast",
           "tag": "p",
           "text": "Highest 1.00 · Lowest 0.49 · Spread 0.51"
+        },
+        {
+          "testId": "self-computation-panels",
+          "tag": "div",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpointsAccu"
+        },
+        {
+          "testId": "centroid-timeline-panel",
+          "tag": "section",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpoints"
+        },
+        {
+          "testId": "accuracy-alerts-panel",
+          "tag": "section",
+          "text": "Accuracy Alertsevent_driven: 100%income_strategy: 100%mean_reversion: 91%scalp_i"
+        },
+        {
+          "testId": "rule-genealogy-panel",
+          "tag": "section",
+          "text": "Rule GenealogyEvolution lineage from GraphStore state.0 evolution records"
+        },
+        {
+          "testId": "decision-explorer-panel",
+          "tag": "section",
+          "text": "Decision ExplorerBrowse domain-scoped decisions with filters.802 matching decisi"
+        },
+        {
+          "testId": "rule-lifecycle-panel",
+          "tag": "section",
+          "text": "Rule LifecycleactiveEvolution: not recorded · Promotion: not recorded"
+        },
+        {
+          "testId": "audit-trail-panel",
+          "tag": "section",
+          "text": "Audit TrailImmutable ledger entries for this domain.50 entries"
         }
       ],
       "buttons": [
@@ -484,7 +543,13 @@
         "Dataset",
         "Calendar Heatmap",
         "Decision History",
-        "Learned source reliability"
+        "Learned source reliability",
+        "Centroid Timeline",
+        "Accuracy Alerts",
+        "Rule Genealogy",
+        "Decision Explorer",
+        "Rule Lifecycle",
+        "Audit Trail"
       ]
     },
     "Log Trade": {
@@ -524,6 +589,30 @@
         {
           "tag": "h2",
           "text": "Record Trade Decision"
+        },
+        {
+          "tag": "h2",
+          "text": "Centroid Timeline"
+        },
+        {
+          "tag": "h2",
+          "text": "Accuracy Alerts"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Genealogy"
+        },
+        {
+          "tag": "h2",
+          "text": "Decision Explorer"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Lifecycle"
+        },
+        {
+          "tag": "h2",
+          "text": "Audit Trail"
         }
       ],
       "testIds": [
@@ -546,6 +635,41 @@
           "testId": "pre-score-button",
           "tag": "button",
           "text": "Preview Score"
+        },
+        {
+          "testId": "self-computation-panels",
+          "tag": "div",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpointsAccu"
+        },
+        {
+          "testId": "centroid-timeline-panel",
+          "tag": "section",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpoints"
+        },
+        {
+          "testId": "accuracy-alerts-panel",
+          "tag": "section",
+          "text": "Accuracy Alertsevent_driven: 100%income_strategy: 100%mean_reversion: 91%scalp_i"
+        },
+        {
+          "testId": "rule-genealogy-panel",
+          "tag": "section",
+          "text": "Rule GenealogyEvolution lineage from GraphStore state.0 evolution records"
+        },
+        {
+          "testId": "decision-explorer-panel",
+          "tag": "section",
+          "text": "Decision ExplorerBrowse domain-scoped decisions with filters.802 matching decisi"
+        },
+        {
+          "testId": "rule-lifecycle-panel",
+          "tag": "section",
+          "text": "Rule LifecycleactiveEvolution: not recorded · Promotion: not recorded"
+        },
+        {
+          "testId": "audit-trail-panel",
+          "tag": "section",
+          "text": "Audit TrailImmutable ledger entries for this domain.50 entries"
         }
       ],
       "buttons": [
@@ -630,7 +754,13 @@
         "Strategy tag",
         "Pre-score categorytrend followingmean reversionevent drivenincome strategyscalp intraday",
         "Size %",
-        "Record Trade Decision"
+        "Record Trade Decision",
+        "Centroid Timeline",
+        "Accuracy Alerts",
+        "Rule Genealogy",
+        "Decision Explorer",
+        "Rule Lifecycle",
+        "Audit Trail"
       ]
     },
     "Analysis": {
@@ -765,7 +895,15 @@
         },
         {
           "tag": "h3",
-          "text": "Loading evolution lineage"
+          "text": "EXECUTION_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "EXECUTION_THRESHOLD_v2"
+        },
+        {
+          "tag": "h3",
+          "text": "REVENGE_COOLDOWN_v1"
         },
         {
           "tag": "h2",
@@ -773,7 +911,67 @@
         },
         {
           "tag": "h3",
-          "text": "Loading lifecycle"
+          "text": "EXECUTION_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "EXECUTION_THRESHOLD_v2"
+        },
+        {
+          "tag": "h3",
+          "text": "REVENGE_COOLDOWN_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "REVENGE_COOLDOWN_v2"
+        },
+        {
+          "tag": "h3",
+          "text": "ALERT_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "ALERT_THRESHOLD_v2"
+        },
+        {
+          "tag": "h3",
+          "text": "PATTERN_SENSITIVITY_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "PATTERN_SENSITIVITY_v2"
+        },
+        {
+          "tag": "h3",
+          "text": "REGIME_BOUNDARY_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "REGIME_BOUNDARY_v2"
+        },
+        {
+          "tag": "h2",
+          "text": "Centroid Timeline"
+        },
+        {
+          "tag": "h2",
+          "text": "Accuracy Alerts"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Genealogy"
+        },
+        {
+          "tag": "h2",
+          "text": "Decision Explorer"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Lifecycle"
+        },
+        {
+          "tag": "h2",
+          "text": "Audit Trail"
         }
       ],
       "testIds": [
@@ -785,12 +983,32 @@
         {
           "testId": "regime-mirror-panel",
           "tag": "section",
-          "text": "TRD-S1Regime mirrorObservation only: no forward action is inferred from this pan"
+          "text": "TRD-S1Regime mirrortrending100%3 verified observationschoppy100%356 verified obs"
+        },
+        {
+          "testId": "regime-mirror-trending",
+          "tag": "div",
+          "text": "trending100%3 verified observations"
+        },
+        {
+          "testId": "regime-mirror-choppy",
+          "tag": "div",
+          "text": "choppy100%356 verified observations"
+        },
+        {
+          "testId": "regime-mirror-volatile",
+          "tag": "div",
+          "text": "volatile100%2 verified observations"
+        },
+        {
+          "testId": "regime-mirror-calm",
+          "tag": "div",
+          "text": "calm-0 verified observations"
         },
         {
           "testId": "claim-gate-badge",
           "tag": "div",
-          "text": "TRD-CLAIM-GATEEvidence claim gateEvidence: T-OTested802Powered367Survived366"
+          "text": "TRD-CLAIM-GATEEvidence claim gateEvidence: T-OTested802Powered361Survived360"
         },
         {
           "testId": "governed-vs-ungoverned-panel",
@@ -798,14 +1016,19 @@
           "text": "DIFF-1Governed versus ungovernedTrading: the same input through two decision pat"
         },
         {
+          "testId": "governance-divergence",
+          "tag": "span",
+          "text": "Decision diverges"
+        },
+        {
           "testId": "ungoverned-path",
           "tag": "article",
-          "text": "Raw scorer outputUngoverned pathScore-ActionUNAVAILABLECategory-No conservation,"
+          "text": "Raw scorer outputUngoverned pathScore0.57Actionpartial_executionCategorytrend_fo"
         },
         {
           "testId": "governed-path",
           "tag": "article",
-          "text": "Conservation + evidence + promotionGoverned pathScore-ActionOBSERVECategory-Cons"
+          "text": "Conservation + evidence + promotionGoverned pathScore0.57ActionOBSERVECategorytr"
         },
         {
           "testId": "governance-caption",
@@ -955,7 +1178,7 @@
         {
           "testId": "vol-sharpe-clusters",
           "tag": "table",
-          "text": "Market conditionDecisionsQuality scoreStateranging36919.16measured"
+          "text": "Market conditionDecisionsQuality scoreStateranging36419.03measured"
         },
         {
           "testId": "vrp-attribution-card",
@@ -1021,6 +1244,41 @@
           "testId": "counterfactual-factor-slider",
           "tag": "input",
           "text": ""
+        },
+        {
+          "testId": "self-computation-panels",
+          "tag": "div",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpointsAccu"
+        },
+        {
+          "testId": "centroid-timeline-panel",
+          "tag": "section",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpoints"
+        },
+        {
+          "testId": "accuracy-alerts-panel",
+          "tag": "section",
+          "text": "Accuracy Alertsevent_driven: 100%income_strategy: 100%mean_reversion: 91%scalp_i"
+        },
+        {
+          "testId": "rule-genealogy-panel",
+          "tag": "section",
+          "text": "Rule GenealogyEvolution lineage from GraphStore state.0 evolution records"
+        },
+        {
+          "testId": "decision-explorer-panel",
+          "tag": "section",
+          "text": "Decision ExplorerBrowse domain-scoped decisions with filters.802 matching decisi"
+        },
+        {
+          "testId": "rule-lifecycle-panel",
+          "tag": "section",
+          "text": "Rule LifecycleactiveEvolution: not recorded · Promotion: not recorded"
+        },
+        {
+          "testId": "audit-trail-panel",
+          "tag": "section",
+          "text": "Audit TrailImmutable ledger entries for this domain.50 entries"
         }
       ],
       "buttons": [
@@ -1107,9 +1365,20 @@
         "Regime Analysis",
         "Risk Management",
         "Rule Genealogy",
-        "Loading evolution lineage",
+        "EXECUTION_THRESHOLD_v1",
+        "EXECUTION_THRESHOLD_v2",
+        "REVENGE_COOLDOWN_v1",
         "Rule Lifecycle",
-        "Loading lifecycle"
+        "REVENGE_COOLDOWN_v2",
+        "ALERT_THRESHOLD_v1",
+        "ALERT_THRESHOLD_v2",
+        "PATTERN_SENSITIVITY_v1",
+        "PATTERN_SENSITIVITY_v2",
+        "REGIME_BOUNDARY_v1",
+        "REGIME_BOUNDARY_v2",
+        "Centroid Timeline",
+        "Accuracy Alerts",
+        "Audit Trail"
       ]
     },
     "Performance": {
@@ -1148,11 +1417,31 @@
         },
         {
           "tag": "h2",
+          "text": "unknown"
+        },
+        {
+          "tag": "h2",
           "text": "Situation-conditioned autonomy"
         },
         {
           "tag": "h2",
           "text": "Regime-scoped rejection"
+        },
+        {
+          "tag": "h2",
+          "text": "Per-Regime Decision Quality"
+        },
+        {
+          "tag": "h3",
+          "text": "Trending (24 decisions)"
+        },
+        {
+          "tag": "h3",
+          "text": "Volatile (4 decisions)"
+        },
+        {
+          "tag": "h3",
+          "text": "Ranging (773 decisions)"
         },
         {
           "tag": "h2",
@@ -1208,7 +1497,51 @@
         },
         {
           "tag": "h2",
+          "text": "Strategy Safety Breakdown"
+        },
+        {
+          "tag": "h3",
+          "text": "Trend Following"
+        },
+        {
+          "tag": "h3",
+          "text": "Mean Reversion"
+        },
+        {
+          "tag": "h3",
+          "text": "Event Driven"
+        },
+        {
+          "tag": "h3",
+          "text": "Income Strategy"
+        },
+        {
+          "tag": "h3",
+          "text": "Scalp Intraday"
+        },
+        {
+          "tag": "h2",
           "text": "Strategy Promotion"
+        },
+        {
+          "tag": "h3",
+          "text": "trend following"
+        },
+        {
+          "tag": "h3",
+          "text": "mean reversion"
+        },
+        {
+          "tag": "h3",
+          "text": "event driven"
+        },
+        {
+          "tag": "h3",
+          "text": "income strategy"
+        },
+        {
+          "tag": "h3",
+          "text": "scalp intraday"
         },
         {
           "tag": "h2",
@@ -1265,6 +1598,30 @@
         {
           "tag": "h2",
           "text": "Risk Management"
+        },
+        {
+          "tag": "h2",
+          "text": "Centroid Timeline"
+        },
+        {
+          "tag": "h2",
+          "text": "Accuracy Alerts"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Genealogy"
+        },
+        {
+          "tag": "h2",
+          "text": "Decision Explorer"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Lifecycle"
+        },
+        {
+          "tag": "h2",
+          "text": "Audit Trail"
         }
       ],
       "testIds": [
@@ -1289,19 +1646,99 @@
           "text": "Experiment pending"
         },
         {
+          "testId": "regime-status-panel",
+          "tag": "section",
+          "text": "Regime Stabilityunknown0 / 20 decisions in new regimeAutonomynormal"
+        },
+        {
+          "testId": "regime-status-current",
+          "tag": "h2",
+          "text": "unknown"
+        },
+        {
+          "testId": "regime-status-autonomy",
+          "tag": "div",
+          "text": "normal"
+        },
+        {
           "testId": "autonomy-throttle-panel",
           "tag": "section",
-          "text": "TRD-S3Situation-conditioned autonomyCurrent regime: -Conservation: unavailableOb"
+          "text": "TRD-S3Situation-conditioned autonomyCurrent regime: choppyConservation: GREENObs"
         },
         {
           "testId": "autonomy-throttle-status",
           "tag": "span",
-          "text": "unavailable"
+          "text": "GREEN"
         },
         {
           "testId": "regime-rejection-panel",
           "tag": "section",
-          "text": "TRD-S4Regime-scoped rejectionTested-Rejected-StateobservationObservation only: n"
+          "text": "TRD-S4Regime-scoped rejectionTested133Rejected133StateobservationObservation onl"
+        },
+        {
+          "testId": "regime-analytics-panel",
+          "tag": "section",
+          "text": "Per-Regime Decision QualityRead-only stats from regime-tagged decisions.Total de"
+        },
+        {
+          "testId": "regime-analytics-trending",
+          "tag": "article",
+          "text": "Trending (24 decisions)Accuracy: -IKS: -Conservation: -[accumulating]0 verified "
+        },
+        {
+          "testId": "regime-accuracy-trending",
+          "tag": "span",
+          "text": "Accuracy: -"
+        },
+        {
+          "testId": "regime-iks-trending",
+          "tag": "span",
+          "text": "IKS: -"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Accumulating"
+        },
+        {
+          "testId": "regime-analytics-volatile",
+          "tag": "article",
+          "text": "Volatile (4 decisions)Accuracy: -IKS: -Conservation: -[accumulating]0 verified -"
+        },
+        {
+          "testId": "regime-accuracy-volatile",
+          "tag": "span",
+          "text": "Accuracy: -"
+        },
+        {
+          "testId": "regime-iks-volatile",
+          "tag": "span",
+          "text": "IKS: -"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "Accumulating"
+        },
+        {
+          "testId": "regime-analytics-ranging",
+          "tag": "article",
+          "text": "Ranging (773 decisions)Accuracy: 99.7%IKS: 99.7Conservation: -[measured]Measured"
+        },
+        {
+          "testId": "regime-accuracy-ranging",
+          "tag": "span",
+          "text": "Accuracy: 99.7%"
+        },
+        {
+          "testId": "regime-iks-ranging",
+          "tag": "span",
+          "text": "IKS: 99.7"
+        },
+        {
+          "testId": "provenance-badge",
+          "tag": "div",
+          "text": "██ Learned"
         },
         {
           "testId": "regime-panel",
@@ -1451,22 +1888,22 @@
         {
           "testId": "vrp-panel",
           "tag": "section",
-          "text": "TRD-V2VRP and tail-dependence windowVRP spread-Tail capture-Evidence: insufficie"
+          "text": "TRD-V2VRP and tail-dependence windowVRP spread-Tail capture-Evidence: T_SObserva"
         },
         {
           "testId": "rich-cheap-panel",
           "tag": "section",
-          "text": "TRD-V5Regime-conditioned rich / cheapIV percentile-Band-Evidence: insufficientOb"
+          "text": "TRD-V5Regime-conditioned rich / cheapIV percentile-Band-Evidence: T_OObservation"
         },
         {
           "testId": "dispersion-panel",
           "tag": "section",
-          "text": "TRD-V6Dispersion follow-rateFollow-rate-Observed impact-Evidence: insufficientOb"
+          "text": "TRD-V6Dispersion follow-rateFollow-rate0.00Observed impact0.00Evidence: T_OObser"
         },
         {
           "testId": "tail-bets-panel",
           "tag": "section",
-          "text": "TRD-V7Effective bets in tailEffective bets-Tail decisions-Evidence: insufficient"
+          "text": "TRD-V7Effective bets in tailEffective bets-Tail decisions0.00Evidence: T_OObserv"
         },
         {
           "testId": "certificate-panel",
@@ -1484,6 +1921,181 @@
           "text": "Promotion pipelineStrategy PromotionCategory stages use verified decisions, accu"
         },
         {
+          "testId": "promotion-category-trend_following",
+          "tag": "article",
+          "text": "trend followingCollecting evidenceSmall PositionDecisions0/100Accuracy0% / 58%Si"
+        },
+        {
+          "testId": "promotion-ready-trend_following",
+          "tag": "p",
+          "text": "Collecting evidence"
+        },
+        {
+          "testId": "promotion-stage-trend_following",
+          "tag": "span",
+          "text": "Small Position"
+        },
+        {
+          "testId": "promotion-sizing-trend_following",
+          "tag": "div",
+          "text": "Sizing cap2% max"
+        },
+        {
+          "testId": "promotion-blockers-trend_following",
+          "tag": "div",
+          "text": "Need 100 more decisions. Conservation gate: promotion is not yet safe. Need accu"
+        },
+        {
+          "testId": "promotion-promote-btn-trend_following",
+          "tag": "button",
+          "text": "Promote"
+        },
+        {
+          "testId": "promotion-history-trend_following",
+          "tag": "div",
+          "text": "Promotion historypromote from Paper trading to Small positiondemote from Small p"
+        },
+        {
+          "testId": "promotion-category-mean_reversion",
+          "tag": "article",
+          "text": "mean reversionCollecting evidencePaper TradingDecisions12/50Accuracy92% / 55%Siz"
+        },
+        {
+          "testId": "promotion-ready-mean_reversion",
+          "tag": "p",
+          "text": "Collecting evidence"
+        },
+        {
+          "testId": "promotion-stage-mean_reversion",
+          "tag": "span",
+          "text": "Paper Trading"
+        },
+        {
+          "testId": "promotion-sizing-mean_reversion",
+          "tag": "div",
+          "text": "Sizing cap0% max"
+        },
+        {
+          "testId": "promotion-blockers-mean_reversion",
+          "tag": "div",
+          "text": "Need 38 more decisions. Conservation gate: promotion is not yet safe."
+        },
+        {
+          "testId": "promotion-promote-btn-mean_reversion",
+          "tag": "button",
+          "text": "Promote"
+        },
+        {
+          "testId": "promotion-history-mean_reversion",
+          "tag": "div",
+          "text": "Promotion historyNo promotion events yet."
+        },
+        {
+          "testId": "promotion-category-event_driven",
+          "tag": "article",
+          "text": "event drivenCollecting evidencePaper TradingDecisions11/50Accuracy100% / 55%Sizi"
+        },
+        {
+          "testId": "promotion-ready-event_driven",
+          "tag": "p",
+          "text": "Collecting evidence"
+        },
+        {
+          "testId": "promotion-stage-event_driven",
+          "tag": "span",
+          "text": "Paper Trading"
+        },
+        {
+          "testId": "promotion-sizing-event_driven",
+          "tag": "div",
+          "text": "Sizing cap0% max"
+        },
+        {
+          "testId": "promotion-blockers-event_driven",
+          "tag": "div",
+          "text": "Need 39 more decisions. Conservation gate: promotion is not yet safe."
+        },
+        {
+          "testId": "promotion-promote-btn-event_driven",
+          "tag": "button",
+          "text": "Promote"
+        },
+        {
+          "testId": "promotion-history-event_driven",
+          "tag": "div",
+          "text": "Promotion historyNo promotion events yet."
+        },
+        {
+          "testId": "promotion-category-income_strategy",
+          "tag": "article",
+          "text": "income strategyCollecting evidencePaper TradingDecisions11/50Accuracy100% / 55%S"
+        },
+        {
+          "testId": "promotion-ready-income_strategy",
+          "tag": "p",
+          "text": "Collecting evidence"
+        },
+        {
+          "testId": "promotion-stage-income_strategy",
+          "tag": "span",
+          "text": "Paper Trading"
+        },
+        {
+          "testId": "promotion-sizing-income_strategy",
+          "tag": "div",
+          "text": "Sizing cap0% max"
+        },
+        {
+          "testId": "promotion-blockers-income_strategy",
+          "tag": "div",
+          "text": "Need 39 more decisions. Conservation gate: promotion is not yet safe."
+        },
+        {
+          "testId": "promotion-promote-btn-income_strategy",
+          "tag": "button",
+          "text": "Promote"
+        },
+        {
+          "testId": "promotion-history-income_strategy",
+          "tag": "div",
+          "text": "Promotion historyNo promotion events yet."
+        },
+        {
+          "testId": "promotion-category-scalp_intraday",
+          "tag": "article",
+          "text": "scalp intradayCollecting evidencePaper TradingDecisions14/50Accuracy100% / 55%Si"
+        },
+        {
+          "testId": "promotion-ready-scalp_intraday",
+          "tag": "p",
+          "text": "Collecting evidence"
+        },
+        {
+          "testId": "promotion-stage-scalp_intraday",
+          "tag": "span",
+          "text": "Paper Trading"
+        },
+        {
+          "testId": "promotion-sizing-scalp_intraday",
+          "tag": "div",
+          "text": "Sizing cap0% max"
+        },
+        {
+          "testId": "promotion-blockers-scalp_intraday",
+          "tag": "div",
+          "text": "Need 36 more decisions. Conservation gate: promotion is not yet safe."
+        },
+        {
+          "testId": "promotion-promote-btn-scalp_intraday",
+          "tag": "button",
+          "text": "Promote"
+        },
+        {
+          "testId": "promotion-history-scalp_intraday",
+          "tag": "div",
+          "text": "Promotion historyNo promotion events yet."
+        },
+        {
           "testId": "rejection-moment-panel",
           "tag": "section",
           "text": "Agent Evolution SummaryLoading rejection summary..."
@@ -1491,7 +2103,7 @@
         {
           "testId": "rejection-moment-table",
           "tag": "section",
-          "text": "DM-1 / TR3Rejection momentsStateCountTested-Promoted-Rejected-Observation only: "
+          "text": "DM-1 / TR3Rejection momentsStateCountTested5Promoted0Rejected5Observation only: "
         },
         {
           "testId": "provenance-badge",
@@ -1532,6 +2144,41 @@
           "testId": "cohort-status-progress",
           "tag": "p",
           "text": "0/30 shown, 0/30 control"
+        },
+        {
+          "testId": "self-computation-panels",
+          "tag": "div",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpointsAccu"
+        },
+        {
+          "testId": "centroid-timeline-panel",
+          "tag": "section",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpoints"
+        },
+        {
+          "testId": "accuracy-alerts-panel",
+          "tag": "section",
+          "text": "Accuracy Alertsevent_driven: 100%income_strategy: 100%mean_reversion: 91%scalp_i"
+        },
+        {
+          "testId": "rule-genealogy-panel",
+          "tag": "section",
+          "text": "Rule GenealogyEvolution lineage from GraphStore state.0 evolution records"
+        },
+        {
+          "testId": "decision-explorer-panel",
+          "tag": "section",
+          "text": "Decision ExplorerBrowse domain-scoped decisions with filters.802 matching decisi"
+        },
+        {
+          "testId": "rule-lifecycle-panel",
+          "tag": "section",
+          "text": "Rule LifecycleactiveEvolution: not recorded · Promotion: not recorded"
+        },
+        {
+          "testId": "audit-trail-panel",
+          "tag": "section",
+          "text": "Audit TrailImmutable ledger entries for this domain.50 entries"
         }
       ],
       "buttons": [
@@ -1566,6 +2213,151 @@
           "name": ""
         },
         {
+          "text": "TRD-2a4b7beaef96",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-99eaa6be72b9",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-f85426faa190",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-8d88179dd2a9",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-3339cfceda55",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-08fec678679f",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-371ca641cd17",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-29230207c574",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-8d90beb254f2",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-5bee87627e43",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-02ecd899ea5b",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-ec646f7832f8",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-fa6605a03325",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-497c207d8323",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-e92c87156847",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-ed3a9305d126",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-029882527220",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-16012b902db6",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-5a8448e42ffc",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "TRD-032f93fbe6f3",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Promote",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Promote",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Promote",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Promote",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Promote",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "N/A",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "Selected",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "N/A",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "N/A",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
           "text": "Execute Transfer",
           "ariaLabel": "",
           "name": ""
@@ -1582,8 +2374,13 @@
         "Convergence curve overlay",
         "Audit Trail",
         "Automation Projection",
+        "unknown",
         "Situation-conditioned autonomy",
         "Regime-scoped rejection",
+        "Per-Regime Decision Quality",
+        "Trending (24 decisions)",
+        "Volatile (4 decisions)",
+        "Ranging (773 decisions)",
         "Market Regime",
         "Situation-conditioned discipline",
         "90-day regime history",
@@ -1597,12 +2394,27 @@
         "Effective bets in tail",
         "Clean-trader certificate",
         "Gate dividend",
+        "Strategy Safety Breakdown",
+        "Trend Following",
+        "Mean Reversion",
+        "Event Driven",
+        "Income Strategy",
+        "Scalp Intraday",
         "Strategy Promotion",
+        "trend following",
+        "mean reversion",
+        "event driven",
+        "income strategy",
+        "scalp intraday",
         "Agent Evolution Summary",
         "Rejection moments",
         "State",
         "Count",
         "Cross-Copilot Transfer",
+        "Source",
+        "Target",
+        "Categories",
+        "Select",
         "Dry run",
         "Transfer Impact",
         "Agent Evolution",
@@ -1614,7 +2426,11 @@
         "VIX-Aware Hold Timing",
         "Rolling 10",
         "Category Performance",
-        "Risk Management"
+        "Risk Management",
+        "Accuracy Alerts",
+        "Rule Genealogy",
+        "Decision Explorer",
+        "Rule Lifecycle"
       ]
     },
     "Journal": {
@@ -1630,6 +2446,42 @@
         {
           "tag": "h3",
           "text": "Journal Filters"
+        },
+        {
+          "tag": "h3",
+          "text": "Earnings Style Analysis"
+        },
+        {
+          "tag": "h3",
+          "text": "Trades"
+        },
+        {
+          "tag": "h3",
+          "text": "Category Analytics"
+        },
+        {
+          "tag": "h2",
+          "text": "Centroid Timeline"
+        },
+        {
+          "tag": "h2",
+          "text": "Accuracy Alerts"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Genealogy"
+        },
+        {
+          "tag": "h2",
+          "text": "Decision Explorer"
+        },
+        {
+          "tag": "h2",
+          "text": "Rule Lifecycle"
+        },
+        {
+          "tag": "h2",
+          "text": "Audit Trail"
         }
       ],
       "testIds": [
@@ -1637,6 +2489,41 @@
           "testId": "journal-query-bar",
           "tag": "section",
           "text": "Ask your journalSearch"
+        },
+        {
+          "testId": "self-computation-panels",
+          "tag": "div",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpointsAccu"
+        },
+        {
+          "testId": "centroid-timeline-panel",
+          "tag": "section",
+          "text": "Centroid TimelineCentroid evolution across verified decisions.50 checkpoints"
+        },
+        {
+          "testId": "accuracy-alerts-panel",
+          "tag": "section",
+          "text": "Accuracy Alertsevent_driven: 100%income_strategy: 100%mean_reversion: 91%scalp_i"
+        },
+        {
+          "testId": "rule-genealogy-panel",
+          "tag": "section",
+          "text": "Rule GenealogyEvolution lineage from GraphStore state.0 evolution records"
+        },
+        {
+          "testId": "decision-explorer-panel",
+          "tag": "section",
+          "text": "Decision ExplorerBrowse domain-scoped decisions with filters.802 matching decisi"
+        },
+        {
+          "testId": "rule-lifecycle-panel",
+          "tag": "section",
+          "text": "Rule LifecycleactiveEvolution: not recorded · Promotion: not recorded"
+        },
+        {
+          "testId": "audit-trail-panel",
+          "tag": "section",
+          "text": "Audit TrailImmutable ledger entries for this domain.50 entries"
         }
       ],
       "buttons": [
@@ -1686,7 +2573,22 @@
         "Strategy",
         "OutcomeAllWinLoss",
         "Limit",
-        "Ask your journal"
+        "Ask your journal",
+        "Earnings Style Analysis",
+        "Trades",
+        "Date",
+        "Direction",
+        "P&L",
+        "Category",
+        "Confidence",
+        "Action",
+        "Category Analytics",
+        "Centroid Timeline",
+        "Accuracy Alerts",
+        "Rule Genealogy",
+        "Decision Explorer",
+        "Rule Lifecycle",
+        "Audit Trail"
       ]
     }
   },
@@ -1811,7 +2713,7 @@
         },
         {
           "tag": "h3",
-          "text": "Chicken Breast"
+          "text": "Order"
         },
         {
           "tag": "h3",
@@ -1819,7 +2721,7 @@
         },
         {
           "tag": "h3",
-          "text": "Ground Beef"
+          "text": "Order"
         },
         {
           "tag": "h3",
@@ -1827,15 +2729,15 @@
         },
         {
           "tag": "h3",
-          "text": "Chicken Breast"
+          "text": "Order"
         },
         {
           "tag": "h3",
-          "text": "Chicken Breast"
+          "text": "Order"
         },
         {
           "tag": "h3",
-          "text": "Chicken Breast"
+          "text": "Order"
         },
         {
           "tag": "h3",
@@ -1875,7 +2777,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating502 / 530 decisions3 of 0 arms "
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating485 / 513 decisions3 of 0 arms "
         },
         {
           "testId": "not-yet-panel",
@@ -2015,7 +2917,7 @@
         {
           "testId": "data-trust-factors",
           "tag": "div",
-          "text": "Price memory1.00Demand forecast0.01Supplier lead time0.01Weather forecast0.00Day"
+          "text": "Price memory1.00Demand forecast0.04Supplier lead time0.01Waste history0.01Day-of"
         },
         {
           "testId": "data-trust-factor",
@@ -2030,7 +2932,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Demand forecast0.01"
+          "text": "Demand forecast0.04"
         },
         {
           "testId": "data-trust-bar",
@@ -2050,7 +2952,7 @@
         {
           "testId": "data-trust-factor",
           "tag": "div",
-          "text": "Weather forecast0.00"
+          "text": "Waste history0.01"
         },
         {
           "testId": "data-trust-bar",
@@ -2165,7 +3067,7 @@
           "name": ""
         },
         {
-          "text": "PR7/14/2026Chicken Breastorder more$1770.00",
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
@@ -2175,7 +3077,7 @@
           "name": ""
         },
         {
-          "text": "PR7/14/2026Ground Beeforder as planned$1830.00",
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
@@ -2185,17 +3087,17 @@
           "name": ""
         },
         {
-          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PR7/14/2026Chicken Breastorder as planned$1770.00",
+          "text": "PRDate unavailableOrderCompletedn/areward n/a",
           "ariaLabel": "",
           "name": ""
         },
@@ -2257,8 +3159,6 @@
         "Category accuracy alerts",
         "Today's decisions",
         "Order",
-        "Chicken Breast",
-        "Ground Beef",
         "Learned source reliability"
       ]
     },
@@ -2788,252 +3688,252 @@
           "name": ""
         },
         {
-          "text": "PUR-c1fdbcfbfbb1",
+          "text": "PUR-19b0e1839c66",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-917cea41379c",
+          "text": "PUR-7f0038bb623a",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-91a1647d3007",
+          "text": "PUR-5dd1479732ac",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-6b46354fde9a",
+          "text": "PUR-4f0146095ac0",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-be65a7bba53e",
+          "text": "PUR-82240058d771",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-320b94014933",
+          "text": "PUR-00e458c401e8",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-25890f94350d",
+          "text": "PUR-9ff022edd22f",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-2798dea50a92",
+          "text": "PUR-4ab201467d84",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-5a4352463fa1",
+          "text": "PUR-0259d306211e",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-589db8856f3e",
+          "text": "PUR-a0df7ed58394",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-7b33e0d42fec",
+          "text": "PUR-c63775675d88",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b5ec10b9d6b4",
+          "text": "PUR-dfe33c2fe9d7",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b7397c27e9d3",
+          "text": "PUR-1251af6707d4",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b262f002e222",
+          "text": "PUR-64a8e1b3b357",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-c1fed2598bee",
+          "text": "PUR-278fcc062c7f",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-ff60107f4e07",
+          "text": "PUR-63540351000b",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-cb420a2ad406",
+          "text": "PUR-fe34f4880563",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-2b3983aa2a51",
+          "text": "PUR-d50de78a1a85",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-f9100b635335",
+          "text": "PUR-22c691cdb7e4",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b2ea4cd8c768",
+          "text": "PUR-c73766a57abf",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-057a579c67a4",
+          "text": "PUR-b655c91bdf1d",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-197d647619e3",
+          "text": "PUR-88279b64e6fe",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-09db329b98b8",
+          "text": "PUR-7d51fdd02516",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-6ca8971cecac",
+          "text": "PUR-aec24ab6eb63",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-d6c08446cb3b",
+          "text": "PUR-535797dd6a06",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-815b5fa1bf2b",
+          "text": "PUR-597ad1895b49",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-9bd635d14e88",
+          "text": "PUR-a4a9d09fa47d",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-34119604ce46",
+          "text": "PUR-MATCH-PW-MATCH-1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-2a6804d3e898",
+          "text": "PUR-MATCH-PW-MATCH-2",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-d5c746598bc8",
+          "text": "PUR-e205b84aa819",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-c68b15c75e27",
+          "text": "PUR-a9188f7942f3",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-abc7a58a440e",
+          "text": "PUR-6fa52a933d99",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-5e09802fafbe",
+          "text": "PUR-2aea9ea75059",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-0ab4e0335af8",
+          "text": "PUR-4baa2ee41d82",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-f01897a771dd",
+          "text": "PUR-cb0b03880da8",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-20b23b709806",
+          "text": "PUR-c4bad2c94c1d",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-3d594f063b05",
+          "text": "PUR-398796a42add",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-11c0314d0106",
+          "text": "PUR-3394babaf561",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-93b83609f9ca",
+          "text": "PUR-515054c5b242",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-09d584d8c8dd",
+          "text": "PUR-15a5a1c071d9",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-9dcbaab36005",
+          "text": "PUR-fb18433ff1dd",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-2c4b82e3988a",
+          "text": "PUR-f5043bdb1366",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-dfc86b98eef8",
+          "text": "PUR-be82a8245140",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-690694a4a0d2",
+          "text": "PUR-c75529136577",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-d69e8f6ee1b2",
+          "text": "PUR-2045b8da5653",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-32e4891c6b2f",
+          "text": "PUR-08ed9e2a650c",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-4f5327cb0ab2",
+          "text": "PUR-2d365cc67401",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-202d6ff601f4",
+          "text": "PUR-1c6a4726ddfa",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-064b27eba9c5",
+          "text": "PUR-e3def7d28f52",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-075495447bd5",
+          "text": "PUR-cd4647d907f5",
           "ariaLabel": "",
           "name": ""
         }
@@ -3086,63 +3986,15 @@
         },
         {
           "tag": "h3",
-          "text": "WASTE_THRESHOLD_v1"
+          "text": "purchasing-produce-weather-v1"
         },
         {
           "tag": "h3",
-          "text": "WASTE_THRESHOLD_v2"
+          "text": "purchasing-event-stockout-v1"
         },
         {
           "tag": "h3",
-          "text": "LEAD_TIME_BUFFER_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "LEAD_TIME_BUFFER_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "ORDER_QUANTITY_THRESHOLD_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "ORDER_QUANTITY_THRESHOLD_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "WEATHER_SENSITIVITY_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "WEATHER_SENSITIVITY_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "EVENT_LEAD_TIME_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "EVENT_LEAD_TIME_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "PRICE_MEMORY_ALERT_v1"
-        },
-        {
-          "tag": "h3",
-          "text": "PRICE_MEMORY_ALERT_v2"
-        },
-        {
-          "tag": "h3",
-          "text": "variant-bc143356d053"
-        },
-        {
-          "tag": "h3",
-          "text": "variant-99ad88ebb4d8"
-        },
-        {
-          "tag": "h3",
-          "text": "variant-bb32a302714a"
+          "text": "purchasing-skip-dairy-v1"
         },
         {
           "tag": "h3",
@@ -3214,15 +4066,7 @@
         },
         {
           "tag": "h4",
-          "text": "variant-bc143356d053"
-        },
-        {
-          "tag": "h4",
-          "text": "variant-99ad88ebb4d8"
-        },
-        {
-          "tag": "h4",
-          "text": "variant-bb32a302714a"
+          "text": "proof"
         },
         {
           "tag": "h3",
@@ -3507,102 +4351,102 @@
           "name": ""
         },
         {
-          "text": "PUR-91a1647d3007decision -> factors -> outcome",
+          "text": "PUR-19b0e1839c66decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-6b46354fde9adecision -> factors -> outcome",
+          "text": "PUR-7f0038bb623adecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-320b94014933decision -> factors -> outcome",
+          "text": "PUR-00e458c401e8decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-2798dea50a92decision -> factors -> outcome",
+          "text": "PUR-9ff022edd22fdecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-5a4352463fa1decision -> factors -> outcome",
+          "text": "PUR-0259d306211edecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-589db8856f3edecision -> factors -> outcome",
+          "text": "PUR-c63775675d88decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b5ec10b9d6b4decision -> factors -> outcome",
+          "text": "PUR-dfe33c2fe9d7decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b7397c27e9d3decision -> factors -> outcome",
+          "text": "PUR-1251af6707d4decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-b262f002e222decision -> factors -> outcome",
+          "text": "PUR-278fcc062c7fdecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-2b3983aa2a51decision -> factors -> outcome",
+          "text": "PUR-63540351000bdecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-f9100b635335decision -> factors -> outcome",
+          "text": "PUR-fe34f4880563decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-057a579c67a4decision -> factors -> outcome",
+          "text": "PUR-b655c91bdf1ddecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-09db329b98b8decision -> factors -> outcome",
+          "text": "PUR-88279b64e6fedecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-6ca8971cecacdecision -> factors -> outcome",
+          "text": "PUR-aec24ab6eb63decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-d6c08446cb3bdecision -> factors -> outcome",
+          "text": "PUR-597ad1895b49decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-9bd635d14e88decision -> factors -> outcome",
+          "text": "PUR-a4a9d09fa47ddecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-34119604ce46decision -> factors -> outcome",
+          "text": "PUR-a9188f7942f3decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-2a6804d3e898decision -> factors -> outcome",
+          "text": "PUR-6fa52a933d99decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-abc7a58a440edecision -> factors -> outcome",
+          "text": "PUR-4baa2ee41d82decision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PUR-5e09802fafbedecision -> factors -> outcome",
+          "text": "PUR-398796a42adddecision -> factors -> outcome",
           "ariaLabel": "",
           "name": ""
         },
@@ -3757,57 +4601,57 @@
           "name": ""
         },
         {
-          "text": "PRChicken BreastproteinManual",
+          "text": "PRChicken BreastproteinAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PRGround BeefproteinManual",
+          "text": "PRGround BeefproteinAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PRSalmon FilletproteinManual",
+          "text": "PRSalmon FilletproteinAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PRPork ChopsproteinManual",
+          "text": "PRPork ChopsproteinAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PRTofu BlocksproteinManual",
+          "text": "PRTofu BlocksproteinAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PRTurkey SlicesproteinManual",
+          "text": "PRTurkey SlicesproteinAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PDMixed GreensproduceManual",
+          "text": "PDMixed GreensproduceAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PDTomatoesproduceManual",
+          "text": "PDTomatoesproduceAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PDAvocadosproduceManual",
+          "text": "PDAvocadosproduceAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PDStrawberriesproduceManual",
+          "text": "PDStrawberriesproduceAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
         {
-          "text": "PDBananasproduceManual",
+          "text": "PDBananasproduceAE managed x1",
           "ariaLabel": "",
           "name": ""
         },
@@ -3861,9 +4705,14 @@
       "visibleText": [
         "Purchasing Copilot",
         "System Improvements",
+        "purchasing-produce-weather-v1",
+        "purchasing-event-stockout-v1",
+        "purchasing-skip-dairy-v1",
+        "Purchasing rule lineage",
         "WASTE_THRESHOLD_v1",
         "WASTE_THRESHOLD_v2",
         "LEAD_TIME_BUFFER_v1",
+        "Rule promotion states",
         "LEAD_TIME_BUFFER_v2",
         "ORDER_QUANTITY_THRESHOLD_v1",
         "ORDER_QUANTITY_THRESHOLD_v2",
@@ -3873,11 +4722,7 @@
         "EVENT_LEAD_TIME_v2",
         "PRICE_MEMORY_ALERT_v1",
         "PRICE_MEMORY_ALERT_v2",
-        "variant-bc143356d053",
-        "variant-99ad88ebb4d8",
-        "variant-bb32a302714a",
-        "Purchasing rule lineage",
-        "Rule promotion states",
+        "proof",
         "Decision to outcome chain",
         "QuickBooks supplier signals",
         "Sysco Valley",
@@ -4047,7 +4892,7 @@
         {
           "testId": "competence-curve",
           "tag": "div",
-          "text": "Competence CurveNot yet measuredKitchen competence can rise while proof dollars "
+          "text": "Competence Curve0.9278Kitchen competence can rise while proof dollars are quiet."
         },
         {
           "testId": "proof-ledger-zero-week",
@@ -4082,7 +4927,7 @@
         {
           "testId": "weekly-report-panel",
           "tag": "section",
-          "text": "Weekly ReportWhat the kitchen found this week121 verified decisions from 200 ord"
+          "text": "Weekly ReportWhat the kitchen found this week87 verified decisions from 181 orde"
         },
         {
           "testId": "economic-dashboard-card",
@@ -4969,7 +5814,6 @@
         "50%",
         "74%",
         "67%",
-        "freshness violation",
         "Ask Your Data",
         "Ask about your data"
       ]
@@ -5349,7 +6193,7 @@
         {
           "testId": "centroid-timeline-chart",
           "tag": "div",
-          "text": "17878520151787854982178785545717878989771787899496178797635817879768051787983620"
+          "text": "17881115221788111876178812148317881219001788654553178865459217886568501788657285"
         },
         {
           "testId": "source-profile-panel",
@@ -5609,7 +6453,7 @@
         {
           "testId": "decision-explorer",
           "tag": "section",
-          "text": "SC-14Decision Explorer1348 GraphStore decisionsCategoryAllfreshness violationpip"
+          "text": "SC-14Decision Explorer1418 GraphStore decisionsCategoryAllfreshness violationpip"
         },
         {
           "testId": "decision-summary",
@@ -6067,6 +6911,230 @@
         },
         {
           "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v2"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v2"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
           "text": "V-DO-SCHED-001"
         },
         {
@@ -6076,6 +7144,230 @@
         {
           "tag": "h2",
           "text": "Rule Genealogy"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v2"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v2"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "SCHEDULING_CRITERIA_v1"
+        },
+        {
+          "tag": "h3",
+          "text": "AUTO_APPROVE_THRESHOLD_v1"
         },
         {
           "tag": "h3",
@@ -6724,12 +8016,572 @@
         {
           "testId": "rule-genealogy-summary",
           "tag": "div",
-          "text": "Rules tracked1"
+          "text": "Rules tracked57"
         },
         {
           "testId": "rule-genealogy-list",
           "tag": "div",
-          "text": "dataops-off-peak-scheduling-v1Schedule resource-intensive quality checks during "
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolverAUTO_"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1auto_approve_thresholdProposedAccuracy0%Decisions0Sourc"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v2auto_approve_thresholdProposedAccuracy0%Decisions0Sourc"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1scheduling_criteriaProposedAccuracy0%Decisions0SourceAgent"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v2scheduling_criteriaProposedAccuracy0%Decisions0SourceAgent"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "SCHEDULING_CRITERIA_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
+        },
+        {
+          "testId": "rule-genealogy-rule",
+          "tag": "article",
+          "text": "AUTO_APPROVE_THRESHOLD_v1variantProposedAccuracy0%Decisions0SourceAgentEvolver"
+        },
+        {
+          "testId": "rule-genealogy-status",
+          "tag": "span",
+          "text": "Proposed"
         },
         {
           "testId": "rule-genealogy-rule",
@@ -6754,7 +8606,572 @@
         {
           "testId": "rule-lifecycle-summary",
           "tag": "div",
-          "text": "Active0Shadow-testing1Rejected0Promoted0"
+          "text": "Active56Shadow-testing1Rejected0Promoted0"
+        },
+        {
+          "testId": "rule-lifecycle-track",
+          "tag": "div",
+          "text": "variantvariantproposedproposedshadowpromotedrejectedvariantvariantproposedpropos"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
+        },
+        {
+          "testId": "rule-status",
+          "tag": "span",
+          "text": "proposed"
+        },
+        {
+          "testId": "rule-lifecycle-stage-track",
+          "tag": "div",
+          "text": "proposedshadowpromotedrejected"
         },
         {
           "testId": "rule-status",
@@ -6762,7 +9179,7 @@
           "text": "shadow"
         },
         {
-          "testId": "rule-lifecycle-track",
+          "testId": "rule-lifecycle-stage-track",
           "tag": "div",
           "text": "proposedshadowpromotedrejected"
         },
@@ -7392,7 +9809,7 @@
         {
           "testId": "day-zero-card",
           "tag": "section",
-          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating198 / 228 decisions4 of 25 arms"
+          "text": "Day-Zero HonestyAccumulating Evidenceaccumulating194 / 224 decisions4 of 25 arms"
         },
         {
           "testId": "day-zero-readiness-panel",
@@ -7557,11 +9974,6 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-000784%Boreal Equipment Maintenancequantity_mismatch · $14,966",
-          "ariaLabel": "",
-          "name": ""
-        },
-        {
           "text": "S2P-INV-000383%Northstar Packagingprice_variance · $3,782",
           "ariaLabel": "",
           "name": ""
@@ -7572,7 +9984,12 @@
           "name": ""
         },
         {
-          "text": "S2P-INV-001083%Helix Lab Suppliesquantity_mismatch · $8,565",
+          "text": "S2P-INV-000783%Boreal Equipment Maintenancequantity_mismatch · $14,966",
+          "ariaLabel": "",
+          "name": ""
+        },
+        {
+          "text": "S2P-INV-001082%Helix Lab Suppliesquantity_mismatch · $8,565",
           "ariaLabel": "",
           "name": ""
         },
@@ -7904,22 +10321,22 @@
         {
           "testId": "extinction-price_variance",
           "tag": "div",
-          "text": "price_varianceSHADOWINGShadow decisions: 0Measured: 0Last transition: 2026-08-19"
+          "text": "price_varianceDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-08-3"
         },
         {
           "testId": "extinction-quantity_mismatch",
           "tag": "div",
-          "text": "quantity_mismatchMEASURINGShadow decisions: 0Measured: 0Last transition: 2026-08"
+          "text": "quantity_mismatchDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-0"
         },
         {
           "testId": "extinction-duplicate_risk",
           "tag": "div",
-          "text": "duplicate_riskROLLED BACKShadow decisions: 0Measured: 0Last transition: 2026-08-"
+          "text": "duplicate_riskDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-08-3"
         },
         {
           "testId": "extinction-contract_gap",
           "tag": "div",
-          "text": "contract_gapDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-08-19T"
+          "text": "contract_gapDISCOVEREDShadow decisions: 0Measured: 0Last transition: 2026-08-31T"
         },
         {
           "testId": "extinction-format_compliance",
@@ -8165,7 +10582,7 @@
           "name": ""
         },
         {
-          "text": "Northstar PackagingDemo DataExceptions 4%OTIF 96%2120 invoices- Insufficient dat",
+          "text": "Northstar PackagingDemo DataExceptions 4%OTIF 96%2128 invoices- Insufficient dat",
           "ariaLabel": "",
           "name": ""
         },

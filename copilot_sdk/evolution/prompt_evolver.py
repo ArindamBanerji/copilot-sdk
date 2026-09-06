@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, Protocol
+from typing import Any, Callable, Mapping, Protocol
 
 from copilot_sdk.evolution.gate import DefaultPromotionGate
 from copilot_sdk.evolution.conservation_contract import ConservationStateProvider
@@ -89,35 +89,37 @@ class PromptVariantEvolver:
         category: str | None = None,
         context_key: str | None = None,
     ) -> VariantSpec | None:
-        active_variants = self._store.get_active_variants()
+        snapshot = getattr(self._store, "selection_snapshot", None)
+        store: VariantStore = snapshot() if callable(snapshot) else self._store
+        active_variants = store.get_active_variants()
         if not active_variants:
             return None
 
         active_ids = [variant.id for variant in active_variants]
         resolved_category = self._resolve_category(category=category, context_key=context_key)
-        if resolved_category is not None and self._category_has_stats(resolved_category, active_ids):
-            selected_id = self._select_ucb(
-                {
-                    variant_id: self._store.get_category_stats(resolved_category, variant_id)
-                    for variant_id in active_ids
-                },
-                active_ids,
-            )
-            variant = self._store.get_variant(selected_id) if selected_id is not None else None
+        category_stats = (
+            {variant_id: store.get_category_stats(resolved_category, variant_id) for variant_id in active_ids}
+            if resolved_category is not None else {}
+        )
+        if any(stats.total > 0 for stats in category_stats.values()):
+            selected_id = self._select_ucb(category_stats, active_ids)
+            variant = store.get_variant(selected_id) if selected_id is not None else None
             self._emit_selected_hook(variant, category=resolved_category, source="category_ucb")
             return variant
 
-        if self._global_is_cold(active_ids):
-            default_variant = self._active_default_variant()
+        global_stats = {variant_id: store.get_global_stats(variant_id) for variant_id in active_ids}
+        if all(stats.total <= 0 for stats in global_stats.values()):
+            default_variant = next((variant for variant in active_variants
+                                    if variant.id == self._config.default_variant_id), None)
             if default_variant is not None:
                 self._emit_selected_hook(default_variant, category=resolved_category, source="default")
                 return default_variant
 
         selected_id = self._select_ucb(
-            {variant_id: self._store.get_global_stats(variant_id) for variant_id in active_ids},
+            global_stats,
             active_ids,
         )
-        variant = self._store.get_variant(selected_id) if selected_id is not None else None
+        variant = store.get_variant(selected_id) if selected_id is not None else None
         self._emit_selected_hook(variant, category=resolved_category, source="global_ucb")
         return variant
 
@@ -168,9 +170,11 @@ class PromptVariantEvolver:
         return None
 
     def get_summary(self) -> dict:
+        snapshot = getattr(self._store, "selection_snapshot", None)
+        store: VariantStore = snapshot() if callable(snapshot) else self._store
         variants = []
-        for spec in self._store.get_all_variants():
-            stats = self._store.get_global_stats(spec.id)
+        for spec in store.get_all_variants():
+            stats = store.get_global_stats(spec.id)
             variants.append(
                 {
                     "id": spec.id,
@@ -370,7 +374,7 @@ class PromptVariantEvolver:
 
     def _select_ucb(
         self,
-        stats_by_variant: dict[str, _VariantStatsLike],
+        stats_by_variant: Mapping[str, _VariantStatsLike],
         active_ids: list[str],
     ) -> str | None:
         if not active_ids:

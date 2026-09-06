@@ -103,6 +103,20 @@ export interface Item {
   [key: string]: unknown;
 }
 
+export interface InventorySummaryItem extends Item {
+  wasteHistory: WasteHistory;
+  wasteAveragePct: number;
+  wasteTrend: string;
+  variantCount: number;
+}
+
+export interface InventorySummary {
+  items: InventorySummaryItem[];
+  variants: Variant[];
+  categories: string[];
+  generatedAt: string;
+}
+
 export interface Weather {
   condition?: string;
   temperatureF?: number;
@@ -187,6 +201,20 @@ export interface OrderMetadata {
   action?: string;
   confirmedAction?: string;
   createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface DashboardOrderProjection extends Pick<
+  OrderMetadata,
+  "item" | "displayName" | "category" | "action" | "reward" | "createdAt" | "totalCost"
+> {
+  item?: string;
+  displayName?: string;
+  category?: string;
+  action?: string;
+  reward?: number;
+  createdAt?: string;
+  totalCost?: number;
   [key: string]: unknown;
 }
 
