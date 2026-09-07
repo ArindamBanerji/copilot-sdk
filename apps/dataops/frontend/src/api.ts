@@ -67,10 +67,24 @@ export const BASE = import.meta.env.VITE_API_URL || `http://${HOST}:8030`;
 export interface DataOpsGovernanceStatus {
   claims: Array<Record<string, unknown>>;
   context: string;
+  state?: "VALIDATED" | "PENDING" | "FAILED" | "NONE" | string;
+  label?: string;
+}
+
+export interface DataOpsHoldoutEntry {
+  decisionId?: string;
+  sourceId?: string;
+  decisionClass?: string;
+  factorVector?: number[] | null;
+  scorePayload?: Record<string, unknown>;
+  evidenceTier?: string;
+  verdict?: Record<string, unknown> | null;
+  verifiedAt?: number | null;
+  outcomeReceiptId?: string | null;
 }
 
 export interface DataOpsHoldoutStatus {
-  entries: Array<Record<string, unknown>>;
+  entries: DataOpsHoldoutEntry[];
   holdoutDays: number;
 }
 
@@ -94,6 +108,57 @@ export async function fetchDataOpsHoldout(): Promise<DataOpsHoldoutStatus | null
 
 export async function fetchDataOpsAbstention(): Promise<DataOpsAbstentionStatus | null> {
   return safeApiGet<DataOpsAbstentionStatus>("/api/dataops/abstention-check?source_id=unknown");
+}
+
+export interface FrozenTwinStatus {
+  frozen: boolean;
+  copilot: string;
+  baselineCaptured?: boolean;
+  frozenSnapshot?: Record<string, unknown> | null;
+}
+
+export interface HoldoutRegistrationRequest {
+  decisionId: string;
+  sourceId: string;
+  decisionClass: string;
+  factorVector?: number[] | null;
+  scorePayload?: Record<string, unknown>;
+}
+
+export interface HoldoutVerificationRequest {
+  decisionId: string;
+  verdict?: Record<string, unknown>;
+}
+
+export interface DataOpsProvenanceResponse {
+  decisionId?: string;
+  complete?: boolean;
+  steps?: Array<Record<string, unknown>>;
+  evidenceTier?: string;
+  evidenceLabel?: string;
+}
+
+export async function fetchFrozenTwinStatus(): Promise<FrozenTwinStatus | null> {
+  return safeApiGet<FrozenTwinStatus>("/api/dataops/frozen-twin/status");
+}
+
+export async function freezeFrozenTwin(): Promise<FrozenTwinStatus> {
+  return apiPost<FrozenTwinStatus>("/api/dataops/frozen-twin/freeze", {});
+}
+
+export async function registerDataOpsHoldout(body: HoldoutRegistrationRequest): Promise<DataOpsHoldoutEntry> {
+  return apiPost<DataOpsHoldoutEntry>("/api/dataops/holdout/register", body);
+}
+
+export async function verifyDataOpsHoldout(body: HoldoutVerificationRequest): Promise<DataOpsHoldoutEntry> {
+  return apiPost<DataOpsHoldoutEntry>("/api/dataops/holdout/verify", {
+    decisionId: body.decisionId,
+    verdict: body.verdict ?? { correct: true, expert: "accepted" },
+  });
+}
+
+export async function fetchDataOpsProvenance(decisionId: string): Promise<DataOpsProvenanceResponse | null> {
+  return safeApiGet<DataOpsProvenanceResponse>(`/api/dataops/provenance/${encodeURIComponent(decisionId)}`);
 }
 
 const ACTION_NAMES = [

@@ -65,24 +65,19 @@ def test_enterprise_health_alias_returns_combined_payload(client: TestClient) ->
     assert payload["celonis"]["last_sync"] is None or isinstance(payload["celonis"]["last_sync"], str)
     assert isinstance(payload["graph"]["connected"], bool)
     assert isinstance(payload["graph"]["node_count"], int)
+    assert payload["engine_version"] == "ci-platform-connectors"
+    assert "combined_impact" in payload
     assert_json_safe(payload)
 
 
-def test_enterprise_health_alias_handles_subsystem_failure(client: TestClient, monkeypatch) -> None:
-    from app.routers import dataops_status
-
-    def fail_sap_status() -> dict[str, Any]:
-        raise RuntimeError("secret-token traceback should not leak")
-
-    monkeypatch.setattr(dataops_status, "_sap_status", fail_sap_status)
-
+def test_enterprise_health_alias_uses_ci_platform_handler(client: TestClient) -> None:
     response = client.get("/api/dataops/enterprise-health")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["sap"] == {"connected": False, "record_count": 0, "last_sync": None}
-    assert "secret-token" not in response.text
-    assert payload["overall"] in {"degraded", "disconnected"}
+    assert payload["engine_version"] == "ci-platform-connectors"
+    assert {"open_purchase_order_value", "exception_invoice_count"} <= set(payload["sap"])
+    assert {"bottleneck_activity", "bottleneck_duration_seconds"} <= set(payload["celonis"])
     assert_json_safe(payload)
 
 

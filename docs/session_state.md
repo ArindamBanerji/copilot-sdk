@@ -117,3 +117,59 @@ Additional production cleanup outside the app scan:
 - GATE 7 PASSED: 0 pytest references in production code.
 - GATE 8 scan still reports pre-existing `body_iterator` / `type: ignore` hits outside this task's pytest-detection scope.
 - 0 new regressions introduced.
+
+## SLOT C ENTRY
+
+Files changed:
+- apps/dataops/backend/app/dataops_governance.py
+- apps/dataops/backend/app/main.py
+- apps/dataops/backend/app/routers/governance_router.py
+- apps/dataops/backend/tests/test_dataops_governance.py
+- apps/dataops/backend/tests/test_dataops_status.py
+- apps/dataops/backend/tests/test_route_shadowing.py
+- apps/dataops/frontend/src/api.ts
+- apps/dataops/frontend/src/components/DataOpsGovernancePanel.tsx
+- apps/dataops/frontend/src/components/FrozenTwinControlPanel.tsx
+- docs/session_state.md (protocol append only)
+
+Governance panel before/after:
+- Before: FrozenTwinControlPanel read `/api/dataops/cohort-status` and labeled `instrument.validated` as a pinned frozen checkpoint.
+- After: FrozenTwinControlPanel reads `/api/dataops/frozen-twin/status`, calls `POST /api/dataops/frozen-twin/freeze`, shows `No baseline captured` when unfrozen, and keeps oracle instrument validation separate.
+- Before: DataOpsGovernancePanel could show `Evidence gate clear` from a boolean/failing-claim summary even when claims were only synthetic/modelled.
+- After: backend claims include explicit `VALIDATED`, `PENDING`, `FAILED`, `NONE` state labels; frontend renders `Evidence gate: passed`, `pending review`, `failed`, or `not evaluated`.
+- Before: holdout status was displayed, but register/verify/provenance actions were not wired in the frontend.
+- After: Evidence governance panel exposes holdout registration, verification, and provenance drilldown controls through `api.ts`.
+
+Route collisions resolved:
+- GET /api/health: removed SDK scoring health duplicate from assembled DataOps app; DataOps health remains and now includes `phase` and `alpha` for compatibility.
+- GET /api/di/profiles: removed SDK DI profiles duplicate; DataOps precomputed profile summaries remain.
+- GET /api/dataops/di/profiles: removed SDK DI profiles duplicate; DataOps precomputed profile summaries remain.
+- GET /api/di/intelligence-map: removed SDK DI intelligence-map duplicate; DataOps enriched/cached intelligence map remains.
+- GET /api/dataops/di/intelligence-map: removed SDK DI intelligence-map duplicate; DataOps enriched/cached intelligence map remains.
+- GET /api/dataops/di/acquisition-advice: removed SDK DI duplicate; DataOps demo-beat acquisition advice with conservation/gold-line context remains.
+- GET /api/dataops/enterprise-health: removed status-router alias duplicate; CI-platform enterprise health handler remains.
+
+DOP-5:
+- DataOps DI profile paths now share the DataOps precomputed profile source, avoiding the independent SDK router cache at the same paths.
+
+DOP-7:
+- The active AGE adapter in `apps/dataops/backend/app/graph_status.py` is used by `main.py` and covered by `test_dataops_graph_status.py`; it is not removed.
+
+Baseline before:
+- SDK root: 3356 passed, 6934 warnings in 760.17s.
+- DataOps backend: 336 passed, 1048 warnings in 122.61s.
+- DataOps frontend typecheck: passed.
+- Mypy baseline: no changed Python files at pre-check.
+
+Verification after:
+- Targeted backend: 36 passed, 146 warnings in 19.10s.
+- Health regression + route-shadowing targeted: 7 passed, 30 warnings in 4.11s.
+- Mypy changed Python files: passed.
+- Frontend typecheck: passed.
+- Frontend build: passed outside sandbox after sandboxed Vite/esbuild config resolution hit access denied.
+- Sampling gate: 28 passed, 94 warnings in 10.97s (`test_dataops_graph.py`, `test_dataops_regime_policy.py`, `test_di_demo_beats.py`).
+- Banned pattern scan: no matches for `body_iterator|type:.*ignore` under `apps/dataops/backend/app`.
+- DataOps backend full suite: 346 passed, 1088 warnings in 125.19s.
+- SDK root full suite: 3356 passed, 6934 warnings in 980.93s.
+- Scope check: implementation changes are under `apps/dataops/`; `docs/session_state.md` changed only for the required protocol append.
+- 0 new regressions introduced.

@@ -33,7 +33,8 @@ def create_governance_router(governance: DataOpsGovernance) -> APIRouter:
 
     @router.get("/claims")
     def claims(context: str = "demo") -> dict[str, Any]:
-        return {"claims": governance.claim_status(context), "context": context}
+        summary = governance.evidence_gate_summary(context)
+        return {**summary, "context": context}
 
     @router.get("/abstention-check")
     def abstention_check(source_id: str = Query(...), evidence_floor: int = 10) -> dict[str, Any]:
@@ -74,12 +75,13 @@ def create_governance_router(governance: DataOpsGovernance) -> APIRouter:
 
     @router.get("/frozen-twin/status")
     def frozen_status() -> dict[str, Any]:
-        return {"frozen": governance.frozen_twin.is_frozen(), "copilot": "dataops"}
+        return governance.frozen_twin_status()
 
     @router.post("/frozen-twin/freeze")
     def freeze_twin() -> dict[str, Any]:
         try:
-            return governance.freeze_twin()
+            governance.freeze_twin()
+            return governance.frozen_twin_status()
         except FileExistsError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except (RuntimeError, TypeError, ValueError) as exc:

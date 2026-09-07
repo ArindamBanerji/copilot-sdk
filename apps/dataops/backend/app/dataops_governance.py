@@ -59,7 +59,19 @@ class DataOpsGovernance:
             self.evidence.register(ClaimRecord(claim_id=claim_id, description=description, tier=EvidenceTier.T_S, evidence_basis="DataOps fixture or modelled estimate; no verified outcome yet", copilot="dataops"))
 
     def claim_status(self, context: str = "demo") -> list[dict[str, Any]]:
-        return [asdict(self.evidence.check(claim_id, context)) for claim_id in self.claim_ids]
+        return [self._claim_payload(claim_id, context) for claim_id in self.claim_ids]
+
+    def evidence_gate_summary(self, context: str = "demo") -> dict[str, Any]:
+        claims = self.claim_status(context)
+        if not claims:
+            state = "NONE"
+        elif any(claim["evidence_state"] == "FAILED" for claim in claims):
+            state = "FAILED"
+        elif all(claim["evidence_state"] == "VALIDATED" for claim in claims):
+            state = "VALIDATED"
+        else:
+            state = "PENDING"
+        return {"state": state, "label": _evidence_state_label(state), "claims": claims}
 
     def _rows(self, source_id: str | None = None) -> list[sqlite3.Row]:
         query = "SELECT * FROM dataops_holdout"
@@ -112,7 +124,24 @@ class DataOpsGovernance:
     def provenance(self, decision_id: str) -> dict[str, Any]:
         decision = self.graph_store.get_decision(decision_id, domain="dataops")
         if decision is None:
-            raise KeyError(decision_id)
+            row = self._db.execute("SELECT * FROM dataops_holdout WHERE decision_id = ?", (decision_id,)).fetchone()
+            if row is None:
+                raise KeyError(decision_id)
+            holdout = self._row_payload(row)
+            verified = holdout["verified_at"] is not None
+            tier = EvidenceTier.T_O.value if verified else EvidenceTier.T_S.value
+            return {
+                "decision_id": decision_id,
+                "complete": verified,
+                "steps": [
+                    {"type": "holdout_registration", "value": holdout["source_id"], "evidence_tier": EvidenceTier.T_S.value},
+                    {"type": "factor_vector", "value": holdout["factor_vector"], "evidence_tier": tier},
+                    {"type": "score", "value": holdout["score_payload"], "evidence_tier": tier},
+                    {"type": "outcome", "value": holdout["verdict"], "evidence_tier": tier},
+                ],
+                "evidence_tier": tier,
+                "evidence_label": "measured" if verified else "synthetic / modelled — not measured",
+            }
         raw = dict(decision)
         fixture = str(raw.get("provenance", "")).lower() == "sample"
         verified = raw.get("is_correct") is not None or raw.get("status") in {"confirmed", "overridden"}
@@ -139,9 +168,56 @@ class DataOpsGovernance:
         state = self.conservation.get_state()
         trajectory = self.scorer.trajectory()
         iks = float(trajectory.get("iks", trajectory.get("current_iks", 0.0))) if isinstance(trajectory, dict) else 0.0
-        snapshot = self.frozen_twin.freeze(self.scorer._scorer(), state, iks, "dataops")
+        scorer = self.scorer._scorer()
+        snapshot_source = getattr(scorer, "_scorer", scorer)
+        snapshot = self.frozen_twin.freeze(snapshot_source, state, iks, "dataops")
         return cast(dict[str, Any], json.loads(snapshot.to_json()))
+
+    def frozen_twin_status(self) -> dict[str, Any]:
+        snapshot = None
+        try:
+            loaded = self.frozen_twin.get_snapshot()
+        except RuntimeError:
+            try:
+                loaded = self.frozen_twin.load("dataops")
+            except (FileNotFoundError, RuntimeError, ValueError):
+                loaded = None
+        if loaded is not None:
+            snapshot = json.loads(loaded.to_json())
+        return {
+            "frozen": snapshot is not None,
+            "copilot": "dataops",
+            "baseline_captured": snapshot is not None,
+            "frozen_snapshot": snapshot,
+        }
+
+    def _claim_payload(self, claim_id: str, context: str) -> dict[str, Any]:
+        result = self.evidence.check(claim_id, context)
+        payload = asdict(result)
+        state = _claim_state(payload)
+        payload["evidence_state"] = state
+        payload["evidence_gate_label"] = _evidence_state_label(state)
+        return payload
 
     @staticmethod
     def _row_payload(row: sqlite3.Row) -> dict[str, Any]:
         return {"decision_id": row["decision_id"], "source_id": row["source_id"], "decision_class": row["decision_class"], "factor_vector": json.loads(row["factor_vector"] or "null"), "score_payload": json.loads(row["score_payload"] or "{}"), "evidence_tier": row["evidence_tier"], "verdict": json.loads(row["verdict"] or "null"), "verified_at": row["verified_at"], "outcome_receipt_id": row["outcome_receipt_id"]}
+
+
+def _claim_state(payload: dict[str, Any]) -> str:
+    if payload.get("error"):
+        return "FAILED"
+    if payload.get("tier") in {EvidenceTier.T_O.value, EvidenceTier.T_R.value} and payload.get("passed") is True:
+        return "VALIDATED"
+    if payload.get("passed") is False:
+        return "FAILED"
+    return "PENDING"
+
+
+def _evidence_state_label(state: str) -> str:
+    return {
+        "VALIDATED": "Evidence gate: passed",
+        "PENDING": "Evidence gate: pending review",
+        "FAILED": "Evidence gate: failed",
+        "NONE": "Evidence gate: not evaluated",
+    }.get(state, "Evidence gate: not evaluated")

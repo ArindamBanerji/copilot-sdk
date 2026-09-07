@@ -333,6 +333,27 @@ def _dataops_acquisition_recommendations() -> dict[str, Any]:
     }
 
 
+def _remove_route(
+    app: FastAPI,
+    path: str,
+    method: str,
+    endpoint_name: str | None = None,
+    endpoint_module: str | None = None,
+) -> None:
+    target_method = method.upper()
+    retained = []
+    for route in app.router.routes:
+        route_path = getattr(route, "path", None)
+        route_methods: set[str] = set(getattr(route, "methods", set()) or set())
+        endpoint = getattr(route, "endpoint", None)
+        name_matches = endpoint_name is None or getattr(endpoint, "__name__", None) == endpoint_name
+        module_matches = endpoint_module is None or getattr(endpoint, "__module__", None) == endpoint_module
+        if route_path == path and target_method in route_methods and name_matches and module_matches:
+            continue
+        retained.append(route)
+    app.router.routes = retained
+
+
 def _selected_graph_store_factory(
     db_path: str | Path,
     *,
@@ -815,6 +836,8 @@ def create_app(
         ),
         prefix="/api",
     )
+    _remove_route(app, "/api/di/profiles", "GET", "profiles")
+    _remove_route(app, "/api/di/intelligence-map", "GET", "intelligence_map")
     app.include_router(
         create_di_router(
             dataops_profiler_registry,
@@ -827,6 +850,15 @@ def create_app(
             ),
         ),
         prefix="/api/dataops",
+    )
+    _remove_route(app, "/api/dataops/di/profiles", "GET", "profiles")
+    _remove_route(app, "/api/dataops/di/intelligence-map", "GET", "intelligence_map")
+    _remove_route(
+        app,
+        "/api/dataops/di/acquisition-advice",
+        "GET",
+        "acquisition_advice",
+        "copilot_sdk.backend.di_router",
     )
     app.include_router(
         create_dataops_di_enrichment_router(scorer_provider=lambda: scorer_proxy),
@@ -869,6 +901,7 @@ def create_app(
     )
     app.include_router(dataops_graph_status_router)
     app.include_router(dataops_status_router)
+    _remove_route(app, "/api/dataops/enterprise-health", "GET", "enterprise_health_alias")
     app.include_router(enterprise_router, prefix="/api/dataops")
     app.include_router(
         create_query_router(lambda: selected_graph_store, query_service=di_query_service)
@@ -917,6 +950,8 @@ def create_app(
             response.headers.setdefault("X-Evidence-Label", "synthetic / modelled - not measured")
         return response
 
+    _remove_route(app, "/api/health", "GET", "health")
+
     @app.get("/health")
     @app.get("/api/health")
     def health() -> dict[str, Any]:
@@ -926,6 +961,8 @@ def create_app(
         return {
             "status": "ok" if graph_source == "graph" else "error",
             "domain": DOMAIN,
+            "phase": scorer_proxy.get_phase(),
+            "alpha": scorer_proxy.get_alpha(),
             "graph_connected": graph.is_graph_connected,
             "graph_source": graph_source,
             "engine": (

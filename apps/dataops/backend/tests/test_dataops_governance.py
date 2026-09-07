@@ -93,6 +93,8 @@ def test_de_16_holdout_verification_changes_evidence_for_later_check(client: Tes
 def test_de_17_frozen_twin_status_is_explicit(client: TestClient) -> None:
     payload = client.get("/api/dataops/frozen-twin/status").json()
     assert payload["frozen"] is False
+    assert payload["baseline_captured"] is False
+    assert payload["frozen_snapshot"] is None
 
 
 def test_de_18_concurrent_safe_holdout_reads(client: TestClient) -> None:
@@ -112,3 +114,54 @@ def test_de_20_full_holdout_pipeline(client: TestClient) -> None:
     verified = client.post("/api/dataops/holdout/verify", json={"decision_id": "D20", "verdict": {"expert": "accepted", "correct": True}})
     assert verified.json()["evidence_tier"] == "observed"
     assert client.get("/api/dataops/abstention-check?source_id=pipeline").json()["current_evidence"] == 1
+
+
+def test_de_21_frozen_twin_freeze_creates_baseline(client: TestClient) -> None:
+    response = client.post("/api/dataops/frozen-twin/freeze", json={})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["frozen"] is True
+    assert payload["baseline_captured"] is True
+    assert payload["frozen_snapshot"]["metadata"]["copilot"] == "dataops"
+    assert client.get("/api/dataops/frozen-twin/status").json()["frozen"] is True
+
+
+def test_de_22_claims_return_explicit_pending_state(client: TestClient) -> None:
+    payload = client.get("/api/dataops/claims").json()
+
+    assert payload["state"] == "PENDING"
+    assert payload["label"] == "Evidence gate: pending review"
+    assert {claim["evidence_state"] for claim in payload["claims"]} == {"PENDING"}
+
+
+def test_de_23_claims_return_explicit_failed_state_for_pilot_gate(client: TestClient) -> None:
+    payload = client.get("/api/dataops/claims?context=pilot").json()
+
+    assert payload["state"] == "FAILED"
+    assert payload["label"] == "Evidence gate: failed"
+    assert {claim["evidence_state"] for claim in payload["claims"]} == {"FAILED"}
+
+
+def test_de_24_holdout_register_verify_provenance_chain(client: TestClient) -> None:
+    client.post(
+        "/api/dataops/holdout/register",
+        json={
+            "decision_id": "D24",
+            "source_id": "src",
+            "decision_class": "quality",
+            "factor_vector": [0.2, 0.8],
+            "score_payload": {"recommended_action": "investigate", "confidence": 0.82},
+        },
+    )
+    client.post("/api/dataops/holdout/verify", json={"decision_id": "D24", "verdict": {"correct": True}})
+
+    payload = client.get("/api/dataops/provenance/D24").json()
+    assert payload["complete"] is True
+    assert payload["evidence_tier"] == "observed"
+    assert [step["type"] for step in payload["steps"]] == [
+        "holdout_registration",
+        "factor_vector",
+        "score",
+        "outcome",
+    ]
