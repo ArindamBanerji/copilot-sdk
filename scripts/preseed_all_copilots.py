@@ -2,7 +2,9 @@
 """Pre-seed the SDK copilots from deterministic repository seed data.
 
 The script talks to the running backend APIs and intentionally uses only the
-Python standard library.
+Python standard library. Start target backends with COPILOT_PRESEED_MODE=true
+when seeding a cold or conservation-locked environment; client request bodies
+never carry privileged preseed bypass flags.
 """
 
 from __future__ import annotations
@@ -687,6 +689,8 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
 
 def main(argv: List[str]) -> int:
     args = parse_args(argv)
+    if os.environ.get("COPILOT_PRESEED_MODE", "").strip().lower() != "true":
+        print("warning: COPILOT_PRESEED_MODE is not true in this client process; running backends must set it for privileged preseed bypass")
     if args.s2p_only:
         try:
             return print_summary([seed_s2p_domain(args)])

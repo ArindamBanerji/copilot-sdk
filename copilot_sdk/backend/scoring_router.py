@@ -267,12 +267,14 @@ def create_scoring_router(
                     action=request.actual_action,
                     logger=log,
                 )
+                learn_context = dict(request.context or {})
+                learn_context.pop("preseed", None)
                 result = scorer.learn(
                     request.decision_id,
                     request.actual_action,
                     request.outcome,
-                    consolidate=bool((request.context or {}).get("consolidate")),
-                    context=request.context,
+                    consolidate=bool(learn_context.get("consolidate")),
+                    context=learn_context,
                 )
             except KeyError as exc:
                 raise HTTPException(status_code=404, detail=f"Unknown decision: {request.decision_id}") from exc

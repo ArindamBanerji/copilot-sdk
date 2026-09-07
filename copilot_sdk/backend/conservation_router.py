@@ -49,9 +49,15 @@ def create_conservation_router(
         if state_provider is not None and state is None:
             raise HTTPException(status_code=503, detail="Graph store unavailable")
         try:
-            return compute_conservation_status_payload(domain, state)
+            payload = compute_conservation_status_payload(domain, state)
         except Exception as exc:
             raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
+        mode = str(payload.get("conservation_mode") or "normal")
+        if mode == "cold_start":
+            payload.update({"status": "COLD_START", "passed": True})
+        elif mode == "bootstrap":
+            payload.update({"status": "BOOTSTRAP", "passed": True})
+        return payload
 
     @router.post("/conservation/what-if", response_model=ConservationWhatIfResponse)
     def what_if(request: ConservationWhatIfRequest) -> dict[str, Any]:

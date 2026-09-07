@@ -98,6 +98,29 @@ export interface SupplierProfile {
   trendDirection?: string;
 }
 
+export interface SupplierInvoiceSummary {
+  invoice_id?: string;
+  invoiceId?: string;
+  amount?: number;
+  category?: string;
+  ground_truth_action?: string;
+  groundTruthAction?: string;
+}
+
+export interface SupplierProfileDetail extends SupplierProfile {
+  otif_trend?: number[];
+  otifTrend?: number[];
+  exception_trend?: number[];
+  exceptionTrend?: number[];
+  recent_invoices?: SupplierInvoiceSummary[];
+  recentInvoices?: SupplierInvoiceSummary[];
+  behavioral_cluster?: string;
+  behavioralCluster?: string;
+  risk_level?: string;
+  riskLevel?: string;
+  intelligence?: Record<string, unknown>;
+}
+
 export interface SupplierHistoryEvent {
   invoice_id: string;
   invoice_date: string | null;
@@ -371,6 +394,31 @@ export interface CrossCopilotSignal {
   provenance: ProvenanceTier;
 }
 
+export interface ProcessContextDetail {
+  invoice_id?: string;
+  invoiceId?: string;
+  supplier_id?: string;
+  supplierId?: string;
+  category?: string;
+  total_cycle_time_hours?: number;
+  totalCycleTimeHours?: number;
+  activities?: ProcessActivity[];
+  activity_timeline?: ProcessActivity[];
+  activityTimeline?: ProcessActivity[];
+  bottleneck?: {
+    activity?: string;
+    duration_hours?: number;
+    durationHours?: number;
+    pct_of_total?: number;
+    pctOfTotal?: number;
+    reason?: string;
+    system?: string;
+  };
+  source?: string;
+  engine?: string;
+  narrative?: string;
+}
+
 export interface ScoreInvoiceRequest {
   event_id: string;
   category: string;
@@ -614,6 +662,10 @@ export interface ProcessActivity {
   avgDurationHours?: number;
   duration_median_hours?: number;
   durationMedianHours?: number;
+  duration_hours?: number;
+  durationHours?: number;
+  pct_of_total?: number;
+  pctOfTotal?: number;
   system?: string;
   status?: string;
   bottleneck?: boolean;

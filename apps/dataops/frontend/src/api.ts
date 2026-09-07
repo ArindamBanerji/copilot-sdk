@@ -98,6 +98,25 @@ export interface DataOpsAbstentionStatus {
   evidenceLabel: string;
 }
 
+export interface DataOpsPromotionRecord {
+  recordId: string;
+  copilot: string;
+  decisionClass: string;
+  currentStage: string;
+  stageHistory: Array<Record<string, unknown>>;
+  shadowDecisions: number;
+  measurementDecisions: number;
+  improvementDelta: number;
+  conservationStateAtTransition: string;
+}
+
+export interface DataOpsPromotionAdvanceResult {
+  advanced: boolean;
+  newStage: string;
+  reason: string;
+  record?: DataOpsPromotionRecord | null;
+}
+
 export async function fetchDataOpsGovernance(): Promise<DataOpsGovernanceStatus | null> {
   return safeApiGet<DataOpsGovernanceStatus>("/api/dataops/claims?context=demo");
 }
@@ -108,6 +127,23 @@ export async function fetchDataOpsHoldout(): Promise<DataOpsHoldoutStatus | null
 
 export async function fetchDataOpsAbstention(): Promise<DataOpsAbstentionStatus | null> {
   return safeApiGet<DataOpsAbstentionStatus>("/api/dataops/abstention-check?source_id=unknown");
+}
+
+export async function fetchDataOpsPromotion(decisionClass = "default"): Promise<DataOpsPromotionRecord | null> {
+  return apiPost<DataOpsPromotionRecord>("/api/dataops/promotion", {
+    decisionClass,
+    evidence: {},
+  }).catch(() => null);
+}
+
+export async function advanceDataOpsPromotion(
+  recordId: string,
+  evidence: Record<string, unknown>,
+): Promise<DataOpsPromotionAdvanceResult> {
+  return apiPost<DataOpsPromotionAdvanceResult>(
+    `/api/dataops/promotion/${encodeURIComponent(recordId)}/advance`,
+    evidence,
+  );
 }
 
 export interface FrozenTwinStatus {

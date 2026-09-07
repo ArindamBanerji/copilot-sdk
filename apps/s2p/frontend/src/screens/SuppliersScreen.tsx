@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { fetchDecliningSuppliers, fetchSupplierHistory, fetchSupplierProfiles } from "../api";
+import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { fetchDecliningSuppliers, fetchSupplierHistory, fetchSupplierProfile, fetchSupplierProfiles } from "../api";
 import { ClusteringPanel } from "../components/ClusteringPanel";
 import { PaymentStrategyPanel } from "../components/PaymentStrategyPanel";
 import { RationalizationPanel } from "../components/RationalizationPanel";
 import { SupplierHeatmap } from "../components/SupplierHeatmap";
-import type { SupplierHistoryEvent, SupplierProfile, SupplierProfilesResponse } from "../types";
+import type { SupplierHistoryEvent, SupplierInvoiceSummary, SupplierProfile, SupplierProfileDetail, SupplierProfilesResponse } from "../types";
 
 type SourceKind = SupplierProfile["source"];
 
@@ -67,8 +67,11 @@ export function SuppliersScreen() {
   const [decliningIds, setDecliningIds] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState("");
   const [history, setHistory] = useState<SupplierHistoryEvent[]>([]);
+  const [detail, setDetail] = useState<SupplierProfileDetail | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -111,13 +114,27 @@ export function SuppliersScreen() {
     let cancelled = false;
     setHistory([]);
     setHistoryError(false);
+    setDetail(null);
+    setDetailError(false);
     if (!activeId) {
       setHistoryLoading(false);
+      setDetailLoading(false);
       return () => {
         cancelled = true;
       };
     }
     setHistoryLoading(true);
+    setDetailLoading(true);
+    fetchSupplierProfile(activeId)
+      .then((response) => {
+        if (!cancelled) setDetail(response);
+      })
+      .catch(() => {
+        if (!cancelled) setDetailError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setDetailLoading(false);
+      });
     fetchSupplierHistory(activeId)
       .then((response) => {
         if (!cancelled) setHistory(Array.isArray(response.events) ? response.events : []);
@@ -219,7 +236,13 @@ export function SuppliersScreen() {
         </article>
 
         <div className="space-y-4">
-          <SupplierDetailPanel supplier={selectedSupplier} declining={activeDecliningIds.has(activeId)} />
+          <SupplierDetailPanel
+            supplier={selectedSupplier}
+            detail={detail}
+            detailLoading={detailLoading}
+            detailError={detailError}
+            declining={activeDecliningIds.has(activeId)}
+          />
           <SupplierSeasonalChart supplier={selectedSupplier} />
           <SupplierHistoryPanel events={history} loading={historyLoading} error={historyError} supplierId={activeId} />
           <SupplierHeatmap supplierId={activeId} />
@@ -272,7 +295,19 @@ function SupplierCard({
   );
 }
 
-function SupplierDetailPanel({ supplier, declining }: { supplier: SupplierProfile | null; declining: boolean }) {
+function SupplierDetailPanel({
+  supplier,
+  detail,
+  detailLoading,
+  detailError,
+  declining,
+}: {
+  supplier: SupplierProfile | null;
+  detail: SupplierProfileDetail | null;
+  detailLoading: boolean;
+  detailError: boolean;
+  declining: boolean;
+}) {
   if (!supplier) {
     return (
       <article className="copilot-card p-5">
@@ -282,7 +317,17 @@ function SupplierDetailPanel({ supplier, declining }: { supplier: SupplierProfil
   }
 
   const trend = trendMeta(supplier.exception_rate_trend);
-  const otif = supplier.otif ?? supplier.otif_score ?? null;
+  const profile = detail ?? supplier;
+  const otif = profile.otif ?? profile.otif_score ?? null;
+  const exceptionTrend = detail?.exception_trend ?? detail?.exceptionTrend ?? [];
+  const otifTrend = detail?.otif_trend ?? detail?.otifTrend ?? [];
+  const recentInvoices = detail?.recent_invoices ?? detail?.recentInvoices ?? [];
+  const risk = detail?.risk_level ?? detail?.riskLevel ?? (declining ? "watch" : "normal");
+  const trendRows = Array.from({ length: Math.max(exceptionTrend.length, otifTrend.length) }, (_item, index) => ({
+    point: `T${index + 1}`,
+    exception: exceptionTrend[index],
+    otif: otifTrend[index],
+  }));
 
   return (
     <article className={`copilot-card p-5 ${declining ? "border-amber-300" : ""}`}>
@@ -310,21 +355,63 @@ function SupplierDetailPanel({ supplier, declining }: { supplier: SupplierProfil
         <Metric label="Exception rate" value={formatPercent(supplier.exception_rate)} />
         <Metric label="OTIF" value={formatPercent(otif)} note={supplier.source === "fixture" ? "baseline" : "fixture-backed"} />
         <Metric label="Invoices" value={supplier.invoice_count} />
-        <Metric label="Avg lead time" value={supplier.avg_lead_time_days === null ? "n/a" : `${supplier.avg_lead_time_days} days`} />
+        <Metric label="Risk" value={risk.replace(/_/g, " ")} />
       </div>
 
-      <div className="mt-4 rounded-md border border-slate-200 bg-white p-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Exception trend</p>
-        <p className={`mt-2 text-sm font-semibold ${trend.className}`}>
-          {trend.mark} {trend.label}
-        </p>
-        <p className="mt-1 text-xs text-slate-500">
-          {supplier.exception_rate_trend === null
-            ? "Insufficient verified decisions for a computed trend."
-            : `Slope ${supplier.exception_rate_trend.toFixed(4)} from verified invoice dates.`}
-        </p>
+      {detailLoading ? <p className="mt-4 text-sm text-slate-500">Loading supplier trend detail...</p> : null}
+      {detailError ? <p className="mt-4 text-sm text-amber-700">Supplier trend detail is unavailable.</p> : null}
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-md border border-slate-200 bg-white p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Exception and OTIF trajectory</p>
+          {trendRows.length ? (
+            <div className="mt-3 h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendRows}>
+                  <XAxis dataKey="point" tickLine={false} axisLine={false} />
+                  <YAxis tickLine={false} axisLine={false} width={36} />
+                  <Tooltip formatter={(value) => formatPercent(Number(value))} />
+                  <Line type="monotone" dataKey="exception" stroke="#d97706" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="otif" stroke="#0f766e" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <p className={`mt-2 text-sm font-semibold ${trend.className}`}>{trend.mark} {trend.label}</p>
+          )}
+          <p className="mt-2 text-xs text-slate-500">
+            {supplier.exception_rate_trend === null
+              ? "Insufficient verified decisions for a computed slope."
+              : `Exception slope ${supplier.exception_rate_trend.toFixed(4)} from verified invoice dates.`}
+          </p>
+        </div>
+        <RecentInvoices invoices={recentInvoices} />
       </div>
     </article>
+  );
+}
+
+function RecentInvoices({ invoices }: { invoices: SupplierInvoiceSummary[] }) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-white p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Recent invoices</p>
+      {invoices.length === 0 ? (
+        <p className="mt-3 text-sm text-slate-500">No recent invoice detail returned.</p>
+      ) : (
+        <div className="mt-3 divide-y divide-slate-100">
+          {invoices.slice(0, 5).map((invoice) => (
+            <div key={invoice.invoice_id ?? invoice.invoiceId} className="py-2 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-mono text-xs font-semibold text-slate-700">{invoice.invoice_id ?? invoice.invoiceId}</span>
+                <span className="text-slate-600">{formatCurrency(invoice.amount)}</span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                {invoice.category ?? "uncategorized"} · {invoice.ground_truth_action ?? invoice.groundTruthAction ?? "pending"}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -117,3 +117,14 @@ def test_sdk_conservation_uses_category_coverage(tmp_path):
 def test_sdk_penalty_ratio_still_available_for_learning_role():
     assert _scale_raw_reward(-1.0, 5.0) == pytest.approx(-5.0)
     assert _scale_raw_reward(1.0, 5.0) == pytest.approx(1.0)
+
+
+def test_public_conservation_status_cold_start_not_red(tmp_path):
+    store = InMemoryGraphStore()
+    scorer = _scorer(tmp_path, store)
+
+    state = scorer.get_conservation_state()
+
+    assert state["status"] == "COLD_START"
+    assert state["passed"] is True
+    assert state["conservation_mode"] == "cold_start"

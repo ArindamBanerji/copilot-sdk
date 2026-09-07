@@ -103,11 +103,13 @@ def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, An
         if signal is not None and theta_min is not None
         else None
     )
+    status_payload = check_payload(check)
+    conservation_mode = "cold_start" if verified_count <= 0 else "bootstrap" if verified_count < 10 else "normal"
     payload = {
         "engine": ENGINE_STATUS,
         "domain": domain,
         **counts,
-        **check_payload(check),
+        **status_payload,
         # CC-4 panel fields.  Keep the conservation V explicit and use
         # additive headroom (signal - floor); the what-if route retains the
         # legacy ratio returned directly by check_payload().
@@ -117,6 +119,8 @@ def compute_conservation_status_payload(domain: str, state: Any) -> dict[str, An
         "headroom": headroom,
         "baseline": baseline_q,
         "baseline_q": baseline_q,
+        "conservation_mode": conservation_mode,
+        "conservation_applicable": conservation_mode == "normal",
         "relative_trigger": relative_trigger,
         "relative_trigger_ratio": relative_trigger_ratio,
         "categories_total": int(categories_total),
@@ -176,7 +180,7 @@ def _conservation_reason(
     """Return a plain-language, auditable explanation of the gate state."""
 
     if V <= 0 or signal is None or theta_min is None:
-        return "No verified decisions are available; conservation remains RED until evidence accumulates."
+        return "No verified decisions are available; conservation is in explicit COLD_START bootstrap mode."
     relation = "exceeds" if signal > theta_min else "meets" if signal == theta_min else "is below"
     quality_relation = "above" if q >= relative_trigger else "below"
     return (

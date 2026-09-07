@@ -57,7 +57,8 @@ def test_preseed_creates_regime_tagged_decisions() -> None:
     assert all(row["regime_context"]["regime"] in CANONICAL_REGIMES for row in annotated)
 
 
-def test_preseed_creates_per_regime_checkpoints() -> None:
+def test_preseed_creates_per_regime_checkpoints(monkeypatch) -> None:
+    monkeypatch.setenv("COPILOT_PRESEED_MODE", "true")
     scorer, store = _scorer()
     seed = annotate_trading_regime([{} for _ in range(15)])
     category = _category(scorer)

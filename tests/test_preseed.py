@@ -15,6 +15,7 @@ from copilot_sdk.scoring.verification.weather import get_weather_factor
 
 @pytest.fixture(autouse=True)
 def _test_profile_for_preseed_scorers(monkeypatch):
+    monkeypatch.setenv("COPILOT_PRESEED_MODE", "true")
     original = CompoundingScorer.from_preset
 
     def from_preset(*args, **kwargs):

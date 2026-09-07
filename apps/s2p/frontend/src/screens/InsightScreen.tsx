@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchPreviewQueue } from "../api";
+import { fetchPreviewQueue, fetchS2PProcessContext } from "../api";
 import { CentroidExplorerPanel } from "../components/CentroidExplorerPanel";
 import { CrossGraphInsightCard } from "../components/CrossGraphInsightCard";
 import { DiscoveryExtendedPanel } from "../components/DiscoveryExtendedPanel";
@@ -7,10 +7,11 @@ import { EarlyWarningPanel } from "../components/EarlyWarningPanel";
 import { FactorFingerprintPanel } from "../components/FactorFingerprintPanel";
 import { LeakageDetectionPanel } from "../components/LeakageDetectionPanel";
 import { ProcessSignalsPanel } from "../components/ProcessSignalsPanel";
+import { ProcessContextPanel } from "../components/ProcessContextPanel";
 import ProcessFusionPanel from "../components/ProcessFusionPanel";
 import { SimilarInvoicesPanel } from "../components/SimilarInvoicesPanel";
 import WhatIfInspectorPanel from "../components/WhatIfInspectorPanel";
-import type { InvoiceException, PreviewQueueResponse } from "../types";
+import type { InvoiceException, PreviewQueueResponse, ProcessContextDetail } from "../types";
 
 function invoiceId(invoice?: InvoiceException | null): string {
   return invoice?.invoice_id ?? invoice?.invoiceId ?? invoice?.event_id ?? invoice?.eventId ?? "";
@@ -23,6 +24,7 @@ function supplierId(invoice?: InvoiceException | null): string {
 export function InsightScreen() {
   const [queue, setQueue] = useState<PreviewQueueResponse | null>(null);
   const [selectedId, setSelectedId] = useState("");
+  const [processContext, setProcessContext] = useState<ProcessContextDetail | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +44,21 @@ export function InsightScreen() {
     () => invoices.find((invoice) => invoiceId(invoice) === selectedId) ?? invoices[0] ?? null,
     [invoices, selectedId],
   );
+  const selectedInvoiceId = invoiceId(selected);
+
+  useEffect(() => {
+    let cancelled = false;
+    setProcessContext(null);
+    if (!selectedInvoiceId) return () => {
+      cancelled = true;
+    };
+    fetchS2PProcessContext(selectedInvoiceId).then((data) => {
+      if (!cancelled) setProcessContext(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedInvoiceId]);
 
   return (
     <section data-screen-ready="true" className="space-y-6">
@@ -78,6 +95,7 @@ export function InsightScreen() {
       </div>
       <CrossGraphInsightCard />
       <ProcessFusionPanel />
+      <ProcessContextPanel contextDetail={processContext} />
       <EarlyWarningPanel />
       <LeakageDetectionPanel />
       <ProcessSignalsPanel supplierId={supplierId(selected)} />

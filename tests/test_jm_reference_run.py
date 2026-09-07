@@ -8,6 +8,8 @@ import sys
 from dataclasses import replace
 from pathlib import Path
 
+import pytest
+
 from examples.jm_reference.config import (
     RUN_A_GENERATOR,
     RUN_A_ORACLE,
@@ -16,6 +18,11 @@ from examples.jm_reference.config import (
 )
 from examples.jm_reference.report import generate_report
 from examples.jm_reference.run import run_experiment
+
+
+@pytest.fixture(autouse=True)
+def _server_preseed_mode(monkeypatch):
+    monkeypatch.setenv("COPILOT_PRESEED_MODE", "true")
 
 
 def test_run_a_centroid_distance_is_real_and_recorded() -> None:

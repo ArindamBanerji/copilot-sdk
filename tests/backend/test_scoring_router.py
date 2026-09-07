@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
+from uuid import uuid4
 
 import pytest
 import numpy as np
@@ -98,10 +99,47 @@ class FakeStore:  # MOCK-OK: scoring router contract fixture, no production cons
     def get_all_decisions(self, domain: str) -> list[dict]:
         return list(self.decisions.values())
 
+    def write_decision(
+        self,
+        domain: str,
+        *,
+        category: str,
+        action: str,
+        confidence: float,
+        factors: dict[str, float],
+        metadata: dict[str, object] | None = None,
+    ) -> str:
+        decision_id = str((metadata or {}).get("decision_id") or uuid4())
+        self.save({
+            "decision_id": decision_id,
+            "domain": domain,
+            "category": category,
+            "recommended_action": action,
+            "confidence": confidence,
+            "factors": factors,
+            **dict(metadata or {}),
+        })
+        return decision_id
+
+    def write_outcome(
+        self,
+        decision_id: str,
+        actual_action: str,
+        is_correct: bool,
+        metadata: dict[str, object] | None = None,
+        domain: str | None = None,
+    ) -> str:
+        del metadata, domain
+        decision = self.get_decision(decision_id)
+        decision["actual_action"] = actual_action
+        decision["is_correct"] = is_correct
+        return str(uuid4())
+
 
 class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests cover scorer behavior
     def __init__(self) -> None:
         self.graph_store = FakeStore()
+        self.learn_contexts: list[dict[str, object] | None] = []
 
     def score(self, factors: dict[str, float], category: str) -> FakeScoreResult:
         if category == "bad":
@@ -135,8 +173,9 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
         consolidate: bool = False,
         context: dict[str, object] | None = None,
         persist_artifacts: bool = True,
-    ) -> FakeLearnResult:
-        del actual_action, outcome, consolidate, context, persist_artifacts
+    ) -> FakeLearnResult | dict[str, Any]:
+        del actual_action, outcome, consolidate, persist_artifacts
+        self.learn_contexts.append(context)
         self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         return FakeLearnResult(
             decision_id=decision_id,
@@ -201,7 +240,7 @@ class PausingScorer(FakeScorer):
         consolidate: bool = False,
         context: dict[str, object] | None = None,
         persist_artifacts: bool = True,
-    ) -> dict:
+    ) -> FakeLearnResult | dict[str, Any]:
         del decision_id, actual_action, outcome, consolidate, context, persist_artifacts
         return {
             "status": "paused",
@@ -218,7 +257,7 @@ class GraphStoreBackedScorer(FakeScorer):
     def __init__(self) -> None:
         super().__init__()
         self.graph_store = InMemoryGraphStore()
-        self.learn_calls = []
+        self.learn_calls: list[tuple[str, str, str]] = []
 
     def score(self, factors: dict[str, float], category: str) -> FakeScoreResult:
         if category == "bad":
@@ -1474,3 +1513,27 @@ def test_no_forbidden_modules_loaded():
     assert not any("domains.soc" in module for module in sys.modules)
     assert not any("domains.s2p" in module for module in sys.modules)
     assert not any("gen-ai-roi-demo" in module for module in sys.modules)
+
+
+def test_learn_strips_client_preseed_context():
+    scorer = FakeScorer()
+    client = build_client(scorer=scorer)
+    client.post(
+        "/score",
+        json={
+            "category": "pipeline_failure",
+            "factors": {"business_criticality": 0.8, "impact_scope": 0.5},
+        },
+    )
+
+    response = client.post(
+        "/learn",
+        json={
+            "decision_id": "dec-1",
+            "actual_action": "auto_approve",
+            "context": {"preseed": True, "consolidate": True, "kept": "yes"},
+        },
+    )
+
+    assert response.status_code == 200
+    assert scorer.learn_contexts[-1] == {"consolidate": True, "kept": "yes"}

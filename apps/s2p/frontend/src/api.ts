@@ -33,6 +33,7 @@ import type {
   PerformanceSummaryResponse,
   PerformanceTrajectoryResponse,
   ProcessSignalsResponse,
+  ProcessContextDetail,
   ProcessFusionResponse,
   PreviewQueueResponse,
   PreviewSuppliersResponse,
@@ -45,6 +46,7 @@ import type {
   S2PShadowResultsResponse,
   SupplierHistoryResponse,
   SupplierSimilarityResponse,
+  SupplierProfileDetail,
   SupplierProfile,
   SupplierProfilesResponse,
   TwinDriftReport,
@@ -152,6 +154,16 @@ export async function getPreviewConservation(): Promise<ConservationStatus | nul
 
 export async function fetchPromotionStatus(): Promise<PromotionStatusResponse | null> {
   return apiGet<PromotionStatusResponse>("/api/s2p/promotion/status").catch(() => null);
+}
+
+export async function advanceS2PPromotion(
+  category: string,
+  evidence: Record<string, unknown>
+): Promise<Record<string, unknown> | null> {
+  return apiPost<Record<string, unknown>>(
+    `/api/s2p/promotion/${encodeURIComponent(category)}/advance`,
+    evidence,
+  ).catch(() => null);
 }
 
 export async function fetchTwinStatus(): Promise<TwinStatusResponse | null> {
@@ -304,6 +316,12 @@ export async function fetchS2PProcessSignals(supplierId?: string): Promise<Proce
   if (supplierId) params.set("supplier_id", supplierId);
   const suffix = params.toString() ? `?${params.toString()}` : "";
   return apiGet<ProcessSignalsResponse>(`/api/s2p/insight/process-signals${suffix}`).catch(() => null);
+}
+
+export async function fetchS2PProcessContext(invoiceId: string): Promise<ProcessContextDetail | null> {
+  return apiGet<ProcessContextDetail>(
+    `/api/s2p/insight/process-context/${encodeURIComponent(invoiceId)}`
+  ).catch(() => null);
 }
 
 export async function fetchProcessFusion(events: Array<Record<string, unknown>>): Promise<ProcessFusionResponse | null> {
@@ -594,8 +612,8 @@ export async function fetchDecliningSuppliers(): Promise<SupplierProfilesRespons
   return apiGet<SupplierProfilesResponse>("/api/s2p/suppliers/declining");
 }
 
-export async function fetchSupplierProfile(supplierId: string): Promise<SupplierProfile | null> {
-  return apiGetNullable<SupplierProfile>(`/api/s2p/suppliers/${encodeURIComponent(supplierId)}/profile`);
+export async function fetchSupplierProfile(supplierId: string): Promise<SupplierProfileDetail | null> {
+  return apiGetNullable<SupplierProfileDetail>(`/api/s2p/suppliers/${encodeURIComponent(supplierId)}/profile`);
 }
 
 export async function fetchSupplierHistory(

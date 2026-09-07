@@ -62,21 +62,13 @@ class TradingRegimeScorerProxy:
         )
 
     def conservation_status_adjuster(self, payload: dict[str, Any]) -> dict[str, Any]:
-        adjusted = dict(payload)
         regime = str(self._monitor.current_regime or "unknown")
-        theta_min = _finite_or_none(adjusted.get("theta_min"))
-        if theta_min is not None:
-            adjusted["base_theta_min"] = theta_min
-            adjusted["theta_min"] = self._regime_conservation.adjust_theta_min(theta_min, regime)
-            signal = _finite_or_none(adjusted.get("signal"))
-            adjusted["headroom"] = None if signal is None else signal - adjusted["theta_min"]
-        adjusted["base_penalty_ratio"] = _finite_or_none(adjusted.get("penalty_ratio")) or 3.0
-        adjusted["penalty_ratio"] = self._regime_conservation.adjust_penalty_ratio(
-            adjusted["base_penalty_ratio"], regime
+        return _adjusted_conservation_payload(
+            payload,
+            regime=regime,
+            monitor=self._monitor,
+            conservation=self._regime_conservation,
         )
-        adjusted["regime"] = regime
-        adjusted["regime_break_active"] = self._monitor.is_regime_break
-        return adjusted
 
     def score(
         self,
@@ -125,6 +117,16 @@ class TradingRegimeScorerProxy:
         """Learn through the live scorer using the decision's regime rate."""
         scorer = self._scorer()
         regime = _decision_regime(self.graph_store, decision_id, context, self._monitor.current_regime)
+        scorer._trading_active_regime = regime
+        adjusted_pause = _adjusted_learning_pause(
+            scorer,
+            decision_id=decision_id,
+            regime=regime,
+            monitor=self._monitor,
+            conservation=self._regime_conservation,
+        )
+        if adjusted_pause is not None:
+            return adjusted_pause
         parameters = self.conditioned_parameters(regime)
         before: Any = getattr(getattr(scorer, "_scorer", None), "centroids", None)
         before_copy: Any = before.copy() if callable(getattr(before, "copy", None)) else before
@@ -241,12 +243,14 @@ def _install_conservation_throttle(
         theta_min = _finite_or_none(pause.get("theta_min"))
         if theta_min is not None:
             regime = str(getattr(self, "_trading_active_regime", monitor.current_regime or "unknown"))
-            pause["theta_min"] = conservation.adjust_theta_min(theta_min, regime)
-            pause["penalty_ratio"] = conservation.adjust_penalty_ratio(
-                _finite_or_none(pause.get("penalty_ratio")) or 3.0, regime
+            pause = _adjusted_conservation_payload(
+                pause,
+                regime=regime,
+                monitor=monitor,
+                conservation=conservation,
             )
-            pause["regime"] = regime
-            pause["regime_break_active"] = monitor.is_regime_break
+            if pause.get("passed") is True:
+                return None
         return pause
 
     scorer._conservation_pause = MethodType(throttled_conservation_pause, scorer)
@@ -263,8 +267,132 @@ def apply_conservation_tightening(payload: dict[str, Any], monitor: RegimeMonito
         adjusted["theta_min"] = theta_min * monitor.tightening_multiplier
         signal = _finite_or_none(adjusted.get("signal"))
         adjusted["headroom"] = None if signal is None else signal - adjusted["theta_min"]
+        _recompute_conservation_status(adjusted)
     adjusted["regime_break_active"] = True
     return adjusted
+
+
+def _adjusted_conservation_payload(
+    payload: dict[str, Any],
+    *,
+    regime: str,
+    monitor: RegimeMonitor,
+    conservation: RegimeConservation,
+) -> dict[str, Any]:
+    adjusted = dict(payload)
+    theta_min = _finite_or_none(adjusted.get("theta_min"))
+    if theta_min is not None:
+        adjusted["base_theta_min"] = theta_min
+        adjusted["theta_min"] = conservation.adjust_theta_min(theta_min, regime)
+        signal = _conservation_signal(adjusted)
+        if signal is not None:
+            adjusted["signal"] = signal
+        adjusted["headroom"] = None if signal is None else signal - adjusted["theta_min"]
+        _recompute_conservation_status(adjusted)
+    adjusted["base_penalty_ratio"] = _finite_or_none(adjusted.get("penalty_ratio")) or 3.0
+    adjusted["penalty_ratio"] = conservation.adjust_penalty_ratio(
+        adjusted["base_penalty_ratio"], regime
+    )
+    adjusted["regime"] = regime
+    adjusted["regime_break_active"] = monitor.is_regime_break
+    return adjusted
+
+
+def _adjusted_learning_pause(
+    scorer: Any,
+    *,
+    decision_id: str,
+    regime: str,
+    monitor: RegimeMonitor,
+    conservation: RegimeConservation,
+) -> dict[str, Any] | None:
+    state_reader = getattr(scorer, "get_conservation_state", None)
+    if not callable(state_reader):
+        return None
+    try:
+        raw_state = state_reader()
+    except Exception as exc:
+        log.error("Regime conservation read failed closed for trading decision=%s: %s", decision_id, exc)
+        return {
+            "status": "paused",
+            "reason": "conservation_unavailable",
+            "decision_id": decision_id,
+            "q": 0.0,
+            "theta_min": 1.0,
+            "verified_count": 0,
+            "correct_count": 0,
+            "alpha": 0.0,
+            "category_coverage": 0.0,
+            "override_rate": 0.0,
+            "conservation_status": "RED",
+            "passed": False,
+            "regime": regime,
+            "regime_break_active": monitor.is_regime_break,
+        }
+    if not isinstance(raw_state, dict):
+        return None
+    adjusted = _adjusted_conservation_payload(
+        raw_state,
+        regime=regime,
+        monitor=monitor,
+        conservation=conservation,
+    )
+    mode = str(adjusted.get("conservation_mode") or "").lower()
+    if mode in {"preseed", "cold_start", "bootstrap"}:
+        return None
+    if adjusted.get("passed") is not False and str(adjusted.get("status") or "").upper() not in {"RED", "CONSERVATION_UNAVAILABLE"}:
+        return None
+    return {
+        "status": "paused",
+        "reason": "conservation_unavailable" if str(adjusted.get("status") or "").upper() == "CONSERVATION_UNAVAILABLE" else "conservation_red",
+        "decision_id": decision_id,
+        "q": float(_finite_or_none(adjusted.get("q")) or 0.0),
+        "theta_min": float(_finite_or_none(adjusted.get("theta_min")) or 1.0),
+        "verified_count": int(_finite_or_none(adjusted.get("verified_count")) or _finite_or_none(adjusted.get("V")) or 0),
+        "correct_count": int(_finite_or_none(adjusted.get("correct_count")) or 0),
+        "alpha": float(_finite_or_none(adjusted.get("alpha")) or _finite_or_none(adjusted.get("category_coverage")) or 0.0),
+        "category_coverage": float(_finite_or_none(adjusted.get("category_coverage")) or _finite_or_none(adjusted.get("alpha")) or 0.0),
+        "override_rate": float(_finite_or_none(adjusted.get("override_rate")) or 0.0),
+        "conservation_status": "RED",
+        "passed": False,
+        "signal": adjusted.get("signal"),
+        "headroom": adjusted.get("headroom"),
+        "regime": regime,
+        "regime_break_active": monitor.is_regime_break,
+    }
+
+
+def _conservation_signal(payload: dict[str, Any]) -> float | None:
+    signal = _finite_or_none(payload.get("signal"))
+    if signal is not None:
+        return signal
+    alpha = _finite_or_none(payload.get("alpha"))
+    if alpha is None:
+        alpha = _finite_or_none(payload.get("category_coverage"))
+    q = _finite_or_none(payload.get("q"))
+    verified = _finite_or_none(payload.get("verified_count"))
+    if verified is None:
+        verified = _finite_or_none(payload.get("V"))
+    if alpha is None or q is None or verified is None:
+        return None
+    return alpha * q * verified
+
+
+def _recompute_conservation_status(payload: dict[str, Any]) -> None:
+    mode = str(payload.get("conservation_mode") or "").lower()
+    if mode in {"preseed", "cold_start", "bootstrap"}:
+        payload["passed"] = True
+        return
+    signal = _finite_or_none(payload.get("signal"))
+    theta_min = _finite_or_none(payload.get("theta_min"))
+    if signal is None or theta_min is None:
+        return
+    passed = signal >= theta_min
+    status = "GREEN" if passed else "RED"
+    payload["passed"] = passed
+    payload["conservation_status"] = status
+    if payload.get("status") != "paused":
+        payload["status"] = status
 
 
 def _number(value: Any, default: float) -> float:

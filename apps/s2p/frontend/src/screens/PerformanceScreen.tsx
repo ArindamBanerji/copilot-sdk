@@ -1,4 +1,5 @@
 import { ConservationMiniGauge } from "../components/ConservationMiniGauge";
+import { AuthorityPanel } from "../components/AuthorityPanel";
 import { CycleTimePanel } from "../components/CycleTimePanel";
 import { FinancialImpactTrendPanel } from "../components/FinancialImpactTrendPanel";
 import { OperationalSummary } from "../components/OperationalSummary";
@@ -38,6 +39,7 @@ export function PerformanceScreen() {
         <TrajectoryChart />
         <ConservationMiniGauge conservation={conservation} />
       </div>
+      <AuthorityPanel />
       <FrozenTwinComparisonPanel />
       <ConfidenceBandPanel />
       <div className="grid gap-4 xl:grid-cols-2">

@@ -62,6 +62,7 @@ CONSERVATION_CATEGORY_MIN_VERIFIED = 1
 # the first nine verified outcomes in an explicit calibration warm-up; mature
 # domains still use the full alpha*q gate from the tenth outcome onward.
 CONSERVATION_MIN_VERIFIED = 10
+CONSERVATION_RETRY_DELAY_SECONDS = 0.5
 REGIME_CALIBRATION_THRESHOLD = 10
 
 # JM canonical checkpoint IKS: centroid drift from the domain bootstrap prior.
@@ -112,6 +113,8 @@ class LearnResult:
     reward: float | None = None
     reward_raw: float | None = None
     exploration_used: bool = False
+    cold_start: bool = False
+    bootstrap: bool = False
 
 
 class CompoundingScorer:
@@ -146,6 +149,11 @@ class CompoundingScorer:
         self._last_conflict: JudgmentConflict | None = None
         self._consolidation_enabled = bool(consolidation_enabled)
         self._governed_writes = _resolve_governed_writes(governed_writes)
+        self._preseed_mode = os.environ.get("COPILOT_PRESEED_MODE", "").strip().lower() == "true"
+        self._conservation_mode = "preseed" if self._preseed_mode else "normal"
+        self._conservation_read_failures = 0
+        if self._preseed_mode:
+            logger.info("COPILOT_PRESEED_MODE active for %s: conservation bypass is explicit for server-side preseed", self._domain)
         governed_store = isinstance(graph_store, ProtocolV2GraphStore) or (
             isinstance(graph_store, DualWriteStore)
             and isinstance(graph_store.primary, ProtocolV2GraphStore)
@@ -738,7 +746,43 @@ class CompoundingScorer:
             compute_conservation_status_payload,
         )
 
-        payload = cast(dict[str, Any], compute_conservation_status_payload(self._domain, self))
+        try:
+            payload = cast(dict[str, Any], compute_conservation_status_payload(self._domain, self))
+        except BaseException as exc:
+            if not _is_conservation_read_error(exc):
+                raise
+            self._conservation_read_failures += 1
+            self._conservation_mode = "unavailable"
+            logger.error(
+                "Conservation health read failed closed for %s: %s: %s",
+                self._domain,
+                type(exc).__name__,
+                exc,
+            )
+            return {
+                "engine_id": self._domain,
+                "domain": self._domain,
+                "status": "CONSERVATION_UNAVAILABLE",
+                "passed": False,
+                "reason": "Conservation inputs are unavailable; learning is blocked fail-closed.",
+                "verified_count": 0,
+                "correct_count": 0,
+                "alpha": 0.0,
+                "q": 0.0,
+                "theta_min": 1.0,
+                "category_coverage": 0.0,
+                "override_rate": 0.0,
+                "conservation_read_failures": int(self._conservation_read_failures),
+                "conservation_mode": "unavailable",
+            }
+        payload["conservation_read_failures"] = int(self._conservation_read_failures)
+        payload["conservation_mode"] = self._conservation_mode
+        if self._preseed_mode:
+            payload.update({"status": "PRESEED", "passed": True, "conservation_mode": "preseed"})
+        elif int(payload.get("verified_count") or 0) <= 0:
+            payload.update({"status": "COLD_START", "passed": True, "conservation_mode": "cold_start"})
+        elif int(payload.get("verified_count") or 0) < CONSERVATION_MIN_VERIFIED:
+            payload.update({"status": "BOOTSTRAP", "passed": True, "conservation_mode": "bootstrap"})
         overlay = self._calibration_overlay
         if overlay is None:
             return payload
@@ -943,8 +987,8 @@ class CompoundingScorer:
         factor_vector = np.asarray(_decision_field(decision, "factor_vector", []), dtype=np.float64)
         category_index = int(_decision_field(decision, "category_index", 0))
         confidence = float(_decision_field(decision, "confidence", 0.0))
-        if context and (context.get("benchmark") is True or context.get("preseed") is True):
-            # Synthetic benchmark/preseed runs do not represent live judgments.
+        if (context and context.get("benchmark") is True) or self._preseed_mode:
+            # Synthetic benchmark/server-side preseed runs do not represent live judgments.
             # Avoid recomputing the full verified-history fingerprint on every
             # synthetic learn; production conflict detection remains unchanged.
             self._last_conflict = None
@@ -958,8 +1002,10 @@ class CompoundingScorer:
                 confidence=confidence,
             )
 
-        synthetic_preseed = bool(context and context.get("preseed") is True)
-        conservation_pause = None if synthetic_preseed else self._conservation_pause()
+        synthetic_preseed = self._preseed_mode
+        if context and context.get("preseed") is True and not self._preseed_mode:
+            logger.warning("Ignoring client-controlled preseed flag for %s decision=%s", self._domain, decision_id)
+        conservation_pause = self._conservation_pause()
         if conservation_pause is not None:
             conservation_pause["decision_id"] = decision_id
             if persist_artifacts:
@@ -1026,6 +1072,8 @@ class CompoundingScorer:
                             exc,
                         )
             return conservation_pause
+        cold_start_learn = self._conservation_mode == "cold_start"
+        bootstrap_learn = self._conservation_mode == "bootstrap"
         iks_before = self._compute_iks(
             persist_artifacts=False,
             skip_history_scan=synthetic_preseed,
@@ -1175,6 +1223,8 @@ class CompoundingScorer:
             reward=reward,
             reward_raw=reward_raw,
             exploration_used=False,
+            cold_start=cold_start_learn,
+            bootstrap=bootstrap_learn,
         )
 
     def fingerprint(
@@ -1535,7 +1585,15 @@ class CompoundingScorer:
             return None
         alpha = self._category_coverage()
         q = correct / verified
-        if verified < CONSERVATION_MIN_VERIFIED or alpha <= 0.0:
+        if verified < CONSERVATION_MIN_VERIFIED:
+            return {
+                "V": int(verified),
+                "q": float(q),
+                "alpha": float(alpha),
+                "theta_min": compute_theta_min(alpha, verified),
+                "status": "BOOTSTRAP",
+            }
+        if alpha <= 0.0:
             theta_min = compute_theta_min(1.0, verified)
             status = "CALIBRATING"
         else:
@@ -2138,20 +2196,51 @@ class CompoundingScorer:
             logger.warning("DK re-estimation failed for %s: %s", self._domain, exc)
 
     def _conservation_pause(self) -> dict[str, Any] | None:
-        try:
-            verified_decisions = self._conservation_verified_decisions()
-            verified, correct, override_rate = _conservation_stats(
-                self._graph_store,
-                verified_decisions=verified_decisions,
-            )
-            category_coverage = self._category_coverage_from_decisions(verified_decisions)
-        except Exception:
+        if self._preseed_mode:
+            self._conservation_mode = "preseed"
             return None
+        try:
+            verified_decisions, verified, correct, override_rate, category_coverage = self._read_conservation_inputs_with_retry()
+        except BaseException as exc:
+            if _is_conservation_read_error(exc):
+                self._conservation_read_failures += 1
+                self._conservation_mode = "unavailable"
+                logger.error(
+                    "Conservation read failed closed for %s after retry: %s: %s",
+                    self._domain,
+                    type(exc).__name__,
+                    exc,
+                )
+                return {
+                    "status": "paused",
+                    "reason": "conservation_unavailable",
+                    "q": 0.0,
+                    "theta_min": 1.0,
+                    "verified_count": 0,
+                    "correct_count": 0,
+                    "alpha": 0.0,
+                    "category_coverage": 0.0,
+                    "override_rate": 0.0,
+                    "conservation_status": "RED",
+                    "conservation_mode": "unavailable",
+                    "conservation_read_failures": self._conservation_read_failures,
+                }
+            raise
         if verified <= 0:
+            self._conservation_mode = "cold_start"
+            logger.info("Cold start: conservation not applicable (0 verified) for %s", self._domain)
             return None
         if verified < CONSERVATION_MIN_VERIFIED:
+            self._conservation_mode = "bootstrap"
+            logger.info(
+                "Bootstrap phase: conservation not yet enforceable (%s/%s verified) for %s",
+                verified,
+                CONSERVATION_MIN_VERIFIED,
+                self._domain,
+            )
             return None
 
+        self._conservation_mode = "normal"
         q = correct / verified
         recent_window = max(int(getattr(self._preset, "conservation_recent_window", 100)), 1)
         recent_q_threshold = float(getattr(self._preset, "conservation_recent_q_threshold", 0.75))
@@ -2209,6 +2298,30 @@ class CompoundingScorer:
                 result["dispersion"] = dispersion
             return result
         return None
+
+    def _read_conservation_inputs_with_retry(self) -> tuple[list[dict[str, Any]], int, int, float, float]:
+        try:
+            return self._read_conservation_inputs_once()
+        except BaseException as exc:
+            if not _is_conservation_read_error(exc):
+                raise
+            logger.warning(
+                "Conservation read failed for %s; retrying once: %s: %s",
+                self._domain,
+                type(exc).__name__,
+                exc,
+            )
+            time.sleep(CONSERVATION_RETRY_DELAY_SECONDS)
+            return self._read_conservation_inputs_once()
+
+    def _read_conservation_inputs_once(self) -> tuple[list[dict[str, Any]], int, int, float, float]:
+        verified_decisions = self._conservation_verified_decisions()
+        verified, correct, override_rate = _conservation_stats(
+            self._graph_store,
+            verified_decisions=verified_decisions,
+        )
+        category_coverage = self._category_coverage_from_decisions(verified_decisions)
+        return verified_decisions, verified, correct, override_rate, category_coverage
 
     def _compute_rl_reward(
         self,
@@ -2838,3 +2951,15 @@ def _positive_penalty_ratio(value: Any) -> float:
 def _scale_raw_reward(raw: float, penalty_ratio: float) -> float:
     clipped = max(-1.0, min(float(raw), 1.0))
     return clipped * penalty_ratio if clipped < 0 else clipped
+
+
+def _is_conservation_read_error(exc: BaseException) -> bool:
+    if isinstance(exc, (ConnectionError, TimeoutError, OSError)):
+        return True
+    try:
+        psycopg_module = __import__("psycopg")
+    except Exception:
+        return False
+    error_type = getattr(psycopg_module, "Error", None)
+    return isinstance(error_type, type) and isinstance(exc, error_type)
+

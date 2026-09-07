@@ -323,6 +323,7 @@ def test_compounding_scorer_learn_pauses_when_low_verified_threshold_exceeds_one
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.decision_id == result.decision_id
+    assert learn.bootstrap is True
     assert learn.centroid_delta > 0
     assert not np.allclose(scorer.gae_scorer.centroids, before_centroids)
     assert store.count_verified("mock") == 2
@@ -488,6 +489,7 @@ def test_learn_conservation_pause_skips_rl(mock_preset, store):
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.decision_id == result.decision_id
+    assert learn.bootstrap is True
     assert learn.reward == pytest.approx(1.0)
     assert reward.calls == [(result.action, result.action, {"outcome": "confirmed"})]
     assert explorer.updates == [(result.action_index, 1.0)]
@@ -625,6 +627,7 @@ def test_compounding_scorer_conservation_from_graph_store(mock_preset, store):
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.decision_id == result.decision_id
+    assert learn.bootstrap is True
     assert learn.centroid_delta > 0
     assert not np.allclose(scorer.gae_scorer.centroids, before_centroids)
     assert graph_store.count_verified("test") == 2
@@ -639,6 +642,7 @@ def test_compounding_scorer_no_graph_store_uses_sqlite(mock_preset, store):
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.decision_id == result.decision_id
+    assert learn.bootstrap is True
     assert learn.centroid_delta > 0
     assert store.count_verified("mock") == 2
     assert store.count_correct("mock") == 1
@@ -655,17 +659,18 @@ def test_compounding_scorer_graph_store_counts_match(mock_preset, store):
 
 def test_scorer_conservation_reads_from_graph_store(mock_preset, store):
     graph_store = InMemoryGraphStore()
-    _seed_graph_history(graph_store, total=1, correct=0)
+    _seed_graph_history(graph_store, total=25, correct=0)
     scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
 
     pause = scorer._conservation_pause()
 
-    assert pause is None
-    assert scorer.get_verified_count() == graph_store.count_verified("test") == 1
+    assert pause is not None
+    assert pause["reason"] == "conservation_red"
+    assert scorer.get_verified_count() == graph_store.count_verified("test") == 25
     assert graph_store.count_correct("test") == 0
 
 
-def test_compounding_scorer_learn_store_failure_allows_learning(
+def test_compounding_scorer_unexpected_conservation_error_propagates(
     monkeypatch,
     mock_preset,
     store,
@@ -673,36 +678,37 @@ def test_compounding_scorer_learn_store_failure_allows_learning(
     scorer = build_compounding_scorer(mock_preset, store)
     result = scorer.score(sample_factors(), "alpha")
 
-    def fail_counts(_store):
+    def fail_inputs():
         raise RuntimeError("count failure")
 
-    monkeypatch.setattr(scorer_module, "_conservation_counts", fail_counts)
-    learn = scorer.learn(result.decision_id, result.action)
+    monkeypatch.setattr(scorer, "_read_conservation_inputs_once", fail_inputs)
 
-    assert learn.centroid_delta > 0
-    assert store.count_verified("mock") == 1
+    with pytest.raises(RuntimeError, match="count failure"):
+        scorer.learn(result.decision_id, result.action)
 
 
-def test_compounding_scorer_learn_count_method_failure_allows_learning(
+def test_compounding_scorer_conservation_read_retries_once_then_allows(
     monkeypatch,
     mock_preset,
     store,
 ):
     scorer = build_compounding_scorer(mock_preset, store)
     result = scorer.score(sample_factors(), "alpha")
-    calls = {"count_verified": 0}
-    original_count_verified = scorer._graph_store.count_verified
+    calls = {"reads": 0}
+    original = scorer._read_conservation_inputs_once
 
-    def flaky_count_verified(domain):
-        calls["count_verified"] += 1
-        if calls["count_verified"] == 1:
-            raise RuntimeError("count failure")
-        return original_count_verified(domain)
+    def flaky_inputs():
+        calls["reads"] += 1
+        if calls["reads"] == 1:
+            raise ConnectionError("transient")
+        return original()
 
-    monkeypatch.setattr(scorer._graph_store, "count_verified", flaky_count_verified)
+    monkeypatch.setattr(scorer_module, "CONSERVATION_RETRY_DELAY_SECONDS", 0.0)
+    monkeypatch.setattr(scorer, "_read_conservation_inputs_once", flaky_inputs)
     learn = scorer.learn(result.decision_id, result.action)
 
     assert learn.centroid_delta > 0
+    assert calls["reads"] == 2
     assert store.count_verified("mock") == 1
 
 
@@ -920,3 +926,100 @@ class SequencedRewardFunction:
         self.calls.append((recommended_action, actual_action, dict(outcome)))
         index = min(len(self.calls) - 1, len(self.values) - 1)
         return self.values[index]
+
+
+def test_compounding_scorer_conservation_read_fails_closed_after_retry(monkeypatch, mock_preset, store, caplog):
+    scorer = build_compounding_scorer(mock_preset, store)
+    result = scorer.score(sample_factors(), "alpha")
+
+    def fail_inputs():
+        raise ConnectionError("down")
+
+    monkeypatch.setattr(scorer_module, "CONSERVATION_RETRY_DELAY_SECONDS", 0.0)
+    monkeypatch.setattr(scorer, "_read_conservation_inputs_once", fail_inputs)
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert isinstance(learn, dict)
+    assert learn["status"] == "paused"
+    assert learn["reason"] == "conservation_unavailable"
+    assert learn["conservation_read_failures"] == 1
+    assert store.count_verified("mock") == 0
+    assert "Conservation read failed closed" in caplog.text
+
+
+def test_compounding_scorer_cold_start_is_explicit(mock_preset, store, caplog):
+    caplog.set_level("INFO")
+    scorer = build_compounding_scorer(mock_preset, store)
+    cold_state = scorer.get_conservation_state()
+    assert cold_state["status"] == "COLD_START"
+    assert cold_state["conservation_mode"] == "cold_start"
+
+    result = scorer.score(sample_factors(), "alpha")
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert learn.cold_start is True
+    assert "Cold start: conservation not applicable" in caplog.text
+
+
+def test_compounding_scorer_client_preseed_does_not_bypass_conservation(mock_preset, store):
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=25, correct=0)
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action, context={"preseed": True})
+
+    assert isinstance(learn, dict)
+    assert learn["reason"] == "conservation_red"
+
+
+def test_compounding_scorer_server_preseed_mode_bypasses_explicitly(monkeypatch, mock_preset, store):
+    monkeypatch.setenv("COPILOT_PRESEED_MODE", "true")
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=25, correct=0)
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+    result = scorer.score(sample_factors(), "alpha")
+
+    learn = scorer.learn(result.decision_id, result.action)
+
+    assert not isinstance(learn, dict)
+    assert scorer.get_conservation_state()["status"] == "PRESEED"
+    assert scorer.get_conservation_state()["conservation_mode"] == "preseed"
+
+
+def test_compounding_scorer_preseed_mode_inactive_when_unset(monkeypatch, mock_preset, store):
+    monkeypatch.delenv("COPILOT_PRESEED_MODE", raising=False)
+    scorer = build_compounding_scorer(mock_preset, store)
+
+    assert scorer._preseed_mode is False
+    assert scorer.get_conservation_state()["status"] == "COLD_START"
+
+
+
+def test_compounding_scorer_conservation_health_fails_closed(monkeypatch, mock_preset, store):
+    scorer = build_compounding_scorer(mock_preset, store)
+
+    def fail_inputs():
+        raise ConnectionError("down")
+
+    monkeypatch.setattr(store, "count_verified", lambda domain: fail_inputs())
+    state = scorer.get_conservation_state()
+
+    assert state["status"] == "CONSERVATION_UNAVAILABLE"
+    assert state["passed"] is False
+    assert state["conservation_mode"] == "unavailable"
+    assert state["conservation_read_failures"] == 1
+
+def test_compounding_scorer_one_verified_uses_explicit_bootstrap(mock_preset, store, caplog):
+    caplog.set_level("INFO")
+    graph_store = InMemoryGraphStore()
+    _seed_graph_history(graph_store, total=1, correct=0)
+    scorer = build_compounding_scorer(mock_preset, store, graph_store=graph_store)
+
+    pause = scorer._conservation_pause()
+
+    assert pause is None
+    state = scorer.get_conservation_state()
+    assert state["status"] == "BOOTSTRAP"
+    assert state["conservation_mode"] == "bootstrap"
+    assert "Bootstrap phase" in caplog.text

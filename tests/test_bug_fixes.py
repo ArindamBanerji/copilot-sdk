@@ -10,6 +10,10 @@ from copilot_sdk.graph import InMemoryGraphStore
 from copilot_sdk.scoring.scorer import CompoundingScorer, ScoreResult
 
 
+def _preseed_mode_for_direct_scorer_tests(monkeypatch) -> None:
+    monkeypatch.setenv("COPILOT_PRESEED_MODE", "true")
+
+
 def _shadow(**overrides: object) -> dict[str, object]:
     data: dict[str, object] = {
         "sufficient": True,
@@ -99,7 +103,8 @@ def test_scorer_available_returns_200() -> None:
     assert response.status_code == 200
 
 
-def test_rollback_restores_decision_count_and_dk_weights() -> None:
+def test_rollback_restores_decision_count_and_dk_weights(monkeypatch) -> None:
+    _preseed_mode_for_direct_scorer_tests(monkeypatch)
     scorer, store = _real_scorer()
     checkpoint_source = _learn(scorer, 50)
     checkpoint_id = _write_checkpoint(scorer, checkpoint_source)
@@ -120,7 +125,8 @@ def test_rollback_restores_decision_count_and_dk_weights() -> None:
     np.testing.assert_allclose(np.asarray(scorer.get_dk_weights()), expected_dk)
 
 
-def test_post_rollback_scoring_matches_checkpoint() -> None:
+def test_post_rollback_scoring_matches_checkpoint(monkeypatch) -> None:
+    _preseed_mode_for_direct_scorer_tests(monkeypatch)
     scorer, _ = _real_scorer()
     checkpoint_source = _learn(scorer, 50)
     checkpoint_id = _write_checkpoint(scorer, checkpoint_source)

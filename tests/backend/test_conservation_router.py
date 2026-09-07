@@ -28,8 +28,8 @@ def test_status_returns_domain_status_and_engine_without_state():
     assert payload["domain"] == "dataops"
     assert payload["engine"]["gae"] == "gae.calibration"
     assert payload["engine"]["component"] == "conservation_status"
-    assert payload["status"] == "RED"
-    assert payload["passed"] is False
+    assert payload["status"] == "COLD_START"
+    assert payload["passed"] is True
     assert payload["verified_count"] == 0
 
 

@@ -9,6 +9,7 @@ import CohortStatusPanel from "../components/CohortStatusPanel";
 import CrossSystemPanel from "../components/CrossSystemPanel";
 import OperationalRulesPanel from "../components/OperationalRulesPanel";
 import PatternOriginCard from "../components/PatternOriginCard";
+import PromotionPanel from "../components/PromotionPanel";
 import RuleGenealogyTree from "../components/RuleGenealogyTree";
 import RuleGenealogyPanel from "../components/RuleGenealogyPanel";
 import RuleLifecyclePanel from "../components/RuleLifecyclePanel";
@@ -69,6 +70,7 @@ export default function EvidenceScreen() {
       <FrozenTwinControlPanel />
       <AgentTrustGatewayPanel />
       <DataOpsGovernancePanel />
+      <PromotionPanel />
       <CrossSystemPanel />
       <AEImpactPanel impact={impact} />
       <EvolutionPanel variants={variants} title="AgentEvolver Audit Trail" />

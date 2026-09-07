@@ -91,6 +91,8 @@ class LearnResponse(FlexibleResponse):
     paused: bool | None = None
     pause_reason: str | None = None
     centroid_updated: bool | None = None
+    cold_start: bool | None = None
+    bootstrap: bool | None = None
     action: str | None = None
     confidence: float | None = None
 
@@ -173,6 +175,8 @@ class ConservationStatusResponse(BaseModel):
     headroom: float | None
     status: str
     passed: bool
+    conservation_mode: str | None = None
+    conservation_applicable: bool | None = None
 
 
 class ConservationInputs(BaseModel):
