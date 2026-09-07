@@ -15,6 +15,9 @@ from copilot_sdk.testing import age_available
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
+os.environ.setdefault("TRADING_PROFILE", "test")
+os.environ.setdefault("TRADING_SAMPLE_DATA", "1")
+
 for path in (BACKEND_ROOT, REPO_ROOT):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
@@ -89,7 +92,7 @@ def client(tmp_path, monkeypatch) -> TestClient:
     )
 
     monkeypatch.setattr(context_router, "_DATA_DIR", temp_data)
-    app = create_app(db_path=tmp_path / "trading_test.db", demo_bundle_path=False)
+    app = create_app(db_path=tmp_path / "trading_test.db", demo_bundle_path=False, profile="test")
     app.state.trading_data_dir = temp_data
     return TestClient(app)
 

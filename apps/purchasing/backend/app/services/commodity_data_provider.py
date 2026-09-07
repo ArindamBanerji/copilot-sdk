@@ -20,7 +20,9 @@ def _demo_mode() -> bool:
     configured = os.environ.get("DEMO_MODE", os.environ.get("PURCHASING_DEMO_MODE"))
     if configured is not None:
         return configured.strip().lower() in {"1", "true", "yes", "on"}
-    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    if os.environ.get("PURCHASING_SAMPLE_DATA", "").strip().lower() in {"1", "true", "yes", "on"}:
+        return True
+    return False
 
 
 def _demo_provenance() -> str:

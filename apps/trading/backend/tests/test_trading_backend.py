@@ -6,6 +6,8 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app import context_router
+import app.cli_sdk as cli_sdk
+import app.main as app_main
 from app.main import _build_seed_context
 from copilot_sdk.evidence.provenance import Provenanced
 from copilot_sdk.scoring.presets.trading import TradingPreset
@@ -33,6 +35,25 @@ TRADING_SEED_FACTORS = tuple(
         "options_iv_percentile",
         "options_gamma_risk",
     }
+)
+GRAPH_ENV_KEYS = (
+    "TRADING_PROFILE",
+    "COPILOT_PROFILE",
+    "TRADING_DEMO_MODE",
+    "TRADING_SAMPLE_DATA",
+    "DEMO_MODE",
+    "TRADING_ACTIVE_GRAPH_BACKEND",
+    "TRADING_ACTIVE_AGE_DSN",
+    "TRADING_ACTIVE_AGE_GRAPH",
+    "TRADING_ACTIVE_AGE_DOMAIN",
+    "TRADING_ACTIVE_AGE_TEST_MODE",
+    "GRAPH_BACKEND",
+    "GRAPH_DSN",
+    "AGE_DSN",
+    "GRAPH_NAME",
+    "AGE_GRAPH_NAME",
+    "GRAPH_DOMAIN",
+    "CI_ALLOW_SQLITE_FALLBACK",
 )
 
 
@@ -107,6 +128,36 @@ def _learn(client, decision_id: str, actual_action: str) -> dict:
 
 def _load_data(filename: str, root: Path = DATA_DIR):
     return json.loads((root / filename).read_text(encoding="utf-8"))
+
+
+def _write_sqlite_graph_config(path: Path) -> None:
+    path.write_text(
+        """
+[copilot.trading]
+domain = "trading"
+backend = "sqlite"
+expected_backend = "sqlite"
+graph = "soc_graph"
+prefix = "TRD-"
+""".strip(),
+        encoding="utf-8",
+    )
+
+
+def test_app_factory_production_defaults(tmp_path, monkeypatch):
+    for key in GRAPH_ENV_KEYS:
+        monkeypatch.delenv(key, raising=False)
+    config_path = tmp_path / "graph_config.toml"
+    _write_sqlite_graph_config(config_path)
+    monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
+
+    app = app_main.create_app(db_path=tmp_path / "prod-defaults.db", demo_bundle_path=False)
+
+    assert app.title == "Trading Copilot"
+    assert app_main._resolve_profile() == "production"
+    assert context_router._demo_mode() is False
+    assert context_router._explicit_demo_mode() is False
+    assert cli_sdk._cli_profile() == "development"
 
 
 def test_health(client):
@@ -450,7 +501,7 @@ def test_l5_startup_restore_runs_after_seed_setup(tmp_path, monkeypatch):
     # MOCK-OK: this test is only about startup sequencing. Real seed/restore
     # behavior is covered by integration tests, and these sentinels keep the
     # ordering assertion focused.
-    def fake_seed(_store):
+    def fake_seed(_store, *, profile=None):
         calls.append("seed")
 
     def fake_restore(*, domain, scorer, learning_store, welford_tracker=None):

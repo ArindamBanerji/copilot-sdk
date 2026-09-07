@@ -103,9 +103,10 @@ DOMAIN = "trading"
 
 
 def _resolve_profile() -> str:
-    """Select an explicit isolated profile for pytest app construction."""
-    if os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
-        return "test"
+    """Select the graph profile from explicit configuration."""
+    configured = os.environ.get("TRADING_PROFILE", os.environ.get("COPILOT_PROFILE"))
+    if configured:
+        return configured.strip().lower()
     if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
         return "development"
     return "production"
@@ -137,10 +138,10 @@ def _cors_origins() -> list[str]:
     ]
 
 
-def _graph_store(db_path: str | Path):
+def _graph_store(db_path: str | Path, *, profile: str | None = None):
     # Active AGE configuration is owned by TRADING_ACTIVE_*; generic AGE
     # settings remain deliberately ignored by the graph-status contract.
-    profile = _resolve_profile()
+    profile = profile or _resolve_profile()
     graph_config = None
     try:
         graph_config = GraphConfig.load(DOMAIN, profile=profile)
@@ -298,7 +299,7 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
     return {"decisions_seeded": decisions_seeded, "outcomes_seeded": outcomes_seeded}
 
 
-def _auto_seed_if_needed(graph_store: GraphStore) -> int:
+def _auto_seed_if_needed(graph_store: GraphStore, *, profile: str | None = None) -> int:
     try:
         count = int(graph_store.count_decisions(DOMAIN))
     except Exception as exc:
@@ -311,7 +312,7 @@ def _auto_seed_if_needed(graph_store: GraphStore) -> int:
         graph_store=graph_store,
         evolve=True,
         consolidation_enabled=True,
-        profile=_resolve_profile(),
+        profile=profile or _resolve_profile(),
     )
     seeded = _seed_from_fixtures(scorer, graph_store)
     print(
@@ -325,7 +326,9 @@ def create_app(
     db_path: str | Path | None = None,
     demo_bundle_path: str | Path | bool | None = None,
     active_store_factory: Any | None = None,
+    profile: str | None = None,
 ) -> FastAPI:
+    resolved_profile = _resolve_profile() if profile is None else profile.strip().lower()
     app = FastAPI(title="Trading Copilot", version="0.1.0")
     app.add_middleware(TenantMiddleware)
 
@@ -355,7 +358,7 @@ def create_app(
     def selected_graph_store_factory(path: str | Path):
         if active_graph_store is not None:
             return active_graph_store
-        return _graph_store(path)
+        return _graph_store(path, profile=resolved_profile)
 
     _bundle_path: Path | bool
     if demo_bundle_path is None:
@@ -364,10 +367,10 @@ def create_app(
         _bundle_path = False
     else:
         _bundle_path = Path(cast(str | Path, demo_bundle_path))
-    seed_graph_store = active_graph_store or _graph_store(scoring_db)
+    seed_graph_store = active_graph_store or _graph_store(scoring_db, profile=resolved_profile)
     startup_state = {"seeded": False, "restored": False}
     base_scorer_proxy = FreshScorerProxy(
-        DOMAIN, scoring_db, selected_graph_store_factory, profile=_resolve_profile()
+        DOMAIN, scoring_db, selected_graph_store_factory, profile=resolved_profile
     )
     store = base_scorer_proxy.graph_store
     logger.info("STORE_TYPE: %s", type(store).__name__)
@@ -408,7 +411,7 @@ def create_app(
     app.state.trading_promotion_guard = trading_promotion_guard
     claim_registry.refresh_from_store(selected_graph_store_factory(scoring_db))
     conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
-    variant_store = create_variant_store(store, DOMAIN, test_mode=_resolve_profile() == "test")
+    variant_store = create_variant_store(store, DOMAIN, test_mode=resolved_profile == "test")
     trading_evolver = TradingAgentEvolver(
         baseline_scorer=scorer_proxy,
         store_factory=trading_store_factory,
@@ -450,7 +453,7 @@ def create_app(
             else:
                 if _bundle_path is not False:
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
-                _auto_seed_if_needed(seed_graph_store)
+                _auto_seed_if_needed(seed_graph_store, profile=resolved_profile)
             claim_registry.refresh_from_store(selected_graph_store_factory(scoring_db))
         if not startup_state["restored"]:
             startup_state["restored"] = True

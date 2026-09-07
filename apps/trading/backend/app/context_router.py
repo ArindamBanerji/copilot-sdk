@@ -40,7 +40,9 @@ def _demo_mode() -> bool:
     configured = os.environ.get("DEMO_MODE", os.environ.get("TRADING_DEMO_MODE"))
     if configured is not None:
         return configured.strip().lower() in {"1", "true", "yes", "on"}
-    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    if os.environ.get("TRADING_SAMPLE_DATA", "").strip().lower() in {"1", "true", "yes", "on"}:
+        return True
+    return False
 
 
 def _explicit_demo_mode() -> bool:

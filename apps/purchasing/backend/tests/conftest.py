@@ -15,6 +15,9 @@ from copilot_sdk.testing import age_available
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
+os.environ.setdefault("PURCHASING_PROFILE", "test")
+os.environ.setdefault("PURCHASING_SAMPLE_DATA", "1")
+
 for path in (BACKEND_ROOT, REPO_ROOT):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
@@ -96,7 +99,7 @@ def client(tmp_path, temp_data_dir) -> TestClient:
     db_path = tmp_path / "purchasing_test.db"
     store = SQLiteGraphStore(str(db_path), domain="purchasing", decision_id_prefix="PUR-")
     _seed_ae_events(store)
-    app = create_app(db_path=db_path, demo_bundle_path=False)
+    app = create_app(db_path=db_path, demo_bundle_path=False, profile="test")
     return TestClient(app)
 
 

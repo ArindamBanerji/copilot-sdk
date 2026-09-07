@@ -18,6 +18,8 @@ from copilot_sdk.evolution.variant_store import (
 from copilot_sdk.promotion.core import PromotionRecord
 from copilot_sdk.outcome.models import VerifiedOutcome
 
+_STATUS_ORDER = {"shadow": 0, "active": 1, "promoted": 2, "retired": 3}
+
 
 def _events(
     store: ProtocolV2GraphStore, domain: str, event_type: str | None = None
@@ -60,23 +62,63 @@ def _event_epoch(event: dict[str, Any]) -> float | None:
             return None
 
 
+def _ordered_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        event
+        for _index, event in sorted(
+            enumerate(events),
+            key=lambda item: (
+                _event_epoch(item[1]) is None,
+                _event_epoch(item[1]) if _event_epoch(item[1]) is not None else float(item[0]),
+                item[0],
+            ),
+        )
+    ]
+
+
+def _events_after_latest_reset(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    ordered = _ordered_events(events)
+    reset_index = -1
+    for index, event in enumerate(ordered):
+        if str(event.get("event_type") or "") == "variant_reset":
+            reset_index = index
+    return ordered[reset_index + 1 :]
+
+
+def _latest_reset_epoch_id(events: list[dict[str, Any]]) -> str | None:
+    resets = [event for event in _ordered_events(events) if str(event.get("event_type") or "") == "variant_reset"]
+    if not resets:
+        return None
+    metadata = _metadata(resets[-1])
+    epoch_id = metadata.get("epoch_id")
+    return str(epoch_id) if epoch_id else None
+
+
 def _latest_variant_specs(events: list[dict[str, Any]]) -> list[VariantSpec]:
     latest: dict[str, VariantSpec] = {}
-    times: dict[str, float | None] = {}
+    times: dict[str, tuple[float | None, int]] = {}
     for event in events:
         spec_data = _metadata(event).get("spec")
         if not isinstance(spec_data, dict):
             continue
         identifier = str(spec_data["id"])
-        timestamp, previous = _event_epoch(event), times.get(identifier)
-        if timestamp is not None and previous is not None and timestamp < previous:
+        timestamp = _event_epoch(event)
+        status = str(spec_data.get("status", "active"))
+        current = (timestamp, _STATUS_ORDER.get(status, -1))
+        previous = times.get(identifier)
+        if (
+            timestamp is not None
+            and previous is not None
+            and previous[0] is not None
+            and current < previous
+        ):
             continue
         latest[identifier] = VariantSpec(
             id=identifier, family=str(spec_data["family"]),
             version=int(spec_data.get("version", 1)), template=str(spec_data.get("template", "")),
-            status=str(spec_data.get("status", "active")), metadata=dict(spec_data.get("metadata", {})),
+            status=status, metadata=dict(spec_data.get("metadata", {})),
         )
-        times[identifier] = timestamp
+        times[identifier] = current
     return list(latest.values())
 
 
@@ -87,11 +129,26 @@ class GraphVariantStore:
         self.graph_store = graph_store
         self.domain = str(domain)
 
+    def _all_events(self) -> list[dict[str, Any]]:
+        return _events(self.graph_store, self.domain)
+
+    def _active_events(self, event_type: str | None = None) -> list[dict[str, Any]]:
+        events = _events_after_latest_reset(self._all_events())
+        if event_type is not None:
+            events = [event for event in events if str(event.get("event_type") or "") == event_type]
+        return events
+
     def _variant_events(self) -> list[dict[str, Any]]:
-        return _events(self.graph_store, self.domain, "variant_registered")
+        return self._active_events("variant_registered")
 
     def _outcome_events(self) -> list[dict[str, Any]]:
-        return _events(self.graph_store, self.domain, "variant_outcome")
+        return self._active_events("variant_outcome")
+
+    def _epoch_event_prefix(self) -> str:
+        epoch_id = _latest_reset_epoch_id(self._all_events())
+        if epoch_id is None:
+            return f"variant:{self.domain}"
+        return f"variant:{self.domain}:{epoch_id}"
 
     def register_variant(self, spec: VariantSpec) -> None:
         if not isinstance(spec, VariantSpec):
@@ -102,7 +159,7 @@ class GraphVariantStore:
                 raise ValueError(f"Variant already registered: {spec.id}")
             return
         self.graph_store.write_evolution_event(
-            event_id=f"variant:{self.domain}:{spec.id}",
+            event_id=f"{self._epoch_event_prefix()}:{spec.id}",
             domain=self.domain,
             event_type="variant_registered",
             rule_name=spec.family,
@@ -184,7 +241,15 @@ class GraphVariantStore:
         )
 
     def reset(self) -> None:
-        raise RuntimeError("AGE evolution history is append-only; reset is not supported")
+        epoch_id = uuid4().hex
+        self.graph_store.write_evolution_event(
+            event_id=f"variant-reset:{self.domain}:{epoch_id}",
+            domain=self.domain,
+            event_type="variant_reset",
+            rule_name="variant_epoch",
+            variant_id="epoch",
+            metadata={"epoch_id": epoch_id, "reset_at": datetime.now(timezone.utc).isoformat()},
+        )
 
     def reset_stats_only(self) -> None:
         raise RuntimeError("AGE evolution history is append-only; reset is not supported")

@@ -114,9 +114,10 @@ DOMAIN = "purchasing"
 
 
 def _resolve_profile() -> str:
-    """Select an explicit isolated profile for pytest app construction."""
-    if os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
-        return "test"
+    """Select the graph profile from explicit configuration."""
+    configured = os.environ.get("PURCHASING_PROFILE", os.environ.get("COPILOT_PROFILE"))
+    if configured:
+        return configured.strip().lower()
     if os.environ.get("CI_ALLOW_SQLITE_FALLBACK") == "1":
         return "development"
     return "production"
@@ -126,7 +127,9 @@ def _demo_mode() -> bool:
     configured = os.environ.get("DEMO_MODE", os.environ.get("PURCHASING_DEMO_MODE"))
     if configured is not None:
         return configured.strip().lower() in {"1", "true", "yes", "on"}
-    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    if os.environ.get("PURCHASING_SAMPLE_DATA", "").strip().lower() in {"1", "true", "yes", "on"}:
+        return True
+    return False
 DB_FILENAME = "purchasing.db"
 OUTBOX_DB_FILENAME = "purchasing_outbox.db"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -184,10 +187,10 @@ def _cors_origins() -> list[str]:
     ]
 
 
-def _graph_store(db_path: str | Path, *, backend: str | None = None):
+def _graph_store(db_path: str | Path, *, backend: str | None = None, profile: str | None = None):
     # Active AGE configuration is owned by PURCHASING_ACTIVE_*; generic AGE
     # settings remain deliberately ignored by the graph-status contract.
-    profile = _resolve_profile()
+    profile = profile or _resolve_profile()
     graph_config = None
     if backend is None:
         try:
@@ -340,7 +343,7 @@ def _seed_from_fixtures(scorer: CompoundingScorer, graph_store: GraphStore) -> d
     return {"decisions_seeded": decisions_seeded, "outcomes_seeded": outcomes_seeded}
 
 
-def _auto_seed_if_needed(graph_store: GraphStore) -> int:
+def _auto_seed_if_needed(graph_store: GraphStore, *, profile: str | None = None) -> int:
     try:
         count = int(graph_store.count_decisions(DOMAIN))
     except Exception as exc:
@@ -353,7 +356,7 @@ def _auto_seed_if_needed(graph_store: GraphStore) -> int:
         graph_store=graph_store,
         evolve=True,
         consolidation_enabled=True,
-        profile=_resolve_profile(),
+        profile=profile or _resolve_profile(),
     )
     seeded = _seed_from_fixtures(scorer, graph_store)
     print(
@@ -450,7 +453,9 @@ def create_app(
     db_path: str | Path | None = None,
     demo_bundle_path: str | Path | bool | None = None,
     active_store_factory: Any | None = None,
+    profile: str | None = None,
 ) -> FastAPI:
+    resolved_profile = _resolve_profile() if profile is None else profile.strip().lower()
     app = FastAPI(title="Purchasing Copilot", version="0.1.0")
     app.add_middleware(TenantMiddleware)
     app.add_middleware(
@@ -486,7 +491,7 @@ def create_app(
     def selected_graph_store_factory(path: str | Path):
         if active_graph_store is not None:
             return active_graph_store
-        return _graph_store(path, backend=active_graph_config.requested_backend)
+        return _graph_store(path, backend=active_graph_config.requested_backend, profile=resolved_profile)
 
     _bundle_path: Path | bool
     if demo_bundle_path is None:
@@ -500,11 +505,11 @@ def create_app(
     seed_graph_store = (
         active_graph_store
         if active_graph_store is not None
-        else _graph_store(scoring_db, backend=active_graph_config.requested_backend)
+        else _graph_store(scoring_db, backend=active_graph_config.requested_backend, profile=resolved_profile)
     )
     startup_state = {"seeded": False, "restored": False}
     scorer_proxy = FreshScorerProxy(
-        DOMAIN, scoring_db, selected_graph_store_factory, profile=_resolve_profile()
+        DOMAIN, scoring_db, selected_graph_store_factory, profile=resolved_profile
     )
     purchasing_control = PurchasingControlService(
         lambda: selected_graph_store_factory(scoring_db),
@@ -519,7 +524,7 @@ def create_app(
         PURCHASING_EVOLVER_CONFIG,
         conservation_state_provider=conservation_provider,
     )
-    evolver = PromptVariantEvolver(config=evolver_config, store=create_variant_store(active_graph_store or seed_graph_store, DOMAIN, test_mode=_resolve_profile() == "test"))
+    evolver = PromptVariantEvolver(config=evolver_config, store=create_variant_store(active_graph_store or seed_graph_store, DOMAIN, test_mode=resolved_profile == "test"))
     evolver.register_variants(get_purchasing_variant_specs())
     app.state.evolver = evolver
 
@@ -566,7 +571,7 @@ def create_app(
             else:
                 if _bundle_path is not False:
                     _restore_demo_bundle(seed_graph_store, _bundle_path, domain=DOMAIN)
-                _auto_seed_if_needed(seed_graph_store)
+                _auto_seed_if_needed(seed_graph_store, profile=resolved_profile)
         if not startup_state["restored"]:
             startup_state["restored"] = True
             status = restore_l5_runtime_state(

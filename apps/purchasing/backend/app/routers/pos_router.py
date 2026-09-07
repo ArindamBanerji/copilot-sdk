@@ -21,7 +21,9 @@ def _demo_mode() -> bool:
     configured = os.environ.get("DEMO_MODE", os.environ.get("PURCHASING_DEMO_MODE"))
     if configured is not None:
         return configured.strip().lower() in {"1", "true", "yes", "on"}
-    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    if os.environ.get("PURCHASING_SAMPLE_DATA", "").strip().lower() in {"1", "true", "yes", "on"}:
+        return True
+    return False
 
 
 def _is_mock_connector(connector: Any) -> bool:
@@ -125,6 +127,8 @@ def create_pos_router(
 
 def _fetch_records(connector: Any, entity_id: str) -> list[dict]:
     records = connector.fetch(entity_id)
+    if not isinstance(records, list):
+        return []
     return [record for record in records if isinstance(record, dict)]
 
 
@@ -151,7 +155,8 @@ def _empty_summary(
 
 
 def _record_summary(record: dict[str, Any]) -> dict[str, Any]:
-    items = record.get("items") if isinstance(record.get("items"), list) else []
+    raw_items = record.get("items")
+    items = raw_items if isinstance(raw_items, list) else []
     prep_categories = sorted(
         {
             str(item.get("category"))
@@ -159,7 +164,8 @@ def _record_summary(record: dict[str, Any]) -> dict[str, Any]:
             if isinstance(item, dict) and item.get("category")
         }
     )
-    dayparts = record.get("dayparts") if isinstance(record.get("dayparts"), dict) else {}
+    raw_dayparts = record.get("dayparts")
+    dayparts: dict[str, Any] = raw_dayparts if isinstance(raw_dayparts, dict) else {}
     return {
         "covers": int(record.get("covers", 0) or 0),
         "total_revenue": float(record.get("total_revenue", 0.0) or 0.0),

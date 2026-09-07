@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sys
 from dataclasses import asdict, is_dataclass
 from datetime import datetime, timezone
@@ -31,8 +32,9 @@ DOMAIN = "purchasing"
 
 
 def _cli_profile() -> str:
-    if "pytest" in sys.modules:
-        return "test"
+    configured = os.environ.get("PURCHASING_PROFILE", os.environ.get("COPILOT_PROFILE"))
+    if configured:
+        return configured.strip().lower()
     return "development"
 DEFAULT_DB_PATH = BACKEND_ROOT / "data" / "purchasing.db"
 BACKUP_VERSION = 1
@@ -124,12 +126,12 @@ def _parse_factors(factors_json: str | None, factor_items: tuple[str, ...]) -> d
     parsed: dict[str, float] = {}
     for name in FACTOR_NAMES:
         try:
-            value = float(factors[name])
+            factor_value = float(factors[name])
         except (TypeError, ValueError) as exc:
             raise click.ClickException(f"Factor {name} must be numeric.") from exc
-        if not math.isfinite(value):
+        if not math.isfinite(factor_value):
             raise click.ClickException(f"Factor {name} must be finite.")
-        parsed[name] = value
+        parsed[name] = factor_value
     return parsed
 
 

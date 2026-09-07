@@ -35,7 +35,7 @@ implying roadmap is live is the violation. *Build ambitiously. Claim precisely. 
 (2) **§2.7 — the learning mechanism, named correctly** (cross-repo Codex diagnostic): the primary mechanism is
 **online supervised centroid/prototype learning from verified human decisions** (+ DK coordinate search) —
 **NOT RL** (F-25); genuine bandits are peripheral, and the Thompson sampler is `ConservationBoundedThompson`
-(**C-19**). The honest naming is the *stronger* claim (**C-18**: "we have no reward function for judgment").
+(**C-19**). The honest naming is the *stronger* claim (**C-18**: "judgment learns from verified labels, not reward optimization").
 Shared cross-copilot learned state **NOT FOUND** (F-26). **SOC learning is disabled by default** — a demo-truth
 constraint. New **§2.8 scenario classes (LIVE / NEAR / ARCH)** operationalize §0.5 (F-27). **§7.3 now carries
 evidence-based gate coverage with ONE OPEN F-24** (prompt-variant promotion is ungated ⇒ C-17 scoped until
@@ -836,7 +836,7 @@ names: *decision-trace learning*, *judgment/prototype learning*, *supervised cen
 decisions*. The bandit components **may** be called bandits/Thompson/UCB — they are real, but they are not the
 primary mechanism.
 
-**Why the honest name is *stronger* (→ C-18/C-19).** "We have **no reward function for judgment** — we learn a
+**Why the honest name is *stronger* (→ C-18/C-19).** "Judgment learns from **verified labels, not reward optimization** — we learn a
 prototype geometry from verified human decisions" is a **sharper** differentiator than "we do RL," because it
 is exactly what reward-maximizing agents cannot say. And "our explorer is conservation-bounded **by
 construction**" is a governance claim with a class name behind it.
@@ -1477,7 +1477,7 @@ Claims that must never appear in code, docs, UI, or papers:
 | F-22 | K3 demo-fixture value used in a metric / score / par / claim | Label `sample`, exclude from all computed values (specializes F-02; §2.5/§2.6) |
 | F-23 | K1/K2 oracle output surfaced to a user, or used as a magnitude claim | Oracle is test-only — the META-4 line (§2.5) |
 | F-24 | Claiming "governed compounding / one conservation law governs all compounding loops" when a loop's state change does NOT fail-closed on a conservation-gate violation, or does not carry provenance | Every compounding loop routes through the one `ConservationGate` and carries provenance — verified by §7.3. **CURRENTLY OPEN: L2b prompt-variant promotion is ungated** ⇒ say "our scoring, exploration and scorer-evolution loops," never "all loops," until `C-GOV` lands |
-| F-25 | Calling the **primary** learning mechanism "reinforcement learning" / "RL" | It is **online supervised centroid/prototype learning from verified human decisions** (+ DK coordinate search) — the signal is a *correctness label, not a reward* (§2.7). Genuine bandit components (Thompson/UCB) exist and **may** be named as such. *The honest name is the stronger claim: "we have no reward function for judgment."* |
+| F-25 | Calling the **primary** learning mechanism "reinforcement learning" / "RL" | It is **online supervised centroid/prototype learning from verified human decisions** (+ DK coordinate search) — the signal is a *correctness label, not a reward* (§2.7). Genuine bandit components (Thompson/UCB) exist and **may** be named as such. *The honest name is the stronger claim: "judgment learns from verified labels, not reward optimization."* |
 | F-26 | Claiming shared **cross-copilot learned judgment state** ("judgment transfers between copilots") | Learned geometry is **per-app/domain**; shared cross-copilot learned state NOT FOUND (§2.7). Say "one engine, five domains — **signals** transfer." Revisit when decision D5 ships |
 | F-27 | Placing a scenario/capability on an external surface **without a class label**, or implying a **NEAR/ARCH** item is **LIVE** | Every external scenario carries **LIVE / NEAR / ARCH** (§2.8). Showing roadmap is *allowed and expected* — **implying** it is live is the violation |
 
@@ -1503,7 +1503,7 @@ confidently use. Without this, caution strips true claims.
 | C-15 | "Mechanism proven analytically; magnitude measured on YOUR data at pilot" | γ theorem (T-A) + pre-committed T-R path (§2.4) | Papers, pitch, day-zero |
 | C-16 | "Populated day-zero with real external data, labeled context (░░) vs learned (██)" | T-S scraped source + ██/░░ render (§2.4/§2.6) | Demo, buyer, day-zero |
 | C-17 | "One conservation law governs every compounding loop — the governed compounding layer" | §7.3 governed-compounding check: each loop fails-closed on gate violation + carries provenance. **⚠️ SCOPED until C-GOV lands** — currently say "our scoring, exploration and scorer-evolution loops" | Platform pitch, VC, technical DD, OSS README |
-| C-18 | **"We have no reward function for judgment — we learn a prototype geometry from your verified decisions"** | §2.7: supervised centroid learning; signal is a correctness label (`gae/profile_scorer.py:780, :950`) | **The RL/TensorTrade differentiation**; VC, technical DD, OSS README |
+| C-18 | **"Judgment learns from verified labels, not reward optimization — we learn a prototype geometry from your verified decisions"** | §2.7: supervised centroid learning; signal is a correctness label (`gae/profile_scorer.py:780, :950`) | **The RL/TensorTrade differentiation**; VC, technical DD, OSS README |
 | C-19 | **"Where we explore, exploration is conservation-bounded by construction"** | `ConservationBoundedThompson`, `copilot_sdk/rl/exploration.py:41-52` | Governance pitch, technical DD |
 
 **Paper consistency pass uses BOTH registries:** flag F-01..F-27

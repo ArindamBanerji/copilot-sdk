@@ -7,6 +7,9 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app import context_router
+import app.main as app_main
+from app.routers import discovery_router, pos_router, spend_router
+from app.services import commodity_data_provider
 
 
 PURCHASING_FACTORS = {
@@ -47,6 +50,25 @@ REQUIRED_SEED_FIELDS = {
     "stockout_cost_dollars",
     "total_cost_dollars",
 }
+GRAPH_ENV_KEYS = (
+    "PURCHASING_PROFILE",
+    "COPILOT_PROFILE",
+    "PURCHASING_DEMO_MODE",
+    "PURCHASING_SAMPLE_DATA",
+    "DEMO_MODE",
+    "PURCHASING_ACTIVE_GRAPH_BACKEND",
+    "PURCHASING_ACTIVE_AGE_DSN",
+    "PURCHASING_ACTIVE_AGE_GRAPH",
+    "PURCHASING_ACTIVE_AGE_DOMAIN",
+    "PURCHASING_ACTIVE_AGE_TEST_MODE",
+    "GRAPH_BACKEND",
+    "GRAPH_DSN",
+    "AGE_DSN",
+    "GRAPH_NAME",
+    "AGE_GRAPH_NAME",
+    "GRAPH_DOMAIN",
+    "CI_ALLOW_SQLITE_FALLBACK",
+)
 
 
 def _score(client, category: str = "protein") -> dict:
@@ -65,6 +87,38 @@ def _learn(client, decision_id: str, actual_action: str) -> dict:
     )
     assert response.status_code == 200
     return response.json()
+
+
+def _write_sqlite_graph_config(path: Path) -> None:
+    path.write_text(
+        """
+[copilot.purchasing]
+domain = "purchasing"
+backend = "sqlite"
+expected_backend = "sqlite"
+graph = "soc_graph"
+prefix = "PUR-"
+""".strip(),
+        encoding="utf-8",
+    )
+
+
+def test_app_factory_production_defaults(tmp_path, monkeypatch):
+    for key in GRAPH_ENV_KEYS:
+        monkeypatch.delenv(key, raising=False)
+    config_path = tmp_path / "graph_config.toml"
+    _write_sqlite_graph_config(config_path)
+    monkeypatch.setenv("GRAPH_CONFIG_PATH", str(config_path))
+
+    app = app_main.create_app(db_path=tmp_path / "prod-defaults.db", demo_bundle_path=False)
+
+    assert app.title == "Purchasing Copilot"
+    assert app_main._resolve_profile() == "production"
+    assert app_main._demo_mode() is False
+    assert discovery_router._demo_mode() is False
+    assert pos_router._demo_mode() is False
+    assert spend_router._demo_mode() is False
+    assert commodity_data_provider._demo_mode() is False
 
 
 def test_health(client):
@@ -330,7 +384,7 @@ def test_l5_startup_restore_runs_after_seed_setup(tmp_path, monkeypatch):
 
     calls: list[str] = []
 
-    def fake_seed(_store):
+    def fake_seed(_store, *, profile=None):
         calls.append("seed")
 
     def fake_restore(*, domain, scorer, learning_store, welford_tracker=None):

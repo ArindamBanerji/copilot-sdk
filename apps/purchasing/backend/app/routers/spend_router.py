@@ -20,7 +20,9 @@ def _demo_mode() -> bool:
     configured = os.environ.get("DEMO_MODE", os.environ.get("PURCHASING_DEMO_MODE"))
     if configured is not None:
         return configured.strip().lower() in {"1", "true", "yes", "on"}
-    return bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    if os.environ.get("PURCHASING_SAMPLE_DATA", "").strip().lower() in {"1", "true", "yes", "on"}:
+        return True
+    return False
 
 
 def create_spend_router(
@@ -85,7 +87,8 @@ def qbo_bills_for_spend(connector: Any) -> list[dict]:
 
 
 def _normalize_qbo_bill_for_spend(bill: dict[str, Any]) -> dict[str, Any]:
-    raw_line_items = bill.get("line_items") if isinstance(bill.get("line_items"), list) else []
+    raw_value = bill.get("line_items")
+    raw_line_items = raw_value if isinstance(raw_value, list) else []
     line_items = [
         _normalize_qbo_line_item(line)
         for line in raw_line_items

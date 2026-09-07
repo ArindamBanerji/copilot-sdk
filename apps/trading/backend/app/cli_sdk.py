@@ -30,8 +30,9 @@ DOMAIN = "trading"
 
 
 def _cli_profile() -> str:
-    if os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
-        return "test"
+    configured = os.environ.get("TRADING_PROFILE", os.environ.get("COPILOT_PROFILE"))
+    if configured:
+        return configured.strip().lower()
     age_keys = (
         "TRADING_ACTIVE_AGE_DSN",
         "GRAPH_DSN",
@@ -421,7 +422,7 @@ def trust_sdk(
 
 
 def _trust_category_payload(category: str, weights: dict[str, float]) -> dict[str, Any]:
-    top_signal = max(weights, key=weights.get) if weights else None
+    top_signal = max(weights, key=lambda name: weights[name]) if weights else None
     return {
         "category": category,
         "weights": {name: round(float(value), 4) for name, value in weights.items()},
