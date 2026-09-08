@@ -92,6 +92,55 @@ def test_adjusted_green_allows_learning_to_proceed() -> None:
     assert scorer.learn_calls == 1
 
 
+def test_cold_start_skips_regime_adjusted_threshold() -> None:
+    scorer = _FakeScorer({
+        "theta_min": 10.0,
+        "signal": 0.0,
+        "status": "COLD_START",
+        "passed": True,
+        "conservation_mode": "cold_start",
+    })
+    wrapper = _wrapper_for(scorer, "volatile")
+
+    result = wrapper.learn("decision-1", "enter_long", context={"regime": "volatile"})
+
+    assert result["learned"] is True
+    assert scorer.learn_calls == 1
+
+
+def test_bootstrap_skips_regime_adjusted_threshold() -> None:
+    scorer = _FakeScorer({
+        "theta_min": 10.0,
+        "signal": 0.0,
+        "status": "BOOTSTRAP",
+        "passed": True,
+        "conservation_mode": "bootstrap",
+    })
+    wrapper = _wrapper_for(scorer, "volatile")
+
+    result = wrapper.learn("decision-1", "enter_long", context={"regime": "volatile"})
+
+    assert result["learned"] is True
+    assert scorer.learn_calls == 1
+
+
+def test_public_adjuster_preserves_cold_start_status() -> None:
+    monitor = RegimeMonitor()
+    monitor.record("volatile")
+    wrapper = TradingRegimeScorerProxy(_FakeScorerProxy(_FakeScorer({}), "volatile"), monitor)
+
+    payload = wrapper.conservation_status_adjuster({
+        "theta_min": 10.0,
+        "signal": 0.0,
+        "status": "COLD_START",
+        "passed": True,
+        "conservation_mode": "cold_start",
+    })
+
+    assert payload["status"] == "COLD_START"
+    assert payload["passed"] is True
+
+
 def test_public_conservation_adjuster_reflects_adjusted_threshold(client: Any) -> None:
     client.post(
         "/api/score",

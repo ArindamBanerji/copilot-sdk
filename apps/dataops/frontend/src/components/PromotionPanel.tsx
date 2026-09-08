@@ -34,10 +34,14 @@ export default function PromotionPanel() {
 
   const refresh = () => {
     setLoading(true);
+    setError("");
     Promise.all([fetchDataOpsPromotion(DECISION_CLASS), getConservationStatus().catch(() => null)])
       .then(([promotion, conservationState]) => {
         setRecord(promotion);
         setConservation(conservationState?.status ?? "UNKNOWN");
+        if (!promotion) {
+          setError("Could not load shadow data");
+        }
       })
       .finally(() => setLoading(false));
   };
@@ -48,6 +52,9 @@ export default function PromotionPanel() {
 
   const checks = useMemo(() => {
     const stage = record?.currentStage;
+    const shadowDecisions = record?.shadowDecisions ?? 0;
+    const measurementDecisions = record?.measurementDecisions ?? 0;
+    const hasObservedEvidence = shadowDecisions > 0 || measurementDecisions > 0;
     return [
       { label: "Promotion record exists", met: Boolean(record?.recordId) },
       {
@@ -56,15 +63,15 @@ export default function PromotionPanel() {
       },
       {
         label: "At least 10 shadow decisions",
-        met: stage !== "shadowing" || (record?.shadowDecisions ?? 0) >= 10,
+        met: stage !== "shadowing" || shadowDecisions >= 10,
       },
       {
-        label: "Measured T_O evidence supplied",
-        met: true,
+        label: "Observed authority evidence available",
+        met: stage !== "shadowing" || hasObservedEvidence,
       },
       {
         label: "At least 10 measured decisions",
-        met: stage !== "promoted" || (record?.measurementDecisions ?? 0) >= 10,
+        met: stage !== "promoted" || measurementDecisions >= 10,
       },
       {
         label: "Positive measured improvement",
@@ -88,11 +95,11 @@ export default function PromotionPanel() {
     setError("");
     try {
       const result = await advanceDataOpsPromotion(record.recordId, {
-        shadowDecisions: Math.max(record.shadowDecisions, 10),
-        measurementDecisions: Math.max(record.measurementDecisions, record.currentStage === "promoted" ? 10 : 0),
-        improvement: Math.max(record.improvementDelta, record.currentStage === "promoted" ? 0.01 : 0),
+        shadowDecisions: record.shadowDecisions,
+        measurementDecisions: record.measurementDecisions,
+        improvement: record.improvementDelta,
         conservationState: conservation,
-        evidenceTier: "T_O",
+        evidenceTier: record.shadowDecisions > 0 || record.measurementDecisions > 0 ? "T_O" : "T_S",
         reason: "operator_advance",
       });
       setNotice(result.advanced ? `Advanced to ${label(result.newStage)}` : `Held: ${label(result.reason)}`);
@@ -119,7 +126,16 @@ export default function PromotionPanel() {
         <Metric label="Decision class" value={DECISION_CLASS} />
         <Metric label="Next rung" value={target} />
         <Metric label="Conservation" value={conservation} />
+        <Metric label="Shadow decisions" value={loading ? "Loading..." : record ? String(record.shadowDecisions) : "Unavailable"} />
+        <Metric label="Measured decisions" value={loading ? "Loading..." : record ? String(record.measurementDecisions) : "Unavailable"} />
+        <Metric label="Improvement" value={loading ? "Loading..." : record ? record.improvementDelta.toFixed(3) : "Unavailable"} />
       </div>
+      {!loading && record && record.shadowDecisions === 0 ? (
+        <p className="mt-3 text-sm dataops-muted">No shadow decisions yet</p>
+      ) : null}
+      {!loading && !record ? (
+        <p className="mt-3 text-sm text-amber-400">Could not load shadow data</p>
+      ) : null}
       <div className="mt-4 grid gap-2">
         {checks.map((check) => (
           <div key={check.label} className="flex items-center justify-between rounded-md border p-3 text-sm" style={{ borderColor: "var(--copilot-border)" }}>

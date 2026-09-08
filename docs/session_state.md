@@ -293,7 +293,6 @@ Timestamp: 2026-09-07T18:23:41.7950970Z
 - Banned pattern scan under copilot_sdk found pre-existing type: ignore occurrences in config/graph_config.py, evolution/conservation_contract.py, connectors/snowflake_meta.py, and state/tab_state_cache.py. No new body_iterator or type: ignore was added.
 
 0 new regressions introduced.
----
 
 ## Slot K Entry: Trading Regime-Adjusted Conservation Gate
 Timestamp: 2026-09-07T19:05:00Z
@@ -335,5 +334,92 @@ Timestamp: 2026-09-07T19:05:00Z
 - Blast radius grep completed for regime_scor, adjusted_conservation, and threshold under apps/trading.
 - Scope check: Slot K implementation changes are limited to apps/trading/backend; docs/session_state.md changed only for the required protocol append. The worktree already had unrelated Slot G/H changes outside this scope before Slot K and those were not modified.
 - Banned pattern scan under apps/trading/backend/app still reports pre-existing body_iterator/type: ignore occurrences in unrelated files; Slot K added none.
+
+0 new regressions introduced.
+
+---
+
+## Slot P Entry: Authority Panels Real Shadow Counts
+Timestamp: 2026-09-07T20:05:00Z
+
+### Files changed
+- apps/dataops/frontend/src/components/PromotionPanel.tsx
+- apps/s2p/frontend/src/components/AuthorityPanel.tsx
+- docs/session_state.md
+
+### Pre-checks
+- Fake/manufactured count scan found two production frontend sites:
+  - apps/dataops/frontend/src/components/PromotionPanel.tsx used Math.max(record.shadowDecisions, 10) and related Math.max calls in the advance payload.
+  - apps/s2p/frontend/src/components/AuthorityPanel.tsx used Math.max(record.shadow_decisions ?? 0, 10) and related Math.max calls in the advance payload.
+- Backend endpoint scan confirmed existing real endpoints:
+  - DataOps: POST /api/dataops/promotion and POST /api/dataops/promotion/{record_id}/advance.
+  - S2P: GET /api/s2p/promotion/status and POST /api/s2p/promotion/{category}/advance.
+- Baseline frontend typechecks passed for DataOps and S2P.
+
+### Before
+- DataOps and S2P authority panels displayed backend promotion records but manufactured promotion evidence during advance by raising shadow and measurement counts to gate thresholds.
+- DataOps also displayed "Measured T_O evidence supplied" as always met, independent of backend evidence.
+- Missing promotion data had no explicit user-visible empty/error state.
+
+### After
+- DataOps advance payload now sends record.shadowDecisions, record.measurementDecisions, and record.improvementDelta exactly as returned by the backend.
+- S2P advance payload now sends record.shadow_decisions, record.measurement_decisions, and record.improvement_delta exactly as returned by the backend.
+- S2P evidence tier fallback is conservative (T_S) when the backend does not return an evidence tier.
+- Both panels display real shadow decisions, measured decisions, and improvement values from backend records.
+- Both panels show explicit empty/error states such as "No shadow decisions yet", "Could not load shadow data", or "No authority records available" instead of populated-looking synthetic evidence.
+
+### Verification after
+- DataOps frontend: npx tsc --noEmit passed.
+- S2P frontend: npx tsc --noEmit passed.
+- DataOps frontend: npm run build passed; Vite reported only the existing chunk-size/Tailwind content warnings.
+- S2P frontend: npm run build passed; Vite reported only the existing chunk-size/Tailwind content warnings.
+- Grep verification for minimum|min.*shadow|fake|mock|manufactured under apps/dataops/frontend/src and apps/s2p/frontend/src returned empty.
+- Line-by-line diff review completed for both changed component files.
+- Scope check: implementation changes are under apps/dataops/frontend and apps/s2p/frontend; docs/session_state.md changed only for the required protocol append.
+
+0 new regressions introduced.
+
+---
+
+## Slot O Entry: Guard Evolution Recording Behind Learn Success
+Timestamp: 2026-09-08T11:01:47-07:00
+
+### Files changed
+- copilot_sdk/backend/scoring_router.py
+- tests/backend/test_scoring_router.py
+- apps/trading/backend/tests/test_regime_conditioned_learning.py
+- docs/session_state.md
+
+### Before
+- The SDK learn route called the evolution outcome recorder after scorer.learn() even when learn returned a paused or blocked conservation result.
+- Paused/blocked learn responses therefore avoided centroid updates in the scorer but could still write an evolution outcome and run learn-success invalidation.
+- Trading's regime wrapper already passed cold_start/bootstrap through the adjusted learning gate, but the behavior was not covered by explicit regression tests.
+
+### After
+- The SDK learn route now shapes the learn payload immediately after scorer.learn(), adds response-model-required informational reward fields, and returns early for paused or blocked payloads.
+- Evolution outcome recording, L5 centroid persistence, L5 conservation persistence, DK persistence, and learn-success cache invalidation now run only after learn success.
+- COLD_START and BOOTSTRAP learn results are treated as valid learning modes, so successful cold/bootstrap learning still records evolution outcomes normally.
+- Trading regime integration is verified by tests showing cold_start/bootstrap skip the adjusted threshold and public conservation adjustment preserves COLD_START status.
+
+### Conservation chain verification
+- learn() paused or blocked: no evolution recorder call, no centroid L5 write, and no learn-side query-cache invalidation.
+- learn() success: evolution recorder and learn-side invalidation fire normally.
+- learn() cold_start/bootstrap: learning proceeds and evolution outcome recording remains enabled.
+
+### Verification
+- Pre-check SDK root baseline: 3366 passed, 6954 warnings in 1053.32s.
+- Pre-check Trading baseline: 1307 passed, 3244 warnings in 412.77s.
+- Targeted SDK scoring-router tests: 47 passed, 94 warnings in 4.05s.
+- Targeted Trading regime-conditioned tests: 9 passed, 30 warnings in 3.91s.
+- Sampling gate: 46 passed, 92 warnings in 7.03s.
+- Changed-file mypy: passed with --follow-imports=skip --no-error-summary.
+- Trading backend full suite: 1310 passed, 3250 warnings in 352.08s.
+- SDK root full suite: 3372 passed, 6966 warnings in 1088.15s.
+
+### Gates
+- Line-by-line diff review completed for scoring_router.py, test_scoring_router.py, and test_regime_conditioned_learning.py.
+- Blast-radius grep completed for record_outcome/evolution outcome paths under copilot_sdk and apps.
+- Banned pattern scan reported pre-existing body_iterator/type: ignore occurrences in unrelated files; Slot O added none.
+- Scope note: implementation changes are limited to the allowed SDK scoring router and SDK/Trading tests. The worktree already contained unrelated DataOps/S2P frontend, Trading DB, docs/design, and prior session_state changes before Slot O; those were not reverted or modified except for this required Slot O append.
 
 0 new regressions introduced.

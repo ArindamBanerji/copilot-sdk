@@ -26,14 +26,19 @@ export function AuthorityPanel() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
 
   const refresh = () => {
     setLoading(true);
+    setError("");
     Promise.all([fetchPromotionStatus(), fetchConservation()]).then(([promotion, conservationState]) => {
       const nextRecords = promotion?.categories ?? [];
       setRecords(nextRecords);
       setConservation(conservationState);
       setSelected((current) => current || nextRecords[0]?.decision_class || "");
+      if (!promotion) {
+        setError("Could not load shadow data");
+      }
     }).finally(() => setLoading(false));
   };
 
@@ -65,17 +70,20 @@ export function AuthorityPanel() {
     if (!ok) return;
     setBusy(true);
     setNotice("");
+    setError("");
     try {
       const result = await advanceS2PPromotion(record.decision_class, {
-        shadow_decisions: Math.max(record.shadow_decisions ?? 0, 10),
-        measurement_decisions: Math.max(record.measurement_decisions ?? 0, record.current_stage === "measuring" ? 10 : 0),
-        improvement: Math.max(record.improvement_delta ?? 0, record.current_stage === "measuring" ? 0.01 : 0),
+        shadow_decisions: record.shadow_decisions ?? 0,
+        measurement_decisions: record.measurement_decisions ?? 0,
+        improvement: record.improvement_delta ?? 0,
         conservation_state: state,
-        evidence_tier: record.evidence_tier ?? "T_O",
+        evidence_tier: record.evidence_tier ?? "T_S",
         reason: "operator_advance",
       });
       setNotice(result ? (result.advanced === false ? `Held: ${label(String(result.reason ?? "gate failed"))}` : "Authority updated") : "Advance request failed");
       refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Promotion advance failed");
     } finally {
       setBusy(false);
     }
@@ -109,7 +117,17 @@ export function AuthorityPanel() {
         </label>
         <Metric label="Next stage" value={target} />
         <Metric label="Conservation" value={state} />
+        <Metric label="Shadow decisions" value={loading ? "Loading..." : record ? String(record.shadow_decisions ?? 0) : "Unavailable"} />
+        <Metric label="Measured decisions" value={loading ? "Loading..." : record ? String(record.measurement_decisions ?? 0) : "Unavailable"} />
+        <Metric label="Improvement" value={loading ? "Loading..." : record ? String(record.improvement_delta ?? 0) : "Unavailable"} />
       </div>
+      {!loading && records.length === 0 ? (
+        <p className="mt-3 text-sm text-slate-600">No authority records available</p>
+      ) : null}
+      {!loading && record && (record.shadow_decisions ?? 0) === 0 ? (
+        <p className="mt-3 text-sm text-slate-600">No shadow decisions yet</p>
+      ) : null}
+      {error ? <p className="mt-3 text-sm text-rose-600">{error}</p> : null}
       <div className="mt-4 grid gap-2">
         {checks.map((check) => (
           <div key={check.label} className="flex items-center justify-between rounded-md border border-slate-200 bg-white p-3 text-sm">

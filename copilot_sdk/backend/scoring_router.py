@@ -285,6 +285,19 @@ def create_scoring_router(
             except Exception as exc:
                 raise HTTPException(status_code=503, detail=f"Graph store unavailable: {exc}") from exc
 
+            payload = _json_safe(result)
+            _shape_learn_payload(
+                payload,
+                request=request,
+                decision=decision,
+            )
+            payload["engine"] = ENGINE
+            payload["reward"] = reward
+            payload["previous_reward"] = previous_reward
+            payload["reward_multiplier"] = _reward_multiplier(reward, previous_reward)
+            if _learn_result_blocked(payload):
+                return payload
+
             if outcome_recorder is not None:
                 outcome_recorder(
                     {
@@ -295,16 +308,6 @@ def create_scoring_router(
                     bool(is_correct),
                 )
 
-            payload = _json_safe(result)
-            _shape_learn_payload(
-                payload,
-                request=request,
-                decision=decision,
-            )
-            payload["reward"] = reward
-            payload["previous_reward"] = previous_reward
-            payload["reward_multiplier"] = _reward_multiplier(reward, previous_reward)
-            payload["engine"] = ENGINE
             _persist_centroid_l5(
                 domain=domain,
                 scorer=scorer,
@@ -849,7 +852,8 @@ def _shape_learn_payload(
     request: LearnRequest,
     decision: dict[str, Any],
 ) -> None:
-    paused = str(payload.get("status", "")).lower() == "paused"
+    status = str(payload.get("status", "")).strip().lower()
+    paused = payload.get("paused") is True or status in {"paused", "blocked"}
     action = decision.get("recommended_action") or decision.get("action")
     confidence = decision.get("confidence")
     if paused:
@@ -869,6 +873,11 @@ def _shape_learn_payload(
         payload.setdefault("action", str(action))
     if confidence is not None:
         payload.setdefault("confidence", float(confidence))
+
+
+def _learn_result_blocked(payload: dict[str, Any]) -> bool:
+    status = str(payload.get("status") or "").strip().lower()
+    return payload.get("paused") is True or status in {"paused", "blocked"}
 
 
 def _reward_multiplier(reward: float, previous_reward: float | None) -> float:

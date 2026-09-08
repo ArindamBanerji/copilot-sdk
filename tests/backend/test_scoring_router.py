@@ -40,6 +40,8 @@ class FakeLearnResult:
     centroid_delta: float
     decisions_total: int
     outcome: str
+    cold_start: bool = False
+    bootstrap: bool = False
 
 
 @dataclass(frozen=True)
@@ -141,7 +143,12 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
         self.graph_store = FakeStore()
         self.learn_contexts: list[dict[str, object] | None] = []
 
-    def score(self, factors: dict[str, float], category: str) -> FakeScoreResult:
+    def score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, object] | None = None,
+    ) -> FakeScoreResult:
         if category == "bad":
             raise AssertionError("unknown category: bad")
         result = FakeScoreResult(
@@ -160,6 +167,7 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
                 "factors": factors,
                 "recommended_action": result.action,
                 "confidence": result.confidence,
+                **dict(metadata or {}),
             }
         )
         return result
@@ -231,6 +239,11 @@ class FakeScorer:  # MOCK-OK: scoring router contract fixture, real scorer tests
 
 
 class PausingScorer(FakeScorer):
+    def __init__(self, reason: str = "conservation_red", status: str = "paused") -> None:
+        super().__init__()
+        self.reason = reason
+        self.status = status
+
     def learn(
         self,
         decision_id: str,
@@ -241,10 +254,11 @@ class PausingScorer(FakeScorer):
         context: dict[str, object] | None = None,
         persist_artifacts: bool = True,
     ) -> FakeLearnResult | dict[str, Any]:
-        del decision_id, actual_action, outcome, consolidate, context, persist_artifacts
+        del actual_action, outcome, consolidate, context, persist_artifacts
+        self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
         return {
-            "status": "paused",
-            "reason": "conservation_red",
+            "status": self.status,
+            "reason": self.reason,
             "q": 0.0,
             "override_rate": 1.0,
             "theta_min": 0.9,
@@ -253,22 +267,59 @@ class PausingScorer(FakeScorer):
         }
 
 
+class ModeLearnScorer(FakeScorer):
+    def __init__(self, *, cold_start: bool = False, bootstrap: bool = False) -> None:
+        super().__init__()
+        self.cold_start = cold_start
+        self.bootstrap = bootstrap
+
+    def learn(
+        self,
+        decision_id: str,
+        actual_action: str,
+        outcome: str = "confirmed",
+        *,
+        consolidate: bool = False,
+        context: dict[str, object] | None = None,
+        persist_artifacts: bool = True,
+    ) -> FakeLearnResult | dict[str, Any]:
+        del actual_action, consolidate, context, persist_artifacts
+        self.graph_store.get_decision(decision_id, domain=self.graph_store.domain)
+        return FakeLearnResult(
+            decision_id=decision_id,
+            iks_before=0.0,
+            iks_after=10.0,
+            centroid_delta=0.01,
+            decisions_total=1,
+            outcome=outcome,
+            cold_start=self.cold_start,
+            bootstrap=self.bootstrap,
+        )
+
+
 class GraphStoreBackedScorer(FakeScorer):
     def __init__(self) -> None:
         super().__init__()
         self.graph_store = InMemoryGraphStore()
         self.learn_calls: list[tuple[str, str, str]] = []
 
-    def score(self, factors: dict[str, float], category: str) -> FakeScoreResult:
+    def score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, object] | None = None,
+    ) -> FakeScoreResult:
         if category == "bad":
             raise AssertionError("unknown category: bad")
+        decision_metadata: dict[str, object] = {"decision_id": "graph-dec-1", "entity_id": "entity-1"}
+        decision_metadata.update(metadata or {})
         decision_id = self.graph_store.write_decision(
             "test",
             category=category,
             action="auto_approve",
             confidence=0.72,
             factors=factors,
-            metadata={"decision_id": "graph-dec-1", "entity_id": "entity-1"},
+            metadata=decision_metadata,
         )
         return FakeScoreResult(
             decision_id=decision_id,
@@ -320,13 +371,19 @@ class SQLiteL5Scorer(FakeScorer):
             penalty_ratio=1.0,
         )
 
-    def score(self, factors: dict[str, float], category: str) -> FakeScoreResult:
+    def score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, object] | None = None,
+    ) -> FakeScoreResult:
         decision_id = self.graph_store.write_decision(
             "test",
             category=category,
             action="auto_approve",
             confidence=0.72,
             factors=factors,
+            metadata=metadata,
         )
         return FakeScoreResult(
             decision_id=decision_id,
@@ -422,7 +479,12 @@ class DKRuntimeScorer(FakeScorer):
         self.get_weight_calls = 0
         self._counter = 0
 
-    def score(self, factors: dict[str, float], category: str) -> FakeScoreResult:
+    def score(
+        self,
+        factors: dict[str, float],
+        category: str,
+        metadata: dict[str, object] | None = None,
+    ) -> FakeScoreResult:
         self._counter += 1
         result = FakeScoreResult(
             decision_id=f"dk-dec-{self._counter}",
@@ -441,6 +503,7 @@ class DKRuntimeScorer(FakeScorer):
                 "factors": factors,
                 "recommended_action": result.action,
                 "confidence": result.confidence,
+                **dict(metadata or {}),
             }
         )
         return result
@@ -677,6 +740,8 @@ def build_client(
     domain: str = "dataops",
     scorer: FakeScorer | None = None,
     learning_store: Any | None = None,
+    outcome_recorder: Any | None = None,
+    query_cache_invalidator: Any | None = None,
 ) -> TestClient:
     fake = scorer or FakeScorer()
     app = FastAPI()
@@ -685,6 +750,8 @@ def build_client(
             domain,
             scorer_factory=lambda: fake,
             learning_store=learning_store,
+            outcome_recorder=outcome_recorder,
+            query_cache_invalidator=query_cache_invalidator,
         )
     )
     return TestClient(app)
@@ -792,6 +859,150 @@ def test_learn_conservation_pause_returns_learn_response_shape():
     assert payload["confidence"] == 0.72
     assert payload["status"] == "paused"
     assert payload["reason"] == "conservation_red"
+
+
+def test_learn_success_records_evolution_outcome_and_invalidates_cache():
+    scorer = FakeScorer()
+    recorded: list[tuple[dict[str, Any], bool]] = []
+    invalidations = 0
+
+    def outcome_recorder(payload: dict[str, Any], success: bool) -> None:
+        recorded.append((payload, success))
+
+    def query_cache_invalidator() -> None:
+        nonlocal invalidations
+        invalidations += 1
+
+    client = build_client(
+        scorer=scorer,
+        outcome_recorder=outcome_recorder,
+        query_cache_invalidator=query_cache_invalidator,
+    )
+    client.post(
+        "/score",
+        json={
+            "category": "pipeline_failure",
+            "factors": {
+                "business_criticality": 0.8,
+                "impact_scope": 0.5,
+            },
+            "metadata": {"variant_id": "variant-a"},
+        },
+    )
+    invalidations = 0
+
+    response = client.post(
+        "/learn",
+        json={"decision_id": "dec-1", "actual_action": "auto_approve"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["paused"] is False
+    assert recorded == [(
+        {"decision_id": "dec-1", "category": "pipeline_failure", "variant_id": "variant-a"},
+        True,
+    )]
+    assert invalidations == 1
+
+
+@pytest.mark.parametrize(
+    ("scorer", "expected_reason"),
+    [
+        (PausingScorer(), "conservation_red"),
+        (PausingScorer(reason="conservation_unavailable"), "conservation_unavailable"),
+        (PausingScorer(reason="conservation_unavailable", status="blocked"), "conservation_unavailable"),
+    ],
+)
+def test_learn_blocked_skips_evolution_outcome_and_success_side_effects(
+    scorer: FakeScorer,
+    expected_reason: str,
+):
+    recorded: list[tuple[dict[str, Any], bool]] = []
+    invalidations = 0
+    learning_store = RecordingCentroidLearningStore()
+
+    def outcome_recorder(payload: dict[str, Any], success: bool) -> None:
+        recorded.append((payload, success))
+
+    def query_cache_invalidator() -> None:
+        nonlocal invalidations
+        invalidations += 1
+
+    client = build_client(
+        scorer=scorer,
+        learning_store=learning_store,
+        outcome_recorder=outcome_recorder,
+        query_cache_invalidator=query_cache_invalidator,
+    )
+    client.post(
+        "/score",
+        json={
+            "category": "pipeline_failure",
+            "factors": {
+                "business_criticality": 0.8,
+                "impact_scope": 0.5,
+            },
+            "metadata": {"variant_id": "variant-a"},
+        },
+    )
+    invalidations = 0
+
+    response = client.post(
+        "/learn",
+        json={"decision_id": "dec-1", "actual_action": "auto_approve"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["paused"] is True
+    assert payload["pause_reason"] == expected_reason
+    assert recorded == []
+    assert invalidations == 0
+    assert learning_store.centroid_updates == []
+
+
+@pytest.mark.parametrize(
+    ("scorer", "field"),
+    [
+        (ModeLearnScorer(cold_start=True), "cold_start"),
+        (ModeLearnScorer(bootstrap=True), "bootstrap"),
+    ],
+)
+def test_learn_cold_start_and_bootstrap_record_evolution_outcome(
+    scorer: FakeScorer,
+    field: str,
+):
+    recorded: list[tuple[dict[str, Any], bool]] = []
+
+    def outcome_recorder(payload: dict[str, Any], success: bool) -> None:
+        recorded.append((payload, success))
+
+    client = build_client(scorer=scorer, outcome_recorder=outcome_recorder)
+    client.post(
+        "/score",
+        json={
+            "category": "pipeline_failure",
+            "factors": {
+                "business_criticality": 0.8,
+                "impact_scope": 0.5,
+            },
+            "metadata": {"variant_id": "variant-a"},
+        },
+    )
+
+    response = client.post(
+        "/learn",
+        json={"decision_id": "dec-1", "actual_action": "auto_approve"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["paused"] is False
+    assert payload[field] is True
+    assert recorded == [(
+        {"decision_id": "dec-1", "category": "pipeline_failure", "variant_id": "variant-a"},
+        True,
+    )]
 
 
 def test_learn_negative_reward_when_action_incorrect():
