@@ -11,7 +11,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -38,6 +38,9 @@ from .graph_status import (  # noqa: E402
     router as dataops_graph_status_router,
 )
 from .graph_queries import DataOpsGraphClient  # noqa: E402
+from .services.investigation_loop import DataOpsFactorProvider, InvestigationLoop  # noqa: E402
+from .services.investigation_patterns import build_default_investigation_patterns  # noqa: E402
+from .services.investigation_router import InvestigationRouter  # noqa: E402
 from .routers.cohort_status_router import create_cohort_status_router  # noqa: E402
 from .routers.dataops_status import router as dataops_status_router  # noqa: E402
 from .routers.query import create_query_router  # noqa: E402
@@ -677,6 +680,13 @@ def create_app(
     scorer_proxy = FreshScorerProxy(
         DOMAIN, scoring_db, graph_store_factory, profile=_resolve_profile()
     )
+    investigation_patterns = build_default_investigation_patterns(DATA_DIR)
+    investigation_router = InvestigationRouter(investigation_patterns)
+    app.state.dataops_investigation_loop = InvestigationLoop(
+        scorer_proxy._scorer(),
+        investigation_router,
+        DataOpsFactorProvider(),
+    )
 
     conservation_provider = ScorerBackedProvider(scorer_proxy, DOMAIN)
     governance_db = ":memory:" if scoring_db == ":memory:" else str(DATA_DIR / "dataops_governance.sqlite3")
@@ -909,6 +919,18 @@ def create_app(
     app.include_router(
         create_cohort_status_router(graph_store_factory=lambda: selected_graph_store)
     )
+
+    @app.post("/api/dataops/investigate")
+    async def investigate_dataops_alert(payload: dict[str, Any]) -> dict[str, Any]:
+        alert_id = str(payload.get("alert_id") or payload.get("id") or "").strip()
+        if not alert_id:
+            raise HTTPException(status_code=400, detail="alert_id is required")
+        alert_payload = await context_graph_client.get_alert(alert_id)
+        alert = alert_payload.get("alert")
+        if not isinstance(alert, dict):
+            raise HTTPException(status_code=404, detail=f"Alert not found: {alert_id}")
+        result = await app.state.dataops_investigation_loop.investigate(alert, context_graph_client)
+        return cast(dict[str, Any], result.to_dict())
 
     @app.get("/api/di/intelligence-map")
     def dataops_intelligence_map() -> dict[str, Any]:

@@ -337,8 +337,6 @@ Timestamp: 2026-09-07T19:05:00Z
 
 0 new regressions introduced.
 
----
-
 ## Slot P Entry: Authority Panels Real Shadow Counts
 Timestamp: 2026-09-07T20:05:00Z
 
@@ -423,3 +421,188 @@ Timestamp: 2026-09-08T11:01:47-07:00
 - Scope note: implementation changes are limited to the allowed SDK scoring router and SDK/Trading tests. The worktree already contained unrelated DataOps/S2P frontend, Trading DB, docs/design, and prior session_state changes before Slot O; those were not reverted or modified except for this required Slot O append.
 
 0 new regressions introduced.
+
+---
+
+## DataOps VLD Investigation Entry
+Timestamp: 2026-09-08T13:07:00-07:00
+
+### Files changed
+- apps/dataops/backend/app/main.py
+- apps/dataops/backend/app/models/__init__.py
+- apps/dataops/backend/app/models/investigation.py
+- apps/dataops/backend/app/services/investigation_patterns.py
+- apps/dataops/backend/app/services/investigation_router.py
+- apps/dataops/backend/app/services/investigation_loop.py
+- apps/dataops/backend/app/services/investigation_comparators.py
+- apps/dataops/backend/scripts/measure_rho_dataops.py
+- apps/dataops/backend/scripts/validate_use_cases.py
+- apps/dataops/backend/tests/test_investigation_patterns.py
+- docs/session_state.md
+
+### Investigation patterns
+- UpstreamSourcePattern: category=source_failure; evidence keys=upstream_system_status, dependency_chain_depth, last_healthy_timestamp.
+- SchemaChangePattern: category=schema_impact; evidence keys=schema_change_type, affected_columns, join_fanout_factor, days_since_change.
+- DataQualityPattern: category=quality_drift; evidence keys=validation_rule_name, violation_rate, baseline_rate, drift_magnitude.
+- BlastRadiusPattern: category=cross_system; evidence keys=affected_systems_count, critical_systems, estimated_impact_hours.
+- RecurringPattern: category=known_pattern; evidence keys=pattern_match_confidence, last_occurrence, known_resolution, times_resolved.
+
+### Endpoint and routing
+- Added POST /api/dataops/investigate with body {"alert_id": "..."}.
+- The endpoint fetches the alert through the existing DataOpsGraphClient, runs a read-only DataOps InvestigationLoop, and returns the SOC-compatible InvestigationResult trace shape.
+- InvestigationRouter maps DataOps scorer categories to investigation categories and combines bootstrap centroid distance with DataOps factor geometry signals.
+- InvestigationLoop is copied/adapted from SOC because the SOC loop imports SOC-specific category constants and a SOC-specific evidence scoped graph builder.
+
+### Schema adaptations
+- DataOps graph contract has Pipeline, Dataset, QualityRule, Alert, ProcessModel, Activity, Transformation, and Decision nodes.
+- No SchemaChange node exists; schema change investigation uses schema_changes.json plus Alert/Pipeline/Dataset contract context.
+- Pipeline dependency traversals use the fixture upstream/downstream fields and blast_radius.json because the graph contract does not define a FEEDS edge.
+- Historical quality violations use QualityRule contract semantics plus alert recurrence/factor fixtures because no dedicated violation-history node exists.
+
+### Rho measurement
+- DataOps fixture alerts measured: 21.
+- rho_dataops (VLD): 0.2857.
+- rho_majority: 0.3810.
+- rho_random: 0.0476.
+- SOC reference rho: 0.685.
+- Result: DataOps is not stronger than SOC on this first bootstrap/fixture rho measurement; the current VLD router beats random but not the majority baseline.
+
+### Use case scenario validation
+- Schema change cascade: ALERT-TIRE-001; trace=schema_impact -> cross_system -> quality_drift; evidence includes schema_change_type and affected_systems_count; expected narrative matched.
+- Recurring vs novel: ALERT-TIRE-017; trace=known_pattern -> source_failure -> schema_impact; evidence includes pattern_match_confidence; expected narrative matched.
+- CI+VLD value assessment: DataOps investigation adds value because the trace reads domain graph/fixture evidence for schema fanout, downstream blast radius, and recurrence history before final action scoring. The current routing policy still needs stronger calibrated centroids or more labeled fixtures before rho beats the majority baseline.
+
+### Verification
+- Pre-check DataOps backend baseline: 346 passed, 1088 warnings.
+- Targeted investigation tests: 12 passed, 28 warnings.
+- measure_rho_dataops.py: status OK, 21 alerts, rho_VLD=0.2857, rho_majority=0.3810, rho_random=0.0476.
+- validate_use_cases.py: both scenarios passed expected narrative checks.
+- DataOps backend full suite: 358 passed, 1114 warnings.
+- SDK root full suite: 3372 passed, 6966 warnings.
+- Banned pattern scan for body_iterator/type: ignore under changed DataOps backend areas returned empty.
+- Mypy note: new modules type-check under normal backend imports; including app/main.py in mypy is blocked by the existing ci_platform.copilot_core missing-stubs/py.typed issue.
+- Scope note: implementation changes are under apps/dataops/backend. docs/session_state.md changed for the required protocol append. git diff still reports pre-existing apps/trading/backend/data/trading.db and apps/purchasing/backend/data/purchasing.db binary diffs from the dirty worktree; this task did not modify them.
+- SOC post-check: no SOC files or shared SDK scorer files were modified.
+
+0 new regressions introduced.
+
+---
+## Trading Stage 1 Multi-Hop Evaluation
+Timestamp: 2026-09-10T05:58:59.626996+00:00
+
+### Changed files
+- apps/trading/backend/scripts/evaluate_multihop_stage1.py (new)
+- apps/trading/backend/tests/test_multihop_evaluation.py (new)
+- apps/trading/backend/data/trading_multihop_stage1_results.json (new generated artifact)
+- apps/trading/backend/data/trading_multihop_stage1_report.md (new generated artifact)
+
+### Baselines
+- Trading backend pre-check: 1310 passed, 0 failed.
+- SDK root pre-check: 3372 passed, 0 failed.
+
+### Evaluation result
+- Scenarios evaluated: 40.
+- Result rows: 160.
+- Acceptance test: PASS.
+- Headline: accuracy(VLD) at rho>=0.70 on score_keyed = 1.000.
+- Score-keyed accuracy(VLD) - accuracy(breadth) = 0.550.
+- Flat controls: VLD=0.400, SP=0.400, pass=True.
+- rho=0.50 controls: VLD=0.400, pass=True.
+
+### Per-kind accuracy
+- content_keyed: SP=0.400, breadth=0.333, content_rule=0.800, VLD=0.800, N=15
+- prerequisite: SP=0.400, breadth=0.800, content_rule=1.000, VLD=1.000, N=5
+- score_keyed: SP=0.450, breadth=0.150, content_rule=1.000, VLD=0.700, N=20
+
+### Per-rho score_keyed accuracy
+- rho=0.30: SP=0.333, breadth=0.333, content_rule=1.000, VLD=0.000, delta_vld_breadth=-0.333
+- rho=0.50: SP=0.600, breadth=0.400, content_rule=1.000, VLD=0.400, delta_vld_breadth=0.000
+- rho=0.70: SP=0.500, breadth=0.000, content_rule=1.000, VLD=1.000, delta_vld_breadth=1.000
+- rho=0.90: SP=0.667, breadth=0.000, content_rule=1.000, VLD=1.000, delta_vld_breadth=1.000
+- rho=1.00: SP=0.000, breadth=0.000, content_rule=1.000, VLD=1.000, delta_vld_breadth=1.000
+
+### Cross-copilot comparison
+- SOC VLD at rho>=0.70: 1.000.
+- DataOps VLD at rho>=0.70: 1.000.
+- S2P VLD at rho>=0.70: 0.562.
+- Trading VLD at rho>=0.70: 1.000.
+
+### Centroid diagnostics
+- Action cells with >=3 instances: 5.
+- Action cells defaulted: 0.
+- Samples per action: {'execute': 6, 'defer': 9, 'reduce_size': 8, 'hedge': 6, 'reject': 6}.
+- Enriched vs surface centroid diff: 0.1045.
+
+### Gates
+- validate_stage1.py: PASS, ALL 10 QUALITY CHECKS + SPEC CONSTRAINTS PASSED.
+- Blast radius: git diff --name-only apps/trading/backend/app/ returned empty.
+- Results completeness: 160 rows, four arms present.
+- Report generated: apps/trading/backend/data/trading_multihop_stage1_report.md.
+- New tests: apps/trading/backend/tests/test_multihop_evaluation.py, 12 passed.
+- Mypy on new script/test: PASS.
+- Provenance tests: 22 passed.
+- Trading backend post-check: 1322 passed, 0 failed.
+- SDK root post-check: 3372 passed, 0 failed.
+
+0 new regressions introduced.
+---
+---
+## Purchasing Stage 1 Multi-Hop Evaluation
+Timestamp: 2026-09-10T00:00:00-07:00
+
+### Changed files
+- apps/purchasing/backend/scripts/evaluate_multihop_stage1.py (new)
+- apps/purchasing/backend/tests/test_multihop_evaluation.py (new)
+- apps/purchasing/backend/data/purchasing_multihop_stage1_results.json (new generated artifact)
+- apps/purchasing/backend/data/purchasing_multihop_stage1_report.md (new generated artifact)
+
+### Baselines
+- Purchasing backend pre-check: 716 passed, 1 skipped, 0 failed.
+- SDK root pre-check: 3372 passed, 0 failed.
+- Stage 1 validator: ALL 10 QUALITY CHECKS + SPEC CONSTRAINTS PASSED.
+
+### Evaluation result
+- Scenarios evaluated: 40.
+- Result rows: 160.
+- Acceptance test: PASS.
+- Headline: accuracy(VLD) at rho>=0.70 on score_keyed = 1.000.
+- Score-keyed accuracy(VLD) - accuracy(breadth) = 0.500.
+- Flat controls: VLD=0.400, SP=0.400, pass=True.
+- rho=0.50 controls: VLD=0.200, pass=True.
+
+### Per-kind accuracy
+- content_keyed: SP=0.333, breadth=0.800, content_rule=0.800, VLD=0.800, N=15
+- prerequisite: SP=0.200, breadth=0.000, content_rule=1.000, VLD=1.000, N=5
+- score_keyed: SP=0.400, breadth=0.150, content_rule=1.000, VLD=0.650, N=20
+
+### Per-rho score_keyed accuracy
+- rho=0.30: SP=0.333, breadth=0.333, content_rule=1.000, VLD=0.000, delta_vld_breadth=-0.333
+- rho=0.50: SP=0.200, breadth=0.200, content_rule=1.000, VLD=0.200, delta_vld_breadth=0.000
+- rho=0.70: SP=0.333, breadth=0.167, content_rule=1.000, VLD=1.000, delta_vld_breadth=0.833
+- rho=0.90: SP=1.000, breadth=0.000, content_rule=1.000, VLD=1.000, delta_vld_breadth=1.000
+- rho=1.00: SP=0.333, breadth=0.000, content_rule=1.000, VLD=1.000, delta_vld_breadth=1.000
+
+### Cross-copilot comparison
+- SOC VLD at rho>=0.70: 1.000.
+- DataOps VLD at rho>=0.70: 1.000.
+- S2P VLD at rho>=0.70: 0.562.
+- Trading VLD at rho>=0.70: 1.000.
+- Purchasing VLD at rho>=0.70: 1.000.
+
+### Centroid diagnostics
+- Action cells with >=3 instances: 6.
+- Action cells defaulted: 0.
+- Samples per action: {'order_standard': 8, 'order_increased': 4, 'order_reduced': 8, 'switch_supplier': 6, 'defer_order': 6, 'emergency_order': 3}.
+- Enriched vs surface centroid diff: 0.1355.
+
+### Gates
+- Blast radius: git diff --name-only apps/purchasing/backend/app/ returned empty.
+- Results completeness: 160 rows, four arms present.
+- Report generated: apps/purchasing/backend/data/purchasing_multihop_stage1_report.md (1981 bytes).
+- New tests: apps/purchasing/backend/tests/test_multihop_evaluation.py, 12 passed.
+- Provenance tests: 29 passed.
+- Purchasing backend post-check: 728 passed, 1 skipped, 0 failed.
+- SDK root post-check: 3372 passed, 0 failed.
+
+0 new regressions introduced.
+---

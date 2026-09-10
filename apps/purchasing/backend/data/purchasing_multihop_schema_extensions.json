@@ -1,0 +1,75 @@
+{
+  "_header": "Schema extensions required by purchasing_multihop_stage1_v2.json",
+  "_file": "purchasing_multihop_schema_extensions_v3.json",
+  "_file_version": "v3",
+  "_spec": "multihop_scenario_spec_v3.md",
+  "base_node_types": [
+    "AlternativeSupplier",
+    "Batch",
+    "ConsumptionRecord",
+    "DeliveryWindow",
+    "DemandCalendar",
+    "DiscountSchedule",
+    "InventoryLevel",
+    "Item",
+    "OrderSignal",
+    "QualityReport",
+    "ShelfLifeSpec",
+    "Supplier"
+  ],
+  "base_edge_types": [
+    "ALTERNATIVE",
+    "CONSUMED_AT",
+    "CURRENT_LEVEL",
+    "DISCOUNT_AT",
+    "EXPIRES_PER",
+    "FOR_ITEM",
+    "FROM_BATCH",
+    "HAS_DEMAND",
+    "SUPPLIED_BY"
+  ],
+  "new_node_types": [
+    {
+      "type": "SubstituteItem"
+    },
+    {
+      "type": "SupplierLot"
+    },
+    {
+      "type": "SupplyContract"
+    },
+    {
+      "type": "TransitionCost"
+    },
+    {
+      "type": "WasteRecord"
+    }
+  ],
+  "new_edge_types": [
+    {
+      "type": "CONTRACTED_UNDER"
+    },
+    {
+      "type": "PART_OF_LOT"
+    },
+    {
+      "type": "QUALITY_REPORTED_BY"
+    },
+    {
+      "type": "SUBSTITUTABLE_BY"
+    },
+    {
+      "type": "TRANSITION_COSTED_BY"
+    },
+    {
+      "type": "WASTE_MEASURED_BY"
+    }
+  ],
+  "new_instance_fields": [
+    {
+      "field": "decision_tree.hops[].branch_cue",
+      "purpose": "pre-read information a rule could key on; makes branching_kind measurable"
+    }
+  ],
+  "provenance": "sample"
+}

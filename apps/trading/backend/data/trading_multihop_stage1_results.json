@@ -1,0 +1,3190 @@
+[
+  {
+    "action": "hedge",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-001-v1",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-001-v1",
+    "trace": [
+      {
+        "branch_name": "position_history_path",
+        "correct_branch": false,
+        "evidence_found": "thesis revised to v4 two weeks ago; ticket cites v3",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.38,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis revised to v4 two weeks ago; ticket cites v3",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-001-v1",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis revised to v4 two weeks ago; ticket cites v3",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-001-v1",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis revised to v4 two weeks ago; ticket cites v3",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-001-v2",
+    "trace": []
+  },
+  {
+    "action": "execute",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-001-v2",
+    "trace": [
+      {
+        "branch_name": "position_history_path",
+        "correct_branch": false,
+        "evidence_found": "thesis at v3, current, no revision pending",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.78,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis at v3, current, no revision pending",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-001-v2",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis at v3, current, no revision pending",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-001-v2",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis at v3, current, no revision pending",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-001-v3",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-001-v3",
+    "trace": [
+      {
+        "branch_name": "exception_log_path",
+        "correct_branch": true,
+        "evidence_found": "CIO-approved exception exists, capped at 1% of AUM",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "position_history_path",
+        "correct_branch": false,
+        "evidence_found": "CIO-approved exception exists, capped at 1% of AUM",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.44999999999999996,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-001-v3",
+    "trace": [
+      {
+        "branch_name": "exception_log_path",
+        "correct_branch": true,
+        "evidence_found": "CIO-approved exception exists, capped at 1% of AUM",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "pm_rationale_path",
+        "correct_branch": true,
+        "evidence_found": "proposed 1.3% against a 1.0% cap",
+        "factor_enriched": "portfolio_concentration",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-001-v3",
+    "trace": [
+      {
+        "branch_name": "exception_log_path",
+        "correct_branch": true,
+        "evidence_found": "CIO-approved exception exists, capped at 1% of AUM",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "pm_rationale_path",
+        "correct_branch": true,
+        "evidence_found": "proposed 1.3% against a 1.0% cap",
+        "factor_enriched": "portfolio_concentration",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-001-v4",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-001-v4",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis flagged under review, revision pending",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.48,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "position_history_path",
+        "correct_branch": false,
+        "evidence_found": "thesis flagged under review, revision pending",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.52,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-001-v4",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis flagged under review, revision pending",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.48,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-001-v4",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis flagged under review, revision pending",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.48,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-001-v5",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-001-v5",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis at v3, current; trade contradicts it",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.26,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "exception_log_path",
+        "correct_branch": false,
+        "evidence_found": "thesis at v3, current; trade contradicts it",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-001-v5",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis at v3, current; trade contradicts it",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.26,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-001-v5",
+    "trace": [
+      {
+        "branch_name": "position_history_path",
+        "correct_branch": false,
+        "evidence_found": "thesis at v3, current; trade contradicts it",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.74,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "pm_rationale_path",
+        "correct_branch": false,
+        "evidence_found": "portfolio already 8.4% energy against a 6% target",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-002-v1",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-002-v1",
+    "trace": [
+      {
+        "branch_name": "macro_exposure_path",
+        "correct_branch": false,
+        "evidence_found": "pairwise correlation 0.86 across all three",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "sector_weight_path",
+        "correct_branch": false,
+        "evidence_found": "pairwise correlation 0.86 across all three",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.12,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-002-v1",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.86 across all three",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.88,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-002-v1",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.86 across all three",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.88,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-002-v2",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-002-v2",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.21, no shared macro driver",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "sector_weight_path",
+        "correct_branch": false,
+        "evidence_found": "pairwise correlation 0.21, no shared macro driver",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.76,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-002-v2",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.21, no shared macro driver",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-002-v2",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.21, no shared macro driver",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-002-v3",
+    "trace": []
+  },
+  {
+    "action": "reject",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-002-v3",
+    "trace": [
+      {
+        "branch_name": "macro_exposure_path",
+        "correct_branch": false,
+        "evidence_found": "pairwise correlation 0.79",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "sector_weight_path",
+        "correct_branch": false,
+        "evidence_found": "pairwise correlation 0.79",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.19999999999999996,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-002-v3",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.79",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.8,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-002-v3",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.79",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.8,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-002-v4",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-002-v4",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.81",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.82,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "sector_weight_path",
+        "correct_branch": false,
+        "evidence_found": "pairwise correlation 0.81",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.18000000000000005,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-002-v4",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.81",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.82,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-002-v4",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.81",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.82,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-002-v5",
+    "trace": []
+  },
+  {
+    "action": "execute",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-002-v5",
+    "trace": [
+      {
+        "branch_name": "macro_exposure_path",
+        "correct_branch": false,
+        "evidence_found": "correlation 0.88 and the addition breaches the 12% mandate limit",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "sector_weight_path",
+        "correct_branch": false,
+        "evidence_found": "correlation 0.88 and the addition breaches the 12% mandate limit",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.07999999999999996,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-002-v5",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "correlation 0.88 and the addition breaches the 12% mandate limit",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.92,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-002-v5",
+    "trace": [
+      {
+        "branch_name": "sector_weight_path",
+        "correct_branch": false,
+        "evidence_found": "correlation 0.88 and the addition breaches the 12% mandate limit",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.07999999999999996,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "liquidity_path",
+        "correct_branch": false,
+        "evidence_found": "mandate counts gross, so hedging does not cure the breach",
+        "factor_enriched": "portfolio_concentration",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-003-v1",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-003-v1",
+    "trace": [
+      {
+        "branch_name": "sector_context_path",
+        "correct_branch": false,
+        "evidence_found": "volume expanding into the advance, rvol 1.6",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "rsi_path",
+        "correct_branch": false,
+        "evidence_found": "volume expanding into the advance, rvol 1.6",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.16000000000000003,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-003-v1",
+    "trace": [
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": true,
+        "evidence_found": "volume expanding into the advance, rvol 1.6",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.84,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-003-v1",
+    "trace": [
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": true,
+        "evidence_found": "volume expanding into the advance, rvol 1.6",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.84,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-003-v2",
+    "trace": []
+  },
+  {
+    "action": "execute",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-003-v2",
+    "trace": [
+      {
+        "branch_name": "sector_context_path",
+        "correct_branch": false,
+        "evidence_found": "volume contracting into the advance, rvol 0.7",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "rsi_path",
+        "correct_branch": false,
+        "evidence_found": "volume contracting into the advance, rvol 0.7",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.74,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-003-v2",
+    "trace": [
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": true,
+        "evidence_found": "volume contracting into the advance, rvol 0.7",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.26,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "TRD-MH-003-v2",
+    "trace": [
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": true,
+        "evidence_found": "volume contracting into the advance, rvol 0.7",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.26,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-003-v3",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-003-v3",
+    "trace": [
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": false,
+        "evidence_found": "sector up 6.1%, the name up 6.4% \\u2014 no relative edge",
+        "factor_enriched": "fundamental_strength",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "rsi_path",
+        "correct_branch": false,
+        "evidence_found": "sector up 6.1%, the name up 6.4% \\u2014 no relative edge",
+        "factor_enriched": "fundamental_strength",
+        "factor_new_value": 0.56,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-003-v3",
+    "trace": [
+      {
+        "branch_name": "sector_context_path",
+        "correct_branch": true,
+        "evidence_found": "sector up 6.1%, the name up 6.4% \\u2014 no relative edge",
+        "factor_enriched": "fundamental_strength",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "TRD-MH-003-v3",
+    "trace": [
+      {
+        "branch_name": "sector_context_path",
+        "correct_branch": true,
+        "evidence_found": "sector up 6.1%, the name up 6.4% \\u2014 no relative edge",
+        "factor_enriched": "fundamental_strength",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-003-v4",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-003-v4",
+    "trace": [
+      {
+        "branch_name": "sector_context_path",
+        "correct_branch": false,
+        "evidence_found": "volume mixed, rvol 1.05",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "rsi_path",
+        "correct_branch": false,
+        "evidence_found": "volume mixed, rvol 1.05",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.48,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-003-v4",
+    "trace": [
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": true,
+        "evidence_found": "volume mixed, rvol 1.05",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-003-v4",
+    "trace": [
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": true,
+        "evidence_found": "volume mixed, rvol 1.05",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-003-v5",
+    "trace": []
+  },
+  {
+    "action": "reject",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-003-v5",
+    "trace": [
+      {
+        "branch_name": "rsi_path",
+        "correct_branch": false,
+        "evidence_found": "volume expanding, rvol 1.5",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.19999999999999996,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": true,
+        "evidence_found": "volume expanding, rvol 1.5",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.8,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-003-v5",
+    "trace": [
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": true,
+        "evidence_found": "volume expanding, rvol 1.5",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.8,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "TRD-MH-003-v5",
+    "trace": [
+      {
+        "branch_name": "rsi_path",
+        "correct_branch": false,
+        "evidence_found": "volume expanding, rvol 1.5",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.19999999999999996,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "breadth_path",
+        "correct_branch": false,
+        "evidence_found": "persistent, but one holder is 41% of the flow",
+        "factor_enriched": "liquidity_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v1",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v1",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 5 days against a 3-day blackout window",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "iv_term_path",
+        "correct_branch": false,
+        "evidence_found": "earnings in 5 days against a 3-day blackout window",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.28,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v1",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 5 days against a 3-day blackout window",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v1",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 5 days against a 3-day blackout window",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v2",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v2",
+    "trace": [
+      {
+        "branch_name": "iv_term_path",
+        "correct_branch": false,
+        "evidence_found": "earnings in 2 days, inside the 3-day blackout window",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.7,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 2 days, inside the 3-day blackout window",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v2",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 2 days, inside the 3-day blackout window",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v2",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 2 days, inside the 3-day blackout window",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v3",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v3",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings tomorrow, and the book already holds 3.8% of AUM in the name",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "iv_term_path",
+        "correct_branch": false,
+        "evidence_found": "earnings tomorrow, and the book already holds 3.8% of AUM in the name",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.76,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v3",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings tomorrow, and the book already holds 3.8% of AUM in the name",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v3",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings tomorrow, and the book already holds 3.8% of AUM in the name",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v4",
+    "trace": []
+  },
+  {
+    "action": "reject",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v4",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 4 days; policy permits an event trade if downside is covered",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "iv_term_path",
+        "correct_branch": false,
+        "evidence_found": "earnings in 4 days; policy permits an event trade if downside is covered",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.44999999999999996,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v4",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 4 days; policy permits an event trade if downside is covered",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v4",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 4 days; policy permits an event trade if downside is covered",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v5",
+    "trace": []
+  },
+  {
+    "action": "execute",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v5",
+    "trace": [
+      {
+        "branch_name": "iv_term_path",
+        "correct_branch": false,
+        "evidence_found": "earnings 12 days out, but a guidance pre-announcement is scheduled for tomorrow",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.72,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings 12 days out, but a guidance pre-announcement is scheduled for tomorrow",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.28,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v5",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings 12 days out, but a guidance pre-announcement is scheduled for tomorrow",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.28,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-004-v5",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings 12 days out, but a guidance pre-announcement is scheduled for tomorrow",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.28,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v1",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v1",
+    "trace": [
+      {
+        "branch_name": "yield_path",
+        "correct_branch": false,
+        "evidence_found": "trade settles 3 days before the ex-date; holding period met",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.14,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v1",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "trade settles 3 days before the ex-date; holding period met",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.86,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v1",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "trade settles 3 days before the ex-date; holding period met",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.86,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v2",
+    "trace": []
+  },
+  {
+    "action": "execute",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v2",
+    "trace": [
+      {
+        "branch_name": "yield_path",
+        "correct_branch": false,
+        "evidence_found": "T+1 settlement lands the day after the ex-date",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.8,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v2",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "T+1 settlement lands the day after the ex-date",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.2,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v2",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "T+1 settlement lands the day after the ex-date",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.2,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v3",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v3",
+    "trace": [
+      {
+        "branch_name": "tax_lot_path",
+        "correct_branch": false,
+        "evidence_found": "settles before ex-date, but the qualified-dividend holding period is not met",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "settles before ex-date, but the qualified-dividend holding period is not met",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.48,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v3",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "settles before ex-date, but the qualified-dividend holding period is not met",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.48,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v3",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "settles before ex-date, but the qualified-dividend holding period is not met",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.48,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v4",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v4",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "ex-date tomorrow; settlement lands exactly on the boundary",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "tax_lot_path",
+        "correct_branch": false,
+        "evidence_found": "ex-date tomorrow; settlement lands exactly on the boundary",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v4",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "ex-date tomorrow; settlement lands exactly on the boundary",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v4",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "ex-date tomorrow; settlement lands exactly on the boundary",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v5",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v5",
+    "trace": [
+      {
+        "branch_name": "tax_lot_path",
+        "correct_branch": false,
+        "evidence_found": "settlement and holding period both fine, but the dividend is declared special and taxed as return of capital",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "settlement and holding period both fine, but the dividend is declared special and taxed as return of capital",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v5",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "settlement and holding period both fine, but the dividend is declared special and taxed as return of capital",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-005-v5",
+    "trace": [
+      {
+        "branch_name": "ex_date_path",
+        "correct_branch": true,
+        "evidence_found": "settlement and holding period both fine, but the dividend is declared special and taxed as return of capital",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v1",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v1",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.7,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v1",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.7,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v1",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.7,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v2",
+    "trace": []
+  },
+  {
+    "action": "execute",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v2",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v2",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "execute",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v2",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v3",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v3",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "us_peer_path",
+        "correct_branch": false,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.31999999999999995,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "overnight_move_path",
+        "correct_branch": true,
+        "evidence_found": "down 2.1% with 0.77 correlation",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.76,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v3",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.68,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v3",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.68,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v4",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v4",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v4",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v4",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "semiconductors, mapped to the Taiwan index",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "TWSE semiconductor constituent identified",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v5",
+    "trace": []
+  },
+  {
+    "action": "reject",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v5",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "sector mapping stale since a reclassification; no index resolves",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": false,
+        "evidence_found": "neutral branch evidence",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v5",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "sector mapping stale since a reclassification; no index resolves",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reject",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-MH-006-v5",
+    "trace": [
+      {
+        "branch_name": "position_sector_path",
+        "correct_branch": true,
+        "evidence_found": "sector mapping stale since a reclassification; no index resolves",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "execute",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "reject",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "hedge",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "TRD-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-001",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-001",
+    "trace": [
+      {
+        "branch_name": "exception_log_path",
+        "correct_branch": false,
+        "evidence_found": "thesis at v3 with an open comment but no formal review",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-001",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis at v3 with an open comment but no formal review",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-001",
+    "trace": [
+      {
+        "branch_name": "thesis_version_path",
+        "correct_branch": true,
+        "evidence_found": "thesis at v3 with an open comment but no formal review",
+        "factor_enriched": "thesis_alignment",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-002",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-002",
+    "trace": [
+      {
+        "branch_name": "macro_exposure_path",
+        "correct_branch": false,
+        "evidence_found": "pairwise correlation 0.52",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-002",
+    "trace": [
+      {
+        "branch_name": "correlation_matrix_path",
+        "correct_branch": true,
+        "evidence_found": "pairwise correlation 0.52",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-002",
+    "trace": [
+      {
+        "branch_name": "macro_exposure_path",
+        "correct_branch": false,
+        "evidence_found": "pairwise correlation 0.52",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-003",
+    "trace": []
+  },
+  {
+    "action": "reduce_size",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-003",
+    "trace": [
+      {
+        "branch_name": "rsi_path",
+        "correct_branch": false,
+        "evidence_found": "rvol 1.0, participation flat",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-003",
+    "trace": [
+      {
+        "branch_name": "volume_profile_path",
+        "correct_branch": true,
+        "evidence_found": "rvol 1.0, participation flat",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-003",
+    "trace": [
+      {
+        "branch_name": "rsi_path",
+        "correct_branch": false,
+        "evidence_found": "rvol 1.0, participation flat",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-004",
+    "trace": []
+  },
+  {
+    "action": "defer",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-004",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 3 days against a 3-day window, date unconfirmed",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-004",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 3 days against a 3-day window, date unconfirmed",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-004",
+    "trace": [
+      {
+        "branch_name": "earnings_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "earnings in 3 days against a 3-day window, date unconfirmed",
+        "factor_enriched": "timing_signal",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-005",
+    "trace": []
+  },
+  {
+    "action": "hedge",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-005",
+    "trace": [
+      {
+        "branch_name": "us_peer_path",
+        "correct_branch": false,
+        "evidence_found": "down 0.6% on 0.50 correlation",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "reduce_size",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-005",
+    "trace": [
+      {
+        "branch_name": "asian_equivalent_path",
+        "correct_branch": true,
+        "evidence_found": "down 0.6% on 0.50 correlation",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "hedge",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "reduce_size",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "TRD-CTRL-RHO50-005",
+    "trace": [
+      {
+        "branch_name": "us_peer_path",
+        "correct_branch": false,
+        "evidence_found": "down 0.6% on 0.50 correlation",
+        "factor_enriched": "correlation_risk",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  }
+]

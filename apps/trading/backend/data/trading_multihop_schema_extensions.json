@@ -1,0 +1,82 @@
+{
+  "_header": "Schema extensions required by trading_multihop_stage1_v2.json",
+  "_file": "trading_multihop_schema_extensions_v2.json",
+  "_file_version": "v2",
+  "_spec": "multihop_scenario_spec_v2.md",
+  "base_node_types": [
+    "DividendEvent",
+    "EarningsEvent",
+    "HedgePosition",
+    "MacroExposure",
+    "MarketIndex",
+    "Portfolio",
+    "Position",
+    "RSIIndicator",
+    "Sector",
+    "Thesis",
+    "Trade",
+    "VolumeProfile"
+  ],
+  "base_edge_types": [
+    "CORRELATED_WITH",
+    "EARNINGS_ON",
+    "EX_DATE",
+    "GOVERNED_BY",
+    "HEDGED_BY",
+    "IN_SECTOR",
+    "PROPOSED_FOR",
+    "TRACKS"
+  ],
+  "new_node_types": [
+    {
+      "type": "FlowProfile"
+    },
+    {
+      "type": "GuidanceEvent"
+    },
+    {
+      "type": "LiquidityProfile"
+    },
+    {
+      "type": "OvernightMove"
+    },
+    {
+      "type": "TaxLotProfile"
+    },
+    {
+      "type": "ThesisException"
+    },
+    {
+      "type": "TradePolicy"
+    }
+  ],
+  "new_edge_types": [
+    {
+      "type": "EXCEPTS"
+    },
+    {
+      "type": "EXPOSED_TO"
+    },
+    {
+      "type": "HAD_OVERNIGHT_MOVE"
+    },
+    {
+      "type": "HAS_TAX_LOTS"
+    },
+    {
+      "type": "LIQUIDITY_OF"
+    },
+    {
+      "type": "MEASURED_BY"
+    },
+    {
+      "type": "SUBJECT_TO"
+    }
+  ],
+  "new_instance_fields": [
+    {
+      "field": "decision_tree.hops[].branch_cue",
+      "purpose": "pre-read information a rule could key on; makes branching_kind measurable"
+    }
+  ]
+}

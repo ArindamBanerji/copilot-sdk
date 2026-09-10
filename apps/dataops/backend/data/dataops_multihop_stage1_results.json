@@ -1,0 +1,4398 @@
+[
+  {
+    "action": "escalate_to_owner",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-003-v1",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-003-v1",
+    "trace": [
+      {
+        "branch_name": "throughput_root_path",
+        "correct_branch": false,
+        "evidence_found": "both symptoms start at the same minute",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "dependency_scan_path",
+        "correct_branch": false,
+        "evidence_found": "both symptoms start at the same minute",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "disk_io_path",
+        "correct_branch": false,
+        "evidence_found": "SRC-SHARED-REF degraded, feeds both paths",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.88,
+        "misleading_branch": true,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-003-v1",
+    "trace": [
+      {
+        "branch_name": "quality_root_path",
+        "correct_branch": true,
+        "evidence_found": "both symptoms start at the same minute",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.18,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "shared_upstream_path",
+        "correct_branch": true,
+        "evidence_found": "SRC-SHARED-REF degraded, feeds both paths",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.12,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-003-v1",
+    "trace": [
+      {
+        "branch_name": "quality_root_path",
+        "correct_branch": true,
+        "evidence_found": "both symptoms start at the same minute",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.18,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "shared_upstream_path",
+        "correct_branch": true,
+        "evidence_found": "SRC-SHARED-REF degraded, feeds both paths",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.12,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-003-v2",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-003-v2",
+    "trace": [
+      {
+        "branch_name": "dependency_scan_path",
+        "correct_branch": false,
+        "evidence_found": "onsets 40 minutes apart",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "throughput_root_path",
+        "correct_branch": true,
+        "evidence_found": "onsets 40 minutes apart",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.71,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "disk_io_path",
+        "correct_branch": false,
+        "evidence_found": "transformation healthy; throughput is cluster contention",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.19999999999999996,
+        "misleading_branch": true,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-003-v2",
+    "trace": [
+      {
+        "branch_name": "throughput_root_path",
+        "correct_branch": true,
+        "evidence_found": "onsets 40 minutes apart",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.71,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "transformation_health_path",
+        "correct_branch": true,
+        "evidence_found": "transformation healthy; throughput is cluster contention",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.8,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-003-v2",
+    "trace": [
+      {
+        "branch_name": "throughput_root_path",
+        "correct_branch": true,
+        "evidence_found": "onsets 40 minutes apart",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.71,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "transformation_health_path",
+        "correct_branch": true,
+        "evidence_found": "transformation healthy; throughput is cluster contention",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.8,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-003-v3",
+    "trace": []
+  },
+  {
+    "action": "auto_fix",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-003-v3",
+    "trace": [
+      {
+        "branch_name": "quality_root_path",
+        "correct_branch": true,
+        "evidence_found": "nulls concentrated in three derived fields",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.21,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "dependency_scan_path",
+        "correct_branch": false,
+        "evidence_found": "nulls concentrated in three derived fields",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "disk_io_path",
+        "correct_branch": false,
+        "evidence_found": "TX-BILL-NORM 4.2.1 deployed 06:10, drops a join key",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.91,
+        "misleading_branch": true,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-003-v3",
+    "trace": [
+      {
+        "branch_name": "quality_root_path",
+        "correct_branch": true,
+        "evidence_found": "nulls concentrated in three derived fields",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.21,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "transformation_health_path",
+        "correct_branch": true,
+        "evidence_found": "TX-BILL-NORM 4.2.1 deployed 06:10, drops a join key",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.09,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-003-v3",
+    "trace": [
+      {
+        "branch_name": "quality_root_path",
+        "correct_branch": true,
+        "evidence_found": "nulls concentrated in three derived fields",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.21,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "transformation_health_path",
+        "correct_branch": true,
+        "evidence_found": "TX-BILL-NORM 4.2.1 deployed 06:10, drops a join key",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.09,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-003-v4",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-003-v4",
+    "trace": [
+      {
+        "branch_name": "throughput_root_path",
+        "correct_branch": false,
+        "evidence_found": "upstream blip 04:02-04:09, already recovered",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "quality_root_path",
+        "correct_branch": false,
+        "evidence_found": "upstream blip 04:02-04:09, already recovered",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-003-v4",
+    "trace": [
+      {
+        "branch_name": "dependency_scan_path",
+        "correct_branch": true,
+        "evidence_found": "upstream blip 04:02-04:09, already recovered",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-003-v4",
+    "trace": [
+      {
+        "branch_name": "dependency_scan_path",
+        "correct_branch": true,
+        "evidence_found": "upstream blip 04:02-04:09, already recovered",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-003-v5",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-003-v5",
+    "trace": [
+      {
+        "branch_name": "dependency_scan_path",
+        "correct_branch": false,
+        "evidence_found": "simultaneous onset, nulls across all fields",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "throughput_root_path",
+        "correct_branch": false,
+        "evidence_found": "simultaneous onset, nulls across all fields",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "disk_io_path",
+        "correct_branch": false,
+        "evidence_found": "shared source changed its contract without notice",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.9,
+        "misleading_branch": true,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-003-v5",
+    "trace": [
+      {
+        "branch_name": "quality_root_path",
+        "correct_branch": true,
+        "evidence_found": "simultaneous onset, nulls across all fields",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.15,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "shared_upstream_path",
+        "correct_branch": true,
+        "evidence_found": "shared source changed its contract without notice",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.1,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-003-v5",
+    "trace": [
+      {
+        "branch_name": "dependency_scan_path",
+        "correct_branch": false,
+        "evidence_found": "simultaneous onset, nulls across all fields",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "disk_io_path",
+        "correct_branch": false,
+        "evidence_found": "shared source changed its contract without notice",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.9,
+        "misleading_branch": true,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-005-v1",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-005-v1",
+    "trace": [
+      {
+        "branch_name": "resource_contention_path",
+        "correct_branch": false,
+        "evidence_found": "upstream arrival late by the usual 35 minutes",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "pattern_match_path",
+        "correct_branch": false,
+        "evidence_found": "upstream arrival late by the usual 35 minutes",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.08999999999999997,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-005-v1",
+    "trace": [
+      {
+        "branch_name": "upstream_timing_path",
+        "correct_branch": true,
+        "evidence_found": "upstream arrival late by the usual 35 minutes",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.91,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "historical_fix_path",
+        "correct_branch": true,
+        "evidence_found": "window extension resolved 13 of 14 prior occurrences",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.94,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-005-v1",
+    "trace": [
+      {
+        "branch_name": "upstream_timing_path",
+        "correct_branch": true,
+        "evidence_found": "upstream arrival late by the usual 35 minutes",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.91,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "historical_fix_path",
+        "correct_branch": true,
+        "evidence_found": "window extension resolved 13 of 14 prior occurrences",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.94,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-005-v2",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-005-v2",
+    "trace": [
+      {
+        "branch_name": "pattern_match_path",
+        "correct_branch": false,
+        "evidence_found": "upstream on time; the job itself started 50 minutes late",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.56,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_timing_path",
+        "correct_branch": true,
+        "evidence_found": "upstream on time; the job itself started 50 minutes late",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-005-v2",
+    "trace": [
+      {
+        "branch_name": "upstream_timing_path",
+        "correct_branch": true,
+        "evidence_found": "upstream on time; the job itself started 50 minutes late",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-005-v2",
+    "trace": [
+      {
+        "branch_name": "upstream_timing_path",
+        "correct_branch": true,
+        "evidence_found": "upstream on time; the job itself started 50 minutes late",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-005-v3",
+    "trace": []
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-005-v3",
+    "trace": [
+      {
+        "branch_name": "resource_contention_path",
+        "correct_branch": true,
+        "evidence_found": "cluster max_workers reduced from 16 to 8 on Saturday",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.35,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "pattern_match_path",
+        "correct_branch": false,
+        "evidence_found": "cluster max_workers reduced from 16 to 8 on Saturday",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.65,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-005-v3",
+    "trace": [
+      {
+        "branch_name": "resource_contention_path",
+        "correct_branch": true,
+        "evidence_found": "cluster max_workers reduced from 16 to 8 on Saturday",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.35,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-005-v3",
+    "trace": [
+      {
+        "branch_name": "resource_contention_path",
+        "correct_branch": true,
+        "evidence_found": "cluster max_workers reduced from 16 to 8 on Saturday",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.35,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-005-v4",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-005-v4",
+    "trace": [
+      {
+        "branch_name": "upstream_timing_path",
+        "correct_branch": false,
+        "evidence_found": "0.96 similarity; run finished inside SLA at 52 minutes",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "pattern_match_path",
+        "correct_branch": true,
+        "evidence_found": "0.96 similarity; run finished inside SLA at 52 minutes",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.050000000000000044,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-005-v4",
+    "trace": [
+      {
+        "branch_name": "pattern_match_path",
+        "correct_branch": true,
+        "evidence_found": "0.96 similarity; run finished inside SLA at 52 minutes",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.050000000000000044,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-005-v4",
+    "trace": [
+      {
+        "branch_name": "pattern_match_path",
+        "correct_branch": true,
+        "evidence_found": "0.96 similarity; run finished inside SLA at 52 minutes",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.050000000000000044,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-005-v5",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-005-v5",
+    "trace": [
+      {
+        "branch_name": "pattern_match_path",
+        "correct_branch": false,
+        "evidence_found": "upstream on time; job start blocked on a lock",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.6,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "resource_contention_path",
+        "correct_branch": false,
+        "evidence_found": "upstream on time; job start blocked on a lock",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-005-v5",
+    "trace": [
+      {
+        "branch_name": "upstream_timing_path",
+        "correct_branch": true,
+        "evidence_found": "upstream on time; job start blocked on a lock",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-005-v5",
+    "trace": [
+      {
+        "branch_name": "pattern_match_path",
+        "correct_branch": false,
+        "evidence_found": "upstream on time; job start blocked on a lock",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.6,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "historical_fix_path",
+        "correct_branch": false,
+        "evidence_found": "Friday deploy DEP-0904 introduced the lock",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-007-v1",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-007-v1",
+    "trace": [
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "input null rate 40%, storage nominal",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.14,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "query_plan_path",
+        "correct_branch": false,
+        "evidence_found": "input null rate 40%, storage nominal",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.86,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-007-v1",
+    "trace": [
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "input null rate 40%, storage nominal",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.14,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "null_rate_path",
+        "correct_branch": true,
+        "evidence_found": "concentrated in one upstream batch",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.11,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-007-v1",
+    "trace": [
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "input null rate 40%, storage nominal",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.14,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "null_rate_path",
+        "correct_branch": true,
+        "evidence_found": "concentrated in one upstream batch",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.11,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-007-v2",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-007-v2",
+    "trace": [
+      {
+        "branch_name": "query_plan_path",
+        "correct_branch": false,
+        "evidence_found": "disk p99 540ms against a 45ms baseline, input clean",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.84,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": false,
+        "evidence_found": "disk p99 540ms against a 45ms baseline, input clean",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-007-v2",
+    "trace": [
+      {
+        "branch_name": "storage_metrics_path",
+        "correct_branch": true,
+        "evidence_found": "disk p99 540ms against a 45ms baseline, input clean",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.16,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-007-v2",
+    "trace": [
+      {
+        "branch_name": "storage_metrics_path",
+        "correct_branch": true,
+        "evidence_found": "disk p99 540ms against a 45ms baseline, input clean",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.16,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-007-v3",
+    "trace": []
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-007-v3",
+    "trace": [
+      {
+        "branch_name": "query_plan_path",
+        "correct_branch": false,
+        "evidence_found": "source widened a column type; 420 coercions per batch",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.78,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "source widened a column type; 420 coercions per batch",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-007-v3",
+    "trace": [
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "source widened a column type; 420 coercions per batch",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "null_rate_path",
+        "correct_branch": true,
+        "evidence_found": "coercion path costs 3.1ms per row",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-007-v3",
+    "trace": [
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "source widened a column type; 420 coercions per batch",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "null_rate_path",
+        "correct_branch": true,
+        "evidence_found": "coercion path costs 3.1ms per row",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-007-v4",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-007-v4",
+    "trace": [
+      {
+        "branch_name": "storage_metrics_path",
+        "correct_branch": true,
+        "evidence_found": "disk latency spiked 03:10-03:22 and recovered",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.58,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "query_plan_path",
+        "correct_branch": false,
+        "evidence_found": "disk latency spiked 03:10-03:22 and recovered",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.42000000000000004,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-007-v4",
+    "trace": [
+      {
+        "branch_name": "storage_metrics_path",
+        "correct_branch": true,
+        "evidence_found": "disk latency spiked 03:10-03:22 and recovered",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.58,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-007-v4",
+    "trace": [
+      {
+        "branch_name": "storage_metrics_path",
+        "correct_branch": true,
+        "evidence_found": "disk latency spiked 03:10-03:22 and recovered",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.58,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-007-v5",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-007-v5",
+    "trace": [
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "input schema changed by yesterday's upstream deploy",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.12,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "query_plan_path",
+        "correct_branch": false,
+        "evidence_found": "input schema changed by yesterday's upstream deploy",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.88,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-007-v5",
+    "trace": [
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "input schema changed by yesterday's upstream deploy",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.12,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "null_rate_path",
+        "correct_branch": true,
+        "evidence_found": "the prior schema version is still published",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.2,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-007-v5",
+    "trace": [
+      {
+        "branch_name": "query_plan_path",
+        "correct_branch": false,
+        "evidence_found": "input schema changed by yesterday's upstream deploy",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.88,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "disk_latency_path",
+        "correct_branch": false,
+        "evidence_found": "the prior schema version is still published",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-014-v1",
+    "trace": []
+  },
+  {
+    "action": "auto_fix",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-014-v1",
+    "trace": [
+      {
+        "branch_name": "query_engine_path",
+        "correct_branch": false,
+        "evidence_found": "pipeline finished on time; 182,000 files averaging 2MB",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": true,
+        "evidence_found": "pipeline finished on time; 182,000 files averaging 2MB",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-014-v1",
+    "trace": [
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": true,
+        "evidence_found": "pipeline finished on time; 182,000 files averaging 2MB",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "small_files_path",
+        "correct_branch": true,
+        "evidence_found": "scan overhead dominates; compaction eligible",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-014-v1",
+    "trace": [
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": true,
+        "evidence_found": "pipeline finished on time; 182,000 files averaging 2MB",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "small_files_path",
+        "correct_branch": true,
+        "evidence_found": "scan overhead dominates; compaction eligible",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-014-v2",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-014-v2",
+    "trace": [
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": false,
+        "evidence_found": "pipeline on time; planner choosing a full scan",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "query_engine_path",
+        "correct_branch": true,
+        "evidence_found": "pipeline on time; planner choosing a full scan",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.58,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-014-v2",
+    "trace": [
+      {
+        "branch_name": "query_engine_path",
+        "correct_branch": true,
+        "evidence_found": "pipeline on time; planner choosing a full scan",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.58,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "stats_freshness_path",
+        "correct_branch": true,
+        "evidence_found": "statistics 96 hours old, zero rows analyzed since the load",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.35,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "DO-MH-014-v2",
+    "trace": [
+      {
+        "branch_name": "query_engine_path",
+        "correct_branch": true,
+        "evidence_found": "pipeline on time; planner choosing a full scan",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.58,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "stats_freshness_path",
+        "correct_branch": true,
+        "evidence_found": "statistics 96 hours old, zero rows analyzed since the load",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.35,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-014-v3",
+    "trace": []
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-014-v3",
+    "trace": [
+      {
+        "branch_name": "query_engine_path",
+        "correct_branch": false,
+        "evidence_found": "partitioned by order_id, cardinality 4.1M",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": true,
+        "evidence_found": "partitioned by order_id, cardinality 4.1M",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.78,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-014-v3",
+    "trace": [
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": true,
+        "evidence_found": "partitioned by order_id, cardinality 4.1M",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.78,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "small_files_path",
+        "correct_branch": true,
+        "evidence_found": "compaction ineffective; full rewrite estimated 9 hours",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "DO-MH-014-v3",
+    "trace": [
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": true,
+        "evidence_found": "partitioned by order_id, cardinality 4.1M",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.78,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "small_files_path",
+        "correct_branch": true,
+        "evidence_found": "compaction ineffective; full rewrite estimated 9 hours",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-014-v4",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-014-v4",
+    "trace": [
+      {
+        "branch_name": "pipeline_runtime_path",
+        "correct_branch": false,
+        "evidence_found": "one ad-hoc session scanning the full table; pipeline healthy",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.75,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": false,
+        "evidence_found": "one ad-hoc session scanning the full table; pipeline healthy",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-014-v4",
+    "trace": [
+      {
+        "branch_name": "query_engine_path",
+        "correct_branch": true,
+        "evidence_found": "one ad-hoc session scanning the full table; pipeline healthy",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.25,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-014-v4",
+    "trace": [
+      {
+        "branch_name": "query_engine_path",
+        "correct_branch": true,
+        "evidence_found": "one ad-hoc session scanning the full table; pipeline healthy",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.25,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-014-v5",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-014-v5",
+    "trace": [
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": true,
+        "evidence_found": "partition key changed in Tuesday's deploy; pipeline on time",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "pipeline_runtime_path",
+        "correct_branch": false,
+        "evidence_found": "partition key changed in Tuesday's deploy; pipeline on time",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.76,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-014-v5",
+    "trace": [
+      {
+        "branch_name": "partition_layout_path",
+        "correct_branch": true,
+        "evidence_found": "partition key changed in Tuesday's deploy; pipeline on time",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "small_files_path",
+        "correct_branch": true,
+        "evidence_found": "prior layout retained and switchable",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.32,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "DO-MH-014-v5",
+    "trace": [
+      {
+        "branch_name": "pipeline_runtime_path",
+        "correct_branch": false,
+        "evidence_found": "partition key changed in Tuesday's deploy; pipeline on time",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.76,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "stats_freshness_path",
+        "correct_branch": false,
+        "evidence_found": "prior layout retained and switchable",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v1",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v1",
+    "trace": [
+      {
+        "branch_name": "error_profile_path",
+        "correct_branch": false,
+        "evidence_found": "migration active 02:00-08:00, covers this system, error class expected",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.09999999999999998,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v1",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "migration active 02:00-08:00, covers this system, error class expected",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.9,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v1",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "migration active 02:00-08:00, covers this system, error class expected",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.9,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v2",
+    "trace": []
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v2",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": false,
+        "evidence_found": "no active migration window covers this system",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "no active migration window covers this system",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v2",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "no active migration window covers this system",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v2",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "no active migration window covers this system",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v3",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v3",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "migration window closed at 08:00; errors continuing at 10:40",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": false,
+        "evidence_found": "migration window closed at 08:00; errors continuing at 10:40",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v3",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "migration window closed at 08:00; errors continuing at 10:40",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v3",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "migration window closed at 08:00; errors continuing at 10:40",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v4",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v4",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": false,
+        "evidence_found": "migration active, but error rate 38% against a 15% ceiling",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "migration active, but error rate 38% against a 15% ceiling",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.35,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v4",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "migration active, but error rate 38% against a 15% ceiling",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.35,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v4",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "migration active, but error rate 38% against a 15% ceiling",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.35,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v5",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v5",
+    "trace": [
+      {
+        "branch_name": "error_profile_path",
+        "correct_branch": false,
+        "evidence_found": "window still flagged active but the migration is marked complete; residual errors have a documented repair",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.38,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v5",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "window still flagged active but the migration is marked complete; residual errors have a documented repair",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-009-v5",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": true,
+        "evidence_found": "window still flagged active but the migration is marked complete; residual errors have a documented repair",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v1",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v1",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "VR-88 v3.1 deployed yesterday; 12% rejection is the planned effect",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.28,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "rule_diff_path",
+        "correct_branch": false,
+        "evidence_found": "VR-88 v3.1 deployed yesterday; 12% rejection is the planned effect",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v1",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "VR-88 v3.1 deployed yesterday; 12% rejection is the planned effect",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.28,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v1",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "VR-88 v3.1 deployed yesterday; 12% rejection is the planned effect",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.28,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v2",
+    "trace": []
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v2",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "no validation-rule deploy in the last 30 days",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "rule_diff_path",
+        "correct_branch": false,
+        "evidence_found": "no validation-rule deploy in the last 30 days",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v2",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "no validation-rule deploy in the last 30 days",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v2",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "no validation-rule deploy in the last 30 days",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v3",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v3",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "VR-88 deployed with a threshold typo: planned 2%, actual 12%",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.34,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "rule_diff_path",
+        "correct_branch": false,
+        "evidence_found": "VR-88 deployed with a threshold typo: planned 2%, actual 12%",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v3",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "VR-88 deployed with a threshold typo: planned 2%, actual 12%",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.34,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v3",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "VR-88 deployed with a threshold typo: planned 2%, actual 12%",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.34,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v4",
+    "trace": []
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v4",
+    "trace": [
+      {
+        "branch_name": "rejection_sample_path",
+        "correct_branch": false,
+        "evidence_found": "VR-88 deployed intentionally; 4% actual against 2% planned",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.6,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v4",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "VR-88 deployed intentionally; 4% actual against 2% planned",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v4",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "VR-88 deployed intentionally; 4% actual against 2% planned",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v5",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v5",
+    "trace": [
+      {
+        "branch_name": "rejection_sample_path",
+        "correct_branch": false,
+        "evidence_found": "deploy record shows no change, but the rule version moved 3.0 to 3.1 via config drift",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.44999999999999996,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v5",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "deploy record shows no change, but the rule version moved 3.0 to 3.1 via config drift",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-011-v5",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "deploy record shows no change, but the rule version moved 3.0 to 3.1 via config drift",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v1",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v1",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "sibling_consumer_path",
+        "correct_branch": false,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.25,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.75,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v1",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.75,
+        "misleading_branch": false,
+        "step": 2
+      },
+      {
+        "branch_name": "source_health_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST down since 02:10",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.08,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v1",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.75,
+        "misleading_branch": false,
+        "step": 2
+      },
+      {
+        "branch_name": "source_health_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST down since 02:10",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.08,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v2",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v2",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "sibling_consumer_path",
+        "correct_branch": false,
+        "evidence_found": "A healthy; B's own transformation failing",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.85,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "A healthy; B's own transformation failing",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.15,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v2",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "A healthy; B's own transformation failing",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.15,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v2",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "A healthy; B's own transformation failing",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.15,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v3",
+    "trace": []
+  },
+  {
+    "action": "auto_fix",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v3",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 2
+      },
+      {
+        "branch_name": "sibling_consumer_path",
+        "correct_branch": false,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.28,
+        "misleading_branch": true,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v3",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 2
+      },
+      {
+        "branch_name": "source_health_path",
+        "correct_branch": true,
+        "evidence_found": "A healthy but publishing contract 2.0 against an expected 1.4",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.16,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v3",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 2
+      },
+      {
+        "branch_name": "source_health_path",
+        "correct_branch": true,
+        "evidence_found": "A healthy but publishing contract 2.0 against an expected 1.4",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.16,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v4",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v4",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 2
+      },
+      {
+        "branch_name": "sibling_consumer_path",
+        "correct_branch": false,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.44999999999999996,
+        "misleading_branch": true,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v4",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 2
+      },
+      {
+        "branch_name": "source_health_path",
+        "correct_branch": true,
+        "evidence_found": "A had a 12-minute outage, recovered, next run in 20 minutes",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.56,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v4",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-B-ENRICH",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": true,
+        "evidence_found": "SYS-A-INGEST",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 2
+      },
+      {
+        "branch_name": "source_health_path",
+        "correct_branch": true,
+        "evidence_found": "A had a 12-minute outage, recovered, next run in 20 minutes",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.56,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v5",
+    "trace": []
+  },
+  {
+    "action": "auto_fix",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v5",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "all upstreams healthy; C exhausted 3 of 3 retries on a transient error",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.42,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "sibling_consumer_path",
+        "correct_branch": false,
+        "evidence_found": "neutral branch evidence",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "upstream_of_b_path",
+        "correct_branch": false,
+        "evidence_found": "neutral branch evidence",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v5",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "all upstreams healthy; C exhausted 3 of 3 retries on a transient error",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.42,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-001-v5",
+    "trace": [
+      {
+        "branch_name": "upstream_of_c_path",
+        "correct_branch": true,
+        "evidence_found": "all upstreams healthy; C exhausted 3 of 3 retries on a transient error",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.42,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v1",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v1",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "parallel_job_path",
+        "correct_branch": false,
+        "evidence_found": "B missed its 06:00 window",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.62,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "staleness_impact_path",
+        "correct_branch": true,
+        "evidence_found": "A ran 90 minutes late; 4 downstream consumers past tolerance",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.86,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v1",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B missed its 06:00 window",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.38,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v1",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B missed its 06:00 window",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.38,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v2",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v2",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B missed its window on its own resource contention; A was on time",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v2",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B missed its window on its own resource contention; A was on time",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v2",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B missed its window on its own resource contention; A was on time",
+        "factor_enriched": "transformation_health",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v3",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v3",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "parallel_job_path",
+        "correct_branch": false,
+        "evidence_found": "B finished 12 minutes late",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "staleness_impact_path",
+        "correct_branch": true,
+        "evidence_found": "data 40 minutes stale against a 120-minute tolerance",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.28,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v3",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B finished 12 minutes late",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v3",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B finished 12 minutes late",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v4",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v4",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B missed its window",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v4",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B missed its window",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v4",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C read at 07:05, five minutes into its window",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.55,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": true,
+        "evidence_found": "B missed its window",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v5",
+    "trace": []
+  },
+  {
+    "action": "auto_fix",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v5",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C's cron was edited at 04:00, moving its read 90 minutes earlier than its producer",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "upstream_batch_path",
+        "correct_branch": false,
+        "evidence_found": "neutral branch evidence",
+        "factor_enriched": "source_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v5",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C's cron was edited at 04:00, moving its read 90 minutes earlier than its producer",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-MH-008-v5",
+    "trace": [
+      {
+        "branch_name": "batch_window_path",
+        "correct_branch": true,
+        "evidence_found": "C's cron was edited at 04:00, moving its read 90 minutes earlier than its producer",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "auto_fix",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "auto_fix",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "auto_fix",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "escalate_to_owner",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "monitor",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "auto_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "rollback",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "DO-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-001",
+    "trace": []
+  },
+  {
+    "action": "manual_fix",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-001",
+    "trace": [
+      {
+        "branch_name": "storage_metrics_path",
+        "correct_branch": false,
+        "evidence_found": "null rate 9%, disk p99 mildly elevated",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-001",
+    "trace": [
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "null rate 9%, disk p99 mildly elevated",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-001",
+    "trace": [
+      {
+        "branch_name": "input_profile_path",
+        "correct_branch": true,
+        "evidence_found": "null rate 9%, disk p99 mildly elevated",
+        "factor_enriched": "data_quality",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-002",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-002",
+    "trace": [
+      {
+        "branch_name": "upstream_timing_path",
+        "correct_branch": true,
+        "evidence_found": "upstream 18 minutes late \u2014 within its historical spread",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-002",
+    "trace": [
+      {
+        "branch_name": "upstream_timing_path",
+        "correct_branch": true,
+        "evidence_found": "upstream 18 minutes late \u2014 within its historical spread",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-002",
+    "trace": [
+      {
+        "branch_name": "pattern_match_path",
+        "correct_branch": false,
+        "evidence_found": "upstream 18 minutes late \u2014 within its historical spread",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-003",
+    "trace": []
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-003",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "a deploy 9 days ago touched an unrelated rule",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.48,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "manual_fix",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-003",
+    "trace": [
+      {
+        "branch_name": "deploy_record_path",
+        "correct_branch": true,
+        "evidence_found": "a deploy 9 days ago touched an unrelated rule",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.48,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "escalate_to_owner",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "manual_fix",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-003",
+    "trace": [
+      {
+        "branch_name": "rule_diff_path",
+        "correct_branch": false,
+        "evidence_found": "a deploy 9 days ago touched an unrelated rule",
+        "factor_enriched": "pattern_familiarity",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-004",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-004",
+    "trace": [
+      {
+        "branch_name": "dependency_scan_path",
+        "correct_branch": true,
+        "evidence_found": "three downstream systems, none past tolerance yet",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.54,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-004",
+    "trace": [
+      {
+        "branch_name": "dependency_scan_path",
+        "correct_branch": true,
+        "evidence_found": "three downstream systems, none past tolerance yet",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.54,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-004",
+    "trace": [
+      {
+        "branch_name": "blast_radius_path",
+        "correct_branch": false,
+        "evidence_found": "three downstream systems, none past tolerance yet",
+        "factor_enriched": "impact_scope",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "auto_fix",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-005",
+    "trace": []
+  },
+  {
+    "action": "rollback",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-005",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": false,
+        "evidence_found": "one field added, backward compatible, no consumer breakage yet",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "monitor",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-005",
+    "trace": [
+      {
+        "branch_name": "schema_diff_path",
+        "correct_branch": true,
+        "evidence_found": "one field added, backward compatible, no consumer breakage yet",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.47,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "rollback",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "monitor",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "DO-CTRL-RHO50-005",
+    "trace": [
+      {
+        "branch_name": "migration_window_path",
+        "correct_branch": false,
+        "evidence_found": "one field added, backward compatible, no consumer breakage yet",
+        "factor_enriched": "schema_stability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  }
+]

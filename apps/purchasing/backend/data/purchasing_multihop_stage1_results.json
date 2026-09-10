@@ -1,0 +1,3244 @@
+[
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-001-v1",
+    "trace": []
+  },
+  {
+    "action": "order_reduced",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-001-v1",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "48% uplift confirmed in each of the last three years",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.88,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "inventory_buffer_path",
+        "correct_branch": false,
+        "evidence_found": "48% uplift confirmed in each of the last three years",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.12,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-001-v1",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "48% uplift confirmed in each of the last three years",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.88,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-001-v1",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "48% uplift confirmed in each of the last three years",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.88,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-001-v2",
+    "trace": []
+  },
+  {
+    "action": "order_standard",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-001-v2",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": false,
+        "evidence_found": "lead time extended from 7 to 21 days",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "inventory_buffer_path",
+        "correct_branch": false,
+        "evidence_found": "lead time extended from 7 to 21 days",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.74,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-001-v2",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": true,
+        "evidence_found": "lead time extended from 7 to 21 days",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.26,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-001-v2",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": true,
+        "evidence_found": "lead time extended from 7 to 21 days",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.26,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-001-v3",
+    "trace": []
+  },
+  {
+    "action": "order_standard",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-001-v3",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": false,
+        "evidence_found": "on-hand 148 plus 60 in transit against a 14-day need of 154",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "inventory_buffer_path",
+        "correct_branch": true,
+        "evidence_found": "on-hand 148 plus 60 in transit against a 14-day need of 154",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-001-v3",
+    "trace": [
+      {
+        "branch_name": "inventory_buffer_path",
+        "correct_branch": true,
+        "evidence_found": "on-hand 148 plus 60 in transit against a 14-day need of 154",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "historical_spike_path",
+        "correct_branch": true,
+        "evidence_found": "uplift adds 22 cases, still inside coverage",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-001-v3",
+    "trace": [
+      {
+        "branch_name": "inventory_buffer_path",
+        "correct_branch": true,
+        "evidence_found": "on-hand 148 plus 60 in transit against a 14-day need of 154",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.4,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "historical_spike_path",
+        "correct_branch": true,
+        "evidence_found": "uplift adds 22 cases, still inside coverage",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-001-v4",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-001-v4",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "uplift present once, traced to a one-off catering booking",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "inventory_buffer_path",
+        "correct_branch": false,
+        "evidence_found": "uplift present once, traced to a one-off catering booking",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.76,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-001-v4",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "uplift present once, traced to a one-off catering booking",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-001-v4",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "uplift present once, traced to a one-off catering booking",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-001-v5",
+    "trace": []
+  },
+  {
+    "action": "defer_order",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-001-v5",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": false,
+        "evidence_found": "lead time stable but fill rate down to 61%",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "inventory_buffer_path",
+        "correct_branch": false,
+        "evidence_found": "lead time stable but fill rate down to 61%",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.7,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-001-v5",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": true,
+        "evidence_found": "lead time stable but fill rate down to 61%",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-001-v5",
+    "trace": [
+      {
+        "branch_name": "inventory_buffer_path",
+        "correct_branch": false,
+        "evidence_found": "lead time stable but fill rate down to 61%",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.7,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "historical_spike_path",
+        "correct_branch": false,
+        "evidence_found": "incumbent capped below need; alternative can cover in full",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-002-v1",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-002-v1",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": false,
+        "evidence_found": "7-day life but spoilage observed at day 4",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "order_size_path",
+        "correct_branch": false,
+        "evidence_found": "7-day life but spoilage observed at day 4",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.72,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-002-v1",
+    "trace": [
+      {
+        "branch_name": "expiry_data_path",
+        "correct_branch": true,
+        "evidence_found": "7-day life but spoilage observed at day 4",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.28,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-002-v1",
+    "trace": [
+      {
+        "branch_name": "expiry_data_path",
+        "correct_branch": true,
+        "evidence_found": "7-day life but spoilage observed at day 4",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.28,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-002-v2",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-002-v2",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": true,
+        "evidence_found": "consumption steady at 9L/day, no decline",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "order_size_path",
+        "correct_branch": false,
+        "evidence_found": "consumption steady at 9L/day, no decline",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.28,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-002-v2",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": true,
+        "evidence_found": "consumption steady at 9L/day, no decline",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-002-v2",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": true,
+        "evidence_found": "consumption steady at 9L/day, no decline",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-002-v3",
+    "trace": []
+  },
+  {
+    "action": "defer_order",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-002-v3",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": false,
+        "evidence_found": "stock arriving with 3 of 7 days already elapsed",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "order_size_path",
+        "correct_branch": false,
+        "evidence_found": "stock arriving with 3 of 7 days already elapsed",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.78,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-002-v3",
+    "trace": [
+      {
+        "branch_name": "expiry_data_path",
+        "correct_branch": true,
+        "evidence_found": "stock arriving with 3 of 7 days already elapsed",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-002-v3",
+    "trace": [
+      {
+        "branch_name": "expiry_data_path",
+        "correct_branch": true,
+        "evidence_found": "stock arriving with 3 of 7 days already elapsed",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-002-v4",
+    "trace": []
+  },
+  {
+    "action": "order_reduced",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-002-v4",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": true,
+        "evidence_found": "recorded usage understated: a second prep station was never logged",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.84,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "order_size_path",
+        "correct_branch": false,
+        "evidence_found": "recorded usage understated: a second prep station was never logged",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.16000000000000003,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-002-v4",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": true,
+        "evidence_found": "recorded usage understated: a second prep station was never logged",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.84,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-002-v4",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": true,
+        "evidence_found": "recorded usage understated: a second prep station was never logged",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.84,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-002-v5",
+    "trace": []
+  },
+  {
+    "action": "emergency_order",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-002-v5",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": false,
+        "evidence_found": "life normal at 7 days, but 3 weeks of stock already on hand",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "order_size_path",
+        "correct_branch": false,
+        "evidence_found": "life normal at 7 days, but 3 weeks of stock already on hand",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.56,
+        "misleading_branch": true,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-002-v5",
+    "trace": [
+      {
+        "branch_name": "expiry_data_path",
+        "correct_branch": true,
+        "evidence_found": "life normal at 7 days, but 3 weeks of stock already on hand",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-002-v5",
+    "trace": [
+      {
+        "branch_name": "order_size_path",
+        "correct_branch": false,
+        "evidence_found": "life normal at 7 days, but 3 weeks of stock already on hand",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.56,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "demand_variability_path",
+        "correct_branch": false,
+        "evidence_found": "existing lots cover the next 2 order cycles",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-003-v1",
+    "trace": []
+  },
+  {
+    "action": "defer_order",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-003-v1",
+    "trace": [
+      {
+        "branch_name": "headline_price_path",
+        "correct_branch": false,
+        "evidence_found": "alternative defect rate 0.9%, audit score 92",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.14,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": true,
+        "evidence_found": "alternative defect rate 0.9%, audit score 92",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.86,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-003-v1",
+    "trace": [
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": true,
+        "evidence_found": "alternative defect rate 0.9%, audit score 92",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.86,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-003-v1",
+    "trace": [
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": true,
+        "evidence_found": "alternative defect rate 0.9%, audit score 92",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.86,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-003-v2",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-003-v2",
+    "trace": [
+      {
+        "branch_name": "headline_price_path",
+        "correct_branch": false,
+        "evidence_found": "requalification costs 9,400 against annual saving of 6,200",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.7,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": false,
+        "evidence_found": "requalification costs 9,400 against annual saving of 6,200",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-003-v2",
+    "trace": [
+      {
+        "branch_name": "transition_cost_path",
+        "correct_branch": true,
+        "evidence_found": "requalification costs 9,400 against annual saving of 6,200",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.9,
+    "scenario_id": "PUR-MH-003-v2",
+    "trace": [
+      {
+        "branch_name": "transition_cost_path",
+        "correct_branch": true,
+        "evidence_found": "requalification costs 9,400 against annual saving of 6,200",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-003-v3",
+    "trace": []
+  },
+  {
+    "action": "emergency_order",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-003-v3",
+    "trace": [
+      {
+        "branch_name": "headline_price_path",
+        "correct_branch": false,
+        "evidence_found": "alternative defect rate 1.0%, comparable to incumbent",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.21999999999999997,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": true,
+        "evidence_found": "alternative defect rate 1.0%, comparable to incumbent",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.78,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-003-v3",
+    "trace": [
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": true,
+        "evidence_found": "alternative defect rate 1.0%, comparable to incumbent",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.78,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.7,
+    "scenario_id": "PUR-MH-003-v3",
+    "trace": [
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": true,
+        "evidence_found": "alternative defect rate 1.0%, comparable to incumbent",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.78,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-003-v4",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-003-v4",
+    "trace": [
+      {
+        "branch_name": "headline_price_path",
+        "correct_branch": false,
+        "evidence_found": "dual-sourcing possible at a third of full transition cost",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.28,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": false,
+        "evidence_found": "dual-sourcing possible at a third of full transition cost",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-003-v4",
+    "trace": [
+      {
+        "branch_name": "transition_cost_path",
+        "correct_branch": true,
+        "evidence_found": "dual-sourcing possible at a third of full transition cost",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-003-v4",
+    "trace": [
+      {
+        "branch_name": "transition_cost_path",
+        "correct_branch": true,
+        "evidence_found": "dual-sourcing possible at a third of full transition cost",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.72,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-003-v5",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-003-v5",
+    "trace": [
+      {
+        "branch_name": "headline_price_path",
+        "correct_branch": false,
+        "evidence_found": "alternative defect rate 4.8% against incumbent 1.1%",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.76,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": true,
+        "evidence_found": "alternative defect rate 4.8% against incumbent 1.1%",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-003-v5",
+    "trace": [
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": true,
+        "evidence_found": "alternative defect rate 4.8% against incumbent 1.1%",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.24,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 0.3,
+    "scenario_id": "PUR-MH-003-v5",
+    "trace": [
+      {
+        "branch_name": "headline_price_path",
+        "correct_branch": false,
+        "evidence_found": "alternative defect rate 4.8% against incumbent 1.1%",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.76,
+        "misleading_branch": true,
+        "step": 1
+      },
+      {
+        "branch_name": "defect_rate_path",
+        "correct_branch": false,
+        "evidence_found": "incumbent drops to 16.90 at 900 sacks",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v1",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v1",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold 100 units, item non-perishable at 540 days",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.86,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "shelf_life_path",
+        "correct_branch": false,
+        "evidence_found": "threshold 100 units, item non-perishable at 540 days",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v1",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold 100 units, item non-perishable at 540 days",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.86,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_increased",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v1",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold 100 units, item non-perishable at 540 days",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.86,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v2",
+    "trace": []
+  },
+  {
+    "action": "order_standard",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v2",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold 100 units, but shelf life is 21 days and usage is 4 jugs/day",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.34,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "shelf_life_path",
+        "correct_branch": false,
+        "evidence_found": "threshold 100 units, but shelf life is 21 days and usage is 4 jugs/day",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v2",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold 100 units, but shelf life is 21 days and usage is 4 jugs/day",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.34,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v2",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold 100 units, but shelf life is 21 days and usage is 4 jugs/day",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.34,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v3",
+    "trace": []
+  },
+  {
+    "action": "defer_order",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v3",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold 100 units now, schedule revises to a 60-unit threshold on 16 September",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "shelf_life_path",
+        "correct_branch": false,
+        "evidence_found": "threshold 100 units now, schedule revises to a 60-unit threshold on 16 September",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v3",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold 100 units now, schedule revises to a 60-unit threshold on 16 September",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v3",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold 100 units now, schedule revises to a 60-unit threshold on 16 September",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v4",
+    "trace": []
+  },
+  {
+    "action": "order_reduced",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v4",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "discount applies per delivery, not per order",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "shelf_life_path",
+        "correct_branch": false,
+        "evidence_found": "discount applies per delivery, not per order",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v4",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "discount applies per delivery, not per order",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v4",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "discount applies per delivery, not per order",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v5",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v5",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold reachable, but the tier price of 21.50 is still above an alternative supplier's list of 20.10",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "shelf_life_path",
+        "correct_branch": false,
+        "evidence_found": "threshold reachable, but the tier price of 21.50 is still above an alternative supplier's list of 20.10",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v5",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold reachable, but the tier price of 21.50 is still above an alternative supplier's list of 20.10",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-004-v5",
+    "trace": [
+      {
+        "branch_name": "discount_schedule_path",
+        "correct_branch": true,
+        "evidence_found": "threshold reachable, but the tier price of 21.50 is still above an alternative supplier's list of 20.10",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v1",
+    "trace": []
+  },
+  {
+    "action": "emergency_order",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v1",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": false,
+        "evidence_found": "stockout in 3 days against a 7-day standard lead time",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 3 days against a 7-day standard lead time",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v1",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 3 days against a 7-day standard lead time",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v1",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 3 days against a 7-day standard lead time",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.22,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v2",
+    "trace": []
+  },
+  {
+    "action": "order_standard",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v2",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": false,
+        "evidence_found": "stockout in 10 days against a 7-day lead time",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 10 days against a 7-day lead time",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.8,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v2",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 10 days against a 7-day lead time",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.8,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v2",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 10 days against a 7-day lead time",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.8,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v3",
+    "trace": []
+  },
+  {
+    "action": "defer_order",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v3",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": false,
+        "evidence_found": "stockout in 3 days, but a substitute item covers the menu for 12 days",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 3 days, but a substitute item covers the menu for 12 days",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.58,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v3",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 3 days, but a substitute item covers the menu for 12 days",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.58,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v3",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 3 days, but a substitute item covers the menu for 12 days",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.58,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v4",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v4",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": false,
+        "evidence_found": "stockout in 2 days and the incumbent cannot expedite; an alternative delivers next day",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 2 days and the incumbent cannot expedite; an alternative delivers next day",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.26,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v4",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 2 days and the incumbent cannot expedite; an alternative delivers next day",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.26,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v4",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout in 2 days and the incumbent cannot expedite; an alternative delivers next day",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.26,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v5",
+    "trace": []
+  },
+  {
+    "action": "order_reduced",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v5",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": false,
+        "evidence_found": "stockout date says 3 days, but a menu change effective 5 September already cut usage by half",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout date says 3 days, but a menu change effective 5 September already cut usage by half",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v5",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout date says 3 days, but a menu change effective 5 September already cut usage by half",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-005-v5",
+    "trace": [
+      {
+        "branch_name": "stockout_date_path",
+        "correct_branch": true,
+        "evidence_found": "stockout date says 3 days, but a menu change effective 5 September already cut usage by half",
+        "factor_enriched": "consumption_rate",
+        "factor_new_value": 0.62,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v1",
+    "trace": []
+  },
+  {
+    "action": "defer_order",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v1",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "same_item_path",
+        "correct_branch": false,
+        "evidence_found": "LOT-88 from Greenfield",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.6599999999999999,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "affected_items_path",
+        "correct_branch": true,
+        "evidence_found": "6 items across 4 categories from the same lot",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.18,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v1",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "supplier_batch_path",
+        "correct_branch": true,
+        "evidence_found": "LOT-88 from Greenfield",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.34,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v1",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "supplier_batch_path",
+        "correct_branch": true,
+        "evidence_found": "LOT-88 from Greenfield",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.34,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v2",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v2",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "same_item_path",
+        "correct_branch": false,
+        "evidence_found": "LOT-88",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.48,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "affected_items_path",
+        "correct_branch": true,
+        "evidence_found": "only this item in the lot",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.6,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v2",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "supplier_batch_path",
+        "correct_branch": true,
+        "evidence_found": "LOT-88",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v2",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "supplier_batch_path",
+        "correct_branch": true,
+        "evidence_found": "LOT-88",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.52,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v3",
+    "trace": []
+  },
+  {
+    "action": "emergency_order",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v3",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "same_item_path",
+        "correct_branch": false,
+        "evidence_found": "LOT-88, flagged shared upstream",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.7,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "affected_items_path",
+        "correct_branch": true,
+        "evidence_found": "the grower supplies 3 of our 5 suppliers",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.16,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v3",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "supplier_batch_path",
+        "correct_branch": true,
+        "evidence_found": "LOT-88, flagged shared upstream",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v3",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "supplier_batch_path",
+        "correct_branch": true,
+        "evidence_found": "LOT-88, flagged shared upstream",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.3,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v4",
+    "trace": []
+  },
+  {
+    "action": "order_standard",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v4",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "same_item_path",
+        "correct_branch": false,
+        "evidence_found": "LOT-88",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.6799999999999999,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "affected_items_path",
+        "correct_branch": true,
+        "evidence_found": "4 items pulled from shelves, leaving 2 days of cover",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.2,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v4",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "supplier_batch_path",
+        "correct_branch": true,
+        "evidence_found": "LOT-88",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.32,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v4",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "BCH-4471, received 2 September",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.44,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "supplier_batch_path",
+        "correct_branch": true,
+        "evidence_found": "LOT-88",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.32,
+        "misleading_branch": false,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "single_pass",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v5",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "breadth",
+    "branching_kind": "prerequisite",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v5",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "no batch id recorded on the delivery",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.36,
+        "misleading_branch": false,
+        "step": 1
+      },
+      {
+        "branch_name": "same_item_path",
+        "correct_branch": false,
+        "evidence_found": "neutral purchasing branch evidence",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.5,
+        "misleading_branch": true,
+        "step": 2
+      },
+      {
+        "branch_name": "affected_items_path",
+        "correct_branch": false,
+        "evidence_found": "neutral purchasing branch evidence",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 3
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "content_rule",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v5",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "no batch id recorded on the delivery",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.36,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "vld",
+    "branching_kind": "prerequisite",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-MH-006-v5",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": true,
+        "evidence_found": "no batch id recorded on the delivery",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.36,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-001",
+    "trace": []
+  },
+  {
+    "action": "emergency_order",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "emergency_order",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "emergency_order",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "emergency_order",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "emergency_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-002",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-003",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": true,
+    "ground_truth_action": "switch_supplier",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-004",
+    "trace": []
+  },
+  {
+    "action": "order_reduced",
+    "arm": "single_pass",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "order_reduced",
+    "arm": "breadth",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "order_reduced",
+    "arm": "content_rule",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "order_reduced",
+    "arm": "vld",
+    "branching_kind": "content_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 1.0,
+    "scenario_id": "PUR-CTRL-FLAT-005",
+    "trace": []
+  },
+  {
+    "action": "defer_order",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-001",
+    "trace": []
+  },
+  {
+    "action": "order_increased",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-001",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "12% uplift, confirmed in one of three prior years",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-001",
+    "trace": [
+      {
+        "branch_name": "demand_calendar_path",
+        "correct_branch": true,
+        "evidence_found": "12% uplift, confirmed in one of three prior years",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_increased",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-001",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": false,
+        "evidence_found": "12% uplift, confirmed in one of three prior years",
+        "factor_enriched": "demand_forecast",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-002",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-002",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": false,
+        "evidence_found": "spoilage at day 6 of a 7-day life",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-002",
+    "trace": [
+      {
+        "branch_name": "expiry_data_path",
+        "correct_branch": true,
+        "evidence_found": "spoilage at day 6 of a 7-day life",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-002",
+    "trace": [
+      {
+        "branch_name": "consumption_rate_path",
+        "correct_branch": false,
+        "evidence_found": "spoilage at day 6 of a 7-day life",
+        "factor_enriched": "shelf_life",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-003",
+    "trace": []
+  },
+  {
+    "action": "emergency_order",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-003",
+    "trace": [
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": false,
+        "evidence_found": "transition cost roughly equals one year of saving",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-003",
+    "trace": [
+      {
+        "branch_name": "transition_cost_path",
+        "correct_branch": true,
+        "evidence_found": "transition cost roughly equals one year of saving",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "emergency_order",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "defer_order",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-003",
+    "trace": [
+      {
+        "branch_name": "quality_history_path",
+        "correct_branch": false,
+        "evidence_found": "transition cost roughly equals one year of saving",
+        "factor_enriched": "cost_efficiency",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-004",
+    "trace": []
+  },
+  {
+    "action": "order_standard",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-004",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": true,
+        "evidence_found": "lead time 7 days with 3 days of variance against a 7-day stockout",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-004",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": true,
+        "evidence_found": "lead time 7 days with 3 days of variance against a 7-day stockout",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_standard",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_standard",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-004",
+    "trace": [
+      {
+        "branch_name": "lead_time_path",
+        "correct_branch": true,
+        "evidence_found": "lead time 7 days with 3 days of variance against a 7-day stockout",
+        "factor_enriched": "supplier_reliability",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "defer_order",
+    "arm": "single_pass",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-005",
+    "trace": []
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "breadth",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-005",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": false,
+        "evidence_found": "2 complaints, severity graded medium",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "order_reduced",
+    "arm": "content_rule",
+    "branching_kind": "score_keyed",
+    "correct": true,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-005",
+    "trace": [
+      {
+        "branch_name": "same_item_path",
+        "correct_branch": true,
+        "evidence_found": "2 complaints, severity graded medium",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "action": "switch_supplier",
+    "arm": "vld",
+    "branching_kind": "score_keyed",
+    "correct": false,
+    "ground_truth_action": "order_reduced",
+    "provenance": "sample",
+    "rho_planted": 0.5,
+    "scenario_id": "PUR-CTRL-RHO50-005",
+    "trace": [
+      {
+        "branch_name": "batch_lookup_path",
+        "correct_branch": false,
+        "evidence_found": "2 complaints, severity graded medium",
+        "factor_enriched": "quality_score",
+        "factor_new_value": 0.5,
+        "misleading_branch": false,
+        "step": 1
+      }
+    ]
+  }
+]

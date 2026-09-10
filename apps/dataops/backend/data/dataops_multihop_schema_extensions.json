@@ -1,0 +1,96 @@
+{
+  "_header": "Schema extensions required by dataops_multihop_stage1.json",
+  "_file": "dataops_multihop_schema_extensions_v2.json",
+  "_file_version": "v2",
+  "_spec": "multihop_scenario_spec_v2.md",
+  "base_node_types": [
+    "Alert",
+    "BatchJob",
+    "DataQualityMetric",
+    "DataSource",
+    "DependencyEdge",
+    "DeployRecord",
+    "MigrationWindow",
+    "PipelineSystem",
+    "SchemaChange",
+    "Transformation",
+    "ValidationRule"
+  ],
+  "base_edge_types": [
+    "AFFECTED_BY",
+    "DEPENDS_ON",
+    "DEPLOYED_ON",
+    "FEEDS",
+    "HAS_VALIDATION",
+    "MIGRATION_COVERS",
+    "TRIGGERED_BY"
+  ],
+  "new_node_types": [
+    {
+      "type": "BatchRun"
+    },
+    {
+      "type": "IncidentHistory"
+    },
+    {
+      "type": "PartitionLayout"
+    },
+    {
+      "type": "ResourceProfile"
+    },
+    {
+      "type": "RetryConfig"
+    },
+    {
+      "type": "ScheduleChange"
+    },
+    {
+      "type": "StorageMetric"
+    },
+    {
+      "type": "TableStatistics"
+    }
+  ],
+  "new_edge_types": [
+    {
+      "type": "APPLIES_TRANSFORM"
+    },
+    {
+      "type": "CONSUMES_OUTPUT_OF"
+    },
+    {
+      "type": "HAS_PARTITION_LAYOUT"
+    },
+    {
+      "type": "HAS_RETRY_CONFIG"
+    },
+    {
+      "type": "HAS_RUN"
+    },
+    {
+      "type": "HAS_SCHEDULE_CHANGE"
+    },
+    {
+      "type": "HAS_STATISTICS"
+    },
+    {
+      "type": "MATCHES_HISTORY"
+    },
+    {
+      "type": "MEASURED_BY"
+    },
+    {
+      "type": "PUBLISHES_CONTRACT"
+    },
+    {
+      "type": "RUNS_ON"
+    },
+    {
+      "type": "SCHEDULED_ON"
+    },
+    {
+      "type": "STORED_ON"
+    }
+  ],
+  "provenance": "sample"
+}
